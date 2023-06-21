@@ -15,32 +15,32 @@ import pandora.HidProto.SendHostReportResponse
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Hid(val context: Context) : HIDImplBase(), Closeable {
-  private val TAG = "PandoraHid"
+    private val TAG = "PandoraHid"
 
-  private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 
-  private val bluetoothManager =
-    context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-  private val bluetoothAdapter = bluetoothManager.adapter
-  private val bluetoothHidHost =
-    getProfileProxy<BluetoothHidHost>(context, BluetoothProfile.HID_HOST)
+    private val bluetoothManager =
+        context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+    private val bluetoothAdapter = bluetoothManager.adapter
+    private val bluetoothHidHost =
+        getProfileProxy<BluetoothHidHost>(context, BluetoothProfile.HID_HOST)
 
-  override fun close() {
-    // Deinit the CoroutineScope
-    scope.cancel()
-  }
-
-  override fun sendHostReport(
-    request: SendHostReportRequest,
-    responseObserver: StreamObserver<SendHostReportResponse>,
-  ) {
-    grpcUnary(scope, responseObserver) {
-      bluetoothHidHost.setReport(
-        request.address.toBluetoothDevice(bluetoothAdapter),
-        request.reportType.number.toByte(),
-        request.report
-      )
-      SendHostReportResponse.getDefaultInstance()
+    override fun close() {
+        // Deinit the CoroutineScope
+        scope.cancel()
     }
-  }
+
+    override fun sendHostReport(
+        request: SendHostReportRequest,
+        responseObserver: StreamObserver<SendHostReportResponse>,
+    ) {
+        grpcUnary(scope, responseObserver) {
+            bluetoothHidHost.setReport(
+                request.address.toBluetoothDevice(bluetoothAdapter),
+                request.reportType.number.toByte(),
+                request.report
+            )
+            SendHostReportResponse.getDefaultInstance()
+        }
+    }
 }

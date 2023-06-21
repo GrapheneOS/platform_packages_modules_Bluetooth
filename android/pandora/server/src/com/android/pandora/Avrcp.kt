@@ -27,21 +27,21 @@ import pandora.AvrcpProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Avrcp(val context: Context) : AVRCPImplBase(), Closeable {
-  private val TAG = "PandoraAvrcp"
+    private val TAG = "PandoraAvrcp"
 
-  private val scope: CoroutineScope
+    private val scope: CoroutineScope
 
-  private val bluetoothManager =
-    context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-  private val bluetoothAdapter = bluetoothManager.adapter
+    private val bluetoothManager =
+        context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+    private val bluetoothAdapter = bluetoothManager.adapter
 
-  init {
-    // Init the CoroutineScope
-    scope = CoroutineScope(Dispatchers.Default)
-  }
+    init {
+        // Init the CoroutineScope
+        scope = CoroutineScope(Dispatchers.Default)
+    }
 
-  override fun close() {
-    // Deinit the CoroutineScope
-    scope.cancel()
-  }
+    override fun close() {
+        // Deinit the CoroutineScope
+        scope.cancel()
+    }
 }

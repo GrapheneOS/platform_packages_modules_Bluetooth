@@ -28,61 +28,61 @@ import java.io.Closeable
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Server(context: Context) {
 
-  private val TAG = "PandoraServer"
-  private val GRPC_PORT = 8999
+    private val TAG = "PandoraServer"
+    private val GRPC_PORT = 8999
 
-  private var grpcServer: GrpcServer
-  private var services: List<BindableService>
+    private var grpcServer: GrpcServer
+    private var services: List<BindableService>
 
-  init {
-    val bluetoothAdapter = context.getSystemService(BluetoothManager::class.java)!!.adapter
+    init {
+        val bluetoothAdapter = context.getSystemService(BluetoothManager::class.java)!!.adapter
 
-    val security = Security(context)
+        val security = Security(context)
 
-    // If Bluetooth is turned off, the server will try to get the available profiles,
-    // but they will be null which will cause the server to crash.
-    // Filtering the nullable profiles will allow the user to
-    // perform a factory reset to turn the Bluetooth back on.
-    services =
-      listOf(
-        security,
-        Host(context, security, this),
-        L2cap(context),
-        MediaPlayer(context),
-        Rfcomm(context),
-        SecurityStorage(context),
-        AndroidInternal(context),
-      ) +
-        mapOf(
-            BluetoothProfile.A2DP to ::A2dp,
-            BluetoothProfile.A2DP_SINK to ::A2dpSink,
-            BluetoothProfile.HEARING_AID to ::Asha,
-            BluetoothProfile.AVRCP to ::Avrcp,
-            BluetoothProfile.GATT to ::Gatt,
-            BluetoothProfile.HEADSET to ::Hfp,
-            BluetoothProfile.HEADSET_CLIENT to ::HfpHandsfree,
-            BluetoothProfile.HID_HOST to ::Hid,
-            BluetoothProfile.PAN to ::Pan,
-            BluetoothProfile.PBAP to ::Pbap,
-          )
-          .filter { bluetoothAdapter.isEnabled }
-          .filter { bluetoothAdapter.getSupportedProfiles().contains(it.key) == true }
-          .map { it.value(context) }
+        // If Bluetooth is turned off, the server will try to get the available profiles,
+        // but they will be null which will cause the server to crash.
+        // Filtering the nullable profiles will allow the user to
+        // perform a factory reset to turn the Bluetooth back on.
+        services =
+            listOf(
+                security,
+                Host(context, security, this),
+                L2cap(context),
+                MediaPlayer(context),
+                Rfcomm(context),
+                SecurityStorage(context),
+                AndroidInternal(context),
+            ) +
+                mapOf(
+                        BluetoothProfile.A2DP to ::A2dp,
+                        BluetoothProfile.A2DP_SINK to ::A2dpSink,
+                        BluetoothProfile.HEARING_AID to ::Asha,
+                        BluetoothProfile.AVRCP to ::Avrcp,
+                        BluetoothProfile.GATT to ::Gatt,
+                        BluetoothProfile.HEADSET to ::Hfp,
+                        BluetoothProfile.HEADSET_CLIENT to ::HfpHandsfree,
+                        BluetoothProfile.HID_HOST to ::Hid,
+                        BluetoothProfile.PAN to ::Pan,
+                        BluetoothProfile.PBAP to ::Pbap,
+                    )
+                    .filter { bluetoothAdapter.isEnabled }
+                    .filter { bluetoothAdapter.getSupportedProfiles().contains(it.key) == true }
+                    .map { it.value(context) }
 
-    val grpcServerBuilder = NettyServerBuilder.forPort(GRPC_PORT)
+        val grpcServerBuilder = NettyServerBuilder.forPort(GRPC_PORT)
 
-    services.forEach { grpcServerBuilder.addService(it) }
+        services.forEach { grpcServerBuilder.addService(it) }
 
-    grpcServer = grpcServerBuilder.build()
+        grpcServer = grpcServerBuilder.build()
 
-    Log.d(TAG, "Starting Pandora Server")
-    grpcServer.start()
-    Log.d(TAG, "Pandora Server started at $GRPC_PORT")
-  }
+        Log.d(TAG, "Starting Pandora Server")
+        grpcServer.start()
+        Log.d(TAG, "Pandora Server started at $GRPC_PORT")
+    }
 
-  fun shutdown() = grpcServer.shutdown()
+    fun shutdown() = grpcServer.shutdown()
 
-  fun awaitTermination() = grpcServer.awaitTermination()
+    fun awaitTermination() = grpcServer.awaitTermination()
 
-  fun deinit() = services.forEach { if (it is Closeable) it.close() }
+    fun deinit() = services.forEach { if (it is Closeable) it.close() }
 }

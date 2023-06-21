@@ -68,9 +68,9 @@ val waitedAclConnection = HashSet<BluetoothDevice>()
 val waitedAclDisconnection = HashSet<BluetoothDevice>()
 
 fun shell(cmd: String): String {
-  val fd = InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(cmd)
-  val input_stream = ParcelFileDescriptor.AutoCloseInputStream(fd)
-  return BufferedReader(InputStreamReader(input_stream)).lines().collect(Collectors.joining("\n"))
+    val fd = InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(cmd)
+    val input_stream = ParcelFileDescriptor.AutoCloseInputStream(fd)
+    return BufferedReader(InputStreamReader(input_stream)).lines().collect(Collectors.joining("\n"))
 }
 
 /**
@@ -83,23 +83,23 @@ fun shell(cmd: String): String {
  */
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 fun intentFlow(context: Context, intentFilter: IntentFilter) = callbackFlow {
-  val broadcastReceiver: BroadcastReceiver =
-    object : BroadcastReceiver() {
-      override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == BluetoothDevice.ACTION_ACL_CONNECTED) {
-          waitedAclDisconnection.remove(intent.getBluetoothDeviceExtra())
+    val broadcastReceiver: BroadcastReceiver =
+        object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                if (intent.action == BluetoothDevice.ACTION_ACL_CONNECTED) {
+                    waitedAclDisconnection.remove(intent.getBluetoothDeviceExtra())
+                }
+                if (intent.action == BluetoothDevice.ACTION_ACL_DISCONNECTED) {
+                    initiatedConnection.remove(intent.getBluetoothDeviceExtra())
+                    waitedAclConnection.remove(intent.getBluetoothDeviceExtra())
+                    waitedAclDisconnection.add(intent.getBluetoothDeviceExtra())
+                }
+                trySendBlocking(intent)
+            }
         }
-        if (intent.action == BluetoothDevice.ACTION_ACL_DISCONNECTED) {
-          initiatedConnection.remove(intent.getBluetoothDeviceExtra())
-          waitedAclConnection.remove(intent.getBluetoothDeviceExtra())
-          waitedAclDisconnection.add(intent.getBluetoothDeviceExtra())
-        }
-        trySendBlocking(intent)
-      }
-    }
-  context.registerReceiver(broadcastReceiver, intentFilter)
+    context.registerReceiver(broadcastReceiver, intentFilter)
 
-  awaitClose { context.unregisterReceiver(broadcastReceiver) }
+    awaitClose { context.unregisterReceiver(broadcastReceiver) }
 }
 
 /**
@@ -128,25 +128,25 @@ fun intentFlow(context: Context, intentFilter: IntentFilter) = callbackFlow {
  */
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 fun <T> grpcUnary(
-  scope: CoroutineScope,
-  responseObserver: StreamObserver<T>,
-  timeout: Long = 60,
-  block: suspend () -> T
+    scope: CoroutineScope,
+    responseObserver: StreamObserver<T>,
+    timeout: Long = 60,
+    block: suspend () -> T
 ): Job {
-  return scope.launch {
-    try {
-      val response = withTimeout(timeout * 1000) { block() }
-      responseObserver.onNext(response)
-      responseObserver.onCompleted()
-    } catch (e: Throwable) {
-      e.printStackTrace()
-      val sw = StringWriter()
-      e.printStackTrace(PrintWriter(sw))
-      responseObserver.onError(
-        Status.UNKNOWN.withCause(e).withDescription(sw.toString()).asException()
-      )
+    return scope.launch {
+        try {
+            val response = withTimeout(timeout * 1000) { block() }
+            responseObserver.onNext(response)
+            responseObserver.onCompleted()
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            val sw = StringWriter()
+            e.printStackTrace(PrintWriter(sw))
+            responseObserver.onError(
+                Status.UNKNOWN.withCause(e).withDescription(sw.toString()).asException()
+            )
+        }
     }
-  }
 }
 
 /**
@@ -173,63 +173,64 @@ fun <T> grpcUnary(
  */
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 fun <T, U> grpcBidirectionalStream(
-  scope: CoroutineScope,
-  responseObserver: StreamObserver<U>,
-  block: CoroutineScope.(Flow<T>) -> Flow<U>
+    scope: CoroutineScope,
+    responseObserver: StreamObserver<U>,
+    block: CoroutineScope.(Flow<T>) -> Flow<U>
 ): StreamObserver<T> {
 
-  val inputChannel = Channel<T>()
-  val serverCallStreamObserver = responseObserver as ServerCallStreamObserver<T>
+    val inputChannel = Channel<T>()
+    val serverCallStreamObserver = responseObserver as ServerCallStreamObserver<T>
 
-  val job =
-    scope.launch {
-      block(inputChannel.consumeAsFlow())
-        .onEach { responseObserver.onNext(it) }
-        .onCompletion { error ->
-          if (error == null) {
-            responseObserver.onCompleted()
-          }
+    val job =
+        scope.launch {
+            block(inputChannel.consumeAsFlow())
+                .onEach { responseObserver.onNext(it) }
+                .onCompletion { error ->
+                    if (error == null) {
+                        responseObserver.onCompleted()
+                    }
+                }
+                .catch {
+                    it.printStackTrace()
+                    val sw = StringWriter()
+                    it.printStackTrace(PrintWriter(sw))
+                    responseObserver.onError(
+                        Status.UNKNOWN.withCause(it).withDescription(sw.toString()).asException()
+                    )
+                }
+                .launchIn(this)
         }
-        .catch {
-          it.printStackTrace()
-          val sw = StringWriter()
-          it.printStackTrace(PrintWriter(sw))
-          responseObserver.onError(
-            Status.UNKNOWN.withCause(it).withDescription(sw.toString()).asException()
-          )
+
+    serverCallStreamObserver.setOnCancelHandler { job.cancel() }
+
+    return object : StreamObserver<T> {
+        override fun onNext(req: T) {
+            // Note: this should be made a blocking call, and the handler should run in a separate
+            // thread
+            // so we get flow control - but for now we can live with this
+            if (inputChannel.trySend(req).isFailure) {
+                job.cancel(CancellationException("too many incoming requests, buffer exceeded"))
+                responseObserver.onError(
+                    CancellationException("too many incoming requests, buffer exceeded")
+                )
+            }
         }
-        .launchIn(this)
-    }
 
-  serverCallStreamObserver.setOnCancelHandler { job.cancel() }
+        override fun onCompleted() {
+            // stop the input flow, but keep the job running
+            inputChannel.close()
+        }
 
-  return object : StreamObserver<T> {
-    override fun onNext(req: T) {
-      // Note: this should be made a blocking call, and the handler should run in a separate thread
-      // so we get flow control - but for now we can live with this
-      if (inputChannel.trySend(req).isFailure) {
-        job.cancel(CancellationException("too many incoming requests, buffer exceeded"))
-        responseObserver.onError(
-          CancellationException("too many incoming requests, buffer exceeded")
-        )
-      }
+        override fun onError(e: Throwable) {
+            job.cancel()
+            e.printStackTrace()
+            val sw = StringWriter()
+            e.printStackTrace(PrintWriter(sw))
+            responseObserver.onError(
+                Status.UNKNOWN.withCause(e).withDescription(sw.toString()).asException()
+            )
+        }
     }
-
-    override fun onCompleted() {
-      // stop the input flow, but keep the job running
-      inputChannel.close()
-    }
-
-    override fun onError(e: Throwable) {
-      job.cancel()
-      e.printStackTrace()
-      val sw = StringWriter()
-      e.printStackTrace(PrintWriter(sw))
-      responseObserver.onError(
-        Status.UNKNOWN.withCause(e).withDescription(sw.toString()).asException()
-      )
-    }
-  }
 }
 
 /**
@@ -257,33 +258,33 @@ fun <T, U> grpcBidirectionalStream(
  */
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 fun <T> grpcServerStream(
-  scope: CoroutineScope,
-  responseObserver: StreamObserver<T>,
-  block: CoroutineScope.() -> Flow<T>
+    scope: CoroutineScope,
+    responseObserver: StreamObserver<T>,
+    block: CoroutineScope.() -> Flow<T>
 ) {
-  val serverCallStreamObserver = responseObserver as ServerCallStreamObserver<T>
+    val serverCallStreamObserver = responseObserver as ServerCallStreamObserver<T>
 
-  val job =
-    scope.launch {
-      block()
-        .onEach { responseObserver.onNext(it) }
-        .onCompletion { error ->
-          if (error == null) {
-            responseObserver.onCompleted()
-          }
+    val job =
+        scope.launch {
+            block()
+                .onEach { responseObserver.onNext(it) }
+                .onCompletion { error ->
+                    if (error == null) {
+                        responseObserver.onCompleted()
+                    }
+                }
+                .catch {
+                    it.printStackTrace()
+                    val sw = StringWriter()
+                    it.printStackTrace(PrintWriter(sw))
+                    responseObserver.onError(
+                        Status.UNKNOWN.withCause(it).withDescription(sw.toString()).asException()
+                    )
+                }
+                .launchIn(this)
         }
-        .catch {
-          it.printStackTrace()
-          val sw = StringWriter()
-          it.printStackTrace(PrintWriter(sw))
-          responseObserver.onError(
-            Status.UNKNOWN.withCause(it).withDescription(sw.toString()).asException()
-          )
-        }
-        .launchIn(this)
-    }
 
-  serverCallStreamObserver.setOnCancelHandler { job.cancel() }
+    serverCallStreamObserver.setOnCancelHandler { job.cancel() }
 }
 
 /**
@@ -298,83 +299,83 @@ fun <T> grpcServerStream(
 @Suppress("UNCHECKED_CAST")
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 fun <T> getProfileProxy(context: Context, profile: Int): T {
-  var proxy: BluetoothProfile?
-  runBlocking {
-    val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
-    val bluetoothAdapter = bluetoothManager.adapter
+    var proxy: BluetoothProfile?
+    runBlocking {
+        val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
+        val bluetoothAdapter = bluetoothManager.adapter
 
-    val flow = callbackFlow {
-      val serviceListener =
-        object : BluetoothProfile.ServiceListener {
-          override fun onServiceConnected(profile: Int, proxy: BluetoothProfile) {
-            trySendBlocking(proxy)
-          }
-          override fun onServiceDisconnected(profile: Int) {}
+        val flow = callbackFlow {
+            val serviceListener =
+                object : BluetoothProfile.ServiceListener {
+                    override fun onServiceConnected(profile: Int, proxy: BluetoothProfile) {
+                        trySendBlocking(proxy)
+                    }
+                    override fun onServiceDisconnected(profile: Int) {}
+                }
+
+            bluetoothAdapter.getProfileProxy(context, serviceListener, profile)
+
+            awaitClose {}
         }
-
-      bluetoothAdapter.getProfileProxy(context, serviceListener, profile)
-
-      awaitClose {}
+        proxy = withTimeoutOrNull(5_000) { flow.first() }
     }
-    proxy = withTimeoutOrNull(5_000) { flow.first() }
-  }
-  if (proxy == null) {
-    Log.w(TAG, "profile proxy $profile is null")
-  }
-  return proxy!! as T
+    if (proxy == null) {
+        Log.w(TAG, "profile proxy $profile is null")
+    }
+    return proxy!! as T
 }
 
 fun Intent.getBluetoothDeviceExtra(): BluetoothDevice =
-  this.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)!!
+    this.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)!!
 
 fun ByteString.decodeAsMacAddressToString(): String =
-  MacAddress.fromBytes(this.toByteArray()).toString().uppercase()
+    MacAddress.fromBytes(this.toByteArray()).toString().uppercase()
 
 fun ByteString.toBluetoothDevice(adapter: BluetoothAdapter): BluetoothDevice =
-  adapter.getRemoteDevice(this.decodeAsMacAddressToString())
+    adapter.getRemoteDevice(this.decodeAsMacAddressToString())
 
 fun Connection.toBluetoothDevice(adapter: BluetoothAdapter): BluetoothDevice =
-  adapter.getRemoteDevice(this.address)
+    adapter.getRemoteDevice(this.address)
 
 val Connection.address: String
-  get() = InternalConnectionRef.parseFrom(this.cookie.value).address.decodeAsMacAddressToString()
+    get() = InternalConnectionRef.parseFrom(this.cookie.value).address.decodeAsMacAddressToString()
 
 val Connection.transport: Int
-  get() = InternalConnectionRef.parseFrom(this.cookie.value).transport
+    get() = InternalConnectionRef.parseFrom(this.cookie.value).transport
 
 fun BluetoothDevice.toByteString() =
-  ByteString.copyFrom(MacAddress.fromString(this.address).toByteArray())!!
+    ByteString.copyFrom(MacAddress.fromString(this.address).toByteArray())!!
 
 fun BluetoothDevice.toConnection(transport: Int): Connection {
-  val internal_connection_ref =
-    InternalConnectionRef.newBuilder()
-      .setAddress(ByteString.copyFrom(MacAddress.fromString(this.address).toByteArray()))
-      .setTransport(transport)
-      .build()
-  val cookie = Any.newBuilder().setValue(internal_connection_ref.toByteString()).build()
+    val internal_connection_ref =
+        InternalConnectionRef.newBuilder()
+            .setAddress(ByteString.copyFrom(MacAddress.fromString(this.address).toByteArray()))
+            .setTransport(transport)
+            .build()
+    val cookie = Any.newBuilder().setValue(internal_connection_ref.toByteString()).build()
 
-  return Connection.newBuilder().setCookie(cookie).build()
+    return Connection.newBuilder().setCookie(cookie).build()
 }
 
 /** Creates Audio track instance and returns the reference. */
 fun buildAudioTrack(): AudioTrack? {
-  return AudioTrack.Builder()
-    .setAudioAttributes(
-      AudioAttributes.Builder()
-        .setUsage(AudioAttributes.USAGE_MEDIA)
-        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+    return AudioTrack.Builder()
+        .setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build()
+        )
+        .setAudioFormat(
+            AudioFormat.Builder()
+                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                .setSampleRate(44100)
+                .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
+                .build()
+        )
+        .setTransferMode(AudioTrack.MODE_STREAM)
+        .setBufferSizeInBytes(44100 * 2 * 2)
         .build()
-    )
-    .setAudioFormat(
-      AudioFormat.Builder()
-        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-        .setSampleRate(44100)
-        .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
-        .build()
-    )
-    .setTransferMode(AudioTrack.MODE_STREAM)
-    .setBufferSizeInBytes(44100 * 2 * 2)
-    .build()
 }
 
 /**
@@ -384,5 +385,5 @@ fun buildAudioTrack(): AudioTrack? {
  * @return a generated string
  */
 fun generateAlphanumericString(length: Int): String {
-  return buildString { repeat(length) { append(alphanumeric.random()) } }
+    return buildString { repeat(length) { append(alphanumeric.random()) } }
 }

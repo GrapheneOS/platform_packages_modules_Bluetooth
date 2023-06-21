@@ -38,66 +38,68 @@ import pandora.PanProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Pan(private val context: Context) : PANImplBase(), Closeable {
-  private val TAG = "PandoraPan"
-  private val mScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val TAG = "PandoraPan"
+    private val mScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 
-  private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
-  private val bluetoothAdapter = bluetoothManager.adapter
-  private val bluetoothPan = getProfileProxy<BluetoothPan>(context, BluetoothProfile.PAN)
+    private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
+    private val bluetoothAdapter = bluetoothManager.adapter
+    private val bluetoothPan = getProfileProxy<BluetoothPan>(context, BluetoothProfile.PAN)
 
-  private var mTetheringEnabled = MutableStateFlow(false)
+    private var mTetheringEnabled = MutableStateFlow(false)
 
-  private val mTetheringManager: TetheringManager
-  private val mStartTetheringCallback =
-    object : TetheringManager.StartTetheringCallback {
-      override fun onTetheringStarted() {
-        Log.i(TAG, "onTetheringStarted")
-        mTetheringEnabled.value = true
-      }
+    private val mTetheringManager: TetheringManager
+    private val mStartTetheringCallback =
+        object : TetheringManager.StartTetheringCallback {
+            override fun onTetheringStarted() {
+                Log.i(TAG, "onTetheringStarted")
+                mTetheringEnabled.value = true
+            }
 
-      override fun onTetheringFailed(error: Int) {
-        Log.e(TAG, "onTetheringFailed $error")
-        mTetheringEnabled.value = false
-      }
+            override fun onTetheringFailed(error: Int) {
+                Log.e(TAG, "onTetheringFailed $error")
+                mTetheringEnabled.value = false
+            }
+        }
+
+    init {
+        mTetheringManager = context.getSystemService(TetheringManager::class.java)
     }
 
-  init {
-    mTetheringManager = context.getSystemService(TetheringManager::class.java)
-  }
-
-  override fun close() {
-    bluetoothAdapter.closeProfileProxy(BluetoothProfile.PAN, bluetoothPan)
-    mScope.cancel()
-  }
-
-  override fun enableTethering(
-    request: EnableTetheringRequest,
-    responseObserver: StreamObserver<EnableTetheringResponse>
-  ) {
-    grpcUnary<EnableTetheringResponse>(mScope, responseObserver) {
-      Log.i(TAG, "enableTethering")
-      if (mTetheringEnabled.value != true) {
-        mTetheringManager.startTethering(
-          TETHERING_BLUETOOTH,
-          Executors.newSingleThreadExecutor(),
-          mStartTetheringCallback
-        )
-        mTetheringEnabled.first { it == true }
-      }
-      EnableTetheringResponse.newBuilder().build()
+    override fun close() {
+        bluetoothAdapter.closeProfileProxy(BluetoothProfile.PAN, bluetoothPan)
+        mScope.cancel()
     }
-  }
 
-  override fun connectPan(
-    request: ConnectPanRequest,
-    responseObserver: StreamObserver<ConnectPanResponse>
-  ) {
-    grpcUnary<ConnectPanResponse>(mScope, responseObserver) {
-      Log.i(TAG, "connectPan")
-      val device = request.address.toBluetoothDevice(bluetoothAdapter)
-      bluetoothPan.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED)
-      bluetoothPan.connect(device)
-      ConnectPanResponse.newBuilder().setConnection(device.toConnection(TRANSPORT_BREDR)).build()
+    override fun enableTethering(
+        request: EnableTetheringRequest,
+        responseObserver: StreamObserver<EnableTetheringResponse>
+    ) {
+        grpcUnary<EnableTetheringResponse>(mScope, responseObserver) {
+            Log.i(TAG, "enableTethering")
+            if (mTetheringEnabled.value != true) {
+                mTetheringManager.startTethering(
+                    TETHERING_BLUETOOTH,
+                    Executors.newSingleThreadExecutor(),
+                    mStartTetheringCallback
+                )
+                mTetheringEnabled.first { it == true }
+            }
+            EnableTetheringResponse.newBuilder().build()
+        }
     }
-  }
+
+    override fun connectPan(
+        request: ConnectPanRequest,
+        responseObserver: StreamObserver<ConnectPanResponse>
+    ) {
+        grpcUnary<ConnectPanResponse>(mScope, responseObserver) {
+            Log.i(TAG, "connectPan")
+            val device = request.address.toBluetoothDevice(bluetoothAdapter)
+            bluetoothPan.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED)
+            bluetoothPan.connect(device)
+            ConnectPanResponse.newBuilder()
+                .setConnection(device.toConnection(TRANSPORT_BREDR))
+                .build()
+        }
+    }
 }

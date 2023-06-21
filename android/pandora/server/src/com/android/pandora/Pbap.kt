@@ -34,115 +34,115 @@ import pandora.PbapProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Pbap(val context: Context) : PBAPImplBase(), Closeable {
-  private val TAG = "PandoraPbap"
+    private val TAG = "PandoraPbap"
 
-  private val scope: CoroutineScope
-  private val allowedDigits = ('0'..'9')
+    private val scope: CoroutineScope
+    private val allowedDigits = ('0'..'9')
 
-  private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
-  private val bluetoothAdapter = bluetoothManager.adapter
+    private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
+    private val bluetoothAdapter = bluetoothManager.adapter
 
-  init {
-    // Init the CoroutineScope
-    scope = CoroutineScope(Dispatchers.Default)
-    preparePBAPDatabase()
-  }
-
-  private fun preparePBAPDatabase() {
-    prepareContactList()
-    prepareCallLog()
-  }
-
-  private fun prepareContactList() {
-    var cursor =
-      context
-        .getContentResolver()
-        .query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null)
-
-    if (cursor.getCount() >= CONTACT_LIST_SIZE) return // return if contacts are present
-
-    for (item in cursor.getCount() + 1..CONTACT_LIST_SIZE) {
-      addContact(item)
+    init {
+        // Init the CoroutineScope
+        scope = CoroutineScope(Dispatchers.Default)
+        preparePBAPDatabase()
     }
-  }
 
-  private fun prepareCallLog() {
-    // Delete existing call log
-    context.getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null)
+    private fun preparePBAPDatabase() {
+        prepareContactList()
+        prepareCallLog()
+    }
 
-    addCallLogItem(MISSED_TYPE)
-    addCallLogItem(OUTGOING_TYPE)
-  }
+    private fun prepareContactList() {
+        var cursor =
+            context
+                .getContentResolver()
+                .query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null)
 
-  private fun addCallLogItem(callType: Int) {
-    var contentValues =
-      ContentValues().apply {
-        put(CallLog.Calls.NUMBER, generatePhoneNumber(PHONE_NUM_LENGTH))
-        put(CallLog.Calls.DATE, System.currentTimeMillis())
-        put(CallLog.Calls.DURATION, if (callType == MISSED_TYPE) 0 else 30)
-        put(CallLog.Calls.TYPE, callType)
-        put(CallLog.Calls.NEW, 1)
-      }
-    context.getContentResolver().insert(CallLog.Calls.CONTENT_URI, contentValues)
-  }
+        if (cursor.getCount() >= CONTACT_LIST_SIZE) return // return if contacts are present
 
-  private fun addContact(contactIndex: Int) {
-    val operations = arrayListOf<ContentProviderOperation>()
+        for (item in cursor.getCount() + 1..CONTACT_LIST_SIZE) {
+            addContact(item)
+        }
+    }
 
-    val displayName = String.format(DEFAULT_DISPLAY_NAME, contactIndex)
-    val phoneNumber = generatePhoneNumber(PHONE_NUM_LENGTH)
-    val emailID = String.format(DEFAULT_EMAIL_ID, contactIndex)
+    private fun prepareCallLog() {
+        // Delete existing call log
+        context.getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null)
 
-    val rawContactInsertIndex = operations.size
-    operations.add(
-      ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
-        .withValue(RawContacts.ACCOUNT_TYPE, null)
-        .withValue(RawContacts.ACCOUNT_NAME, null)
-        .build()
-    )
+        addCallLogItem(MISSED_TYPE)
+        addCallLogItem(OUTGOING_TYPE)
+    }
 
-    operations.add(
-      ContentProviderOperation.newInsert(Data.CONTENT_URI)
-        .withValueBackReference(Data.RAW_CONTACT_ID, rawContactInsertIndex)
-        .withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE)
-        .withValue(StructuredName.DISPLAY_NAME, displayName)
-        .build()
-    )
+    private fun addCallLogItem(callType: Int) {
+        var contentValues =
+            ContentValues().apply {
+                put(CallLog.Calls.NUMBER, generatePhoneNumber(PHONE_NUM_LENGTH))
+                put(CallLog.Calls.DATE, System.currentTimeMillis())
+                put(CallLog.Calls.DURATION, if (callType == MISSED_TYPE) 0 else 30)
+                put(CallLog.Calls.TYPE, callType)
+                put(CallLog.Calls.NEW, 1)
+            }
+        context.getContentResolver().insert(CallLog.Calls.CONTENT_URI, contentValues)
+    }
 
-    operations.add(
-      ContentProviderOperation.newInsert(Data.CONTENT_URI)
-        .withValueBackReference(Data.RAW_CONTACT_ID, rawContactInsertIndex)
-        .withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
-        .withValue(Phone.NUMBER, phoneNumber)
-        .withValue(Phone.TYPE, Phone.TYPE_MOBILE)
-        .build()
-    )
+    private fun addContact(contactIndex: Int) {
+        val operations = arrayListOf<ContentProviderOperation>()
 
-    operations.add(
-      ContentProviderOperation.newInsert(Data.CONTENT_URI)
-        .withValueBackReference(Data.RAW_CONTACT_ID, rawContactInsertIndex)
-        .withValue(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE)
-        .withValue(Email.DATA, emailID)
-        .withValue(Email.TYPE, Email.TYPE_MOBILE)
-        .build()
-    )
+        val displayName = String.format(DEFAULT_DISPLAY_NAME, contactIndex)
+        val phoneNumber = generatePhoneNumber(PHONE_NUM_LENGTH)
+        val emailID = String.format(DEFAULT_EMAIL_ID, contactIndex)
 
-    context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, operations)
-  }
+        val rawContactInsertIndex = operations.size
+        operations.add(
+            ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
+                .withValue(RawContacts.ACCOUNT_TYPE, null)
+                .withValue(RawContacts.ACCOUNT_NAME, null)
+                .build()
+        )
 
-  private fun generatePhoneNumber(length: Int): String {
-    return buildString { repeat(length) { append(allowedDigits.random()) } }
-  }
+        operations.add(
+            ContentProviderOperation.newInsert(Data.CONTENT_URI)
+                .withValueBackReference(Data.RAW_CONTACT_ID, rawContactInsertIndex)
+                .withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE)
+                .withValue(StructuredName.DISPLAY_NAME, displayName)
+                .build()
+        )
 
-  override fun close() {
-    // Deinit the CoroutineScope
-    scope.cancel()
-  }
+        operations.add(
+            ContentProviderOperation.newInsert(Data.CONTENT_URI)
+                .withValueBackReference(Data.RAW_CONTACT_ID, rawContactInsertIndex)
+                .withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
+                .withValue(Phone.NUMBER, phoneNumber)
+                .withValue(Phone.TYPE, Phone.TYPE_MOBILE)
+                .build()
+        )
 
-  companion object {
-    const val DEFAULT_DISPLAY_NAME = "Contact Name %d"
-    const val DEFAULT_EMAIL_ID = "user%d@example.com"
-    const val CONTACT_LIST_SIZE = 125
-    const val PHONE_NUM_LENGTH = 10
-  }
+        operations.add(
+            ContentProviderOperation.newInsert(Data.CONTENT_URI)
+                .withValueBackReference(Data.RAW_CONTACT_ID, rawContactInsertIndex)
+                .withValue(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE)
+                .withValue(Email.DATA, emailID)
+                .withValue(Email.TYPE, Email.TYPE_MOBILE)
+                .build()
+        )
+
+        context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, operations)
+    }
+
+    private fun generatePhoneNumber(length: Int): String {
+        return buildString { repeat(length) { append(allowedDigits.random()) } }
+    }
+
+    override fun close() {
+        // Deinit the CoroutineScope
+        scope.cancel()
+    }
+
+    companion object {
+        const val DEFAULT_DISPLAY_NAME = "Contact Name %d"
+        const val DEFAULT_EMAIL_ID = "user%d@example.com"
+        const val CONTACT_LIST_SIZE = 125
+        const val PHONE_NUM_LENGTH = 10
+    }
 }

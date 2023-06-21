@@ -41,76 +41,86 @@ import pandora.A2dpProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class A2dpSink(val context: Context) : A2DPImplBase(), Closeable {
-  private val TAG = "PandoraA2dpSink"
+    private val TAG = "PandoraA2dpSink"
 
-  private val scope: CoroutineScope
-  private val flow: Flow<Intent>
+    private val scope: CoroutineScope
+    private val flow: Flow<Intent>
 
-  private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
-  private val bluetoothAdapter = bluetoothManager.adapter
-  private val bluetoothA2dpSink =
-    getProfileProxy<BluetoothA2dpSink>(context, BluetoothProfile.A2DP_SINK)
+    private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
+    private val bluetoothAdapter = bluetoothManager.adapter
+    private val bluetoothA2dpSink =
+        getProfileProxy<BluetoothA2dpSink>(context, BluetoothProfile.A2DP_SINK)
 
-  init {
-    scope = CoroutineScope(Dispatchers.Default)
-    val intentFilter = IntentFilter()
-    intentFilter.addAction(BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED)
+    init {
+        scope = CoroutineScope(Dispatchers.Default)
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED)
 
-    flow = intentFlow(context, intentFilter).shareIn(scope, SharingStarted.Eagerly)
-  }
+        flow = intentFlow(context, intentFilter).shareIn(scope, SharingStarted.Eagerly)
+    }
 
-  override fun close() {
-    bluetoothAdapter.closeProfileProxy(BluetoothProfile.A2DP_SINK, bluetoothA2dpSink)
-    scope.cancel()
-  }
+    override fun close() {
+        bluetoothAdapter.closeProfileProxy(BluetoothProfile.A2DP_SINK, bluetoothA2dpSink)
+        scope.cancel()
+    }
 
-  override fun waitSink(
-    request: WaitSinkRequest,
-    responseObserver: StreamObserver<WaitSinkResponse>
-  ) {
-    grpcUnary<WaitSinkResponse>(scope, responseObserver) {
-      val device = request.connection.toBluetoothDevice(bluetoothAdapter)
-      Log.i(TAG, "waitSink: device=$device")
+    override fun waitSink(
+        request: WaitSinkRequest,
+        responseObserver: StreamObserver<WaitSinkResponse>
+    ) {
+        grpcUnary<WaitSinkResponse>(scope, responseObserver) {
+            val device = request.connection.toBluetoothDevice(bluetoothAdapter)
+            Log.i(TAG, "waitSink: device=$device")
 
-      if (bluetoothA2dpSink.getConnectionState(device) != BluetoothProfile.STATE_CONNECTED) {
-        val state =
-          flow
-            .filter { it.getAction() == BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED }
-            .filter { it.getBluetoothDeviceExtra() == device }
-            .map { it.getIntExtra(BluetoothProfile.EXTRA_STATE, BluetoothAdapter.ERROR) }
-            .filter {
-              it == BluetoothProfile.STATE_CONNECTED || it == BluetoothProfile.STATE_DISCONNECTED
+            if (bluetoothA2dpSink.getConnectionState(device) != BluetoothProfile.STATE_CONNECTED) {
+                val state =
+                    flow
+                        .filter {
+                            it.getAction() == BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED
+                        }
+                        .filter { it.getBluetoothDeviceExtra() == device }
+                        .map {
+                            it.getIntExtra(BluetoothProfile.EXTRA_STATE, BluetoothAdapter.ERROR)
+                        }
+                        .filter {
+                            it == BluetoothProfile.STATE_CONNECTED ||
+                                it == BluetoothProfile.STATE_DISCONNECTED
+                        }
+                        .first()
+
+                if (state == BluetoothProfile.STATE_DISCONNECTED) {
+                    throw RuntimeException("waitStream failed, A2DP has been disconnected")
+                }
             }
-            .first()
 
-        if (state == BluetoothProfile.STATE_DISCONNECTED) {
-          throw RuntimeException("waitStream failed, A2DP has been disconnected")
+            val sink = Sink.newBuilder().setConnection(request.connection).build()
+            WaitSinkResponse.newBuilder().setSink(sink).build()
         }
-      }
-
-      val sink = Sink.newBuilder().setConnection(request.connection).build()
-      WaitSinkResponse.newBuilder().setSink(sink).build()
     }
-  }
 
-  override fun close(request: CloseRequest, responseObserver: StreamObserver<CloseResponse>) {
-    grpcUnary<CloseResponse>(scope, responseObserver) {
-      val device = request.sink.connection.toBluetoothDevice(bluetoothAdapter)
-      Log.i(TAG, "close: device=$device")
-      if (bluetoothA2dpSink.getConnectionState(device) != BluetoothProfile.STATE_CONNECTED) {
-        throw RuntimeException("Device is not connected, cannot close")
-      }
+    override fun close(request: CloseRequest, responseObserver: StreamObserver<CloseResponse>) {
+        grpcUnary<CloseResponse>(scope, responseObserver) {
+            val device = request.sink.connection.toBluetoothDevice(bluetoothAdapter)
+            Log.i(TAG, "close: device=$device")
+            if (bluetoothA2dpSink.getConnectionState(device) != BluetoothProfile.STATE_CONNECTED) {
+                throw RuntimeException("Device is not connected, cannot close")
+            }
 
-      val a2dpConnectionStateChangedFlow =
-        flow
-          .filter { it.getAction() == BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED }
-          .filter { it.getBluetoothDeviceExtra() == device }
-          .map { it.getIntExtra(BluetoothProfile.EXTRA_STATE, BluetoothAdapter.ERROR) }
+            val a2dpConnectionStateChangedFlow =
+                flow
+                    .filter { it.getAction() == BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED }
+                    .filter { it.getBluetoothDeviceExtra() == device }
+                    .map { it.getIntExtra(BluetoothProfile.EXTRA_STATE, BluetoothAdapter.ERROR) }
 
-      bluetoothA2dpSink.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN)
-      a2dpConnectionStateChangedFlow.filter { it == BluetoothProfile.STATE_DISCONNECTED }.first()
+            bluetoothA2dpSink.setConnectionPolicy(
+                device,
+                BluetoothProfile.CONNECTION_POLICY_FORBIDDEN
+            )
+            a2dpConnectionStateChangedFlow
+                .filter { it == BluetoothProfile.STATE_DISCONNECTED }
+                .first()
 
-      CloseResponse.getDefaultInstance()
+            CloseResponse.getDefaultInstance()
+        }
     }
-  }
 }

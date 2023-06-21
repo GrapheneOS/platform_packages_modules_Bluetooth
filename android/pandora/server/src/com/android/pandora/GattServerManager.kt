@@ -30,70 +30,70 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 class GattServerManager(
-  bluetoothManager: BluetoothManager,
-  context: Context,
-  globalScope: CoroutineScope
+    bluetoothManager: BluetoothManager,
+    context: Context,
+    globalScope: CoroutineScope
 ) {
-  val TAG = "PandoraGattServerManager"
+    val TAG = "PandoraGattServerManager"
 
-  val services = mutableMapOf<UUID, BluetoothGattService>()
-  val newServiceFlow = MutableSharedFlow<BluetoothGattService>(extraBufferCapacity = 8)
-  var negociatedMtu = -1
+    val services = mutableMapOf<UUID, BluetoothGattService>()
+    val newServiceFlow = MutableSharedFlow<BluetoothGattService>(extraBufferCapacity = 8)
+    var negociatedMtu = -1
 
-  val callback =
-    object : BluetoothGattServerCallback() {
-      override fun onServiceAdded(status: Int, service: BluetoothGattService) {
-        Log.i(TAG, "onServiceAdded status=$status")
-        check(status == BluetoothGatt.GATT_SUCCESS)
-        check(newServiceFlow.tryEmit(service))
-      }
-      override fun onMtuChanged(device: BluetoothDevice, mtu: Int) {
-        Log.i(TAG, "onMtuChanged mtu=$mtu")
-        negociatedMtu = mtu
-      }
+    val callback =
+        object : BluetoothGattServerCallback() {
+            override fun onServiceAdded(status: Int, service: BluetoothGattService) {
+                Log.i(TAG, "onServiceAdded status=$status")
+                check(status == BluetoothGatt.GATT_SUCCESS)
+                check(newServiceFlow.tryEmit(service))
+            }
+            override fun onMtuChanged(device: BluetoothDevice, mtu: Int) {
+                Log.i(TAG, "onMtuChanged mtu=$mtu")
+                negociatedMtu = mtu
+            }
 
-      override fun onCharacteristicReadRequest(
-        device: BluetoothDevice,
-        requestId: Int,
-        offset: Int,
-        characteristic: BluetoothGattCharacteristic
-      ) {
-        Log.i(TAG, "onCharacteristicReadRequest requestId=$requestId")
-        if (negociatedMtu != -1) {
-          server.sendResponse(
-            device,
-            requestId,
-            BluetoothGatt.GATT_SUCCESS,
-            offset,
-            ByteArray(negociatedMtu)
-          )
-        } else {
-          server.sendResponse(
-            device,
-            requestId,
-            BluetoothGatt.GATT_SUCCESS,
-            offset,
-            ByteArray(512 - offset)
-          )
+            override fun onCharacteristicReadRequest(
+                device: BluetoothDevice,
+                requestId: Int,
+                offset: Int,
+                characteristic: BluetoothGattCharacteristic
+            ) {
+                Log.i(TAG, "onCharacteristicReadRequest requestId=$requestId")
+                if (negociatedMtu != -1) {
+                    server.sendResponse(
+                        device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        offset,
+                        ByteArray(negociatedMtu)
+                    )
+                } else {
+                    server.sendResponse(
+                        device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        offset,
+                        ByteArray(512 - offset)
+                    )
+                }
+            }
+
+            override fun onCharacteristicWriteRequest(
+                device: BluetoothDevice,
+                requestId: Int,
+                characteristic: BluetoothGattCharacteristic,
+                preparedWrite: Boolean,
+                responseNeeded: Boolean,
+                offset: Int,
+                value: ByteArray
+            ) {
+                Log.i(TAG, "onCharacteristicWriteRequest requestId=$requestId")
+            }
+
+            override fun onExecuteWrite(device: BluetoothDevice, requestId: Int, execute: Boolean) {
+                Log.i(TAG, "onExecuteWrite requestId=$requestId")
+            }
         }
-      }
 
-      override fun onCharacteristicWriteRequest(
-        device: BluetoothDevice,
-        requestId: Int,
-        characteristic: BluetoothGattCharacteristic,
-        preparedWrite: Boolean,
-        responseNeeded: Boolean,
-        offset: Int,
-        value: ByteArray
-      ) {
-        Log.i(TAG, "onCharacteristicWriteRequest requestId=$requestId")
-      }
-
-      override fun onExecuteWrite(device: BluetoothDevice, requestId: Int, execute: Boolean) {
-        Log.i(TAG, "onExecuteWrite requestId=$requestId")
-      }
-    }
-
-  val server: BluetoothGattServer = bluetoothManager.openGattServer(context, callback)
+    val server: BluetoothGattServer = bluetoothManager.openGattServer(context, callback)
 }

@@ -53,189 +53,199 @@ private const val TAG = "PandoraAndroidInternal"
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class AndroidInternal(val context: Context) : AndroidImplBase(), Closeable {
 
-  private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
-  private val INCOMING_FILE_ACCEPT_BTN = "ACCEPT"
-  private val INCOMING_FILE_TITLE = "Incoming file"
-  private val INCOMING_FILE_WAIT_TIMEOUT = 2000L
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val INCOMING_FILE_ACCEPT_BTN = "ACCEPT"
+    private val INCOMING_FILE_TITLE = "Incoming file"
+    private val INCOMING_FILE_WAIT_TIMEOUT = 2000L
 
-  // PTS does not configure the Extended Inquiry Response with the
-  // device name; the device will be found after the Inquiry Timeout
-  // (12.8sec) has elapsed.
-  private val BT_DEVICE_SELECT_WAIT_TIMEOUT = 20000L
-  private val IMAGE_FILE_NAME = "OPP_TEST_IMAGE.bmp"
+    // PTS does not configure the Extended Inquiry Response with the
+    // device name; the device will be found after the Inquiry Timeout
+    // (12.8sec) has elapsed.
+    private val BT_DEVICE_SELECT_WAIT_TIMEOUT = 20000L
+    private val IMAGE_FILE_NAME = "OPP_TEST_IMAGE.bmp"
 
-  private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
-  private val bluetoothAdapter = bluetoothManager.adapter
-  private var telephonyManager = context.getSystemService(TelephonyManager::class.java)
-  private val DEFAULT_MESSAGE_LEN = 130
-  private var device: UiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+    private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
+    private val bluetoothAdapter = bluetoothManager.adapter
+    private var telephonyManager = context.getSystemService(TelephonyManager::class.java)
+    private val DEFAULT_MESSAGE_LEN = 130
+    private var device: UiDevice =
+        UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
 
-  init {
-    createImageFile()
-  }
-
-  override fun close() {
-    scope.cancel()
-
-    val file =
-      File(
-        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-        IMAGE_FILE_NAME
-      )
-
-    if (file.exists()) {
-      file.delete()
+    init {
+        createImageFile()
     }
-  }
 
-  override fun log(request: LogRequest, responseObserver: StreamObserver<LogResponse>) {
-    grpcUnary(scope, responseObserver) {
-      Log.i(TAG, request.text)
-      LogResponse.getDefaultInstance()
-    }
-  }
+    override fun close() {
+        scope.cancel()
 
-  override fun setAccessPermission(
-    request: SetAccessPermissionRequest,
-    responseObserver: StreamObserver<Empty>
-  ) {
-    grpcUnary<Empty>(scope, responseObserver) {
-      val bluetoothDevice = request.address.toBluetoothDevice(bluetoothAdapter)
-      when (request.accessType!!) {
-        AccessType.ACCESS_MESSAGE ->
-          bluetoothDevice.setMessageAccessPermission(BluetoothDevice.ACCESS_ALLOWED)
-        AccessType.ACCESS_PHONEBOOK ->
-          bluetoothDevice.setPhonebookAccessPermission(BluetoothDevice.ACCESS_ALLOWED)
-        AccessType.ACCESS_SIM ->
-          bluetoothDevice.setSimAccessPermission(BluetoothDevice.ACCESS_ALLOWED)
-        else -> {}
-      }
-      Empty.getDefaultInstance()
-    }
-  }
+        val file =
+            File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                IMAGE_FILE_NAME
+            )
 
-  override fun sendSMS(request: Empty, responseObserver: StreamObserver<Empty>) {
-    grpcUnary<Empty>(scope, responseObserver) {
-      val smsManager = SmsManager.getDefault()
-      val defaultSmsSub = SubscriptionManager.getDefaultSmsSubscriptionId()
-      telephonyManager = telephonyManager.createForSubscriptionId(defaultSmsSub)
-      val avdPhoneNumber = telephonyManager.getLine1Number()
-
-      smsManager.sendTextMessage(
-        avdPhoneNumber,
-        avdPhoneNumber,
-        generateAlphanumericString(DEFAULT_MESSAGE_LEN),
-        null,
-        null
-      )
-      Empty.getDefaultInstance()
-    }
-  }
-
-  override fun acceptIncomingFile(request: Empty, responseObserver: StreamObserver<Empty>) {
-    grpcUnary<Empty>(scope, responseObserver) {
-      device
-        .wait(Until.findObject(By.text(INCOMING_FILE_TITLE)), INCOMING_FILE_WAIT_TIMEOUT)
-        .click()
-      device
-        .wait(Until.findObject(By.text(INCOMING_FILE_ACCEPT_BTN)), INCOMING_FILE_WAIT_TIMEOUT)
-        .click()
-      Empty.getDefaultInstance()
-    }
-  }
-
-  override fun sendFile(request: SendFileRequest, responseObserver: StreamObserver<Empty>) {
-    grpcUnary<Empty>(scope, responseObserver) {
-      initiateSendFile(getImageId(IMAGE_FILE_NAME), "image/bmp")
-      waitAndSelectBluetoothDevice(request.name)
-      Empty.getDefaultInstance()
-    }
-  }
-
-  override fun sendPing(request: SendPingRequest, responseObserver: StreamObserver<Empty>) {
-    grpcUnary<Empty>(scope, responseObserver) {
-      val pingStatus =
-        Runtime.getRuntime().exec("ping -I bt-pan -c 1 ${request.ipAddress}").waitFor()
-      Empty.getDefaultInstance()
-    }
-  }
-
-  suspend private fun waitAndSelectBluetoothDevice(name: String) {
-    var selectJob =
-      scope.async {
-        device.wait(Until.findObject(By.textContains(name)), BT_DEVICE_SELECT_WAIT_TIMEOUT).click()
-      }
-    selectJob.await()
-  }
-
-  private fun initiateSendFile(imageId: Long, type: String) {
-    val contentUri = ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, imageId)
-
-    try {
-      var sendingIntent = Intent(Intent.ACTION_SEND)
-      sendingIntent.setType(type)
-      val activity =
-        context.packageManager!!
-          .queryIntentActivities(
-            sendingIntent,
-            PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong())
-          )
-          .filter { it!!.loadLabel(context.packageManager) == "Bluetooth" }
-          .first()
-          .activityInfo
-      sendingIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-      sendingIntent.setComponent(ComponentName(activity.applicationInfo.packageName, activity.name))
-      sendingIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
-      context.startActivity(sendingIntent)
-    } catch (e: Exception) {
-      e.printStackTrace()
-    }
-  }
-
-  private fun getImageId(fileName: String): Long {
-    val selection = MediaColumns.DISPLAY_NAME + "=?"
-    val selectionArgs = arrayOf(fileName)
-    val cursor =
-      context
-        .getContentResolver()
-        .query(Media.EXTERNAL_CONTENT_URI, null, selection, selectionArgs, null)
-
-    cursor?.use {
-      it.let {
-        it.moveToFirst()
-        return it.getLong(it.getColumnIndexOrThrow(Media._ID))
-      }
-    }
-    return 0L
-  }
-
-  private fun createImageFile() {
-    val bitmapImage = Bitmap.createBitmap(30, 20, Bitmap.Config.ARGB_8888)
-    val file =
-      File(
-        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-        IMAGE_FILE_NAME
-      )
-    var fileOutputStream: FileOutputStream? = null
-
-    if (file.exists()) {
-      file.delete()
-    }
-    file.createNewFile()
-    try {
-      fileOutputStream = FileOutputStream(file)
-      bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
-      fileOutputStream.flush()
-    } catch (e: Exception) {
-      e.printStackTrace()
-    } finally {
-      try {
-        if (fileOutputStream != null) {
-          fileOutputStream.close()
+        if (file.exists()) {
+            file.delete()
         }
-      } catch (e: Exception) {
-        e.printStackTrace()
-      }
     }
-  }
+
+    override fun log(request: LogRequest, responseObserver: StreamObserver<LogResponse>) {
+        grpcUnary(scope, responseObserver) {
+            Log.i(TAG, request.text)
+            LogResponse.getDefaultInstance()
+        }
+    }
+
+    override fun setAccessPermission(
+        request: SetAccessPermissionRequest,
+        responseObserver: StreamObserver<Empty>
+    ) {
+        grpcUnary<Empty>(scope, responseObserver) {
+            val bluetoothDevice = request.address.toBluetoothDevice(bluetoothAdapter)
+            when (request.accessType!!) {
+                AccessType.ACCESS_MESSAGE ->
+                    bluetoothDevice.setMessageAccessPermission(BluetoothDevice.ACCESS_ALLOWED)
+                AccessType.ACCESS_PHONEBOOK ->
+                    bluetoothDevice.setPhonebookAccessPermission(BluetoothDevice.ACCESS_ALLOWED)
+                AccessType.ACCESS_SIM ->
+                    bluetoothDevice.setSimAccessPermission(BluetoothDevice.ACCESS_ALLOWED)
+                else -> {}
+            }
+            Empty.getDefaultInstance()
+        }
+    }
+
+    override fun sendSMS(request: Empty, responseObserver: StreamObserver<Empty>) {
+        grpcUnary<Empty>(scope, responseObserver) {
+            val smsManager = SmsManager.getDefault()
+            val defaultSmsSub = SubscriptionManager.getDefaultSmsSubscriptionId()
+            telephonyManager = telephonyManager.createForSubscriptionId(defaultSmsSub)
+            val avdPhoneNumber = telephonyManager.getLine1Number()
+
+            smsManager.sendTextMessage(
+                avdPhoneNumber,
+                avdPhoneNumber,
+                generateAlphanumericString(DEFAULT_MESSAGE_LEN),
+                null,
+                null
+            )
+            Empty.getDefaultInstance()
+        }
+    }
+
+    override fun acceptIncomingFile(request: Empty, responseObserver: StreamObserver<Empty>) {
+        grpcUnary<Empty>(scope, responseObserver) {
+            device
+                .wait(Until.findObject(By.text(INCOMING_FILE_TITLE)), INCOMING_FILE_WAIT_TIMEOUT)
+                .click()
+            device
+                .wait(
+                    Until.findObject(By.text(INCOMING_FILE_ACCEPT_BTN)),
+                    INCOMING_FILE_WAIT_TIMEOUT
+                )
+                .click()
+            Empty.getDefaultInstance()
+        }
+    }
+
+    override fun sendFile(request: SendFileRequest, responseObserver: StreamObserver<Empty>) {
+        grpcUnary<Empty>(scope, responseObserver) {
+            initiateSendFile(getImageId(IMAGE_FILE_NAME), "image/bmp")
+            waitAndSelectBluetoothDevice(request.name)
+            Empty.getDefaultInstance()
+        }
+    }
+
+    override fun sendPing(request: SendPingRequest, responseObserver: StreamObserver<Empty>) {
+        grpcUnary<Empty>(scope, responseObserver) {
+            val pingStatus =
+                Runtime.getRuntime().exec("ping -I bt-pan -c 1 ${request.ipAddress}").waitFor()
+            Empty.getDefaultInstance()
+        }
+    }
+
+    suspend private fun waitAndSelectBluetoothDevice(name: String) {
+        var selectJob =
+            scope.async {
+                device
+                    .wait(Until.findObject(By.textContains(name)), BT_DEVICE_SELECT_WAIT_TIMEOUT)
+                    .click()
+            }
+        selectJob.await()
+    }
+
+    private fun initiateSendFile(imageId: Long, type: String) {
+        val contentUri = ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, imageId)
+
+        try {
+            var sendingIntent = Intent(Intent.ACTION_SEND)
+            sendingIntent.setType(type)
+            val activity =
+                context.packageManager!!
+                    .queryIntentActivities(
+                        sendingIntent,
+                        PackageManager.ResolveInfoFlags.of(
+                            PackageManager.MATCH_DEFAULT_ONLY.toLong()
+                        )
+                    )
+                    .filter { it!!.loadLabel(context.packageManager) == "Bluetooth" }
+                    .first()
+                    .activityInfo
+            sendingIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            sendingIntent.setComponent(
+                ComponentName(activity.applicationInfo.packageName, activity.name)
+            )
+            sendingIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
+            context.startActivity(sendingIntent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun getImageId(fileName: String): Long {
+        val selection = MediaColumns.DISPLAY_NAME + "=?"
+        val selectionArgs = arrayOf(fileName)
+        val cursor =
+            context
+                .getContentResolver()
+                .query(Media.EXTERNAL_CONTENT_URI, null, selection, selectionArgs, null)
+
+        cursor?.use {
+            it.let {
+                it.moveToFirst()
+                return it.getLong(it.getColumnIndexOrThrow(Media._ID))
+            }
+        }
+        return 0L
+    }
+
+    private fun createImageFile() {
+        val bitmapImage = Bitmap.createBitmap(30, 20, Bitmap.Config.ARGB_8888)
+        val file =
+            File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                IMAGE_FILE_NAME
+            )
+        var fileOutputStream: FileOutputStream? = null
+
+        if (file.exists()) {
+            file.delete()
+        }
+        file.createNewFile()
+        try {
+            fileOutputStream = FileOutputStream(file)
+            bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+            fileOutputStream.flush()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            try {
+                if (fileOutputStream != null) {
+                    fileOutputStream.close()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }
