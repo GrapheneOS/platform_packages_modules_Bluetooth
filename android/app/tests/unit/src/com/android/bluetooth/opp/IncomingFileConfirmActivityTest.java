@@ -130,11 +130,13 @@ public class IncomingFileConfirmActivityTest {
         ));
 
         BluetoothOppTestUtils.enableOppActivities(true, mTargetContext);
-        TestUtils.wakeUpAndDismissKeyGuard();
+        TestUtils.setUpUiTest();
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
+        TestUtils.tearDownUiTest();
+
         BluetoothMethodProxy.setInstanceForTesting(null);
         BluetoothOppTestUtils.enableOppActivities(false, mTargetContext);
     }

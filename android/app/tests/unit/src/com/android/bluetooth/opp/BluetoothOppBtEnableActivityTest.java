@@ -42,8 +42,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
-import java.io.IOException;
-
 public class BluetoothOppBtEnableActivityTest {
 
     Intent mIntent;
@@ -57,11 +55,12 @@ public class BluetoothOppBtEnableActivityTest {
         mIntent.setClass(mTargetContext, BluetoothOppBtEnableActivity.class);
         Intents.init();
         BluetoothOppTestUtils.enableOppActivities(true, mTargetContext);
-        TestUtils.wakeUpAndDismissKeyGuard();
+        TestUtils.setUpUiTest();
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
+        TestUtils.tearDownUiTest();
         Intents.release();
         BluetoothOppTestUtils.enableOppActivities(false, mTargetContext);
     }
