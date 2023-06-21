@@ -378,6 +378,7 @@ public abstract class ProfileService extends Service {
         }
         if (!mProfileStarted) {
             Log.w(mName, "doStop() called, but the profile is not running.");
+            return;
         }
         mProfileStarted = false;
         if (mAdapterService != null) {
