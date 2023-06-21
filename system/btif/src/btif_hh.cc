@@ -119,6 +119,7 @@ static tHID_KB_LIST hid_kb_numlock_on_list[] = {{LOGITECH_KB_MX5500_PRODUCT_ID,
  ******************************************************************************/
 bool check_cod(const RawAddress* remote_bdaddr, uint32_t cod);
 bool check_cod_hid(const RawAddress* remote_bdaddr);
+bool check_cod_hid_major(const RawAddress& bd_addr, uint32_t cod);
 void bta_hh_co_close(btif_hh_device_t* p_dev);
 void bta_hh_co_send_hid_info(btif_hh_device_t* p_dev, const char* dev_name,
                              uint16_t vendor_id, uint16_t product_id,
@@ -439,8 +440,8 @@ static void hh_open_handler(tBTA_HH_CONN& conn) {
   p_dev->dev_status = BTHH_CONN_STATE_CONNECTED;
   hh_connect_complete(conn.handle, conn.bda, BTIF_HH_DEV_CONNECTED);
   // Send set_idle if the peer_device is a keyboard
-  if (check_cod(&conn.bda, COD_HID_KEYBOARD) ||
-      check_cod(&conn.bda, COD_HID_COMBO)) {
+  if (check_cod_hid_major(conn.bda, COD_HID_KEYBOARD) ||
+      check_cod_hid_major(conn.bda, COD_HID_COMBO)) {
     BTA_HhSetIdle(conn.handle, 0);
   }
   BTA_HhGetDscpInfo(conn.handle);
