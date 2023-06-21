@@ -1067,6 +1067,69 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
         assert_equal(start_result_right['otherstate'], 1)
 
     @asynchronous
+    async def test_music_stop_dual_device(self) -> None:
+        """
+        DUT discovers Refs.
+        DUT initiates connection to Refs.
+        Verify that DUT and Refs are bonded and connected.
+        DUT is streaming media to Refs.
+        DUT stops media streaming on Refs.
+        Verify that DUT sends a correct AudioControlPoint `Stop` command.
+        Verify Refs cannot recevice audio data after DUT stops media streaming.
+        """
+
+        async def ref_device_connect(ref_device: BumblePandoraDevice, ear: Ear) -> Tuple[Connection, Connection]:
+            advertisement = await self.ref_advertise_asha(ref_device=ref_device, ref_address_type=RANDOM, ear=ear)
+            ref = await self.dut_scan_for_asha(dut_address_type=RANDOM, ear=ear)
+            # DUT initiates connection to ref_device.
+            dut_ref, ref_dut = await self.dut_connect_to_ref(advertisement, ref, RANDOM)
+            advertisement.cancel()
+
+            return dut_ref, ref_dut
+
+        # DUT starts connecting, pairing with the ref_left
+        dut_ref_left, ref_left_dut = await ref_device_connect(self.ref_left, Ear.LEFT)
+        (secure_left, wait_security_left) = await asyncio.gather(
+            self.dut.aio.security.Secure(connection=dut_ref_left, le=LE_LEVEL3),
+            self.ref_left.aio.security.WaitSecurity(connection=ref_left_dut, le=LE_LEVEL3),
+        )
+        assert_equal(secure_left.result_variant(), 'success')
+        assert_equal(wait_security_left.result_variant(), 'success')
+
+        # DUT starts connecting, pairing with the ref_right
+        dut_ref_right, ref_right_dut = await ref_device_connect(self.ref_right, Ear.RIGHT)
+        (secure_right, wait_security_right) = await asyncio.gather(
+            self.dut.aio.security.Secure(connection=dut_ref_right, le=LE_LEVEL3),
+            self.ref_right.aio.security.WaitSecurity(connection=ref_right_dut, le=LE_LEVEL3),
+        )
+        assert_equal(secure_right.result_variant(), 'success')
+        assert_equal(wait_security_right.result_variant(), 'success')
+
+        dut_asha = AioAsha(self.dut.aio.channel)
+        ref_left_asha = AioAsha(self.ref_left.aio.channel)
+        ref_right_asha = AioAsha(self.ref_right.aio.channel)
+
+        stop_future = self.get_stop_future(self.ref_left)
+
+        await dut_asha.WaitPeripheral(connection=dut_ref_left)
+        await dut_asha.WaitPeripheral(connection=dut_ref_right)
+
+        await dut_asha.Start(connection=dut_ref_left)
+        logging.info("send stop")
+        _, stop_result = await asyncio.gather(dut_asha.Stop(), asyncio.wait_for(stop_future, timeout=10.0))
+
+        logging.info(f"stop_result:{stop_result}")
+        assert_is_not_none(stop_result)
+
+        (audio_data_left, audio_data_right) = await asyncio.gather(
+            self.get_audio_data(ref_asha=ref_left_asha, connection=ref_left_dut, timeout=10),
+            self.get_audio_data(ref_asha=ref_right_asha, connection=ref_right_dut, timeout=10),
+        )
+
+        assert_equal(len(audio_data_left), 0)
+        assert_equal(len(audio_data_right), 0)
+
+    @asynchronous
     async def test_music_audio_playback(self) -> None:
         """
         DUT discovers Ref.
