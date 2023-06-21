@@ -87,9 +87,9 @@ static void bta_ag_port_cback(UNUSED_ATTR uint32_t code, uint16_t port_handle,
                  << handle << " peer_addr " << p_scb->peer_addr << " state "
                  << std::to_string(p_scb->state);
     }
-    do_in_main_thread(FROM_HERE,
-                      base::Bind(&bta_ag_sm_execute_by_handle, handle,
-                                 BTA_AG_RFC_DATA_EVT, tBTA_AG_DATA::kEmpty));
+    do_in_main_thread(
+        FROM_HERE, base::BindOnce(&bta_ag_sm_execute_by_handle, handle,
+                                  BTA_AG_RFC_DATA_EVT, tBTA_AG_DATA::kEmpty));
   }
 }
 
@@ -152,8 +152,8 @@ static void bta_ag_mgmt_cback(uint32_t code, uint16_t port_handle,
 
   tBTA_AG_DATA data = {};
   data.rfc.port_handle = port_handle;
-  do_in_main_thread(
-      FROM_HERE, base::Bind(&bta_ag_sm_execute_by_handle, handle, event, data));
+  do_in_main_thread(FROM_HERE, base::BindOnce(&bta_ag_sm_execute_by_handle,
+                                              handle, event, data));
 }
 
 /*******************************************************************************
@@ -367,8 +367,8 @@ void bta_ag_rfc_do_close(tBTA_AG_SCB* p_scb,
     /* and move back to INIT state.                                     */
     do_in_main_thread(
         FROM_HERE,
-        base::Bind(&bta_ag_sm_execute_by_handle, bta_ag_scb_to_idx(p_scb),
-                   BTA_AG_RFC_CLOSE_EVT, tBTA_AG_DATA::kEmpty));
+        base::BindOnce(&bta_ag_sm_execute_by_handle, bta_ag_scb_to_idx(p_scb),
+                       BTA_AG_RFC_CLOSE_EVT, tBTA_AG_DATA::kEmpty));
 
     /* Cancel SDP if it had been started. */
     /*
