@@ -1019,8 +1019,11 @@ void LeAudioDeviceGroup::CigGenerateCisIds(
   uint8_t cis_count_bidir = 0;
   uint8_t cis_count_unidir_sink = 0;
   uint8_t cis_count_unidir_source = 0;
-  int csis_group_size =
-      bluetooth::csis::CsisClient::Get()->GetDesiredSize(group_id_);
+  int csis_group_size = 0;
+
+  if (bluetooth::csis::CsisClient::IsCsisClientRunning()) {
+      csis_group_size = bluetooth::csis::CsisClient::Get()->GetDesiredSize(group_id_);
+  }
   /* If this is CSIS group, the csis_group_size will be > 0, otherwise -1.
    * If the last happen it means, group size is 1 */
   int group_size = csis_group_size > 0 ? csis_group_size : 1;
