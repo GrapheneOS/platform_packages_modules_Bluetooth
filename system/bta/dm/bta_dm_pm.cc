@@ -946,8 +946,8 @@ void bta_dm_pm_active(const RawAddress& peer_addr) {
 static void bta_dm_pm_btm_cback(const RawAddress& bd_addr,
                                 tBTM_PM_STATUS status, uint16_t value,
                                 tHCI_STATUS hci_status) {
-  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_pm_btm_status, bd_addr, status,
-                                          value, hci_status));
+  do_in_main_thread(FROM_HERE, base::BindOnce(bta_dm_pm_btm_status, bd_addr,
+                                              status, value, hci_status));
 }
 
 /*******************************************************************************
@@ -988,8 +988,9 @@ static void bta_dm_pm_timer_cback(void* data) {
   if (i == BTA_DM_NUM_PM_TIMER) return;
 
   do_in_main_thread(
-      FROM_HERE, base::Bind(bta_dm_pm_timer, bta_dm_cb.pm_timer[i].peer_bdaddr,
-                            bta_dm_cb.pm_timer[i].pm_action[j]));
+      FROM_HERE,
+      base::BindOnce(bta_dm_pm_timer, bta_dm_cb.pm_timer[i].peer_bdaddr,
+                     bta_dm_cb.pm_timer[i].pm_action[j]));
 }
 
 /** Process pm status event from btm */

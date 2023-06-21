@@ -175,7 +175,7 @@ void bluetooth::shim::ACL_RemoteNameRequest(const RawAddress& addr,
         if (status != hci::ErrorCode::SUCCESS) {
           do_in_main_thread(
               FROM_HERE,
-              base::Bind(
+              base::BindOnce(
                   [](hci::ErrorCode status) {
                     // NOTE: we intentionally don't supply the address, to match
                     // the legacy behavior.
@@ -200,8 +200,9 @@ void bluetooth::shim::ACL_RemoteNameRequest(const RawAddress& addr,
               p[addr_array.size() + i] = features & ((1 << 8) - 1);
               features >>= 8;
             }
-            do_in_main_thread(FROM_HERE,
-                              base::Bind(btm_sec_rmt_host_support_feat_evt, p));
+            do_in_main_thread(
+                FROM_HERE,
+                base::BindOnce(btm_sec_rmt_host_support_feat_evt, p));
           },
           addr),
       GetGdShimHandler()->BindOnce(
@@ -209,7 +210,7 @@ void bluetooth::shim::ACL_RemoteNameRequest(const RawAddress& addr,
              std::array<uint8_t, 248> name) {
             do_in_main_thread(
                 FROM_HERE,
-                base::Bind(
+                base::BindOnce(
                     [](RawAddress addr, hci::ErrorCode status,
                        std::array<uint8_t, 248> name) {
                       auto p = (uint8_t*)osi_malloc(name.size());

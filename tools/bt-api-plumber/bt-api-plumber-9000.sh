@@ -141,13 +141,13 @@ BTA_FILES=(
 )
 BTA_FIND_PATTERNS=(
     "extern void BTA_DmLeRand(LeRandCallback cb);"
-    "do_in_main_thread(FROM_HERE, base::Bind(bta_dm_le_rand, cb));"
+    "do_in_main_thread(FROM_HERE, base::BindOnce(bta_dm_le_rand, cb));"
     "extern void bta_dm_le_rand(LeRandCallback cb);"
     "ooth::shim::BTM_LeRand(cb);"
 )
 BTA_CODE_TEMPLATES=(
     "\\\\\/*******************************************************************************\\\n *\\\n * Function        BTA_Dm:CamelApiName:\\\n *\\\n * Description    :API_DESCRIPTION:\\\n *\\\n * Parameters\\\n *\\\n *******************************************************************************\\\\\/\\\nextern void BTA_Dm:CamelApiName:();"
-    "}\\\n\\\nvoid BTA_Dm:CamelApiName:() {\\\n  APPL_TRACE_API(\"BTA_Dm:CamelApiName:\");\\\n  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_:snake_api_name:));"
+    "}\\\n\\\nvoid BTA_Dm:CamelApiName:() {\\\n  APPL_TRACE_API(\"BTA_Dm:CamelApiName:\");\\\n  do_in_main_thread(FROM_HERE, base::BindOnce(bta_dm_:snake_api_name:));"
     "extern void bta_dm_:snake_api_name:();"
     "}\\\n\\\n\\\\\/*******************************************************************************\\\n *\\\n * Function        BTA_Dm:CamelApiName:\\\n *\\\n * Description    :API_DESCRIPTION:\\\n *\\\n * Parameters\\\n *\\\n *******************************************************************************\\\\\/\\\nvoid bta_dm_:snake_api_name:() {\\\n  \\\\\/\\\\\/PLUMB: bluetooth::shim::BTM_:CamelApiName:();"
 )

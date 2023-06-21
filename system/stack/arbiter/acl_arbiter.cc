@@ -157,9 +157,9 @@ void StoreCallbacksFromRust(
 
 void SendPacketToPeer(uint8_t tcb_idx, ::rust::Vec<uint8_t> buffer) {
   do_in_main_thread(FROM_HERE,
-                    base::Bind(&RustGattAclArbiter::SendPacketToPeer,
-                               base::Unretained(&RustGattAclArbiter::Get()),
-                               tcb_idx, std::move(buffer)));
+                    base::BindOnce(&RustGattAclArbiter::SendPacketToPeer,
+                                   base::Unretained(&RustGattAclArbiter::Get()),
+                                   tcb_idx, std::move(buffer)));
 }
 
 AclArbiter& GetArbiter() {

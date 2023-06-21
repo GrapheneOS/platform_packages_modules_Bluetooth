@@ -164,8 +164,9 @@ struct ClassicDynamicChannelHelper {
     channel_enqueue_buffer_.erase(cid_token);
     channels_[cid_token]->GetQueueUpEnd()->UnregisterDequeue();
     channels_.erase(cid_token);
-    do_in_main_thread(FROM_HERE, base::Bind(appl_info_.pL2CA_DisconnectInd_Cb,
-                                            cid_token, false));
+    do_in_main_thread(
+        FROM_HERE,
+        base::BindOnce(appl_info_.pL2CA_DisconnectInd_Cb, cid_token, false));
 
     remove_classic_cid_token_entry(cid_token);
     initiated_by_us_.erase(cid_token);
@@ -194,24 +195,28 @@ struct ClassicDynamicChannelHelper {
 
     if (initiator_local) {
       do_in_main_thread(
-          FROM_HERE, base::Bind(appl_info_.pL2CA_ConnectCfm_Cb, cid_token, 0));
+          FROM_HERE,
+          base::BindOnce(appl_info_.pL2CA_ConnectCfm_Cb, cid_token, 0));
 
       tL2CAP_CFG_INFO cfg_info{};
-      do_in_main_thread(FROM_HERE, base::Bind(appl_info_.pL2CA_ConfigCfm_Cb,
-                                              cid_token, L2CAP_INITIATOR_LOCAL,
-                                              base::Unretained(&cfg_info)));
+      do_in_main_thread(
+          FROM_HERE,
+          base::BindOnce(appl_info_.pL2CA_ConfigCfm_Cb, cid_token,
+                         L2CAP_INITIATOR_LOCAL, base::Unretained(&cfg_info)));
     } else {
       if (appl_info_.pL2CA_ConnectInd_Cb == nullptr) {
         Disconnect(cid_token);
         return;
       }
-      do_in_main_thread(FROM_HERE, base::Bind(appl_info_.pL2CA_ConnectInd_Cb,
-                                              address, cid_token, psm_, 0));
+      do_in_main_thread(FROM_HERE,
+                        base::BindOnce(appl_info_.pL2CA_ConnectInd_Cb, address,
+                                       cid_token, psm_, 0));
 
       tL2CAP_CFG_INFO cfg_info{};
-      do_in_main_thread(FROM_HERE, base::Bind(appl_info_.pL2CA_ConfigCfm_Cb,
-                                              cid_token, L2CAP_INITIATOR_LOCAL,
-                                              base::Unretained(&cfg_info)));
+      do_in_main_thread(
+          FROM_HERE,
+          base::BindOnce(appl_info_.pL2CA_ConfigCfm_Cb, cid_token,
+                         L2CAP_INITIATOR_LOCAL, base::Unretained(&cfg_info)));
     }
 
     channel->GetQueueUpEnd()->RegisterDequeue(
@@ -236,8 +241,8 @@ struct ClassicDynamicChannelHelper {
     std::copy(packet_vector.begin(), packet_vector.end(), buffer->data);
     buffer->len = packet_vector.size();
     if (do_in_main_thread(FROM_HERE,
-                          base::Bind(appl_info_.pL2CA_DataInd_Cb, cid_token,
-                                     base::Unretained(buffer))) !=
+                          base::BindOnce(appl_info_.pL2CA_DataInd_Cb, cid_token,
+                                         base::Unretained(buffer))) !=
         BT_STATUS_SUCCESS) {
       osi_free(buffer);
     }
@@ -1366,8 +1371,9 @@ struct LeDynamicChannelHelper {
     channel_enqueue_buffer_.erase(cid_token);
     channels_[cid_token]->GetQueueUpEnd()->UnregisterDequeue();
     channels_.erase(cid_token);
-    do_in_main_thread(FROM_HERE, base::Bind(appl_info_.pL2CA_DisconnectInd_Cb,
-                                            cid_token, false));
+    do_in_main_thread(
+        FROM_HERE,
+        base::BindOnce(appl_info_.pL2CA_DisconnectInd_Cb, cid_token, false));
 
     remove_le_cid_token_entry(cid_token);
     initiated_by_us_.erase(cid_token);
@@ -1404,15 +1410,17 @@ struct LeDynamicChannelHelper {
 
     if (initiator_local) {
       do_in_main_thread(
-          FROM_HERE, base::Bind(appl_info_.pL2CA_ConnectCfm_Cb, cid_token, 0));
+          FROM_HERE,
+          base::BindOnce(appl_info_.pL2CA_ConnectCfm_Cb, cid_token, 0));
 
     } else {
       if (appl_info_.pL2CA_ConnectInd_Cb == nullptr) {
         Disconnect(cid_token);
         return;
       }
-      do_in_main_thread(FROM_HERE, base::Bind(appl_info_.pL2CA_ConnectInd_Cb,
-                                              address, cid_token, psm_, 0));
+      do_in_main_thread(FROM_HERE,
+                        base::BindOnce(appl_info_.pL2CA_ConnectInd_Cb, address,
+                                       cid_token, psm_, 0));
     }
   }
 
@@ -1429,8 +1437,8 @@ struct LeDynamicChannelHelper {
     std::copy(packet_vector.begin(), packet_vector.end(), buffer->data);
     buffer->len = packet_vector.size();
     if (do_in_main_thread(FROM_HERE,
-                          base::Bind(appl_info_.pL2CA_DataInd_Cb, cid_token,
-                                     base::Unretained(buffer))) !=
+                          base::BindOnce(appl_info_.pL2CA_DataInd_Cb, cid_token,
+                                         base::Unretained(buffer))) !=
         BT_STATUS_SUCCESS) {
       osi_free(buffer);
     }
