@@ -373,13 +373,13 @@ void ValidateAclInterface(const shim::legacy::acl_interface_t& acl_interface) {
 
 }  // namespace
 
-#define TRY_POSTING_ON_MAIN(cb, ...)                               \
-  do {                                                             \
-    if (cb == nullptr) {                                           \
-      LOG_WARN("Dropping ACL event with no callback");             \
-    } else {                                                       \
-      do_in_main_thread(FROM_HERE, base::Bind(cb, ##__VA_ARGS__)); \
-    }                                                              \
+#define TRY_POSTING_ON_MAIN(cb, ...)                                   \
+  do {                                                                 \
+    if (cb == nullptr) {                                               \
+      LOG_WARN("Dropping ACL event with no callback");                 \
+    } else {                                                           \
+      do_in_main_thread(FROM_HERE, base::BindOnce(cb, ##__VA_ARGS__)); \
+    }                                                                  \
   } while (0)
 
 constexpr HciHandle kInvalidHciHandle = 0xffff;
@@ -439,7 +439,7 @@ class ShimAclConnection {
       LOG_WARN("Dropping ACL data with no callback");
       osi_free(p_buf);
     } else if (do_in_main_thread(FROM_HERE,
-                                 base::Bind(send_data_upwards_, p_buf)) !=
+                                 base::BindOnce(send_data_upwards_, p_buf)) !=
                BT_STATUS_SUCCESS) {
       osi_free(p_buf);
     }

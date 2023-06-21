@@ -600,9 +600,9 @@ uint16_t L2CA_ConnectLECocReq(uint16_t psm, const RawAddress& p_bd_addr,
       // should this operation fail
       if (bluetooth::common::init_flags::
               asynchronously_start_l2cap_coc_is_enabled()) {
-        do_in_main_thread(FROM_HERE,
-                          base::Bind(&l2c_csm_execute, base::Unretained(p_ccb),
-                                     L2CEVT_L2CA_CONNECT_REQ, nullptr));
+        do_in_main_thread(
+            FROM_HERE, base::BindOnce(&l2c_csm_execute, base::Unretained(p_ccb),
+                                      L2CEVT_L2CA_CONNECT_REQ, nullptr));
       } else {
         l2c_csm_execute(p_ccb, L2CEVT_L2CA_CONNECT_REQ, NULL);
       }
