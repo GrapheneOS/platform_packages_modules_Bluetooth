@@ -86,14 +86,15 @@ public class BluetoothOppLauncherActivityTest {
         mIntent.setClass(mTargetContext, BluetoothOppLauncherActivity.class);
 
         BluetoothOppTestUtils.enableOppActivities(true, mTargetContext);
-        TestUtils.wakeUpAndDismissKeyGuard();
+        TestUtils.setUpUiTest();
 
         BluetoothOppManager.setInstance(mBluetoothOppManager);
         Intents.init();
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
+        TestUtils.tearDownUiTest();
         BluetoothMethodProxy.setInstanceForTesting(null);
         BluetoothOppManager.setInstance(null);
         Intents.release();
