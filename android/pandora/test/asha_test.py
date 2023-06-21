@@ -46,6 +46,7 @@ HISYCNID: List[int] = [0x01, 0x02, 0x03, 0x04, 0x5, 0x6, 0x7, 0x8]
 COMPLETE_LOCAL_NAME: str = "Bumble"
 AUDIO_SIGNAL_AMPLITUDE = 0.8
 AUDIO_SIGNAL_SAMPLING_RATE = 44100
+AUDIO_ASHA_SAMPLING_RATE = 16000
 SINE_FREQUENCY = 440
 SINE_DURATION = 0.1
 
@@ -236,12 +237,25 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
         s16le = (sine * 32767).astype('<i2')
 
         # Interleaved audio.
-        stereo = np.zeros(s16le.size * 2, dtype=sine.dtype)
+        stereo = np.zeros(s16le.size * 2, dtype=s16le.dtype)
         stereo[0::2] = s16le
 
         # Send 4 second of audio.
         for _ in range(0, int(4 / SINE_DURATION)):
             yield PlaybackAudioRequest(connection=connection, data=stereo.tobytes())
+
+    def get_audio_frequency(self, audio_data: ByteString, start_time: int, end_time: int) -> float:
+        data = np.frombuffer(bytes(audio_data), dtype=np.int16)
+        start_point = int(AUDIO_ASHA_SAMPLING_RATE * start_time / 1000)
+        end_point = int(AUDIO_ASHA_SAMPLING_RATE * end_time / 1000)
+        length = (end_time - start_time) / 1000
+        count = 0
+        for i in range(start_point, end_point):
+            # Count the cycles in the audio sine wave.
+            if data[i] < 0 and data[i + 1] > 0:
+                count += 1
+
+        return count/length
 
     @avatar.parameterized(
         (RANDOM, Ear.LEFT),
@@ -1099,7 +1113,9 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
         )
 
         assert_not_equal(len(audio_data), 0)
-        # TODO(duoho): decode audio_data and verify the content
+        # Take one second of audio after the first second.
+        audio_frequency = self.get_audio_frequency(audio_data=audio_data, start_time=1000, end_time=2000)
+        assert_equal(audio_frequency, SINE_FREQUENCY)
 
 
 if __name__ == "__main__":
