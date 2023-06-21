@@ -20,6 +20,7 @@ default-members = [
   "system/gd/rust/topshim",
   "system/gd/rust/linux/mgmt",
   "system/gd/rust/linux/service",
+  "system/gd/rust/linux/stack",
   "system/gd/rust/linux/client",
 ]
 
@@ -28,6 +29,7 @@ members = [
   "system/gd/rust/topshim",
   "system/gd/rust/linux/mgmt",
   "system/gd/rust/linux/service",
+  "system/gd/rust/linux/stack",
   "system/gd/rust/linux/client",
   "floss/hcidoc",
 ]
