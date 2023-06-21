@@ -725,7 +725,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         getContentResolver().unregisterContentObserver(mContactChangeObserver);
         mContactChangeObserver = null;
         setComponentAvailable(PBAP_ACTIVITY, false);
-        mPbapStateMachineMap.clear();
+        synchronized (mPbapStateMachineMap) {
+            mPbapStateMachineMap.clear();
+        }
         return true;
     }
 
