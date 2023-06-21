@@ -4633,5 +4633,76 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStreamCisFailure) {
   ASSERT_NE(ase->retrans_nb, 0);
 }
 
+TEST_F(StateMachineTest, testAclDropWithoutApriorCisDisconnection) {
+  const auto context_type = kContextTypeMedia;
+  const auto leaudio_group_id = 6;
+  const auto num_devices = 2;
+
+  ContentControlIdKeeper::GetInstance()->SetCcid(media_context, media_ccid);
+
+  // Prepare multiple fake connected devices in a group
+  auto* group =
+      PrepareSingleTestDeviceGroup(leaudio_group_id, context_type, num_devices);
+  ASSERT_EQ(group->Size(), num_devices);
+
+  PrepareConfigureCodecHandler(group);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group);
+  PrepareDisableHandler(group);
+  PrepareReleaseHandler(group);
+
+  auto* leAudioDevice = group->GetFirstDevice();
+  LeAudioDevice* firstDevice = leAudioDevice;
+  LeAudioDevice* lastDevice = leAudioDevice;
+
+  auto expected_devices_written = 0;
+  while (leAudioDevice) {
+    /* Three Writes:
+     * 1: Codec Config
+     * 2: Codec QoS
+     * 3: Enabling
+     */
+    lastDevice = leAudioDevice;
+    EXPECT_CALL(gatt_queue,
+                WriteCharacteristic(leAudioDevice->conn_id_,
+                                    leAudioDevice->ctp_hdls_.val_hdl, _,
+                                    GATT_WRITE_NO_RSP, _, _))
+        .Times(AtLeast(3));
+    expected_devices_written++;
+    leAudioDevice = group->GetNextDevice(leAudioDevice);
+  }
+  ASSERT_EQ(expected_devices_written, num_devices);
+
+  EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
+
+  InjectInitialIdleNotification(group);
+
+  // Start the configuration and stream Media content
+  LeAudioGroupStateMachine::Get()->StartStream(
+      group, context_type,
+      {.sink = types::AudioContexts(context_type),
+       .source = types::AudioContexts(context_type)});
+
+  // Check if group has transitioned to a proper state
+  ASSERT_EQ(group->GetState(),
+            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+  testing::Mock::VerifyAndClearExpectations(&mock_iso_manager_);
+
+  /* Separate CIS  for dual CIS device is treated as sink device */
+  ASSERT_EQ(group->stream_conf.sink_num_of_devices, 2);
+  ASSERT_EQ(group->stream_conf.sink_num_of_channels, 2);
+
+  // Inject CIS and ACL disconnection of first device
+  InjectAclDisconnected(group, firstDevice);
+
+  InjectCisDisconnected(group, lastDevice, HCI_ERR_CONN_CAUSE_LOCAL_HOST);
+  InjectAclDisconnected(group, lastDevice);
+
+  ASSERT_EQ(group->stream_conf.sink_num_of_devices, 0);
+  ASSERT_EQ(group->stream_conf.sink_num_of_channels, 0);
+}
+
 }  // namespace internal
 }  // namespace le_audio
