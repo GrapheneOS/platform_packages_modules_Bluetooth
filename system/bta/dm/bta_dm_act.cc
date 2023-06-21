@@ -2727,8 +2727,8 @@ static void handle_role_change(const RawAddress& bd_addr, tHCI_ROLE new_role,
 
 void BTA_dm_report_role_change(const RawAddress bd_addr, tHCI_ROLE new_role,
                                tHCI_STATUS hci_status) {
-  do_in_main_thread(
-      FROM_HERE, base::Bind(handle_role_change, bd_addr, new_role, hci_status));
+  do_in_main_thread(FROM_HERE, base::BindOnce(handle_role_change, bd_addr,
+                                              new_role, hci_status));
 }
 
 void handle_remote_features_complete(const RawAddress& bd_addr) {
@@ -2751,7 +2751,7 @@ void handle_remote_features_complete(const RawAddress& bd_addr) {
 
 void BTA_dm_notify_remote_features_complete(const RawAddress bd_addr) {
   do_in_main_thread(FROM_HERE,
-                    base::Bind(handle_remote_features_complete, bd_addr));
+                    base::BindOnce(handle_remote_features_complete, bd_addr));
 }
 
 static tBTA_DM_PEER_DEVICE* allocate_device_for(const RawAddress& bd_addr,
@@ -2814,8 +2814,8 @@ void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport,
 
 void BTA_dm_acl_up(const RawAddress bd_addr, tBT_TRANSPORT transport,
                    uint16_t acl_handle) {
-  do_in_main_thread(FROM_HERE,
-                    base::Bind(bta_dm_acl_up, bd_addr, transport, acl_handle));
+  do_in_main_thread(
+      FROM_HERE, base::BindOnce(bta_dm_acl_up, bd_addr, transport, acl_handle));
 }
 
 static void bta_dm_acl_up_failed(const RawAddress bd_addr,
@@ -2831,8 +2831,8 @@ static void bta_dm_acl_up_failed(const RawAddress bd_addr,
 
 void BTA_dm_acl_up_failed(const RawAddress bd_addr, tBT_TRANSPORT transport,
                           tHCI_STATUS status) {
-  do_in_main_thread(
-      FROM_HERE, base::Bind(bta_dm_acl_up_failed, bd_addr, transport, status));
+  do_in_main_thread(FROM_HERE, base::BindOnce(bta_dm_acl_up_failed, bd_addr,
+                                              transport, status));
 }
 
 static void bta_dm_acl_down(const RawAddress& bd_addr,
@@ -2917,7 +2917,8 @@ static void bta_dm_acl_down(const RawAddress& bd_addr,
 }
 
 void BTA_dm_acl_down(const RawAddress bd_addr, tBT_TRANSPORT transport) {
-  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_acl_down, bd_addr, transport));
+  do_in_main_thread(FROM_HERE,
+                    base::BindOnce(bta_dm_acl_down, bd_addr, transport));
 }
 
 /*******************************************************************************
