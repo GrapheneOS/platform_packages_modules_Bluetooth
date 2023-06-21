@@ -138,7 +138,7 @@ void Btm::ScanningCallbacks::OnScanResult(
       extended_event_type, ble_address_type, raw_address, primary_phy,
       secondary_phy, advertising_sid, tx_power, rssi,
       periodic_advertising_interval, advertising_data.size(),
-      &advertising_data[0], original_bda);
+      advertising_data.data(), original_bda);
 }
 
 void Btm::ScanningCallbacks::OnTrackAdvFoundLost(
