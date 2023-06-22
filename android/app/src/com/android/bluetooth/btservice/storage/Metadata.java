@@ -21,17 +21,24 @@ import android.bluetooth.BluetoothA2dp.OptionalCodecsPreferenceStatus;
 import android.bluetooth.BluetoothA2dp.OptionalCodecsSupportStatus;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothUtils;
 
 import androidx.annotation.NonNull;
 import androidx.room.Embedded;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.android.internal.annotations.VisibleForTesting;
+
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @hide
+ */
 @Entity(tableName = "metadata")
-class Metadata {
+@VisibleForTesting
+public class Metadata {
     @PrimaryKey
     @NonNull
     private String address;
@@ -84,7 +91,11 @@ class Metadata {
         preferred_duplex_profile = 0;
     }
 
-    String getAddress() {
+    /**
+     * @hide
+     */
+    @VisibleForTesting
+    public String getAddress() {
         return address;
     }
 
@@ -97,7 +108,7 @@ class Metadata {
      */
     @NonNull
     public String getAnonymizedAddress() {
-        return "XX:XX:XX" + getAddress().substring(8);
+        return BluetoothUtils.toAnonymizedAddress(address);
     }
 
     void setProfileConnectionPolicy(int profile, int connectionPolicy) {
@@ -170,7 +181,11 @@ class Metadata {
         }
     }
 
-    int getProfileConnectionPolicy(int profile) {
+    /**
+     * @hide
+     */
+    @VisibleForTesting
+    public int getProfileConnectionPolicy(int profile) {
         switch (profile) {
             case BluetoothProfile.A2DP:
                 return profileConnectionPolicies.a2dp_connection_policy;
@@ -306,7 +321,11 @@ class Metadata {
         }
     }
 
-    byte[] getCustomizedMeta(int key) {
+    /**
+     * @hide
+     */
+    @VisibleForTesting
+    public byte[] getCustomizedMeta(int key) {
         byte[] value = null;
         switch (key) {
             case BluetoothDevice.METADATA_MANUFACTURER_NAME:
@@ -412,7 +431,8 @@ class Metadata {
 
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append(address)
+        builder.append(getAnonymizedAddress())
+            .append(" last_active_time=" + last_active_time)
             .append(" {profile connection policy(")
             .append(profileConnectionPolicies)
             .append("), optional codec(support=")

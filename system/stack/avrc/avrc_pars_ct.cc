@@ -370,10 +370,8 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
               /* Parse the name now */
               BE_STREAM_TO_UINT16(attr_entry->name.charset_id, p);
               BE_STREAM_TO_UINT16(attr_entry->name.str_len, p);
-              // Check for overflow
-              if (pkt_len - min_len < attr_entry->name.str_len)
-                goto browse_length_error;
               min_len += attr_entry->name.str_len;
+              if (pkt_len < min_len) goto browse_length_error;
               attr_entry->name.p_str = (uint8_t*)osi_malloc(
                   attr_entry->name.str_len * sizeof(uint8_t));
               BE_STREAM_TO_ARRAY(p, attr_entry->name.p_str,
@@ -435,10 +433,8 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
         BE_STREAM_TO_UINT32(attr_entry->attr_id, p);
         BE_STREAM_TO_UINT16(attr_entry->name.charset_id, p);
         BE_STREAM_TO_UINT16(attr_entry->name.str_len, p);
-        // Check for overflow
-        if (pkt_len - min_len < attr_entry->name.str_len)
-          goto browse_length_error;
         min_len += attr_entry->name.str_len;
+        if (pkt_len < min_len) goto browse_length_error;
         attr_entry->name.p_str =
             (uint8_t*)osi_malloc(attr_entry->name.str_len * sizeof(uint8_t));
         BE_STREAM_TO_ARRAY(p, attr_entry->name.p_str, attr_entry->name.str_len);
@@ -800,8 +796,8 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(tAVRC_MSG_VENDOR* p_msg,
           BE_STREAM_TO_UINT32(p_attrs[i].attr_id, p);
           BE_STREAM_TO_UINT16(p_attrs[i].name.charset_id, p);
           BE_STREAM_TO_UINT16(p_attrs[i].name.str_len, p);
-          // Check for overflow
-          if (len - min_len < p_attrs[i].name.str_len) {
+          min_len += p_attrs[i].name.str_len;
+          if (len < min_len) {
             for (int j = 0; j < i; j++) {
               osi_free(p_attrs[j].name.p_str);
             }
@@ -809,7 +805,6 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(tAVRC_MSG_VENDOR* p_msg,
             p_result->get_attrs.num_attrs = 0;
             goto length_error;
           }
-          min_len += p_attrs[i].name.str_len;
           if (p_attrs[i].name.str_len > 0) {
             p_attrs[i].name.p_str =
                 (uint8_t*)osi_calloc(p_attrs[i].name.str_len);

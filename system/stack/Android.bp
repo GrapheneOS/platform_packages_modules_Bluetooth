@@ -1066,6 +1066,9 @@ cc_test {
         "fluoride_defaults",
         "mts_defaults",
     ],
+    cflags: [
+        "-DUNIT_TESTS",
+    ],
     test_suites: ["device-tests"],
     host_supported: true,
     test_options: {
@@ -1464,6 +1467,7 @@ cc_test {
         "metrics/stack_metrics_logging.cc",
         "test/btm/peer_packet_types_test.cc",
         "test/btm/sco_hci_test.cc",
+        "test/btm/stack_btm_regression_tests.cc",
         "test/btm/stack_btm_test.cc",
         "test/btm/sco_pkt_status_test.cc",
         "test/common/mock_eatt.cc",

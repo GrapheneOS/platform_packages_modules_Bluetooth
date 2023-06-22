@@ -37,7 +37,7 @@ class Security:
     TRANSPORT_LE = "2"
 
     __default_timeout = 10  # seconds
-    __default_bonding_timeout = 30  # seconds
+    __default_bonding_timeout = 60  # seconds
     __device = None
 
     def __init__(self, device):
@@ -70,6 +70,7 @@ class Security:
                 logging.info("Generating local oob data failed with error code %d", errorcode)
                 return errorcode, None
 
+        logging.info("OOB ADDR with Type: %s", generate_success_event["data"]["address_with_type"])
         return 0, OobData(generate_success_event["data"]["address_with_type"],
                           generate_success_event["data"]["confirmation"], generate_success_event["data"]["randomizer"])
 
@@ -84,13 +85,27 @@ class Security:
         logging.info("Bonded: %s", bond_state["data"]["bonded_state"])
         assertThat(bond_state["data"]["bonded_state"]).isEqualTo(True)
 
-    def create_bond_out_of_band(self, oob_data, wait_for_device_bonded=True):
+    def create_bond_out_of_band(self,
+                                oob_data,
+                                bt_device_object_address=None,
+                                bt_device_object_address_type=-1,
+                                wait_for_device_bonded=True):
         assertThat(oob_data).isNotNone()
-        address = oob_data.to_sl4a_address()
-        address_type = oob_data.to_sl4a_address_type()
-        logging.info("Bonding OOB with %s and address type=%s", address, address_type)
-        self.__device.sl4a.bluetoothCreateLeBondOutOfBand(address, oob_data.confirmation, oob_data.randomizer,
-                                                          address_type)
+        oob_data_address = oob_data.to_sl4a_address()
+        oob_data_address_type = oob_data.to_sl4a_address_type()
+
+        # If a BT Device object address isn't specified, default to the oob data
+        # address and type
+        if bt_device_object_address is None:
+            bt_device_object_address = oob_data_address
+            bt_device_object_address_type = oob_data_address_type
+
+        logging.info("Bonding OOB with device addr=%s, device addr type=%s, oob addr=%s, oob addr type=%s",
+                     bt_device_object_address, bt_device_object_address_type, oob_data_address, oob_data_address_type)
+        bond_start = self.__device.sl4a.bluetoothCreateLeBondOutOfBand(
+            oob_data_address, oob_data_address_type, oob_data.confirmation, oob_data.randomizer,
+            bt_device_object_address, bt_device_object_address_type)
+        assertThat(bond_start).isTrue()
 
         if wait_for_device_bonded:
             self.ensure_device_bonded()

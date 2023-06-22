@@ -415,6 +415,10 @@ struct iso_impl {
     uint8_t status;
     uint16_t conn_handle;
 
+    if (len < 3) {
+      LOG(WARNING) << __func__ << "Malformatted packet received";
+      return;
+    }
     STREAM_TO_UINT8(status, stream);
     STREAM_TO_UINT16(conn_handle, stream);
 
@@ -474,6 +478,13 @@ struct iso_impl {
     uint32_t crcErrorPackets;
     uint32_t rxUnreceivedPackets;
     uint32_t duplicatePackets;
+
+    // 1 + 2 + 4 * 7
+#define ISO_LINK_QUALITY_SIZE 31
+    if (len < ISO_LINK_QUALITY_SIZE) {
+      LOG(ERROR) << "Malformated link quality format, len=" << len;
+      return;
+    }
 
     STREAM_TO_UINT8(status, stream);
     if (status != HCI_SUCCESS) {
