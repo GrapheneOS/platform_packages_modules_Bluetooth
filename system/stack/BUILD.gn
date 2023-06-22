@@ -126,6 +126,8 @@ source_set("stack") {
     "btm/btm_sec.cc",
     "btm/hfp_msbc_encoder.cc",
     "btm/hfp_msbc_decoder.cc",
+    "btm/hfp_lc3_encoder.cc",
+    "btm/hfp_lc3_decoder.cc",
     "btu/btu_hcif.cc",
     "btu/btu_task.cc",
     "eatt/eatt.cc",
@@ -220,6 +222,7 @@ source_set("stack") {
     "//bt/system/udrv/include",
     "//bt/system/vnd/ble",
     "//bt/system/vnd/include",
+    "//bt/system/embdrv/lc3/include",
   ]
 
   deps = [
@@ -229,6 +232,7 @@ source_set("stack") {
     "//bt/system/gd/rust/shim:init_flags_bridge_header",
     "//bt/system/types",
     "//bt/system/types",
+    "//bt/system/embdrv/lc3:liblc3",
   ]
 
   configs += [ "//bt/system:target_defaults" ]
