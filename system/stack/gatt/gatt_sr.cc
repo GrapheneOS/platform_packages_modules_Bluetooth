@@ -64,6 +64,12 @@ uint32_t gatt_sr_enqueue_cmd(tGATT_TCB& tcb, uint16_t cid, uint8_t op_code,
   } else {
     EattChannel* channel =
         EattExtension::GetInstance()->FindEattChannelByCid(tcb.peer_bda, cid);
+    if (channel == nullptr) {
+      LOG_WARN("%s, cid 0x%02x already disconnected",
+               ADDRESS_TO_LOGGABLE_CSTR(tcb.peer_bda), cid);
+      return 0;
+    }
+
     p_cmd = &channel->server_outstanding_cmd_;
   }
 
@@ -104,6 +110,11 @@ bool gatt_sr_cmd_empty(tGATT_TCB& tcb, uint16_t cid) {
 
   EattChannel* channel =
       EattExtension::GetInstance()->FindEattChannelByCid(tcb.peer_bda, cid);
+  if (channel == nullptr) {
+    LOG_WARN("%s, cid 0x%02x already disconnected",
+             ADDRESS_TO_LOGGABLE_CSTR(tcb.peer_bda), cid);
+    return false;
+  }
 
   return (channel->server_outstanding_cmd_.op_code == 0);
 }
@@ -125,6 +136,11 @@ void gatt_dequeue_sr_cmd(tGATT_TCB& tcb, uint16_t cid) {
   } else {
     EattChannel* channel =
         EattExtension::GetInstance()->FindEattChannelByCid(tcb.peer_bda, cid);
+    if (channel == nullptr) {
+      LOG_WARN("%s, cid 0x%02x already disconnected",
+               ADDRESS_TO_LOGGABLE_CSTR(tcb.peer_bda), cid);
+      return;
+    }
 
     p_cmd = &channel->server_outstanding_cmd_;
   }
@@ -420,6 +436,11 @@ void gatt_process_read_multi_req(tGATT_TCB& tcb, uint16_t cid, uint8_t op_code,
   VLOG(1) << __func__;
 
   tGATT_READ_MULTI* multi_req = gatt_sr_get_read_multi(tcb, cid);
+  if (multi_req == nullptr) {
+    LOG_ERROR("Could not proceed request. %s, 0x%02x",
+              ADDRESS_TO_LOGGABLE_CSTR(tcb.peer_bda), cid);
+    return;
+  }
   multi_req->num_handles = 0;
   multi_req->variable_len = (op_code == GATT_REQ_READ_MULTI_VAR);
   gatt_sr_get_sec_info(tcb.peer_bda, tcb.transport, &sec_flag, &key_size);
@@ -470,7 +491,12 @@ void gatt_process_read_multi_req(tGATT_TCB& tcb, uint16_t cid, uint8_t op_code,
     trans_id = gatt_sr_enqueue_cmd(tcb, cid, op_code, multi_req->handles[0]);
     if (trans_id != 0) {
       tGATT_SR_CMD* sr_cmd_p = gatt_sr_get_cmd_by_cid(tcb, cid);
-
+      if (sr_cmd_p == nullptr) {
+        LOG_ERROR(
+            "Could not send response on CID were request arrived. %s, 0x%02x",
+            ADDRESS_TO_LOGGABLE_CSTR(tcb.peer_bda), cid);
+        return;
+      }
       gatt_sr_reset_cback_cnt(tcb,
                               cid); /* read multiple use multi_rsp_q's count*/
 
