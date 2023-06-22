@@ -5755,14 +5755,10 @@ packet LinkSupervisionTimeoutChanged : Event (event_code = LINK_SUPERVISION_TIME
   link_supervision_timeout : 16, // 0x001-0xFFFF (0.625ms-40.9s)
 }
 
-enum FlushablePacketType : 8 {
-  AUTOMATICALLY_FLUSHABLE_ONLY = 0,
-}
-
 packet EnhancedFlush : Command (op_code = ENHANCED_FLUSH) {
   connection_handle : 12,
   _reserved_ : 4,
-  packet_type : FlushablePacketType,
+  _reserved_ : 8, // Automatically flushable only (0x00)
 }
 
 test EnhancedFlush {
