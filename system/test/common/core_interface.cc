@@ -51,7 +51,7 @@ struct MockConfigInterface : public bluetooth::core::ConfigInterface {
 static auto mockConfigInterface = MockConfigInterface{};
 
 // This interface lets us communicate with encoders used in profiles
-struct MockCodecInterface : public bluetooth::core::CodecInterface {
+struct MockMsbcCodecInterface : public bluetooth::core::CodecInterface {
   virtual void initialize(){};
   virtual void cleanup() {}
 
@@ -62,7 +62,19 @@ struct MockCodecInterface : public bluetooth::core::CodecInterface {
   };
 };
 
-static auto mockCodecInterface = MockCodecInterface{};
+struct MockLc3CodecInterface : public bluetooth::core::CodecInterface {
+  virtual void initialize(){};
+  virtual void cleanup() {}
+
+  virtual uint32_t encodePacket(int16_t* input, uint8_t* output) { return 0; };
+  virtual bool decodePacket(const uint8_t* i_buf, int16_t* o_buf,
+                            size_t out_len) {
+    return false;
+  };
+};
+
+static auto mockMsbcCodecInterface = MockMsbcCodecInterface{};
+static auto mockLc3CodecInterface = MockLc3CodecInterface{};
 
 struct bluetooth::core::HACK_ProfileInterface HACK_profileInterface = {
     // HID
@@ -95,9 +107,9 @@ void CleanCoreInterface() {
 }
 
 MockCoreInterface::MockCoreInterface()
-    : bluetooth::core::CoreInterface{&eventCallbacks, &mockConfigInterface,
-                                     &mockCodecInterface,
-                                     &HACK_profileInterface} {};
+    : bluetooth::core::CoreInterface{
+          &eventCallbacks, &mockConfigInterface, &mockMsbcCodecInterface,
+          &mockLc3CodecInterface, &HACK_profileInterface} {};
 
 void MockCoreInterface::onBluetoothEnabled(){};
 
