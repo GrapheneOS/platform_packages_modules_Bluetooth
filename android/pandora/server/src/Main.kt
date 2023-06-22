@@ -27,34 +27,34 @@ import androidx.test.runner.MonitoringInstrumentation
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Main : MonitoringInstrumentation() {
 
-  private val TAG = "PandoraMain"
+    private val TAG = "PandoraMain"
 
-  override fun onCreate(arguments: Bundle) {
-    super.onCreate(arguments)
+    override fun onCreate(arguments: Bundle) {
+        super.onCreate(arguments)
 
-    // Activate debugger.
-    if (arguments.getString("debug").toBoolean()) {
-      Log.i(TAG, "Waiting for debugger to connect...")
-      Debug.waitForDebugger()
-      Log.i(TAG, "Debugger connected")
+        // Activate debugger.
+        if (arguments.getString("debug").toBoolean()) {
+            Log.i(TAG, "Waiting for debugger to connect...")
+            Debug.waitForDebugger()
+            Log.i(TAG, "Debugger connected")
+        }
+
+        // Start instrumentation thread.
+        start()
     }
 
-    // Start instrumentation thread.
-    start()
-  }
+    override fun onStart() {
+        super.onStart()
 
-  override fun onStart() {
-    super.onStart()
+        val context: Context = getApplicationContext()
+        val uiAutomation = InstrumentationRegistry.getInstrumentation().getUiAutomation()
+        // Adopt all the permissions of the shell
+        uiAutomation.adoptShellPermissionIdentity()
 
-    val context: Context = getApplicationContext()
-    val uiAutomation = InstrumentationRegistry.getInstrumentation().getUiAutomation()
-    // Adopt all the permissions of the shell
-    uiAutomation.adoptShellPermissionIdentity()
-
-    while (true) {
-      val server = Server(context)
-      server.awaitTermination()
-      server.deinit()
+        while (true) {
+            val server = Server(context)
+            server.awaitTermination()
+            server.deinit()
+        }
     }
-  }
 }
