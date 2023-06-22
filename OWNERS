@@ -7,8 +7,8 @@ sungsoo@google.com #{LAST_RESORT_SUGGESTION}
 
 # Per-file ownership
 
-per-file *.bp,*.xml=wescande@google.com
-per-file TEST_MAPPING,*.bp,*.xml=licorne@google.com
+# Build files / test_config / presubmit / preupload
+per-file PREUPLOAD.cfg,TEST_MAPPING,*.bp,*.xml=file:/OWNERS_build
 
 # ChromeOS team owns Linux build files
 # - build.py is used for Linux build
