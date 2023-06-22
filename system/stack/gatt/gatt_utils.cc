@@ -998,7 +998,11 @@ bool gatt_tcb_is_cid_busy(tGATT_TCB& tcb, uint16_t cid) {
 
   EattChannel* channel =
       EattExtension::GetInstance()->FindEattChannelByCid(tcb.peer_bda, cid);
-  if (!channel) return false;
+  if (channel == nullptr) {
+    LOG_WARN("%s, cid 0x%02x already disconnected",
+             ADDRESS_TO_LOGGABLE_CSTR(tcb.peer_bda), cid);
+    return false;
+  }
 
   return !channel->cl_cmd_q_.empty();
 }
@@ -1138,6 +1142,11 @@ uint16_t gatt_tcb_get_payload_size(tGATT_TCB& tcb, uint16_t cid) {
 
   EattChannel* channel =
       EattExtension::GetInstance()->FindEattChannelByCid(tcb.peer_bda, cid);
+  if (channel == nullptr) {
+    LOG_WARN("%s, cid 0x%02x already disconnected",
+             ADDRESS_TO_LOGGABLE_CSTR(tcb.peer_bda), cid);
+    return 0;
+  }
 
   /* ATT MTU for EATT is min from tx and rx mtu*/
   return std::min<uint16_t>(channel->tx_mtu_, channel->rx_mtu_);
@@ -1197,6 +1206,8 @@ void gatt_clcb_invalidate(tGATT_TCB* p_tcb, const tGATT_CLCB* p_clcb) {
     EattChannel* channel = EattExtension::GetInstance()->FindEattChannelByCid(
         p_tcb->peer_bda, cid);
     if (channel == nullptr) {
+      LOG_WARN("%s, cid 0x%02x already disconnected",
+               ADDRESS_TO_LOGGABLE_CSTR(p_tcb->peer_bda), cid);
       return;
     }
     cl_cmd_q_p = &channel->cl_cmd_q_;
@@ -1343,6 +1354,11 @@ void gatt_sr_reset_cback_cnt(tGATT_TCB& tcb, uint16_t cid) {
     } else {
       EattChannel* channel =
           EattExtension::GetInstance()->FindEattChannelByCid(tcb.peer_bda, cid);
+      if (channel == nullptr) {
+        LOG_WARN("%s, cid 0x%02x already disconnected",
+                 ADDRESS_TO_LOGGABLE_CSTR(tcb.peer_bda), cid);
+        return;
+      }
       channel->server_outstanding_cmd_.cback_cnt[i] = 0;
     }
   }
@@ -1373,6 +1389,12 @@ tGATT_SR_CMD* gatt_sr_get_cmd_by_cid(tGATT_TCB& tcb, uint16_t cid) {
   } else {
     EattChannel* channel =
         EattExtension::GetInstance()->FindEattChannelByCid(tcb.peer_bda, cid);
+    if (channel == nullptr) {
+      LOG_WARN("%s, cid 0x%02x already disconnected",
+               ADDRESS_TO_LOGGABLE_CSTR(tcb.peer_bda), cid);
+      return nullptr;
+    }
+
     sr_cmd_p = &channel->server_outstanding_cmd_;
   }
 
@@ -1389,6 +1411,11 @@ tGATT_READ_MULTI* gatt_sr_get_read_multi(tGATT_TCB& tcb, uint16_t cid) {
   } else {
     EattChannel* channel =
         EattExtension::GetInstance()->FindEattChannelByCid(tcb.peer_bda, cid);
+    if (channel == nullptr) {
+      LOG_WARN("%s, cid 0x%02x already disconnected",
+               ADDRESS_TO_LOGGABLE_CSTR(tcb.peer_bda), cid);
+      return nullptr;
+    }
     read_multi_p = &channel->server_outstanding_cmd_.multi_req;
   }
 
@@ -1414,6 +1441,11 @@ void gatt_sr_update_cback_cnt(tGATT_TCB& tcb, uint16_t cid, tGATT_IF gatt_if,
   } else {
     EattChannel* channel =
         EattExtension::GetInstance()->FindEattChannelByCid(tcb.peer_bda, cid);
+    if (channel == nullptr) {
+      LOG_WARN("%s, cid 0x%02x already disconnected",
+               ADDRESS_TO_LOGGABLE_CSTR(tcb.peer_bda), cid);
+      return;
+    }
     sr_cmd_p = &channel->server_outstanding_cmd_;
   }
 
@@ -1508,7 +1540,7 @@ bool gatt_cancel_open(tGATT_IF gatt_if, const RawAddress& bda) {
 }
 
 /** Enqueue this command */
-void gatt_cmd_enq(tGATT_TCB& tcb, tGATT_CLCB* p_clcb, bool to_send,
+bool gatt_cmd_enq(tGATT_TCB& tcb, tGATT_CLCB* p_clcb, bool to_send,
                   uint8_t op_code, BT_HDR* p_buf) {
   tGATT_CMD_Q cmd;
   cmd.to_send = to_send; /* waiting to be sent */
@@ -1522,9 +1554,15 @@ void gatt_cmd_enq(tGATT_TCB& tcb, tGATT_CLCB* p_clcb, bool to_send,
   } else {
     EattChannel* channel =
         EattExtension::GetInstance()->FindEattChannelByCid(tcb.peer_bda, cmd.cid);
-    CHECK(channel);
+    if (channel == nullptr) {
+      LOG_WARN("%s, cid 0x%02x already disconnected",
+               ADDRESS_TO_LOGGABLE_CSTR(tcb.peer_bda), cmd.cid);
+      return false;
+    }
     channel->cl_cmd_q_.push_back(cmd);
   }
+
+  return true;
 }
 
 /** dequeue the command in the client CCB command queue */
@@ -1536,7 +1574,12 @@ tGATT_CLCB* gatt_cmd_dequeue(tGATT_TCB& tcb, uint16_t cid, uint8_t* p_op_code) {
   } else {
     EattChannel* channel =
         EattExtension::GetInstance()->FindEattChannelByCid(tcb.peer_bda, cid);
-    CHECK(channel);
+    if (channel == nullptr) {
+      LOG_WARN("%s, cid 0x%02x already disconnected",
+               ADDRESS_TO_LOGGABLE_CSTR(tcb.peer_bda), cid);
+      return nullptr;
+    }
+
     cl_cmd_q_p = &channel->cl_cmd_q_;
   }
 
