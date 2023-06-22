@@ -1247,7 +1247,7 @@ public final class BluetoothAdapter {
 
         if (GmsCompat.isEnabled()) {
             GmsModuleHooks.enableBluetoothAdapter();
-            return false;
+            return true;
         }
 
         try {
@@ -1458,7 +1458,7 @@ public final class BluetoothAdapter {
 
         if (GmsCompat.isEnabled()) {
             GmsModuleHooks.enableBluetoothAdapter();
-            return false;
+            return true;
         }
 
         try {
@@ -1995,7 +1995,7 @@ public final class BluetoothAdapter {
             if (mode != SCAN_MODE_NONE) {
                 GmsModuleHooks.makeBluetoothAdapterDiscoverable();
             }
-            return BluetoothStatusCodes.ERROR_UNKNOWN;
+            return BluetoothStatusCodes.SUCCESS;
         }
 
         try {
