@@ -1568,7 +1568,7 @@ public class BassClientStateMachineTest {
                 .setSourceDevice(testDevice, BluetoothDevice.ADDRESS_TYPE_RANDOM)
                 .setSourceAdvertisingSid(testAdvertiserSid)
                 .setBroadcastId(testBroadcastId)
-                .setBroadcastCode(new byte[] { 0x00 })
+                .setBroadcastCode(new byte[] { 0x00, 0x01, 0x00, 0x02 })
                 .setPaSyncInterval(testPaSyncInterval)
                 .setPresentationDelayMicros(testPresentationDelayMs);
         // builder expect at least one subgroup
