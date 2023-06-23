@@ -50,6 +50,14 @@ extern tBTM_CB btm_cb;
 #define BTA_AG_CODEC_NEGOTIATION_TIMEOUT_MS (3 * 1000) /* 3 seconds */
 #endif
 
+#define BTM_VOICE_SETTING_CVSD                                         \
+  ((uint16_t)(HCI_INP_CODING_LINEAR | HCI_INP_DATA_FMT_2S_COMPLEMENT | \
+              HCI_INP_SAMPLE_SIZE_16BIT | HCI_AIR_CODING_FORMAT_CVSD))
+
+#define BTM_VOICE_SETTING_TRANS                                        \
+  ((uint16_t)(HCI_INP_CODING_LINEAR | HCI_INP_DATA_FMT_2S_COMPLEMENT | \
+              HCI_INP_SAMPLE_SIZE_16BIT | HCI_AIR_CODING_FORMAT_TRANSPNT))
+
 static bool sco_allowed = true;
 static RawAddress active_device_addr = {};
 
