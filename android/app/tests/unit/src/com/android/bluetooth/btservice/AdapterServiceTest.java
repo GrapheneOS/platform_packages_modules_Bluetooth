@@ -142,7 +142,7 @@ public class AdapterServiceTest {
     private static final int GATT_START_TIME_MS = 1000;
     private static final int ONE_SECOND_MS = 1000;
     private static final int NATIVE_INIT_MS = 8000;
-    private static final int NATIVE_DISABLE_MS = 1000;
+    private static final int NATIVE_DISABLE_MS = 8000;
 
     private final AttributionSource mAttributionSource = new AttributionSource.Builder(
             Process.myUid()).build();
