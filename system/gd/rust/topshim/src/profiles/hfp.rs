@@ -165,6 +165,7 @@ pub mod ffi {
         fn hfp_connection_state_callback(state: u32, addr: RawAddress);
         fn hfp_audio_state_callback(state: u32, addr: RawAddress);
         fn hfp_volume_update_callback(volume: u8, addr: RawAddress);
+        fn hfp_vendor_specific_at_command_callback(at_string: String, addr: RawAddress);
         fn hfp_battery_level_update_callback(battery_level: u8, addr: RawAddress);
         fn hfp_wbs_caps_update_callback(wbs_supported: bool, addr: RawAddress);
         fn hfp_swb_caps_update_callback(swb_supported: bool, addr: RawAddress);
@@ -210,6 +211,7 @@ pub enum HfpCallbacks {
     ConnectionState(BthfConnectionState, RawAddress),
     AudioState(BthfAudioState, RawAddress),
     VolumeUpdate(u8, RawAddress),
+    VendorSpecificAtCommand(String, RawAddress),
     BatteryLevelUpdate(u8, RawAddress),
     WbsCapsUpdate(bool, RawAddress),
     SwbCapsUpdate(bool, RawAddress),
@@ -242,6 +244,11 @@ cb_variant!(
     HfpCb,
     hfp_volume_update_callback -> HfpCallbacks::VolumeUpdate,
     u8, RawAddress);
+
+cb_variant!(
+    HfpCb,
+    hfp_vendor_specific_at_command_callback -> HfpCallbacks::VendorSpecificAtCommand,
+    String, RawAddress);
 
 cb_variant!(
     HfpCb,
