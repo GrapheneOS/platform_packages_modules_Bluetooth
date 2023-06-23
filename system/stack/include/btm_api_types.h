@@ -194,15 +194,6 @@ typedef void(tBTM_SCO_CB)(uint16_t sco_inx);
 #define BTM_ESCO_CONN_REQ_EVT 2
 typedef uint8_t tBTM_ESCO_EVT;
 
-/* Structure passed with SCO change command and events.
- * Used by both Sync and Enhanced sync messaging
- */
-typedef struct {
-  uint16_t max_latency_ms;
-  uint16_t packet_types;
-  uint8_t retransmission_effort;
-} tBTM_CHG_ESCO_PARAMS;
-
 /* Returned by BTM_ReadEScoLinkParms() */
 struct tBTM_ESCO_DATA {
   RawAddress bd_addr;
