@@ -1688,7 +1688,8 @@ void gatt_load_bonded(void) {
       gatt_bonded_check_add_address(p_dev_rec->bd_addr);
     }
     if (p_dev_rec->is_le_link_key_known()) {
-      VLOG(1) << " add bonded BLE " << p_dev_rec->ble.pseudo_addr;
+      VLOG(1) << " add bonded BLE "
+              << ADDRESS_TO_LOGGABLE_STR(p_dev_rec->ble.pseudo_addr);
       LOG_VERBOSE("Add bonded BLE %s",
                   ADDRESS_TO_LOGGABLE_CSTR(p_dev_rec->ble.pseudo_addr));
       gatt_bonded_check_add_address(p_dev_rec->ble.pseudo_addr);
