@@ -3249,13 +3249,13 @@ TEST_F(UnicastTest, RemoveNodeWhileStreaming) {
       .Times(1);
   EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(1);
   EXPECT_CALL(mock_state_machine_, ProcessHciNotifAclDisconnected(_, _))
-      .Times(0);
+      .Times(1);
   EXPECT_CALL(
       mock_audio_hal_client_callbacks_,
       OnGroupNodeStatus(test_address0, group_id, GroupNodeStatus::REMOVED));
   EXPECT_CALL(mock_audio_hal_client_callbacks_,
               OnConnectionState(ConnectionState::DISCONNECTED, test_address0))
-      .Times(0);
+      .Times(1);
 
   LeAudioClient::Get()->GroupRemoveNode(group_id, test_address0);
 
@@ -3775,7 +3775,7 @@ TEST_F(UnicastTest, RemoveWhileStreaming) {
   Mock::VerifyAndClearExpectations(&mock_state_machine_);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
 
-  ASSERT_NE(group, nullptr);
+  ASSERT_EQ(group, nullptr);
 }
 
 TEST_F(UnicastTest, EarbudsTwsStyleStreaming) {
