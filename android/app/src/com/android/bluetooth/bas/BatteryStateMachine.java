@@ -333,7 +333,6 @@ public class BatteryStateMachine extends StateMachine {
         public void enter() {
             log(TAG, "Enter (" + mDevice + "): "
                     + messageWhatToString(getCurrentMessage().what));
-            sendMessageDelayed(CONNECT_TIMEOUT, sConnectTimeoutMs);
             dispatchConnectionStateChanged(mLastConnectionState, BluetoothProfile.STATE_CONNECTING);
         }
 
@@ -342,7 +341,6 @@ public class BatteryStateMachine extends StateMachine {
             log(TAG, "Exit (" + mDevice + "): "
                     + messageWhatToString(getCurrentMessage().what));
             mLastConnectionState = BluetoothProfile.STATE_CONNECTING;
-            removeMessages(CONNECT_TIMEOUT);
         }
 
         @Override
@@ -355,8 +353,8 @@ public class BatteryStateMachine extends StateMachine {
                     Log.w(TAG, "CONNECT ignored: " + mDevice);
                     break;
                 case CONNECT_TIMEOUT:
-                    Log.w(TAG, "Connection timeout: " + mDevice);
-                    // fall through
+                    Log.e(TAG, "Connection timeout unexpected: " + mDevice);
+                    break;
                 case DISCONNECT:
                     log(TAG, "Connection canceled to " + mDevice);
                     if (mBluetoothGatt != null) {
