@@ -284,12 +284,14 @@ tRFC_MCB* port_find_mcb(const RawAddress& bd_addr) {
   for (tRFC_MCB& mcb : rfc_cb.port.rfc_mcb) {
     if ((mcb.state != RFC_MX_STATE_IDLE) && (mcb.bd_addr == bd_addr)) {
       /* Multiplexer channel found do not change anything */
-      VLOG(1) << __func__ << ": found bd_addr=" << bd_addr
+      VLOG(1) << __func__
+              << ": found bd_addr=" << ADDRESS_TO_LOGGABLE_STR(bd_addr)
               << ", rfc_mcb=" << &mcb << ", lcid=" << loghex(mcb.lcid);
       return &mcb;
     }
   }
-  VLOG(1) << __func__ << ": not found, bd_addr:" << bd_addr;
+  VLOG(1) << __func__
+          << ": not found, bd_addr:" << ADDRESS_TO_LOGGABLE_STR(bd_addr);
   return nullptr;
 }
 

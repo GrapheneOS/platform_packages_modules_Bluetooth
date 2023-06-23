@@ -760,7 +760,7 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
                                       uint8_t* p_pin) {
   tBTM_SEC_DEV_REC* p_dev_rec;
   tBTM_STATUS status;
-  VLOG(1) << __func__ << " BDA: " << bd_addr;
+  VLOG(1) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(bd_addr);
 
   BTM_TRACE_DEBUG("%s: Transport used %d, bd_addr=%s", __func__, transport,
                   ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
@@ -2243,7 +2243,8 @@ static tBTM_STATUS btm_sec_dd_create_conn(tBTM_SEC_DEV_REC* p_dev_rec) {
   /* set up the control block to indicated dedicated bonding */
   btm_cb.pairing_flags |= BTM_PAIR_FLAGS_DISC_WHEN_DONE;
 
-  VLOG(1) << "Security Manager: " << p_dev_rec->bd_addr;
+  VLOG(1) << "Security Manager: "
+          << ADDRESS_TO_LOGGABLE_STR(p_dev_rec->bd_addr);
 
   btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
 
@@ -2814,7 +2815,8 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
   /* All events start with bd_addr */
   STREAM_TO_BDADDR(p_bda, p);
 
-  VLOG(2) << " BDA: " << p_bda << " event: 0x" << std::hex << +event
+  VLOG(2) << " BDA: " << ADDRESS_TO_LOGGABLE_STR(p_bda) << " event: 0x"
+          << std::hex << +event
           << " State: " << btm_pair_state_descr(btm_cb.pairing_state);
 
   p_dev_rec = btm_find_dev(p_bda);
@@ -3022,7 +3024,7 @@ void btm_rem_oob_req(const uint8_t* p) {
 
   STREAM_TO_BDADDR(p_bda, p);
 
-  VLOG(2) << __func__ << " BDA: " << p_bda;
+  VLOG(2) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(p_bda);
   p_dev_rec = btm_find_dev(p_bda);
   if ((p_dev_rec != NULL) && btm_cb.api.p_sp_callback) {
     evt_data.bd_addr = p_dev_rec->bd_addr;
@@ -3184,7 +3186,7 @@ void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status) {
             << btm_pair_state_descr(btm_cb.pairing_state)
             << " handle:" << handle << " status:" << status
             << "dev->sec_state:" << p_dev_rec->sec_state
-            << " bda:" << p_dev_rec->bd_addr
+            << " bda:" << ADDRESS_TO_LOGGABLE_STR(p_dev_rec->bd_addr)
             << "RName:" << p_dev_rec->sec_bd_name;
   } else {
     VLOG(2) << __func__ << ": Security Manager: in state: "
@@ -3731,7 +3733,7 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
       VLOG(1) << __func__
               << ": device security record associated with this bda has been "
                  "removed! bda="
-              << bda << ", do not callback!";
+              << ADDRESS_TO_LOGGABLE_STR(bda) << ", do not callback!";
       return;
     }
 
@@ -4065,7 +4067,8 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
        ((p_dev_rec->dev_class[1] & BTM_COD_MAJOR_CLASS_MASK) !=
         BTM_COD_MAJOR_PERIPHERAL)) &&
       !ltk_derived_lk) {
-    VLOG(2) << __func__ << " Delayed BDA: " << p_bda << " Type:" << +key_type;
+    VLOG(2) << __func__ << " Delayed BDA: " << ADDRESS_TO_LOGGABLE_STR(p_bda)
+            << " Type:" << +key_type;
 
     p_dev_rec->link_key_not_sent = true;
 
@@ -4117,7 +4120,7 @@ void btm_sec_link_key_request(const uint8_t* p_event) {
   STREAM_TO_BDADDR(bda, p_event);
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_or_alloc_dev(bda);
 
-  VLOG(2) << __func__ << " bda: " << bda;
+  VLOG(2) << __func__ << " bda: " << ADDRESS_TO_LOGGABLE_STR(bda);
   if (!concurrentPeerAuthIsEnabled()) {
     p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
   }
