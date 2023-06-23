@@ -50,6 +50,7 @@ filegroup {
         "acl_builder_test.cc",
         "acl_manager/acl_scheduler_test.cc",
         "acl_manager/classic_acl_connection_test.cc",
+        "acl_manager/classic_impl_test.cc",
         "acl_manager/le_acl_connection_test.cc",
         "acl_manager/le_impl_test.cc",
         "acl_manager/round_robin_scheduler_test.cc",
