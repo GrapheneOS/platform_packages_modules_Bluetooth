@@ -650,7 +650,7 @@ void gatt_act_discovery(tGATT_CLCB* p_clcb);
 void gatt_act_read(tGATT_CLCB* p_clcb, uint16_t offset);
 void gatt_act_write(tGATT_CLCB* p_clcb, uint8_t sec_act);
 tGATT_CLCB* gatt_cmd_dequeue(tGATT_TCB& tcb, uint16_t cid, uint8_t* p_opcode);
-void gatt_cmd_enq(tGATT_TCB& tcb, tGATT_CLCB* p_clcb, bool to_send,
+bool gatt_cmd_enq(tGATT_TCB& tcb, tGATT_CLCB* p_clcb, bool to_send,
                   uint8_t op_code, BT_HDR* p_buf);
 void gatt_client_handle_server_rsp(tGATT_TCB& tcb, uint16_t cid,
                                    uint8_t op_code, uint16_t len,
