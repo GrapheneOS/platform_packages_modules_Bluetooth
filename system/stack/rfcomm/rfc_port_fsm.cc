@@ -81,7 +81,8 @@ static void rfc_set_port_state(tPORT_STATE* port_pars, MX_FRAME* p_frame);
  ******************************************************************************/
 void rfc_port_sm_execute(tPORT* p_port, tRFC_PORT_EVENT event, void* p_data) {
   CHECK(p_port != nullptr) << __func__ << ": NULL port event " << event;
-  VLOG(1) << __func__ << ": BD_ADDR=" << p_port->bd_addr
+  VLOG(1) << __func__
+          << ": BD_ADDR=" << ADDRESS_TO_LOGGABLE_STR(p_port->bd_addr)
           << ", PORT=" << std::to_string(p_port->handle)
           << ", STATE=" << std::to_string(p_port->rfc.state)
           << ", EVENT=" << event;

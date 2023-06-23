@@ -436,7 +436,8 @@ void PORT_DlcEstablishInd(tRFC_MCB* p_mcb, uint8_t dlci, uint16_t mtu) {
   RFCOMM_TRACE_DEBUG(
       "PORT_DlcEstablishInd p_mcb:%p, dlci:%d mtu:%di, p_port:%p", p_mcb, dlci,
       mtu, p_port);
-  VLOG(1) << __func__ << " p_mcb addr:" << p_mcb->bd_addr;
+  VLOG(1) << __func__
+          << " p_mcb addr:" << ADDRESS_TO_LOGGABLE_STR(p_mcb->bd_addr);
 
   if (!p_port) {
     /* This can be a first request for this port */

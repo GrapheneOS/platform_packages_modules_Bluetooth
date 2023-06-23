@@ -1818,7 +1818,7 @@ tBTM_STATUS BTM_ReadTxPower(const RawAddress& remote_bda,
 #define BTM_READ_RSSI_TYPE_CUR 0x00
 #define BTM_READ_RSSI_TYPE_MAX 0X01
 
-  VLOG(2) << __func__ << ": RemBdAddr: " << remote_bda;
+  VLOG(2) << __func__ << ": RemBdAddr: " << ADDRESS_TO_LOGGABLE_STR(remote_bda);
 
   /* If someone already waiting on the version, do not allow another */
   if (btm_cb.devcb.p_tx_power_cmpl_cb) return (BTM_BUSY);
@@ -2279,7 +2279,8 @@ void btm_acl_reset_paging(void) {
  ******************************************************************************/
 void btm_acl_paging(BT_HDR* p, const RawAddress& bda) {
   if (!BTM_IsAclConnectionUp(bda, BT_TRANSPORT_BR_EDR)) {
-    VLOG(1) << "connecting_bda: " << btm_cb.connecting_bda;
+    VLOG(1) << "connecting_bda: "
+            << ADDRESS_TO_LOGGABLE_STR(btm_cb.connecting_bda);
     if (btm_cb.paging && bda == btm_cb.connecting_bda) {
       fixed_queue_enqueue(btm_cb.page_queue, p);
     } else {
