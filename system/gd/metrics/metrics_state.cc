@@ -169,6 +169,8 @@ void LEConnectionMetricsRemoteDevice::AddStateChangedEvent(
         common::ToHexString(transaction_state).c_str(),
         common::ToHexString(connection_type).c_str(),
         common::ToHexString(origin_type).c_str());
+
+  std::unique_lock<std::mutex> lock(le_connection_metrics_remote_device_guard);
   if (address.IsEmpty()) {
     LOG_INFO(
         "LEConnectionMetricsRemoteDevice: Empty Address Cancellation %s, %s, %s\n",
@@ -197,7 +199,6 @@ void LEConnectionMetricsRemoteDevice::AddStateChangedEvent(
     return;
   }
 
-  std::unique_lock<std::mutex> lock(le_connection_metrics_remote_device_guard);
   auto it = opened_devices.find(address);
   if (it == opened_devices.end()) {
     device_metrics.push_back(std::make_unique<LEConnectionMetricState>(address));
