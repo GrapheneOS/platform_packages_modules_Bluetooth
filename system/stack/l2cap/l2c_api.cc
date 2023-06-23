@@ -334,7 +334,7 @@ uint16_t L2CA_ConnectReq(uint16_t psm, const RawAddress& p_bd_addr) {
     return bluetooth::shim::L2CA_ConnectReq(psm, p_bd_addr);
   }
 
-  VLOG(1) << __func__ << "BDA " << p_bd_addr
+  VLOG(1) << __func__ << "BDA " << ADDRESS_TO_LOGGABLE_STR(p_bd_addr)
           << StringPrintf(" PSM: 0x%04x", psm);
 
   /* Fail if we have not established communications with the controller */
@@ -544,7 +544,7 @@ uint16_t L2CA_ConnectLECocReq(uint16_t psm, const RawAddress& p_bd_addr,
 
   BTM_SetSecurityLevel(true, "", 0, sec_level, psm, 0, 0);
 
-  VLOG(1) << __func__ << " BDA: " << p_bd_addr
+  VLOG(1) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(p_bd_addr)
           << StringPrintf(" PSM: 0x%04x", psm);
 
   /* Fail if we have not established communications with the controller */
@@ -713,7 +713,7 @@ bool L2CA_ConnectCreditBasedRsp(const RawAddress& p_bd_addr, uint8_t id,
         p_bd_addr, id, accepted_lcids, result, p_cfg);
   }
 
-  VLOG(1) << __func__ << " BDA: " << p_bd_addr
+  VLOG(1) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(p_bd_addr)
           << StringPrintf(" num of cids: %d Result: %d",
                           int(accepted_lcids.size()), +result);
 
@@ -784,7 +784,7 @@ std::vector<uint16_t> L2CA_ConnectCreditBasedReq(uint16_t psm,
     return bluetooth::shim::L2CA_ConnectCreditBasedReq(psm, p_bd_addr, p_cfg);
   }
 
-  VLOG(1) << __func__ << " BDA: " << p_bd_addr
+  VLOG(1) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(p_bd_addr)
           << StringPrintf(" PSM: 0x%04x", psm);
 
   std::vector<uint16_t> allocated_cids;
@@ -1089,10 +1089,10 @@ bool L2CA_UseLatencyMode(const RawAddress& bd_addr, bool use_latency_mode) {
   tL2C_LCB* p_lcb = l2cu_find_lcb_by_bd_addr(bd_addr, BT_TRANSPORT_BR_EDR);
   if (p_lcb == nullptr) {
     LOG_WARN("L2CAP - no LCB for L2CA_SetUseLatencyMode, BDA: %s",
-             bd_addr.ToString().c_str());
+             ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
     return false;
   }
-  LOG_INFO("BDA: %s, use_latency_mode: %s", bd_addr.ToString().c_str(),
+  LOG_INFO("BDA: %s, use_latency_mode: %s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
            use_latency_mode ? "true" : "false");
   p_lcb->use_latency_mode = use_latency_mode;
   return true;
@@ -1114,7 +1114,7 @@ bool L2CA_SetAclPriority(const RawAddress& bd_addr, tL2CAP_PRIORITY priority) {
     return bluetooth::shim::L2CA_SetAclPriority(bd_addr, priority);
   }
 
-  VLOG(1) << __func__ << " BDA: " << bd_addr
+  VLOG(1) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(bd_addr)
           << ", priority: " << std::to_string(priority);
   return (l2cu_set_acl_priority(bd_addr, priority, false));
 }
@@ -1129,7 +1129,7 @@ bool L2CA_SetAclPriority(const RawAddress& bd_addr, tL2CAP_PRIORITY priority) {
  *
  ******************************************************************************/
 bool L2CA_SetAclLatency(const RawAddress& bd_addr, tL2CAP_LATENCY latency) {
-  LOG_INFO("BDA: %s, latency: %s", bd_addr.ToString().c_str(),
+  LOG_INFO("BDA: %s, latency: %s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
            std::to_string(latency).c_str());
   return l2cu_set_acl_latency(bd_addr, latency);
 }
@@ -1191,11 +1191,11 @@ bool L2CA_GetPeerFeatures(const RawAddress& bd_addr, uint32_t* p_ext_feat,
   /* We must already have a link to the remote */
   p_lcb = l2cu_find_lcb_by_bd_addr(bd_addr, BT_TRANSPORT_BR_EDR);
   if (p_lcb == NULL) {
-    LOG(WARNING) << __func__ << " No BDA: " << bd_addr;
+    LOG(WARNING) << __func__ << " No BDA: " << ADDRESS_TO_LOGGABLE_STR(bd_addr);
     return false;
   }
 
-  VLOG(1) << __func__ << " BDA: " << bd_addr
+  VLOG(1) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(bd_addr)
           << StringPrintf(" ExtFea: 0x%08x Chnl_Mask[0]: 0x%02x",
                           p_lcb->peer_ext_fea, p_lcb->peer_chnl_mask[0]);
 
@@ -1526,12 +1526,12 @@ bool L2CA_RemoveFixedChnl(uint16_t fixed_cid, const RawAddress& rem_bda) {
 
   if (((p_lcb) == NULL) ||
       (!p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL])) {
-    LOG(WARNING) << __func__ << " BDA: " << rem_bda
+    LOG(WARNING) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(rem_bda)
                  << StringPrintf(" CID: 0x%04x not connected", fixed_cid);
     return (false);
   }
 
-  VLOG(2) << __func__ << " BDA: " << rem_bda
+  VLOG(2) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(rem_bda)
           << StringPrintf(" CID: 0x%04x", fixed_cid);
 
   /* Release the CCB, starting an inactivity timeout on the LCB if no other CCBs
@@ -1581,7 +1581,7 @@ bool L2CA_SetLeGattTimeout(const RawAddress& rem_bda, uint16_t idle_tout) {
   tL2C_LCB* p_lcb = l2cu_find_lcb_by_bd_addr(rem_bda, BT_TRANSPORT_LE);
   if (((p_lcb) == NULL) ||
       (!p_lcb->p_fixed_ccbs[kAttCid - L2CAP_FIRST_FIXED_CHNL])) {
-    LOG(WARNING) << __func__ << " BDA: " << rem_bda
+    LOG(WARNING) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(rem_bda)
                  << StringPrintf(" CID: 0x%04x not connected", kAttCid);
     return (false);
   }
@@ -1604,7 +1604,8 @@ bool L2CA_MarkLeLinkAsActive(const RawAddress& rem_bda) {
   if (p_lcb == NULL) {
     return false;
   }
-  LOG(INFO) << __func__ << "setting link to " << rem_bda << " as active";
+  LOG(INFO) << __func__ << "setting link to "
+            << ADDRESS_TO_LOGGABLE_STR(rem_bda) << " as active";
   p_lcb->with_active_local_clients = true;
   return true;
 }
