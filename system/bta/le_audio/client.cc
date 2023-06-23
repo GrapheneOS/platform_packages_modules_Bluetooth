@@ -390,7 +390,8 @@ class LeAudioClientImpl : public LeAudioClient {
    */
   void SetDeviceAsRemovePendingAndStopGroup(LeAudioDevice* leAudioDevice) {
     LOG_INFO("device %s", ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
-    leAudioDevice->SetConnectionState(DeviceConnectState::PENDING_REMOVAL);
+    leAudioDevice->SetConnectionState(DeviceConnectState::REMOVING);
+    leAudioDevice->closing_stream_for_disconnection_ = true;
     GroupStop(leAudioDevice->group_id_);
   }
 
@@ -1262,7 +1263,6 @@ class LeAudioClientImpl : public LeAudioClient {
     auto connection_state = leAudioDevice->GetConnectionState();
     switch (connection_state) {
       case DeviceConnectState::REMOVING:
-      case DeviceConnectState::PENDING_REMOVAL:
         /* Just return, and let device disconnect */
         return;
       case DeviceConnectState::CONNECTED:
@@ -1484,7 +1484,11 @@ class LeAudioClientImpl : public LeAudioClient {
          * Cancel just direct connection and keep background if it is there.
          */
         BTA_GATTC_CancelOpen(gatt_if_, address, true);
-        break;
+        /* If this is a device which is a part of the group which is connected,
+         * lets start backgroup connect
+         */
+        BackgroundConnectIfNeeded(leAudioDevice);
+        return;
       case DeviceConnectState::CONNECTED: {
         /* User is disconnecting the device, we shall remove the autoconnect
          * flag for this device and all others if not TA is used
@@ -1551,17 +1555,11 @@ class LeAudioClientImpl : public LeAudioClient {
       case DeviceConnectState::DISCONNECTING:
       case DeviceConnectState::DISCONNECTING_AND_RECOVER:
       case DeviceConnectState::CONNECTING_AUTOCONNECT:
-      case DeviceConnectState::PENDING_REMOVAL:
       case DeviceConnectState::REMOVING:
         LOG_WARN("%s, invalid state %s", ADDRESS_TO_LOGGABLE_CSTR(address),
                  bluetooth::common::ToString(connection_state).c_str());
-        break;
+        return;
     }
-
-    /* If this is a device which is a part of the group which is connected,
-     * lets start backgroup connect
-     */
-    BackgroundConnectIfNeeded(leAudioDevice);
   }
 
   void DisconnectDevice(LeAudioDevice* leAudioDevice,
@@ -5007,7 +5005,7 @@ class LeAudioClientImpl : public LeAudioClient {
   void HandlePendingDeviceRemove(LeAudioDeviceGroup* group) {
     for (auto device = group->GetFirstDevice(); device != nullptr;
          device = group->GetNextDevice(device)) {
-      if (device->GetConnectionState() == DeviceConnectState::PENDING_REMOVAL) {
+      if (device->GetConnectionState() == DeviceConnectState::REMOVING) {
         if (device->closing_stream_for_disconnection_) {
           device->closing_stream_for_disconnection_ = false;
           LOG_INFO("Disconnecting group id: %d, address: %s", group->group_id_,
