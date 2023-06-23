@@ -58,10 +58,6 @@ enum class DeviceConnectState : uint8_t {
   /* Disconnecting for recover - after that we want direct connect to be
      initiated */
   DISCONNECTING_AND_RECOVER,
-  /* Device will be removed after scheduled action is finished: One of such
-   * action is taking Stream to IDLE
-   */
-  PENDING_REMOVAL,
   /* 2 states below are used when user creates connection. Connect API is
      called. */
   CONNECTING_BY_USER,
