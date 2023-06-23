@@ -111,9 +111,9 @@ bool L2CA_UpdateBleConnParams(const RawAddress& rem_bda, uint16_t min_int,
     return (false);
   }
 
-  VLOG(2) << __func__ << ": BD_ADDR=" << rem_bda << ", min_int=" << min_int
-          << ", max_int=" << max_int << ", min_ce_len=" << min_ce_len
-          << ", max_ce_len=" << max_ce_len;
+  VLOG(2) << __func__ << ": BD_ADDR=" << ADDRESS_TO_LOGGABLE_STR(rem_bda)
+          << ", min_int=" << min_int << ", max_int=" << max_int
+          << ", min_ce_len=" << min_ce_len << ", max_ce_len=" << max_ce_len;
 
   p_lcb->min_interval = min_int;
   p_lcb->max_interval = max_int;
@@ -157,13 +157,14 @@ bool L2CA_EnableUpdateBleConnParams(const RawAddress& rem_bda, bool enable) {
     return false;
   }
 
-  VLOG(2) << __func__ << " - BD_ADDR " << rem_bda
+  VLOG(2) << __func__ << " - BD_ADDR " << ADDRESS_TO_LOGGABLE_STR(rem_bda)
           << StringPrintf(" enable %d current upd state 0x%02x", enable,
                           p_lcb->conn_update_mask);
 
   if (p_lcb->transport != BT_TRANSPORT_LE) {
-    LOG(WARNING) << __func__ << " - BD_ADDR " << rem_bda
-                 << " not LE, link role " << p_lcb->LinkRole();
+    LOG(WARNING) << __func__ << " - BD_ADDR "
+                 << ADDRESS_TO_LOGGABLE_STR(rem_bda) << " not LE, link role "
+                 << p_lcb->LinkRole();
     return false;
   }
 
