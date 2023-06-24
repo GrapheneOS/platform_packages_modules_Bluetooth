@@ -1501,7 +1501,7 @@ public class BassClientService extends ProfileService {
         void notifySourceAdded(BluetoothDevice sink, BluetoothLeBroadcastReceiveState recvState,
                 int reason) {
             ObjParams param = new ObjParams(sink, recvState);
-            obtainMessage(MSG_SOURCE_ADDED, reason, 0, param).sendToTarget();
+            obtainMessage(MSG_SOURCE_ADDED, reason, recvState.getSourceId(), param).sendToTarget();
         }
 
         void notifySourceAddFailed(BluetoothDevice sink, BluetoothLeBroadcastMetadata source,
