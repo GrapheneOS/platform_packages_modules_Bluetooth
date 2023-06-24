@@ -20,12 +20,38 @@
 #include <array>
 #include <map>
 #include <optional>
+#include <ostream>
 #include <vector>
 
 #include "raw_address.h"
 
 namespace bluetooth {
 namespace le_audio {
+
+enum class LeAudioHealthBasedAction {
+  NONE = 0,
+  DISABLE,
+  CONSIDER_DISABLING,
+};
+
+inline std::ostream& operator<<(std::ostream& os,
+                                const LeAudioHealthBasedAction action) {
+  switch (action) {
+    case LeAudioHealthBasedAction::NONE:
+      os << "NONE";
+      break;
+    case LeAudioHealthBasedAction::DISABLE:
+      os << "DISABLE";
+      break;
+    case LeAudioHealthBasedAction::CONSIDER_DISABLING:
+      os << "CONSIDER_DISABLING";
+      break;
+    default:
+      os << "UNKNOWN";
+      break;
+  }
+  return os;
+}
 
 enum class ConnectionState {
   DISCONNECTED = 0,
