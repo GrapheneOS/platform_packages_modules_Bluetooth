@@ -19,6 +19,7 @@ cc_defaults {
     tidy_checks: [
         "-*",
         "readability-*",
+
         "-readability-function-size",
         "-readability-identifier-length",
         "-readability-implicit-bool-conversion",
@@ -39,11 +40,11 @@ cc_defaults {
     c_std: "c99",
     cpp_std: "c++17",
     cflags: [
+        "-DGOOGLE_PROTOBUF_NO_RTTI",
         "-Wall",
         "-Werror",
         "-Wextra",
         "-fvisibility=hidden",
-        "-DGOOGLE_PROTOBUF_NO_RTTI",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system/gd",
@@ -64,11 +65,11 @@ cc_defaults {
 filegroup {
     name: "lib_sources",
     srcs: [
-        "lib/log.cc",
         "lib/crypto/crypto.cc",
         "lib/hci/address.cc",
         "lib/hci/class_of_device.cc",
         "lib/hci/pcap_filter.cc",
+        "lib/log.cc",
     ],
 }
 
