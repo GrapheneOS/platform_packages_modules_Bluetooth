@@ -2532,6 +2532,37 @@ TEST_F(UnicastTest, ConnectOneEarbudNoCsis) {
   ConnectLeAudio(test_address0);
 }
 
+TEST_F(UnicastTest, ConnectOneEarbudWithInvalidCsis) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  SetSampleDatabaseEarbudsValid(
+      1, test_address0, codec_spec_conf::kLeAudioLocationStereo,
+      codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
+      default_channel_cnt, 0x0004,
+      /* source sample freq 16khz */ true, /*add_csis*/
+      true,                                /*add_cas*/
+      true,                                /*add_pacs*/
+      default_ase_cnt /*add_ascs*/);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::DISCONNECTED, test_address0))
+      .Times(1);
+  EXPECT_CALL(mock_gatt_interface_, Close(_)).Times(1);
+
+  // Report working CSIS
+  ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+      .WillByDefault(Return(true));
+
+  /* Make sure Group has not knowledge about the device */
+  ON_CALL(mock_groups_module_, GetGroupId(_, _))
+      .WillByDefault([](const RawAddress& addr, bluetooth::Uuid uuid) {
+        return bluetooth::groups::kGroupUnknown;
+      });
+
+  ConnectLeAudio(test_address0);
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+}
+
 TEST_F(UnicastTest, ConnectDisconnectOneEarbud) {
   const RawAddress test_address0 = GetTestAddress(0);
   SetSampleDatabaseEarbudsValid(1, test_address0,

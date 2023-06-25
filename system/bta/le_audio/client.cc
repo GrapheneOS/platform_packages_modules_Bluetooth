@@ -2219,6 +2219,47 @@ class LeAudioClientImpl : public LeAudioClient {
     );
   }
 
+  void checkIfGroupMember(RawAddress address) {
+    LOG_INFO("checking being a group member: %s",
+             ADDRESS_TO_LOGGABLE_CSTR(address));
+    LeAudioDevice* leAudioDevice = leAudioDevices_.FindByAddress(address);
+
+    if (leAudioDevice == nullptr) {
+      LOG_WARN("Device %s, probably removed",
+               ADDRESS_TO_LOGGABLE_CSTR(address));
+      return;
+    }
+
+    if (leAudioDevice->group_id_ == bluetooth::groups::kGroupUnknown) {
+      LOG_ERROR("device %s not a valid group member",
+                ADDRESS_TO_LOGGABLE_CSTR(address));
+      DisconnectDevice(leAudioDevice);
+      return;
+    }
+  }
+
+  /* This is called, when CSIS native module is about to add device to the
+   * group once the CSIS service will be verified on the remote side.
+   * After some time (kCsisGroupMemberDelayMs)  a checkIfGroupMember will be
+   * called and will verify if the remote device has a group_id properly set.
+   * if not, it means there is something wrong with CSIS service on the remote
+   * side.
+   */
+  void scheduleGuardForCsisAdd(RawAddress& address) {
+    LOG_INFO("Schedule reconnecting to %s after timeout on state machine.",
+             ADDRESS_TO_LOGGABLE_CSTR(address));
+    do_in_main_thread_delayed(
+        FROM_HERE,
+        base::BindOnce(&LeAudioClientImpl::checkIfGroupMember,
+                       base::Unretained(this), address),
+#if BASE_VER < 931007
+        base::TimeDelta::FromMilliseconds(kCsisGroupMemberDelayMs)
+#else
+        base::Milliseconds(kCsisGroupMemberDelayMs)
+#endif
+    );
+  }
+
   void OnGattDisconnected(uint16_t conn_id, tGATT_IF client_if,
                           RawAddress address, tGATT_DISCONN_REASON reason) {
     LeAudioDevice* leAudioDevice = leAudioDevices_.FindByConnId(conn_id);
@@ -2795,10 +2836,14 @@ class LeAudioClientImpl : public LeAudioClient {
 
     /* CSIS will trigger adding to group */
     if (leAudioDevice->csis_member_) {
-      LOG(INFO) << __func__ << " waiting for CSIS to create group for device "
-                << ADDRESS_TO_LOGGABLE_STR(leAudioDevice->address_);
+      LOG_INFO(" %s,  waiting for CSIS to create group for device ",
+               ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
+      scheduleGuardForCsisAdd(leAudioDevice->address_);
       return;
     }
+
+    LOG_INFO("%s Not a CSIS member. Create group by our own",
+             ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
 
     /* If there is no Csis just add device by our own */
     DeviceGroups::Get()->AddDevice(leAudioDevice->address_,
@@ -5250,6 +5295,7 @@ class LeAudioClientImpl : public LeAudioClient {
   static constexpr uint64_t kGroupConnectedWatchDelayMs = 3000;
   static constexpr uint64_t kRecoveryReconnectDelayMs = 2000;
   static constexpr uint64_t kAutoConnectAfterOwnDisconnectDelayMs = 1000;
+  static constexpr uint64_t kCsisGroupMemberDelayMs = 5000;
 
   static constexpr char kNotifyUpperLayerAboutGroupBeingInIdleDuringCall[] =
       "persist.bluetooth.leaudio.notify.idle.during.call";
