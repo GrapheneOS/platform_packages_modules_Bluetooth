@@ -250,6 +250,11 @@ class MockAudioHalClientCallbacks
        std::vector<btle_audio_codec_config_t> input_selectable_codec_conf,
        std::vector<btle_audio_codec_config_t> output_selectable_codec_conf),
       (override));
+  MOCK_METHOD((void), OnHealthBasedRecommendationAction,
+              (const RawAddress& address, LeAudioHealthBasedAction action),
+              (override));
+  MOCK_METHOD((void), OnHealthBasedGroupRecommendationAction,
+              (int group_id, LeAudioHealthBasedAction action), (override));
 };
 
 class MockLeAudioSinkHalClient : public LeAudioSinkAudioHalClient {

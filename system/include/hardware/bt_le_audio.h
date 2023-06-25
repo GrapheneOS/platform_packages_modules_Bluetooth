@@ -142,6 +142,11 @@ class LeAudioClientCallbacks {
       btle_audio_codec_config_t output_codec_conf,
       std::vector<btle_audio_codec_config_t> input_selectable_codec_conf,
       std::vector<btle_audio_codec_config_t> output_selectable_codec_conf) = 0;
+
+  virtual void OnHealthBasedRecommendationAction(
+      const RawAddress& address, LeAudioHealthBasedAction action) = 0;
+  virtual void OnHealthBasedGroupRecommendationAction(
+      int group_id, LeAudioHealthBasedAction action) = 0;
 };
 
 class LeAudioClientInterface {
