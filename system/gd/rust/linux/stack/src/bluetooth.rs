@@ -1438,7 +1438,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
         };
 
         if is_cod_hid_keyboard(cod) || is_cod_hid_combo(cod) {
-            debug!("auto gen pin for device {} (cod={:#x})", device.address, cod);
+            debug!("auto gen pin for device {} (cod={:#x})", DisplayAddress(&remote_addr), cod);
             // generate a random pin code to display.
             let pin = rand::random::<u64>() % pow(10, digits);
             let display_pin = format!("{:06}", pin);
@@ -1453,7 +1453,11 @@ impl BtifBluetoothCallbacks for Bluetooth {
 
             self.set_pin(device, true, pin_vec);
         } else {
-            debug!("sending pin request for device {} (cod={:#x}) to clients", device.address, cod);
+            debug!(
+                "sending pin request for device {} (cod={:#x}) to clients",
+                DisplayAddress(&remote_addr),
+                cod
+            );
             // Currently this supports many agent because we accept many callbacks.
             // TODO(b/274706838): We need a way to select the default agent.
             self.callbacks.for_all_callbacks(|callback| {
@@ -1626,7 +1630,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
         if status != BtStatus::Success {
             warn!(
                 "Connection to [{}] failed. Status: {:?}, Reason: {:?}",
-                addr.to_string(),
+                DisplayAddress(&addr),
                 status,
                 hci_reason
             );
@@ -2054,9 +2058,6 @@ impl IBluetooth for Bluetooth {
     }
 
     fn remove_bond(&self, device: BluetoothDevice) -> bool {
-        // Temporary for debugging b/255849761. Should change to debug after fix.
-        log::info!("Removing bond for {}", device.address);
-
         let addr = RawAddress::from_string(device.address.clone());
 
         if addr.is_none() {
@@ -2065,6 +2066,7 @@ impl IBluetooth for Bluetooth {
         }
 
         let address = addr.unwrap();
+        debug!("Removing bond for {}", DisplayAddress(&address));
         let status = self.intf.lock().unwrap().remove_bond(&address);
 
         if status != 0 {
@@ -2098,12 +2100,12 @@ impl IBluetooth for Bluetooth {
     }
 
     fn set_pin(&self, device: BluetoothDevice, accept: bool, pin_code: Vec<u8>) -> bool {
-        let addr = RawAddress::from_string(device.address.clone());
-
-        if addr.is_none() {
+        let addr = if let Some(addr) = RawAddress::from_string(device.address.clone()) {
+            addr
+        } else {
             warn!("Can't set pin. Address {} is not valid.", device.address);
             return false;
-        }
+        };
 
         let is_bonding = match self.found_devices.get(&device.address) {
             Some(d) => d.bond_state == BtBondState::Bonding,
@@ -2111,27 +2113,23 @@ impl IBluetooth for Bluetooth {
         };
 
         if !is_bonding {
-            warn!("Can't set pin. Device {} isn't bonding.", device.address);
+            warn!("Can't set pin. Device {} isn't bonding.", DisplayAddress(&addr));
             return false;
         }
 
         let mut btpin = BtPinCode { pin: array_utils::to_sized_array(&pin_code) };
 
-        self.intf.lock().unwrap().pin_reply(
-            &addr.unwrap(),
-            accept as u8,
-            pin_code.len() as u8,
-            &mut btpin,
-        ) == 0
+        self.intf.lock().unwrap().pin_reply(&addr, accept as u8, pin_code.len() as u8, &mut btpin)
+            == 0
     }
 
     fn set_passkey(&self, device: BluetoothDevice, accept: bool, passkey: Vec<u8>) -> bool {
-        let addr = RawAddress::from_string(device.address.clone());
-
-        if addr.is_none() {
+        let addr = if let Some(addr) = RawAddress::from_string(device.address.clone()) {
+            addr
+        } else {
             warn!("Can't set passkey. Address {} is not valid.", device.address);
             return false;
-        }
+        };
 
         let is_bonding = match self.found_devices.get(&device.address) {
             Some(d) => d.bond_state == BtBondState::Bonding,
@@ -2139,7 +2137,7 @@ impl IBluetooth for Bluetooth {
         };
 
         if !is_bonding {
-            warn!("Can't set passkey. Device {} isn't bonding.", device.address);
+            warn!("Can't set passkey. Device {} isn't bonding.", DisplayAddress(&addr));
             return false;
         }
 
@@ -2148,7 +2146,7 @@ impl IBluetooth for Bluetooth {
         let passkey = u32::from_ne_bytes(tmp);
 
         self.intf.lock().unwrap().ssp_reply(
-            &addr.unwrap(),
+            &addr,
             BtSspVariant::PasskeyEntry,
             accept as u8,
             passkey,
@@ -2306,7 +2304,7 @@ impl IBluetooth for Bluetooth {
         let device = match self.get_remote_device_if_found(&remote_device.address) {
             Some(v) => v,
             None => {
-                warn!("Won't fetch UUIDs on unknown device {}", remote_device.address);
+                warn!("Won't fetch UUIDs on unknown device");
                 return false;
             }
         };
@@ -2606,15 +2604,21 @@ impl BtifSdpCallbacks for Bluetooth {
             callback.on_sdp_search_complete(device_info.clone(), uuid_to_send, records.clone());
         });
         debug!(
-            "Sdp search result found: Status({:?}) Address({:?}) Uuid({:?})",
-            status, address, uuid
+            "Sdp search result found: Status({:?}) Address({}) Uuid({:?})",
+            status,
+            DisplayAddress(&address),
+            uuid
         );
     }
 }
 
 impl BtifHHCallbacks for Bluetooth {
     fn connection_state(&mut self, mut address: RawAddress, state: BthhConnectionState) {
-        debug!("Hid host connection state updated: Address({:?}) State({:?})", address, state);
+        debug!(
+            "Hid host connection state updated: Address({}) State({:?})",
+            DisplayAddress(&address),
+            state
+        );
 
         // HID or HOG is not differentiated by the hid host when callback this function. Assume HOG
         // if the device is LE only and HID if classic only. And assume HOG if UUID said so when
@@ -2649,20 +2653,24 @@ impl BtifHHCallbacks for Bluetooth {
     }
 
     fn hid_info(&mut self, address: RawAddress, info: BthhHidInfo) {
-        debug!("Hid host info updated: Address({:?}) Info({:?})", address, info);
+        debug!("Hid host info updated: Address({}) Info({:?})", DisplayAddress(&address), info);
     }
 
     fn protocol_mode(&mut self, address: RawAddress, status: BthhStatus, mode: BthhProtocolMode) {
         debug!(
-            "Hid host protocol mode updated: Address({:?}) Status({:?}) Mode({:?})",
-            address, status, mode
+            "Hid host protocol mode updated: Address({}) Status({:?}) Mode({:?})",
+            DisplayAddress(&address),
+            status,
+            mode
         );
     }
 
     fn idle_time(&mut self, address: RawAddress, status: BthhStatus, idle_rate: i32) {
         debug!(
-            "Hid host idle time updated: Address({:?}) Status({:?}) Idle Rate({:?})",
-            address, status, idle_rate
+            "Hid host idle time updated: Address({}) Status({:?}) Idle Rate({:?})",
+            DisplayAddress(&address),
+            status,
+            idle_rate
         );
     }
 
@@ -2674,14 +2682,16 @@ impl BtifHHCallbacks for Bluetooth {
         size: i32,
     ) {
         debug!(
-            "Hid host got report: Address({:?}) Status({:?}) Report Size({:?})",
-            address, status, size
+            "Hid host got report: Address({}) Status({:?}) Report Size({:?})",
+            DisplayAddress(&address),
+            status,
+            size
         );
         self.hh.as_ref().unwrap().get_report_reply(&mut address, status, &mut data, size as u16);
     }
 
     fn handshake(&mut self, address: RawAddress, status: BthhStatus) {
-        debug!("Hid host handshake: Address({:?}) Status({:?})", address, status);
+        debug!("Hid host handshake: Address({}) Status({:?})", DisplayAddress(&address), status);
     }
 }
 
