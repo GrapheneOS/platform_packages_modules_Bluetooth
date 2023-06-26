@@ -1095,17 +1095,26 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
         ref_left_asha = AioAsha(self.ref_left.aio.channel)
         ref_right_asha = AioAsha(self.ref_right.aio.channel)
 
-        stop_future = self.get_stop_future(self.ref_left)
-
-        await dut_asha.WaitPeripheral(connection=dut_ref_left)
-        await dut_asha.WaitPeripheral(connection=dut_ref_right)
-
+        await asyncio.gather(
+            dut_asha.WaitPeripheral(connection=dut_ref_left), dut_asha.WaitPeripheral(connection=dut_ref_right)
+        )
         await dut_asha.Start(connection=dut_ref_left)
-        logging.info("send stop")
-        _, stop_result = await asyncio.gather(dut_asha.Stop(), asyncio.wait_for(stop_future, timeout=10.0))
 
-        logging.info(f"stop_result:{stop_result}")
-        assert_is_not_none(stop_result)
+        # Stop audio and wait until ref_device connections stopped.
+        stop_future_left = self.get_stop_future(self.ref_left)
+        stop_future_right = self.get_stop_future(self.ref_right)
+
+        logging.info("send stop")
+        _, stop_result_left, stop_result_right = await asyncio.gather(
+            dut_asha.Stop(),
+            asyncio.wait_for(stop_future_left, timeout=10.0),
+            asyncio.wait_for(stop_future_right, timeout=10.0),
+        )
+
+        logging.info(f"stop_result_left:{stop_result_left}")
+        logging.info(f"stop_result_right:{stop_result_right}")
+        assert_is_not_none(stop_result_left)
+        assert_is_not_none(stop_result_right)
 
         (audio_data_left, audio_data_right) = await asyncio.gather(
             self.get_audio_data(ref_asha=ref_left_asha, connection=ref_left_dut, timeout=10),
