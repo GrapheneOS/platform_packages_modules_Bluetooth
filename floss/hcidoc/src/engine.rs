@@ -1,7 +1,7 @@
 //! Handles stream processing of commands and events.
 
 use chrono::NaiveDateTime;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::io::Write;
 
 use crate::parser::Packet;
@@ -75,12 +75,12 @@ impl RuleGroup {
 }
 /// Main entry point to process input data and run rules on them.
 pub struct RuleEngine {
-    groups: HashMap<String, RuleGroup>,
+    groups: BTreeMap<String, RuleGroup>,
 }
 
 impl RuleEngine {
     pub fn new() -> Self {
-        RuleEngine { groups: HashMap::new() }
+        RuleEngine { groups: BTreeMap::new() }
     }
 
     pub fn add_rule_group(&mut self, name: String, group: RuleGroup) {
