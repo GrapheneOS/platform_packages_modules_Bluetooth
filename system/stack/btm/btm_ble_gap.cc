@@ -1228,6 +1228,10 @@ void btm_ble_periodic_adv_sync_lost(uint16_t sync_handle) {
   LOG_DEBUG("[PSync]: sync_handle = %d", sync_handle);
 
   int index = btm_ble_get_psync_index_from_handle(sync_handle);
+  if (index == MAX_SYNC_TRANSACTION) {
+    LOG_ERROR("[PSync]: index not found for handle %u", sync_handle);
+    return;
+  }
   tBTM_BLE_PERIODIC_SYNC* ps = &btm_ble_pa_sync_cb.p_sync[index];
   ps->sync_lost_cb.Run(sync_handle);
 
@@ -1494,7 +1498,7 @@ void btm_ble_biginfo_adv_report_rcvd(uint8_t* p, uint16_t param_len) {
  ******************************************************************************/
 void btm_ble_periodic_adv_sync_tx_rcvd(uint8_t* p, uint16_t param_len) {
   LOG_DEBUG("[PAST]: PAST received, param_len=%u", param_len);
-  if (param_len == 0) {
+  if (param_len < 19) {
     LOG_ERROR("%s", "Insufficient data");
     return;
   }
@@ -2503,6 +2507,9 @@ void btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
                 BTM_BLE_AD_TYPE_SERVICE_DATA_TYPE, &service_data_len))) {
       uint16_t uuid;
       const uint8_t* p_uuid = p_service_data;
+      if (service_data_len < 2) {
+        continue;
+      }
       STREAM_TO_UINT16(uuid, p_uuid);
 
       if (uuid == 0x184E /* Audio Stream Control service */ ||
@@ -3260,9 +3267,14 @@ static void btm_ble_observer_timer_timeout(UNUSED_ATTR void* data) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_ble_read_remote_features_complete(uint8_t* p) {
+void btm_ble_read_remote_features_complete(uint8_t* p, uint8_t length) {
   uint16_t handle;
   uint8_t status;
+
+  if (length < 3) {
+    goto err_out;
+  }
+
   STREAM_TO_UINT8(status, p);
   STREAM_TO_UINT16(handle, p);
   handle = handle & 0x0FFF;  // only 12 bits meaningful
@@ -3277,6 +3289,12 @@ void btm_ble_read_remote_features_complete(uint8_t* p) {
   }
 
   if (status == HCI_SUCCESS) {
+    // BD_FEATURES_LEN additional bytes are read
+    // in acl_set_peer_le_features_from_handle
+    if (length < 3 + BD_FEATURES_LEN) {
+      goto err_out;
+    }
+
     if (!acl_set_peer_le_features_from_handle(handle, p)) {
       LOG_ERROR(
           "Unable to find existing connection after read remote features");
@@ -3285,6 +3303,10 @@ void btm_ble_read_remote_features_complete(uint8_t* p) {
   }
 
   btsnd_hcic_rmt_ver_req(handle);
+  return;
+
+err_out:
+  LOG_ERROR("bogus event packet, too short");
 }
 
 /*******************************************************************************
@@ -3296,11 +3318,11 @@ void btm_ble_read_remote_features_complete(uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_ble_write_adv_enable_complete(uint8_t* p) {
+void btm_ble_write_adv_enable_complete(uint8_t* p, uint16_t evt_len) {
   tBTM_BLE_INQ_CB* p_cb = &btm_cb.ble_ctr_cb.inq_var;
 
   /* if write adv enable/disbale not succeed */
-  if (*p != HCI_SUCCESS) {
+  if (evt_len < 1 || *p != HCI_SUCCESS) {
     /* toggle back the adv mode */
     p_cb->adv_mode = !p_cb->adv_mode;
   }

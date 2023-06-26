@@ -319,7 +319,7 @@ void btm_ble_ltk_request_reply(const RawAddress& bda, bool use_stk,
   inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_ltk_request_reply(bda, use_stk, stk);
 }
-void btm_ble_rand_enc_complete(uint8_t* p, uint16_t op_code,
+void btm_ble_rand_enc_complete(uint8_t* p, uint16_t evt_len, uint16_t op_code,
                                tBTM_RAND_ENC_CB* p_enc_cplt_cback) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_rand_enc_complete(p, op_code,

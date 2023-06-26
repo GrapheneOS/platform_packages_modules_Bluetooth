@@ -49,4 +49,4 @@ class OobData:
     def to_sl4a_address_type(self):
         if len(self.address) != self.ADDRESS_WITH_TYPE_LENGTH:
             return -1
-        return self.address.upper()[-2]
+        return self.address.upper()[-1]
