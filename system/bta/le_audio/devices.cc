@@ -1829,7 +1829,7 @@ bool LeAudioDeviceGroup::IsCisPartOfCurrentStream(uint16_t cis_conn_hdl) {
       stream_conf.source_streams.begin(), stream_conf.source_streams.end(),
       [cis_conn_hdl](auto& pair) { return cis_conn_hdl == pair.first; });
 
-  return iter != stream_conf.sink_streams.end();
+  return (iter != stream_conf.source_streams.end());
 }
 
 void LeAudioDeviceGroup::StreamOffloaderUpdated(uint8_t direction) {
