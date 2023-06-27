@@ -177,10 +177,6 @@ bool is_on_jni_thread() {
   return jni_thread.GetThreadId() == PlatformThread::CurrentId();
 }
 
-btbase::AbstractMessageLoop* get_jni_message_loop() {
-  return jni_thread.message_loop();
-}
-
 static void do_post_on_bt_jni(BtJniClosure closure) { closure(); }
 
 void post_on_bt_jni(BtJniClosure closure) {
