@@ -31,3 +31,8 @@ bool LeAudioHalVerifier::SupportsLeAudioBroadcast() {
   return bluetooth::audio::HalVersionManager::GetHalTransport() ==
          bluetooth::audio::BluetoothAudioHalTransport::AIDL;
 }
+
+bool LeAudioHalVerifier::SupportsStreamActiveApi() {
+  return bluetooth::audio::HalVersionManager::GetHalVersion() >=
+         bluetooth::audio::BluetoothAudioHalVersion::VERSION_AIDL_V3;
+}
