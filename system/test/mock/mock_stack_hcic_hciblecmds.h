@@ -87,19 +87,6 @@ struct btsnd_hci_ble_clear_periodic_advertiser_list {
 extern struct btsnd_hci_ble_clear_periodic_advertiser_list
     btsnd_hci_ble_clear_periodic_advertiser_list;
 
-// Name: btsnd_hci_ble_read_periodic_advertiser_list_size
-// Params: base::OnceCallback<void(uint8_t*, uint16_t
-// Return: void
-struct btsnd_hci_ble_read_periodic_advertiser_list_size {
-  std::function<void(base::OnceCallback<void(uint8_t*, uint16_t)>)> body{
-      [](base::OnceCallback<void(uint8_t*, uint16_t)> cb) {}};
-  void operator()(base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
-    body(std::move(cb));
-  };
-};
-extern struct btsnd_hci_ble_read_periodic_advertiser_list_size
-    btsnd_hci_ble_read_periodic_advertiser_list_size;
-
 // Name: btsnd_hci_ble_remove_device_from_periodic_advertiser_list
 // Params: uint8_t adv_addr_type, const RawAddress& adv_addr, uint8_t adv_sid,
 // base::OnceCallback<void(uint8_t*, uint16_t Return: void
@@ -127,20 +114,6 @@ struct btsnd_hcic_accept_cis_req {
 };
 extern struct btsnd_hcic_accept_cis_req btsnd_hcic_accept_cis_req;
 
-// Name: btsnd_hcic_big_term_sync
-// Params: uint8_t big_handle, base::OnceCallback<void(uint8_t*, uint16_t
-// Return: void
-struct btsnd_hcic_big_term_sync {
-  std::function<void(uint8_t, base::OnceCallback<void(uint8_t*, uint16_t)>)>
-      body{[](uint8_t big_handle,
-              base::OnceCallback<void(uint8_t*, uint16_t)>) {}};
-  void operator()(uint8_t big_handle,
-                  base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
-    body(big_handle, std::move(cb));
-  };
-};
-extern struct btsnd_hcic_big_term_sync btsnd_hcic_big_term_sync;
-
 // Name: btsnd_hcic_ble_add_device_resolving_list
 // Params: uint8_t addr_type_peer, const RawAddress& bda_peer, const Octet16&
 // irk_peer, const Octet16& irk_local Return: void
@@ -166,48 +139,6 @@ struct btsnd_hcic_ble_clear_resolving_list {
 };
 extern struct btsnd_hcic_ble_clear_resolving_list
     btsnd_hcic_ble_clear_resolving_list;
-
-// Name: btsnd_hcic_ble_create_conn_cancel
-// Params: void
-// Return: void
-struct btsnd_hcic_ble_create_conn_cancel {
-  std::function<void(void)> body{[](void) {}};
-  void operator()(void) { body(); };
-};
-extern struct btsnd_hcic_ble_create_conn_cancel
-    btsnd_hcic_ble_create_conn_cancel;
-
-// Name: btsnd_hcic_ble_create_ll_conn
-// Params: uint16_t scan_int, uint16_t scan_win, uint8_t init_filter_policy,
-// tBLE_ADDR_TYPE addr_type_peer, const RawAddress& bda_peer, tBLE_ADDR_TYPE
-// addr_type_own, uint16_t conn_int_min, uint16_t conn_int_max, uint16_t
-// conn_latency, uint16_t conn_timeout, uint16_t min_ce_len, uint16_t max_ce_len
-// Return: void
-struct btsnd_hcic_ble_create_ll_conn {
-  std::function<void(uint16_t scan_int, uint16_t scan_win,
-                     uint8_t init_filter_policy, tBLE_ADDR_TYPE addr_type_peer,
-                     const RawAddress& bda_peer, tBLE_ADDR_TYPE addr_type_own,
-                     uint16_t conn_int_min, uint16_t conn_int_max,
-                     uint16_t conn_latency, uint16_t conn_timeout,
-                     uint16_t min_ce_len, uint16_t max_ce_len)>
-      body{[](uint16_t scan_int, uint16_t scan_win, uint8_t init_filter_policy,
-              tBLE_ADDR_TYPE addr_type_peer, const RawAddress& bda_peer,
-              tBLE_ADDR_TYPE addr_type_own, uint16_t conn_int_min,
-              uint16_t conn_int_max, uint16_t conn_latency,
-              uint16_t conn_timeout, uint16_t min_ce_len,
-              uint16_t max_ce_len) {}};
-  void operator()(uint16_t scan_int, uint16_t scan_win,
-                  uint8_t init_filter_policy, tBLE_ADDR_TYPE addr_type_peer,
-                  const RawAddress& bda_peer, tBLE_ADDR_TYPE addr_type_own,
-                  uint16_t conn_int_min, uint16_t conn_int_max,
-                  uint16_t conn_latency, uint16_t conn_timeout,
-                  uint16_t min_ce_len, uint16_t max_ce_len) {
-    body(scan_int, scan_win, init_filter_policy, addr_type_peer, bda_peer,
-         addr_type_own, conn_int_min, conn_int_max, conn_latency, conn_timeout,
-         min_ce_len, max_ce_len);
-  };
-};
-extern struct btsnd_hcic_ble_create_ll_conn btsnd_hcic_ble_create_ll_conn;
 
 // Name: btsnd_hcic_ble_enh_rx_test
 // Params: uint8_t rx_chan, uint8_t phy, uint8_t mod_index
@@ -235,26 +166,6 @@ struct btsnd_hcic_ble_enh_tx_test {
   };
 };
 extern struct btsnd_hcic_ble_enh_tx_test btsnd_hcic_ble_enh_tx_test;
-
-// Name: btsnd_hcic_ble_ext_create_conn
-// Params: uint8_t init_filter_policy, tBLE_ADDR_TYPE addr_type_own,
-// tBLE_ADDR_TYPE addr_type_peer, const RawAddress& bda_peer, uint8_t
-// initiating_phys, EXT_CONN_PHY_CFG* phy_cfg Return: void
-struct btsnd_hcic_ble_ext_create_conn {
-  std::function<void(uint8_t init_filter_policy, tBLE_ADDR_TYPE addr_type_own,
-                     tBLE_ADDR_TYPE addr_type_peer, const RawAddress& bda_peer,
-                     uint8_t initiating_phys, EXT_CONN_PHY_CFG* phy_cfg)>
-      body{[](uint8_t init_filter_policy, tBLE_ADDR_TYPE addr_type_own,
-              tBLE_ADDR_TYPE addr_type_peer, const RawAddress& bda_peer,
-              uint8_t initiating_phys, EXT_CONN_PHY_CFG* phy_cfg) {}};
-  void operator()(uint8_t init_filter_policy, tBLE_ADDR_TYPE addr_type_own,
-                  tBLE_ADDR_TYPE addr_type_peer, const RawAddress& bda_peer,
-                  uint8_t initiating_phys, EXT_CONN_PHY_CFG* phy_cfg) {
-    body(init_filter_policy, addr_type_own, addr_type_peer, bda_peer,
-         initiating_phys, phy_cfg);
-  };
-};
-extern struct btsnd_hcic_ble_ext_create_conn btsnd_hcic_ble_ext_create_conn;
 
 // Name: btsnd_hcic_ble_ltk_req_neg_reply
 // Params: uint16_t handle
@@ -411,25 +322,6 @@ struct btsnd_hcic_ble_read_adv_chnl_tx_power {
 extern struct btsnd_hcic_ble_read_adv_chnl_tx_power
     btsnd_hcic_ble_read_adv_chnl_tx_power;
 
-// Name: btsnd_hcic_ble_read_chnl_map
-// Params: uint16_t handle
-// Return: void
-struct btsnd_hcic_ble_read_chnl_map {
-  std::function<void(uint16_t handle)> body{[](uint16_t handle) {}};
-  void operator()(uint16_t handle) { body(handle); };
-};
-extern struct btsnd_hcic_ble_read_chnl_map btsnd_hcic_ble_read_chnl_map;
-
-// Name: btsnd_hcic_ble_read_host_supported
-// Params: void
-// Return: void
-struct btsnd_hcic_ble_read_host_supported {
-  std::function<void(void)> body{[](void) {}};
-  void operator()(void) { body(); };
-};
-extern struct btsnd_hcic_ble_read_host_supported
-    btsnd_hcic_ble_read_host_supported;
-
 // Name: btsnd_hcic_ble_read_remote_feat
 // Params: uint16_t handle
 // Return: void
@@ -438,19 +330,6 @@ struct btsnd_hcic_ble_read_remote_feat {
   void operator()(uint16_t handle) { body(handle); };
 };
 extern struct btsnd_hcic_ble_read_remote_feat btsnd_hcic_ble_read_remote_feat;
-
-// Name: btsnd_hcic_ble_read_resolvable_addr_local
-// Params: uint8_t addr_type_peer, const RawAddress& bda_peer
-// Return: void
-struct btsnd_hcic_ble_read_resolvable_addr_local {
-  std::function<void(uint8_t addr_type_peer, const RawAddress& bda_peer)> body{
-      [](uint8_t addr_type_peer, const RawAddress& bda_peer) {}};
-  void operator()(uint8_t addr_type_peer, const RawAddress& bda_peer) {
-    body(addr_type_peer, bda_peer);
-  };
-};
-extern struct btsnd_hcic_ble_read_resolvable_addr_local
-    btsnd_hcic_ble_read_resolvable_addr_local;
 
 // Name: btsnd_hcic_ble_read_resolvable_addr_peer
 // Params: uint8_t addr_type_peer, const RawAddress& bda_peer
@@ -486,19 +365,6 @@ struct btsnd_hcic_ble_rm_device_resolving_list {
 };
 extern struct btsnd_hcic_ble_rm_device_resolving_list
     btsnd_hcic_ble_rm_device_resolving_list;
-
-// Name: btsnd_hcic_ble_set_addr_resolution_enable
-// Params: uint8_t addr_resolution_enable
-// Return: void
-struct btsnd_hcic_ble_set_addr_resolution_enable {
-  std::function<void(uint8_t addr_resolution_enable)> body{
-      [](uint8_t addr_resolution_enable) {}};
-  void operator()(uint8_t addr_resolution_enable) {
-    body(addr_resolution_enable);
-  };
-};
-extern struct btsnd_hcic_ble_set_addr_resolution_enable
-    btsnd_hcic_ble_set_addr_resolution_enable;
 
 // Name: btsnd_hcic_ble_set_adv_data
 // Params: uint8_t data_len, uint8_t* p_data
@@ -586,27 +452,6 @@ struct btsnd_hcic_ble_set_extended_scan_params {
 extern struct btsnd_hcic_ble_set_extended_scan_params
     btsnd_hcic_ble_set_extended_scan_params;
 
-// Name: btsnd_hcic_ble_set_host_chnl_class
-// Params: uint8_t chnl_map[HCIC_BLE_CHNL_MAP_SIZE]
-// Return: void
-struct btsnd_hcic_ble_set_host_chnl_class {
-  std::function<void(uint8_t chnl_map[HCIC_BLE_CHNL_MAP_SIZE])> body{
-      [](uint8_t chnl_map[HCIC_BLE_CHNL_MAP_SIZE]) {}};
-  void operator()(uint8_t chnl_map[HCIC_BLE_CHNL_MAP_SIZE]) { body(chnl_map); };
-};
-extern struct btsnd_hcic_ble_set_host_chnl_class
-    btsnd_hcic_ble_set_host_chnl_class;
-
-// Name: btsnd_hcic_ble_set_local_used_feat
-// Params: uint8_t feat_set[8]
-// Return: void
-struct btsnd_hcic_ble_set_local_used_feat {
-  std::function<void(uint8_t feat_set[8])> body{[](uint8_t feat_set[8]) {}};
-  void operator()(uint8_t feat_set[]) { body(feat_set); };
-};
-extern struct btsnd_hcic_ble_set_local_used_feat
-    btsnd_hcic_ble_set_local_used_feat;
-
 // Name: btsnd_hcic_ble_set_periodic_advertising_receive_enable
 // Params: uint16_t sync_handle, bool enable, base::OnceCallback<void(uint8_t*,
 // uint16_t Return: void
@@ -667,16 +512,6 @@ struct btsnd_hcic_ble_set_rand_priv_addr_timeout {
 extern struct btsnd_hcic_ble_set_rand_priv_addr_timeout
     btsnd_hcic_ble_set_rand_priv_addr_timeout;
 
-// Name: btsnd_hcic_ble_set_random_addr
-// Params: const RawAddress& random_bda
-// Return: void
-struct btsnd_hcic_ble_set_random_addr {
-  std::function<void(const RawAddress& random_bda)> body{
-      [](const RawAddress& random_bda) {}};
-  void operator()(const RawAddress& random_bda) { body(random_bda); };
-};
-extern struct btsnd_hcic_ble_set_random_addr btsnd_hcic_ble_set_random_addr;
-
 // Name: btsnd_hcic_ble_set_scan_enable
 // Params: uint8_t scan_enable, uint8_t duplicate
 // Return: void
@@ -703,18 +538,6 @@ struct btsnd_hcic_ble_set_scan_params {
   };
 };
 extern struct btsnd_hcic_ble_set_scan_params btsnd_hcic_ble_set_scan_params;
-
-// Name: btsnd_hcic_ble_set_scan_rsp_data
-// Params: uint8_t data_len, uint8_t* p_scan_rsp
-// Return: void
-struct btsnd_hcic_ble_set_scan_rsp_data {
-  std::function<void(uint8_t data_len, uint8_t* p_scan_rsp)> body{
-      [](uint8_t data_len, uint8_t* p_scan_rsp) {}};
-  void operator()(uint8_t data_len, uint8_t* p_scan_rsp) {
-    body(data_len, p_scan_rsp);
-  };
-};
-extern struct btsnd_hcic_ble_set_scan_rsp_data btsnd_hcic_ble_set_scan_rsp_data;
 
 // Name: btsnd_hcic_ble_start_enc
 // Params: uint16_t handle, uint8_t rand[HCIC_BLE_RAND_DI_SIZE], uint16_t ediv,
@@ -852,20 +675,6 @@ struct btsnd_hcic_read_iso_link_quality {
   };
 };
 extern struct btsnd_hcic_read_iso_link_quality btsnd_hcic_read_iso_link_quality;
-
-// Name: btsnd_hcic_read_iso_tx_sync
-// Params: uint16_t iso_handle, base::OnceCallback<void(uint8_t*, uint16_t
-// Return: void
-struct btsnd_hcic_read_iso_tx_sync {
-  std::function<void(uint16_t, base::OnceCallback<void(uint8_t*, uint16_t)>)>
-      body{[](uint16_t iso_handle,
-              base::OnceCallback<void(uint8_t*, uint16_t)> cb) {}};
-  void operator()(uint16_t iso_handle,
-                  base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
-    body(iso_handle, std::move(cb));
-  };
-};
-extern struct btsnd_hcic_read_iso_tx_sync btsnd_hcic_read_iso_tx_sync;
 
 // Name: btsnd_hcic_rej_cis_req
 // Params: uint16_t conn_handle, uint8_t reason,

@@ -51,7 +51,6 @@ tBTM_STATUS btm_sec_disconnect(uint16_t handle, tHCI_STATUS reason,
 void btm_acl_created(const RawAddress& bda, uint16_t hci_handle,
                      uint8_t link_role, tBT_TRANSPORT transport);
 void btm_acl_removed(uint16_t handle);
-void btm_acl_set_paging(bool value);
 void btm_ble_decrement_link_topology_mask(uint8_t link_role);
 void btm_sco_acl_removed(const RawAddress* bda);
 
@@ -1138,7 +1137,6 @@ tBTM_STATUS l2cu_ConnectAclForSecurity(const RawAddress& bd_addr) {
   }
 
   l2cu_create_conn_br_edr(p_lcb);
-  btm_acl_set_paging(true);
   return BTM_SUCCESS;
 }
 

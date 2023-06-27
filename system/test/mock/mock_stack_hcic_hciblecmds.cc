@@ -39,17 +39,11 @@ struct btsnd_hci_ble_add_device_to_periodic_advertiser_list
     btsnd_hci_ble_add_device_to_periodic_advertiser_list;
 struct btsnd_hci_ble_clear_periodic_advertiser_list
     btsnd_hci_ble_clear_periodic_advertiser_list;
-struct btsnd_hci_ble_read_periodic_advertiser_list_size
-    btsnd_hci_ble_read_periodic_advertiser_list_size;
 struct btsnd_hci_ble_remove_device_from_periodic_advertiser_list
     btsnd_hci_ble_remove_device_from_periodic_advertiser_list;
 struct btsnd_hcic_accept_cis_req btsnd_hcic_accept_cis_req;
-struct btsnd_hcic_big_term_sync btsnd_hcic_big_term_sync;
-struct btsnd_hcic_ble_create_conn_cancel btsnd_hcic_ble_create_conn_cancel;
-struct btsnd_hcic_ble_create_ll_conn btsnd_hcic_ble_create_ll_conn;
 struct btsnd_hcic_ble_enh_rx_test btsnd_hcic_ble_enh_rx_test;
 struct btsnd_hcic_ble_enh_tx_test btsnd_hcic_ble_enh_tx_test;
-struct btsnd_hcic_ble_ext_create_conn btsnd_hcic_ble_ext_create_conn;
 struct btsnd_hcic_ble_ltk_req_neg_reply btsnd_hcic_ble_ltk_req_neg_reply;
 struct btsnd_hcic_ble_ltk_req_reply btsnd_hcic_ble_ltk_req_reply;
 struct btsnd_hcic_ble_periodic_advertising_create_sync
@@ -68,16 +62,10 @@ struct btsnd_hcic_ble_rc_param_req_neg_reply
 struct btsnd_hcic_ble_rc_param_req_reply btsnd_hcic_ble_rc_param_req_reply;
 struct btsnd_hcic_ble_read_adv_chnl_tx_power
     btsnd_hcic_ble_read_adv_chnl_tx_power;
-struct btsnd_hcic_ble_read_chnl_map btsnd_hcic_ble_read_chnl_map;
-struct btsnd_hcic_ble_read_host_supported btsnd_hcic_ble_read_host_supported;
 struct btsnd_hcic_ble_read_remote_feat btsnd_hcic_ble_read_remote_feat;
-struct btsnd_hcic_ble_read_resolvable_addr_local
-    btsnd_hcic_ble_read_resolvable_addr_local;
 struct btsnd_hcic_ble_read_resolvable_addr_peer
     btsnd_hcic_ble_read_resolvable_addr_peer;
 struct btsnd_hcic_ble_receiver_test btsnd_hcic_ble_receiver_test;
-struct btsnd_hcic_ble_set_addr_resolution_enable
-    btsnd_hcic_ble_set_addr_resolution_enable;
 struct btsnd_hcic_ble_set_adv_data btsnd_hcic_ble_set_adv_data;
 struct btsnd_hcic_ble_set_adv_enable btsnd_hcic_ble_set_adv_enable;
 struct btsnd_hcic_ble_set_data_length btsnd_hcic_ble_set_data_length;
@@ -87,8 +75,6 @@ struct btsnd_hcic_ble_set_extended_scan_enable
     btsnd_hcic_ble_set_extended_scan_enable;
 struct btsnd_hcic_ble_set_extended_scan_params
     btsnd_hcic_ble_set_extended_scan_params;
-struct btsnd_hcic_ble_set_host_chnl_class btsnd_hcic_ble_set_host_chnl_class;
-struct btsnd_hcic_ble_set_local_used_feat btsnd_hcic_ble_set_local_used_feat;
 struct btsnd_hcic_ble_set_periodic_advertising_receive_enable
     btsnd_hcic_ble_set_periodic_advertising_receive_enable;
 struct btsnd_hcic_ble_set_periodic_advertising_sync_transfer_params
@@ -96,10 +82,8 @@ struct btsnd_hcic_ble_set_periodic_advertising_sync_transfer_params
 struct btsnd_hcic_ble_set_privacy_mode btsnd_hcic_ble_set_privacy_mode;
 struct btsnd_hcic_ble_set_rand_priv_addr_timeout
     btsnd_hcic_ble_set_rand_priv_addr_timeout;
-struct btsnd_hcic_ble_set_random_addr btsnd_hcic_ble_set_random_addr;
 struct btsnd_hcic_ble_set_scan_enable btsnd_hcic_ble_set_scan_enable;
 struct btsnd_hcic_ble_set_scan_params btsnd_hcic_ble_set_scan_params;
-struct btsnd_hcic_ble_set_scan_rsp_data btsnd_hcic_ble_set_scan_rsp_data;
 struct btsnd_hcic_ble_start_enc btsnd_hcic_ble_start_enc;
 struct btsnd_hcic_ble_test_end btsnd_hcic_ble_test_end;
 struct btsnd_hcic_ble_transmitter_test btsnd_hcic_ble_transmitter_test;
@@ -108,7 +92,6 @@ struct btsnd_hcic_ble_write_adv_params btsnd_hcic_ble_write_adv_params;
 struct btsnd_hcic_create_big btsnd_hcic_create_big;
 struct btsnd_hcic_create_cis btsnd_hcic_create_cis;
 struct btsnd_hcic_read_iso_link_quality btsnd_hcic_read_iso_link_quality;
-struct btsnd_hcic_read_iso_tx_sync btsnd_hcic_read_iso_tx_sync;
 struct btsnd_hcic_rej_cis_req btsnd_hcic_rej_cis_req;
 struct btsnd_hcic_remove_cig btsnd_hcic_remove_cig;
 struct btsnd_hcic_remove_iso_data_path btsnd_hcic_remove_iso_data_path;
@@ -143,12 +126,6 @@ void btsnd_hci_ble_clear_periodic_advertiser_list(
   test::mock::stack_hcic_hciblecmds::
       btsnd_hci_ble_clear_periodic_advertiser_list(std::move(cb));
 }
-void btsnd_hci_ble_read_periodic_advertiser_list_size(
-    base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hciblecmds::
-      btsnd_hci_ble_read_periodic_advertiser_list_size(std::move(cb));
-}
 void btsnd_hci_ble_remove_device_from_periodic_advertiser_list(
     uint8_t adv_addr_type, const RawAddress& adv_addr, uint8_t adv_sid,
     base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
@@ -161,30 +138,6 @@ void btsnd_hcic_accept_cis_req(uint16_t conn_handle) {
   inc_func_call_count(__func__);
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_accept_cis_req(conn_handle);
 }
-void btsnd_hcic_big_term_sync(uint8_t big_handle,
-                              base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_big_term_sync(big_handle,
-                                                              std::move(cb));
-}
-void btsnd_hcic_ble_create_conn_cancel(void) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_create_conn_cancel();
-}
-void btsnd_hcic_ble_create_ll_conn(uint16_t scan_int, uint16_t scan_win,
-                                   uint8_t init_filter_policy,
-                                   tBLE_ADDR_TYPE addr_type_peer,
-                                   const RawAddress& bda_peer,
-                                   tBLE_ADDR_TYPE addr_type_own,
-                                   uint16_t conn_int_min, uint16_t conn_int_max,
-                                   uint16_t conn_latency, uint16_t conn_timeout,
-                                   uint16_t min_ce_len, uint16_t max_ce_len) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_create_ll_conn(
-      scan_int, scan_win, init_filter_policy, addr_type_peer, bda_peer,
-      addr_type_own, conn_int_min, conn_int_max, conn_latency, conn_timeout,
-      min_ce_len, max_ce_len);
-}
 void btsnd_hcic_ble_enh_rx_test(uint8_t rx_chan, uint8_t phy,
                                 uint8_t mod_index) {
   inc_func_call_count(__func__);
@@ -196,17 +149,6 @@ void btsnd_hcic_ble_enh_tx_test(uint8_t tx_chan, uint8_t data_len,
   inc_func_call_count(__func__);
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_enh_tx_test(
       tx_chan, data_len, payload, phy);
-}
-void btsnd_hcic_ble_ext_create_conn(uint8_t init_filter_policy,
-                                    tBLE_ADDR_TYPE addr_type_own,
-                                    tBLE_ADDR_TYPE addr_type_peer,
-                                    const RawAddress& bda_peer,
-                                    uint8_t initiating_phys,
-                                    EXT_CONN_PHY_CFG* phy_cfg) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_ext_create_conn(
-      init_filter_policy, addr_type_own, addr_type_peer, bda_peer,
-      initiating_phys, phy_cfg);
 }
 void btsnd_hcic_ble_ltk_req_neg_reply(uint16_t handle) {
   inc_func_call_count(__func__);
@@ -279,23 +221,9 @@ void btsnd_hcic_ble_read_adv_chnl_tx_power(void) {
   inc_func_call_count(__func__);
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_read_adv_chnl_tx_power();
 }
-void btsnd_hcic_ble_read_chnl_map(uint16_t handle) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_read_chnl_map(handle);
-}
-void btsnd_hcic_ble_read_host_supported(void) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_read_host_supported();
-}
 void btsnd_hcic_ble_read_remote_feat(uint16_t handle) {
   inc_func_call_count(__func__);
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_read_remote_feat(handle);
-}
-void btsnd_hcic_ble_read_resolvable_addr_local(uint8_t addr_type_peer,
-                                               const RawAddress& bda_peer) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_read_resolvable_addr_local(
-      addr_type_peer, bda_peer);
 }
 void btsnd_hcic_ble_read_resolvable_addr_peer(uint8_t addr_type_peer,
                                               const RawAddress& bda_peer) {
@@ -306,11 +234,6 @@ void btsnd_hcic_ble_read_resolvable_addr_peer(uint8_t addr_type_peer,
 void btsnd_hcic_ble_receiver_test(uint8_t rx_freq) {
   inc_func_call_count(__func__);
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_receiver_test(rx_freq);
-}
-void btsnd_hcic_ble_set_addr_resolution_enable(uint8_t addr_resolution_enable) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_set_addr_resolution_enable(
-      addr_resolution_enable);
 }
 void btsnd_hcic_ble_set_adv_data(uint8_t data_len, uint8_t* p_data) {
   inc_func_call_count(__func__);
@@ -351,17 +274,6 @@ void btsnd_hcic_ble_set_extended_scan_params(uint8_t own_address_type,
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_set_extended_scan_params(
       own_address_type, scanning_filter_policy, scanning_phys, phy_cfg);
 }
-void btsnd_hcic_ble_set_host_chnl_class(
-    uint8_t chnl_map[HCIC_BLE_CHNL_MAP_SIZE]) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_set_host_chnl_class(
-      chnl_map);
-}
-void btsnd_hcic_ble_set_local_used_feat(uint8_t feat_set[8]) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_set_local_used_feat(
-      feat_set);
-}
 void btsnd_hcic_ble_set_periodic_advertising_receive_enable(
     uint16_t sync_handle, bool enable,
     base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
@@ -390,10 +302,6 @@ void btsnd_hcic_ble_set_rand_priv_addr_timeout(uint16_t rpa_timout) {
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_set_rand_priv_addr_timeout(
       rpa_timout);
 }
-void btsnd_hcic_ble_set_random_addr(const RawAddress& random_bda) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_set_random_addr(random_bda);
-}
 void btsnd_hcic_ble_set_scan_enable(uint8_t scan_enable, uint8_t duplicate) {
   inc_func_call_count(__func__);
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_set_scan_enable(scan_enable,
@@ -405,11 +313,6 @@ void btsnd_hcic_ble_set_scan_params(uint8_t scan_type, uint16_t scan_int,
   inc_func_call_count(__func__);
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_set_scan_params(
       scan_type, scan_int, scan_win, addr_type_own, scan_filter_policy);
-}
-void btsnd_hcic_ble_set_scan_rsp_data(uint8_t data_len, uint8_t* p_scan_rsp) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_set_scan_rsp_data(
-      data_len, p_scan_rsp);
 }
 void btsnd_hcic_ble_start_enc(uint16_t handle,
                               uint8_t rand[HCIC_BLE_RAND_DI_SIZE],
@@ -473,12 +376,6 @@ void btsnd_hcic_read_iso_link_quality(
   inc_func_call_count(__func__);
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_read_iso_link_quality(
       iso_handle, std::move(cb));
-}
-void btsnd_hcic_read_iso_tx_sync(
-    uint16_t iso_handle, base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_read_iso_tx_sync(iso_handle,
-                                                                 std::move(cb));
 }
 void btsnd_hcic_rej_cis_req(uint16_t conn_handle, uint8_t reason,
                             base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
