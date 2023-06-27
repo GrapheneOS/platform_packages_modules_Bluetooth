@@ -643,10 +643,6 @@ AudioConfiguration offload_config_to_hal_audio_config(
   return AudioConfiguration(ucast_config);
 }
 
-int GetAidlInterfaceVersion() {
-  return BluetoothAudioSinkClientInterface::GetAidlInterfaceVersion();
-}
-
 }  // namespace le_audio
 }  // namespace aidl
 }  // namespace audio

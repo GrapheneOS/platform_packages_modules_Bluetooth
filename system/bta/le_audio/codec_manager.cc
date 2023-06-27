@@ -97,7 +97,6 @@ struct codec_manager_impl {
                             kIsoDataPathPlatformDefault, {});
     UpdateOffloadCapability(offloading_preference);
     SetCodecLocation(CodecLocation::ADSP);
-    SetAidlVersionInUsed();
   }
   ~codec_manager_impl() {
     if (GetCodecLocation() != CodecLocation::HOST) {
@@ -115,7 +114,8 @@ struct codec_manager_impl {
           update_receiver) {
     if (stream_conf.sink_streams.empty()) return;
 
-    if (stream_conf.sink_is_initial || aidl_version_ >= 3) {
+    if (stream_conf.sink_is_initial ||
+        LeAudioHalVerifier::SupportsStreamActiveApi()) {
       sink_config.stream_map =
           stream_conf.sink_offloader_streams_target_allocation;
     } else {
@@ -139,7 +139,8 @@ struct codec_manager_impl {
           update_receiver) {
     if (stream_conf.source_streams.empty()) return;
 
-    if (stream_conf.source_is_initial || aidl_version_ >= 3) {
+    if (stream_conf.source_is_initial ||
+        LeAudioHalVerifier::SupportsStreamActiveApi()) {
       source_config.stream_map =
           stream_conf.source_offloader_streams_target_allocation;
     } else {
@@ -256,17 +257,10 @@ struct codec_manager_impl {
     update_receiver(broadcast_config);
   }
 
-  int GetAidlVersionInUsed(void) const { return aidl_version_; }
-
  private:
   void SetCodecLocation(CodecLocation location) {
     if (offload_enable_ == false) return;
     codec_location_ = location;
-  }
-
-  void SetAidlVersionInUsed() {
-    aidl_version_ = ::bluetooth::audio::le_audio::GetAidlInterfaceVersion();
-    LOG(INFO) << __func__ << ": current aidl version: " << aidl_version_;
   }
 
   bool IsLc3ConfigMatched(
@@ -409,7 +403,6 @@ struct codec_manager_impl {
       btle_audio_codec_type_map_ = {
           {::bluetooth::le_audio::LE_AUDIO_CODEC_INDEX_SOURCE_LC3,
            types::kLeAudioCodingFormatLC3}};
-  int aidl_version_ = -1;
 };
 
 struct CodecManager::impl {
@@ -450,14 +443,6 @@ types::CodecLocation CodecManager::GetCodecLocation(void) const {
   }
 
   return pimpl_->codec_manager_impl_->GetCodecLocation();
-}
-
-int CodecManager::GetAidlVersionInUsed(void) const {
-  if (!pimpl_->IsRunning()) {
-    return -1;
-  }
-
-  return pimpl_->codec_manager_impl_->GetAidlVersionInUsed();
 }
 
 void CodecManager::UpdateActiveSourceAudioConfig(
