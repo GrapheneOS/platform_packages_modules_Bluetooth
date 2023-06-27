@@ -289,16 +289,7 @@ typedef struct tBTM_CB {
   RawAddress connecting_bda;
   DEV_CLASS connecting_dc;
   uint8_t trace_level;
-  bool is_paging{false};  /* true, if paging is in progess */
   bool is_inquiry{false}; /* true, if inquiry is in progess */
-  fixed_queue_t* page_queue{nullptr};
-
-  bool paging{false};
-  void set_paging() { paging = true; }
-  void reset_paging() { paging = false; }
-  bool is_paging_active() const {
-    return paging;
-  }  // TODO remove all this paging state
 
   fixed_queue_t* sec_pending_q{nullptr}; /* pending sequrity requests in
                                             tBTM_SEC_QUEUE_ENTRY format */
@@ -345,7 +336,6 @@ typedef struct tBTM_CB {
     acl_cb_ = {};
     neighbor = {};
 
-    page_queue = fixed_queue_new(SIZE_MAX);
     sec_pending_q = fixed_queue_new(SIZE_MAX);
     sec_collision_timer = alarm_new("btm.sec_collision_timer");
     pairing_timer = alarm_new("btm.pairing_timer");
@@ -383,9 +373,6 @@ typedef struct tBTM_CB {
     devcb.Free();
     sco_cb.Free();
     btm_inq_vars.Free();
-
-    fixed_queue_free(page_queue, nullptr);
-    page_queue = nullptr;
 
     fixed_queue_free(sec_pending_q, nullptr);
     sec_pending_q = nullptr;
