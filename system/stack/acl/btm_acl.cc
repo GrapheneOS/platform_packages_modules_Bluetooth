@@ -552,8 +552,6 @@ void btm_acl_device_down(void) {
   BTM_db_reset();
 }
 
-void btm_acl_set_paging(bool value) { btm_cb.is_paging = value; }
-
 void btm_acl_update_inquiry_status(uint8_t status) {
   btm_cb.is_inquiry = status == BTM_INQUIRY_STARTED;
   BTIF_dm_report_inquiry_status_change(status);
@@ -2275,79 +2273,6 @@ void btm_cont_rswitch_from_handle(uint16_t hci_handle) {
 
 /*******************************************************************************
  *
- * Function         btm_acl_resubmit_page
- *
- * Description      send pending page request
- *
- ******************************************************************************/
-void btm_acl_resubmit_page(void) {
-  BT_HDR* p_buf;
-  uint8_t* pp;
-  /* If there were other page request schedule can start the next one */
-  p_buf = (BT_HDR*)fixed_queue_try_dequeue(btm_cb.page_queue);
-  if (p_buf != NULL) {
-    /* skip 3 (2 bytes opcode and 1 byte len) to get to the bd_addr
-     * for both create_conn and rmt_name */
-    pp = (uint8_t*)(p_buf + 1) + p_buf->offset + 3;
-
-    RawAddress bda;
-    STREAM_TO_BDADDR(bda, pp);
-
-    btm_cb.connecting_bda = bda;
-    memcpy(btm_cb.connecting_dc, btm_get_dev_class(bda), DEV_CLASS_LEN);
-
-    btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p_buf);
-  } else {
-    btm_cb.paging = false;
-  }
-}
-
-/*******************************************************************************
- *
- * Function         btm_acl_reset_paging
- *
- * Description      set paging to false and free the page queue - called at
- *                  hci_reset
- *
- ******************************************************************************/
-void btm_acl_reset_paging(void) {
-  BT_HDR* p;
-  /* If we sent reset we are definitely not paging any more */
-  while ((p = (BT_HDR*)fixed_queue_try_dequeue(btm_cb.page_queue)) != NULL)
-    osi_free(p);
-
-  btm_cb.paging = false;
-}
-
-/*******************************************************************************
- *
- * Function         btm_acl_paging
- *
- * Description      send a paging command or queue it in btm_cb
- *
- ******************************************************************************/
-void btm_acl_paging(BT_HDR* p, const RawAddress& bda) {
-  if (!BTM_IsAclConnectionUp(bda, BT_TRANSPORT_BR_EDR)) {
-    VLOG(1) << "connecting_bda: "
-            << ADDRESS_TO_LOGGABLE_STR(btm_cb.connecting_bda);
-    if (btm_cb.paging && bda == btm_cb.connecting_bda) {
-      fixed_queue_enqueue(btm_cb.page_queue, p);
-    } else {
-      btm_cb.connecting_bda = bda;
-      memcpy(btm_cb.connecting_dc, btm_get_dev_class(bda), DEV_CLASS_LEN);
-
-      btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
-    }
-
-    btm_cb.paging = true;
-  } else /* ACL is already up */
-  {
-    btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
-  }
-}
-
-/*******************************************************************************
- *
  * Function         btm_acl_notif_conn_collision
  *
  * Description      Send connection collision event to upper layer if registered
@@ -2685,7 +2610,6 @@ void on_acl_br_edr_connected(const RawAddress& bda, uint16_t handle,
     btm_sec_connected(bda, handle, HCI_SUCCESS, enc_mode);
   }
   delayed_role_change_ = nullptr;
-  btm_acl_set_paging(false);
   l2c_link_hci_conn_comp(HCI_SUCCESS, handle, bda);
   uint16_t link_supervision_timeout =
       osi_property_get_int32(PROPERTY_LINK_SUPERVISION_TIMEOUT, 8000);
@@ -2719,7 +2643,6 @@ void on_acl_br_edr_failed(const RawAddress& bda, tHCI_STATUS status,
     btm_sec_connected(bda, HCI_INVALID_HANDLE, status, false);
   }
   delayed_role_change_ = nullptr;
-  btm_acl_set_paging(false);
   l2c_link_hci_conn_comp(status, HCI_INVALID_HANDLE, bda);
 
   acl_set_locally_initiated(locally_initiated);
