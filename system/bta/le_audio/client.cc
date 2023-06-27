@@ -1656,8 +1656,8 @@ class LeAudioClientImpl : public LeAudioClient {
 
     ase = leAudioDevice->GetAseByValHandle(hdl);
 
+    LeAudioDeviceGroup* group = aseGroups_.FindById(leAudioDevice->group_id_);
     if (ase) {
-      LeAudioDeviceGroup* group = aseGroups_.FindById(leAudioDevice->group_id_);
       groupStateMachine_->ProcessGattNotifEvent(value, len, ase, leAudioDevice,
                                                 group);
 
@@ -1680,7 +1680,6 @@ class LeAudioClientImpl : public LeAudioClient {
       /* Cached audio set configurations should be considered invalid when
        * PACs are updated.
        */
-      LeAudioDeviceGroup* group = aseGroups_.FindById(leAudioDevice->group_id_);
       if (group) {
         group->InvalidateCachedConfigurations();
       }
@@ -1706,7 +1705,6 @@ class LeAudioClientImpl : public LeAudioClient {
       /* Cached audio set configurations should be considered invalid when
        * PACs are updated.
        */
-      LeAudioDeviceGroup* group = aseGroups_.FindById(leAudioDevice->group_id_);
       if (group) {
         group->InvalidateCachedConfigurations();
       }
@@ -1781,11 +1779,40 @@ class LeAudioClientImpl : public LeAudioClient {
       UpdateLocationsAndContextsAvailability(leAudioDevice->group_id_);
     } else if (hdl == leAudioDevice->audio_avail_hdls_.val_hdl) {
       BidirectionalPair<AudioContexts> contexts;
-      if (le_audio::client_parser::pacs::ParseAvailableAudioContexts(
+      if (!le_audio::client_parser::pacs::ParseAvailableAudioContexts(
               contexts, len, value)) {
-        leAudioDevice->SetAvailableContexts(contexts);
-        leAudioDevice->SetAvailableContexts(contexts);
+        return;
       }
+        leAudioDevice->SetAvailableContexts(contexts);
+        leAudioDevice->SetAvailableContexts(contexts);
+
+        if (!group) {
+        return;
+        }
+
+        /* Check if we should attach to stream this device */
+        if (group->IsInTransition() || !group->IsStreaming()) {
+        return;
+        }
+
+        if (leAudioDevice->HaveActiveAse()) {
+        /* Do nothing, device is streaming */
+        return;
+        }
+
+        if (leAudioDevice->GetConnectionState() !=
+            DeviceConnectState::CONNECTED) {
+        /* Do nothing, wait until device is connected */
+        return;
+        }
+
+        auto group_metadata_contexts =
+            get_bidirectional(group->GetMetadataContexts());
+        auto device_available_contexts = leAudioDevice->GetAvailableContexts();
+        if (group_metadata_contexts.test_any(device_available_contexts)) {
+        AttachToStreamingGroupIfNeeded(leAudioDevice);
+        }
+
     } else if (hdl == leAudioDevice->audio_supp_cont_hdls_.val_hdl) {
       BidirectionalPair<AudioContexts> supp_audio_contexts;
       if (le_audio::client_parser::pacs::ParseSupportedAudioContexts(
