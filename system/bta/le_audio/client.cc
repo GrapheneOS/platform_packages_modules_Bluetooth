@@ -93,10 +93,13 @@ using le_audio::types::AudioStreamDataPathState;
 using le_audio::types::BidirectionalPair;
 using le_audio::types::hdl_pair;
 using le_audio::types::kDefaultScanDurationS;
+using le_audio::types::kLeAudioContextAllBidir;
+using le_audio::types::kLeAudioContextAllRemoteSinkOnly;
+using le_audio::types::kLeAudioContextAllRemoteSource;
+using le_audio::types::kLeAudioContextAllTypesArray;
 using le_audio::types::LeAudioContextType;
 using le_audio::utils::GetAllowedAudioContextsFromSinkMetadata;
 using le_audio::utils::GetAllowedAudioContextsFromSourceMetadata;
-using le_audio::utils::IsContextForAudioSource;
 
 using le_audio::client_parser::ascs::
     kCtpResponseCodeInvalidConfigurationParameterValue;
@@ -939,13 +942,22 @@ class LeAudioClientImpl : public LeAudioClient {
           bluetooth::common::time_get_os_boottime_us();
     }
 
+    /* Make sure we do not take the local sink metadata when only the local
+     * source scenario is about to be started (e.g. MEDIA).
+     */
+    auto direction_aligned_metadata_context_types = metadata_context_types;
+    if (!kLeAudioContextAllBidir.test(final_context_type)) {
+      direction_aligned_metadata_context_types.source.clear();
+    }
+
     BidirectionalPair<std::vector<uint8_t>> ccids = {
         .sink = ContentControlIdKeeper::GetInstance()->GetAllCcids(
             metadata_context_types.sink),
         .source = ContentControlIdKeeper::GetInstance()->GetAllCcids(
             metadata_context_types.source)};
     bool result = groupStateMachine_->StartStream(
-        group, final_context_type, metadata_context_types, ccids);
+        group, final_context_type, direction_aligned_metadata_context_types,
+        ccids);
 
     return result;
   }
@@ -1219,8 +1231,7 @@ class LeAudioClientImpl : public LeAudioClient {
       if (group->IsAudioSetConfigurationAvailable(LeAudioContextType::MEDIA)) {
         default_context_type = LeAudioContextType::MEDIA;
       } else {
-        for (LeAudioContextType context_type :
-             le_audio::types::kLeAudioContextAllTypesArray) {
+        for (LeAudioContextType context_type : kLeAudioContextAllTypesArray) {
           if (group->IsAudioSetConfigurationAvailable(context_type)) {
             default_context_type = context_type;
             break;
@@ -4455,12 +4466,16 @@ class LeAudioClientImpl : public LeAudioClient {
     metadata_context_types_.sink = GetAllowedAudioContextsFromSourceMetadata(
         source_metadata, current_available_contexts);
 
-    /* Make sure we have CONVERSATIONAL when in a call */
+    /* Make sure we have CONVERSATIONAL when in a call and it is not mixed
+     * with any other bidirectional context
+     */
     if (in_call_) {
       LOG_DEBUG(" In Call preference used.");
-      metadata_context_types_.sink |=
+      metadata_context_types_.sink =
+          (metadata_context_types_.sink & ~kLeAudioContextAllBidir) |
           AudioContexts(LeAudioContextType::CONVERSATIONAL);
-      metadata_context_types_.source |=
+      metadata_context_types_.source =
+          (metadata_context_types_.source & ~kLeAudioContextAllBidir) |
           AudioContexts(LeAudioContextType::CONVERSATIONAL);
     }
 
@@ -4500,18 +4515,25 @@ class LeAudioClientImpl : public LeAudioClient {
     /* Start with only this direction context metadata */
     auto configuration_context_candidates = metadata_context_types_.sink;
 
+    auto is_streaming_other_direction =
+        (audio_receiver_state_ == AudioState::STARTED) ||
+        (audio_receiver_state_ == AudioState::READY_TO_START);
+
     /* Mixed contexts in the voiceback channel scenarios can confuse the remote
      * on how to configure each channel. We should align both direction
      * metadata.
      */
-    auto bidir_contexts = LeAudioContextType::GAME | LeAudioContextType::LIVE |
-                          LeAudioContextType::CONVERSATIONAL |
-                          LeAudioContextType::VOICEASSISTANTS;
-    if (metadata_context_types_.sink.test_any(bidir_contexts)) {
+    if (metadata_context_types_.sink.test_any(kLeAudioContextAllBidir)) {
       if (osi_property_get_bool(kAllowMultipleContextsInMetadata, true)) {
         LOG_DEBUG("Aligning remote source metadata to add the sink context");
+        if (!is_streaming_other_direction) {
+          // Do not take the obsolete metadata
+          metadata_context_types_.source.clear();
+        }
         metadata_context_types_.source =
-            metadata_context_types_.source | metadata_context_types_.sink;
+            (metadata_context_types_.source & ~kLeAudioContextAllBidir) |
+            (metadata_context_types_.sink & ~kLeAudioContextAllRemoteSinkOnly);
+        metadata_context_types_.sink |= metadata_context_types_.source;
       } else {
         LOG_DEBUG("Replacing remote source metadata to match the sink context");
         metadata_context_types_.source = metadata_context_types_.sink;
@@ -4529,20 +4551,21 @@ class LeAudioClientImpl : public LeAudioClient {
          group->IsPendingConfiguration() &&
          IsDirectionAvailableForCurrentConfiguration(
              group, le_audio::types::kLeAudioDirectionSource));
-    if (is_releasing_for_reconfiguration ||
-        (audio_receiver_state_ == AudioState::STARTED) ||
-        (audio_receiver_state_ == AudioState::READY_TO_START)) {
+    if (is_releasing_for_reconfiguration || is_streaming_other_direction) {
       LOG_DEBUG("Other direction is streaming. Taking its contexts %s",
                 ToString(metadata_context_types_.source).c_str());
       // If current direction has no valid context or we are in the
       // bidirectional scenario, take the other direction context
       if ((metadata_context_types_.sink.none() &&
            metadata_context_types_.source.any()) ||
-          metadata_context_types_.source.test_any(bidir_contexts)) {
+          metadata_context_types_.source.test_any(kLeAudioContextAllBidir)) {
         if (osi_property_get_bool(kAllowMultipleContextsInMetadata, true)) {
           LOG_DEBUG("Aligning remote sink metadata to add the source context");
+          /* Turn off bidirectional contexts on sink to avoid mixing with the
+           * bidirectionals for source */
           metadata_context_types_.sink =
-              metadata_context_types_.sink | metadata_context_types_.source;
+              (metadata_context_types_.sink & ~kLeAudioContextAllBidir) |
+              metadata_context_types_.source;
         } else {
           LOG_DEBUG(
               "Replacing remote sink metadata to match the source context");
@@ -4705,12 +4728,16 @@ class LeAudioClientImpl : public LeAudioClient {
     metadata_context_types_.source = GetAllowedAudioContextsFromSinkMetadata(
         sink_metadata, current_available_contexts);
 
-    /* Make sure we have CONVERSATIONAL when in a call */
+    /* Make sure we have CONVERSATIONAL when in a call and it is not mixed
+     * with any other bidirectional context
+     */
     if (in_call_) {
       LOG_INFO(" In Call preference used.");
-      metadata_context_types_.sink |=
+      metadata_context_types_.sink =
+          (metadata_context_types_.sink & ~kLeAudioContextAllBidir) |
           AudioContexts(LeAudioContextType::CONVERSATIONAL);
-      metadata_context_types_.source |=
+      metadata_context_types_.source =
+          (metadata_context_types_.source & ~kLeAudioContextAllBidir) |
           AudioContexts(LeAudioContextType::CONVERSATIONAL);
     }
 
@@ -4753,18 +4780,25 @@ class LeAudioClientImpl : public LeAudioClient {
     /* Start with only this direction context metadata */
     auto configuration_context_candidates = metadata_context_types_.source;
 
+    auto is_streaming_other_direction =
+        (audio_sender_state_ == AudioState::STARTED) ||
+        (audio_sender_state_ == AudioState::READY_TO_START);
+
     /* Mixed contexts in the voiceback channel scenarios can confuse the remote
      * on how to configure each channel. We should align both direction
      * metadata.
      */
-    auto bidir_contexts = LeAudioContextType::GAME | LeAudioContextType::LIVE |
-                          LeAudioContextType::CONVERSATIONAL |
-                          LeAudioContextType::VOICEASSISTANTS;
-    if (metadata_context_types_.source.test_any(bidir_contexts)) {
+    if (metadata_context_types_.source.test_any(kLeAudioContextAllBidir)) {
       if (osi_property_get_bool(kAllowMultipleContextsInMetadata, true)) {
         LOG_DEBUG("Aligning remote sink metadata to add the source context");
+        if (!is_streaming_other_direction) {
+          // Do not take the obsolete metadata
+          metadata_context_types_.sink.clear();
+        }
         metadata_context_types_.sink =
-            metadata_context_types_.sink | metadata_context_types_.source;
+            (metadata_context_types_.sink & ~kLeAudioContextAllBidir) |
+            metadata_context_types_.source;
+        metadata_context_types_.source = metadata_context_types_.sink;
       } else {
         LOG_DEBUG("Replacing remote sink metadata to match the source context");
         metadata_context_types_.sink = metadata_context_types_.source;
@@ -4813,7 +4847,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
     /* Do nothing if audio source is not valid for the new configuration */
     const auto is_audio_source_context =
-        IsContextForAudioSource(new_configuration_context);
+        kLeAudioContextAllRemoteSource.test(new_configuration_context);
     if (!is_audio_source_context) {
       LOG_WARN(
           "No valid remote audio source configuration context in %s, staying "
