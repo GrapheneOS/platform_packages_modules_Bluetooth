@@ -760,20 +760,19 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
                                       uint8_t* p_pin) {
   tBTM_SEC_DEV_REC* p_dev_rec;
   tBTM_STATUS status;
-  VLOG(1) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(bd_addr);
-
-  BTM_TRACE_DEBUG("%s: Transport used %d, bd_addr=%s", __func__, transport,
-                  ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+  LOG_INFO("%s: Transport used %d, bd_addr=%s", __func__, transport,
+           ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
   /* Other security process is in progress */
   if (btm_cb.pairing_state != BTM_PAIR_STATE_IDLE) {
-    BTM_TRACE_ERROR("BTM_SecBond: already busy in state: %s",
-                    btm_pair_state_descr(btm_cb.pairing_state));
+    LOG_ERROR("BTM_SecBond: already busy in state: %s",
+              btm_pair_state_descr(btm_cb.pairing_state));
     return (BTM_WRONG_MODE);
   }
 
   p_dev_rec = btm_find_or_alloc_dev(bd_addr);
   if (p_dev_rec == NULL) {
+    LOG_ERROR("No memory to allocate new p_dev_rec");
     return (BTM_NO_RESOURCES);
   }
 
@@ -796,8 +795,10 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
   }
 
   /* Tell controller to get rid of the link key if it has one stored */
-  if ((BTM_DeleteStoredLinkKey(&bd_addr, NULL)) != BTM_SUCCESS)
+  if ((BTM_DeleteStoredLinkKey(&bd_addr, NULL)) != BTM_SUCCESS) {
+    LOG_ERROR("Failed to delete stored link keys");
     return (BTM_NO_RESOURCES);
+  }
 
   /* Save the PIN code if we got a valid one */
   if (p_pin && (pin_len <= PIN_CODE_LEN) && (pin_len != 0)) {
@@ -939,6 +940,9 @@ tBTM_STATUS BTM_SecBond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
   if ((transport == BT_TRANSPORT_LE && (dev_type & BT_DEVICE_TYPE_BLE) == 0) ||
       (transport == BT_TRANSPORT_BR_EDR &&
        (dev_type & BT_DEVICE_TYPE_BREDR) == 0)) {
+    LOG_WARN(
+        "Can't start bonding - requested transport and transport we've seen "
+        "device on don't match");
     return BTM_ILLEGAL_ACTION;
   }
   return btm_sec_bond_by_transport(bd_addr, addr_type, transport, pin_len,
