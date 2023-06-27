@@ -51,7 +51,6 @@ class MockCodecManager {
       (const std::vector<uint16_t>& conn_handle,
        std::function<void(const ::le_audio::broadcast_offload_config& config)>
            update_receiver));
-  MOCK_METHOD((int), GetAidlVersionInUsed, (), (const));
 
   MOCK_METHOD((void), Start, ());
   MOCK_METHOD((void), Stop, ());
