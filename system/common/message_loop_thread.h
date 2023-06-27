@@ -28,6 +28,7 @@
 #include <thread>
 
 #include "abstract_message_loop.h"
+#include "gd/common/i_postable_context.h"
 
 namespace bluetooth {
 
@@ -36,7 +37,7 @@ namespace common {
 /**
  * An interface to various thread related functionality
  */
-class MessageLoopThread final {
+class MessageLoopThread final : public IPostableContext {
  public:
   /**
    * Create a message loop thread with name. Thread won't be running until
@@ -166,6 +167,10 @@ class MessageLoopThread final {
    */
   bool DoInThreadDelayed(const base::Location& from_here,
                          base::OnceClosure task, const base::TimeDelta& delay);
+  /**
+   * Wrapper around DoInThread without a location.
+   */
+  void Post(base::OnceClosure closure) override;
 
  private:
   /**
