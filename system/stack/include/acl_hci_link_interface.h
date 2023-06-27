@@ -43,8 +43,6 @@ void btm_acl_disconnected(tHCI_STATUS status, uint16_t handle,
 void btm_acl_iso_disconnected(uint16_t handle, tHCI_STATUS reason);
 void btm_acl_encrypt_change(uint16_t handle, uint8_t status,
                             uint8_t encr_enable);
-void btm_acl_paging(BT_HDR* p, const RawAddress& dest);
-void btm_acl_resubmit_page(void);
 void btm_acl_role_changed(tHCI_STATUS hci_status, const RawAddress& bd_addr,
                           tHCI_ROLE new_role);
 void btm_rejectlist_role_change_device(const RawAddress& bd_addr,
