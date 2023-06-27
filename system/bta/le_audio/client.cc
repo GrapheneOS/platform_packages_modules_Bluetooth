@@ -534,22 +534,38 @@ class LeAudioClientImpl : public LeAudioClient {
     } while (leAudioDevice);
   }
 
-  void UpdateContextAndLocations(LeAudioDeviceGroup* group,
-                                 LeAudioDevice* leAudioDevice) {
-    if (leAudioDevice->GetConnectionState() != DeviceConnectState::CONNECTED) {
-      LOG_DEBUG("%s not yet connected ",
-                ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
-      return;
+  void UpdateLocationsAndContextsAvailability(LeAudioDeviceGroup* group,
+                                              AudioContexts contexts) {
+    bool group_conf_changed = group->ReloadAudioLocations();
+    group_conf_changed |= group->ReloadAudioDirections();
+    group_conf_changed |= group->UpdateAudioSetConfigurationCache(contexts);
+    if (group_conf_changed) {
+      callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
+                              group->snk_audio_locations_.to_ulong(),
+                              group->src_audio_locations_.to_ulong(),
+                              group->GetAvailableContexts().value());
     }
+  }
 
-    /* Make sure location and direction are updated for the group. */
-    auto location_update = group->ReloadAudioLocations();
-    group->ReloadAudioDirections();
+  void UpdateLocationsAndContextsAvailability(int group_id) {
+    LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
+    if (group) {
+      UpdateLocationsAndContextsAvailability(group,
+                                             group->GetAvailableContexts());
+    }
+  }
 
-    auto contexts_updated = group->UpdateAudioContextTypeAvailability(
-        leAudioDevice->GetAvailableContexts());
+  void UpdateLocationsAndContextsAvailability(int group_id,
+                                              AudioContexts contexts) {
+    LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
+    if (group) {
+      UpdateLocationsAndContextsAvailability(group, contexts);
+    }
+  }
 
-    if (contexts_updated || location_update) {
+  void UpdateContexts(LeAudioDeviceGroup* group, AudioContexts contexts) {
+    bool group_conf_changed = group->UpdateAudioSetConfigurationCache(contexts);
+    if (group_conf_changed) {
       callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                               group->snk_audio_locations_.to_ulong(),
                               group->src_audio_locations_.to_ulong(),
@@ -722,25 +738,16 @@ class LeAudioClientImpl : public LeAudioClient {
     if (leAudioDevice->conn_id_ != GATT_INVALID_CONN_ID)
       AseInitialStateReadRequest(leAudioDevice);
 
-    /* Group may be destroyed once moved its last node to new group */
-    if (aseGroups_.FindById(old_group_id) != nullptr) {
-      /* Removing node from group may touch its context integrity */
-      auto contexts_updated = old_group->UpdateAudioContextTypeAvailability(
-          old_group->GetAvailableContexts());
+    /* Group may be destroyed once moved its last node to new group, so don't
+     * use `old_group` pointer anymore.
+     * Removing node from group requires updating group context availability */
+    UpdateLocationsAndContextsAvailability(old_group_id);
 
-      bool group_conf_changed = old_group->ReloadAudioLocations();
-      group_conf_changed |= old_group->ReloadAudioDirections();
-      group_conf_changed |= contexts_updated;
-
-      if (group_conf_changed) {
-        callbacks_->OnAudioConf(old_group->audio_directions_, old_group_id,
-                                old_group->snk_audio_locations_.to_ulong(),
-                                old_group->src_audio_locations_.to_ulong(),
-                                old_group->GetAvailableContexts().value());
-      }
+    if (leAudioDevice->GetConnectionState() == DeviceConnectState::CONNECTED) {
+      UpdateLocationsAndContextsAvailability(
+          new_group, new_group->GetAvailableContexts() |
+                         leAudioDevice->GetAvailableContexts());
     }
-
-    UpdateContextAndLocations(new_group, leAudioDevice);
   }
 
   void GroupAddNode(const int group_id, const RawAddress& address) override {
@@ -791,19 +798,9 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    /* Removing node from group touch its context integrity */
-    bool contexts_updated = group->UpdateAudioContextTypeAvailability(
-        group->GetAvailableContexts());
-
-    bool group_conf_changed = group->ReloadAudioLocations();
-    group_conf_changed |= group->ReloadAudioDirections();
-    group_conf_changed |= contexts_updated;
-
-    if (group_conf_changed)
-      callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
-                              group->snk_audio_locations_.to_ulong(),
-                              group->src_audio_locations_.to_ulong(),
-                              group->GetAvailableContexts().value());
+    /* Removing node from group requires updating group context availability */
+    UpdateLocationsAndContextsAvailability(group,
+                                           group->GetAvailableContexts());
   }
 
   void GroupRemoveNode(const int group_id, const RawAddress& address) override {
@@ -1218,13 +1215,13 @@ class LeAudioClientImpl : public LeAudioClient {
      * If most recent scenario is not supported, try to find first supported.
      */
     LeAudioContextType default_context_type = configuration_context_type_;
-    if (!group->IsContextSupported(default_context_type)) {
-      if (group->IsContextSupported(LeAudioContextType::MEDIA)) {
+    if (!group->IsAudioSetConfigurationAvailable(default_context_type)) {
+      if (group->IsAudioSetConfigurationAvailable(LeAudioContextType::MEDIA)) {
         default_context_type = LeAudioContextType::MEDIA;
       } else {
         for (LeAudioContextType context_type :
              le_audio::types::kLeAudioContextAllTypesArray) {
-          if (group->IsContextSupported(context_type)) {
+          if (group->IsAudioSetConfigurationAvailable(context_type)) {
             default_context_type = context_type;
             break;
           }
@@ -1699,12 +1696,8 @@ class LeAudioClientImpl : public LeAudioClient {
        * Read of available context during initial attribute discovery.
        * Group would be assigned once service search is completed.
        */
-      if (group && group->UpdateAudioContextTypeAvailability(
-                       leAudioDevice->GetAvailableContexts())) {
-        callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
-                                group->snk_audio_locations_.to_ulong(),
-                                group->src_audio_locations_.to_ulong(),
-                                group->GetAvailableContexts().value());
+      if (group) {
+        UpdateContexts(group, group->GetAvailableContexts());
       }
       if (notify) {
         btif_storage_leaudio_update_pacs_bin(leAudioDevice->address_);
@@ -1733,14 +1726,9 @@ class LeAudioClientImpl : public LeAudioClient {
        * Read of available context during initial attribute discovery.
        * Group would be assigned once service search is completed.
        */
-      if (group && group->UpdateAudioContextTypeAvailability(
-                       leAudioDevice->GetAvailableContexts())) {
-        callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
-                                group->snk_audio_locations_.to_ulong(),
-                                group->src_audio_locations_.to_ulong(),
-                                group->GetAvailableContexts().value());
+      if (group) {
+        UpdateContexts(group, group->GetAvailableContexts());
       }
-
       if (notify) {
         btif_storage_leaudio_update_pacs_bin(leAudioDevice->address_);
       }
@@ -1766,7 +1754,6 @@ class LeAudioClientImpl : public LeAudioClient {
           le_audio::types::kLeAudioDirectionSink;
       leAudioDevice->snk_audio_locations_ = snk_audio_locations;
 
-      LeAudioDeviceGroup* group = aseGroups_.FindById(leAudioDevice->group_id_);
       callbacks_->OnSinkAudioLocationAvailable(leAudioDevice->address_,
                                                snk_audio_locations.to_ulong());
 
@@ -1780,17 +1767,7 @@ class LeAudioClientImpl : public LeAudioClient {
       /* Read of source audio locations during initial attribute discovery.
        * Group would be assigned once service search is completed.
        */
-      if (!group) return;
-
-      bool group_conf_changed = group->ReloadAudioLocations();
-      group_conf_changed |= group->ReloadAudioDirections();
-
-      if (group_conf_changed) {
-        callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
-                                group->snk_audio_locations_.to_ulong(),
-                                group->src_audio_locations_.to_ulong(),
-                                group->GetAvailableContexts().value());
-      }
+      UpdateLocationsAndContextsAvailability(leAudioDevice->group_id_);
     } else if (hdl == leAudioDevice->src_audio_locations_hdls_.val_hdl) {
       AudioLocations src_audio_locations;
 
@@ -1810,8 +1787,6 @@ class LeAudioClientImpl : public LeAudioClient {
           le_audio::types::kLeAudioDirectionSource;
       leAudioDevice->src_audio_locations_ = src_audio_locations;
 
-      LeAudioDeviceGroup* group = aseGroups_.FindById(leAudioDevice->group_id_);
-
       if (notify) {
         btif_storage_set_leaudio_audio_location(
             leAudioDevice->address_,
@@ -1822,28 +1797,18 @@ class LeAudioClientImpl : public LeAudioClient {
       /* Read of source audio locations during initial attribute discovery.
        * Group would be assigned once service search is completed.
        */
-      if (!group) return;
-
-      bool group_conf_changed = group->ReloadAudioLocations();
-      group_conf_changed |= group->ReloadAudioDirections();
-
-      if (group_conf_changed) {
-        callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
-                                group->snk_audio_locations_.to_ulong(),
-                                group->src_audio_locations_.to_ulong(),
-                                group->GetAvailableContexts().value());
-      }
+      UpdateLocationsAndContextsAvailability(leAudioDevice->group_id_);
     } else if (hdl == leAudioDevice->audio_avail_hdls_.val_hdl) {
       le_audio::client_parser::pacs::acs_available_audio_contexts
           avail_audio_contexts;
       le_audio::client_parser::pacs::ParseAvailableAudioContexts(
           avail_audio_contexts, len, value);
 
-      auto updated_avail_contexts = leAudioDevice->SetAvailableContexts(
+      auto updated_context_bits = leAudioDevice->SetAvailableContexts(
           avail_audio_contexts.snk_avail_cont,
           avail_audio_contexts.src_avail_cont);
 
-      if (updated_avail_contexts.any()) {
+      if (updated_context_bits.any()) {
         /* Update scenario map considering changed available context types */
         LeAudioDeviceGroup* group =
             aseGroups_.FindById(leAudioDevice->group_id_);
@@ -1858,18 +1823,12 @@ class LeAudioClientImpl : public LeAudioClient {
           if (group->IsInTransition() ||
               (group->GetState() ==
                AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING)) {
-            group->SetPendingAvailableContextsChange(updated_avail_contexts);
+            group->SetPendingAvailableContextsChange(updated_context_bits);
             return;
           }
 
-          auto contexts_updated =
-              group->UpdateAudioContextTypeAvailability(updated_avail_contexts);
-          if (contexts_updated) {
-            callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
-                                    group->snk_audio_locations_.to_ulong(),
-                                    group->src_audio_locations_.to_ulong(),
-                                    group->GetAvailableContexts().value());
-          }
+          /* Available contexts change requires audio set config invalidation */
+          UpdateContexts(group, updated_context_bits);
         }
       }
     } else if (hdl == leAudioDevice->audio_supp_cont_hdls_.val_hdl) {
@@ -2993,7 +2952,8 @@ class LeAudioClientImpl : public LeAudioClient {
         get_num_of_devices_in_configuration(stream_conf->conf);
 
     if (num_of_devices < group->NumOfConnected() &&
-        !group->IsConfigurationSupported(leAudioDevice, stream_conf->conf)) {
+        !group->IsAudioSetConfigurationSupported(leAudioDevice,
+                                                 stream_conf->conf)) {
       /* Reconfigure if newly connected member device cannot support current
        * codec configuration */
       group->SetPendingConfiguration();
@@ -3060,7 +3020,11 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (leAudioDevice->group_id_ != bluetooth::groups::kGroupUnknown) {
       LeAudioDeviceGroup* group = aseGroups_.FindById(leAudioDevice->group_id_);
-      UpdateContextAndLocations(group, leAudioDevice);
+      if (group) {
+        UpdateLocationsAndContextsAvailability(
+            group, group->GetAvailableContexts() |
+                       leAudioDevice->GetAvailableContexts());
+      }
       AttachToStreamingGroupIfNeeded(leAudioDevice);
     }
   }
@@ -5121,20 +5085,14 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void HandlePendingAvailableContextsChange(LeAudioDeviceGroup* group) {
-    if (!group) return;
+    if (!group) {
+      LOG_ERROR("Invalid group: %d", active_group_id_);
+      return;
+    }
 
     /* Update group configuration with pending available context change */
-    auto contexts = group->GetPendingAvailableContextsChange();
-    if (contexts.any()) {
-      auto success = group->UpdateAudioContextTypeAvailability(contexts);
-      if (success) {
-        callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
-                                group->snk_audio_locations_.to_ulong(),
-                                group->src_audio_locations_.to_ulong(),
-                                group->GetAvailableContexts().value());
-      }
-      group->ClearPendingAvailableContextsChange();
-    }
+    UpdateContexts(group, group->GetPendingAvailableContextsChange());
+    group->ClearPendingAvailableContextsChange();
   }
 
   void HandlePendingDeviceRemove(LeAudioDeviceGroup* group) {
