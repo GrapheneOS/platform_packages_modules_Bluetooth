@@ -859,10 +859,7 @@ static bool btm_pm_device_in_scan_state(void) {
   /* Scan state-paging, inquiry, and trying to connect */
 
   /* Check for paging */
-  if (btm_cb.is_paging || !fixed_queue_is_empty(btm_cb.page_queue)) {
-    BTM_TRACE_DEBUG("btm_pm_device_in_scan_state- paging");
-    return true;
-  }
+  // TODO: Get this information from connection manager?
 
   /* Check for inquiry */
   if ((btm_cb.btm_inq_vars.inq_active &
