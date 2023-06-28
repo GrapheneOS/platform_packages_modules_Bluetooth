@@ -55,7 +55,8 @@ extern tBTM_CB btm_cb;
 namespace {
 constexpr char kBtmLogTag[] = "SCAN";
 constexpr uint16_t kAllowServiceDataFilter = 0x0040;
-constexpr uint16_t kAllowADTypeFilter = 0x80;
+// Bit 8 for enable AD Type Check
+constexpr uint16_t kAllowADTypeFilter = 0x100;
 constexpr uint8_t kFilterLogicOr = 0x00;
 constexpr uint8_t kFilterLogicAnd = 0x01;
 constexpr uint8_t kLowestRssiValue = 129;
