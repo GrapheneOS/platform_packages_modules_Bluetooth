@@ -1158,11 +1158,18 @@ class StateMachineTest : public Test {
 
   void PrepareReleaseHandler(LeAudioDeviceGroup* group,
                              int verify_ase_count = 0,
-                             bool inject_disconnect_device = false) {
+                             bool inject_disconnect_device = false,
+                             LeAudioDevice* dev = nullptr) {
     ase_ctp_handlers[ascs::kAseCtpOpcodeRelease] =
-        [group, verify_ase_count, inject_disconnect_device, this](
+        [group, verify_ase_count, inject_disconnect_device, dev, this](
             LeAudioDevice* device, std::vector<uint8_t> value,
             GATT_WRITE_OP_CB cb, void* cb_data) {
+          if (dev != nullptr && device != dev) {
+            LOG_INFO("Do nothing for %s",
+                     ADDRESS_TO_LOGGABLE_CSTR(dev->address_));
+            return;
+          }
+
           auto num_ase = value[1];
 
           // Verify ase count if needed
@@ -4447,6 +4454,88 @@ TEST_F(StateMachineTest, StreamReconfigureAfterCisLostTwoDevices) {
   testing::Mock::VerifyAndClearExpectations(&mock_iso_manager_);
   testing::Mock::VerifyAndClearExpectations(&gatt_queue);
   testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+}
+
+TEST_F(StateMachineTest, StreamClearAfterReleaseAndConnectionTimeout) {
+  auto context_type = kContextTypeMedia;
+  const auto leaudio_group_id = 4;
+  const auto num_devices = 2;
+
+  /* Scenario
+  1. Streaming to 2 device
+  2. Stream suspend
+  3. One device got to IDLE
+  4. Second device Connection Timeout
+  */
+
+  // Prepare multiple fake connected devices in a group
+  auto* group = PrepareSingleTestDeviceGroup(
+      leaudio_group_id, context_type, num_devices,
+      kContextTypeConversational | kContextTypeMedia);
+  ASSERT_EQ(group->Size(), num_devices);
+
+  PrepareConfigureCodecHandler(group);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group);
+
+  EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
+  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(2);
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(1);
+
+  InjectInitialIdleNotification(group);
+
+  auto* leAudioDevice = group->GetFirstDevice();
+  auto* firstDevice = leAudioDevice;
+  auto* lastDevice = leAudioDevice;
+
+  while (leAudioDevice) {
+    lastDevice = leAudioDevice;
+    leAudioDevice = group->GetNextDevice(leAudioDevice);
+  }
+
+  // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+
+  // Start the configuration and stream Media content
+  context_type = kContextTypeMedia;
+  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
+      group, context_type,
+      {.sink = types::AudioContexts(context_type),
+       .source = types::AudioContexts(context_type)}));
+
+  // Check if group has transitioned to a proper state
+  ASSERT_EQ(group->GetState(),
+            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+  ASSERT_EQ(1, get_func_call_count("alarm_cancel"));
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::RELEASING));
+  EXPECT_CALL(mock_callbacks_,
+              StatusReportCb(leaudio_group_id,
+                             bluetooth::le_audio::GroupStreamStatus::IDLE));
+
+  /* Prepare release handler only for first device. */
+  PrepareReleaseHandler(group, 0, false, firstDevice);
+  LeAudioGroupStateMachine::Get()->StopStream(group);
+
+  /* Second device will disconnect because of timeout. Do not bother
+   * with remove data path response from the controller. In test we are doing it
+   * in a test thread which breaks things. */
+  ON_CALL(*mock_iso_manager_, RemoveIsoDataPath).WillByDefault(Return());
+  InjectCisDisconnected(group, lastDevice, HCI_ERR_CONNECTION_TOUT);
+  InjectAclDisconnected(group, lastDevice);
+
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+  testing::Mock::VerifyAndClearExpectations(&mock_iso_manager_);
 }
 
 TEST_F(StateMachineTest, StreamStartWithDifferentContextFromConfiguredState) {
