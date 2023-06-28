@@ -704,17 +704,25 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
        * changed notify upper layer so the offloader can be updated with CIS
        * information.
        */
-      if (!group->HaveAllCisesDisconnected() &&
-          (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) &&
-          (group->GetTargetState() ==
-           AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING)) {
-        /* We keep streaming but want others to let know user that it might be
-         * need to update offloader with new CIS configuration
-         */
-        state_machine_callbacks_->StatusReportCb(group->group_id_,
-                                                 GroupStreamStatus::STREAMING);
+      if (!group->HaveAllCisesDisconnected()) {
+        /* some CISes are connected */
+
+        if ((group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) &&
+            (group->GetTargetState() ==
+             AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING)) {
+          /* We keep streaming but want others to let know user that it might
+           * be need to update offloader with new CIS configuration
+           */
+          state_machine_callbacks_->StatusReportCb(
+              group->group_id_, GroupStreamStatus::STREAMING);
+        } else {
+          LOG_WARN("group_id %d not in streaming, CISes are still there",
+                   group->group_id_);
+          group->PrintDebugState();
+        }
+
+        return;
       }
-      return;
     }
 
     /* Group is not connected and all the CISes are down.
@@ -896,11 +904,13 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           ases_pair.sink->state == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
         ases_pair.sink->state =
             AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED;
+        ases_pair.sink->active = false;
       }
       if (ases_pair.source && ases_pair.source->state ==
                                   AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
         ases_pair.source->state =
             AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED;
+        ases_pair.source->active = false;
       }
     }
 
