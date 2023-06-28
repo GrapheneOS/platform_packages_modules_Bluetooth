@@ -130,7 +130,6 @@ rust_bindgen {
         "--allowlist-type=sock_connect_signal_t",
         "--enable-cxx-namespaces",
         "--opaque-type=std::.*",
-        "--size_t-is-usize",
         "--with-derive-default",
         "--with-derive-eq",
         "--with-derive-partialeq",
