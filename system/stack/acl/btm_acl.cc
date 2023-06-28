@@ -2346,7 +2346,7 @@ bool acl_peer_supports_sniff_subrating(const RawAddress& remote_bda) {
 }
 
 bool acl_peer_supports_ble_connection_subrating(const RawAddress& remote_bda) {
-  tACL_CONN* p_acl = internal_.btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR);
+  tACL_CONN* p_acl = internal_.btm_bda_to_acl(remote_bda, BT_TRANSPORT_LE);
   if (p_acl == nullptr) {
     LOG_WARN("Unable to find active acl");
     return false;
@@ -2361,7 +2361,7 @@ bool acl_peer_supports_ble_connection_subrating(const RawAddress& remote_bda) {
 
 bool acl_peer_supports_ble_connection_subrating_host(
     const RawAddress& remote_bda) {
-  tACL_CONN* p_acl = internal_.btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR);
+  tACL_CONN* p_acl = internal_.btm_bda_to_acl(remote_bda, BT_TRANSPORT_LE);
   if (p_acl == nullptr) {
     LOG_WARN("Unable to find active acl");
     return false;
