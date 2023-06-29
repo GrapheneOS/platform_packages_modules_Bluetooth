@@ -316,8 +316,7 @@ class Host(
                 throw RuntimeException("Bluetooth is not enabled, cannot waitDisconnection")
             }
             if (
-                bluetoothDevice.bondState != BluetoothDevice.BOND_NONE &&
-                    !waitedAclDisconnection.contains(bluetoothDevice)
+                bluetoothDevice.isConnected() && !waitedAclDisconnection.contains(bluetoothDevice)
             ) {
                 flow
                     .filter { it.action == BluetoothDevice.ACTION_ACL_DISCONNECTED }
