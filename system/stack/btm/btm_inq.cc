@@ -89,7 +89,7 @@ uint16_t max_bd_entries_; /* Maximum number of entries that can be stored */
 }  // namespace
 
 extern tBTM_CB btm_cb;
-
+void btm_inq_db_set_inq_by_rssi(void);
 void btm_inq_remote_name_timer_timeout(void* data);
 tBTM_STATUS btm_ble_read_remote_name(const RawAddress& remote_bda,
                                      tBTM_NAME_CMPL_CB* p_cb);
@@ -968,11 +968,15 @@ void btm_inq_db_init(void) {
   btm_cb.btm_inq_vars.remote_name_timer =
       alarm_new("btm_inq.remote_name_timer");
   btm_cb.btm_inq_vars.no_inc_ssp = BTM_NO_SSP_ON_INQUIRY;
-  internal_.inq_by_rssi = osi_property_get_bool(PROPERTY_INQ_BY_RSSI, false);
+  btm_inq_db_set_inq_by_rssi();
 }
 
 void btm_inq_db_free(void) {
   alarm_free(btm_cb.btm_inq_vars.remote_name_timer);
+}
+
+void btm_inq_db_set_inq_by_rssi(void) {
+  internal_.inq_by_rssi = osi_property_get_bool(PROPERTY_INQ_BY_RSSI, false);
 }
 
 /*******************************************************************************
