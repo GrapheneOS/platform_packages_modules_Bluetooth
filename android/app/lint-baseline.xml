@@ -386,22 +386,6 @@
     </issue>
 
     <issue
-        id="NewApi"
-        message="Call requires API level 34 (current min is 33): `android.media.BluetoothProfileConnectionInfo#createLeAudioOutputInfo`">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="1328"/>
-    </issue>
-
-    <issue
-        id="NewApi"
-        message="Call requires API level 34 (current min is 33): `android.media.BluetoothProfileConnectionInfo#createLeAudioOutputInfo`">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="3082"/>
-    </issue>
-
-    <issue
         id="SimpleDateFormat"
         message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
         <location
@@ -3974,7 +3958,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="245"/>
+            line="246"/>
     </issue>
 
     <issue
@@ -3982,7 +3966,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="266"/>
+            line="267"/>
     </issue>
 
     <issue
@@ -3990,7 +3974,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="296"/>
+            line="297"/>
     </issue>
 
     <issue
@@ -3998,7 +3982,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="296"/>
+            line="297"/>
     </issue>
 
     <issue
@@ -4006,7 +3990,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="307"/>
+            line="308"/>
     </issue>
 
     <issue
@@ -4014,7 +3998,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="360"/>
+            line="361"/>
     </issue>
 
     <issue
@@ -4022,7 +4006,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="534"/>
+            line="535"/>
     </issue>
 
     <issue
@@ -4030,7 +4014,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="1561"/>
+            line="1570"/>
     </issue>
 
     <issue
@@ -4038,7 +4022,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="1814"/>
+            line="1823"/>
     </issue>
 
     <issue
@@ -4046,7 +4030,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="1860"/>
+            line="1869"/>
     </issue>
 
     <issue
@@ -4054,7 +4038,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="2249"/>
+            line="2258"/>
     </issue>
 
     <issue
@@ -4062,7 +4046,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="2319"/>
+            line="2328"/>
     </issue>
 
     <issue
@@ -4070,7 +4054,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="2442"/>
+            line="2451"/>
     </issue>
 
     <issue
@@ -4078,7 +4062,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="2506"/>
+            line="2515"/>
     </issue>
 
     <issue
@@ -4086,7 +4070,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
-            line="2544"/>
+            line="2553"/>
     </issue>
 
     <issue

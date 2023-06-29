@@ -21,6 +21,7 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.bluetooth.IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID;
 
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
+import static com.android.modules.utils.build.SdkLevel.isAtLeastU;
 
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
@@ -1324,9 +1325,17 @@ public class LeAudioService extends ProfileService {
 
             final boolean suppressNoisyIntent = hasFallbackDevice || mActiveAudioOutDevice != null;
 
-            mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
-                    previousActiveOutDevice, BluetoothProfileConnectionInfo.createLeAudioOutputInfo(
-                            suppressNoisyIntent, volume));
+            final BluetoothProfileConnectionInfo connectionInfo;
+            if (isAtLeastU()) {
+                connectionInfo =
+                        BluetoothProfileConnectionInfo.createLeAudioOutputInfo(
+                                suppressNoisyIntent, volume);
+            } else {
+                connectionInfo =
+                        BluetoothProfileConnectionInfo.createLeAudioInfo(suppressNoisyIntent, true);
+            }
+            mAudioManager.handleBluetoothActiveDeviceChanged(
+                    mActiveAudioOutDevice, previousActiveOutDevice, connectionInfo);
         }
 
         if (isNewActiveInDevice) {
@@ -3078,9 +3087,19 @@ public class LeAudioService extends ProfileService {
             Log.i(TAG, "Sending LE Audio Output active device changed for preferred profile "
                     + "change with volume=" + volume + " and suppressNoisyIntent="
                     + suppressNoisyIntent);
-            mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
-                    mActiveAudioOutDevice, BluetoothProfileConnectionInfo.createLeAudioOutputInfo(
-                            suppressNoisyIntent, volume));
+
+            final BluetoothProfileConnectionInfo connectionInfo;
+            if (isAtLeastU()) {
+                connectionInfo =
+                        BluetoothProfileConnectionInfo.createLeAudioOutputInfo(
+                                suppressNoisyIntent, volume);
+            } else {
+                connectionInfo =
+                        BluetoothProfileConnectionInfo.createLeAudioInfo(suppressNoisyIntent, true);
+            }
+
+            mAudioManager.handleBluetoothActiveDeviceChanged(
+                    mActiveAudioOutDevice, mActiveAudioOutDevice, connectionInfo);
             audioFrameworkCalls++;
         }
 
