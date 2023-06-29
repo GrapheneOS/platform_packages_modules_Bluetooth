@@ -723,8 +723,8 @@ tGATT_STATUS GATTC_ConfigureMTU(uint16_t conn_id, uint16_t mtu) {
 
   /* Since GATT MTU Exchange can be done only once, and it is impossible to
    * predict what MTU will be requested by other applications, let's use
-   * max possible MTU in the request. */
-  gatt_cl_msg.mtu = GATT_MAX_MTU_SIZE;
+   * default MTU in the request. */
+  gatt_cl_msg.mtu = gatt_get_local_mtu();
 
   LOG_INFO("Configuring ATT mtu size conn_id:%hu mtu:%hu user mtu %hu", conn_id,
            gatt_cl_msg.mtu, mtu);

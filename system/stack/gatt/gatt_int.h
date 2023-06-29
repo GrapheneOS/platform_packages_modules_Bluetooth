@@ -32,6 +32,7 @@
 #include "bt_target.h"
 #include "btm_ble_api.h"
 #include "btu.h"
+#include "common/init_flags.h"
 #include "gatt_api.h"
 #include "osi/include/fixed_queue.h"
 #include "stack/include/bt_hdr.h"
@@ -530,6 +531,7 @@ tGATT_STATUS attp_send_msg_to_l2cap(tGATT_TCB& tcb, uint16_t cid,
                                     BT_HDR* p_toL2CAP);
 
 /* utility functions */
+uint16_t gatt_get_local_mtu(void);
 uint8_t* gatt_dbg_op_name(uint8_t op_code);
 uint32_t gatt_add_sdp_record(const bluetooth::Uuid& uuid, uint16_t start_hdl,
                              uint16_t end_hdl);

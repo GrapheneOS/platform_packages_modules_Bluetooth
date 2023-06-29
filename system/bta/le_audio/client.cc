@@ -2056,7 +2056,7 @@ class LeAudioClientImpl : public LeAudioClient {
     if (leAudioDevice->mtu_ == GATT_DEF_BLE_MTU_SIZE) {
       LOG(INFO) << __func__ << ", Configure MTU";
       /* Use here kBapMinimumAttMtu, because we know that GATT will request
-       * GATT_MAX_MTU_SIZE on ATT anyways. We also know that GATT will use this
+       * default ATT MTU anyways. We also know that GATT will use this
        * kBapMinimumAttMtu as an input for Data Length Update procedure in the controller.
        */
       BtaGattQueue::ConfigureMtu(leAudioDevice->conn_id_, kBapMinimumAttMtu);
