@@ -1103,11 +1103,11 @@ void gatt_process_mtu_rsp(tGATT_TCB& tcb, tGATT_CLCB* p_clcb, uint16_t len,
              tcb.pending_user_mtu_exchange_value,
              tcb.peer_bda.ToString().c_str(), mtu);
 
-    /* Aim for MAX as we did in the request */
+    /* Aim for default as we did in the request */
     if (mtu < GATT_DEF_BLE_MTU_SIZE) {
       tcb.payload_size = GATT_DEF_BLE_MTU_SIZE;
     } else {
-      tcb.payload_size = std::min(mtu, (uint16_t)(GATT_MAX_MTU_SIZE));
+      tcb.payload_size = std::min(mtu, (uint16_t)(gatt_get_local_mtu()));
     }
 
     bluetooth::shim::arbiter::GetArbiter().OnIncomingMtuResp(tcb.tcb_idx,
