@@ -387,46 +387,6 @@
 
     <issue
         id="NewApi"
-        message="Call requires API level 34 (current min is 33): `android.media.AudioManager#setLeAudioSuspended`">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1855"/>
-    </issue>
-
-    <issue
-        id="NewApi"
-        message="Call requires API level 34 (current min is 33): `android.media.AudioManager#setLeAudioSuspended`">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1866"/>
-    </issue>
-
-    <issue
-        id="NewApi"
-        message="Call requires API level 34 (current min is 33): `android.media.AudioManager#setLeAudioSuspended`">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2102"/>
-    </issue>
-
-    <issue
-        id="NewApi"
-        message="Call requires API level 34 (current min is 33): `android.media.AudioManager#setLeAudioSuspended`">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetStateMachine.java"
-            line="1150"/>
-    </issue>
-
-    <issue
-        id="NewApi"
-        message="Call requires API level 34 (current min is 33): `android.media.AudioManager#setLeAudioSuspended`">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetStateMachine.java"
-            line="1153"/>
-    </issue>
-
-    <issue
-        id="NewApi"
         message="Call requires API level 34 (current min is 33): `android.media.BluetoothProfileConnectionInfo#createLeAudioOutputInfo`">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/le_audio/LeAudioService.java"
@@ -3214,7 +3174,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="183"/>
+            line="184"/>
     </issue>
 
     <issue
@@ -3222,15 +3182,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="195"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="256"/>
+            line="196"/>
     </issue>
 
     <issue
@@ -3246,7 +3198,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="267"/>
+            line="258"/>
     </issue>
 
     <issue
@@ -3254,7 +3206,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="270"/>
+            line="268"/>
     </issue>
 
     <issue
@@ -3262,7 +3214,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="353"/>
+            line="271"/>
     </issue>
 
     <issue
@@ -3270,7 +3222,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="388"/>
+            line="354"/>
     </issue>
 
     <issue
@@ -3278,7 +3230,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="410"/>
+            line="389"/>
     </issue>
 
     <issue
@@ -3286,7 +3238,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="417"/>
+            line="411"/>
     </issue>
 
     <issue
@@ -3294,7 +3246,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="436"/>
+            line="418"/>
     </issue>
 
     <issue
@@ -3302,7 +3254,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="456"/>
+            line="437"/>
     </issue>
 
     <issue
@@ -3310,7 +3262,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="930"/>
+            line="457"/>
     </issue>
 
     <issue
@@ -3318,7 +3270,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="945"/>
+            line="931"/>
     </issue>
 
     <issue
@@ -3326,7 +3278,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="970"/>
+            line="946"/>
     </issue>
 
     <issue
@@ -3334,7 +3286,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="989"/>
+            line="971"/>
     </issue>
 
     <issue
@@ -3342,7 +3294,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="996"/>
+            line="990"/>
     </issue>
 
     <issue
@@ -3350,7 +3302,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1005"/>
+            line="997"/>
     </issue>
 
     <issue
@@ -3366,7 +3318,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1053"/>
+            line="1007"/>
     </issue>
 
     <issue
@@ -3374,7 +3326,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1077"/>
+            line="1054"/>
     </issue>
 
     <issue
@@ -3382,7 +3334,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1103"/>
+            line="1078"/>
     </issue>
 
     <issue
@@ -3390,7 +3342,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1157"/>
+            line="1104"/>
     </issue>
 
     <issue
@@ -3406,7 +3358,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1171"/>
+            line="1159"/>
     </issue>
 
     <issue
@@ -3414,7 +3366,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1179"/>
+            line="1172"/>
     </issue>
 
     <issue
@@ -3422,7 +3374,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1182"/>
+            line="1180"/>
     </issue>
 
     <issue
@@ -3430,7 +3382,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1184"/>
+            line="1183"/>
     </issue>
 
     <issue
@@ -3438,7 +3390,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1202"/>
+            line="1185"/>
     </issue>
 
     <issue
@@ -3446,7 +3398,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1213"/>
+            line="1203"/>
     </issue>
 
     <issue
@@ -3462,7 +3414,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1229"/>
+            line="1215"/>
     </issue>
 
     <issue
@@ -3470,7 +3422,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1239"/>
+            line="1230"/>
     </issue>
 
     <issue
@@ -3478,7 +3430,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1246"/>
+            line="1240"/>
     </issue>
 
     <issue
@@ -3486,7 +3438,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1335"/>
+            line="1247"/>
     </issue>
 
     <issue
@@ -3494,7 +3446,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1402"/>
+            line="1336"/>
     </issue>
 
     <issue
@@ -3502,7 +3454,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1417"/>
+            line="1403"/>
     </issue>
 
     <issue
@@ -3510,7 +3462,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1442"/>
+            line="1418"/>
     </issue>
 
     <issue
@@ -3518,7 +3470,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1488"/>
+            line="1443"/>
     </issue>
 
     <issue
@@ -3526,7 +3478,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1492"/>
+            line="1489"/>
     </issue>
 
     <issue
@@ -3534,7 +3486,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1501"/>
+            line="1493"/>
     </issue>
 
     <issue
@@ -3542,7 +3494,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1510"/>
+            line="1502"/>
     </issue>
 
     <issue
@@ -3558,7 +3510,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1543"/>
+            line="1512"/>
     </issue>
 
     <issue
@@ -3566,7 +3518,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1547"/>
+            line="1544"/>
     </issue>
 
     <issue
@@ -3574,7 +3526,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1626"/>
+            line="1548"/>
     </issue>
 
     <issue
@@ -3582,7 +3534,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1700"/>
+            line="1627"/>
     </issue>
 
     <issue
@@ -3598,7 +3550,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1705"/>
+            line="1702"/>
     </issue>
 
     <issue
@@ -3606,7 +3558,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1758"/>
+            line="1706"/>
     </issue>
 
     <issue
@@ -3614,7 +3566,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1766"/>
+            line="1759"/>
     </issue>
 
     <issue
@@ -3630,7 +3582,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1787"/>
+            line="1768"/>
     </issue>
 
     <issue
@@ -3646,7 +3598,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1803"/>
+            line="1789"/>
     </issue>
 
     <issue
@@ -3654,7 +3606,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1834"/>
+            line="1804"/>
     </issue>
 
     <issue
@@ -3662,7 +3614,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1847"/>
+            line="1835"/>
     </issue>
 
     <issue
@@ -3694,7 +3646,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1853"/>
+            line="1851"/>
     </issue>
 
     <issue
@@ -3718,7 +3670,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1859"/>
+            line="1857"/>
     </issue>
 
     <issue
@@ -3726,15 +3678,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1863"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1865"/>
+            line="1862"/>
     </issue>
 
     <issue
@@ -3750,7 +3694,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1874"/>
+            line="1868"/>
     </issue>
 
     <issue
@@ -3758,7 +3702,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1894"/>
+            line="1870"/>
     </issue>
 
     <issue
@@ -3766,7 +3710,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1912"/>
+            line="1879"/>
     </issue>
 
     <issue
@@ -3774,7 +3718,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="1921"/>
+            line="1899"/>
     </issue>
 
     <issue
@@ -3782,7 +3726,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2015"/>
+            line="1917"/>
     </issue>
 
     <issue
@@ -3790,7 +3734,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2033"/>
+            line="1926"/>
     </issue>
 
     <issue
@@ -3798,7 +3742,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2036"/>
+            line="2020"/>
     </issue>
 
     <issue
@@ -3806,7 +3750,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2044"/>
+            line="2038"/>
     </issue>
 
     <issue
@@ -3814,7 +3758,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2044"/>
+            line="2041"/>
     </issue>
 
     <issue
@@ -3822,7 +3766,23 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2135"/>
+            line="2049"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
+            line="2049"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
+            line="2142"/>
     </issue>
 
     <issue
@@ -3830,7 +3790,7 @@
         message="This method should only be accessed from tests or within package private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2146"/>
+            line="2153"/>
     </issue>
 
     <issue
@@ -3838,7 +3798,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2199"/>
+            line="2206"/>
     </issue>
 
     <issue
@@ -3846,7 +3806,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2201"/>
+            line="2208"/>
     </issue>
 
     <issue
@@ -3854,7 +3814,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2235"/>
+            line="2242"/>
     </issue>
 
     <issue
@@ -3862,7 +3822,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2265"/>
+            line="2272"/>
     </issue>
 
     <issue
@@ -3870,7 +3830,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2289"/>
+            line="2296"/>
     </issue>
 
     <issue
@@ -3878,7 +3838,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2290"/>
+            line="2297"/>
     </issue>
 
     <issue
@@ -3886,7 +3846,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2293"/>
+            line="2300"/>
     </issue>
 
     <issue
@@ -3894,7 +3854,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetService.java"
-            line="2294"/>
+            line="2301"/>
     </issue>
 
     <issue
@@ -5536,14 +5496,6 @@
     </issue>
 
     <issue
-        id="QueryAllPackagesPermission"
-        message="A `&lt;queries>` declaration should generally be used instead of QUERY_ALL_PACKAGES; \&#xA;see https://g.co/dev/packagevisibility for details">
-        <location
-            file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="61"/>
-    </issue>
-
-    <issue
         id="WakelockTimeout"
         message="Provide a timeout when requesting a wakelock with `PowerManager.Wakelock.acquire(long timeout)`. This will ensure the OS will cleanup any wakelocks that last longer than you intend, and will save your user&apos;s battery.">
         <location
@@ -5844,7 +5796,7 @@
         message="Use `Integer.valueOf(arg)` instead">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetStateMachine.java"
-            line="1952"/>
+            line="1958"/>
     </issue>
 
     <issue
