@@ -38,6 +38,7 @@ typedef enum {
   ESCO_CODEC_MSBC_T2,
   ESCO_CODEC_LC3_T1,
   ESCO_CODEC_LC3_T2,
+  ESCO_CODEC_UNKNOWN,  // For testing
 } esco_codec_t;
 
 #define ESCO_NUM_CODECS 7
