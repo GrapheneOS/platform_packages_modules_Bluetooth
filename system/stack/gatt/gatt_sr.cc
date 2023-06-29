@@ -846,11 +846,11 @@ static void gatts_process_mtu_req(tGATT_TCB& tcb, uint16_t cid, uint16_t len,
   if (mtu < GATT_DEF_BLE_MTU_SIZE) {
     tcb.payload_size = GATT_DEF_BLE_MTU_SIZE;
   } else {
-    tcb.payload_size = std::min(mtu, (uint16_t)(GATT_MAX_MTU_SIZE));
+    tcb.payload_size = std::min(mtu, (uint16_t)(gatt_get_local_mtu()));
   }
 
-  /* Always say to remote our real MAX MTU. */
-  gatt_sr_msg.mtu = GATT_MAX_MTU_SIZE;
+  /* Always say to remote our default MTU. */
+  gatt_sr_msg.mtu = gatt_get_local_mtu();
 
   LOG_INFO("MTU %d request from remote (%s), resulted MTU %d", mtu,
            tcb.peer_bda.ToString().c_str(), tcb.payload_size);
