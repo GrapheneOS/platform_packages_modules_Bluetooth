@@ -118,13 +118,14 @@ impl GlobalModuleRegistry {
                 match message {
                     MainThreadTxMessage::Callback(f) => f(&mut modules),
                     MainThreadTxMessage::Stop => {
-                        GLOBAL_MODULE_REGISTRY.lock().unwrap().take();
                         break;
                     }
                 }
             }
         });
         warn!("Rust thread queue has stopped, shutting down executor thread");
+        GLOBAL_MODULE_REGISTRY.lock().unwrap().take();
+        gatt::arbiter::clean_arbiter();
     }
 }
 
