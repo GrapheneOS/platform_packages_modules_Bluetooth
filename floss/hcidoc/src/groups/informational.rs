@@ -7,10 +7,9 @@ use std::io::Write;
 
 use crate::engine::{Rule, RuleGroup, Signal};
 use crate::parser::{Packet, PacketChild};
-use bt_packets::custom_types::Address;
 use bt_packets::hci::{
-    AclCommandChild, CommandChild, ConnectionManagementCommandChild, ErrorCode, EventChild,
-    GapData, GapDataType, LeMetaEventChild,
+    AclCommandChild, Address, CommandChild, ConnectionManagementCommandChild, ErrorCode,
+    EventChild, GapData, GapDataType, LeMetaEventChild,
 };
 
 /// Valid values are in the range 0x0000-0x0EFF.
