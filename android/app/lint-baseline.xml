@@ -5536,38 +5536,6 @@
     </issue>
 
     <issue
-        id="Recycle"
-        message="This `Cursor` should be freed up after use with `#close()`">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/mapclient/MapClientContent.java"
-            line="283"/>
-    </issue>
-
-    <issue
-        id="Recycle"
-        message="This `Cursor` should be freed up after use with `#close()`">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/mapclient/MapClientContent.java"
-            line="436"/>
-    </issue>
-
-    <issue
-        id="Recycle"
-        message="This `Cursor` should be freed up after use with `#close()`">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/mapclient/MapClientContent.java"
-            line="528"/>
-    </issue>
-
-    <issue
-        id="Recycle"
-        message="This `Cursor` should be freed up after use with `#close()`">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/mapclient/MapClientContent.java"
-            line="550"/>
-    </issue>
-
-    <issue
         id="ObsoleteSdkInt"
         message="Unnecessary; SDK_INT is always >= 19">
         <location
