@@ -6,7 +6,7 @@ use std::convert::TryFrom;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Error, ErrorKind, Read};
 
-use bt_packets::hci::{AclPacket, CommandPacket, EventPacket};
+use bt_packets::hci::{Acl, Command, Event};
 
 /// Linux snoop file header format. This format is used by `btmon` on Linux systems that have bluez
 /// installed.
@@ -70,8 +70,8 @@ impl TryFrom<&[u8]> for LinuxSnoopHeader {
 pub enum LinuxSnoopOpcodes {
     NewIndex = 0,
     DeleteIndex,
-    CommandPacket,
-    EventPacket,
+    Command,
+    Event,
     AclTxPacket,
     AclRxPacket,
     ScoTxPacket,
@@ -279,10 +279,10 @@ impl<'a> LogParser {
 /// Data owned by a packet.
 #[derive(Debug, Clone)]
 pub enum PacketChild {
-    HciCommand(CommandPacket),
-    HciEvent(EventPacket),
-    AclTx(AclPacket),
-    AclRx(AclPacket),
+    HciCommand(Command),
+    HciEvent(Event),
+    AclTx(Acl),
+    AclRx(Acl),
 }
 
 impl<'a> TryFrom<&'a LinuxSnoopPacket> for PacketChild {
@@ -290,22 +290,22 @@ impl<'a> TryFrom<&'a LinuxSnoopPacket> for PacketChild {
 
     fn try_from(item: &'a LinuxSnoopPacket) -> Result<Self, Self::Error> {
         match item.opcode() {
-            LinuxSnoopOpcodes::CommandPacket => match CommandPacket::parse(item.data.as_slice()) {
+            LinuxSnoopOpcodes::Command => match Command::parse(item.data.as_slice()) {
                 Ok(command) => Ok(PacketChild::HciCommand(command)),
                 Err(e) => Err(format!("Couldn't parse command: {:?}", e)),
             },
 
-            LinuxSnoopOpcodes::EventPacket => match EventPacket::parse(item.data.as_slice()) {
+            LinuxSnoopOpcodes::Event => match Event::parse(item.data.as_slice()) {
                 Ok(event) => Ok(PacketChild::HciEvent(event)),
                 Err(e) => Err(format!("Couldn't parse event: {:?}", e)),
             },
 
-            LinuxSnoopOpcodes::AclTxPacket => match AclPacket::parse(item.data.as_slice()) {
+            LinuxSnoopOpcodes::AclTxPacket => match Acl::parse(item.data.as_slice()) {
                 Ok(data) => Ok(PacketChild::AclTx(data)),
                 Err(e) => Err(format!("Couldn't parse acl tx: {:?}", e)),
             },
 
-            LinuxSnoopOpcodes::AclRxPacket => match AclPacket::parse(item.data.as_slice()) {
+            LinuxSnoopOpcodes::AclRxPacket => match Acl::parse(item.data.as_slice()) {
                 Ok(data) => Ok(PacketChild::AclRx(data)),
                 Err(e) => Err(format!("Couldn't parse acl rx: {:?}", e)),
             },
