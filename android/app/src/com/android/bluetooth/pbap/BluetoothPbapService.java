@@ -44,6 +44,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSocket;
+import android.bluetooth.BluetoothUtils;
 import android.bluetooth.IBluetoothPbap;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
@@ -302,6 +303,29 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             Log.w(TAG, "Unhandled intent action: " + action);
         }
     }
+
+    private final BroadcastReceiver mUserChangeReceiver =
+            new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    final String action = intent.getAction();
+                    // EXTRA_USER_HANDLE is sent for both ACTION_USER_SWITCHED and
+                    // ACTION_USER_UNLOCKED (even if the documentation doesn't mention it)
+                    final int userId =
+                            intent.getIntExtra(
+                                    Intent.EXTRA_USER_HANDLE,
+                                    BluetoothUtils.USER_HANDLE_NULL.getIdentifier());
+                    if (userId == BluetoothUtils.USER_HANDLE_NULL.getIdentifier()) {
+                        Log.e(TAG, "userChangeReceiver received an invalid EXTRA_USER_HANDLE");
+                        return;
+                    }
+                    Log.d(TAG, "Got " + action + " to userId " + userId);
+                    UserManager userManager = getSystemService(UserManager.class);
+                    if (userManager.isUserUnlocked(UserHandle.of(userId))) {
+                        sendUpdateRequest();
+                    }
+                }
+            };
 
     @VisibleForTesting
     BroadcastReceiver mPbapReceiver = new BroadcastReceiver() {
@@ -661,6 +685,13 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
             "DatabaseManager cannot be null when PbapService starts");
 
+        IntentFilter userFilter = new IntentFilter();
+        userFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
+        userFilter.addAction(Intent.ACTION_USER_SWITCHED);
+        userFilter.addAction(Intent.ACTION_USER_UNLOCKED);
+
+        getApplicationContext().registerReceiver(mUserChangeReceiver, userFilter);
+
         // Enable owned Activity component
         setComponentAvailable(PBAP_ACTIVITY, true);
 
@@ -728,6 +759,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         synchronized (mPbapStateMachineMap) {
             mPbapStateMachineMap.clear();
         }
+        getApplicationContext().unregisterReceiver(mUserChangeReceiver);
         return true;
     }
 
@@ -754,21 +786,6 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             Log.d(TAG, "setBluetoothPbapService(): set to: " + instance);
         }
         sBluetoothPbapService = instance;
-    }
-
-    @Override
-    protected void setCurrentUser(int userId) {
-        Log.i(TAG, "setCurrentUser(" + userId + ")");
-        UserManager userManager = getSystemService(UserManager.class);
-        if (userManager.isUserUnlocked(UserHandle.of(userId))) {
-            setUserUnlocked(userId);
-        }
-    }
-
-    @Override
-    protected void setUserUnlocked(int userId) {
-        Log.i(TAG, "setUserUnlocked(" + userId + ")");
-        sendUpdateRequest();
     }
 
     @VisibleForTesting
