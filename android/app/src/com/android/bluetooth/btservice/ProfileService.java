@@ -20,19 +20,12 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
-import android.app.ActivityManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothUtils;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.IBinder;
-import android.os.UserHandle;
-import android.os.UserManager;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothMetricsProto;
@@ -62,7 +55,6 @@ public abstract class ProfileService extends Service {
     private IProfileServiceBinder mBinder;
     private final String mName;
     private AdapterService mAdapterService;
-    private BroadcastReceiver mUserSwitchedReceiver;
     private boolean mProfileStarted = false;
     private volatile boolean mTestModeEnabled = false;
 
@@ -116,20 +108,6 @@ public abstract class ProfileService extends Service {
     // Suppressed since this is called from framework
     @SuppressLint("AndroidFrameworkRequiresPermission")
     protected void cleanup() {}
-
-    /**
-     * @param userId is equivalent to the result of ActivityManager.getCurrentUser()
-     */
-    // Suppressed since this is called from framework
-    @SuppressLint("AndroidFrameworkRequiresPermission")
-    protected void setCurrentUser(int userId) {}
-
-    /**
-     * @param userId is equivalent to the result of ActivityManager.getCurrentUser()
-     */
-    // Suppressed since this is called from framework
-    @SuppressLint("AndroidFrameworkRequiresPermission")
-    protected void setUserUnlocked(int userId) {}
 
     /**
      * @param testModeEnabled if the profile should enter or exit a testing mode
@@ -332,37 +310,6 @@ public abstract class ProfileService extends Service {
         }
         mAdapterService.addProfile(this);
 
-        IntentFilter filter = new IntentFilter();
-        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
-        filter.addAction(Intent.ACTION_USER_SWITCHED);
-        filter.addAction(Intent.ACTION_USER_UNLOCKED);
-        mUserSwitchedReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                final String action = intent.getAction();
-                final int userId = intent.getIntExtra(Intent.EXTRA_USER_HANDLE,
-                        BluetoothUtils.USER_HANDLE_NULL.getIdentifier());
-                if (userId == BluetoothUtils.USER_HANDLE_NULL.getIdentifier()) {
-                    Log.e(mName, "userChangeReceiver received an invalid EXTRA_USER_HANDLE");
-                    return;
-                }
-                if (Intent.ACTION_USER_SWITCHED.equals(action)) {
-                    Log.d(mName, "User switched to userId " + userId);
-                    setCurrentUser(userId);
-                } else if (Intent.ACTION_USER_UNLOCKED.equals(intent.getAction())) {
-                    Log.d(mName, "Unlocked userId " + userId);
-                    setUserUnlocked(userId);
-                }
-            }
-        };
-
-        getApplicationContext().registerReceiver(mUserSwitchedReceiver, filter);
-        int currentUserId = ActivityManager.getCurrentUser();
-        setCurrentUser(currentUserId);
-        UserManager userManager = getApplicationContext().getSystemService(UserManager.class);
-        if (userManager.isUserUnlocked(UserHandle.of(currentUserId))) {
-            setUserUnlocked(currentUserId);
-        }
         mProfileStarted = start();
         if (!mProfileStarted) {
             Log.e(mName, "Error starting profile. start() returned false.");
@@ -389,10 +336,6 @@ public abstract class ProfileService extends Service {
         }
         if (mAdapterService != null) {
             mAdapterService.removeProfile(this);
-        }
-        if (mUserSwitchedReceiver != null) {
-            getApplicationContext().unregisterReceiver(mUserSwitchedReceiver);
-            mUserSwitchedReceiver = null;
         }
         stopSelf();
     }
