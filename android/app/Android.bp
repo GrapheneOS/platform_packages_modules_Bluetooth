@@ -260,6 +260,7 @@ android_app {
         error_checks: [
             "ExtraText",
             "NewApi",
+            "ObsoleteSdkInt",
             "Recycle",
         ],
         strict_updatability_linting: true,
