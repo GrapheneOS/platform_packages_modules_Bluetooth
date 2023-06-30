@@ -262,6 +262,7 @@ android_app {
             "NewApi",
             "ObsoleteSdkInt",
             "Recycle",
+            "UseSparseArrays",
         ],
         strict_updatability_linting: true,
     },
