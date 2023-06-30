@@ -6,12 +6,11 @@ use std::io::Write;
 
 use crate::engine::{Rule, RuleGroup, Signal};
 use crate::parser::{Packet, PacketChild};
-use bt_packets::custom_types::Address;
 use bt_packets::hci::{
-    AclCommandChild, AclPacket, CommandChild, CommandStatusPacket,
-    ConnectionManagementCommandChild, ErrorCode, EventChild, EventPacket,
-    LeConnectionManagementCommandChild, LeMetaEventChild, NumberOfCompletedPacketsPacket, OpCode,
-    ScoConnectionCommandChild, SecurityCommandChild, SubeventCode,
+    Acl, AclCommandChild, Address, CommandChild, CommandStatus, ConnectionManagementCommandChild,
+    ErrorCode, Event, EventChild, LeConnectionManagementCommandChild, LeMetaEventChild,
+    NumberOfCompletedPackets, OpCode, ScoConnectionCommandChild, SecurityCommandChild,
+    SubeventCode,
 };
 
 enum ConnectionSignal {
@@ -38,7 +37,7 @@ pub const INVALID_CONN_HANDLE: u16 = 0xfffeu16;
 
 /// When we attempt to create a sco connection on an unknown handle, use this address as
 /// a placeholder.
-pub const UNKNOWN_SCO_ADDRESS: Address = Address { bytes: [0xde, 0xad, 0xbe, 0xef, 0x00, 0x00] };
+pub const UNKNOWN_SCO_ADDRESS: [u8; 6] = [0xdeu8, 0xad, 0xbe, 0xef, 0x00, 0x00];
 
 /// Any outstanding NOCP or disconnection that is more than 5s away from the sent ACL packet should
 /// result in an NOCP signal being generated.
@@ -145,9 +144,10 @@ impl OddDisconnectionsRule {
             _ => INVALID_CONN_HANDLE,
         };
 
+        let unknown_address = Address::from(&UNKNOWN_SCO_ADDRESS);
         let address = match self.active_handles.get(&handle).as_ref() {
             Some((_ts, address)) => address,
-            None => &UNKNOWN_SCO_ADDRESS,
+            None => &unknown_address,
         };
 
         let has_existing = match sco_conn {
@@ -206,7 +206,7 @@ impl OddDisconnectionsRule {
         }
     }
 
-    pub fn process_command_status(&mut self, cs: &CommandStatusPacket, packet: &Packet) {
+    pub fn process_command_status(&mut self, cs: &CommandStatus, packet: &Packet) {
         // Clear last connection attempt since it was successful.
         let last_address = match cs.get_command_op_code() {
             OpCode::CreateConnection | OpCode::AcceptConnectionRequest => {
@@ -264,7 +264,7 @@ impl OddDisconnectionsRule {
         }
     }
 
-    pub fn process_event(&mut self, ev: &EventPacket, packet: &Packet) {
+    pub fn process_event(&mut self, ev: &Event, packet: &Packet) {
         match ev.specialize() {
             EventChild::ConnectionComplete(cc) => {
                 match self.connection_attempt.remove(&cc.get_bd_addr()) {
@@ -413,7 +413,7 @@ impl OddDisconnectionsRule {
         }
     }
 
-    pub fn process_acl_tx(&mut self, acl_tx: &AclPacket, packet: &Packet) {
+    pub fn process_acl_tx(&mut self, acl_tx: &Acl, packet: &Packet) {
         let handle = acl_tx.get_handle();
 
         // Insert empty Nocp data for handle if it doesn't exist.
@@ -426,7 +426,7 @@ impl OddDisconnectionsRule {
         }
     }
 
-    pub fn process_nocp(&mut self, nocp: &NumberOfCompletedPacketsPacket, packet: &Packet) {
+    pub fn process_nocp(&mut self, nocp: &NumberOfCompletedPackets, packet: &Packet) {
         let ts = &packet.ts;
         for completed_packet in nocp.get_completed_packets() {
             let handle = completed_packet.connection_handle;
