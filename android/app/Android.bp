@@ -263,6 +263,7 @@ android_app {
             "ObsoleteSdkInt",
             "Recycle",
             "UseSparseArrays",
+            "UseValueOf",
         ],
         strict_updatability_linting: true,
     },
