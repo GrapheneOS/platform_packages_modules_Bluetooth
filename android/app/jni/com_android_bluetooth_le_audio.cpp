@@ -46,6 +46,8 @@ static jmethodID method_onAudioConf;
 static jmethodID method_onSinkAudioLocationAvailable;
 static jmethodID method_onAudioLocalCodecCapabilities;
 static jmethodID method_onAudioGroupCodecConf;
+static jmethodID method_onHealthBasedRecommendationAction;
+static jmethodID method_onHealthBasedGroupRecommendationAction;
 
 static struct {
   jclass clazz;
@@ -270,6 +272,43 @@ class LeAudioClientCallbacksImpl : public LeAudioClientCallbacks {
         inputCodecConfigObj, outputCodecConfigObj,
         inputSelectableCodecConfigArray, outputSelectableCodecConfigArray);
   }
+
+  void OnHealthBasedRecommendationAction(
+      const RawAddress& bd_addr,
+      bluetooth::le_audio::LeAudioHealthBasedAction action) override {
+    LOG(INFO) << __func__;
+
+    std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid() || mCallbacksObj == nullptr) return;
+
+    ScopedLocalRef<jbyteArray> addr(
+        sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(RawAddress)));
+    if (!addr.get()) {
+      LOG(ERROR) << "Failed to new jbyteArray bd addr for group status";
+      return;
+    }
+
+    sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(RawAddress),
+                                     (jbyte*)&bd_addr);
+    sCallbackEnv->CallVoidMethod(mCallbacksObj,
+                                 method_onHealthBasedRecommendationAction,
+                                 addr.get(), (jint)action);
+  }
+
+  void OnHealthBasedGroupRecommendationAction(
+      int group_id,
+      bluetooth::le_audio::LeAudioHealthBasedAction action) override {
+    LOG(INFO) << __func__;
+
+    std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid() || mCallbacksObj == nullptr) return;
+
+    sCallbackEnv->CallVoidMethod(mCallbacksObj,
+                                 method_onHealthBasedGroupRecommendationAction,
+                                 (jint)group_id, (jint)action);
+  }
 };
 
 static LeAudioClientCallbacksImpl sLeAudioClientCallbacks;
@@ -301,6 +340,10 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
                        "Landroid/bluetooth/BluetoothLeAudioCodecConfig;"
                        "[Landroid/bluetooth/BluetoothLeAudioCodecConfig;"
                        "[Landroid/bluetooth/BluetoothLeAudioCodecConfig;)V");
+  method_onHealthBasedRecommendationAction =
+      env->GetMethodID(clazz, "onHealthBasedRecommendationAction", "([BI)V");
+  method_onHealthBasedGroupRecommendationAction = env->GetMethodID(
+      clazz, "onHealthBasedGroupRecommendationAction", "(II)V");
 }
 
 std::vector<btle_audio_codec_config_t> prepareCodecPreferences(

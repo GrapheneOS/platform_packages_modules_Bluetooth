@@ -20,12 +20,38 @@
 #include <array>
 #include <map>
 #include <optional>
+#include <ostream>
 #include <vector>
 
 #include "raw_address.h"
 
 namespace bluetooth {
 namespace le_audio {
+
+enum class LeAudioHealthBasedAction {
+  NONE = 0,
+  DISABLE,
+  CONSIDER_DISABLING,
+};
+
+inline std::ostream& operator<<(std::ostream& os,
+                                const LeAudioHealthBasedAction action) {
+  switch (action) {
+    case LeAudioHealthBasedAction::NONE:
+      os << "NONE";
+      break;
+    case LeAudioHealthBasedAction::DISABLE:
+      os << "DISABLE";
+      break;
+    case LeAudioHealthBasedAction::CONSIDER_DISABLING:
+      os << "CONSIDER_DISABLING";
+      break;
+    default:
+      os << "UNKNOWN";
+      break;
+  }
+  return os;
+}
 
 enum class ConnectionState {
   DISCONNECTED = 0,
@@ -116,6 +142,11 @@ class LeAudioClientCallbacks {
       btle_audio_codec_config_t output_codec_conf,
       std::vector<btle_audio_codec_config_t> input_selectable_codec_conf,
       std::vector<btle_audio_codec_config_t> output_selectable_codec_conf) = 0;
+
+  virtual void OnHealthBasedRecommendationAction(
+      const RawAddress& address, LeAudioHealthBasedAction action) = 0;
+  virtual void OnHealthBasedGroupRecommendationAction(
+      int group_id, LeAudioHealthBasedAction action) = 0;
 };
 
 class LeAudioClientInterface {

@@ -37,8 +37,10 @@ public class LeAudioStackEvent {
     public static final int EVENT_TYPE_AUDIO_LOCAL_CODEC_CONFIG_CAPA_CHANGED = 6;
     public static final int EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED = 7;
     public static final int EVENT_TYPE_NATIVE_INITIALIZED = 8;
-        // -------- DO NOT PUT ANY NEW UNICAST EVENTS BELOW THIS LINE-------------
-    public static final int EVENT_TYPE_UNICAST_MAX = 9;
+    public static final int EVENT_TYPE_HEALTH_BASED_DEV_RECOMMENDATION = 9;
+    public static final int EVENT_TYPE_HEALTH_BASED_GROUP_RECOMMENDATION = 10;
+    // -------- DO NOT PUT ANY NEW UNICAST EVENTS BELOW THIS LINE-------------
+    public static final int EVENT_TYPE_UNICAST_MAX = 11;
 
     // Broadcast related events
     public static final int EVENT_TYPE_BROADCAST_CREATED = EVENT_TYPE_UNICAST_MAX + 1;
@@ -52,6 +54,11 @@ public class LeAudioStackEvent {
     static final int CONNECTION_STATE_CONNECTING = 1;
     static final int CONNECTION_STATE_CONNECTED = 2;
     static final int CONNECTION_STATE_DISCONNECTING = 3;
+
+    // Health based recommendation
+    static final int HEALTH_RECOMMENDATION_ACTION_NONE = 0;
+    static final int HEALTH_RECOMMENDATION_ACTION_DISABLE = 1;
+    static final int HEALTH_RECOMMENDATION_ACTION_CONSIDER_DISABLING = 2;
 
     static final int GROUP_STATUS_INACTIVE = 0;
     static final int GROUP_STATUS_ACTIVE = 1;
@@ -140,6 +147,10 @@ public class LeAudioStackEvent {
                 return "EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED";
             case EVENT_TYPE_NATIVE_INITIALIZED:
                 return "EVENT_TYPE_NATIVE_INITIALIZED";
+            case EVENT_TYPE_HEALTH_BASED_DEV_RECOMMENDATION:
+                return "EVENT_TYPE_HEALTH_BASED_DEV_RECOMMENDATION";
+            case EVENT_TYPE_HEALTH_BASED_GROUP_RECOMMENDATION:
+                return "EVENT_TYPE_HEALTH_BASED_GROUP_RECOMMENDATION";
             default:
                 return "EVENT_TYPE_UNKNOWN:" + type;
         }
@@ -179,6 +190,17 @@ public class LeAudioStackEvent {
                 // same as EVENT_TYPE_BROADCAST_STATE
             case EVENT_TYPE_BROADCAST_STATE:
                 return "{broadcastId:" + value + "}";
+            case EVENT_TYPE_HEALTH_BASED_GROUP_RECOMMENDATION:
+                return "{group_id: " + value + "}";
+            case EVENT_TYPE_HEALTH_BASED_DEV_RECOMMENDATION:
+                switch (value) {
+                    case HEALTH_RECOMMENDATION_ACTION_NONE:
+                        return "ACTION_DISABLE";
+                    case HEALTH_RECOMMENDATION_ACTION_CONSIDER_DISABLING:
+                        return "ACTION_CONSIDER_DISABLING";
+                    default:
+                        return "UNKNOWN";
+                }
             default:
                 break;
         }
@@ -212,6 +234,15 @@ public class LeAudioStackEvent {
                 return "{group_id:" + Integer.toString(value) + "}";
             case EVENT_TYPE_BROADCAST_STATE:
                 return "{state:" + broadcastStateToString(value) + "}";
+            case EVENT_TYPE_HEALTH_BASED_GROUP_RECOMMENDATION:
+                switch (value) {
+                    case HEALTH_RECOMMENDATION_ACTION_NONE:
+                        return "ACTION_DISABLE";
+                    case HEALTH_RECOMMENDATION_ACTION_CONSIDER_DISABLING:
+                        return "ACTION_CONSIDER_DISABLING";
+                    default:
+                        return "UNKNOWN";
+                }
             default:
                 break;
         }
