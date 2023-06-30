@@ -719,6 +719,11 @@ public class CsipSetCoordinatorServiceTest {
         @Override
         public void onReceive(Context context, Intent intent) {
             try {
+                /* Ignore intent when service is inactive */
+                if (mService == null) {
+                    return;
+                }
+
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // Use first device's queue in case of no device in the intent
                 if (device == null) {
