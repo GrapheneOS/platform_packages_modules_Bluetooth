@@ -5010,14 +5010,6 @@
     </issue>
 
     <issue
-        id="ExtraText"
-        message="Unexpected text found in manifest file: &quot;>&quot;">
-        <location
-            file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="510"/>
-    </issue>
-
-    <issue
         id="ParcelClassLoader"
         message="Passing null here (to use the default class loader) will not work if you are restoring your own classes. Consider using for example `getClass().getClassLoader()` instead.">
         <location
@@ -5412,7 +5404,7 @@
         message="Exported service does not require permission">
         <location
             file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="550"/>
+            line="549"/>
     </issue>
 
     <issue
@@ -5420,7 +5412,7 @@
         message="Exported service does not require permission">
         <location
             file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="581"/>
+            line="580"/>
     </issue>
 
     <issue
@@ -5428,7 +5420,7 @@
         message="Exported service does not require permission">
         <location
             file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="590"/>
+            line="589"/>
     </issue>
 
     <issue
@@ -5436,7 +5428,7 @@
         message="Exported service does not require permission">
         <location
             file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="605"/>
+            line="604"/>
     </issue>
 
     <issue
@@ -5444,7 +5436,7 @@
         message="Exported service does not require permission">
         <location
             file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="616"/>
+            line="615"/>
     </issue>
 
     <issue
@@ -5452,7 +5444,7 @@
         message="Exported service does not require permission">
         <location
             file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="627"/>
+            line="626"/>
     </issue>
 
     <issue
