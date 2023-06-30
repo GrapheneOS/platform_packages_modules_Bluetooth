@@ -155,14 +155,11 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG should never be NULL");
     /* pid max is 2^22 = 4194304 in 64-bit system, and 32768 by default, hence 7 digits are needed most */          \
     fprintf(                                                                                                        \
         stderr,                                                                                                     \
-        "%s %7d %7ld %s - %s:%d - %s: " fmt "\n",                                                                   \
+        "%s %7d %7ld %s:" fmt "\n",                                                                                 \
         _buf,                                                                                                       \
         static_cast<int>(getpid()),                                                                                 \
         syscall(SYS_gettid),                                                                                        \
         LOG_TAG,                                                                                                    \
-        __FILE__,                                                                                                   \
-        __LINE__,                                                                                                   \
-        __func__,                                                                                                   \
         ##args);                                                                                                    \
   } while (false)
 
@@ -195,7 +192,8 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG should never be NULL");
 #endif /* defined(FUZZ_TARGET) */
 
 #define _LOG_SRC_FMT_STR "%s:%d - %s: "
-
+#define _PREPEND_SRC_LOC_IN_LOG(fmt, args...) \
+  _LOG_SRC_FMT_STR fmt, __FILE__, __LINE__, __func__, ##args
 // ---------------------------------------------------------
 // All MACROs defined above are internal and should *not* be
 // used directly (use LOG_XXX defined below instead).
@@ -204,23 +202,23 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG should never be NULL");
 // LogMsg, where the source locations is passed in.
 
 #define LOG_VERBOSE(fmt, args...)                                             \
-  LOG_VERBOSE_INT(_LOG_SRC_FMT_STR fmt, __FILE__, __LINE__, __func__, ##args)
+  LOG_VERBOSE_INT(_PREPEND_SRC_LOC_IN_LOG(fmt, ##args))
 
 #define LOG_DEBUG(fmt, args...)                                               \
-  LOG_DEBUG_INT(_LOG_SRC_FMT_STR fmt, __FILE__, __LINE__, __func__, ##args)
+  LOG_DEBUG_INT(_PREPEND_SRC_LOC_IN_LOG(fmt, ##args))
 
 #define LOG_INFO(fmt, args...)                                                \
-  LOG_INFO_INT(_LOG_SRC_FMT_STR fmt, __FILE__, __LINE__, __func__, ##args)
+  LOG_INFO_INT(_PREPEND_SRC_LOC_IN_LOG(fmt, ##args))
 
 #define LOG_WARN(fmt, args...)                                                \
-  LOG_WARN_INT(_LOG_SRC_FMT_STR fmt, __FILE__, __LINE__, __func__, ##args)
+  LOG_WARN_INT(_PREPEND_SRC_LOC_IN_LOG(fmt, ##args))
 
 #define LOG_ERROR(fmt, args...)                                               \
-  LOG_ERROR_INT(_LOG_SRC_FMT_STR fmt, __FILE__, __LINE__, __func__, ##args)
+  LOG_ERROR_INT(_PREPEND_SRC_LOC_IN_LOG(fmt, ##args))
 
 #ifndef LOG_ALWAYS_FATAL
 #define LOG_ALWAYS_FATAL(fmt, args...)                                        \
-  LOG_ALWAYS_FATAL_INT(_LOG_SRC_FMT_STR fmt, __FILE__, __LINE__, __func__, ##args)
+  LOG_ALWAYS_FATAL_INT(_PREPEND_SRC_LOC_IN_LOG(fmt, ##args))
 #endif
 
 #define ASSERT(condition)                                    \
