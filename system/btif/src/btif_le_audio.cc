@@ -106,6 +106,24 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
                           output_selectable_codec_conf));
   }
 
+  void OnHealthBasedRecommendationAction(
+      const RawAddress& address,
+      bluetooth::le_audio::LeAudioHealthBasedAction action) override {
+    do_in_jni_thread(
+        FROM_HERE,
+        Bind(&LeAudioClientCallbacks::OnHealthBasedRecommendationAction,
+             Unretained(callbacks), address, action));
+  }
+
+  void OnHealthBasedGroupRecommendationAction(
+      int group_id,
+      bluetooth::le_audio::LeAudioHealthBasedAction action) override {
+    do_in_jni_thread(
+        FROM_HERE,
+        Bind(&LeAudioClientCallbacks::OnHealthBasedGroupRecommendationAction,
+             Unretained(callbacks), group_id, action));
+  }
+
   void Initialize(LeAudioClientCallbacks* callbacks,
                   const std::vector<btle_audio_codec_config_t>&
                       offloading_preference) override {

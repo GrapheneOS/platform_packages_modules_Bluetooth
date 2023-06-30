@@ -108,6 +108,7 @@ cc_library_static {
         "le_audio/content_control_id_keeper.cc",
         "le_audio/devices.cc",
         "le_audio/hal_verifier.cc",
+        "le_audio/le_audio_health_status.cc",
         "le_audio/le_audio_log_history.cc",
         "le_audio/le_audio_set_configuration_provider.cc",
         "le_audio/le_audio_set_configuration_provider_json.cc",
@@ -667,6 +668,7 @@ cc_test {
         "le_audio/content_control_id_keeper_test.cc",
         "le_audio/devices.cc",
         "le_audio/devices_test.cc",
+        "le_audio/le_audio_health_status.cc",
         "le_audio/le_audio_log_history.cc",
         "le_audio/le_audio_set_configuration_provider_json.cc",
         "le_audio/le_audio_types.cc",
@@ -743,6 +745,7 @@ cc_test {
         "le_audio/content_control_id_keeper.cc",
         "le_audio/devices.cc",
         "le_audio/le_audio_client_test.cc",
+        "le_audio/le_audio_health_status.cc",
         "le_audio/le_audio_log_history.cc",
         "le_audio/le_audio_set_configuration_provider_json.cc",
         "le_audio/le_audio_types.cc",
@@ -798,6 +801,50 @@ cc_test {
             ],
         },
     },
+    sanitize: {
+        cfi: true,
+        scs: true,
+        address: true,
+        all_undefined: true,
+        integer_overflow: true,
+        diag: {
+            undefined: true,
+        },
+    },
+}
+
+// health status unit tests for host
+cc_test {
+    name: "bluetooth_le_audio_health_status_test",
+    test_suites: ["device-tests"],
+    defaults: [
+        "bluetooth_gtest_x86_asan_workaround",
+        "fluoride_bta_defaults",
+        "mts_defaults",
+    ],
+    host_supported: true,
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/bta/include",
+    ],
+    srcs: [
+        ":TestCommonMockFunctions",
+        //":TestMockBtif",
+        "le_audio/le_audio_health_status.cc",
+        "le_audio/le_audio_health_status_test.cc",
+    ],
+    shared_libs: [
+        "libcrypto",
+        "liblog",
+    ],
+    static_libs: [
+        "crypto_toolbox_for_tests",
+        "libbt-common",
+        "libbt-protos-lite",
+        "libchrome",
+        "libgmock",
+        "libosi",
+    ],
     sanitize: {
         cfi: true,
         scs: true,
