@@ -259,6 +259,7 @@ android_app {
     lint: {
         error_checks: [
             "ExtraText",
+            "MissingClass",
             "NewApi",
             "ObsoleteSdkInt",
             "Recycle",

@@ -2,14 +2,6 @@
 <issues format="5" by="lint 8.1.0-dev" client="" dependencies="true" name="" type="baseline" variant="all" version="8.1.0-dev">
 
     <issue
-        id="MissingClass"
-        message="Class referenced in the manifest, `com.android.bluetooth.hfpclient.HfpClientConnectionService`, was not found in the project or the libraries">
-        <location
-            file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="310"/>
-    </issue>
-
-    <issue
         id="GestureBackNavigation"
         message="If intercepting back events, this should be handled through the registration of callbacks on the window level; Please see https://developer.android.com/about/versions/13/features/predictive-back-gesture">
         <location
@@ -5013,7 +5005,7 @@
         id="ParcelClassLoader"
         message="Passing null here (to use the default class loader) will not work if you are restoring your own classes. Consider using for example `getClass().getClassLoader()` instead.">
         <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfpclient/connserv/HfpClientCall.java"
+            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfpclient/HfpClientCall.java"
             line="275"/>
     </issue>
 
