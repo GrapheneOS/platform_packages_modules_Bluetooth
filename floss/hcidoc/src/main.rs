@@ -70,7 +70,7 @@ fn main() {
             match Packet::try_from((pos, &v)) {
                 Ok(p) => engine.process(p),
                 Err(e) => match v.opcode() {
-                    LinuxSnoopOpcodes::CommandPacket | LinuxSnoopOpcodes::EventPacket => {
+                    LinuxSnoopOpcodes::Command | LinuxSnoopOpcodes::Event => {
                         eprintln!("#{}: {}", pos, e);
                     }
                     _ => (),
