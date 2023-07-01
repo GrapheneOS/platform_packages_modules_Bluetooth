@@ -37,4 +37,3 @@ void main_thread_shut_down();
 extern int sync_timeout_in_ms;
 void sync_main_handler();
 bluetooth::common::MessageLoopThread* get_main_thread();
-bool is_on_main_thread();
