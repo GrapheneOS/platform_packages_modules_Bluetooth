@@ -50,7 +50,6 @@ bt_status_t do_in_main_thread_delayed(const base::Location& from_here,
                                       base::OnceClosure task,
                                       const base::TimeDelta& delay);
 
-bool is_on_main_thread();
 using BtMainClosure = std::function<void()>;
 void post_on_bt_main(BtMainClosure closure);
 
