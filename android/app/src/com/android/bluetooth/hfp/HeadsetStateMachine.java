@@ -18,6 +18,8 @@ package com.android.bluetooth.hfp;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
+import static com.android.modules.utils.build.SdkLevel.isAtLeastU;
+
 import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
@@ -1147,10 +1149,14 @@ public class HeadsetStateMachine extends StateMachine {
                 case CONNECT_AUDIO:
                     stateLogD("CONNECT_AUDIO, device=" + mDevice);
                     mSystemInterface.getAudioManager().setA2dpSuspended(true);
-                    mSystemInterface.getAudioManager().setLeAudioSuspended(true);
+                    if (isAtLeastU()) {
+                        mSystemInterface.getAudioManager().setLeAudioSuspended(true);
+                    }
                     if (!mNativeInterface.connectAudio(mDevice)) {
                         mSystemInterface.getAudioManager().setA2dpSuspended(false);
-                        mSystemInterface.getAudioManager().setLeAudioSuspended(false);
+                        if (isAtLeastU()) {
+                            mSystemInterface.getAudioManager().setLeAudioSuspended(false);
+                        }
                         stateLogE("Failed to connect SCO audio for " + mDevice);
                         // No state change involved, fire broadcast immediately
                         broadcastAudioState(mDevice, BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
