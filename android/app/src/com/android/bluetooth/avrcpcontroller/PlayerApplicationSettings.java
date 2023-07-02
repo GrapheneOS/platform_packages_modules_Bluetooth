@@ -19,6 +19,7 @@ package com.android.bluetooth.avrcpcontroller;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.util.SparseArray;
+import android.util.SparseIntArray;
 
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -67,7 +68,7 @@ class PlayerApplicationSettings {
     /*
      * Hash map of current settings.
      */
-    private SparseArray<Integer> mSettings = new SparseArray<>();
+    private SparseIntArray mSettings = new SparseIntArray();
 
     /*
      * Hash map of supported values, a setting should be supported by the remote in order to enable
@@ -128,8 +129,7 @@ class PlayerApplicationSettings {
     }
 
     public int getSetting(int settingType) {
-        if (null == mSettings.get(settingType)) return -1;
-        return mSettings.get(settingType);
+        return mSettings.get(settingType, -1);
     }
 
     // Convert a native Attribute Id/Value pair into the AVRCP equivalent value.

@@ -423,7 +423,6 @@ public final class Utils {
      * @return the list of AssociationInfo objects
      */
     @RequiresPermission("android.permission.MANAGE_COMPANION_DEVICES")
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     // TODO(b/193460475): Android Lint handles change from SystemApi to public incorrectly.
     // CompanionDeviceManager#getAllAssociations() is public in U,
     // but existed in T as an identical SystemApi.

@@ -2,14 +2,6 @@
 <issues format="5" by="lint 8.1.0-dev" client="" dependencies="true" name="" type="baseline" variant="all" version="8.1.0-dev">
 
     <issue
-        id="MissingClass"
-        message="Class referenced in the manifest, `com.android.bluetooth.hfpclient.HfpClientConnectionService`, was not found in the project or the libraries">
-        <location
-            file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="310"/>
-    </issue>
-
-    <issue
         id="GestureBackNavigation"
         message="If intercepting back events, this should be handled through the registration of callbacks on the window level; Please see https://developer.android.com/about/versions/13/features/predictive-back-gesture">
         <location
@@ -102,7 +94,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/map/BluetoothMapContent.java"
-            line="145"/>
+            line="144"/>
     </issue>
 
     <issue
@@ -110,7 +102,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/map/BluetoothMapContent.java"
-            line="3765"/>
+            line="3764"/>
     </issue>
 
     <issue
@@ -118,7 +110,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/map/BluetoothMapContentObserver.java"
-            line="3070"/>
+            line="3069"/>
     </issue>
 
     <issue
@@ -126,7 +118,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/map/BluetoothMapContentObserver.java"
-            line="3112"/>
+            line="3111"/>
     </issue>
 
     <issue
@@ -4446,6 +4438,14 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/sap/SapService.java"
+            line="644"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/sap/SapService.java"
             line="645"/>
     </issue>
 
@@ -4454,7 +4454,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/sap/SapService.java"
-            line="646"/>
+            line="668"/>
     </issue>
 
     <issue
@@ -4463,14 +4463,6 @@
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/sap/SapService.java"
             line="669"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/sap/SapService.java"
-            line="670"/>
     </issue>
 
     <issue
@@ -5010,18 +5002,10 @@
     </issue>
 
     <issue
-        id="ExtraText"
-        message="Unexpected text found in manifest file: &quot;>&quot;">
-        <location
-            file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="510"/>
-    </issue>
-
-    <issue
         id="ParcelClassLoader"
         message="Passing null here (to use the default class loader) will not work if you are restoring your own classes. Consider using for example `getClass().getClassLoader()` instead.">
         <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfpclient/connserv/HfpClientCall.java"
+            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfpclient/HfpClientCall.java"
             line="275"/>
     </issue>
 
@@ -5412,7 +5396,7 @@
         message="Exported service does not require permission">
         <location
             file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="550"/>
+            line="549"/>
     </issue>
 
     <issue
@@ -5420,7 +5404,7 @@
         message="Exported service does not require permission">
         <location
             file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="581"/>
+            line="580"/>
     </issue>
 
     <issue
@@ -5428,7 +5412,7 @@
         message="Exported service does not require permission">
         <location
             file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="590"/>
+            line="589"/>
     </issue>
 
     <issue
@@ -5436,7 +5420,7 @@
         message="Exported service does not require permission">
         <location
             file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="605"/>
+            line="604"/>
     </issue>
 
     <issue
@@ -5444,7 +5428,7 @@
         message="Exported service does not require permission">
         <location
             file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="616"/>
+            line="615"/>
     </issue>
 
     <issue
@@ -5452,7 +5436,7 @@
         message="Exported service does not require permission">
         <location
             file="./out/.intermediates/packages/modules/Bluetooth/android/app/Bluetooth/android_common/e10894d3da5db41239526c9048962355/manifest_merger/AndroidManifest.xml"
-            line="627"/>
+            line="626"/>
     </issue>
 
     <issue
@@ -5532,7 +5516,7 @@
         message="Provide a timeout when requesting a wakelock with `PowerManager.Wakelock.acquire(long timeout)`. This will ensure the OS will cleanup any wakelocks that last longer than you intend, and will save your user&apos;s battery.">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/sap/SapService.java"
-            line="290"/>
+            line="289"/>
     </issue>
 
     <issue
@@ -5540,87 +5524,7 @@
         message="Provide a timeout when requesting a wakelock with `PowerManager.Wakelock.acquire(long timeout)`. This will ensure the OS will cleanup any wakelocks that last longer than you intend, and will save your user&apos;s battery.">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/sap/SapService.java"
-            line="490"/>
-    </issue>
-
-    <issue
-        id="Recycle"
-        message="This `Cursor` should be freed up after use with `#close()`">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/mapclient/MapClientContent.java"
-            line="283"/>
-    </issue>
-
-    <issue
-        id="Recycle"
-        message="This `Cursor` should be freed up after use with `#close()`">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/mapclient/MapClientContent.java"
-            line="436"/>
-    </issue>
-
-    <issue
-        id="Recycle"
-        message="This `Cursor` should be freed up after use with `#close()`">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/mapclient/MapClientContent.java"
-            line="528"/>
-    </issue>
-
-    <issue
-        id="Recycle"
-        message="This `Cursor` should be freed up after use with `#close()`">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/mapclient/MapClientContent.java"
-            line="550"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 19">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/map/BluetoothMapContent.java"
-            line="63"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 19">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/map/BluetoothMapContentObserver.java"
-            line="85"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 19">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/map/MmsFileProvider.java"
-            line="40"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 5">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/sap/SapService.java"
-            line="46"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 19">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/map/SmsMmsContacts.java"
-            line="40"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 33">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/Utils.java"
-            line="426"/>
+            line="489"/>
     </issue>
 
     <issue
@@ -5756,7 +5660,7 @@
         message="This `Handler` class should be static or leaks might occur (anonymous android.os.Handler)">
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/sap/SapService.java"
-            line="450"/>
+            line="449"/>
     </issue>
 
     <issue
@@ -5765,86 +5669,6 @@
         <location
             file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/sdp/SdpManager.java"
             line="506"/>
-    </issue>
-
-    <issue
-        id="UseSparseArrays"
-        message="Use `new SparseIntArray(...)` instead for better performance">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/avrcpcontroller/PlayerApplicationSettings.java"
-            line="70"/>
-    </issue>
-
-    <issue
-        id="UseValueOf"
-        message="Use `Integer.valueOf(arg)` instead">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hfp/HeadsetStateMachine.java"
-            line="1958"/>
-    </issue>
-
-    <issue
-        id="UseValueOf"
-        message="Use `Integer.valueOf(bufferSize)` instead">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/hid/HidDeviceService.java"
-            line="900"/>
-    </issue>
-
-    <issue
-        id="UseValueOf"
-        message="Use `Long.valueOf(Instant.now().toEpochMilli())` instead">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/mapclient/MceStateMachine.java"
-            line="758"/>
-    </issue>
-
-    <issue
-        id="UseValueOf"
-        message="Use `Long.valueOf(millisecondsToMcsInterval(positionMs))` instead">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/mcp/MediaControlGattService.java"
-            line="620"/>
-    </issue>
-
-    <issue
-        id="UseValueOf"
-        message="Use `Long.valueOf(mcsIntervalToMilliseconds(intVal))` instead">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/mcp/MediaControlGattService.java"
-            line="1202"/>
-    </issue>
-
-    <issue
-        id="UseValueOf"
-        message="Use `Float.valueOf(64 * Math.log(speed) / Math.log(2))` instead">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/mcp/MediaControlGattService.java"
-            line="1772"/>
-    </issue>
-
-    <issue
-        id="UseValueOf"
-        message="Use `Float.valueOf(Math.pow(2, (speed.floatValue() / 64.0f)))` instead">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/mcp/MediaControlGattService.java"
-            line="1776"/>
-    </issue>
-
-    <issue
-        id="UseValueOf"
-        message="Use `Long.valueOf(millisecondsToMcsInterval(positionMs))` instead">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/mcp/MediaControlGattService.java"
-            line="1866"/>
-    </issue>
-
-    <issue
-        id="UseValueOf"
-        message="Use `Long.valueOf(millisecondsToMcsInterval(durationMs))` instead">
-        <location
-            file="packages/modules/Bluetooth/android/app/src/com/android/bluetooth/mcp/MediaControlGattService.java"
-            line="1908"/>
     </issue>
 
     <issue
@@ -7317,190 +7141,6 @@
         <location
             file="packages/modules/Bluetooth/android/app/res/layout/bluetooth_transfer_item.xml"
             line="61"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_alignParentLeft` with `android:layout_alignParentStart=&quot;true&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/bluetooth_map_settings_account_group.xml"
-            line="27"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_marginLeft` with `android:layout_marginStart=&quot;30dp&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/bluetooth_map_settings_account_group.xml"
-            line="31"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_toRightOf` with `android:layout_toEndOf=&quot;@id/bluetooth_map_settings_group_icon&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/bluetooth_map_settings_account_group.xml"
-            line="37"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_alignParentRight` with `android:layout_alignParentEnd=&quot;true&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/bluetooth_map_settings_account_group.xml"
-            line="42"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:paddingLeft` with `android:paddingStart=&quot;51dp&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/bluetooth_map_settings_account_item.xml"
-            line="25"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:paddingRight` with `android:paddingEnd=&quot;25dp&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/bluetooth_map_settings_account_item.xml"
-            line="26"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Use &quot;`start`&quot; instead of &quot;`left`&quot; to ensure correct behavior in right-to-left locales">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/bluetooth_map_settings_account_item.xml"
-            line="34"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Use &quot;`end`&quot; instead of &quot;`right`&quot; to ensure correct behavior in right-to-left locales">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/bluetooth_map_settings_account_item.xml"
-            line="40"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Use &quot;`end`&quot; instead of &quot;`right`&quot; to ensure correct behavior in right-to-left locales">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/bluetooth_map_settings_account_item.xml"
-            line="42"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_marginLeft` with `android:layout_marginStart=&quot;20dip&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/file_transfer.xml"
-            line="86"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Use &quot;`start`&quot; instead of &quot;`left`&quot; to ensure correct behavior in right-to-left locales">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/file_transfer.xml"
-            line="88"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_marginLeft` with `android:layout_marginStart=&quot;10dip&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/file_transfer.xml"
-            line="93"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_marginRight` with `android:layout_marginEnd=&quot;20dip&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/file_transfer.xml"
-            line="94"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Use &quot;`start`&quot; instead of &quot;`left`&quot; to ensure correct behavior in right-to-left locales">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/testactivity_main.xml"
-            line="9"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_marginRight` with `android:layout_marginEnd=&quot;3dip&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/testactivity_main.xml"
-            line="12"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Use &quot;`start`&quot; instead of &quot;`left`&quot; to ensure correct behavior in right-to-left locales">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/testactivity_main.xml"
-            line="23"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_marginRight` with `android:layout_marginEnd=&quot;3dip&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/testactivity_main.xml"
-            line="36"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_marginRight` with `android:layout_marginEnd=&quot;3dip&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/testactivity_main.xml"
-            line="45"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_marginRight` with `android:layout_marginEnd=&quot;3dip&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/testactivity_main.xml"
-            line="54"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_marginRight` with `android:layout_marginEnd=&quot;3dip&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/testactivity_main.xml"
-            line="63"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_marginRight` with `android:layout_marginEnd=&quot;3dip&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/testactivity_main.xml"
-            line="72"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_marginRight` with `android:layout_marginEnd=&quot;3dip&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/testactivity_main.xml"
-            line="81"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_marginRight` with `android:layout_marginEnd=&quot;3dip&quot;` to better support right-to-left layouts">
-        <location
-            file="packages/modules/Bluetooth/android/app/res/layout/testactivity_main.xml"
-            line="90"/>
     </issue>
 
 </issues>

@@ -616,9 +616,10 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
                         mCharacteristics.get(CharId.TRACK_POSITION).getUuid())) {
                     long positionMs = TRACK_POSITION_UNAVAILABLE;
                     positionMs = mCallbacks.onGetCurrentTrackPosition();
-                    final int position = (positionMs != TRACK_POSITION_UNAVAILABLE)
-                            ? new Long(millisecondsToMcsInterval(positionMs)).intValue()
-                            : INTERVAL_UNAVAILABLE;
+                    final int position =
+                            (positionMs != TRACK_POSITION_UNAVAILABLE)
+                                    ? (int) millisecondsToMcsInterval(positionMs)
+                                    : INTERVAL_UNAVAILABLE;
 
                     ByteBuffer bb =
                             ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.LITTLE_ENDIAN);
@@ -1199,7 +1200,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
 
             // If the argument is time interval, convert to milliseconds time domain
             if (opcode == Request.Opcodes.MOVE_RELATIVE) {
-                intVal = new Long(mcsIntervalToMilliseconds(intVal)).intValue();
+                intVal = (int) mcsIntervalToMilliseconds(intVal);
             }
         }
 
@@ -1769,11 +1770,11 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
             speed = PLAY_SPEED_MAX;
         }
 
-        return new Float(64 * Math.log(speed) / Math.log(2)).intValue();
+        return (int) (64 * Math.log(speed) / Math.log(2));
     }
 
     private static float CharacteristicSpeedIntValueToSpeedFloat(Integer speed) {
-        return new Float(Math.pow(2, (speed.floatValue() / 64.0f)));
+        return (float) (Math.pow(2, (speed.floatValue() / 64.0f)));
     }
 
     @VisibleForTesting
@@ -1862,9 +1863,10 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
         }
         if (!isFeatureSupported(ServiceFeature.TRACK_POSITION)) return;
 
-        final int position = (positionMs != TRACK_POSITION_UNAVAILABLE)
-                ? new Long(millisecondsToMcsInterval(positionMs)).intValue()
-                : INTERVAL_UNAVAILABLE;
+        final int position =
+                (positionMs != TRACK_POSITION_UNAVAILABLE)
+                        ? (int) millisecondsToMcsInterval(positionMs)
+                        : INTERVAL_UNAVAILABLE;
 
         BluetoothGattCharacteristic characteristic =
                 mCharacteristics.get(CharId.TRACK_POSITION);
@@ -1904,9 +1906,10 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
             Log.d(TAG, "updateTrackDurationChar: " + durationMs);
         }
         if (isFeatureSupported(ServiceFeature.TRACK_DURATION)) {
-            final int duration = (durationMs != TRACK_DURATION_UNAVAILABLE)
-                    ? new Long(millisecondsToMcsInterval(durationMs)).intValue()
-                    : INTERVAL_UNAVAILABLE;
+            final int duration =
+                    (durationMs != TRACK_DURATION_UNAVAILABLE)
+                            ? (int) millisecondsToMcsInterval(durationMs)
+                            : INTERVAL_UNAVAILABLE;
 
             BluetoothGattCharacteristic characteristic =
                     mCharacteristics.get(CharId.TRACK_DURATION);
