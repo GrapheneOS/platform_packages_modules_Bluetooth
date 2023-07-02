@@ -43,7 +43,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@TargetApi(Build.VERSION_CODES.ECLAIR)
 public class SapService extends ProfileService {
 
     private static final String SDP_SAP_SERVICE_NAME = "SIM Access";
