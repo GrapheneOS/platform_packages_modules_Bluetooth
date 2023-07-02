@@ -442,7 +442,7 @@
              android:process="@string/process"
              android:excludeFromRecents="true"
              android:theme="@style/dialog"
-             android:enabled="false">>
+             android:enabled="false">
         </activity>
         <activity android:name="com.android.bluetooth.opp.BluetoothOppBtEnablingActivity"
              android:process="@string/process"

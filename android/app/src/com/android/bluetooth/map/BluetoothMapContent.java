@@ -60,7 +60,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-@TargetApi(19)
 public class BluetoothMapContent {
 
     private static final String TAG = "BluetoothMapContent";
