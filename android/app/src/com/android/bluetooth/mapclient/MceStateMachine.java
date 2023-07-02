@@ -755,7 +755,7 @@ class MceStateMachine extends StateMachine {
                         if (timestamp == null) {
                             // Infer the timestamp for this message as 'now' and read status
                             // false instead of getting the message listing data for it
-                            timestamp = new Long(Instant.now().toEpochMilli());
+                            timestamp = Instant.now().toEpochMilli();
                         }
                         MessageMetadata metadata = new MessageMetadata(event.getHandle(),
                                 timestamp, false, MESSAGE_NOT_SEEN);

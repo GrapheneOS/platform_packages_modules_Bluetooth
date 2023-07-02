@@ -24,22 +24,22 @@
         android:id="@+id/bluetooth_map_settings_group_icon"
         android:layout_width="64dp"
         android:layout_height="64dp"
-        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:maxWidth="64dp"
         android:maxHeight="64dp"
-        android:layout_marginLeft="30dp"
+        android:layout_marginStart="30dp"
          />
     <TextView
         android:id ="@+id/bluetooth_map_settings_group_text_view"
         android:layout_width ="wrap_content"
         android:layout_height ="wrap_content"
-        android:layout_toRightOf="@id/bluetooth_map_settings_group_icon"/>
+        android:layout_toEndOf="@id/bluetooth_map_settings_group_icon"/>
     <CheckBox
         android:id ="@+id/bluetooth_map_settings_group_checkbox"
         android:layout_width ="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:focusable="false"/>
 
