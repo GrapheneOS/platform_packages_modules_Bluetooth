@@ -897,7 +897,7 @@ public class HidDeviceService extends ProfileService {
         }
 
         Message msg = mHandler.obtainMessage(MESSAGE_GET_REPORT);
-        msg.obj = bufferSize > 0 ? new Integer(bufferSize) : null;
+        msg.obj = bufferSize > 0 ? Integer.valueOf(bufferSize) : null;
         msg.arg1 = type;
         msg.arg2 = id;
         mHandler.sendMessage(msg);

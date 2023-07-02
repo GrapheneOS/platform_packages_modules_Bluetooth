@@ -82,7 +82,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-@TargetApi(19)
 public class BluetoothMapContentObserver {
     private static final String TAG = "BluetoothMapContentObserver";
 
