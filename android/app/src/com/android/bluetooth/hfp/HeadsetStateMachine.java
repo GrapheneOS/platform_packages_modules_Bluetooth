@@ -1955,7 +1955,7 @@ public class HeadsetStateMachine extends StateMachine {
 
             String arg = input.substring(i, j);
             try {
-                out.add(new Integer(arg));
+                out.add(Integer.valueOf(arg));
             } catch (NumberFormatException e) {
                 out.add(arg);
             }
