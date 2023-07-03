@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.bas;
 
+import static android.bluetooth.BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
 import static android.bluetooth.BluetoothGatt.GATT_SUCCESS;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -282,9 +283,7 @@ public class BatteryStateMachineTest {
         allowConnection(true);
         allowConnectGatt(true);
 
-        // To create a callback
-        mBatteryStateMachine.connectGatt();
-        mBatteryStateMachine.mGattCallback.updateBatteryLevel(new byte[]{(byte)0x30});
+        mBatteryStateMachine.updateBatteryLevel(new byte[] {(byte) 0x30});
 
         verify(mBatteryService, timeout(TIMEOUT_MS))
                 .handleBatteryChanged(any(BluetoothDevice.class), eq(0x30));
@@ -295,16 +294,55 @@ public class BatteryStateMachineTest {
         allowConnection(true);
         allowConnectGatt(true);
 
-        // To create a callback
-        mBatteryStateMachine.connectGatt();
         try {
-            mBatteryStateMachine.mGattCallback.updateBatteryLevel(new byte[0]);
+            mBatteryStateMachine.updateBatteryLevel(new byte[0]);
         } catch (Exception ex) {
             fail();
         }
 
         verify(mBatteryService, after(WAIT_MS).never())
                 .handleBatteryChanged(any(BluetoothDevice.class), anyInt());
+    }
+
+    @Test
+    public void testDisconnetResetBatteryLevel() {
+        allowConnection(true);
+        allowConnectGatt(true);
+
+        // Inject an event for when incoming connection is requested
+        mBatteryStateMachine.sendMessage(BatteryStateMachine.CONNECT);
+
+        verify(mBatteryService, timeout(TIMEOUT_MS))
+                .handleConnectionStateChanged(
+                        any(BatteryStateMachine.class),
+                        eq(BluetoothProfile.STATE_DISCONNECTED),
+                        eq(BluetoothProfile.STATE_CONNECTING));
+
+        Assert.assertThat(
+                mBatteryStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(BatteryStateMachine.Connecting.class));
+
+        mBatteryStateMachine.notifyConnectionStateChanged(
+                GATT_SUCCESS, BluetoothProfile.STATE_CONNECTED);
+
+        verify(mBatteryService, timeout(TIMEOUT_MS))
+                .handleConnectionStateChanged(
+                        any(BatteryStateMachine.class),
+                        eq(BluetoothProfile.STATE_CONNECTING),
+                        eq(BluetoothProfile.STATE_CONNECTED));
+
+        Assert.assertThat(
+                mBatteryStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(BatteryStateMachine.Connected.class));
+        // update the battery level
+        mBatteryStateMachine.updateBatteryLevel(new byte[] {(byte) 0x30});
+        verify(mBatteryService, timeout(TIMEOUT_MS))
+                .handleBatteryChanged(any(BluetoothDevice.class), eq(0x30));
+
+        // Disconnect should reset the battery level
+        mBatteryStateMachine.sendMessage(BatteryStateMachine.DISCONNECT);
+        verify(mBatteryService, timeout(TIMEOUT_MS))
+                .handleBatteryChanged(any(BluetoothDevice.class), eq(BATTERY_LEVEL_UNKNOWN));
     }
 
     private void reconnect() {
