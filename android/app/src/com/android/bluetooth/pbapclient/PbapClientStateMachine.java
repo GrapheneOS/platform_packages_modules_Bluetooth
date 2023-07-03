@@ -53,6 +53,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.Process;
@@ -166,17 +167,18 @@ class PbapClientStateMachine extends StateMachine {
             mHandlerThread =
                     new HandlerThread("PBAP PCE handler", Process.THREAD_PRIORITY_BACKGROUND);
             mHandlerThread.start();
+            Looper looper = mHandlerThread.getLooper();
 
             // Keeps mock handler from being overwritten in tests
-            if (mConnectionHandler == null) {
+            if (mConnectionHandler == null && looper != null) {
                 mConnectionHandler =
-                    new PbapClientConnectionHandler.Builder().setLooper(mHandlerThread.getLooper())
-                            .setContext(mService)
-                            .setClientSM(PbapClientStateMachine.this)
-                            .setRemoteDevice(mCurrentDevice)
-                            .build();
+                        new PbapClientConnectionHandler.Builder()
+                                .setLooper(looper)
+                                .setContext(mService)
+                                .setClientSM(PbapClientStateMachine.this)
+                                .setRemoteDevice(mCurrentDevice)
+                                .build();
             }
-
             sendMessageDelayed(MSG_CONNECT_TIMEOUT, CONNECT_TIMEOUT);
         }
 
@@ -206,8 +208,12 @@ class PbapClientStateMachine extends StateMachine {
                     break;
 
                 case MSG_SDP_COMPLETE:
-                    mConnectionHandler.obtainMessage(PbapClientConnectionHandler.MSG_CONNECT,
-                            message.obj).sendToTarget();
+                    PbapClientConnectionHandler connectionHandler = mConnectionHandler;
+                    if (connectionHandler != null) {
+                        connectionHandler
+                                .obtainMessage(PbapClientConnectionHandler.MSG_CONNECT, message.obj)
+                                .sendToTarget();
+                    }
                     break;
 
                 default:
@@ -269,8 +275,12 @@ class PbapClientStateMachine extends StateMachine {
             onConnectionStateChanged(mCurrentDevice, mMostRecentState,
                     BluetoothProfile.STATE_DISCONNECTING);
             mMostRecentState = BluetoothProfile.STATE_DISCONNECTING;
-            mConnectionHandler.obtainMessage(PbapClientConnectionHandler.MSG_DISCONNECT)
-                    .sendToTarget();
+            PbapClientConnectionHandler connectionHandler = mConnectionHandler;
+            if (connectionHandler != null) {
+                connectionHandler
+                        .obtainMessage(PbapClientConnectionHandler.MSG_DISCONNECT)
+                        .sendToTarget();
+            }
             sendMessageDelayed(MSG_DISCONNECT_TIMEOUT, DISCONNECT_TIMEOUT);
         }
 
@@ -292,7 +302,10 @@ class PbapClientStateMachine extends StateMachine {
 
                 case MSG_DISCONNECT_TIMEOUT:
                     Log.w(TAG, "Disconnect Timeout, Forcing");
-                    mConnectionHandler.abort();
+                    PbapClientConnectionHandler connectionHandler = mConnectionHandler;
+                    if (connectionHandler != null) {
+                        connectionHandler.abort();
+                    }
                     mHandlerThread.quitSafely();
                     transitionTo(mDisconnected);
                     break;
@@ -355,8 +368,12 @@ class PbapClientStateMachine extends StateMachine {
                     + ", accountServiceReady=" + accountServiceReady);
             return;
         }
-        mConnectionHandler.obtainMessage(PbapClientConnectionHandler.MSG_DOWNLOAD)
-                .sendToTarget();
+        PbapClientConnectionHandler connectionHandler = mConnectionHandler;
+        if (connectionHandler != null) {
+            connectionHandler
+                    .obtainMessage(PbapClientConnectionHandler.MSG_DOWNLOAD)
+                    .sendToTarget();
+        }
     }
 
     private void onConnectionStateChanged(BluetoothDevice device, int prevState, int state) {
@@ -388,8 +405,15 @@ class PbapClientStateMachine extends StateMachine {
     }
 
     void doQuit() {
+        PbapClientConnectionHandler connectionHandler = mConnectionHandler;
+        if (connectionHandler != null) {
+            connectionHandler.abort();
+            mConnectionHandler = null;
+        }
+
         if (mHandlerThread != null) {
             mHandlerThread.quitSafely();
+            mHandlerThread = null;
         }
         quitNow();
     }
