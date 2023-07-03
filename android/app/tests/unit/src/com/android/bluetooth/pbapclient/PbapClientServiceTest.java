@@ -165,7 +165,6 @@ public class PbapClientServiceTest {
         assertThat(mService.connect(mRemoteDevice)).isFalse();
     }
 
-    @Ignore("b/273396169")
     @Test
     public void testConnect_whenPolicyIsAllowed_returnsTrue() {
         int connectionPolicy = BluetoothProfile.CONNECTION_POLICY_ALLOWED;
