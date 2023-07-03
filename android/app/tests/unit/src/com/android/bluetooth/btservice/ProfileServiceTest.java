@@ -78,6 +78,11 @@ public class ProfileServiceTest {
         for (Class profile : mProfiles) {
             setProfileState(profile, state);
         }
+        if (invocationNumber == 0) {
+            verify(mMockAdapterService, after(PROFILE_START_MILLIS).never())
+                    .onProfileServiceStateChanged(any(), anyInt());
+            return;
+        }
         ArgumentCaptor<ProfileService> argument = ArgumentCaptor.forClass(ProfileService.class);
         verify(mMockAdapterService, timeout(PROFILE_START_MILLIS).times(
                 mProfiles.length * invocationNumber)).onProfileServiceStateChanged(
@@ -234,5 +239,14 @@ public class ProfileServiceTest {
             }
             profileNumber += 1;
         }
+    }
+
+    /**
+     * Test: Stop the Bluetooth profile services that are not started.
+     * Verify that the profile service state is not changed.
+     */
+    @Test
+    public void testDisable() throws TimeoutException {
+        setAllProfilesState(BluetoothAdapter.STATE_OFF, 0);
     }
 }
