@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.bas;
 
+import static android.bluetooth.BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
 import static android.bluetooth.BluetoothDevice.PHY_LE_1M_MASK;
 import static android.bluetooth.BluetoothDevice.PHY_LE_2M_MASK;
 import static android.bluetooth.BluetoothDevice.TRANSPORT_LE;
@@ -236,6 +237,27 @@ public class BatteryStateMachine extends StateMachine {
                 mGattCallback, TRANSPORT_LE, /*opportunistic=*/true,
                 PHY_LE_1M_MASK | PHY_LE_2M_MASK, getHandler());
         return mBluetoothGatt != null;
+    }
+
+    @VisibleForTesting
+    void updateBatteryLevel(byte[] value) {
+        if (value.length == 0) {
+            return;
+        }
+        int batteryLevel = value[0] & 0xFF;
+
+        BatteryService service = mServiceRef.get();
+        if (service != null) {
+            service.handleBatteryChanged(mDevice, batteryLevel);
+        }
+    }
+
+    @VisibleForTesting
+    void resetBatteryLevel() {
+        BatteryService service = mServiceRef.get();
+        if (service != null) {
+            service.handleBatteryChanged(mDevice, BATTERY_LEVEL_UNKNOWN);
+        }
     }
 
     @Override
@@ -479,6 +501,8 @@ public class BatteryStateMachine extends StateMachine {
         public void exit() {
             log(TAG, "Exit (" + mDevice + "): "
                     + messageWhatToString(getCurrentMessage().what));
+            // Reset the battery level only after connected
+            resetBatteryLevel();
             mLastConnectionState = BluetoothProfile.STATE_CONNECTED;
         }
 
@@ -592,19 +616,6 @@ public class BatteryStateMachine extends StateMachine {
                 int status) {
             if (status != BluetoothGatt.GATT_SUCCESS) {
                 Log.w(TAG, "Failed to write descriptor " + descriptor.getUuid());
-            }
-        }
-
-        @VisibleForTesting
-        void updateBatteryLevel(byte[] value) {
-            if (value.length <= 0) {
-                return;
-            }
-            int batteryLevel = value[0] & 0xFF;
-
-            BatteryService service = mServiceRef.get();
-            if (service != null) {
-                service.handleBatteryChanged(mDevice, batteryLevel);
             }
         }
     }
