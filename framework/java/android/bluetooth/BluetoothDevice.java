@@ -3266,25 +3266,18 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
         // TODO(Bluetooth) check whether platform support BLE
         //     Do the check here or in GattServer?
-        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        IBluetoothManager managerService = adapter.getBluetoothManager();
-        try {
-            IBluetoothGatt iGatt = managerService.getBluetoothGatt();
-            if (iGatt == null) {
-                // BLE is not supported
-                return null;
-            } else if (NULL_MAC_ADDRESS.equals(mAddress)) {
-                Log.e(TAG, "Unable to connect gatt, invalid address " + mAddress);
-                return null;
-            }
-            BluetoothGatt gatt = new BluetoothGatt(
-                    iGatt, this, transport, opportunistic, phy, mAttributionSource);
-            gatt.connect(autoConnect, callback, handler);
-            return gatt;
-        } catch (RemoteException e) {
-            Log.e(TAG, "", e);
+        IBluetoothGatt iGatt = BluetoothAdapter.getDefaultAdapter().getBluetoothGatt();
+        if (iGatt == null) {
+            // BLE is not supported
+            return null;
+        } else if (NULL_MAC_ADDRESS.equals(mAddress)) {
+            Log.e(TAG, "Unable to connect gatt, invalid address " + mAddress);
+            return null;
         }
-        return null;
+        BluetoothGatt gatt =
+                new BluetoothGatt(iGatt, this, transport, opportunistic, phy, mAttributionSource);
+        gatt.connect(autoConnect, callback, handler);
+        return gatt;
     }
 
     /**
