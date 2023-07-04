@@ -16,12 +16,15 @@
 
 package com.android.bluetooth.gatt;
 
+import static android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE;
+
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveOrManagedUser;
 import static com.android.bluetooth.Utils.checkCallerTargetSdk;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.app.AppOpsManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -289,6 +292,7 @@ public class GattService extends ProfileService {
     private CompanionDeviceManager mCompanionManager;
     private String mExposureNotificationPackage;
     private Handler mTestModeHandler;
+    private ActivityManager mActivityManager;
     private final Object mTestModeLock = new Object();
 
     public GattService(Context ctx) {
@@ -364,6 +368,8 @@ public class GattService extends ProfileService {
         mDistanceMeasurementManager = GattObjectsFactory.getInstance()
                 .createDistanceMeasurementManager(mAdapterService);
         mDistanceMeasurementManager.start();
+
+        mActivityManager = getSystemService(ActivityManager.class);
 
         return true;
     }
@@ -3606,11 +3612,34 @@ public class GattService extends ProfileService {
                     + opportunistic + ", phy=" + phy);
         }
         statsLogAppPackage(address, attributionSource.getUid(), clientIf);
+
+        boolean isForegroundService =
+                mActivityManager.getUidImportance(attributionSource.getUid())
+                        == IMPORTANCE_FOREGROUND_SERVICE;
+
         if (isDirect) {
-          MetricsLogger.getInstance().count(BluetoothProtoEnums.GATT_CLIENT_CONNECT_IS_DIRECT, 1);
+            MetricsLogger.getInstance().count(BluetoothProtoEnums.GATT_CLIENT_CONNECT_IS_DIRECT, 1);
+            MetricsLogger.getInstance()
+                    .count(
+                            isForegroundService
+                                    ? BluetoothProtoEnums
+                                            .GATT_CLIENT_CONNECT_IS_DIRECT_IN_FOREGROUND
+                                    : BluetoothProtoEnums
+                                            .GATT_CLIENT_CONNECT_IS_DIRECT_NOT_IN_FOREGROUND,
+                            1);
         } else {
-          MetricsLogger.getInstance().count(BluetoothProtoEnums.GATT_CLIENT_CONNECT_IS_AUTOCONNECT, 1);
+            MetricsLogger.getInstance()
+                    .count(BluetoothProtoEnums.GATT_CLIENT_CONNECT_IS_AUTOCONNECT, 1);
+            MetricsLogger.getInstance()
+                    .count(
+                            isForegroundService
+                                    ? BluetoothProtoEnums
+                                            .GATT_CLIENT_CONNECT_IS_AUTOCONNECT_IN_FOREGROUND
+                                    : BluetoothProtoEnums
+                                            .GATT_CLIENT_CONNECT_IS_AUTOCONNECT_NOT_IN_FOREGROUND,
+                            1);
         }
+
         statsLogGattConnectionStateChange(
                 BluetoothProfile.GATT, address, clientIf,
                 BluetoothProtoEnums.CONNECTION_STATE_CONNECTING, -1);
