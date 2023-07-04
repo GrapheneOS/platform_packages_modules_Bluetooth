@@ -18,12 +18,13 @@ package android.bluetooth.le;
 
 import static android.bluetooth.le.BluetoothLeUtils.getSyncTimeout;
 
+import static java.util.Objects.requireNonNull;
+
 import android.annotation.RequiresNoPermission;
 import android.annotation.RequiresPermission;
 import android.annotation.SystemApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.IBluetoothGatt;
-import android.bluetooth.IBluetoothManager;
 import android.bluetooth.annotations.RequiresBluetoothAdvertisePermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothAdminPermission;
 import android.content.AttributionSource;
@@ -49,16 +50,13 @@ public final class AdvertisingSet {
     private int mAdvertiserId;
     private AttributionSource mAttributionSource;
 
-    /* package */ AdvertisingSet(int advertiserId, IBluetoothManager bluetoothManager,
+    /* package */ AdvertisingSet(
+            int advertiserId,
+            BluetoothAdapter bluetoothAdapter,
             AttributionSource attributionSource) {
         mAdvertiserId = advertiserId;
         mAttributionSource = attributionSource;
-        try {
-            mGatt = bluetoothManager.getBluetoothGatt();
-        } catch (RemoteException e) {
-            Log.e(TAG, "Failed to get Bluetooth gatt - ", e);
-            throw new IllegalStateException("Failed to get Bluetooth");
-        }
+        mGatt = requireNonNull(bluetoothAdapter.getBluetoothGatt(), "Failed to get Bluetooth gatt");
     }
 
     /* package */ void setAdvertiserId(int advertiserId) {

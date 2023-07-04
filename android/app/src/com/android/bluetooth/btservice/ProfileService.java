@@ -280,6 +280,7 @@ public abstract class ProfileService extends Service {
     // Suppressed since this is called from framework
     @SuppressLint("AndroidFrameworkRequiresPermission")
     public void onDestroy() {
+        Log.v(mName, "onDestroy");
         cleanup();
         if (mBinder != null) {
             mBinder.cleanup();
@@ -289,11 +290,13 @@ public abstract class ProfileService extends Service {
         super.onDestroy();
     }
 
-    @RequiresPermission(anyOf = {
-            android.Manifest.permission.MANAGE_USERS,
-            android.Manifest.permission.INTERACT_ACROSS_USERS
-    })
-    private void doStart() {
+    @RequiresPermission(
+            anyOf = {
+                android.Manifest.permission.MANAGE_USERS,
+                android.Manifest.permission.INTERACT_ACROSS_USERS
+            })
+    protected void doStart() {
+        Log.v(mName, "doStart");
         if (mAdapter == null) {
             Log.w(mName, "Can't start profile service: device does not have BT");
             return;
@@ -318,7 +321,8 @@ public abstract class ProfileService extends Service {
         mAdapterService.onProfileServiceStateChanged(this, BluetoothAdapter.STATE_ON);
     }
 
-    private void doStop() {
+    protected void doStop() {
+        Log.v(mName, "doStop");
         if (mAdapterService == null || mAdapterService.isStartedProfile(mName)) {
             Log.w(mName, "Unexpectedly do Stop, don't stop.");
             return;

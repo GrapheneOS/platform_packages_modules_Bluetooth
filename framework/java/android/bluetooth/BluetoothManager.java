@@ -168,8 +168,7 @@ public final class BluetoothManager {
         List<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
 
         try {
-            IBluetoothManager managerService = mAdapter.getBluetoothManager();
-            IBluetoothGatt iGatt = managerService.getBluetoothGatt();
+            IBluetoothGatt iGatt = mAdapter.getBluetoothGatt();
             if (iGatt == null) return devices;
             final SynchronousResultReceiver<List<BluetoothDevice>> recv =
                     SynchronousResultReceiver.get();
@@ -272,20 +271,13 @@ public final class BluetoothManager {
         // TODO(Bluetooth) check whether platform support BLE
         //     Do the check here or in GattServer?
 
-        try {
-            IBluetoothManager managerService = mAdapter.getBluetoothManager();
-            IBluetoothGatt iGatt = managerService.getBluetoothGatt();
-            if (iGatt == null) {
-                Log.e(TAG, "Fail to get GATT Server connection");
-                return null;
-            }
-            BluetoothGattServer mGattServer =
-                    new BluetoothGattServer(iGatt, transport, mAdapter);
-            Boolean regStatus = mGattServer.registerCallback(callback, eattSupport);
-            return regStatus ? mGattServer : null;
-        } catch (RemoteException e) {
-            Log.e(TAG, "", e);
+        IBluetoothGatt iGatt = mAdapter.getBluetoothGatt();
+        if (iGatt == null) {
+            Log.e(TAG, "Fail to get GATT Server connection");
             return null;
         }
+        BluetoothGattServer mGattServer = new BluetoothGattServer(iGatt, transport, mAdapter);
+        Boolean regStatus = mGattServer.registerCallback(callback, eattSupport);
+        return regStatus ? mGattServer : null;
     }
 }

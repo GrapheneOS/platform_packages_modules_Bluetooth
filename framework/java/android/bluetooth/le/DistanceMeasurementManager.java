@@ -26,7 +26,6 @@ import android.annotation.SystemApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.IBluetoothGatt;
-import android.bluetooth.IBluetoothManager;
 import android.content.AttributionSource;
 import android.os.CancellationSignal;
 import android.os.ParcelUuid;
@@ -60,7 +59,6 @@ public final class DistanceMeasurementManager {
     private final ConcurrentHashMap<BluetoothDevice, DistanceMeasurementSession> mSessionMap =
             new ConcurrentHashMap<>();
     private final BluetoothAdapter mBluetoothAdapter;
-    private final IBluetoothManager mBluetoothManager;
     private final AttributionSource mAttributionSource;
     private final ParcelUuid mUuid;
 
@@ -71,7 +69,6 @@ public final class DistanceMeasurementManager {
      */
     public DistanceMeasurementManager(BluetoothAdapter bluetoothAdapter) {
         mBluetoothAdapter = Objects.requireNonNull(bluetoothAdapter);
-        mBluetoothManager = mBluetoothAdapter.getBluetoothManager();
         mAttributionSource = mBluetoothAdapter.getAttributionSource();
         mUuid = new ParcelUuid(UUID.randomUUID());
     }
@@ -94,7 +91,7 @@ public final class DistanceMeasurementManager {
         final ArrayList<DistanceMeasurementMethod> supportedMethods =
                 new ArrayList<DistanceMeasurementMethod>();
         try {
-            IBluetoothGatt gatt = mBluetoothManager.getBluetoothGatt();
+            IBluetoothGatt gatt = mBluetoothAdapter.getBluetoothGatt();
             if (gatt == null) {
                 Log.e(TAG, "Bluetooth GATT is null");
                 return supportedMethods;
@@ -145,7 +142,7 @@ public final class DistanceMeasurementManager {
         Objects.requireNonNull(executor, "executor is null");
         Objects.requireNonNull(callback, "callback is null");
         try {
-            IBluetoothGatt gatt = mBluetoothManager.getBluetoothGatt();
+            IBluetoothGatt gatt = mBluetoothAdapter.getBluetoothGatt();
             if (gatt == null) {
                 Log.e(TAG, "Bluetooth GATT is null");
                 return null;
