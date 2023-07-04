@@ -330,7 +330,7 @@ public class AdapterServiceFactoryResetTest {
         Log.e(TAG, "tearDown()");
 
         // Enable the stack to re-create the config. Next tests rely on it.
-        doEnable(0, false);
+        doEnable();
 
         // Restores the foregroundUserId to the ID prior to the test setup
         Utils.setForegroundUserId(mForegroundUserId);
@@ -353,55 +353,60 @@ public class AdapterServiceFactoryResetTest {
         }
     }
 
-    private void doEnable(int invocationNumber, boolean onlyGatt) {
-        Log.e(TAG, "doEnable() start");
+    private void doEnable() {
+        Log.e("AdapterServiceTest", "doEnable() start");
         Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
-
-        int startServiceCalls;
-        startServiceCalls = 2 * (onlyGatt ? 1 : 3); // Start and stop GATT + 2
 
         mAdapterService.enable(false);
 
-        verifyStateChange(BluetoothAdapter.STATE_OFF, BluetoothAdapter.STATE_BLE_TURNING_ON,
-                invocationNumber + 1, CONTEXT_SWITCH_MS);
+        verifyStateChange(
+                BluetoothAdapter.STATE_OFF,
+                BluetoothAdapter.STATE_BLE_TURNING_ON,
+                1,
+                CONTEXT_SWITCH_MS);
 
         // Start GATT
-        verify(mMockContext, timeout(GATT_START_TIME_MS).times(
-                startServiceCalls * invocationNumber + 1)).startService(any());
+        verify(mMockContext, timeout(GATT_START_TIME_MS).times(1))
+                .bindServiceAsUser(any(), any(), anyInt(), any());
         mAdapterService.addProfile(mMockGattService);
         mAdapterService.onProfileServiceStateChanged(mMockGattService, BluetoothAdapter.STATE_ON);
 
-        verifyStateChange(BluetoothAdapter.STATE_BLE_TURNING_ON, BluetoothAdapter.STATE_BLE_ON,
-                invocationNumber + 1, NATIVE_INIT_MS);
+        verifyStateChange(
+                BluetoothAdapter.STATE_BLE_TURNING_ON,
+                BluetoothAdapter.STATE_BLE_ON,
+                1,
+                NATIVE_INIT_MS);
 
         mServiceBinder.startBrEdr(mAttributionSource);
 
-        verifyStateChange(BluetoothAdapter.STATE_BLE_ON, BluetoothAdapter.STATE_TURNING_ON,
-                invocationNumber + 1, CONTEXT_SWITCH_MS);
+        verifyStateChange(
+                BluetoothAdapter.STATE_BLE_ON,
+                BluetoothAdapter.STATE_TURNING_ON,
+                1,
+                CONTEXT_SWITCH_MS);
 
-        if (!onlyGatt) {
-            // Start Mock PBAP and PAN services
-            verify(mMockContext, timeout(ONE_SECOND_MS).times(
-                    startServiceCalls * invocationNumber + 3)).startService(any());
+        // Start Mock PBAP and PAN services
+        verify(mMockContext, timeout(ONE_SECOND_MS).times(2)).startService(any());
 
-            mAdapterService.addProfile(mMockService);
-            mAdapterService.addProfile(mMockService2);
-            mAdapterService.onProfileServiceStateChanged(mMockService, BluetoothAdapter.STATE_ON);
-            mAdapterService.onProfileServiceStateChanged(mMockService2, BluetoothAdapter.STATE_ON);
-        }
+        mAdapterService.addProfile(mMockService);
+        mAdapterService.addProfile(mMockService2);
+        mAdapterService.onProfileServiceStateChanged(mMockService, BluetoothAdapter.STATE_ON);
+        mAdapterService.onProfileServiceStateChanged(mMockService2, BluetoothAdapter.STATE_ON);
 
-        verifyStateChange(BluetoothAdapter.STATE_TURNING_ON, BluetoothAdapter.STATE_ON,
-                invocationNumber + 1, PROFILE_SERVICE_TOGGLE_TIME_MS);
+        verifyStateChange(
+                BluetoothAdapter.STATE_TURNING_ON,
+                BluetoothAdapter.STATE_ON,
+                1,
+                PROFILE_SERVICE_TOGGLE_TIME_MS);
 
-        verify(mMockContext, timeout(CONTEXT_SWITCH_MS).times(2 * invocationNumber + 2))
-                .sendBroadcast(any(), eq(BLUETOOTH_SCAN),
-                        any(Bundle.class));
+        verify(mMockContext, timeout(CONTEXT_SWITCH_MS).times(2))
+                .sendBroadcast(any(), eq(BLUETOOTH_SCAN), any(Bundle.class));
         final int scanMode = mServiceBinder.getScanMode(mAttributionSource);
         Assert.assertTrue(scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE
                 || scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
         Assert.assertTrue(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
 
-        Log.e(TAG, "doEnable() complete success");
+        Log.e("AdapterServiceTest", "doEnable() complete success");
     }
 
     /**
@@ -434,7 +439,7 @@ public class AdapterServiceFactoryResetTest {
         Assert.assertFalse(AdapterServiceTest.isByteArrayAllZero(obfuscatedAddress2));
         Assert.assertFalse(Arrays.equals(obfuscatedAddress2,
                 obfuscatedAddress1));
-        doEnable(0, false);
+        doEnable();
         byte[] obfuscatedAddress3 = mAdapterService.obfuscateAddress(device);
         Assert.assertTrue(obfuscatedAddress3.length > 0);
         Assert.assertFalse(AdapterServiceTest.isByteArrayAllZero(obfuscatedAddress3));
