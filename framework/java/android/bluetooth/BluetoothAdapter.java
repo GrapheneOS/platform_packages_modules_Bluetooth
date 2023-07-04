@@ -2814,7 +2814,7 @@ public final class BluetoothAdapter {
             return false;
         }
         try {
-            IBluetoothGatt iGatt = mManagerService.getBluetoothGatt();
+            IBluetoothGatt iGatt = getBluetoothGatt();
             if (iGatt == null) {
                 // BLE is not supported
                 return false;
@@ -4213,6 +4213,26 @@ public final class BluetoothAdapter {
         }
     }
 
+    /**
+     * Return a binder to BluetoothGatt service
+     *
+     * @hide
+     */
+    public @Nullable IBluetoothGatt getBluetoothGatt() {
+        IBluetoothGatt defaultValue = null;
+        mServiceLock.readLock().lock();
+        try {
+            if (mService != null) {
+                return mService.getBluetoothGatt();
+            }
+        } catch (RemoteException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        } finally {
+            mServiceLock.readLock().unlock();
+        }
+        return defaultValue;
+    }
+
     /*package*/ void removeServiceStateCallback(IBluetoothManagerCallback cb) {
         requireNonNull(cb);
         synchronized (sServiceLock) {
@@ -4387,67 +4407,61 @@ public final class BluetoothAdapter {
                 return false;
             }
 
-            try {
-                IBluetoothGatt iGatt = mManagerService.getBluetoothGatt();
-                if (iGatt == null) {
-                    // BLE is not supported
-                    return false;
-                }
-
-                @SuppressLint("AndroidFrameworkBluetoothPermission")
-                ScanCallback scanCallback = new ScanCallback() {
-                    @Override
-                    public void onScanResult(int callbackType, ScanResult result) {
-                        if (callbackType != ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
-                            // Should not happen.
-                            Log.e(TAG, "LE Scan has already started");
-                            return;
-                        }
-                        ScanRecord scanRecord = result.getScanRecord();
-                        if (scanRecord == null) {
-                            return;
-                        }
-                        if (serviceUuids != null) {
-                            List<ParcelUuid> uuids = new ArrayList<ParcelUuid>();
-                            for (UUID uuid : serviceUuids) {
-                                uuids.add(new ParcelUuid(uuid));
-                            }
-                            List<ParcelUuid> scanServiceUuids = scanRecord.getServiceUuids();
-                            if (scanServiceUuids == null || !scanServiceUuids.containsAll(uuids)) {
-                                if (DBG) {
-                                    Log.d(TAG, "uuids does not match");
-                                }
-                                return;
-                            }
-                        }
-                        callback.onLeScan(result.getDevice(), result.getRssi(),
-                                scanRecord.getBytes());
-                    }
-                };
-                ScanSettings settings = new ScanSettings.Builder().setCallbackType(
-                        ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
-                        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                        .build();
-
-                List<ScanFilter> filters = new ArrayList<ScanFilter>();
-                if (serviceUuids != null && serviceUuids.length > 0) {
-                    // Note scan filter does not support matching an UUID array so we put one
-                    // UUID to hardware and match the whole array in callback.
-                    ScanFilter filter =
-                            new ScanFilter.Builder().setServiceUuid(new ParcelUuid(serviceUuids[0]))
-                                    .build();
-                    filters.add(filter);
-                }
-                scanner.startScan(filters, settings, scanCallback);
-
-                mLeScanClients.put(callback, scanCallback);
-                return true;
-
-            } catch (RemoteException e) {
-                Log.e(TAG, "", e);
+            IBluetoothGatt iGatt = getBluetoothGatt();
+            if (iGatt == null) {
+                // BLE is not supported
+                return false;
             }
+
+            @SuppressLint("AndroidFrameworkBluetoothPermission")
+            ScanCallback scanCallback = new ScanCallback() {
+                @Override
+                public void onScanResult(int callbackType, ScanResult result) {
+                    if (callbackType != ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
+                        // Should not happen.
+                        Log.e(TAG, "LE Scan has already started");
+                        return;
+                    }
+                    ScanRecord scanRecord = result.getScanRecord();
+                    if (scanRecord == null) {
+                        return;
+                    }
+                    if (serviceUuids != null) {
+                        List<ParcelUuid> uuids = new ArrayList<ParcelUuid>();
+                        for (UUID uuid : serviceUuids) {
+                            uuids.add(new ParcelUuid(uuid));
+                        }
+                        List<ParcelUuid> scanServiceUuids = scanRecord.getServiceUuids();
+                        if (scanServiceUuids == null || !scanServiceUuids.containsAll(uuids)) {
+                            if (DBG) {
+                                Log.d(TAG, "uuids does not match");
+                            }
+                            return;
+                        }
+                    }
+                    callback.onLeScan(result.getDevice(), result.getRssi(),
+                            scanRecord.getBytes());
+                }
+            };
+            ScanSettings settings = new ScanSettings.Builder().setCallbackType(
+                    ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                    .build();
+
+            List<ScanFilter> filters = new ArrayList<ScanFilter>();
+            if (serviceUuids != null && serviceUuids.length > 0) {
+                // Note scan filter does not support matching an UUID array so we put one
+                // UUID to hardware and match the whole array in callback.
+                ScanFilter filter =
+                        new ScanFilter.Builder().setServiceUuid(new ParcelUuid(serviceUuids[0]))
+                                .build();
+                filters.add(filter);
+            }
+            scanner.startScan(filters, settings, scanCallback);
+
+            mLeScanClients.put(callback, scanCallback);
+            return true;
         }
-        return false;
     }
 
     /**

@@ -757,7 +757,7 @@ public class GattServiceBinderTest {
 
     @Test
     public void unregAll() throws Exception {
-        mBinder.unregAll(mAttributionSource, SynchronousResultReceiver.get());
+        mBinder.unregAll(mAttributionSource);
 
         verify(mService).unregAll(mAttributionSource);
     }

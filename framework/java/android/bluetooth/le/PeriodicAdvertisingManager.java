@@ -25,7 +25,6 @@ import android.bluetooth.Attributable;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.IBluetoothGatt;
-import android.bluetooth.IBluetoothManager;
 import android.bluetooth.annotations.RequiresBluetoothLocationPermission;
 import android.bluetooth.annotations.RequiresBluetoothScanPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothAdminPermission;
@@ -64,7 +63,6 @@ public final class PeriodicAdvertisingManager {
     private static final int SYNC_STARTING = -1;
 
     private final BluetoothAdapter mBluetoothAdapter;
-    private final IBluetoothManager mBluetoothManager;
     private final AttributionSource mAttributionSource;
 
     /* maps callback, to callback wrapper and sync handle */
@@ -79,7 +77,6 @@ public final class PeriodicAdvertisingManager {
      */
     public PeriodicAdvertisingManager(BluetoothAdapter bluetoothAdapter) {
         mBluetoothAdapter = Objects.requireNonNull(bluetoothAdapter);
-        mBluetoothManager = mBluetoothAdapter.getBluetoothManager();
         mAttributionSource = mBluetoothAdapter.getAttributionSource();
         mCallbackWrappers = new IdentityHashMap<>();
     }
@@ -158,16 +155,7 @@ public final class PeriodicAdvertisingManager {
                     "timeout must be between " + TIMEOUT_MIN + " and " + TIMEOUT_MAX);
         }
 
-        IBluetoothGatt gatt;
-        try {
-            gatt = mBluetoothManager.getBluetoothGatt();
-        } catch (RemoteException e) {
-            Log.e(TAG, "Failed to get Bluetooth gatt - ", e);
-            callback.onSyncEstablished(0, scanResult.getDevice(), scanResult.getAdvertisingSid(),
-                    skip, timeout,
-                    PeriodicAdvertisingCallback.SYNC_NO_RESOURCES);
-            return;
-        }
+        IBluetoothGatt gatt = mBluetoothAdapter.getBluetoothGatt();
 
         if (handler == null) {
             handler = new Handler(Looper.getMainLooper());
@@ -201,13 +189,7 @@ public final class PeriodicAdvertisingManager {
             throw new IllegalArgumentException("callback can't be null");
         }
 
-        IBluetoothGatt gatt;
-        try {
-            gatt = mBluetoothManager.getBluetoothGatt();
-        } catch (RemoteException e) {
-            Log.e(TAG, "Failed to get Bluetooth gatt - ", e);
-            return;
-        }
+        IBluetoothGatt gatt = mBluetoothAdapter.getBluetoothGatt();
 
         IPeriodicAdvertisingCallback wrapper = mCallbackWrappers.remove(callback);
         if (wrapper == null) {
@@ -230,21 +212,8 @@ public final class PeriodicAdvertisingManager {
      * @hide
      */
     public void transferSync(BluetoothDevice bda, int serviceData, int syncHandle) {
-        IBluetoothGatt gatt;
-        try {
-            gatt = mBluetoothManager.getBluetoothGatt();
-        } catch (RemoteException e) {
-            Log.e(TAG, "Failed to get Bluetooth gatt - ", e);
-            PeriodicAdvertisingCallback callback = null;
-            for (PeriodicAdvertisingCallback cb : mCallbackWrappers.keySet()) {
-                callback = cb;
-            }
-            if (callback != null) {
-                callback.onSyncTransferred(bda,
-                        PeriodicAdvertisingCallback.SYNC_NO_RESOURCES);
-            }
-            return;
-        }
+        IBluetoothGatt gatt = mBluetoothAdapter.getBluetoothGatt();
+
         try {
             final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             gatt.transferSync(bda, serviceData , syncHandle, mAttributionSource, recv);
@@ -276,13 +245,7 @@ public final class PeriodicAdvertisingManager {
         if (callback == null) {
             throw new IllegalArgumentException("callback can't be null");
         }
-        IBluetoothGatt gatt;
-        try {
-            gatt = mBluetoothManager.getBluetoothGatt();
-        } catch (RemoteException e) {
-            Log.e(TAG, "Failed to get Bluetooth gatt - ", e);
-            return;
-        }
+        IBluetoothGatt gatt = mBluetoothAdapter.getBluetoothGatt();
         if (handler == null) {
             handler = new Handler(Looper.getMainLooper());
         }
