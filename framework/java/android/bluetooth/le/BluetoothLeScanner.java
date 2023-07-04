@@ -29,7 +29,6 @@ import android.bluetooth.Attributable;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.IBluetoothGatt;
-import android.bluetooth.IBluetoothManager;
 import android.bluetooth.annotations.RequiresBluetoothLocationPermission;
 import android.bluetooth.annotations.RequiresBluetoothScanPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothAdminPermission;
@@ -88,7 +87,6 @@ public final class BluetoothLeScanner {
     public static final String EXTRA_CALLBACK_TYPE = "android.bluetooth.le.extra.CALLBACK_TYPE";
 
     private final BluetoothAdapter mBluetoothAdapter;
-    private final IBluetoothManager mBluetoothManager;
     private final AttributionSource mAttributionSource;
 
     private final Handler mHandler;
@@ -104,7 +102,6 @@ public final class BluetoothLeScanner {
      */
     public BluetoothLeScanner(BluetoothAdapter bluetoothAdapter) {
         mBluetoothAdapter = Objects.requireNonNull(bluetoothAdapter);
-        mBluetoothManager = mBluetoothAdapter.getBluetoothManager();
         mAttributionSource = mBluetoothAdapter.getAttributionSource();
         mHandler = new Handler(Looper.getMainLooper());
         mLeScanClients = new HashMap<ScanCallback, BleScanCallbackWrapper>();
@@ -255,12 +252,7 @@ public final class BluetoothLeScanner {
                 return postCallbackErrorOrReturn(callback,
                             ScanCallback.SCAN_FAILED_ALREADY_STARTED);
             }
-            IBluetoothGatt gatt;
-            try {
-                gatt = mBluetoothManager.getBluetoothGatt();
-            } catch (RemoteException e) {
-                gatt = null;
-            }
+            IBluetoothGatt gatt = mBluetoothAdapter.getBluetoothGatt();
             if (gatt == null) {
                 return postCallbackErrorOrReturn(callback, ScanCallback.SCAN_FAILED_INTERNAL_ERROR);
             }
@@ -329,7 +321,7 @@ public final class BluetoothLeScanner {
         BluetoothLeUtils.checkAdapterStateOn(mBluetoothAdapter);
         IBluetoothGatt gatt;
         try {
-            gatt = mBluetoothManager.getBluetoothGatt();
+            gatt = mBluetoothAdapter.getBluetoothGatt();
             final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             gatt.stopScanForIntent(callbackIntent, mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
