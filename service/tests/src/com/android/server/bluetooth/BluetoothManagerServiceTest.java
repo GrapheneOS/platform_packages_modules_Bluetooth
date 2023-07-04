@@ -288,10 +288,6 @@ public class BluetoothManagerServiceTest {
         syncHandler(MESSAGE_BLUETOOTH_STATE_CHANGE);
         assertThat(mManagerService.getState()).isEqualTo(STATE_BLE_ON);
 
-        // Binding of IBluetoothGatt
-        // TODO(b/280518177): Remove necessity to bind to gatt from the ManagerService
-        acceptBluetoothBinding(mBinder, "gatt.GattService", 2);
-
         // Check that we sent 2 intent, one for BLE_TURNING_ON, one for BLE_ON
         // TODO(b/280518177): assert the intent are the correct one
         verify(mContext, times(2)).sendBroadcastAsUser(any(), any(), any(), any());
