@@ -701,7 +701,12 @@ impl BluetoothDBus {
 #[generate_dbus_interface_client(BluetoothDBusRPC)]
 impl IBluetooth for BluetoothDBus {
     #[dbus_method("RegisterCallback")]
-    fn register_callback(&mut self, callback: Box<dyn IBluetoothCallback + Send>) {
+    fn register_callback(&mut self, callback: Box<dyn IBluetoothCallback + Send>) -> u32 {
+        dbus_generated!()
+    }
+
+    #[dbus_method("UnregisterCallback")]
+    fn unregister_callback(&mut self, id: u32) -> bool {
         dbus_generated!()
     }
 
@@ -1407,7 +1412,7 @@ impl IBluetoothGatt for BluetoothGattDBus {
     }
 
     #[dbus_method("UnregisterAdvertiserCallback")]
-    fn unregister_advertiser_callback(&mut self, callback_id: u32) {
+    fn unregister_advertiser_callback(&mut self, callback_id: u32) -> bool {
         dbus_generated!()
     }
 
@@ -2009,6 +2014,11 @@ impl IBluetoothSocketManager for BluetoothSocketManagerDBus {
         &mut self,
         callback: Box<dyn IBluetoothSocketManagerCallbacks + Send>,
     ) -> CallbackId {
+        dbus_generated!()
+    }
+
+    #[dbus_method("UnregisterCallback")]
+    fn unregister_callback(&mut self, callback: CallbackId) -> bool {
         dbus_generated!()
     }
 
