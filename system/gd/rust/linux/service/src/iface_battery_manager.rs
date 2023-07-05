@@ -44,7 +44,7 @@ impl IBatteryManager for IBatteryManagerDBus {
     }
 
     #[dbus_method("UnregisterBatteryCallback")]
-    fn unregister_battery_callback(&mut self, callback_id: u32) {
+    fn unregister_battery_callback(&mut self, callback_id: u32) -> bool {
         dbus_generated!()
     }
 

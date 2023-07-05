@@ -697,7 +697,7 @@ mod tests {
     fn test_new_advising_set_info() {
         let mut uniq = HashSet::new();
         for callback_id in 0..256 {
-            let s = AdvertisingSetInfo::new(callback_id, 0, 0);
+            let s = AdvertisingSetInfo::new(callback_id, 0, 0, false);
             assert_eq!(s.callback_id(), callback_id);
             assert_eq!(uniq.insert(s.reg_id()), true);
         }
@@ -712,7 +712,7 @@ mod tests {
         for i in 0..size {
             let callback_id: CallbackId = i as CallbackId;
             let adv_id: AdvertiserId = i as AdvertiserId;
-            let mut s = AdvertisingSetInfo::new(callback_id, 0, 0);
+            let mut s = AdvertisingSetInfo::new(callback_id, 0, 0, false);
             s.set_adv_id(Some(adv_id));
             advertisers.add(s);
         }
