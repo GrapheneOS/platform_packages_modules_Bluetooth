@@ -47,7 +47,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.android.bluetooth.R;
+import com.android.bluetooth.tests.R;
 import com.android.obex.Authenticator;
 import com.android.obex.HeaderSet;
 import com.android.obex.ObexTransport;
