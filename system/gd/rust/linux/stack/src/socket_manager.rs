@@ -295,6 +295,9 @@ pub trait IBluetoothSocketManager {
         callback: Box<dyn IBluetoothSocketManagerCallbacks + Send>,
     ) -> CallbackId;
 
+    /// Unregister for socket callbacks.
+    fn unregister_callback(&mut self, callback: CallbackId) -> bool;
+
     /// Create an insecure listening L2CAP socket. PSM is dynamically assigned.
     fn listen_using_insecure_l2cap_channel(&mut self, callback: CallbackId) -> SocketResult;
 
@@ -1226,6 +1229,10 @@ impl IBluetoothSocketManager for BluetoothSocketManager {
         callback: Box<dyn IBluetoothSocketManagerCallbacks + Send>,
     ) -> CallbackId {
         self.callbacks.add_callback(callback)
+    }
+
+    fn unregister_callback(&mut self, callback: CallbackId) -> bool {
+        self.callbacks.remove_callback(callback)
     }
 
     fn listen_using_insecure_l2cap_channel(&mut self, callback: CallbackId) -> SocketResult {
