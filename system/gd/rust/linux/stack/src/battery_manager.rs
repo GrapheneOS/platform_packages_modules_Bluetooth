@@ -49,7 +49,7 @@ pub trait IBatteryManager {
     ) -> u32;
 
     /// Unregister a callback.
-    fn unregister_battery_callback(&mut self, callback_id: u32);
+    fn unregister_battery_callback(&mut self, callback_id: u32) -> bool;
 
     /// Returns battery information for the remote, sourced from the highest priority origin.
     fn get_battery_information(&self, remote_address: String) -> Option<BatterySet>;
@@ -72,8 +72,8 @@ impl BatteryManager {
     }
 
     /// Remove a callback due to disconnection or unregistration.
-    pub fn remove_callback(&mut self, callback_id: u32) {
-        self.callbacks.remove_callback(callback_id);
+    pub fn remove_callback(&mut self, callback_id: u32) -> bool {
+        self.callbacks.remove_callback(callback_id)
     }
 
     /// Handles a BatterySet update.
@@ -92,8 +92,8 @@ impl IBatteryManager for BatteryManager {
         self.callbacks.add_callback(battery_manager_callback)
     }
 
-    fn unregister_battery_callback(&mut self, callback_id: u32) {
-        self.remove_callback(callback_id);
+    fn unregister_battery_callback(&mut self, callback_id: u32) -> bool {
+        self.remove_callback(callback_id)
     }
 
     fn get_battery_information(&self, remote_address: String) -> Option<BatterySet> {
