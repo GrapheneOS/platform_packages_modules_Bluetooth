@@ -65,7 +65,10 @@ const PID_DIR: &str = "/var/run/bluetooth";
 /// Defines the adapter API.
 pub trait IBluetooth {
     /// Adds a callback from a client who wishes to observe adapter events.
-    fn register_callback(&mut self, callback: Box<dyn IBluetoothCallback + Send>);
+    fn register_callback(&mut self, callback: Box<dyn IBluetoothCallback + Send>) -> u32;
+
+    /// Removes registered callback.
+    fn unregister_callback(&mut self, callback_id: u32) -> bool;
 
     /// Adds a callback from a client who wishes to observe connection events.
     fn register_connection_callback(
@@ -1766,8 +1769,12 @@ impl RPCProxy for BleDiscoveryCallbacks {
 
 // TODO: Add unit tests for this implementation
 impl IBluetooth for Bluetooth {
-    fn register_callback(&mut self, callback: Box<dyn IBluetoothCallback + Send>) {
-        self.callbacks.add_callback(callback);
+    fn register_callback(&mut self, callback: Box<dyn IBluetoothCallback + Send>) -> u32 {
+        self.callbacks.add_callback(callback)
+    }
+
+    fn unregister_callback(&mut self, callback_id: u32) -> bool {
+        self.callbacks.remove_callback(callback_id)
     }
 
     fn register_connection_callback(
