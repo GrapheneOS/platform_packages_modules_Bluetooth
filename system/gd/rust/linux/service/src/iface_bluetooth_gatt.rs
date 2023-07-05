@@ -655,7 +655,7 @@ impl IBluetoothGatt for IBluetoothGattDBus {
     }
 
     #[dbus_method("UnregisterAdvertiserCallback")]
-    fn unregister_advertiser_callback(&mut self, callback_id: u32) {
+    fn unregister_advertiser_callback(&mut self, callback_id: u32) -> bool {
         dbus_generated!()
     }
 
