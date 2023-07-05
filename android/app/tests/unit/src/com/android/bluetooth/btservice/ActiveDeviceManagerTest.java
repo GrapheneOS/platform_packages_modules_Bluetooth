@@ -40,6 +40,8 @@ import android.bluetooth.BluetoothSinkAudioPolicy;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.util.ArrayMap;
+import android.util.SparseIntArray;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
@@ -90,6 +92,7 @@ public class ActiveDeviceManagerTest {
     private static final int A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS =
             ActiveDeviceManager.A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS + 2_000;
     private boolean mOriginalDualModeAudioState;
+    private TestDatabaseManager mDatabaseManager;
 
     @Mock private AdapterService mAdapterService;
     @Mock private ServiceFactory mServiceFactory;
@@ -98,7 +101,6 @@ public class ActiveDeviceManagerTest {
     @Mock private HearingAidService mHearingAidService;
     @Mock private LeAudioService mLeAudioService;
     @Mock private AudioManager mAudioManager;
-    @Mock private DatabaseManager mDatabaseManager;
 
     @Before
     public void setUp() throws Exception {
@@ -106,6 +108,7 @@ public class ActiveDeviceManagerTest {
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
+        mDatabaseManager = new TestDatabaseManager(mAdapterService);
 
         when(mAdapterService.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mAudioManager);
         when(mAdapterService.getSystemServiceName(AudioManager.class))
@@ -162,22 +165,6 @@ public class ActiveDeviceManagerTest {
             }
             return null;
         });
-        when(mDatabaseManager.getMostRecentlyConnectedDevicesInList(any())).thenAnswer(
-                invocation -> {
-                    List<BluetoothDevice> devices = invocation.getArgument(0);
-                    if (devices == null || devices.size() == 0) {
-                        return null;
-                    } else if (devices.contains(mLeHearingAidDevice)) {
-                        return mLeHearingAidDevice;
-                    } else if (devices.contains(mHearingAidDevice)) {
-                        return mHearingAidDevice;
-                    } else if (mMostRecentDevice != null && devices.contains(mMostRecentDevice)) {
-                        return mMostRecentDevice;
-                    } else {
-                        return devices.get(0);
-                    }
-                }
-        );
     }
 
     @After
@@ -967,8 +954,11 @@ public class ActiveDeviceManagerTest {
      * Helper to indicate A2dp connected for a device.
      */
     private void a2dpConnected(BluetoothDevice device, boolean supportHfp) {
-        when(mDatabaseManager.getProfileConnectionPolicy(device, BluetoothProfile.HEADSET))
-                .thenReturn(supportHfp ? BluetoothProfile.CONNECTION_POLICY_ALLOWED
+        mDatabaseManager.setProfileConnectionPolicy(
+                device,
+                BluetoothProfile.HEADSET,
+                supportHfp
+                        ? BluetoothProfile.CONNECTION_POLICY_ALLOWED
                         : BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
 
         mDeviceConnectionStack.add(device);
@@ -1013,8 +1003,11 @@ public class ActiveDeviceManagerTest {
      * Helper to indicate Headset connected for a device.
      */
     private void headsetConnected(BluetoothDevice device, boolean supportA2dp) {
-        when(mDatabaseManager.getProfileConnectionPolicy(device, BluetoothProfile.A2DP))
-                .thenReturn(supportA2dp ? BluetoothProfile.CONNECTION_POLICY_ALLOWED
+        mDatabaseManager.setProfileConnectionPolicy(
+                device,
+                BluetoothProfile.A2DP,
+                supportA2dp
+                        ? BluetoothProfile.CONNECTION_POLICY_ALLOWED
                         : BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
 
         mDeviceConnectionStack.add(device);
@@ -1177,5 +1170,57 @@ public class ActiveDeviceManagerTest {
         Intent intent = new Intent(BluetoothHapClient.ACTION_HAP_DEVICE_AVAILABLE);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+    }
+
+    private class TestDatabaseManager extends DatabaseManager {
+        ArrayMap<BluetoothDevice, SparseIntArray> mProfileConnectionPolicy;
+
+        TestDatabaseManager(AdapterService service) {
+            super(service);
+            mProfileConnectionPolicy = new ArrayMap<>();
+        }
+
+        @Override
+        public BluetoothDevice getMostRecentlyConnectedDevicesInList(
+                List<BluetoothDevice> devices) {
+            if (devices == null || devices.size() == 0) {
+                return null;
+            } else if (devices.contains(mLeHearingAidDevice)) {
+                return mLeHearingAidDevice;
+            } else if (devices.contains(mHearingAidDevice)) {
+                return mHearingAidDevice;
+            } else if (mMostRecentDevice != null && devices.contains(mMostRecentDevice)) {
+                return mMostRecentDevice;
+            }
+            return devices.get(0);
+        }
+
+        @Override
+        public boolean setProfileConnectionPolicy(BluetoothDevice device, int profile, int policy) {
+            if (device == null) {
+                return false;
+            }
+            if (policy != BluetoothProfile.CONNECTION_POLICY_UNKNOWN
+                    && policy != BluetoothProfile.CONNECTION_POLICY_FORBIDDEN
+                    && policy != BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
+                return false;
+            }
+            SparseIntArray policyMap = mProfileConnectionPolicy.get(device);
+            if (policyMap == null) {
+                policyMap = new SparseIntArray();
+                mProfileConnectionPolicy.put(device, policyMap);
+            }
+            policyMap.put(profile, policy);
+            return true;
+        }
+
+        @Override
+        public int getProfileConnectionPolicy(BluetoothDevice device, int profile) {
+            SparseIntArray policy = mProfileConnectionPolicy.get(device);
+            if (policy == null) {
+                return BluetoothProfile.CONNECTION_POLICY_FORBIDDEN;
+            }
+            return policy.get(profile, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+        }
     }
 }
