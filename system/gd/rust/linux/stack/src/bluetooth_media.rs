@@ -19,6 +19,10 @@ use bt_topshim::profiles::hfp::{
 use bt_topshim::profiles::ProfileConnectionState;
 use bt_topshim::{metrics, topstack};
 use bt_utils::at_command_parser::{calculate_battery_percent, parse_at_command_data};
+use bt_utils::uhid_hfp::{
+    OutputEvent, UHidHfp, BLUETOOTH_TELEPHONY_UHID_REPORT_ID, UHID_OUTPUT_NONE,
+    UHID_OUTPUT_OFF_HOOK, UHID_OUTPUT_RING,
+};
 use bt_utils::uinput::UInput;
 
 use itertools::Itertools;
@@ -290,6 +294,7 @@ pub struct BluetoothMedia {
     phone_ops_enabled: bool,
     memory_dialing_number: Option<String>,
     last_dialing_number: Option<String>,
+    uhid: HashMap<RawAddress, UHidHfp>,
 }
 
 impl BluetoothMedia {
@@ -337,6 +342,7 @@ impl BluetoothMedia {
             phone_ops_enabled: false,
             memory_dialing_number: None,
             last_dialing_number: None,
+            uhid: HashMap::new(),
         }
     }
 
@@ -685,9 +691,12 @@ impl BluetoothMedia {
                                 HfpCodecCapability::NONE,
                             );
                         }
+
+                        self.uhid_create(addr);
                     }
                     BthfConnectionState::Disconnected => {
                         info!("[{}]: hfp disconnected.", DisplayAddress(&addr));
+                        self.uhid_destroy(&addr);
                         self.hfp_states.remove(&addr);
                         self.hfp_cap.remove(&addr);
                         self.hfp_audio_state.remove(&addr);
@@ -916,6 +925,7 @@ impl BluetoothMedia {
 
                 debug!("[{}]: Start SCO call due to ATA", DisplayAddress(&addr));
                 self.start_sco_call_impl(addr.to_string(), false, HfpCodecCapability::NONE);
+                self.uhid_send_hook_switch_status(&addr, true);
             }
             HfpCallbacks::HangupCall(addr) => {
                 if !self.hangup_call_impl() {
@@ -923,6 +933,7 @@ impl BluetoothMedia {
                     return;
                 }
                 self.phone_state_change("".into());
+                self.uhid_send_hook_switch_status(&addr, false);
 
                 // Try resume the A2DP stream (per MPS v1.0) on rejecting an incoming call or an
                 // outgoing call is rejected.
@@ -1020,6 +1031,119 @@ impl BluetoothMedia {
 
     pub fn remove_callback(&mut self, id: u32) -> bool {
         self.callbacks.lock().unwrap().remove_callback(id)
+    }
+
+    fn uhid_create(&mut self, addr: RawAddress) {
+        debug!(
+            "[{}]: UHID create: PhoneOpsEnabled {}",
+            DisplayAddress(&addr),
+            self.phone_ops_enabled,
+        );
+        // To change the value of phone_ops_enabled, you need to toggle the BluetoothFlossTelephony feature flag on chrome://flags.
+        if !self.phone_ops_enabled {
+            return;
+        }
+        if self.uhid.contains_key(&addr) {
+            warn!("[{}]: UHID create: entry already created", DisplayAddress(&addr));
+            return;
+        }
+        let adapter_addr = match &self.adapter {
+            Some(adapter) => adapter.lock().unwrap().get_address().to_lowercase(),
+            _ => "".to_string(),
+        };
+        let txl = self.tx.clone();
+        let remote_addr = addr.to_string();
+        self.uhid.insert(
+            addr,
+            UHidHfp::create(
+                adapter_addr,
+                addr.to_string(),
+                self.adapter_get_remote_name(addr),
+                move |m| {
+                    match m {
+                        OutputEvent::Close => debug!("UHID: Close"),
+                        OutputEvent::Open => debug!("UHID: Open"),
+                        OutputEvent::Output { data } => {
+                            txl.blocking_send(Message::UHidHfpOutputCallback(
+                                remote_addr.clone(),
+                                data[0],
+                                data[1],
+                            ))
+                            .unwrap();
+                        }
+                        _ => (),
+                    };
+                },
+            ),
+        );
+    }
+
+    fn uhid_destroy(&mut self, addr: &RawAddress) {
+        if let Some(uhid) = self.uhid.get_mut(addr) {
+            debug!("[{}]: UHID destroy", DisplayAddress(&addr));
+            match uhid.destroy() {
+                Err(e) => log::error!(
+                    "[{}]: UHID destroy: Fail to destroy uhid {}",
+                    DisplayAddress(&addr),
+                    e
+                ),
+                Ok(_) => (),
+            };
+            self.uhid.remove(addr);
+        } else {
+            debug!("[{}]: UHID destroy: not a UHID device", DisplayAddress(&addr));
+        }
+    }
+
+    fn uhid_send_hook_switch_status(&mut self, addr: &RawAddress, status: bool) {
+        // To change the value of phone_ops_enabled, you need to toggle the BluetoothFlossTelephony feature flag on chrome://flags.
+        if !self.phone_ops_enabled {
+            return;
+        }
+        if let Some(uhid) = self.uhid.get_mut(addr) {
+            debug!("[{}]: UHID: Send 'Hook Switch': {}", DisplayAddress(&addr), status);
+            match uhid.send_input(status) {
+                Err(e) => log::error!(
+                    "[{}]: UHID: Fail to send 'Hook Switch={}' to uhid: {}",
+                    DisplayAddress(&addr),
+                    status,
+                    e
+                ),
+                Ok(_) => (),
+            };
+        };
+    }
+
+    pub fn dispatch_uhid_hfp_output_callback(&mut self, address: String, id: u8, data: u8) {
+        let addr = match RawAddress::from_string(address.clone()) {
+            None => {
+                warn!("UHID: Invalid device address for dispatch_uhid_hfp_output_callback");
+                return;
+            }
+            Some(addr) => addr,
+        };
+
+        debug!(
+            "[{}]: UHID: Received output report: id {}, data {}",
+            DisplayAddress(&addr),
+            id,
+            data
+        );
+
+        if id == BLUETOOTH_TELEPHONY_UHID_REPORT_ID {
+            if data == UHID_OUTPUT_NONE {
+                self.hangup_call();
+            } else if data == UHID_OUTPUT_RING {
+                self.incoming_call("".into());
+            } else if data == UHID_OUTPUT_OFF_HOOK {
+                if self.phone_state.num_active > 0 {
+                    return;
+                }
+                self.dialing_call("".into());
+                self.answer_call();
+                self.uhid_send_hook_switch_status(&addr, true);
+            }
+        }
     }
 
     fn notify_critical_profile_disconnected(&mut self, addr: RawAddress) {
