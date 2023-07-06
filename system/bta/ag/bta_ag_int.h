@@ -369,6 +369,9 @@ bool bta_ag_sco_is_active_device(const RawAddress& bd_addr);
 bool bta_ag_sco_is_open(tBTA_AG_SCB* p_scb);
 bool bta_ag_sco_is_opening(tBTA_AG_SCB* p_scb);
 void bta_ag_sco_conn_rsp(tBTA_AG_SCB* p_scb, tBTM_ESCO_CONN_REQ_EVT_DATA* data);
+// Testonly
+void bta_ag_create_sco(tBTA_AG_SCB* p_scb, bool is_orig);
+void bta_ag_create_pending_sco(tBTA_AG_SCB* p_scb, bool is_local);
 
 /* AT command functions */
 void bta_ag_at_hsp_cback(tBTA_AG_SCB* p_scb, uint16_t cmd, uint8_t arg_type,
