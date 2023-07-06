@@ -334,6 +334,15 @@ cc_test {
         ":TestMockStackMetrics",
         ":TestMockStackPan",
         ":TestMockStackRfcomm",
+        "ag/bta_ag_act.cc",
+        "ag/bta_ag_api.cc",
+        "ag/bta_ag_at.cc",
+        "ag/bta_ag_cfg.cc",
+        "ag/bta_ag_cmd.cc",
+        "ag/bta_ag_main.cc",
+        "ag/bta_ag_rfc.cc",
+        "ag/bta_ag_sco.cc",
+        "ag/bta_ag_sdp.cc",
         "ar/bta_ar.cc",
         "av/bta_av_aact.cc",
         "av/bta_av_act.cc",
@@ -370,6 +379,7 @@ cc_test {
         "sys/bta_sys_conn.cc",
         "sys/bta_sys_main.cc",
         "sys/utl.cc",
+        "test/bta_ag_sco_test.cc",
         "test/bta_api_test.cc",
         "test/bta_av_test.cc",
         "test/bta_dm_cust_uuid_test.cc",
@@ -382,6 +392,7 @@ cc_test {
     shared_libs: [
         "libbase",
         "libcrypto",
+        "libcutils",
         "liblog",
     ],
     static_libs: [
@@ -400,6 +411,13 @@ cc_test {
         address: true,
         cfi: true,
         misc_undefined: ["bounds"],
+    },
+    target: {
+        android: {
+            whole_static_libs: [
+                "libPlatformProperties",
+            ],
+        },
     },
 }
 
