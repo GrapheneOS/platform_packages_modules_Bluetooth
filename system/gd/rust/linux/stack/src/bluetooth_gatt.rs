@@ -406,7 +406,7 @@ pub trait IBluetoothGatt {
     ) -> u32;
 
     /// Unregisters callback for BLE advertising.
-    fn unregister_advertiser_callback(&mut self, callback_id: u32);
+    fn unregister_advertiser_callback(&mut self, callback_id: u32) -> bool;
 
     /// Creates a new BLE advertising set and start advertising.
     ///
@@ -1994,9 +1994,9 @@ impl IBluetoothGatt for BluetoothGatt {
         self.advertisers.add_callback(callback)
     }
 
-    fn unregister_advertiser_callback(&mut self, callback_id: u32) {
+    fn unregister_advertiser_callback(&mut self, callback_id: u32) -> bool {
         self.advertisers
-            .remove_callback(callback_id, &mut self.gatt.as_ref().unwrap().lock().unwrap());
+            .remove_callback(callback_id, &mut self.gatt.as_ref().unwrap().lock().unwrap())
     }
 
     fn start_advertising_set(
