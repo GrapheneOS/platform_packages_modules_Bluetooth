@@ -6,7 +6,7 @@ mod groups;
 mod parser;
 
 use crate::engine::RuleEngine;
-use crate::groups::{collisions, connections, informational};
+use crate::groups::{collisions, connections, controllers, informational};
 use crate::parser::{LinuxSnoopOpcodes, LogParser, LogType, Packet};
 
 fn main() {
@@ -60,6 +60,7 @@ fn main() {
     let mut engine = RuleEngine::new();
     engine.add_rule_group("Collisions".into(), collisions::get_collisions_group());
     engine.add_rule_group("Connections".into(), connections::get_connections_group());
+    engine.add_rule_group("Controllers".into(), controllers::get_controllers_group());
     engine.add_rule_group("Informational".into(), informational::get_informational_group());
 
     // Decide where to write output.
