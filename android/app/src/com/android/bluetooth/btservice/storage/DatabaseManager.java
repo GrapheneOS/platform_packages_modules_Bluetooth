@@ -262,7 +262,6 @@ public class DatabaseManager {
     /**
      * Get customized metadata from database with requested key
      */
-    @VisibleForTesting
     public byte[] getCustomMeta(BluetoothDevice device, int key) {
         synchronized (mMetadataCache) {
             if (device == null) {
@@ -419,7 +418,6 @@ public class DatabaseManager {
      * {@link BluetoothProfile.CONNECTION_POLICY_FORBIDDEN},
      * {@link BluetoothProfile.CONNECTION_POLICY_ALLOWED}
      */
-    @VisibleForTesting
     public int getProfileConnectionPolicy(BluetoothDevice device, int profile) {
         synchronized (mMetadataCache) {
             if (device == null) {
