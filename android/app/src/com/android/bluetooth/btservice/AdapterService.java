@@ -5283,7 +5283,6 @@ public class AdapterService extends Service {
      *
      * @return {@link DatabaseManager} or null on error
      */
-    @VisibleForTesting
     public DatabaseManager getDatabase() {
         return mDatabaseManager;
     }
