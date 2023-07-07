@@ -20,7 +20,6 @@ import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
-import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
@@ -73,7 +72,6 @@ import java.util.Set;
  * 3) The HFP active device might be different from the A2DP active device.
  * 4) The Active Device Manager always listens for ACTION_ACTIVE_DEVICE_CHANGED
  *    broadcasts for each profile:
- *    - BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED for A2DP
  *    - BluetoothHeadset.ACTION_ACTIVE_DEVICE_CHANGED for HFP
  *    - BluetoothHearingAid.ACTION_ACTIVE_DEVICE_CHANGED for HearingAid
  *    - BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED for LE audio
@@ -114,7 +112,7 @@ import java.util.Set;
  *      will have no impact. E.g., music will continue streaming over the
  *      active Bluetooth device.
  */
-class ActiveDeviceManager {
+public class ActiveDeviceManager {
     private static final String TAG = "ActiveDeviceManager";
     private static final boolean DBG = true;
     @VisibleForTesting
@@ -187,13 +185,6 @@ class ActiveDeviceManager {
             }
 
             switch (action) {
-                case BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED:
-                    if (currentState == BluetoothProfile.STATE_CONNECTED) {
-                        mHandler.post(() -> handleA2dpConnected(device));
-                    } else if (previousState == BluetoothProfile.STATE_CONNECTED) {
-                        mHandler.post(() -> handleA2dpDisconnected(device));
-                    }
-                    break;
                 case BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED:
                     if (currentState == BluetoothProfile.STATE_CONNECTED) {
                         mHandler.post(() -> handleHfpConnected(device));
@@ -222,9 +213,6 @@ class ActiveDeviceManager {
                         mHandler.post(() -> handleHapDisconnected(device));
                     }
                     break;
-                case BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED:
-                    mHandler.post(() -> handleA2dpActiveDeviceChanged(device));
-                    break;
                 case BluetoothHeadset.ACTION_ACTIVE_DEVICE_CHANGED:
                     mHandler.post(() -> handleHfpActiveDeviceChanged(device));
                     break;
@@ -240,6 +228,30 @@ class ActiveDeviceManager {
             }
         }
     };
+
+    /**
+     * Called when A2DP connection state changed by A2dpStateMachine
+     *
+     * @param device The device of which connection state was changed
+     * @param fropmState The previous connection state of the device
+     * @param toState The new connection state of the device
+     */
+    public void a2dpConnectionStateChanged(BluetoothDevice device, int fropmState, int toState) {
+        if (toState == BluetoothProfile.STATE_CONNECTED) {
+            mHandler.post(() -> handleA2dpConnected(device));
+        } else if (fropmState == BluetoothProfile.STATE_CONNECTED) {
+            mHandler.post(() -> handleA2dpDisconnected(device));
+        }
+    }
+
+    /**
+     * Called when A2DP active state changed by A2dpService
+     *
+     * @param device The device currently activated. {@code null} if no A2DP device activated
+     */
+    public void a2dpActiveStateChanged(BluetoothDevice device) {
+        mHandler.post(() -> handleA2dpActiveDeviceChanged(device));
+    }
 
     private void handleAdapterStateChanged(int currentState) {
         if (DBG) {
@@ -803,8 +815,6 @@ class ActiveDeviceManager {
         IntentFilter filter = new IntentFilter();
         filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
         filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHeadset.ACTION_ACTIVE_DEVICE_CHANGED);
         filter.addAction(BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED);
