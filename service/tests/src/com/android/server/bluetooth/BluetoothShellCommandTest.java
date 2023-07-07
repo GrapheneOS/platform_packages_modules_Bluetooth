@@ -165,7 +165,7 @@ public class BluetoothShellCommandTest {
         verify(mBinder).enable(any());
     }
 
-    class TestPrivilegedCmd extends BluetoothCommand {
+    static class TestPrivilegedCmd extends BluetoothCommand {
         TestPrivilegedCmd() {
             super(true, TestPrivilegedCmd.class.getSimpleName());
         }
