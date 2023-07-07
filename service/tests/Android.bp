@@ -20,50 +20,38 @@ package {
 android_test {
     name: "ServiceBluetoothTests",
 
+    // Linking source to test the working copy, not the on-device copy.
+    // Use 'pre-jarjar' so that we can reference symbols before renaming.
+    // Then apply the same common jarjar_rules
+    defaults: ["service-bluetooth-pre-jarjar"],
+    jarjar_rules: ":bluetooth-jarjar-rules",
+
     srcs: [
         "src/**/*.java",
         "src/**/*.kt",
     ],
 
-    dxflags: ["--multi-dex"],
-
-    java_version: "1.9",
-
     static_libs: [
         "androidx.test.rules",
         "frameworks-base-testutils",
         "kotlinx_coroutines_test",
+        "libprotobuf-java-nano",
         "mockito-target-extended-minus-junit4",
         "platform-compat-test-rules",
         "platform-test-annotations",
-        "service-bluetooth.change-ids",
         "truth-prebuilt",
-
-        // Statically link service-bluetooth-pre-jarjar since we want to test the working copy of
-        // service-bluetooth, not the on-device copy.
-        // Use pre-jarjar version so that we can reference symbols before they are renamed.
-        // Then, the jarjar_rules here will perform the rename for the entire APK
-        // i.e. service-bluetooth + test code
-        "service-bluetooth-pre-jarjar",
     ],
-
-    jarjar_rules: ":bluetooth-jarjar-rules",
 
     libs: [
         "android.test.base",
         "android.test.mock",
         "android.test.runner",
-        "framework-bluetooth-pre-jarjar",
     ],
-
     jni_libs: [
         // these are needed for Extended Mockito
-        "libbluetooth_jni",
         "libdexmakerjvmtiagent",
         "libstaticjvmtiagent",
     ],
-    compile_multilib: "both",
-    certificate: ":com.android.bluetooth.certificate",
 
     min_sdk_version: "Tiramisu",
 
