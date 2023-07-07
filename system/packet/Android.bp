@@ -9,7 +9,7 @@ package {
 
 cc_library_static {
     name: "lib-bt-packets",
-    defaults: ["fluoride_common_options"],
+    defaults: ["bluetooth_cflags"],
     host_supported: true,
     export_include_dirs: [
         "./",
