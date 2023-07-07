@@ -3085,10 +3085,6 @@ public class LeAudioService extends ProfileService {
      * @return the lead device of the CSIP group or {@code null} if the group does not exist
      */
     public BluetoothDevice getLeadDevice(BluetoothDevice device) {
-        if (device == null) {
-            Log.w(TAG, "getLeadDevice called with null device.");
-            return null;
-        }
         int groupId = getGroupId(device);
         if (groupId == LE_AUDIO_GROUP_ID_INVALID) {
             return null;
