@@ -11,7 +11,7 @@ package {
 
 cc_defaults {
     name: "audio_bluetooth_hw_defaults",
-    defaults: ["fluoride_common_options"],
+    defaults: ["bluetooth_cflags"],
     cflags: [
         // suppress the warning in stream_apis.cc
         "-Wno-sign-compare",
