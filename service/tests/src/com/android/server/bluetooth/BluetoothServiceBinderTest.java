@@ -19,8 +19,6 @@ package com.android.server.bluetooth;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 import static android.Manifest.permission.LOCAL_MAC_ADDRESS;
-import static android.Manifest.permission.LOG_COMPAT_CHANGE;
-import static android.Manifest.permission.READ_COMPAT_CHANGE_CONFIG;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -78,6 +76,9 @@ import java.util.function.BooleanSupplier;
 @RunWith(AndroidJUnit4.class)
 public class BluetoothServiceBinderTest {
     private static final String TAG = BluetoothServiceBinderTest.class.getSimpleName();
+    private static final String LOG_COMPAT_CHANGE = "android.permission.LOG_COMPAT_CHANGE";
+    private static final String READ_COMPAT_CHANGE_CONFIG =
+            "android.permission.READ_COMPAT_CHANGE_CONFIG";
 
     @Rule public MockitoRule mockito = MockitoJUnit.rule().strictness(STRICT_STUBS);
 
