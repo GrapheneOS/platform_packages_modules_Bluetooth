@@ -1041,6 +1041,8 @@ TEST_F(LeAudioAseConfigurationTest, test_context_update) {
   ASSERT_TRUE(config.has_value());
   ASSERT_EQ(config->num_channels,
             ::le_audio::LeAudioCodecConfiguration::kChannelNumberMono);
+  ASSERT_TRUE(
+      group_->IsAudioSetConfigurationAvailable(LeAudioContextType::ALERTS));
 
   /* Block the ALERTS context */
   right->SetAvailableContexts(
@@ -1055,6 +1057,8 @@ TEST_F(LeAudioAseConfigurationTest, test_context_update) {
                        LeAudioContextType::ALERTS,
                        ::le_audio::types::kLeAudioDirectionSink)
                    .has_value());
+  ASSERT_FALSE(
+      group_->IsAudioSetConfigurationAvailable(LeAudioContextType::ALERTS));
 }
 
 TEST_F(LeAudioAseConfigurationTest, test_mono_speaker_ringtone) {

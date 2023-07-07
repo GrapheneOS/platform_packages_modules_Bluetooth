@@ -1801,10 +1801,11 @@ LeAudioDeviceGroup::GetCodecConfigurationByDirection(
 
 bool LeAudioDeviceGroup::IsAudioSetConfigurationAvailable(
     types::LeAudioContextType group_context_type) const {
-  auto iter = available_context_to_configuration_map.find(group_context_type);
-  if (iter == available_context_to_configuration_map.end()) return false;
-
-  return available_context_to_configuration_map.count(group_context_type) != 0;
+  if (available_context_to_configuration_map.count(group_context_type) != 0) {
+    return available_context_to_configuration_map.at(group_context_type) !=
+           nullptr;
+  }
+  return false;
 }
 
 bool LeAudioDeviceGroup::IsMetadataChanged(
