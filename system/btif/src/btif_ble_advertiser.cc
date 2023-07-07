@@ -190,7 +190,8 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
              timeout_s * 100, jni_thread_wrapper(FROM_HERE, timeout_cb)));
   }
 
-  void StartAdvertisingSet(int reg_id, IdTxPowerStatusCallback cb,
+  void StartAdvertisingSet(uint8_t client_id, int reg_id,
+                           IdTxPowerStatusCallback cb,
                            AdvertiseParameters params,
                            std::vector<uint8_t> advertise_data,
                            std::vector<uint8_t> scan_response_data,
