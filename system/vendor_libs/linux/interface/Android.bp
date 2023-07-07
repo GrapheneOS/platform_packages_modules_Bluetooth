@@ -24,7 +24,7 @@ package {
 
 cc_binary {
     name: "android.hardware.bluetooth@1.1-service.btlinux",
-    defaults: ["fluoride_common_options"],
+    defaults: ["bluetooth_cflags"],
     proprietary: true,
     relative_install_path: "hw",
     srcs: [
@@ -52,7 +52,7 @@ cc_binary {
 
 cc_library_static {
     name: "async_fd_watcher",
-    defaults: ["fluoride_common_options"],
+    defaults: ["bluetooth_cflags"],
     proprietary: true,
     srcs: [
         "async_fd_watcher.cc",
