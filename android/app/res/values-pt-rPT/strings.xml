@@ -16,6 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" msgid="2326164424236203271">"Bluetooth"</string>
     <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"Aceder ao gestor de transferências."</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"Permite à app aceder ao gestor BluetoothShare e utilizá-lo para transferir ficheiros."</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"Colocar na lista de autorizações o acesso do dispositivo Bluetooth."</string>
