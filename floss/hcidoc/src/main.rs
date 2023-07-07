@@ -19,10 +19,23 @@ fn main() {
                 .help("Path to the snoop log. If omitted, read from stdin instead."),
         )
         .arg(
+            Arg::new("ignore-unknown")
+                .long("ignore-unknown")
+                .action(ArgAction::SetTrue)
+                .help("Don't print warning for unknown opcodes"),
+        )
+        .arg(
             Arg::new("signals")
                 .short('s')
+                .long("signals")
                 .action(ArgAction::SetTrue)
                 .help("Report signals from active rules."),
+        )
+        .arg(
+            Arg::new("signals-only")
+                .long("signals-only")
+                .action(ArgAction::SetTrue)
+                .help("Only print signals from active rules, don't print other events."),
         )
         .get_matches();
 
@@ -31,10 +44,24 @@ fn main() {
         None => "",
     };
 
-    let report_signals = match matches.get_one::<bool>("signals") {
+    let ignore_unknown_opcode = match matches.get_one::<bool>("ignore-unknown") {
         Some(v) => *v,
         None => false,
     };
+
+    let mut report_signals = match matches.get_one::<bool>("signals") {
+        Some(v) => *v,
+        None => false,
+    };
+
+    let report_only_signals = match matches.get_one::<bool>("signals-only") {
+        Some(v) => *v,
+        None => false,
+    };
+
+    if report_only_signals {
+        report_signals = true;
+    }
 
     let mut parser = match LogParser::new(filename) {
         Ok(p) => p,
@@ -70,16 +97,22 @@ fn main() {
         for (pos, v) in parser.get_snoop_iterator().expect("Not a linux snoop file").enumerate() {
             match Packet::try_from((pos, &v)) {
                 Ok(p) => engine.process(p),
-                Err(e) => match v.opcode() {
-                    LinuxSnoopOpcodes::Command | LinuxSnoopOpcodes::Event => {
-                        eprintln!("#{}: {}", pos, e);
+                Err(e) => {
+                    if !ignore_unknown_opcode {
+                        match v.opcode() {
+                            LinuxSnoopOpcodes::Command | LinuxSnoopOpcodes::Event => {
+                                eprintln!("#{}: {}", pos, e);
+                            }
+                            _ => (),
+                        }
                     }
-                    _ => (),
-                },
+                }
             }
         }
 
-        engine.report(&mut writer);
+        if !report_only_signals {
+            engine.report(&mut writer);
+        }
         if report_signals {
             let _ = writeln!(&mut writer, "### Signals ###");
             engine.report_signals(&mut writer);
