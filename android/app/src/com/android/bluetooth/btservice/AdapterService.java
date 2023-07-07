@@ -736,6 +736,10 @@ public class AdapterService extends Service {
         }
     }
 
+    public ActiveDeviceManager getActiveDeviceManager() {
+        return mActiveDeviceManager;
+    }
+
     private boolean initMetricsLogger() {
         if (mMetricsLogger != null) {
             return false;
