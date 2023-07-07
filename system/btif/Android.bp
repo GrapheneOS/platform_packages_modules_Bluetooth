@@ -34,7 +34,7 @@ btifCommonIncludes = [
 
 cc_library {
     name: "libstatslog_bt",
-    defaults: ["fluoride_common_options"],
+    defaults: ["bluetooth_cflags"],
     host_supported: true,
     generated_sources: ["statslog_bt.cpp"],
     generated_headers: ["statslog_bt.h"],

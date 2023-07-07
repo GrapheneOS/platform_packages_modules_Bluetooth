@@ -7,22 +7,11 @@ package {
     default_applicable_licenses: ["system_bt_license"],
 }
 
-cc_defaults {
-    name: "fluoride_common_options",
-    cflags: [
-        "-Wall",
-        "-Werror",
-        "-Wextra",
-        // there are too many unused parameters in all the code.
-        "-Wno-unused-parameter",
-    ],
-}
-
 // Fuzzable defaults are the subset of defaults that are used in fuzzing, which
 // requires no shared libraries, and no explicit sanitization.
 cc_defaults {
     name: "fluoride_types_defaults_fuzzable",
-    defaults: ["fluoride_common_options"],
+    defaults: ["bluetooth_cflags"],
     cflags: [
         "-DEXPORT_SYMBOL=__attribute__((visibility(\"default\")))",
         "-DLOG_NDEBUG=1",

@@ -9,7 +9,7 @@ package {
 
 cc_defaults {
     name: "audio_a2dp_hw_defaults",
-    defaults: ["fluoride_common_options"],
+    defaults: ["bluetooth_cflags"],
     shared_libs: ["libchrome"],
     include_dirs: [
         "packages/modules/Bluetooth/system",
