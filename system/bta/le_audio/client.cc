@@ -3780,6 +3780,13 @@ class LeAudioClientImpl : public LeAudioClient {
         sink_cfg_available, source_cfg_available);
 
     if (!reconfiguration_needed) {
+      // Assign the new configuration context as it reprents the current
+      // use case even when it eventually ends up being the exact same
+      // codec and qos configuration.
+      if (configuration_context_type_ != context_type) {
+        configuration_context_type_ = context_type;
+        group->SetConfigurationContextType(context_type);
+      }
       return AudioReconfigurationResult::RECONFIGURATION_NOT_NEEDED;
     }
 

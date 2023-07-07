@@ -424,6 +424,11 @@ class LeAudioDeviceGroup {
     pending_group_available_contexts_change_.clear();
   }
 
+  inline void SetConfigurationContextType(
+      types::LeAudioContextType context_type) {
+    configuration_context_type_ = context_type;
+  }
+
   inline types::LeAudioContextType GetConfigurationContextType(void) const {
     return configuration_context_type_;
   }
