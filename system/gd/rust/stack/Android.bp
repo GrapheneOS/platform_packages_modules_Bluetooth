@@ -101,7 +101,7 @@ genrule {
 cc_library_static {
     name: "libbt_hidl_hal_cxx",
     defaults: [
-        "fluoride_common_options",
+        "bluetooth_cflags",
         "gd_ffi_defaults",
         "rust_static_cc_lib_defaults",
     ],

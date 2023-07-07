@@ -11,7 +11,7 @@ package {
 cc_defaults {
     name: "gd_defaults",
     defaults: [
-        "fluoride_common_options",
+        "bluetooth_cflags",
     ],
     tidy_checks: [
         "-performance-unnecessary-value-param",
