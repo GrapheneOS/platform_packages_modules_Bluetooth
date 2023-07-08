@@ -25,6 +25,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.*
 import android.util.Log
+import com.google.protobuf.ByteString
 import io.grpc.stub.StreamObserver
 import java.io.Closeable
 import kotlinx.coroutines.CoroutineScope
@@ -37,7 +38,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import pandora.A2DPGrpc.A2DPImplBase
-import pandora.A2dpProto.*
+import pandora.A2DPProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class A2dpSink(val context: Context) : A2DPImplBase(), Closeable {
@@ -93,14 +94,15 @@ class A2dpSink(val context: Context) : A2DPImplBase(), Closeable {
                 }
             }
 
-            val sink = Sink.newBuilder().setConnection(request.connection).build()
+            val sink =
+                Sink.newBuilder().setCookie(ByteString.copyFrom(device.getAddress(), "UTF-8"))
             WaitSinkResponse.newBuilder().setSink(sink).build()
         }
     }
 
     override fun close(request: CloseRequest, responseObserver: StreamObserver<CloseResponse>) {
         grpcUnary<CloseResponse>(scope, responseObserver) {
-            val device = request.sink.connection.toBluetoothDevice(bluetoothAdapter)
+            val device = bluetoothAdapter.getRemoteDevice(request.sink.cookie.toString("UTF-8"))
             Log.i(TAG, "close: device=$device")
             if (bluetoothA2dpSink.getConnectionState(device) != BluetoothProfile.STATE_CONNECTED) {
                 throw RuntimeException("Device is not connected, cannot close")
