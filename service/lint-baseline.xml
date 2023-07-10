@@ -30,7 +30,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="packages/modules/Bluetooth/service/src/com/android/server/bluetooth/BluetoothManagerService.java"
-            line="1533"/>
+            line="1532"/>
     </issue>
 
     <issue
@@ -47,22 +47,6 @@
         <location
             file="packages/modules/Bluetooth/service/src/com/android/server/bluetooth/BluetoothSatelliteModeListener.java"
             line="51"/>
-    </issue>
-
-    <issue
-        id="UseValueOf"
-        message="Use `Integer.valueOf(bluetoothProfile)` instead">
-        <location
-            file="packages/modules/Bluetooth/service/src/com/android/server/bluetooth/BluetoothManagerService.java"
-            line="1451"/>
-    </issue>
-
-    <issue
-        id="UseValueOf"
-        message="Use `Integer.valueOf(bluetoothProfile)` instead">
-        <location
-            file="packages/modules/Bluetooth/service/src/com/android/server/bluetooth/BluetoothManagerService.java"
-            line="1466"/>
     </issue>
 
 </issues>
