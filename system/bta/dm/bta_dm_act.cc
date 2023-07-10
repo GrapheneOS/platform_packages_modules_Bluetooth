@@ -1109,7 +1109,9 @@ void bta_dm_disc_rmt_name(tBTA_DM_MSG* p_data) {
 static void store_avrcp_profile_feature(tSDP_DISC_REC* sdp_rec) {
   tSDP_DISC_ATTR* p_attr =
       SDP_FindAttributeInRec(sdp_rec, ATTR_ID_SUPPORTED_FEATURES);
-  if (p_attr == NULL) {
+  if (p_attr == NULL ||
+      SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) != UINT_DESC_TYPE ||
+      SDP_DISC_ATTR_LEN(p_attr->attr_len_type) < 2) {
     return;
   }
 
