@@ -55,7 +55,6 @@ static constexpr uint8_t kStateFlagHasDataPathSet = 0x04;
 static constexpr uint8_t kStateFlagIsBroadcast = 0x10;
 
 constexpr char kBtmLogTag[] = "ISO";
-static bool iso_impl_initialized_ = false;
 
 struct iso_sync_info {
   uint32_t first_sync_ts;
@@ -96,10 +95,11 @@ struct iso_impl {
   iso_impl() {
     iso_credits_ = controller_get_interface()->get_iso_buffer_count();
     iso_buffer_size_ = controller_get_interface()->get_iso_data_size();
-    iso_impl_initialized_ = true;
+    LOG_INFO("%p created, iso credits: %d, buffer size: %d.", this,
+             iso_credits_.load(), iso_buffer_size_);
   }
 
-  ~iso_impl() { iso_impl_initialized_ = false; }
+  ~iso_impl() { LOG_INFO("%p removed.", this); }
 
   void handle_register_cis_callbacks(CigCallbacks* callbacks) {
     LOG_ASSERT(callbacks != nullptr) << "Invalid CIG callbacks";
@@ -123,11 +123,6 @@ struct iso_impl {
     uint8_t cis_cnt;
     uint16_t conn_handle;
     cig_create_cmpl_evt evt;
-
-    if (!iso_impl_initialized_) {
-      LOG_WARN("iso_impl not available anymore");
-      return;
-    }
 
     LOG_ASSERT(cig_callbacks_ != nullptr) << "Invalid CIG callbacks";
     LOG_ASSERT(len >= 3) << "Invalid packet length: " << +len;
@@ -197,7 +192,7 @@ struct iso_impl {
         cig_params.sca, cig_params.packing, cig_params.framing,
         cig_params.max_trans_lat_stom, cig_params.max_trans_lat_mtos,
         cig_params.cis_cfgs.size(), cig_params.cis_cfgs.data(),
-        base::BindOnce(&iso_impl::on_set_cig_params, base::Unretained(this),
+        base::BindOnce(&iso_impl::on_set_cig_params, weak_factory_.GetWeakPtr(),
                        cig_id, cig_params.sdu_itv_mtos));
 
     BTM_LogHistory(
@@ -215,17 +210,12 @@ struct iso_impl {
         cig_params.sca, cig_params.packing, cig_params.framing,
         cig_params.max_trans_lat_stom, cig_params.max_trans_lat_mtos,
         cig_params.cis_cfgs.size(), cig_params.cis_cfgs.data(),
-        base::BindOnce(&iso_impl::on_set_cig_params, base::Unretained(this),
+        base::BindOnce(&iso_impl::on_set_cig_params, weak_factory_.GetWeakPtr(),
                        cig_id, cig_params.sdu_itv_mtos));
   }
 
   void on_remove_cig(uint8_t* stream, uint16_t len) {
     cig_remove_cmpl_evt evt;
-
-    if (!iso_impl_initialized_) {
-      LOG_WARN("iso_impl not available anymore");
-      return;
-    }
 
     LOG_ASSERT(cig_callbacks_ != nullptr) << "Invalid CIG callbacks";
     LOG_ASSERT(len == 2) << "Invalid packet length: " << +len;
@@ -268,7 +258,7 @@ struct iso_impl {
     }
 
     btsnd_hcic_remove_cig(cig_id, base::BindOnce(&iso_impl::on_remove_cig,
-                                                 base::Unretained(this)));
+                                                 weak_factory_.GetWeakPtr()));
     BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "CIG Remove",
                    base::StringPrintf("cig_id:0x%02x (f:%d)", cig_id, force));
   }
@@ -277,11 +267,6 @@ struct iso_impl {
       struct iso_manager::cis_establish_params conn_params, uint8_t* stream,
       uint16_t len) {
     uint8_t status;
-
-    if (!iso_impl_initialized_) {
-      LOG_WARN("iso_impl not available anymore");
-      return;
-    }
 
     LOG_ASSERT(len == 2) << "Invalid packet length: " << +len;
 
@@ -328,10 +313,10 @@ struct iso_impl {
                        base::StringPrintf("handle:0x%04x", el.acl_conn_handle));
       }
     }
-    btsnd_hcic_create_cis(conn_params.conn_pairs.size(),
-                          conn_params.conn_pairs.data(),
-                          base::BindOnce(&iso_impl::on_status_establish_cis,
-                                         base::Unretained(this), conn_params));
+    btsnd_hcic_create_cis(
+        conn_params.conn_pairs.size(), conn_params.conn_pairs.data(),
+        base::BindOnce(&iso_impl::on_status_establish_cis,
+                       weak_factory_.GetWeakPtr(), conn_params));
   }
 
   void disconnect_cis(uint16_t cis_handle, uint8_t reason) {
@@ -352,11 +337,6 @@ struct iso_impl {
   void on_setup_iso_data_path(uint8_t* stream, uint16_t len) {
     uint8_t status;
     uint16_t conn_handle;
-
-    if (!iso_impl_initialized_) {
-      LOG_WARN("iso_impl not available anymore");
-      return;
-    }
 
     STREAM_TO_UINT8(status, stream);
     STREAM_TO_UINT16(conn_handle, stream);
@@ -402,7 +382,7 @@ struct iso_impl {
         path_params.codec_id_vendor, path_params.controller_delay,
         std::move(path_params.codec_conf),
         base::BindOnce(&iso_impl::on_setup_iso_data_path,
-                       base::Unretained(this)));
+                       weak_factory_.GetWeakPtr()));
     BTM_LogHistory(
         kBtmLogTag, cis_hdl_to_addr[conn_handle], "Setup data path",
         base::StringPrintf(
@@ -421,11 +401,6 @@ struct iso_impl {
     }
     STREAM_TO_UINT8(status, stream);
     STREAM_TO_UINT16(conn_handle, stream);
-
-    if (!iso_impl_initialized_) {
-      LOG_WARN("iso_impl not available anymore");
-      return;
-    }
 
     iso_base* iso = GetIsoIfKnown(conn_handle);
     if (iso == nullptr) {
@@ -462,7 +437,8 @@ struct iso_impl {
     btsnd_hcic_remove_iso_data_path(
         iso_handle, data_path_dir,
         base::BindOnce(&iso_impl::on_remove_iso_data_path,
-                       base::Unretained(this)));
+                       weak_factory_.GetWeakPtr()));
+
     BTM_LogHistory(kBtmLogTag, cis_hdl_to_addr[iso_handle], "Remove data path",
                    base::StringPrintf("handle:0x%04x, dir:0x%02x", iso_handle,
                                       data_path_dir));
@@ -495,10 +471,6 @@ struct iso_impl {
 
     STREAM_TO_UINT16(conn_handle, stream);
 
-    if (!iso_impl_initialized_) {
-      LOG_WARN("iso_impl not available anymore");
-      return;
-    }
     iso_base* iso = GetIsoIfKnown(conn_handle);
     if (iso == nullptr) {
       /* That could happen when ACL has been disconnected while waiting on the
@@ -531,7 +503,7 @@ struct iso_impl {
 
     btsnd_hcic_read_iso_link_quality(
         iso_handle, base::BindOnce(&iso_impl::on_iso_link_quality_read,
-                                   base::Unretained(this)));
+                                   weak_factory_.GetWeakPtr()));
   }
 
   BT_HDR* prepare_ts_hci_packet(uint16_t iso_handle, uint32_t ts,
@@ -657,11 +629,6 @@ struct iso_impl {
   }
 
   void disconnection_complete(uint16_t handle, uint8_t reason) {
-    if (!iso_impl_initialized_) {
-      LOG_WARN("iso_impl not available anymore");
-      return;
-    }
-
     /* Check if this is an ISO handle */
     auto cis = GetCisIfKnown(handle);
     if (cis == nullptr) return;
@@ -1051,6 +1018,7 @@ struct iso_impl {
   BigCallbacks* big_callbacks_ = nullptr;
   std::mutex on_iso_traffic_active_callbacks_list_mutex_;
   std::list<void (*)(bool)> on_iso_traffic_active_callbacks_list_;
+  base::WeakPtrFactory<iso_impl> weak_factory_{this};
 };
 
 }  // namespace iso_manager
