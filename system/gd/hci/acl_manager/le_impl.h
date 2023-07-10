@@ -799,7 +799,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
 
     if (connect_list.find(address_with_type) != connect_list.end()) {
       LOG_WARN(
-          "Device already exists in acceptlist and cannot be added:%s",
+          "Device already exists in acceptlist and cannot be added: %s",
           ADDRESS_TO_LOGGABLE_CSTR(address_with_type));
       return;
     }
@@ -816,7 +816,8 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
 
   void remove_device_from_connect_list(AddressWithType address_with_type) {
     if (connect_list.find(address_with_type) == connect_list.end()) {
-      LOG_WARN("Device not in acceptlist and cannot be removed:%s",
+      LOG_WARN(
+          "Device not in acceptlist and cannot be removed: %s",
           ADDRESS_TO_LOGGABLE_CSTR(address_with_type));
       return;
     }
