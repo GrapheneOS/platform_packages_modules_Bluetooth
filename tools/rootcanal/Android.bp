@@ -139,18 +139,6 @@ cc_library_static {
     include_dirs: ["packages/modules/Bluetooth/system/gd"],
 }
 
-// This library contains the generated headers for the
-// RootCanal configuration file / parameter.
-cc_library_static {
-    name: "librootcanal_config",
-    host_supported: true,
-    vendor_available: true,
-    proto: {
-        export_proto_headers: true,
-    },
-    srcs: ["config.proto"],
-}
-
 // This library implements a foreigh function interface over DualModeController
 // compatible with Python or Rust.
 cc_library_host_shared {
