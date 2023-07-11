@@ -51,8 +51,23 @@ java_defaults {
     sdk_version: "system_server_current",
 
     lint: {
+        error_checks: [
+            "ExtraText",
+            "MissingClass",
+            "NewApi",
+            "ObsoleteSdkInt",
+            "Recycle",
+            "RtlHardcoded",
+            "UseSparseArrays",
+            "UseValueOf",
+        ],
         strict_updatability_linting: true,
     },
+
+    kotlincflags: [
+        "-Werror",
+    ],
+
     libs: [
         "framework-annotations-lib",
         "framework-bluetooth-pre-jarjar",
