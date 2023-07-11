@@ -188,14 +188,14 @@ android_add_library(
 
 protobuf_generate_with_plugin(
   TARGET librootcanal_config
-  PROTOS ${ROOTCANAL_ROOT}/config.proto
+  PROTOS ${ROOTCANAL_ROOT}/proto/rootcanal/configuration.proto
   APPEND_PATH
   PROTOPATH -I${AOSP_ROOT}/external/protobuf/src
-  PROTOC_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/config)
+  PROTOC_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/proto/rootcanal)
 
 target_include_directories(
   librootcanal_config
-  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/config ${AOSP_ROOT}/external/protobuf/src)
+  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/proto ${AOSP_ROOT}/external/protobuf/src)
 
 target_link_libraries(librootcanal_config
                       PRIVATE protobuf::libprotobuf)

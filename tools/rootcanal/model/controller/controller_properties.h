@@ -22,9 +22,9 @@
 #include <string>
 #include <vector>
 
-#include "config.pb.h"
 #include "hci/address.h"
 #include "hci/hci_packets.h"
+#include "rootcanal/configuration.pb.h"
 
 namespace rootcanal {
 using bluetooth::hci::HciVersion;
