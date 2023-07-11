@@ -39,8 +39,6 @@
 #include "stack/smp/smp_int.h"
 #include "types/raw_address.h"
 
-extern tBTM_CB btm_cb;
-
 namespace {
 constexpr char kBtmLogTag[] = "SMP";
 }
@@ -178,7 +176,7 @@ void smp_send_app_cback(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
               p_cb->loc_enc_size, p_cb->local_i_key, p_cb->local_r_key);
 
           p_cb->secure_connections_only_mode_required =
-              (btm_cb.security_mode == BTM_SEC_MODE_SC) ? true : false;
+              (p_cb->init_security_mode == BTM_SEC_MODE_SC) ? true : false;
           /* just for PTS, force SC bit */
           if (p_cb->secure_connections_only_mode_required) {
             p_cb->loc_auth_req |= SMP_SC_SUPPORT_BIT;
@@ -482,7 +480,7 @@ void smp_proc_sec_req(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 
     case BTM_BLE_SEC_REQ_ACT_PAIR:
       p_cb->secure_connections_only_mode_required =
-          (btm_cb.security_mode == BTM_SEC_MODE_SC) ? true : false;
+          (p_cb->init_security_mode == BTM_SEC_MODE_SC) ? true : false;
 
       /* respond to non SC pairing request as failure in SC only mode */
       if (p_cb->secure_connections_only_mode_required &&
