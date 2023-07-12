@@ -52,11 +52,11 @@ class A2dpSink(val context: Context) : A2DPImplBase(), Closeable {
         getProfileProxy<BluetoothA2dpSink>(context, BluetoothProfile.A2DP_SINK)
 
     init {
-        scope = CoroutineScope(Dispatchers.Default)
+        scope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
         val intentFilter = IntentFilter()
         intentFilter.addAction(BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED)
 
-        flow = intentFlow(context, intentFilter).shareIn(scope, SharingStarted.Eagerly)
+        flow = intentFlow(context, intentFilter, scope).shareIn(scope, SharingStarted.Eagerly)
     }
 
     override fun close() {
