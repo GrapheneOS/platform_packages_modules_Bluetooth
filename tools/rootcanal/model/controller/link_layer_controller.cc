@@ -1237,6 +1237,7 @@ ErrorCode LinkLayerController::LeSetScanEnable(bool enable,
 
   if (!enable) {
     scanner_.scan_enable = false;
+    scanner_.pending_scan_request = {};
     scanner_.history.clear();
     return ErrorCode::SUCCESS;
   }
@@ -1265,6 +1266,7 @@ ErrorCode LinkLayerController::LeSetScanEnable(bool enable,
   scanner_.history.clear();
   scanner_.timeout = {};
   scanner_.periodical_timeout = {};
+  scanner_.pending_scan_request = {};
   scanner_.filter_duplicates = filter_duplicates
                                    ? bluetooth::hci::FilterDuplicates::ENABLED
                                    : bluetooth::hci::FilterDuplicates::DISABLED;
@@ -1394,6 +1396,7 @@ ErrorCode LinkLayerController::LeSetExtendedScanEnable(
 
   if (!enable) {
     scanner_.scan_enable = false;
+    scanner_.pending_scan_request = {};
     scanner_.history.clear();
     return ErrorCode::SUCCESS;
   }
@@ -1450,6 +1453,7 @@ ErrorCode LinkLayerController::LeSetExtendedScanEnable(
   scanner_.history.clear();
   scanner_.timeout = {};
   scanner_.periodical_timeout = {};
+  scanner_.pending_scan_request = {};
   scanner_.filter_duplicates = filter_duplicates;
   scanner_.duration = duration_ms;
   scanner_.period = period_ms;
@@ -4971,6 +4975,7 @@ void LinkLayerController::LeScanning() {
     // an HCI_LE_Scan_Timeout event shall be generated.
     INFO(id_, "Extended Scan Timeout");
     scanner_.scan_enable = false;
+    scanner_.pending_scan_request = {};
     scanner_.history.clear();
     if (IsLeEventUnmasked(SubeventCode::SCAN_TIMEOUT)) {
       send_event_(bluetooth::hci::LeScanTimeoutBuilder::Create());
