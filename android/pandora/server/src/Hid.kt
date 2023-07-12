@@ -17,7 +17,7 @@ import pandora.HidProto.SendHostReportResponse
 class Hid(val context: Context) : HIDImplBase(), Closeable {
     private val TAG = "PandoraHid"
 
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
 
     private val bluetoothManager =
         context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
