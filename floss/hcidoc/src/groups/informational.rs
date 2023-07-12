@@ -8,8 +8,8 @@ use std::io::Write;
 use crate::engine::{Rule, RuleGroup, Signal};
 use crate::parser::{Packet, PacketChild};
 use bt_packets::hci::{
-    AclCommandChild, Address, CommandChild, ConnectionManagementCommandChild, ErrorCode,
-    EventChild, GapData, GapDataType, LeMetaEventChild,
+    AclCommandChild, Address, CommandChild, ConnectionManagementCommandChild, DisconnectReason,
+    ErrorCode, EventChild, GapData, GapDataType, LeMetaEventChild,
 };
 
 /// Valid values are in the range 0x0000-0x0EFF.
@@ -241,6 +241,14 @@ impl InformationalRule {
         self.handles.remove(&handle);
     }
 
+    fn report_reset(&mut self, ts: NaiveDateTime) {
+        // report_connection_end removes the entries from the map, so store all the keys first.
+        let handles: Vec<ConnectionHandle> = self.handles.keys().cloned().collect();
+        for handle in handles {
+            self.report_connection_end(handle, ts);
+        }
+    }
+
     fn process_gap_data(&mut self, address: &Address, data: &GapData) {
         match data.data_type {
             GapDataType::CompleteLocalName | GapDataType::ShortenedLocalName => {
@@ -365,6 +373,10 @@ impl Rule for InformationalRule {
             },
 
             PacketChild::HciCommand(cmd) => match cmd.specialize() {
+                CommandChild::Reset(_cmd) => {
+                    self.report_reset(packet.ts);
+                }
+
                 CommandChild::AclCommand(cmd) => match cmd.specialize() {
                     AclCommandChild::ConnectionManagementCommand(cmd) => match cmd.specialize() {
                         ConnectionManagementCommandChild::CreateConnection(cmd) => {
@@ -380,6 +392,15 @@ impl Rule for InformationalRule {
                         // AclCommandChild::ConnectionManagementCommand(cmd).specialize()
                         _ => {}
                     },
+
+                    AclCommandChild::Disconnect(cmd) => {
+                        // If reason is power off, the host might not wait for connection complete event
+                        if cmd.get_reason()
+                            == DisconnectReason::RemoteDeviceTerminatedConnectionPowerOff
+                        {
+                            self.report_connection_end(cmd.get_connection_handle(), packet.ts);
+                        }
+                    }
 
                     // CommandChild::AclCommand(cmd).specialize()
                     _ => {}
