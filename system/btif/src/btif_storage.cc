@@ -95,6 +95,8 @@ using bluetooth::Uuid;
 #define BTIF_STORAGE_PATH_PRODUCT_ID "ProductId"
 #define BTIF_STORAGE_PATH_VERSION "ProductVersion"
 
+#define BTIF_STORAGE_KEY_RESTRICTED "Restricted"
+
 /* This is a local property to add a device found */
 #define BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP 0xFF
 
@@ -130,6 +132,15 @@ static bool btif_has_ble_keys(const std::string& bdstr);
 /*******************************************************************************
  *  Static functions
  ******************************************************************************/
+
+static void btif_storage_set_mode(RawAddress* remote_bd_addr) {
+  std::string bdstr = remote_bd_addr->ToString();
+  if (GetInterfaceToProfiles()->config->isRestrictedMode()) {
+    LOG_INFO("%s will be removed exiting restricted mode",
+             ADDRESS_TO_LOGGABLE_CSTR(*remote_bd_addr));
+    btif_config_set_int(bdstr, BTIF_STORAGE_KEY_RESTRICTED, 1);
+  }
+}
 
 static int prop2cfg(const RawAddress* remote_bd_addr, bt_property_t* prop) {
   std::string bdstr;
@@ -838,12 +849,9 @@ bt_status_t btif_storage_add_bonded_device(RawAddress* remote_bd_addr,
   ret &=
       btif_config_set_bin(bdstr, "LinkKey", link_key.data(), link_key.size());
 
-  if (GetInterfaceToProfiles()->config->isRestrictedMode()) {
-    BTIF_TRACE_WARNING("%s: '%s' pairing will be removed if unrestricted",
-                       __func__, ADDRESS_TO_LOGGABLE_CSTR(*remote_bd_addr));
-    btif_config_set_int(bdstr, "Restricted", 1);
+  if (ret) {
+    btif_storage_set_mode(remote_bd_addr);
   }
-
   return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
 
@@ -1201,6 +1209,10 @@ bt_status_t btif_storage_add_ble_bonding_key(RawAddress* remote_bd_addr,
   }
   int ret =
       btif_config_set_bin(remote_bd_addr->ToString(), name, key, key_length);
+
+  if (ret) {
+    btif_storage_set_mode(remote_bd_addr);
+  }
   return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
 
@@ -1519,7 +1531,9 @@ uint8_t btif_storage_get_sr_supp_feat(const RawAddress& bd_addr) {
  *
  ******************************************************************************/
 bool btif_storage_is_restricted_device(const RawAddress* remote_bd_addr) {
-  return btif_config_exist(remote_bd_addr->ToString(), "Restricted");
+  int val;
+  return btif_config_get_int(remote_bd_addr->ToString(),
+                             BTIF_STORAGE_KEY_RESTRICTED, &val);
 }
 
 int btif_storage_get_num_bonded_devices(void) {
