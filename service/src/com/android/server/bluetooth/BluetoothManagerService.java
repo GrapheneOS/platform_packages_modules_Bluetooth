@@ -432,12 +432,12 @@ class BluetoothManagerService {
     private static final Object ON_SWITCH_USER_TOKEN = new Object();
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    void onAirplaneModeChanged() {
+    void onAirplaneModeChanged(boolean isAirplaneModeOn) {
         mHandler.postDelayed(
                 () ->
                         delayModeChangedIfNeeded(
                                 ON_AIRPLANE_MODE_CHANGED_TOKEN,
-                                () -> handleAirplaneModeChanged(),
+                                () -> handleAirplaneModeChanged(isAirplaneModeOn),
                                 "onAirplaneModeChanged"),
                 ON_AIRPLANE_MODE_CHANGED_TOKEN,
                 0);
@@ -468,10 +468,10 @@ class BluetoothManagerService {
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    private void handleAirplaneModeChanged() {
+    private void handleAirplaneModeChanged(boolean isAirplaneModeOn) {
         synchronized (this) {
             if (isBluetoothPersistedStateOn()) {
-                if (isAirplaneModeOn()) {
+                if (isAirplaneModeOn) {
                     persistBluetoothSetting(BLUETOOTH_ON_AIRPLANE);
                 } else {
                     persistBluetoothSetting(BLUETOOTH_ON_BLUETOOTH);
@@ -482,12 +482,12 @@ class BluetoothManagerService {
 
             Log.d(
                     TAG,
-                    "Airplane Mode change - current state:  "
-                            + BluetoothAdapter.nameForState(st)
-                            + ", isAirplaneModeOn()="
-                            + isAirplaneModeOn());
+                    "handleAirplaneModeChanged(isAirplaneModeOn="
+                            + isAirplaneModeOn
+                            + ") | current state="
+                            + BluetoothAdapter.nameForState(st));
 
-            if (isAirplaneModeOn()) {
+            if (isAirplaneModeOn) {
                 // Clear registered LE apps to force shut-off
                 clearBleApps();
 
@@ -736,9 +736,8 @@ class BluetoothManagerService {
 
     /** Returns true if airplane mode is currently on */
     private boolean isAirplaneModeOn() {
-        return Settings.Global.getInt(
-                        mContext.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0)
-                == 1;
+        return mBluetoothAirplaneModeListener != null
+            && mBluetoothAirplaneModeListener.isAirplaneModeOn();
     }
 
     /** Returns true if satellite mode is turned on. */
@@ -2644,7 +2643,7 @@ class BluetoothManagerService {
         mHandler.sendEmptyMessageDelayed(MESSAGE_RESTART_BLUETOOTH_SERVICE, ERROR_RESTART_TIME_MS);
 
         if (repeatAirplaneRunnable) {
-            onAirplaneModeChanged();
+            onAirplaneModeChanged(isAirplaneModeOn());
         }
     }
 

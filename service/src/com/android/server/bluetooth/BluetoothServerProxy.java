@@ -64,6 +64,10 @@ class BluetoothServerProxy {
         return Settings.Secure.getString(contentResolver, name);
     }
 
+    int settingsGlobalGetInt(ContentResolver contentResolver, String name, int def) {
+        return Settings.Global.getInt(contentResolver, name, def);
+    }
+
     int getBluetoothPersistedState(ContentResolver resolver, int defaultValue) {
         return Settings.Global.getInt(resolver, Settings.Global.BLUETOOTH_ON, defaultValue);
     }
