@@ -647,8 +647,11 @@ static int cancel_bond(const RawAddress* bd_addr) {
 }
 
 static int remove_bond(const RawAddress* bd_addr) {
-  if (is_restricted_mode() && !btif_storage_is_restricted_device(bd_addr))
+  if (is_restricted_mode() && !btif_storage_is_restricted_device(bd_addr)) {
+    LOG_INFO("%s cannot be removed in restricted mode",
+             ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     return BT_STATUS_SUCCESS;
+  }
 
   if (!interface_ready()) return BT_STATUS_NOT_READY;
 
