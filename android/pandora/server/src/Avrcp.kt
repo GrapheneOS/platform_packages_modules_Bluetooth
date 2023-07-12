@@ -37,7 +37,7 @@ class Avrcp(val context: Context) : AVRCPImplBase(), Closeable {
 
     init {
         // Init the CoroutineScope
-        scope = CoroutineScope(Dispatchers.Default)
+        scope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
     }
 
     override fun close() {

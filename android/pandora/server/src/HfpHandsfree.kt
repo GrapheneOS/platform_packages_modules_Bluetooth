@@ -42,7 +42,7 @@ private const val TAG = "PandoraHfpHandsfree"
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class HfpHandsfree(val context: Context) : HFPImplBase(), Closeable {
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
     private val flow: Flow<Intent>
 
     private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
@@ -58,7 +58,7 @@ class HfpHandsfree(val context: Context) : HFPImplBase(), Closeable {
 
     init {
         val intentFilter = IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
-        flow = intentFlow(context, intentFilter).shareIn(scope, SharingStarted.Eagerly)
+        flow = intentFlow(context, intentFilter, scope).shareIn(scope, SharingStarted.Eagerly)
     }
 
     override fun close() {

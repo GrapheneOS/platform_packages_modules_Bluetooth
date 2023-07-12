@@ -53,7 +53,7 @@ private const val TAG = "PandoraAndroidInternal"
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class AndroidInternal(val context: Context) : AndroidImplBase(), Closeable {
 
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
     private val INCOMING_FILE_ACCEPT_BTN = "ACCEPT"
     private val INCOMING_FILE_TITLE = "Incoming file"
     private val INCOMING_FILE_WAIT_TIMEOUT = 2000L

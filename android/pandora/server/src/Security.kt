@@ -63,7 +63,7 @@ private const val TAG = "PandoraSecurity"
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Security(private val context: Context) : SecurityImplBase(), Closeable {
 
-    private val globalScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val globalScope: CoroutineScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
     private val flow: Flow<Intent>
 
     private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
@@ -102,7 +102,7 @@ class Security(private val context: Context) : SecurityImplBase(), Closeable {
         Log.d(TAG, "registering pairingReceiver")
         context.registerReceiver(pairingReceiver, intentFilter)
 
-        flow = intentFlow(context, intentFilter).shareIn(globalScope, SharingStarted.Eagerly)
+        flow = intentFlow(context, intentFilter, globalScope).shareIn(globalScope, SharingStarted.Eagerly)
     }
 
     override fun close() {
