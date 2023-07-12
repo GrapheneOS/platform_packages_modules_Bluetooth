@@ -4314,6 +4314,85 @@ TEST_F(UnicastTest, SpeakerStreaming) {
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 }
 
+TEST_F(UnicastTest, SpeakerStreamingNonDefault) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  int group_id = bluetooth::groups::kGroupUnknown;
+
+  available_snk_context_types_ = (types::LeAudioContextType::VOICEASSISTANTS |
+                                  types::LeAudioContextType::MEDIA)
+                                     .value();
+  supported_snk_context_types_ = available_snk_context_types_;
+
+  SetSampleDatabaseEarbudsValid(
+      1, test_address0, codec_spec_conf::kLeAudioLocationStereo,
+      codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
+      default_channel_cnt, 0x0004,
+      /* source sample freq 16khz */ false /*add_csis*/, true /*add_cas*/,
+      true /*add_pacs*/, default_ase_cnt /*add_ascs_cnt*/, 1 /*set_size*/,
+      0 /*rank*/);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(1);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnGroupNodeStatus(test_address0, _, GroupNodeStatus::ADDED))
+      .WillOnce(DoAll(SaveArg<1>(&group_id)));
+
+  ConnectLeAudio(test_address0);
+  ASSERT_NE(group_id, bluetooth::groups::kGroupUnknown);
+
+  // Start streaming
+  uint8_t cis_count_out = 1;
+  uint8_t cis_count_in = 0;
+
+  // Audio sessions are started only when device gets active
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
+  EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+
+  StartStreaming(AUDIO_USAGE_ASSISTANT, AUDIO_CONTENT_TYPE_UNKNOWN, group_id);
+
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+  SyncOnMainLoop();
+
+  // Verify Data transfer on one audio source cis
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
+
+  // Suspend
+  /*TODO Need a way to verify STOP */
+  LeAudioClient::Get()->GroupSuspend(group_id);
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+
+  // Resume
+  StartStreaming(AUDIO_USAGE_ASSISTANT, AUDIO_CONTENT_TYPE_UNKNOWN, group_id);
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+
+  // Stop
+  StopStreaming(group_id);
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+
+  // Release
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, Stop()).Times(1);
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, OnDestroyed()).Times(1);
+  EXPECT_CALL(*mock_le_audio_sink_hal_client_, OnDestroyed()).Times(1);
+  LeAudioClient::Get()->GroupSetActive(bluetooth::groups::kGroupUnknown);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+
+  /* When session is closed, the hal client mocks are freed - get new ones */
+  SetUpMockAudioHal();
+  /* Expect the previous release to clear the old audio session metadata */
+  auto default_impl_context = types::LeAudioContextType::MEDIA;
+  LeAudioClient::Get()->GroupSetActive(group_id);
+  EXPECT_CALL(mock_state_machine_,
+              StartStream(_, types::LeAudioContextType::VOICEASSISTANTS, _, _))
+      .Times(0);
+  EXPECT_CALL(mock_state_machine_, StartStream(_, default_impl_context, _, _))
+      .Times(1);
+  LocalAudioSourceResume();
+}
+
 TEST_F(UnicastTest, SpeakerStreamingAutonomousRelease) {
   const RawAddress test_address0 = GetTestAddress(0);
   int group_id = bluetooth::groups::kGroupUnknown;

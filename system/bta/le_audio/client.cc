@@ -1181,7 +1181,7 @@ class LeAudioClientImpl : public LeAudioClient {
       if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
 
       StopAudio();
-      ClientAudioIntefraceRelease();
+      ClientAudioInterfaceRelease();
 
       GroupStop(group_id_to_close);
       callbacks_->OnGroupStatus(group_id_to_close, GroupStatus::INACTIVE);
@@ -3708,7 +3708,7 @@ class LeAudioClientImpl : public LeAudioClient {
     if (active_group_id_ != bluetooth::groups::kGroupUnknown) {
       /* Bluetooth turned off while streaming */
       StopAudio();
-      ClientAudioIntefraceRelease();
+      ClientAudioInterfaceRelease();
     }
     groupStateMachine_->Cleanup();
     aseGroups_.Cleanup();
@@ -5453,16 +5453,20 @@ class LeAudioClientImpl : public LeAudioClient {
 
   base::WeakPtrFactory<LeAudioClientImpl> weak_factory_{this};
 
-  void ClientAudioIntefraceRelease() {
+  void ClientAudioInterfaceRelease() {
     if (le_audio_source_hal_client_) {
       le_audio_source_hal_client_->Stop();
       le_audio_source_hal_client_.reset();
     }
+    metadata_context_types_.sink.clear();
 
     if (le_audio_sink_hal_client_) {
       le_audio_sink_hal_client_->Stop();
       le_audio_sink_hal_client_.reset();
     }
+    metadata_context_types_.source.clear();
+    configuration_context_type_ = LeAudioContextType::UNINITIALIZED;
+
     le_audio::MetricsCollector::Get()->OnStreamEnded(active_group_id_);
   }
 };
