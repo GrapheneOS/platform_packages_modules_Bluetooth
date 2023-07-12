@@ -328,3 +328,21 @@ TEST_F(MessageLoopThreadTest, shut_down_start_up_multi_thread) {
   auto thread = std::thread(&MessageLoopThread::StartUp, &message_loop_thread);
   thread.join();
 }
+
+// Verify that Post executes in order
+TEST_F(MessageLoopThreadTest, test_post_twice) {
+  std::string name = "test_thread";
+  MessageLoopThread message_loop_thread(name);
+  int counter = 0;
+  message_loop_thread.StartUp();
+  message_loop_thread.Post(
+      base::BindOnce([](MessageLoopThread* thread,
+                        int* counter) { ASSERT_EQ((*counter)++, 0); },
+                     &message_loop_thread, &counter));
+  message_loop_thread.Post(
+      base::BindOnce([](MessageLoopThread* thread,
+                        int* counter) { ASSERT_EQ((*counter)++, 1); },
+                     &message_loop_thread, &counter));
+  message_loop_thread.ShutDown();
+  ASSERT_EQ(counter, 2);
+}
