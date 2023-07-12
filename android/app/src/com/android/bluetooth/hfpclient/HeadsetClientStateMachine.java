@@ -1349,17 +1349,6 @@ public class HeadsetClientStateMachine extends StateMachine {
                         + " to Connected, mCurrentDevice=" + mCurrentDevice);
             }
             mService.updateBatteryLevel();
-
-            // Send default policies to the remote if
-            //   1. need to set audio policy from system props
-            //   2. remote device supports audio policy
-            if (mForceSetAudioPolicyProperty
-                    && getAudioPolicyRemoteSupported() == BluetoothStatusCodes.FEATURE_SUPPORTED) {
-                setAudioPolicy(new BluetoothSinkAudioPolicy.Builder(mHsClientAudioPolicy)
-                        .setActiveDevicePolicyAfterConnection(mConnectingTimePolicyProperty)
-                        .setInBandRingtonePolicy(mInBandRingtonePolicyProperty)
-                        .build());
-            }
         }
 
         @Override
@@ -2061,6 +2050,15 @@ public class HeadsetClientStateMachine extends StateMachine {
             Log.i(TAG, "processAndroidAtFeature:"
                     + BluetoothSinkAudioPolicy.HFP_SET_SINK_AUDIO_POLICY_ID + " supported");
             setAudioPolicyRemoteSupported(true);
+
+            // Send default policies to the remote if it supports
+            if (getForceSetAudioPolicyProperty()) {
+                setAudioPolicy(
+                        new BluetoothSinkAudioPolicy.Builder(mHsClientAudioPolicy)
+                                .setActiveDevicePolicyAfterConnection(mConnectingTimePolicyProperty)
+                                .setInBandRingtonePolicy(mInBandRingtonePolicyProperty)
+                                .build());
+            }
         }
     }
 
