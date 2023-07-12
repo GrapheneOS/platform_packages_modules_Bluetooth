@@ -19,7 +19,6 @@ package com.android.server.bluetooth;
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -67,18 +66,6 @@ public class BluetoothModeChangeHelperTest {
         //       Instead, it calls isLeEnabled(). Two results can be different.
         //       Is this a mistake, or in purpose?
         mHelper.isBluetoothOn();
-    }
-
-    @Test
-    public void isAirplaneModeOn() {
-        assertThat(mHelper.isAirplaneModeOn()).isFalse();
-    }
-
-    @Test
-    public void onAirplaneModeChanged() {
-        mHelper.onAirplaneModeChanged(mService);
-
-        verify(mService).onAirplaneModeChanged();
     }
 
     @Test

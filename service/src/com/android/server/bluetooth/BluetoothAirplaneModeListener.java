@@ -23,7 +23,6 @@ import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
@@ -44,7 +43,7 @@ import com.android.internal.annotations.VisibleForTesting;
  *   <li>Bluetooth LE Audio is connected
  * </ul>
  */
-class BluetoothAirplaneModeListener {
+class BluetoothAirplaneModeListener extends Handler {
     private static final String TAG = "BluetoothAirplaneModeListener";
     @VisibleForTesting static final String TOAST_COUNT = "bluetooth_airplane_toast_count";
 
@@ -85,10 +84,11 @@ class BluetoothAirplaneModeListener {
     private long mApmEnabledTime = 0;
 
     private final BluetoothManagerService mBluetoothManager;
-    private final BluetoothAirplaneModeHandler mHandler;
     private final Context mContext;
     private BluetoothModeChangeHelper mAirplaneHelper;
-    private BluetoothNotificationManager mNotificationManager;
+    private final BluetoothNotificationManager mNotificationManager;
+
+    private boolean mIsAirplaneModeOn;
 
     @VisibleForTesting int mToastCount = 0;
 
@@ -97,44 +97,47 @@ class BluetoothAirplaneModeListener {
             Looper looper,
             Context context,
             BluetoothNotificationManager notificationManager) {
+        super(looper);
+
         mBluetoothManager = service;
         mNotificationManager = notificationManager;
         mContext = context;
 
-        mHandler = new BluetoothAirplaneModeHandler(looper);
+        mIsAirplaneModeOn = isGlobalAirplaneModeOn(mContext);
+
         context.getContentResolver()
                 .registerContentObserver(
                         Settings.Global.getUriFor(Settings.Global.AIRPLANE_MODE_ON),
                         true,
-                        mAirplaneModeObserver);
+                        new ContentObserver(this) {
+                            @Override
+                            public void onChange(boolean selfChange) {
+                                // This is called on the looper and doesn't need a lock
+                                boolean isGlobalAirplaneModeOn = isGlobalAirplaneModeOn(mContext);
+                                if (mIsAirplaneModeOn == isGlobalAirplaneModeOn) {
+                                    Log.d(
+                                            TAG,
+                                            "Ignore airplane mode change:"
+                                                    + (" mIsAirplaneModeOn=" + mIsAirplaneModeOn));
+                                    return;
+                                }
+                                mIsAirplaneModeOn = isGlobalAirplaneModeOn;
+                                handleAirplaneModeChange(mIsAirplaneModeOn);
+                            }
+                        });
     }
 
-    private final ContentObserver mAirplaneModeObserver =
-            new ContentObserver(null) {
-                @Override
-                public void onChange(boolean selfChange) {
-                    // Post from system main thread to android_io thread.
-                    Message msg = mHandler.obtainMessage(MSG_AIRPLANE_MODE_CHANGED);
-                    mHandler.sendMessage(msg);
-                }
-            };
+    /** Do not use outside of this class to avoid async issues */
+    private static boolean isGlobalAirplaneModeOn(Context ctx) {
+        return BluetoothServerProxy.getInstance()
+                        .settingsGlobalGetInt(
+                                ctx.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0)
+                == 1;
+    }
 
-    private class BluetoothAirplaneModeHandler extends Handler {
-        BluetoothAirplaneModeHandler(Looper looper) {
-            super(looper);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case MSG_AIRPLANE_MODE_CHANGED:
-                    handleAirplaneModeChange();
-                    break;
-                default:
-                    Log.e(TAG, "Invalid message: " + msg.what);
-                    break;
-            }
-        }
+    /** return true if airplaneMode is currently On */
+    boolean isAirplaneModeOn() {
+        return mIsAirplaneModeOn;
     }
 
     /** Call after boot complete */
@@ -157,18 +160,18 @@ class BluetoothAirplaneModeListener {
 
     @VisibleForTesting
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    void handleAirplaneModeChange() {
+    void handleAirplaneModeChange(boolean isAirplaneModeOn) {
         if (mAirplaneHelper == null) {
             return;
         }
-        if (mAirplaneHelper.isAirplaneModeOn()) {
+        if (isAirplaneModeOn) {
             mApmEnabledTime = SystemClock.elapsedRealtime();
             mIsBluetoothOnBeforeApmToggle = mAirplaneHelper.isBluetoothOn();
             mIsBluetoothOnAfterApmToggle = shouldSkipAirplaneModeChange();
             mIsMediaProfileConnectedBeforeApmToggle = mAirplaneHelper.isMediaProfileConnected();
             if (mIsBluetoothOnAfterApmToggle) {
                 Log.i(TAG, "Ignore airplane mode change");
-                // Airplane mode enabled when Bluetooth is being used for audio/headering aid.
+                // Airplane mode enabled when Bluetooth is being used for audio/hearing aid.
                 // Bluetooth is not disabled in such case, only state is changed to
                 // BLUETOOTH_ON_AIRPLANE mode.
                 mAirplaneHelper.setSettingsInt(
@@ -218,7 +221,7 @@ class BluetoothAirplaneModeListener {
             mUserToggledBluetoothDuringApm = false;
             mUserToggledBluetoothDuringApmWithinMinute = false;
         }
-        mAirplaneHelper.onAirplaneModeChanged(mBluetoothManager);
+        mBluetoothManager.onAirplaneModeChanged(isAirplaneModeOn);
     }
 
     @VisibleForTesting
