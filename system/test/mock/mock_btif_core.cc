@@ -76,10 +76,6 @@ bt_status_t do_in_jni_thread(const base::Location& from_here,
   do_in_jni_thread_task_queue.push(std::move(task));
   return BT_STATUS_SUCCESS;
 }
-btbase::AbstractMessageLoop* get_jni_message_loop() {
-  inc_func_call_count(__func__);
-  return nullptr;
-}
 int btif_is_enabled(void) {
   inc_func_call_count(__func__);
   return 0;
