@@ -118,7 +118,7 @@ class Host(
     private val advertisers = mutableMapOf<UUID, AdvertiseCallback>()
 
     init {
-        scope = CoroutineScope(Dispatchers.Default)
+        scope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
 
         // Add all intent actions to be listened.
         val intentFilter = IntentFilter()
@@ -134,7 +134,7 @@ class Host(
         // This flow is started eagerly to make sure that the broadcast receiver is registered
         // before
         // any function call. This flow is only cancelled when the corresponding scope is cancelled.
-        flow = intentFlow(context, intentFilter).shareIn(scope, SharingStarted.Eagerly)
+        flow = intentFlow(context, intentFilter, scope).shareIn(scope, SharingStarted.Eagerly)
     }
 
     override fun close() {

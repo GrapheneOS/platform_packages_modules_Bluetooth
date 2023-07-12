@@ -44,7 +44,7 @@ class Pbap(val context: Context) : PBAPImplBase(), Closeable {
 
     init {
         // Init the CoroutineScope
-        scope = CoroutineScope(Dispatchers.Default)
+        scope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
         preparePBAPDatabase()
     }
 

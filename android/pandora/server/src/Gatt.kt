@@ -48,7 +48,7 @@ import pandora.GattProto.*
 class Gatt(private val context: Context) : GATTImplBase(), Closeable {
     private val TAG = "PandoraGatt"
 
-    private val mScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val mScope: CoroutineScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
 
     private val mBluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
     private val mBluetoothAdapter = mBluetoothManager.adapter
@@ -60,7 +60,7 @@ class Gatt(private val context: Context) : GATTImplBase(), Closeable {
         val intentFilter = IntentFilter()
         intentFilter.addAction(BluetoothDevice.ACTION_UUID)
 
-        flow = intentFlow(context, intentFilter).shareIn(mScope, SharingStarted.Eagerly)
+        flow = intentFlow(context, intentFilter, mScope).shareIn(mScope, SharingStarted.Eagerly)
     }
 
     override fun close() {

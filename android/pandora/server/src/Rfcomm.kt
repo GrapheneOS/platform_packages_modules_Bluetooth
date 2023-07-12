@@ -43,7 +43,7 @@ class Rfcomm(val context: Context) : RFCOMMImplBase(), Closeable {
 
     private val TAG = "PandoraRfcomm"
 
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
 
     private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
     private val bluetoothAdapter = bluetoothManager.adapter

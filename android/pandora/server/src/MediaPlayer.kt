@@ -42,7 +42,7 @@ class MediaPlayer(val context: Context) : MediaPlayerImplBase(), Closeable {
 
     init {
         // Init the CoroutineScope
-        scope = CoroutineScope(Dispatchers.Default)
+        scope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
         if (!MediaPlayerBrowserService.isInitialized()) {
             context.startService(Intent(context, MediaPlayerBrowserService::class.java))
         }
