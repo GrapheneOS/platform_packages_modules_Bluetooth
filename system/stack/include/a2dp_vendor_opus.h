@@ -39,7 +39,7 @@ class A2dpCodecConfigOpusBase : public A2dpCodecConfig {
       const uint8_t* p_peer_codec_capabilities) override;
 
  private:
-  bool is_source_;  // True if local is Source
+  [[maybe_unused]] bool is_source_;  // True if local is Source
 };
 
 class A2dpCodecConfigOpusSource : public A2dpCodecConfigOpusBase {
