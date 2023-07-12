@@ -204,34 +204,6 @@ pkg_config("pkg_tinyxml2") {
   pkg_deps = [ "tinyxml2" ]
 }
 
-# To use non-standard codecs (i.e. ldac, aac, aptx), set this use flag when
-# building. These codecs may have licensing issues that need to be resolved
-# first.
-if (defined(use.bt_nonstandard_codecs) && use.bt_nonstandard_codecs) {
-  config("external_aac") {
-    configs = [ ":pkg_aac" ]
-  }
-
-  pkg_config("pkg_aac") {
-    pkg_deps = [ "fdk-aac" ]
-  }
-
-  config("external_libldac") {
-    configs = [
-      ":pkg_libldacBT_enc",
-      ":pkg_libldacBT_abr",
-    ]
-  }
-
-  pkg_config("pkg_libldacBT_enc") {
-    pkg_deps = [ "ldacBT-enc" ]
-  }
-
-  pkg_config("pkg_libldacBT_abr") {
-    pkg_deps = [ "ldacBT-abr" ]
-  }
-}
-
 # To include ChroemOS-specific libraries and build dependencies.
 if (target_os == "chromeos") {
   config("external_chromeos") {
