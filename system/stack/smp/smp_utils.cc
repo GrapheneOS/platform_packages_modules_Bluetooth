@@ -37,6 +37,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btm_log_history.h"
+#include "stack/include/smp_status.h"
 #include "stack/include/stack_metrics_logging.h"
 #include "types/raw_address.h"
 
@@ -326,6 +327,9 @@ void smp_log_metrics(const RawAddress& bd_addr, bool is_outgoing,
   uint8_t failure_reason = 0;
   if (raw_cmd == SMP_OPCODE_PAIRING_FAILED && buf_len >= 1) {
     STREAM_TO_UINT8(failure_reason, p_buf);
+  }
+  if (smp_cb.is_pair_cancel) {
+    failure_reason = SMP_USER_CANCELLED; // Tracking pairing cancellations
   }
   uint16_t metric_cmd =
       is_over_br ? SMP_METRIC_COMMAND_BR_FLAG : SMP_METRIC_COMMAND_LE_FLAG;

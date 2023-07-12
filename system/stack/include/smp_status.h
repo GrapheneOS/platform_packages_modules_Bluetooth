@@ -57,6 +57,7 @@ typedef enum : uint8_t {
 
   SMP_CONN_TOUT = (SMP_MAX_FAIL_RSN_PER_SPEC + 0x0B),           /* 0x19 */
   SMP_SIRK_DEVICE_INVALID = (SMP_MAX_FAIL_RSN_PER_SPEC + 0x0C), /* 0x1a */
+  SMP_USER_CANCELLED = (SMP_MAX_FAIL_RSN_PER_SPEC + 0x0D),   /* 0x1b */
 } tSMP_STATUS;
 
 #ifndef CASE_RETURN_TEXT
@@ -91,6 +92,7 @@ inline std::string smp_status_text(const tSMP_STATUS& status) {
     CASE_RETURN_TEXT(SMP_FAIL);
     CASE_RETURN_TEXT(SMP_CONN_TOUT);
     CASE_RETURN_TEXT(SMP_SIRK_DEVICE_INVALID);
+    CASE_RETURN_TEXT(SMP_USER_CANCELLED);
     default:
       return base::StringPrintf("UNKNOWN[%hhu]", status);
   }
