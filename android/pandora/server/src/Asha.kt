@@ -66,10 +66,10 @@ class Asha(val context: Context) : AshaImplBase(), Closeable {
 
     init {
         // Init the CoroutineScope
-        scope = CoroutineScope(Dispatchers.Default)
+        scope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
         val intentFilter = IntentFilter()
         intentFilter.addAction(BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED)
-        flow = intentFlow(context, intentFilter).shareIn(scope, SharingStarted.Eagerly)
+        flow = intentFlow(context, intentFilter, scope).shareIn(scope, SharingStarted.Eagerly)
     }
 
     override fun close() {

@@ -59,12 +59,12 @@ class A2dp(val context: Context) : A2DPImplBase(), Closeable {
     private var audioTrack: AudioTrack? = null
 
     init {
-        scope = CoroutineScope(Dispatchers.Default)
+        scope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
         val intentFilter = IntentFilter()
         intentFilter.addAction(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED)
         intentFilter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)
 
-        flow = intentFlow(context, intentFilter).shareIn(scope, SharingStarted.Eagerly)
+        flow = intentFlow(context, intentFilter, scope).shareIn(scope, SharingStarted.Eagerly)
     }
 
     override fun close() {
