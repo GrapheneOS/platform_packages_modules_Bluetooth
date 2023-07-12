@@ -1212,6 +1212,45 @@ public class HeadsetClientStateMachineTest {
     }
 
     @Test
+    public void testTestDefaultAudioPolicy() {
+        mHeadsetClientStateMachine.setForceSetAudioPolicyProperty(true);
+        initToConnectedState();
+
+        // Check if set default policy when Connecting -> Connected
+        // The testing sys prop is 0. It is ok to check if set audio policy while leaving connecting
+        // state.
+        verify(mNativeInterface, times(1))
+                .sendAndroidAt(mTestDevice, "+ANDROID=SINKAUDIOPOLICY,0,0,0");
+
+        // Check if won't set default policy when AudioOn -> Connected
+        // Transit to AudioOn
+        mHeadsetClientStateMachine.setAudioRouteAllowed(true);
+        StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_AUDIO_STATE_CHANGED);
+        event.valueInt = HeadsetClientHalConstants.AUDIO_STATE_CONNECTED;
+        event.device = mTestDevice;
+        mHeadsetClientStateMachine.sendMessage(
+                mHeadsetClientStateMachine.obtainMessage(StackEvent.STACK_EVENT, event));
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        Assert.assertThat(
+                mHeadsetClientStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(HeadsetClientStateMachine.AudioOn.class));
+
+        // Back to Connected
+        event = new StackEvent(StackEvent.EVENT_TYPE_AUDIO_STATE_CHANGED);
+        event.valueInt = HeadsetClientHalConstants.AUDIO_STATE_DISCONNECTED;
+        event.device = mTestDevice;
+        mHeadsetClientStateMachine.sendMessage(
+                mHeadsetClientStateMachine.obtainMessage(StackEvent.STACK_EVENT, event));
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        Assert.assertThat(
+                mHeadsetClientStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(HeadsetClientStateMachine.Connected.class));
+
+        verify(mNativeInterface, times(1))
+                .sendAndroidAt(mTestDevice, "+ANDROID=SINKAUDIOPOLICY,0,0,0");
+    }
+
+    @Test
     public void testDumpDoesNotCrash() {
         mHeadsetClientStateMachine.dump(new StringBuilder());
     }
