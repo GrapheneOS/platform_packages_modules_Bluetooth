@@ -53,6 +53,7 @@ public class BluetoothAirplaneModeListenerTest {
     private BluetoothAirplaneModeListener mBluetoothAirplaneModeListener;
 
     @Mock private Context mContext;
+    @Mock private BluetoothServerProxy mBluetoothServerProxy;
     @Mock private ContentResolver mContentResolver;
     @Mock private BluetoothManagerService mBluetoothManagerService;
     @Mock private BluetoothModeChangeHelper mHelper;
@@ -68,7 +69,8 @@ public class BluetoothAirplaneModeListenerTest {
                 .thenReturn(BluetoothAirplaneModeListener.MAX_TOAST_COUNT);
         doNothing().when(mHelper).setSettingsInt(anyString(), anyInt());
         doNothing().when(mHelper).showToastMessage();
-        doNothing().when(mHelper).onAirplaneModeChanged(any(BluetoothManagerService.class));
+
+        BluetoothServerProxy.setInstanceForTesting(mBluetoothServerProxy);
 
         mBluetoothAirplaneModeListener = new BluetoothAirplaneModeListener(
                 mBluetoothManagerService, Looper.getMainLooper(), mContext,
@@ -89,7 +91,6 @@ public class BluetoothAirplaneModeListenerTest {
 
     @Test
     public void testIgnoreOnAirplanModeChangeApmEnhancement() {
-        when(mHelper.isAirplaneModeOn()).thenReturn(true);
         when(mHelper.isBluetoothOn()).thenReturn(true);
 
         // When APM enhancement is disabled, BT remains on when connected to a media profile
@@ -142,8 +143,8 @@ public class BluetoothAirplaneModeListenerTest {
 
     @Test
     public void testHandleAirplaneModeChange_InvokeAirplaneModeChanged() {
-        mBluetoothAirplaneModeListener.handleAirplaneModeChange();
-        verify(mHelper).onAirplaneModeChanged(mBluetoothManagerService);
+        mBluetoothAirplaneModeListener.handleAirplaneModeChange(false);
+        verify(mBluetoothManagerService).onAirplaneModeChanged(eq(false));
     }
 
     @Test
@@ -151,13 +152,12 @@ public class BluetoothAirplaneModeListenerTest {
         mBluetoothAirplaneModeListener.mToastCount = BluetoothAirplaneModeListener.MAX_TOAST_COUNT;
         when(mHelper.isBluetoothOn()).thenReturn(true);
         when(mHelper.isMediaProfileConnected()).thenReturn(true);
-        when(mHelper.isAirplaneModeOn()).thenReturn(true);
-        mBluetoothAirplaneModeListener.handleAirplaneModeChange();
+        mBluetoothAirplaneModeListener.handleAirplaneModeChange(true);
 
         verify(mHelper).setSettingsInt(Settings.Global.BLUETOOTH_ON,
                 BluetoothManagerService.BLUETOOTH_ON_AIRPLANE);
         verify(mHelper, times(0)).showToastMessage();
-        verify(mHelper, times(0)).onAirplaneModeChanged(mBluetoothManagerService);
+        verify(mBluetoothManagerService, times(0)).onAirplaneModeChanged(anyBoolean());
     }
 
     @Test
@@ -165,18 +165,16 @@ public class BluetoothAirplaneModeListenerTest {
         mBluetoothAirplaneModeListener.mToastCount = 0;
         when(mHelper.isBluetoothOn()).thenReturn(true);
         when(mHelper.isMediaProfileConnected()).thenReturn(true);
-        when(mHelper.isAirplaneModeOn()).thenReturn(true);
-        mBluetoothAirplaneModeListener.handleAirplaneModeChange();
+        mBluetoothAirplaneModeListener.handleAirplaneModeChange(true);
 
         verify(mHelper).setSettingsInt(Settings.Global.BLUETOOTH_ON,
                 BluetoothManagerService.BLUETOOTH_ON_AIRPLANE);
         verify(mHelper).showToastMessage();
-        verify(mHelper, times(0)).onAirplaneModeChanged(mBluetoothManagerService);
+        verify(mBluetoothManagerService, times(0)).onAirplaneModeChanged(anyBoolean());
     }
 
     private void setUpApmNotificationTests() throws Exception {
         when(mHelper.isBluetoothOn()).thenReturn(true);
-        when(mHelper.isAirplaneModeOn()).thenReturn(true);
         when(mHelper.isBluetoothOnAPM()).thenReturn(true);
         when(mHelper.getSettingsInt(APM_ENHANCEMENT)).thenReturn(1);
         when(mHelper.getSettingsSecureInt(APM_USER_TOGGLED_BLUETOOTH, UNUSED)).thenReturn(USED);
@@ -193,7 +191,7 @@ public class BluetoothAirplaneModeListenerTest {
         when(mHelper.getSettingsSecureInt(APM_WIFI_BT_NOTIFICATION, NOTIFICATION_NOT_SHOWN))
                 .thenReturn(NOTIFICATION_NOT_SHOWN);
 
-        mBluetoothAirplaneModeListener.handleAirplaneModeChange();
+        mBluetoothAirplaneModeListener.handleAirplaneModeChange(true);
 
         verify(mHelper).setSettingsInt(Settings.Global.BLUETOOTH_ON,
                 BluetoothManagerService.BLUETOOTH_ON_AIRPLANE);
@@ -209,7 +207,7 @@ public class BluetoothAirplaneModeListenerTest {
         when(mHelper.getSettingsSecureInt(APM_WIFI_BT_NOTIFICATION, NOTIFICATION_NOT_SHOWN))
                 .thenReturn(NOTIFICATION_SHOWN);
 
-        mBluetoothAirplaneModeListener.handleAirplaneModeChange();
+        mBluetoothAirplaneModeListener.handleAirplaneModeChange(true);
 
         verify(mHelper).setSettingsInt(Settings.Global.BLUETOOTH_ON,
                 BluetoothManagerService.BLUETOOTH_ON_AIRPLANE);
@@ -225,7 +223,7 @@ public class BluetoothAirplaneModeListenerTest {
         when(mHelper.getSettingsSecureInt(APM_BT_NOTIFICATION, NOTIFICATION_NOT_SHOWN))
                 .thenReturn(NOTIFICATION_NOT_SHOWN);
 
-        mBluetoothAirplaneModeListener.handleAirplaneModeChange();
+        mBluetoothAirplaneModeListener.handleAirplaneModeChange(true);
 
         verify(mHelper).setSettingsInt(Settings.Global.BLUETOOTH_ON,
                 BluetoothManagerService.BLUETOOTH_ON_AIRPLANE);
@@ -241,7 +239,7 @@ public class BluetoothAirplaneModeListenerTest {
         when(mHelper.getSettingsSecureInt(APM_BT_NOTIFICATION, NOTIFICATION_NOT_SHOWN))
                 .thenReturn(NOTIFICATION_SHOWN);
 
-        mBluetoothAirplaneModeListener.handleAirplaneModeChange();
+        mBluetoothAirplaneModeListener.handleAirplaneModeChange(true);
 
         verify(mHelper).setSettingsInt(Settings.Global.BLUETOOTH_ON,
                 BluetoothManagerService.BLUETOOTH_ON_AIRPLANE);
@@ -261,5 +259,18 @@ public class BluetoothAirplaneModeListenerTest {
         mBluetoothAirplaneModeListener.mToastCount = BluetoothAirplaneModeListener.MAX_TOAST_COUNT;
         Assert.assertFalse(mBluetoothAirplaneModeListener.shouldPopToast());
         verify(mHelper, times(0)).setSettingsInt(anyString(), anyInt());
+    }
+
+    @Test
+    public void testFastToggle() {
+        boolean expectedIsOn = false;
+        // return true on proxy while calling the method with false in order to simulate the
+        // settings having already changed after the wake-up of the observer and before calling
+        // BluetoothManagerService
+        doReturn(1)
+                .when(mBluetoothServerProxy)
+                .settingsGlobalGetInt(any(), eq(Settings.Global.AIRPLANE_MODE_ON), anyInt());
+        mBluetoothAirplaneModeListener.handleAirplaneModeChange(expectedIsOn);
+        verify(mBluetoothManagerService).onAirplaneModeChanged(eq(expectedIsOn));
     }
 }
