@@ -39,7 +39,7 @@ import pandora.PanProto.*
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Pan(private val context: Context) : PANImplBase(), Closeable {
     private val TAG = "PandoraPan"
-    private val mScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val mScope: CoroutineScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
 
     private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
     private val bluetoothAdapter = bluetoothManager.adapter
