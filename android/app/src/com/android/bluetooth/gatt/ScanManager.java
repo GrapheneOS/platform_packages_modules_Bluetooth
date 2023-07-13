@@ -829,7 +829,7 @@ public class ScanManager {
         }
 
         private boolean downgradeScanModeFromMaxDuty(ScanClient client) {
-            if (mAdapterService.getScanDowngradeDurationMillis() == 0) {
+            if ((client.stats == null) || mAdapterService.getScanDowngradeDurationMillis() == 0) {
                 return false;
             }
             if (ScanSettings.SCAN_MODE_LOW_LATENCY == client.settings.getScanMode()) {
