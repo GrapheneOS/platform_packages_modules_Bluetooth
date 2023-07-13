@@ -46,7 +46,7 @@ using bluetooth::hci::IsoManager;
 /* Define BTU storage area */
 uint8_t btu_trace_level = HCI_INITIAL_TRACE_LEVEL;
 
-static MessageLoopThread main_thread("bt_main_thread", true);
+static MessageLoopThread main_thread("bt_main_thread");
 
 void btu_hci_msg_process(BT_HDR* p_msg) {
   /* Determine the input message type. */
