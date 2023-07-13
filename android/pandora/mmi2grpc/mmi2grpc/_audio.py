@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Audio tools."""
 
 import itertools
@@ -92,16 +91,15 @@ class AudioSignal:
 
         samplerate, data = wavfile.read(OUTPUT_WAV_FILE)
         # Take one second of audio after the first second.
-        audio = data[samplerate:samplerate*2, 0].astype(np.float) / 32767
+        audio = data[samplerate:samplerate * 2, 0].astype(np.float) / 32767
         assert len(audio) == samplerate
 
         spectrum = np.abs(np.fft.fft(audio))
-        frequency = np.fft.fftfreq(samplerate, d=1/samplerate)
-        amplitudes = spectrum / (samplerate/2)
+        frequency = np.fft.fftfreq(samplerate, d=1 / samplerate)
+        amplitudes = spectrum / (samplerate / 2)
         index = np.where(frequency == SINE_FREQUENCY)
         amplitude = amplitudes[index][0]
 
-        match_amplitude = math.isclose(
-            amplitude, self.amplitude, rel_tol=1e-03)
+        match_amplitude = math.isclose(amplitude, self.amplitude, rel_tol=1e-03)
 
         return match_amplitude
