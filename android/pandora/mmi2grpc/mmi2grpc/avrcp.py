@@ -21,8 +21,8 @@ from grpc import RpcError
 from mmi2grpc._audio import AudioSignal
 from mmi2grpc._helpers import assert_description
 from mmi2grpc._proxy import ProfileProxy
-from pandora_experimental.a2dp_grpc import A2DP
-from pandora_experimental.a2dp_pb2 import Sink, Source
+from pandora.a2dp_grpc import A2DP
+from pandora.a2dp_pb2 import Sink, Source
 from pandora_experimental.avrcp_grpc import AVRCP
 from pandora.host_grpc import Host
 from pandora.host_pb2 import Connection
@@ -470,10 +470,9 @@ class AVRCPProxy(ProfileProxy):
         passthrough command, if the current streaming state is not relevant to
         this IUT, please press 'OK to continue.
         """
-        if not self.a2dp.IsSuspended(source=self.source).is_suspended:
-            return "Yes"
-        else:
-            return "No"
+
+        suspended = self.a2dp.IsSuspended(source=self.source).value
+        return "Yes" if not suspended else "No"
 
     @assert_description
     def TSC_AVRCP_mmi_iut_reject_invalid_get_capabilities(self, **kwargs):
