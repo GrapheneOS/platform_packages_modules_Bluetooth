@@ -72,7 +72,6 @@ struct btm_ble_link_encrypted btm_ble_link_encrypted;
 struct btm_ble_link_sec_check btm_ble_link_sec_check;
 struct btm_ble_ltk_request btm_ble_ltk_request;
 struct btm_ble_ltk_request_reply btm_ble_ltk_request_reply;
-struct btm_ble_rand_enc_complete btm_ble_rand_enc_complete;
 struct btm_ble_read_sec_key_size btm_ble_read_sec_key_size;
 struct btm_ble_reset_id btm_ble_reset_id;
 struct btm_ble_set_encryption btm_ble_set_encryption;
@@ -318,12 +317,6 @@ void btm_ble_ltk_request_reply(const RawAddress& bda, bool use_stk,
                                const Octet16& stk) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_ltk_request_reply(bda, use_stk, stk);
-}
-void btm_ble_rand_enc_complete(uint8_t* p,uint16_t evt_len, uint16_t op_code,
-                               tBTM_RAND_ENC_CB* p_enc_cplt_cback) {
-  inc_func_call_count(__func__);
-  test::mock::stack_btm_ble::btm_ble_rand_enc_complete(p, evt_len, op_code,
-                                                       p_enc_cplt_cback);
 }
 uint8_t btm_ble_read_sec_key_size(const RawAddress& bd_addr) {
   inc_func_call_count(__func__);
