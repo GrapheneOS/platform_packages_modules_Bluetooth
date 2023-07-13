@@ -323,7 +323,8 @@ final class RemoteDevices {
         private String mAlias;
         private BluetoothDevice mDevice;
         private boolean mIsBondingInitiatedLocally;
-        private int mBatteryLevel = BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
+        private int mBatteryLevelFromHfp = BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
+        private int mBatteryLevelFromBatteryService = BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
         private boolean mIsCoordinatedSetMember;
         private int mAshaCapability;
         private int mAshaTruncatedHiSyncId;
@@ -613,16 +614,28 @@ final class RemoteDevices {
          */
         int getBatteryLevel() {
             synchronized (mObject) {
-                return mBatteryLevel;
+                if (mBatteryLevelFromBatteryService != BluetoothDevice.BATTERY_LEVEL_UNKNOWN) {
+                    return mBatteryLevelFromBatteryService;
+                }
+                return mBatteryLevelFromHfp;
             }
         }
 
-        /**
-         * @param batteryLevel the mBatteryLevel to set
-         */
-        void setBatteryLevel(int batteryLevel) {
+        void setBatteryLevelFromHfp(int batteryLevel) {
             synchronized (mObject) {
-                this.mBatteryLevel = batteryLevel;
+                if (mBatteryLevelFromHfp == batteryLevel) {
+                    return;
+                }
+                mBatteryLevelFromHfp = batteryLevel;
+            }
+        }
+
+        void setBatteryLevelFromBatteryService(int batteryLevel) {
+            synchronized (mObject) {
+                if (mBatteryLevelFromBatteryService == batteryLevel) {
+                    return;
+                }
+                mBatteryLevelFromBatteryService = batteryLevel;
             }
         }
 
@@ -740,40 +753,53 @@ final class RemoteDevices {
 
     /**
      * Update battery level in device properties
+     *
      * @param device The remote device to be updated
-     * @param batteryLevel Battery level Indicator between 0-100,
-     *                    {@link BluetoothDevice#BATTERY_LEVEL_UNKNOWN} is error
+     * @param batteryLevel Battery level Indicator between 0-100, {@link
+     *     BluetoothDevice#BATTERY_LEVEL_UNKNOWN} is error
+     * @param isBas true if the battery level is from the battery service
      */
     @VisibleForTesting
-    void updateBatteryLevel(BluetoothDevice device, int batteryLevel) {
+    void updateBatteryLevel(BluetoothDevice device, int batteryLevel, boolean isBas) {
         if (device == null || batteryLevel < 0 || batteryLevel > 100) {
-            warnLog("Invalid parameters device=" + String.valueOf(device == null)
-                    + ", batteryLevel=" + String.valueOf(batteryLevel));
+            warnLog(
+                    "Invalid parameters device="
+                            + String.valueOf(device == null)
+                            + ", batteryLevel="
+                            + String.valueOf(batteryLevel));
             return;
         }
         DeviceProperties deviceProperties = getDeviceProperties(device);
         if (deviceProperties == null) {
             deviceProperties = addDeviceProperties(Utils.getByteAddress(device));
         }
-        synchronized (mObject) {
-            int currentBatteryLevel = deviceProperties.getBatteryLevel();
-            if (batteryLevel == currentBatteryLevel) {
-                debugLog("Same battery level for device " + device + " received " + String.valueOf(
-                        batteryLevel) + "%");
-                return;
-            }
-            deviceProperties.setBatteryLevel(batteryLevel);
+        int prevBatteryLevel = deviceProperties.getBatteryLevel();
+        if (isBas) {
+            deviceProperties.setBatteryLevelFromBatteryService(batteryLevel);
+        } else {
+            deviceProperties.setBatteryLevelFromHfp(batteryLevel);
         }
-        sendBatteryLevelChangedBroadcast(device, batteryLevel);
-        Log.d(TAG, "Updated device " + device + " battery level to " + batteryLevel + "%");
+        int newBatteryLevel = deviceProperties.getBatteryLevel();
+        if (prevBatteryLevel == newBatteryLevel) {
+            debugLog(
+                    "Same battery level for device "
+                            + device
+                            + " received "
+                            + String.valueOf(batteryLevel)
+                            + "%");
+            return;
+        }
+        sendBatteryLevelChangedBroadcast(device, newBatteryLevel);
+        Log.d(TAG, "Updated device " + device + " battery level to " + newBatteryLevel + "%");
     }
 
     /**
      * Reset battery level property to {@link BluetoothDevice#BATTERY_LEVEL_UNKNOWN} for a device
+     *
      * @param device device whose battery level property needs to be reset
      */
     @VisibleForTesting
-    void resetBatteryLevel(BluetoothDevice device) {
+    void resetBatteryLevel(BluetoothDevice device, boolean isBas) {
         if (device == null) {
             warnLog("Device is null");
             return;
@@ -782,15 +808,21 @@ final class RemoteDevices {
         if (deviceProperties == null) {
             return;
         }
-        synchronized (mObject) {
-            if (deviceProperties.getBatteryLevel() == BluetoothDevice.BATTERY_LEVEL_UNKNOWN) {
-                debugLog("Battery level was never set or is already reset, device=" + device);
-                return;
-            }
-            deviceProperties.setBatteryLevel(BluetoothDevice.BATTERY_LEVEL_UNKNOWN);
+        int prevBatteryLevel = deviceProperties.getBatteryLevel();
+        if (isBas) {
+            deviceProperties.setBatteryLevelFromBatteryService(
+                    BluetoothDevice.BATTERY_LEVEL_UNKNOWN);
+        } else {
+            deviceProperties.setBatteryLevelFromHfp(BluetoothDevice.BATTERY_LEVEL_UNKNOWN);
         }
-        sendBatteryLevelChangedBroadcast(device, BluetoothDevice.BATTERY_LEVEL_UNKNOWN);
-        Log.d(TAG, "Reset battery level, device=" + device);
+
+        int newBatteryLevel = deviceProperties.getBatteryLevel();
+        if (prevBatteryLevel == newBatteryLevel) {
+            debugLog("Battery level was not changed due to reset, device=" + device);
+            return;
+        }
+        sendBatteryLevelChangedBroadcast(device, newBatteryLevel);
+        Log.d(TAG, "Updated device " + device + " battery level to " + newBatteryLevel + "%");
     }
 
     private void sendBatteryLevelChangedBroadcast(BluetoothDevice device, int batteryLevel) {
@@ -1151,7 +1183,7 @@ final class RemoteDevices {
                         && transportLinkType == BluetoothDevice.TRANSPORT_LE) {
                     batteryService.disconnect(device);
                 }
-                resetBatteryLevel(device);
+                resetBatteryLevel(device, /*isBas=*/ true);
             }
 
             if (mAdapterService.isAllProfilesUnknown(device)) {
@@ -1270,7 +1302,7 @@ final class RemoteDevices {
         if (intent.getIntExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED)
                 == BluetoothProfile.STATE_DISCONNECTED
                 && !hasBatteryService(device)) {
-            resetBatteryLevel(device);
+            resetBatteryLevel(device, /*isBas=*/ false);
         }
     }
 
@@ -1284,7 +1316,7 @@ final class RemoteDevices {
         int indicatorId = intent.getIntExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_ID, -1);
         int indicatorValue = intent.getIntExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_VALUE, -1);
         if (indicatorId == HeadsetHalConstants.HF_INDICATOR_BATTERY_LEVEL_STATUS) {
-            updateBatteryLevel(device, indicatorValue);
+            updateBatteryLevel(device, indicatorValue, /*isBas=*/ false);
         }
     }
 
@@ -1329,7 +1361,7 @@ final class RemoteDevices {
                 break;
         }
         if (batteryPercent != BluetoothDevice.BATTERY_LEVEL_UNKNOWN) {
-            updateBatteryLevel(device, batteryPercent);
+            updateBatteryLevel(device, batteryPercent, /*isBas=*/ false);
             infoLog("Updated device " + device + " battery level to " + String.valueOf(
                     batteryPercent) + "%");
         }
@@ -1453,7 +1485,7 @@ final class RemoteDevices {
         if (intent.getIntExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED)
                 == BluetoothProfile.STATE_DISCONNECTED
                 && !hasBatteryService(device)) {
-            resetBatteryLevel(device);
+            resetBatteryLevel(device, /*isBas=*/ false);
         }
     }
 
@@ -1467,7 +1499,8 @@ final class RemoteDevices {
 
         if (intent.hasExtra(BluetoothHeadsetClient.EXTRA_BATTERY_LEVEL)) {
             int batteryLevel = intent.getIntExtra(BluetoothHeadsetClient.EXTRA_BATTERY_LEVEL, -1);
-            updateBatteryLevel(device, batteryChargeIndicatorToPercentge(batteryLevel));
+            updateBatteryLevel(
+                    device, batteryChargeIndicatorToPercentge(batteryLevel), /*isBas=*/ false);
         }
     }
 
