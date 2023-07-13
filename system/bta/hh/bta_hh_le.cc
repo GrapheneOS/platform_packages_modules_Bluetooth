@@ -76,7 +76,7 @@ static const uint16_t bta_hh_uuid_to_rtp_type[BTA_LE_HID_RTP_UUID_MAX][2] = {
     {GATT_UUID_BATTERY_LEVEL, BTA_HH_RPTT_INPUT}};
 
 static void bta_hh_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data);
-static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB* p_cb, bool check_bond);
+static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB* p_cb);
 static void bta_hh_process_cache_rpt(tBTA_HH_DEV_CB* p_cb,
                                      tBTA_HH_RPT_CACHE_ENTRY* p_rpt_cache,
                                      uint8_t num_rpt);
@@ -628,7 +628,7 @@ static void bta_hh_le_open_cmpl(tBTA_HH_DEV_CB* p_cb) {
     bta_hh_sm_execute(p_cb, BTA_HH_OPEN_CMPL_EVT, NULL);
 
     if (kBTA_HH_LE_RECONN && p_cb->status == BTA_HH_OK) {
-      bta_hh_le_add_dev_bg_conn(p_cb, true);
+      bta_hh_le_add_dev_bg_conn(p_cb);
     }
   }
 }
@@ -1638,8 +1638,7 @@ void bta_hh_le_open_fail(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
     LOG_DEBUG("gd_acl: Re-adding HID device to acceptlist");
     // gd removes from bg list after failed connection
     // Correct the cached state to allow re-add to acceptlist.
-    p_cb->in_bg_conn = false;
-    bta_hh_le_add_dev_bg_conn(p_cb, false);
+    bta_hh_le_add_dev_bg_conn(p_cb);
   }
 
   p_cb->disc_active = BTA_HH_LE_DISC_NONE;
@@ -1704,8 +1703,7 @@ void bta_hh_gatt_close(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
             gatt_disconnection_reason_text(le_close->reason).c_str());
         // gd removes from bg list after successful connection
         // Correct the cached state to allow re-add to acceptlist.
-        p_cb->in_bg_conn = false;
-        bta_hh_le_add_dev_bg_conn(p_cb, false);
+        bta_hh_le_add_dev_bg_conn(p_cb);
         break;
 
       case BTA_GATT_CONN_NONE:
@@ -2016,26 +2014,11 @@ void bta_hh_le_get_dscp_act(tBTA_HH_DEV_CB* p_cb) {
  * Returns          void
  *
  ******************************************************************************/
-static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB* p_cb, bool check_bond) {
-  bool to_add = true;
-
-  if (check_bond) {
-    /* start reconnection if remote is a bonded device */
-    if (!BTM_IsLinkKeyKnown(p_cb->addr, BT_TRANSPORT_LE)) to_add = false;
-  }
-
-  if (!p_cb->in_bg_conn && to_add) {
-    /* add device into BG connection to accept remote initiated connection */
-    BTA_GATTC_Open(bta_hh_cb.gatt_if, p_cb->addr,
-                   BTM_BLE_BKG_CONNECT_ALLOW_LIST, false);
-    p_cb->in_bg_conn = true;
-  } else {
-    // Let the lower layers manage acceptlist and do not cache
-    // at the higher layer
-    p_cb->in_bg_conn = true;
-    BTA_GATTC_Open(bta_hh_cb.gatt_if, p_cb->addr,
-                   BTM_BLE_BKG_CONNECT_ALLOW_LIST, false);
-  }
+static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB* p_cb) {
+  /* Add device into BG connection to accept remote initiated connection */
+  BTA_GATTC_Open(bta_hh_cb.gatt_if, p_cb->addr,
+                 BTM_BLE_BKG_CONNECT_ALLOW_LIST, false);
+  p_cb->in_bg_conn = true;
 }
 
 /*******************************************************************************
@@ -2068,7 +2051,7 @@ uint8_t bta_hh_le_add_device(tBTA_HH_DEV_CB* p_cb,
       p_dev_info->dscp_info.ssr_max_latency, p_dev_info->dscp_info.ssr_min_tout,
       p_dev_info->app_id);
 
-  bta_hh_le_add_dev_bg_conn(p_cb, false);
+  bta_hh_le_add_dev_bg_conn(p_cb);
 
   return p_cb->hid_handle;
 }
