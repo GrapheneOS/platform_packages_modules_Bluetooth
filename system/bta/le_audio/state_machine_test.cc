@@ -837,7 +837,7 @@ class StateMachineTest : public Test {
     /* Stimulate update of available context map */
     auto types_set = update_contexts.any() ? context_type | update_contexts
                                            : types::AudioContexts(context_type);
-    group->UpdateAudioContextTypeAvailability(types_set);
+    group->UpdateAudioSetConfigurationCache(types_set);
 
     ASSERT_NE(group, nullptr);
     ASSERT_EQ(group->Size(), total_devices);
@@ -3075,7 +3075,7 @@ TEST_F(StateMachineTest, testConfigureDataPathForHost) {
 
   /* Should be called 3 times because
    * 1 - calling GetConfigurations just after connection
-   * (UpdateAudioContextTypeAvailability)
+   * (UpdateAudioSetConfigurationCache)
    * 2 - when doing configuration of the context type
    * 3 - AddCisToStreamConfiguration -> CreateStreamVectorForOffloader
    * 4 - Data Path
@@ -3116,7 +3116,7 @@ TEST_F(StateMachineTest, testConfigureDataPathForAdsp) {
 
   /* Should be called 3 times because
    * 1 - calling GetConfigurations just after connection
-   * (UpdateAudioContextTypeAvailability)
+   * (UpdateAudioSetConfigurationCache)
    * 2 - when doing configuration of the context type
    * 3 - AddCisToStreamConfiguration -> CreateStreamVectorForOffloader
    * 4 - data path
@@ -3163,7 +3163,7 @@ TEST_F(StateMachineTest, testStreamConfigurationAdspDownMix) {
 
   /* Should be called 5 times because
    * 1 - calling GetConfigurations just after connection
-   * (UpdateAudioContextTypeAvailability),
+   * (UpdateAudioSetConfigurationCache),
    * 2 - when doing configuration of the context type
    * 3 - AddCisToStreamConfiguration -> CreateStreamVectorForOffloader (sink)
    * 4 - AddCisToStreamConfiguration -> CreateStreamVectorForOffloader (source)
@@ -3318,7 +3318,7 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
   lastDevice->conn_id_ = 3;
   lastDevice->SetConnectionState(DeviceConnectState::CONNECTED);
 
-  group->UpdateAudioContextTypeAvailability();
+  group->UpdateAudioSetConfigurationCache();
 
   // Make sure ASE with disconnected CIS are not left in STREAMING
   ASSERT_EQ(lastDevice->GetFirstAseWithState(
@@ -3411,7 +3411,7 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStreamDoNotAttach) {
   lastDevice->conn_id_ = 3;
   lastDevice->SetConnectionState(DeviceConnectState::CONNECTED);
 
-  group->UpdateAudioContextTypeAvailability();
+  group->UpdateAudioSetConfigurationCache();
 
   EXPECT_CALL(
       mock_callbacks_,
@@ -3491,7 +3491,7 @@ TEST_F(StateMachineTest, testReconfigureAfterLateDeviceAttached) {
   lastDevice->conn_id_ = 3;
   lastDevice->SetConnectionState(DeviceConnectState::CONNECTED);
 
-  group->UpdateAudioContextTypeAvailability();
+  group->UpdateAudioSetConfigurationCache();
 
   /* Start stream, make sure 2 devices are started. */
 
@@ -3544,7 +3544,7 @@ TEST_F(StateMachineTest, testStreamToGettingReadyDevice) {
   auto* secondDevice = group->GetNextDevice(firstDevice);
   secondDevice->SetConnectionState(
       DeviceConnectState::CONNECTED_BY_USER_GETTING_READY);
-  group->UpdateAudioContextTypeAvailability();
+  group->UpdateAudioSetConfigurationCache();
 
   ASSERT_EQ(group->Size(), num_devices);
   ASSERT_EQ(1, group->NumOfConnected());
@@ -3655,7 +3655,7 @@ TEST_F(StateMachineTest, testAttachDeviceToTheConversationalStream) {
   lastDevice->conn_id_ = 3;
   lastDevice->SetConnectionState(DeviceConnectState::CONNECTED);
 
-  group->UpdateAudioContextTypeAvailability();
+  group->UpdateAudioSetConfigurationCache();
 
   // Make sure ASE with disconnected CIS are not left in STREAMING
   ASSERT_EQ(lastDevice->GetFirstAseWithState(
@@ -4403,7 +4403,7 @@ TEST_F(StateMachineTest, StreamReconfigureAfterCisLostTwoDevices) {
 
   group->ReloadAudioLocations();
   group->ReloadAudioDirections();
-  group->UpdateAudioContextTypeAvailability();
+  group->UpdateAudioSetConfigurationCache();
 
   // Start conversational scenario
   leAudioDevice = group->GetFirstDevice();
@@ -4418,8 +4418,8 @@ TEST_F(StateMachineTest, StreamReconfigureAfterCisLostTwoDevices) {
 
   group->ReloadAudioLocations();
   group->ReloadAudioDirections();
-  group->UpdateAudioContextTypeAvailability(kContextTypeConversational |
-                                            kContextTypeMedia);
+  group->UpdateAudioSetConfigurationCache(kContextTypeConversational |
+                                          kContextTypeMedia);
 
   leAudioDevice = group->GetFirstDevice();
   expected_devices_written = 0;
@@ -4678,7 +4678,7 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStreamCisFailure) {
   lastDevice->conn_id_ = 3;
   lastDevice->SetConnectionState(DeviceConnectState::CONNECTED);
 
-  group->UpdateAudioContextTypeAvailability();
+  group->UpdateAudioSetConfigurationCache();
 
   // Make sure ASE with disconnected CIS are not left in STREAMING
   ASSERT_EQ(lastDevice->GetFirstAseWithState(
