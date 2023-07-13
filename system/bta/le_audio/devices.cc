@@ -51,7 +51,6 @@ using le_audio::types::AseState;
 using le_audio::types::AudioContexts;
 using le_audio::types::AudioLocations;
 using le_audio::types::AudioStreamDataPathState;
-using le_audio::types::BidirectAsesPair;
 using le_audio::types::BidirectionalPair;
 using le_audio::types::CisType;
 using le_audio::types::LeAudioCodecId;
@@ -267,6 +266,17 @@ bool LeAudioDeviceGroup::Activate(LeAudioContextType context_type) {
   return is_activate;
 }
 
+AudioContexts LeAudioDeviceGroup::GetSupportedContexts(int direction) const {
+  AudioContexts context;
+  for (auto& device : leAudioDevices_) {
+    auto shared_dev = device.lock();
+    if (shared_dev) {
+      context |= shared_dev->GetSupportedContexts(direction);
+    }
+  }
+  return context;
+}
+
 LeAudioDevice* LeAudioDeviceGroup::GetFirstDevice(void) const {
   auto iter = std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(),
                            [](auto& iter) { return !iter.expired(); });
@@ -276,7 +286,7 @@ LeAudioDevice* LeAudioDeviceGroup::GetFirstDevice(void) const {
   return (iter->lock()).get();
 }
 
-LeAudioDevice* LeAudioDeviceGroup::GetFirstDeviceWithActiveContext(
+LeAudioDevice* LeAudioDeviceGroup::GetFirstDeviceWithAvailableContext(
     types::LeAudioContextType context_type) const {
   auto iter = std::find_if(
       leAudioDevices_.begin(), leAudioDevices_.end(),
@@ -312,7 +322,7 @@ LeAudioDevice* LeAudioDeviceGroup::GetNextDevice(
   return (iter->lock()).get();
 }
 
-LeAudioDevice* LeAudioDeviceGroup::GetNextDeviceWithActiveContext(
+LeAudioDevice* LeAudioDeviceGroup::GetNextDeviceWithAvailableContext(
     LeAudioDevice* leAudioDevice,
     types::LeAudioContextType context_type) const {
   auto iter = std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(),
@@ -786,9 +796,13 @@ uint16_t LeAudioDeviceGroup::GetRemoteDelay(uint8_t direction) const {
 }
 
 bool LeAudioDeviceGroup::UpdateAudioSetConfigurationCache(void) {
-  LOG_DEBUG(" group id: %d, available contexts: %s", group_id_,
-            group_available_contexts_.to_string().c_str());
-  return UpdateAudioSetConfigurationCache(group_available_contexts_);
+  LOG_DEBUG(
+      " group id: %d, available contexts sink: %s, available contexts source: "
+      "%s",
+      group_id_, group_available_contexts_.sink.to_string().c_str(),
+      group_available_contexts_.source.to_string().c_str());
+  return UpdateAudioSetConfigurationCache(
+      get_bidirectional(group_available_contexts_));
 }
 
 /* Returns true if support for any type in the whole group has changed,
@@ -864,7 +878,8 @@ bool LeAudioDeviceGroup::UpdateAudioSetConfigurationCache(
 
   /* Some contexts have changed, return new available context bitset */
   if (active_contexts_has_been_modified) {
-    SetAvailableContexts(new_contexts);
+    // TODO: Set the correct directional context availability
+    SetAvailableContexts({new_contexts, new_contexts});
   }
 
   return active_contexts_has_been_modified;
@@ -1354,9 +1369,9 @@ bool LeAudioDeviceGroup::IsAudioSetConfigurationSupported(
       return false;
     }
 
-    for (auto* device = GetFirstDeviceWithActiveContext(context_type);
+    for (auto* device = GetFirstDeviceWithAvailableContext(context_type);
          device != nullptr && required_device_cnt > 0;
-         device = GetNextDeviceWithActiveContext(device, context_type)) {
+         device = GetNextDeviceWithAvailableContext(device, context_type)) {
       /* Skip if device has ASE configured in this direction already */
 
       if (device->ases_.empty()) continue;
@@ -1708,9 +1723,9 @@ bool LeAudioDeviceGroup::ConfigureAses(
         required_device_cnt, ent.ase_cnt, max_required_ase_per_dev,
         (int)strategy);
 
-    for (auto* device = GetFirstDeviceWithActiveContext(context_type);
+    for (auto* device = GetFirstDeviceWithAvailableContext(context_type);
          device != nullptr && required_device_cnt > 0;
-         device = GetNextDeviceWithActiveContext(device, context_type)) {
+         device = GetNextDeviceWithAvailableContext(device, context_type)) {
       /* For the moment, we configure only connected devices and when it is
        * ready to stream i.e. All ASEs are discovered and device is reported as
        * connected
@@ -2241,6 +2256,8 @@ void LeAudioDeviceGroup::PrintDebugState(void) const {
             << ", target state: "
             << bluetooth::common::ToString(GetTargetState())
             << ", cig state: " << bluetooth::common::ToString(cig_state_)
+            << ", \n group supported contexts: "
+            << bluetooth::common::ToString(GetSupportedContexts())
             << ", \n group available contexts: "
             << bluetooth::common::ToString(GetAvailableContexts())
             << ", \n configuration context type: "
@@ -2297,6 +2314,7 @@ void LeAudioDeviceGroup::Dump(int fd, int active_group_id) const {
          << "      state: " << GetState()
          << ",\ttarget state: " << GetTargetState()
          << ",\tcig state: " << cig_state_ << "\n"
+         << "      group supported contexts: " << GetSupportedContexts() << "\n"
          << "      group available contexts: " << GetAvailableContexts() << "\n"
          << "      configuration context type: "
          << bluetooth::common::ToString(GetConfigurationContextType()).c_str()
@@ -2555,8 +2573,9 @@ struct ase* LeAudioDevice::GetAseToMatchBidirectionCis(struct ase* base_ase) {
   return (iter == ases_.end()) ? nullptr : &(*iter);
 }
 
-BidirectAsesPair LeAudioDevice::GetAsesByCisConnHdl(uint16_t conn_hdl) {
-  BidirectAsesPair ases = {nullptr, nullptr};
+BidirectionalPair<struct ase*> LeAudioDevice::GetAsesByCisConnHdl(
+    uint16_t conn_hdl) {
+  BidirectionalPair<struct ase*> ases = {nullptr, nullptr};
 
   for (auto& ase : ases_) {
     if (ase.cis_conn_hdl == conn_hdl) {
@@ -2571,8 +2590,8 @@ BidirectAsesPair LeAudioDevice::GetAsesByCisConnHdl(uint16_t conn_hdl) {
   return ases;
 }
 
-BidirectAsesPair LeAudioDevice::GetAsesByCisId(uint8_t cis_id) {
-  BidirectAsesPair ases = {nullptr, nullptr};
+BidirectionalPair<struct ase*> LeAudioDevice::GetAsesByCisId(uint8_t cis_id) {
+  BidirectionalPair<struct ase*> ases = {nullptr, nullptr};
 
   for (auto& ase : ases_) {
     if (ase.cis_id == cis_id) {
@@ -2791,12 +2810,6 @@ uint8_t LeAudioDevice::GetPhyBitmask(void) {
   return phy_bitfield;
 }
 
-void LeAudioDevice::SetSupportedContexts(AudioContexts snk_contexts,
-                                         AudioContexts src_contexts) {
-  supp_contexts_.sink = snk_contexts;
-  supp_contexts_.source = src_contexts;
-}
-
 void LeAudioDevice::PrintDebugState(void) {
   std::stringstream debug_str;
 
@@ -2922,23 +2935,23 @@ void LeAudioDevice::DisconnectAcl(void) {
 }
 
 /* Returns XOR of updated sink and source bitset context types */
-AudioContexts LeAudioDevice::SetAvailableContexts(AudioContexts snk_contexts,
-                                                  AudioContexts src_contexts) {
+AudioContexts LeAudioDevice::SetAvailableContexts(
+    types::BidirectionalPair<types::AudioContexts> contexts) {
   AudioContexts updated_contexts;
 
-  updated_contexts = snk_contexts ^ avail_contexts_.sink;
-  updated_contexts |= src_contexts ^ avail_contexts_.source;
+  updated_contexts = contexts.sink ^ avail_contexts_.sink;
+  updated_contexts |= contexts.source ^ avail_contexts_.source;
 
   LOG_DEBUG(
       "\n\t avail_contexts_.sink: %s \n\t avail_contexts_.source: %s  \n\t "
-      "snk_contexts: %s \n\t src_contexts: %s \n\t updated_contexts: %s",
+      "contexts.sink: %s \n\t contexts.source: %s \n\t updated_contexts: %s",
       avail_contexts_.sink.to_string().c_str(),
       avail_contexts_.source.to_string().c_str(),
-      snk_contexts.to_string().c_str(), src_contexts.to_string().c_str(),
+      contexts.sink.to_string().c_str(), contexts.source.to_string().c_str(),
       updated_contexts.to_string().c_str());
 
-  avail_contexts_.sink = snk_contexts;
-  avail_contexts_.source = src_contexts;
+  avail_contexts_.sink = contexts.sink;
+  avail_contexts_.source = contexts.source;
 
   return updated_contexts;
 }
@@ -3152,7 +3165,7 @@ LeAudioDevice* LeAudioDevices::FindByCisConnHdl(uint8_t cig_id,
   auto iter = std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(),
                            [&conn_hdl, &cig_id](auto& d) {
                              LeAudioDevice* dev;
-                             BidirectAsesPair ases;
+                             BidirectionalPair<struct ase*> ases;
 
                              dev = d.get();
                              if (dev->group_id_ != cig_id) {

@@ -155,8 +155,9 @@ class LeAudioDevice {
                                           types::AseState state);
   struct types::ase* GetNextActiveAse(struct types::ase* ase);
   struct types::ase* GetAseToMatchBidirectionCis(struct types::ase* ase);
-  types::BidirectAsesPair GetAsesByCisConnHdl(uint16_t conn_hdl);
-  types::BidirectAsesPair GetAsesByCisId(uint8_t cis_id);
+  types::BidirectionalPair<struct types::ase*> GetAsesByCisConnHdl(
+      uint16_t conn_hdl);
+  types::BidirectionalPair<struct types::ase*> GetAsesByCisId(uint8_t cis_id);
   bool HaveActiveAse(void);
   bool HaveAllActiveAsesSameState(types::AseState state);
   bool HaveAnyUnconfiguredAses(void);
@@ -181,15 +182,25 @@ class LeAudioDevice {
           metadata_context_types,
       const types::BidirectionalPair<std::vector<uint8_t>>& ccid_lists,
       bool reuse_cis_id);
-  void SetSupportedContexts(types::AudioContexts snk_contexts,
-                            types::AudioContexts src_contexts);
+
+  inline types::AudioContexts GetSupportedContexts(
+      int direction = (types::kLeAudioDirectionSink |
+                       types::kLeAudioDirectionSource)) const {
+    return supp_contexts_.get(direction);
+  }
+  inline void SetSupportedContexts(
+      types::BidirectionalPair<types::AudioContexts> contexts) {
+    supp_contexts_ = contexts;
+  }
+
   inline types::AudioContexts GetAvailableContexts(
       int direction = (types::kLeAudioDirectionSink |
-                       types::kLeAudioDirectionSource)) {
+                       types::kLeAudioDirectionSource)) const {
     return avail_contexts_.get(direction);
   }
-  types::AudioContexts SetAvailableContexts(types::AudioContexts snk_cont_val,
-                                            types::AudioContexts src_cont_val);
+  types::AudioContexts SetAvailableContexts(
+      types::BidirectionalPair<types::AudioContexts> cont_val);
+
   void DeactivateAllAses(void);
   bool ActivateConfiguredAses(types::LeAudioContextType context_type);
 
@@ -273,7 +284,11 @@ class LeAudioDeviceGroup {
                                     types::LeAudioContextType::UNINITIALIZED),
                                 .source = types::AudioContexts(
                                     types::LeAudioContextType::UNINITIALIZED)}),
-        group_available_contexts_(types::LeAudioContextType::UNINITIALIZED),
+        group_available_contexts_(
+            {.sink =
+                 types::AudioContexts(types::LeAudioContextType::UNINITIALIZED),
+             .source = types::AudioContexts(
+                 types::LeAudioContextType::UNINITIALIZED)}),
         pending_group_available_contexts_change_(
             types::LeAudioContextType::UNINITIALIZED),
         target_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
@@ -309,13 +324,13 @@ class LeAudioDeviceGroup {
   void ClearSourcesFromConfiguration(void);
   void Cleanup(void);
   LeAudioDevice* GetFirstDevice(void) const;
-  LeAudioDevice* GetFirstDeviceWithActiveContext(
+  LeAudioDevice* GetFirstDeviceWithAvailableContext(
       types::LeAudioContextType context_type) const;
   le_audio::types::LeAudioConfigurationStrategy GetGroupStrategy(
       int expected_group_size) const;
   int GetAseCount(uint8_t direction) const;
   LeAudioDevice* GetNextDevice(LeAudioDevice* leAudioDevice) const;
-  LeAudioDevice* GetNextDeviceWithActiveContext(
+  LeAudioDevice* GetNextDeviceWithAvailableContext(
       LeAudioDevice* leAudioDevice,
       types::LeAudioContextType context_type) const;
   LeAudioDevice* GetFirstActiveDevice(void) const;
@@ -440,13 +455,20 @@ class LeAudioDeviceGroup {
     return metadata_context_type_;
   }
 
-  inline void SetAvailableContexts(types::AudioContexts new_contexts) {
+  inline void SetAvailableContexts(
+      types::BidirectionalPair<types::AudioContexts> new_contexts) {
     group_available_contexts_ = new_contexts;
   }
 
-  inline types::AudioContexts GetAvailableContexts(void) const {
-    return group_available_contexts_;
+  inline types::AudioContexts GetAvailableContexts(
+      int direction = (types::kLeAudioDirectionSink |
+                       types::kLeAudioDirectionSource)) const {
+    return group_available_contexts_.get(direction);
   }
+
+  types::AudioContexts GetSupportedContexts(
+      int direction = (types::kLeAudioDirectionSink |
+                       types::kLeAudioDirectionSource)) const;
 
   bool IsInTransition(void) const;
   bool IsStreaming(void) const;
@@ -482,7 +504,7 @@ class LeAudioDeviceGroup {
    * It's being updated each time group members connect, disconnect or their
    * individual available audio contexts are changed.
    */
-  types::AudioContexts group_available_contexts_;
+  types::BidirectionalPair<types::AudioContexts> group_available_contexts_;
 
   /* A temporary mask for bits which were either added or removed when the
    * group available context type changes. It usually means we should refresh

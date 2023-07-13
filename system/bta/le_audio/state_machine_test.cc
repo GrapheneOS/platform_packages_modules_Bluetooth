@@ -824,8 +824,10 @@ class StateMachineTest : public Test {
               ::le_audio::codec_spec_conf::kLeAudioLocationFrontRight;
         }
 
-        leAudioDevice->SetSupportedContexts(snk_context_type, src_context_type);
-        leAudioDevice->SetAvailableContexts(snk_context_type, src_context_type);
+        leAudioDevice->SetSupportedContexts(
+            {.sink = snk_context_type, .source = src_context_type});
+        leAudioDevice->SetAvailableContexts(
+            {.sink = snk_context_type, .source = src_context_type});
       }
 
       group = GroupTheDevice(leaudio_group_id, std::move(leAudioDevice));
