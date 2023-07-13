@@ -22,8 +22,8 @@ from mmi2grpc._audio import AudioSignal
 from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
 from mmi2grpc._rootcanal import RootCanal
-from pandora_experimental.a2dp_grpc import A2DP
-from pandora_experimental.a2dp_pb2 import Sink, Source, PlaybackAudioRequest
+from pandora.a2dp_grpc import A2DP
+from pandora.a2dp_pb2 import Sink, Source, PlaybackAudioRequest
 from pandora.host_grpc import Host
 from pandora.host_pb2 import Connection
 
