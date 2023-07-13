@@ -42,8 +42,10 @@ class HOGPProxy(ProfileProxy):
 
         self.connection = self.host.ConnectLE(own_address_type=RANDOM, public=pts_addr).connection
         self.pairing_stream = self.security.OnPairing()
+
         def secure():
             self.security.Secure(connection=self.connection, le=LE_LEVEL3)
+
         threading.Thread(target=secure).start()
 
         return "OK"

@@ -134,8 +134,7 @@ class GAPProxy(ProfileProxy):
             if self.counter == 0:
                 self.counter += 1
                 self.security_storage.DeleteBond(public=pts_addr)
-                self.connection = self.host.ConnectLE(own_address_type=RANDOM,
-                                                      public=pts_addr).connection
+                self.connection = self.host.ConnectLE(own_address_type=RANDOM, public=pts_addr).connection
                 self.security.Secure(connection=self.connection, le=LE_LEVEL3)
                 return "OK"
 
@@ -257,8 +256,7 @@ class GAPProxy(ProfileProxy):
         Please prepare IUT to send an advertising report with TX Power Level.
         """
 
-        self.advertise = self.host.Advertise(own_address_type=PUBLIC,
-                                             data=DataTypes(include_tx_power_level=True,))
+        self.advertise = self.host.Advertise(own_address_type=PUBLIC, data=DataTypes(include_tx_power_level=True,))
 
         return "OK"
 
@@ -457,8 +455,7 @@ class GAPProxy(ProfileProxy):
 
         for response in self.scan_responses:
             assert response.HasField("public")
-            if (response.public == pts_addr and
-                    response.data.le_discoverability_mode == DISCOVERABLE_LIMITED):
+            if (response.public == pts_addr and response.data.le_discoverability_mode == DISCOVERABLE_LIMITED):
                 self.scan_responses.cancel()
                 return "OK"
 
@@ -476,8 +473,7 @@ class GAPProxy(ProfileProxy):
             nonlocal discovered
             for response in self.scan_responses:
                 assert response.HasField("public")
-                if (response.public == pts_addr and
-                        response.data.le_discoverability_mode == DISCOVERABLE_GENERAL):
+                if (response.public == pts_addr and response.data.le_discoverability_mode == DISCOVERABLE_GENERAL):
                     self.scan_responses.cancel()
                     discovered = True
                     return
@@ -503,8 +499,7 @@ class GAPProxy(ProfileProxy):
             nonlocal discovered
             for response in self.scan_responses:
                 assert response.HasField("public")
-                if (response.public == pts_addr and
-                        response.data.le_discoverability_mode == DISCOVERABLE_LIMITED):
+                if (response.public == pts_addr and response.data.le_discoverability_mode == DISCOVERABLE_LIMITED):
                     self.inquiry_responses.cancel()
                     discovered = True
                     return
