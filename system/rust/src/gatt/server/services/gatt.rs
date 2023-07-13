@@ -94,7 +94,7 @@ impl GattDatastore for GattService {
                 })?;
             let mut clients = self.clients.borrow_mut();
             let state = clients.get_mut(&tcb_idx);
-            let Some(mut state) = state else {
+            let Some(state) = state else {
                 error!("Received write request from disconnected client...");
                 return Err(AttErrorCode::UNLIKELY_ERROR);
             };
