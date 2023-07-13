@@ -137,7 +137,8 @@ class LeAudioClientCallbacksImpl : public LeAudioClientCallbacks {
 
   void OnConnectionState(ConnectionState state,
                          const RawAddress& bd_addr) override {
-    LOG(INFO) << __func__ << ", state:" << int(state);
+    LOG(INFO) << __func__ << ", state:" << int(state)
+              << ", addr: " << bd_addr.ToRedactedStringForLogging();
 
     std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
     CallbackEnv sCallbackEnv(__func__);
