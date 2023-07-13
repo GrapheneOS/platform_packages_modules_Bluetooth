@@ -76,6 +76,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 /**
  * Test cases for {@link ScanManager}.
@@ -104,7 +105,7 @@ public class ScanManagerTest {
     @Mock private AdapterService mAdapterService;
     @Mock private BluetoothAdapterProxy mBluetoothAdapterProxy;
     @Mock private LocationManager mLocationManager;
-    @Mock private GattObjectsFactory mFactory;
+    @Spy private GattObjectsFactory mFactory = GattObjectsFactory.getInstance();
     @Mock private GattNativeInterface mNativeInterface;
     @Mock private ScanNativeInterface mScanNativeInterface;
     @Mock private MetricsLogger  mMetricsLogger;
