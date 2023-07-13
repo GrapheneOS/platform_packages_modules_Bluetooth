@@ -610,7 +610,7 @@ class LeAudioAseConfigurationTest : public Test {
         .source = AudioContexts(context_type)};
 
     /* Stimulate update of available context map */
-    group_->UpdateAudioContextTypeAvailability(AudioContexts(context_type));
+    group_->UpdateAudioSetConfigurationCache(AudioContexts(context_type));
     ASSERT_EQ(success_expected,
               group_->Configure(context_type, group_audio_locations));
 
@@ -701,7 +701,7 @@ class LeAudioAseConfigurationTest : public Test {
           .source = AudioContexts(context_type)};
 
       /* Stimulate update of available context map */
-      group_->UpdateAudioContextTypeAvailability(AudioContexts(context_type));
+      group_->UpdateAudioSetConfigurationCache(AudioContexts(context_type));
       auto configuration_result =
           group_->Configure(context_type, group_audio_locations);
 
@@ -821,7 +821,7 @@ class LeAudioAseConfigurationTest : public Test {
             }
 
             /* Stimulate update of available context map */
-            group_->UpdateAudioContextTypeAvailability(
+            group_->UpdateAudioSetConfigurationCache(
                 AudioContexts(context_type));
             BidirectionalPair<AudioContexts> group_audio_locations = {
                 .sink = AudioContexts(context_type),
@@ -861,6 +861,205 @@ class LeAudioAseConfigurationTest : public Test {
   controller::MockControllerInterface controller_interface_;
   MockCsisClient mock_csis_client_module_;
 };
+
+/* Helper */
+const AudioSetConfiguration* getSpecificConfiguration(
+    const char* config_name, LeAudioContextType context) {
+  auto all_configurations =
+      ::le_audio::AudioSetConfigurationProvider::Get()->GetConfigurations(
+          context);
+
+  if (all_configurations == nullptr) return nullptr;
+  if (all_configurations->end() == all_configurations->begin()) return nullptr;
+
+  auto iter =
+      std::find_if(all_configurations->begin(), all_configurations->end(),
+                   [config_name](auto& configuration) {
+                     return configuration->name == config_name;
+                   });
+  if (iter == all_configurations->end()) return nullptr;
+  return *iter;
+}
+
+TEST_F(LeAudioAseConfigurationTest, test_context_update) {
+  LeAudioDevice* left = AddTestDevice(1, 1);
+  LeAudioDevice* right = AddTestDevice(1, 1);
+
+  /* Change locations */
+  left->snk_audio_locations_ =
+      ::le_audio::codec_spec_conf::kLeAudioLocationFrontLeft;
+  left->src_audio_locations_ =
+      ::le_audio::codec_spec_conf::kLeAudioLocationFrontLeft;
+  right->snk_audio_locations_ =
+      ::le_audio::codec_spec_conf::kLeAudioLocationFrontRight;
+  right->src_audio_locations_ =
+      ::le_audio::codec_spec_conf::kLeAudioLocationFrontRight;
+  group_->ReloadAudioLocations();
+
+  /* Put the PACS */
+  auto conversational_configuration = getSpecificConfiguration(
+      "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_2_Low_Latency",
+      LeAudioContextType::CONVERSATIONAL);
+  auto media_configuration = getSpecificConfiguration(
+      "SingleDev_TwoChanStereoSnk_48_4_High_Reliability",
+      LeAudioContextType::MEDIA);
+  ASSERT_NE(nullptr, conversational_configuration);
+  ASSERT_NE(nullptr, media_configuration);
+
+  /* Create PACs for conversational and media scenarios */
+  PublishedAudioCapabilitiesBuilder snk_pac_builder, src_pac_builder;
+  for (const auto& entry : (*conversational_configuration).confs) {
+    if (entry.direction == kLeAudioDirectionSink) {
+      snk_pac_builder.Add(entry.codec, 1);
+    } else {
+      src_pac_builder.Add(entry.codec, 1);
+    }
+  }
+  for (const auto& entry : (*media_configuration).confs) {
+    if (entry.direction == kLeAudioDirectionSink) {
+      snk_pac_builder.Add(entry.codec, 2);
+    }
+  }
+  left->snk_pacs_ = snk_pac_builder.Get();
+  left->src_pacs_ = src_pac_builder.Get();
+  right->snk_pacs_ = snk_pac_builder.Get();
+  right->src_pacs_ = src_pac_builder.Get();
+
+  /* UNSPECIFIED must be supported, MEDIA is on the remote sink only... */
+  auto remote_snk_supp_contexts = AudioContexts(
+      LeAudioContextType::MEDIA | LeAudioContextType::CONVERSATIONAL |
+      LeAudioContextType::SOUNDEFFECTS | LeAudioContextType::UNSPECIFIED);
+  auto remote_src_supp_contexts = AudioContexts(
+      LeAudioContextType::CONVERSATIONAL | LeAudioContextType::UNSPECIFIED);
+
+  left->SetSupportedContexts(remote_snk_supp_contexts,
+                             remote_src_supp_contexts);
+  right->SetSupportedContexts(remote_snk_supp_contexts,
+                              remote_src_supp_contexts);
+
+  /* ...but UNSPECIFIED and SOUNDEFFECTS are unavailable */
+  auto remote_snk_avail_contexts = AudioContexts(
+      LeAudioContextType::MEDIA | LeAudioContextType::CONVERSATIONAL);
+  auto remote_src_avail_contexts =
+      AudioContexts(LeAudioContextType::CONVERSATIONAL);
+
+  left->SetAvailableContexts(remote_snk_avail_contexts,
+                             remote_src_avail_contexts);
+  ASSERT_EQ(left->GetAvailableContexts(),
+            remote_snk_avail_contexts | remote_src_avail_contexts);
+
+  // Just for fun let's add one more context to the right earbud
+  auto right_bud_only_context = LeAudioContextType::ALERTS;
+  right->SetAvailableContexts(
+      remote_snk_avail_contexts | right_bud_only_context,
+      remote_src_avail_contexts);
+  ASSERT_EQ(right->GetAvailableContexts(), remote_snk_avail_contexts |
+                                               remote_src_avail_contexts |
+                                               right_bud_only_context);
+
+  /* Initialize configuration cache - for the left earbud */
+  group_->UpdateAudioSetConfigurationCache(left->GetAvailableContexts());
+  ASSERT_EQ(group_->GetAvailableContexts(), left->GetAvailableContexts());
+
+  /* Now add the right earbud contexts - mind the extra context on that bud */
+  group_->UpdateAudioSetConfigurationCache(right->GetAvailableContexts());
+  ASSERT_NE(group_->GetAvailableContexts(), left->GetAvailableContexts());
+  ASSERT_EQ(group_->GetAvailableContexts(),
+            left->GetAvailableContexts() | right->GetAvailableContexts());
+
+  /* Since no device is being added or removed from the group this should not
+   * change the configuration set.
+   */
+  group_->UpdateAudioSetConfigurationCache();
+  ASSERT_EQ(group_->GetAvailableContexts(),
+            left->GetAvailableContexts() | right->GetAvailableContexts());
+
+  /* MEDIA Available on remote sink direction only */
+  ASSERT_TRUE(group_
+                  ->GetCodecConfigurationByDirection(
+                      LeAudioContextType::MEDIA,
+                      ::le_audio::types::kLeAudioDirectionSink)
+                  .has_value());
+  ASSERT_FALSE(group_
+                   ->GetCodecConfigurationByDirection(
+                       LeAudioContextType::MEDIA,
+                       ::le_audio::types::kLeAudioDirectionSource)
+                   .has_value());
+
+  /* CONVERSATIONAL Available on both directions */
+  ASSERT_TRUE(group_
+                  ->GetCodecConfigurationByDirection(
+                      LeAudioContextType::CONVERSATIONAL,
+                      ::le_audio::types::kLeAudioDirectionSink)
+                  .has_value());
+  ASSERT_TRUE(group_
+                  ->GetCodecConfigurationByDirection(
+                      LeAudioContextType::CONVERSATIONAL,
+                      ::le_audio::types::kLeAudioDirectionSource)
+                  .has_value());
+
+  /* UNSPECIFIED Unavailable */
+  ASSERT_FALSE(group_
+                   ->GetCodecConfigurationByDirection(
+                       LeAudioContextType::UNSPECIFIED,
+                       ::le_audio::types::kLeAudioDirectionSink)
+                   .has_value());
+  ASSERT_FALSE(group_
+                   ->GetCodecConfigurationByDirection(
+                       LeAudioContextType::UNSPECIFIED,
+                       ::le_audio::types::kLeAudioDirectionSource)
+                   .has_value());
+
+  /* SOUNDEFFECTS Unavailable */
+  ASSERT_FALSE(group_
+                   ->GetCodecConfigurationByDirection(
+                       LeAudioContextType::SOUNDEFFECTS,
+                       ::le_audio::types::kLeAudioDirectionSink)
+                   .has_value());
+  ASSERT_FALSE(group_
+                   ->GetCodecConfigurationByDirection(
+                       LeAudioContextType::SOUNDEFFECTS,
+                       ::le_audio::types::kLeAudioDirectionSource)
+                   .has_value());
+
+  /* ALERTS on sink only */
+  ASSERT_TRUE(group_
+                  ->GetCodecConfigurationByDirection(
+                      LeAudioContextType::ALERTS,
+                      ::le_audio::types::kLeAudioDirectionSink)
+                  .has_value());
+  ASSERT_FALSE(group_
+                   ->GetCodecConfigurationByDirection(
+                       LeAudioContextType::ALERTS,
+                       ::le_audio::types::kLeAudioDirectionSource)
+                   .has_value());
+
+  /* We should get the config for ALERTS for a single channel as only one earbud
+   * has it. */
+  auto config = group_->GetCodecConfigurationByDirection(
+      LeAudioContextType::ALERTS, ::le_audio::types::kLeAudioDirectionSink);
+  ASSERT_TRUE(config.has_value());
+  ASSERT_EQ(config->num_channels,
+            ::le_audio::LeAudioCodecConfiguration::kChannelNumberMono);
+  ASSERT_TRUE(
+      group_->IsAudioSetConfigurationAvailable(LeAudioContextType::ALERTS));
+
+  /* Block the ALERTS context */
+  right->SetAvailableContexts(
+      right->GetAvailableContexts(::le_audio::types::kLeAudioDirectionSink) &
+          ~AudioContexts(LeAudioContextType::ALERTS),
+      right->GetAvailableContexts(::le_audio::types::kLeAudioDirectionSource));
+  group_->UpdateAudioSetConfigurationCache(group_->GetAvailableContexts());
+  ASSERT_EQ(group_->GetAvailableContexts(),
+            left->GetAvailableContexts() | right->GetAvailableContexts());
+  ASSERT_FALSE(group_
+                   ->GetCodecConfigurationByDirection(
+                       LeAudioContextType::ALERTS,
+                       ::le_audio::types::kLeAudioDirectionSink)
+                   .has_value());
+  ASSERT_FALSE(
+      group_->IsAudioSetConfigurationAvailable(LeAudioContextType::ALERTS));
+}
 
 TEST_F(LeAudioAseConfigurationTest, test_mono_speaker_ringtone) {
   LeAudioDevice* mono_speaker = AddTestDevice(1, 0);
@@ -1307,23 +1506,10 @@ TEST_F(LeAudioAseConfigurationTest, test_reactivation_conversational) {
       ::le_audio::codec_spec_conf::kLeAudioLocationFrontLeft;
   group_->ReloadAudioLocations();
 
-  auto all_configurations =
-      ::le_audio::AudioSetConfigurationProvider::Get()->GetConfigurations(
-          LeAudioContextType::CONVERSATIONAL);
-  ASSERT_NE(nullptr, all_configurations);
-  ASSERT_NE(all_configurations->end(), all_configurations->begin());
-
-  /* Pick TWS configuration for conversational */
-  auto iter = std::find_if(all_configurations->begin(),
-                           all_configurations->end(), [](auto& configuration) {
-                             return configuration->name ==
-                                    "SingleDev_OneChanStereoSnk_OneChanMonoSrc_"
-                                    "16_2_Low_Latency";
-                           });
-
-  ASSERT_NE(iter, all_configurations->end());
-
-  auto conversational_configuration = *iter;
+  auto conversational_configuration = getSpecificConfiguration(
+      "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_2_Low_Latency",
+      LeAudioContextType::CONVERSATIONAL);
+  ASSERT_NE(nullptr, conversational_configuration);
 
   // Build PACs for device
   PublishedAudioCapabilitiesBuilder snk_pac_builder, src_pac_builder;
@@ -1430,23 +1616,10 @@ TEST_F(LeAudioAseConfigurationTest, test_getting_cis_count) {
   right->snk_audio_locations_ = kChannelAllocationStereo;
   group_->ReloadAudioLocations();
 
-  auto all_configurations =
-      ::le_audio::AudioSetConfigurationProvider::Get()->GetConfigurations(
-          LeAudioContextType::MEDIA);
-  ASSERT_NE(nullptr, all_configurations);
-  ASSERT_NE(all_configurations->end(), all_configurations->begin());
-
-  /* Pick configuration for media */
-  auto iter = std::find_if(all_configurations->begin(),
-                           all_configurations->end(), [](auto& configuration) {
-                             return configuration->name ==
-                                    "SingleDev_TwoChanStereoSnk_48_4_High_"
-                                    "Reliability";
-                           });
-
-  ASSERT_NE(iter, all_configurations->end());
-
-  auto media_configuration = *iter;
+  auto media_configuration = getSpecificConfiguration(
+      "SingleDev_TwoChanStereoSnk_48_4_High_Reliability",
+      LeAudioContextType::MEDIA);
+  ASSERT_NE(nullptr, media_configuration);
 
   // Build PACs for device
   PublishedAudioCapabilitiesBuilder snk_pac_builder;
