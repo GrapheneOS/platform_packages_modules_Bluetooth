@@ -33,10 +33,6 @@ namespace common {
 static constexpr int kRealTimeFifoSchedulingPriority = 1;
 
 MessageLoopThread::MessageLoopThread(const std::string& thread_name)
-    : MessageLoopThread(thread_name, false) {}
-
-MessageLoopThread::MessageLoopThread(const std::string& thread_name,
-                                     bool is_main)
     : thread_name_(thread_name),
       message_loop_(nullptr),
       run_loop_(nullptr),
@@ -44,8 +40,7 @@ MessageLoopThread::MessageLoopThread(const std::string& thread_name,
       thread_id_(-1),
       linux_tid_(-1),
       weak_ptr_factory_(this),
-      shutting_down_(false),
-      is_main_(is_main) {}
+      shutting_down_(false) {}
 
 MessageLoopThread::~MessageLoopThread() { ShutDown(); }
 
@@ -143,10 +138,8 @@ void MessageLoopThread::RunThread(MessageLoopThread* thread,
   thread->Run(std::move(start_up_promise));
 }
 
+// This is only for use in tests.
 btbase::AbstractMessageLoop* MessageLoopThread::message_loop() const {
-  ASSERT_LOG(!is_main_,
-             "you are not allowed to get the main thread's message loop");
-
   std::lock_guard<std::recursive_mutex> api_lock(api_mutex_);
   return message_loop_;
 }
@@ -205,6 +198,10 @@ void MessageLoopThread::Run(std::promise<void> start_up_promise) {
     LOG(INFO) << __func__ << ": message loop finished for thread "
               << thread_name_;
   }
+}
+
+void MessageLoopThread::Post(base::OnceClosure closure) {
+  DoInThread(FROM_HERE, std::move(closure));
 }
 
 }  // namespace common

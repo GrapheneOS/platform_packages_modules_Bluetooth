@@ -32,7 +32,7 @@ using BtMainClosure = std::function<void()>;
 
 namespace {
 
-MessageLoopThread main_thread("bt_test_main_thread", true);
+MessageLoopThread main_thread("bt_test_main_thread");
 void do_post_on_bt_main(BtMainClosure closure) { closure(); }
 
 }  // namespace
