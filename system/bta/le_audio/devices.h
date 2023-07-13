@@ -357,8 +357,9 @@ class LeAudioDeviceGroup {
   uint8_t GetTargetPhy(uint8_t direction);
   bool GetPresentationDelay(uint32_t* delay, uint8_t direction);
   uint16_t GetRemoteDelay(uint8_t direction);
-  bool UpdateAudioContextTypeAvailability(types::AudioContexts contexts);
-  void UpdateAudioContextTypeAvailability(void);
+  bool UpdateAudioSetConfigurationCache(
+      types::AudioContexts updated_context_bits);
+  bool UpdateAudioSetConfigurationCache(void);
   bool ReloadAudioLocations(void);
   bool ReloadAudioDirections(void);
   const set_configurations::AudioSetConfiguration* GetActiveConfiguration(void);
@@ -369,12 +370,13 @@ class LeAudioDeviceGroup {
   void Disable(int gatt_if);
   void Enable(int gatt_if, tBTM_BLE_CONN_TYPE reconnection_mode);
   bool IsEnabled(void);
-  bool IsConfigurationSupported(
+  bool IsAudioSetConfigurationSupported(
       LeAudioDevice* leAudioDevice,
       const set_configurations::AudioSetConfiguration* audio_set_conf);
   std::optional<LeAudioCodecConfiguration> GetCodecConfigurationByDirection(
       types::LeAudioContextType group_context_type, uint8_t direction) const;
-  bool IsContextSupported(types::LeAudioContextType group_context_type);
+  bool IsAudioSetConfigurationAvailable(
+      types::LeAudioContextType group_context_type) const;
   bool IsMetadataChanged(
       const types::BidirectionalPair<types::AudioContexts>& context_types,
       const types::BidirectionalPair<std::vector<uint8_t>>& ccid_lists);
@@ -422,6 +424,11 @@ class LeAudioDeviceGroup {
     pending_group_available_contexts_change_.clear();
   }
 
+  inline void SetConfigurationContextType(
+      types::LeAudioContextType context_type) {
+    configuration_context_type_ = context_type;
+  }
+
   inline types::LeAudioContextType GetConfigurationContextType(void) const {
     return configuration_context_type_;
   }
@@ -431,7 +438,11 @@ class LeAudioDeviceGroup {
     return metadata_context_type_;
   }
 
-  inline types::AudioContexts GetAvailableContexts(void) {
+  inline void SetAvailableContexts(types::AudioContexts new_contexts) {
+    group_available_contexts_ = new_contexts;
+  }
+
+  inline types::AudioContexts GetAvailableContexts(void) const {
     return group_available_contexts_;
   }
 
@@ -454,7 +465,7 @@ class LeAudioDeviceGroup {
       const types::BidirectionalPair<types::AudioContexts>&
           metadata_context_types,
       const types::BidirectionalPair<std::vector<uint8_t>>& ccid_lists);
-  bool IsConfigurationSupported(
+  bool IsAudioSetConfigurationSupported(
       const set_configurations::AudioSetConfiguration* audio_set_configuration,
       types::LeAudioContextType context_type,
       types::LeAudioConfigurationStrategy required_snk_strategy);
