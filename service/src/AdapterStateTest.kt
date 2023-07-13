@@ -27,9 +27,9 @@ import kotlinx.coroutines.yield
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
+import org.robolectric.RobolectricTestRunner
 
-@RunWith(JUnit4::class)
+@RunWith(RobolectricTestRunner::class)
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class BluetoothAdapterStateTest {
 
@@ -41,30 +41,34 @@ class BluetoothAdapterStateTest {
     }
 
     @Test
-    fun testStateIsProperlyInit() {
+    fun init_isStateOff() {
         Log.d("BluetoothAdapterStateTest", "Initial state is " + mState)
         assertThat(mState.get()).isEqualTo(STATE_OFF)
     }
 
     @Test
-    fun testStateReturnOnlyLastValue() {
+    fun get_afterBusy_returnLastValue() {
         val max = 10
         for (i in 0..max) mState.set(i)
         assertThat(mState.get()).isEqualTo(max)
     }
 
     @Test
-    fun testStateDoesNotTimeoutWhenStateIsAlreadyCorrect() = runTest {
+    fun immediateReturn_whenStateIsAlreadyCorrect() = runTest {
         val state = 10
         mState.set(state)
         assertThat(runBlocking { mState.waitForState(100.days, state) }).isTrue()
     }
 
-    @Test
-    fun testStateTimeout() = runTest { assertThat(mState.waitForState(100.days, -1)).isFalse() }
+    @Test fun expectTimeout() = runTest { assertThat(mState.waitForState(100.days, -1)).isFalse() }
 
     @Test
-    fun testStateConcurrent() = runTest {
+    fun expectTimeout_CalledJavaApi() = runTest {
+        assertThat(mState.waitForState(java.time.Duration.ofMillis(10), -1)).isFalse()
+    }
+
+    @Test
+    fun setState_whileWaiting() = runTest {
         val state = 42
         val waiter = async { mState.waitForState(100.days, state) }
         mState.set(state)
@@ -72,7 +76,7 @@ class BluetoothAdapterStateTest {
     }
 
     @Test
-    fun testStateMultipleWaiters() = runTest {
+    fun concurrentWaiter_NoStateMissed() = runTest {
         val state0 = 42
         val state1 = 50
         val state2 = 65
@@ -96,12 +100,7 @@ class BluetoothAdapterStateTest {
     }
 
     @Test
-    fun testStateTimeoutFromJava() = runTest {
-        assertThat(mState.waitForState(java.time.Duration.ofMillis(10), -1)).isFalse()
-    }
-
-    @Test
-    fun testStateCycle() = runTest {
+    fun expectTimeout_waitAfterOverride() = runTest {
         val state0 = 42
         val state1 = 50
         mState.set(state0)
@@ -113,12 +112,19 @@ class BluetoothAdapterStateTest {
     }
 
     @Test
-    fun testStateOneOf() {
+    fun oneOf_expectMatch() {
+        val state0 = 42
+        val state1 = 50
+        mState.set(state0)
+        assertThat(mState.oneOf(state0, state1)).isTrue()
+    }
+
+    @Test
+    fun oneOf_expectNotMatch() {
         val state0 = 42
         val state1 = 50
         val state2 = 65
         mState.set(state0)
-        assertThat(mState.oneOf(state0, state1)).isTrue()
         assertThat(mState.oneOf(state1, state2)).isFalse()
     }
 }
