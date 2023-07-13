@@ -31,6 +31,7 @@
 #include "btif/include/btif_sock_sdp.h"
 #include "main/shim/metrics_api.h"
 #include "osi/include/allocator.h"
+#include "osi/include/osi.h"
 #include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
@@ -400,7 +401,8 @@ static void bta_create_raw_sdp_record(bluetooth_sdp_record* record,
 }
 
 /** Callback from btm after search is completed */
-static void bta_sdp_search_cback(tSDP_RESULT result, const void* user_data) {
+static void bta_sdp_search_cback(UNUSED_ATTR const RawAddress& bd_addr,
+                                 tSDP_RESULT result, const void* user_data) {
   tBTA_SDP_STATUS status = BTA_SDP_FAILURE;
   int count = 0;
   APPL_TRACE_DEBUG("%s() -  res: 0x%x", __func__, result);
@@ -608,8 +610,9 @@ void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
   ::bta_create_dip_sdp_record(record, p_rec);
 }
 
-void bta_sdp_search_cback(tSDP_RESULT result, const void* user_data) {
-  ::bta_sdp_search_cback(result, user_data);
+void bta_sdp_search_cback(const RawAddress& bd_addr, tSDP_RESULT result,
+                          const void* user_data) {
+  ::bta_sdp_search_cback(bd_addr, result, user_data);
 }
 
 }  // namespace testing
