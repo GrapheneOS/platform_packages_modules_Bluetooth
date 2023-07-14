@@ -1192,7 +1192,7 @@ public class BassClientStateMachine extends StateMachine {
                 if (mLastConnectionState != BluetoothProfile.STATE_DISCONNECTED) {
                     // Reconnect in background if not disallowed by the service
                     if (mService.okToConnect(mDevice) && mAllowReconnect) {
-                        connectGatt(false);
+                        connectGatt(true);
                     }
                 }
             }
@@ -1588,6 +1588,11 @@ public class BassClientStateMachine extends StateMachine {
                         Log.w(TAG, "device is already connected to Bass" + mDevice);
                     } else {
                         Log.w(TAG, "unexpected disconnected from " + mDevice);
+                        // cleanup mBluetoothGatt
+                        if (mBluetoothGatt != null) {
+                            mBluetoothGatt.close();
+                            mBluetoothGatt = null;
+                        }
                         cancelActiveSync(null);
                         transitionTo(mDisconnected);
                     }
