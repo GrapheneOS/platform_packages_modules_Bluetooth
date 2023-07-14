@@ -1021,62 +1021,6 @@ tL2CAP_LE_RESULT_CODE btm_ble_start_sec_check(const RawAddress& bd_addr,
 
 /*******************************************************************************
  *
- * Function         btm_ble_rand_enc_complete
- *
- * Description      This function is the callback functions for HCI_Rand command
- *                  and HCI_Encrypt command is completed.
- *                  This message is received from the HCI.
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_ble_rand_enc_complete(uint8_t* p, uint16_t evt_len,
-                               uint16_t op_code,
-                               tBTM_RAND_ENC_CB* p_enc_cplt_cback) {
-  tBTM_RAND_ENC params;
-  uint8_t* p_dest = params.param_buf;
-
-  BTM_TRACE_DEBUG("btm_ble_rand_enc_complete");
-
-  memset(&params, 0, sizeof(tBTM_RAND_ENC));
-
-  /* If there was a callback address for vcs complete, call it */
-  if (p_enc_cplt_cback && p) {
-
-    if (evt_len < 1) {
-      goto err_out;
-    }
-
-    /* Pass paramters to the callback function */
-    STREAM_TO_UINT8(params.status, p); /* command status */
-
-    if (params.status == HCI_SUCCESS) {
-      params.opcode = op_code;
-
-      if (op_code == HCI_BLE_RAND)
-        params.param_len = BT_OCTET8_LEN;
-      else
-        params.param_len = OCTET16_LEN;
-
-      if (evt_len < 1 + params.param_len) {
-        goto err_out;
-      }
-
-      /* Fetch return info from HCI event message */
-      memcpy(p_dest, p, params.param_len);
-    }
-    if (p_enc_cplt_cback) /* Call the Encryption complete callback function */
-      (*p_enc_cplt_cback)(&params);
-  }
-
-  return;
-
-err_out:
-  BTM_TRACE_ERROR("%s malformatted event packet, too short", __func__);
-}
-
-/*******************************************************************************
- *
  * Function         btm_ble_get_enc_key_type
  *
  * Description      This function is to increment local sign counter
