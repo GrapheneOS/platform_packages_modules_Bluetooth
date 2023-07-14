@@ -1479,6 +1479,10 @@ class BluetoothManagerService {
      * PHASE_SYSTEM_SERVICES_READY.
      */
     void handleOnBootPhase() {
+        mHandler.post(() -> internalHandleOnBootPhase());
+    }
+
+    private void internalHandleOnBootPhase() {
         if (DBG) {
             Log.d(TAG, "Bluetooth boot completed");
         }
