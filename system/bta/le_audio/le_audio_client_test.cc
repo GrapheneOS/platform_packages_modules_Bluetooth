@@ -1685,6 +1685,7 @@ class UnicastTestNoInit : public Test {
           "AA:BB:CC:DD:EE:FF"}}};
 
     sink_metadata[1].source = audio_source;
+    ASSERT_NE(nullptr, unicast_sink_hal_cb_);
     unicast_sink_hal_cb_->OnAudioMetadataUpdate(sink_metadata);
   }
 
@@ -4225,9 +4226,13 @@ TEST_F(UnicastTest, SpeakerFailedConversationalStreaming) {
   int group_id = bluetooth::groups::kGroupUnknown;
 
   available_src_context_types_ = 0;
-  supported_src_context_types_ = available_src_context_types_;
+  supported_src_context_types_ =
+      available_src_context_types_ |
+      types::AudioContexts(types::LeAudioContextType::UNSPECIFIED).value();
   available_snk_context_types_ = 0x0004;
-  supported_snk_context_types_ = available_snk_context_types_;
+  supported_snk_context_types_ =
+      available_snk_context_types_ |
+      types::AudioContexts(types::LeAudioContextType::UNSPECIFIED).value();
 
   SetSampleDatabaseEarbudsValid(
       1, test_address0, codec_spec_conf::kLeAudioLocationStereo,
@@ -4284,9 +4289,9 @@ TEST_F(UnicastTest, SpeakerStreaming) {
 
   StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
 
+  SyncOnMainLoop();
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
-  SyncOnMainLoop();
 
   // Verify Data transfer on one audio source cis
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
@@ -4321,7 +4326,9 @@ TEST_F(UnicastTest, SpeakerStreamingNonDefault) {
   available_snk_context_types_ = (types::LeAudioContextType::VOICEASSISTANTS |
                                   types::LeAudioContextType::MEDIA)
                                      .value();
-  supported_snk_context_types_ = available_snk_context_types_;
+  supported_snk_context_types_ =
+      (available_snk_context_types_ | types::LeAudioContextType::UNSPECIFIED)
+          .value();
 
   SetSampleDatabaseEarbudsValid(
       1, test_address0, codec_spec_conf::kLeAudioLocationStereo,
@@ -4671,6 +4678,7 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchReconfigure) {
   StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
 
   SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 
@@ -5189,6 +5197,8 @@ TEST_F(UnicastTest, UpdateNotSupportedContextType) {
 
   StartStreaming(AUDIO_USAGE_NOTIFICATION_TELEPHONY_RINGTONE,
                  AUDIO_CONTENT_TYPE_UNKNOWN, group_id);
+  LocalAudioSourceResume();
+  LocalAudioSinkResume();
 
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
@@ -5198,6 +5208,7 @@ TEST_F(UnicastTest, UpdateNotSupportedContextType) {
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
 
   LeAudioClient::Get()->SetInCall(false);
+  LocalAudioSinkSuspend();
 
   /* We should stay on the existing configuration as there is no GAME
    * context available on the remote device.
@@ -5212,11 +5223,7 @@ TEST_F(UnicastTest, UpdateNotSupportedContextType) {
       .Times(1);
   UpdateLocalSourceMetadata(AUDIO_USAGE_GAME, AUDIO_CONTENT_TYPE_UNKNOWN,
                             false);
-
-  /* If the above triggers reconfiguration, Audio Hal action is needed to
-   * restart the stream.
-   */
-  LocalAudioSourceResume();
+  SyncOnMainLoop();
 }
 
 /* Some bidirectional scenarios are triggered by the local sink, local source
@@ -5233,9 +5240,13 @@ TEST_F(UnicastTest, UpdateMultipleBidirContextTypes) {
       (types::LeAudioContextType::CONVERSATIONAL |
        types::LeAudioContextType::GAME | types::LeAudioContextType::LIVE)
           .value();
-  supported_snk_context_types_ = available_snk_context_types_;
+  supported_snk_context_types_ =
+      available_snk_context_types_ |
+      types::AudioContexts(types::LeAudioContextType::UNSPECIFIED).value();
   available_src_context_types_ = available_snk_context_types_;
-  supported_src_context_types_ = available_src_context_types_;
+  supported_src_context_types_ =
+      available_src_context_types_ |
+      types::AudioContexts(types::LeAudioContextType::UNSPECIFIED).value();
 
   SetSampleDatabaseEarbudsValid(
       1, test_address0, codec_spec_conf::kLeAudioLocationAnyLeft,
@@ -5269,6 +5280,7 @@ TEST_F(UnicastTest, UpdateMultipleBidirContextTypes) {
 
   // 1) Start the recording. Sink resume will trigger the reconfiguration
   // ---------------------------------------------------------------------
+  ASSERT_NE(nullptr, unicast_sink_hal_cb_);
   UpdateLocalSinkMetadata(AUDIO_SOURCE_MIC);
   LocalAudioSinkResume();
 
@@ -5309,6 +5321,7 @@ TEST_F(UnicastTest, UpdateMultipleBidirContextTypes) {
       .Times(1);
 
   // Start with ringtone on local source
+  ASSERT_NE(nullptr, unicast_sink_hal_cb_);
   StartStreaming(AUDIO_USAGE_NOTIFICATION_TELEPHONY_RINGTONE,
                  AUDIO_CONTENT_TYPE_UNKNOWN, group_id);
 
@@ -5374,9 +5387,13 @@ TEST_F(UnicastTest, MusicDuringCallContextTypes) {
        types::LeAudioContextType::GAME | types::LeAudioContextType::MEDIA |
        types::LeAudioContextType::LIVE)
           .value();
-  supported_snk_context_types_ = available_snk_context_types_;
+  supported_snk_context_types_ =
+      available_snk_context_types_ |
+      types::AudioContexts(types::LeAudioContextType::UNSPECIFIED).value();
   available_src_context_types_ = available_snk_context_types_;
-  supported_src_context_types_ = available_src_context_types_;
+  supported_src_context_types_ =
+      available_src_context_types_ |
+      types::AudioContexts(types::LeAudioContextType::UNSPECIFIED).value();
 
   SetSampleDatabaseEarbudsValid(
       1, test_address0, codec_spec_conf::kLeAudioLocationAnyLeft,
@@ -5523,7 +5540,12 @@ TEST_F(UnicastTest, StartNotAvailableContextType) {
                                      .value();
   supported_snk_context_types_ = types::kLeAudioContextAllTypes.value();
   available_src_context_types_ = available_snk_context_types_;
-  supported_src_context_types_ = available_src_context_types_;
+  supported_snk_context_types_ =
+      (available_snk_context_types_ | types::LeAudioContextType::UNSPECIFIED)
+          .value();
+  supported_src_context_types_ =
+      (available_src_context_types_ | types::LeAudioContextType::UNSPECIFIED)
+          .value();
 
   SetSampleDatabaseEarbudsValid(
       1, test_address0, codec_spec_conf::kLeAudioLocationStereo,
@@ -5579,8 +5601,8 @@ TEST_F(UnicastTest, StartNotAvailableUnsupportedContextTypeUnspecifiedAvail) {
                                   types::LeAudioContextType::UNSPECIFIED |
                                   types::LeAudioContextType::MEDIA)
                                      .value();
-  supported_snk_context_types_ = available_snk_context_types_;
   available_src_context_types_ = available_snk_context_types_;
+  supported_snk_context_types_ = available_snk_context_types_;
   supported_src_context_types_ = available_src_context_types_;
 
   SetSampleDatabaseEarbudsValid(
