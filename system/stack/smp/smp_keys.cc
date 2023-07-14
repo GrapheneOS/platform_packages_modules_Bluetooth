@@ -41,8 +41,6 @@
 #include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
 
-extern tBTM_CB btm_cb;  // TODO Remove
-
 using base::Bind;
 using crypto_toolbox::aes_128;
 
@@ -979,7 +977,7 @@ bool smp_calculate_link_key_from_long_term_key(tSMP_CB* p_cb) {
       crypto_toolbox::ltk_to_link_key(p_cb->ltk, p_cb->key_derivation_h7_used);
 
   uint8_t link_key_type;
-  if (btm_cb.security_mode == BTM_SEC_MODE_SC) {
+  if (p_cb->init_security_mode == BTM_SEC_MODE_SC) {
     /* Secure Connections Only Mode */
     link_key_type = BTM_LKEY_TYPE_AUTH_COMB_P_256;
   } else if (controller_get_interface()->supports_secure_connections()) {
@@ -988,7 +986,7 @@ bool smp_calculate_link_key_from_long_term_key(tSMP_CB* p_cb) {
       link_key_type = BTM_LKEY_TYPE_AUTH_COMB_P_256;
     else
       link_key_type = BTM_LKEY_TYPE_UNAUTH_COMB_P_256;
-  } else if (btm_cb.security_mode == BTM_SEC_MODE_SP) {
+  } else if (p_cb->init_security_mode == BTM_SEC_MODE_SP) {
     /* BR/EDR transport is SSP capable */
     if (p_cb->sec_level == SMP_SEC_AUTHENTICATED)
       link_key_type = BTM_LKEY_TYPE_AUTH_COMB;
@@ -996,7 +994,7 @@ bool smp_calculate_link_key_from_long_term_key(tSMP_CB* p_cb) {
       link_key_type = BTM_LKEY_TYPE_UNAUTH_COMB;
   } else {
     SMP_TRACE_ERROR("%s failed to update link_key. Sec Mode = %d, sm4 = 0x%02x",
-                    __func__, btm_cb.security_mode, p_dev_rec->sm4);
+                    __func__, p_cb->init_security_mode, p_dev_rec->sm4);
     return false;
   }
 
