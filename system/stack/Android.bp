@@ -471,7 +471,7 @@ cc_fuzz {
         ":TestMockStackL2cap",
         ":TestMockStackMetrics",
         "fuzzers/smp_fuzzer.cc",
-        "smp/smp_*.cc",
+        "smp/*.cc", // add other sources files  (p256 related) under smp into this test
     ],
     static_libs: [
         "libgmock",
