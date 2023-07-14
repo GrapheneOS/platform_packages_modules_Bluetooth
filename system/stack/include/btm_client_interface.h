@@ -162,6 +162,7 @@ struct btm_client_interface_t {
                                tBT_TRANSPORT transport);
     void (*BTM_BleSirkConfirmDeviceReply)(const RawAddress& bd_addr,
                                           uint8_t res);
+    uint8_t (*BTM_GetSecurityMode)();
   } security;
 
   struct {
