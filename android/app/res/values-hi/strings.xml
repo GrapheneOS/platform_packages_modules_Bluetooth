@@ -16,6 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" msgid="2326164424236203271">"ब्लूटूथ"</string>
     <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"डाउनलोड मैनेजर में पहुंच पाएं."</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"ऐप्लिकेशन को BluetoothShare मैनेजर के इस्तेमाल की मंज़ूरी देता है और फ़ाइलों को ट्रांसफ़र करने के लिए उसका उपयोग करने देता है."</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"ब्लूटूथ डिवाइस ऐक्सेस को व्हाइटलिस्ट में डालें."</string>
