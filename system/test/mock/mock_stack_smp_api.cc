@@ -66,7 +66,7 @@ uint8_t SMP_SetTraceLevel(uint8_t new_level) {
 void SMP_ConfirmReply(const RawAddress& bd_addr, uint8_t res) {
   inc_func_call_count(__func__);
 }
-void SMP_Init(void) { inc_func_call_count(__func__); }
+void SMP_Init(uint8_t init_security_mode) { inc_func_call_count(__func__); }
 void SMP_OobDataReply(const RawAddress& bd_addr, tSMP_STATUS res, uint8_t len,
                       uint8_t* p_data) {
   inc_func_call_count(__func__);
