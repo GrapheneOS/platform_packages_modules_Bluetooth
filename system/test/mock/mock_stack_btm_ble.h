@@ -564,21 +564,6 @@ struct btm_ble_ltk_request_reply {
 };
 extern struct btm_ble_ltk_request_reply btm_ble_ltk_request_reply;
 
-// Name: btm_ble_rand_enc_complete
-// Params: uint8_t* p, uint16_t op_code, tBTM_RAND_ENC_CB* p_enc_cplt_cback
-// Return: void
-struct btm_ble_rand_enc_complete {
-  std::function<void(uint8_t* p, uint16_t evt_len, uint16_t op_code,
-                     tBTM_RAND_ENC_CB* p_enc_cplt_cback)>
-  body{[](uint8_t* p, uint16_t evt_len, uint16_t op_code,
-              tBTM_RAND_ENC_CB* p_enc_cplt_cback) {}};
-  void operator()(uint8_t* p, uint16_t evt_len, uint16_t op_code,
-                  tBTM_RAND_ENC_CB* p_enc_cplt_cback) {
-    body(p, evt_len, op_code, p_enc_cplt_cback);
-  };
-};
-extern struct btm_ble_rand_enc_complete btm_ble_rand_enc_complete;
-
 // Name: btm_ble_read_sec_key_size
 // Params: const RawAddress& bd_addr
 // Return: uint8_t
