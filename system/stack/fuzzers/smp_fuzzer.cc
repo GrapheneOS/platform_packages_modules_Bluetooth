@@ -185,7 +185,7 @@ void Fuzz(const uint8_t* data, size_t size) {
 
   btm_cb = tBTM_CB();
 
-  SMP_Init();
+  SMP_Init(BTM_SEC_MODE_SP);
   SMP_Register(smp_callback);
   SMP_SetTraceLevel(BT_TRACE_LEVEL_DEBUG);
   SMP_ClearLocScOobData();

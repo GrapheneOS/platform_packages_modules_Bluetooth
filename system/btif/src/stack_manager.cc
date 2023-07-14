@@ -317,7 +317,7 @@ static void event_start_up_stack(bluetooth::core::CoreInterface* interface,
   l2c_init();
   sdp_init();
   gatt_init();
-  SMP_Init();
+  SMP_Init(get_btm_client_interface().security.BTM_GetSecurityMode());
   get_btm_client_interface().lifecycle.btm_ble_init();
 
   RFCOMM_Init();

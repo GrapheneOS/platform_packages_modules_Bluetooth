@@ -49,11 +49,13 @@
  * Returns          void
  *
  ******************************************************************************/
-void SMP_Init(void) {
+void SMP_Init(uint8_t init_security_mode) {
   if (bluetooth::shim::is_gd_shim_enabled()) {
     LOG(INFO) << "Skipping legacy SMP_Init because GD is enabled";
     return;
   }
+
+  smp_cb.init_security_mode = init_security_mode;
 
   memset(&smp_cb, 0, sizeof(tSMP_CB));
   smp_cb.smp_rsp_timer_ent = alarm_new("smp.smp_rsp_timer_ent");

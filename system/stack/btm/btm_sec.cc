@@ -1494,6 +1494,18 @@ tBT_DEVICE_TYPE BTM_GetPeerDeviceTypeFromFeatures(const RawAddress& bd_addr) {
   return BT_DEVICE_TYPE_BREDR;
 }
 
+/*******************************************************************************
+ *
+ * Function         BTM_GetInitialSecurityMode
+ *
+ * Description      This function is called to retrieve the configured
+ *                  security mode.
+ *
+ ******************************************************************************/
+uint8_t BTM_GetSecurityMode() {
+  return btm_cb.security_mode;
+}
+
 /************************************************************************
  *              I N T E R N A L     F U N C T I O N S
  ************************************************************************/
