@@ -7,6 +7,7 @@ java_library {
     visibility: [
         "//packages/modules/Bluetooth/android/pandora/server",
         "//packages/modules/Bluetooth/framework/tests/bumble",
+        "//packages/modules/Bluetooth/framework/tests/metrics:__subpackages__",
     ],
     srcs: [
         ":pandora-protos",
@@ -38,6 +39,7 @@ java_library {
     visibility: [
         "//packages/modules/Bluetooth/android/pandora/server",
         "//packages/modules/Bluetooth/framework/tests/bumble",
+        "//packages/modules/Bluetooth/framework/tests/metrics:__subpackages__",
     ],
     srcs: [
         ":libprotobuf-internal-protos",
