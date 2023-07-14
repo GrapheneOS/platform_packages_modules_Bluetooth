@@ -1228,8 +1228,9 @@ class LeAudioClientImpl : public LeAudioClient {
      */
     LeAudioContextType default_context_type = configuration_context_type_;
     if (!group->IsAudioSetConfigurationAvailable(default_context_type)) {
-      if (group->IsAudioSetConfigurationAvailable(LeAudioContextType::MEDIA)) {
-        default_context_type = LeAudioContextType::MEDIA;
+      if (group->IsAudioSetConfigurationAvailable(
+              LeAudioContextType::UNSPECIFIED)) {
+        default_context_type = LeAudioContextType::UNSPECIFIED;
       } else {
         for (LeAudioContextType context_type : kLeAudioContextAllTypesArray) {
           if (group->IsAudioSetConfigurationAvailable(context_type)) {

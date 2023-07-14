@@ -75,6 +75,9 @@ using le_audio::LeAudioSourceAudioHalClient;
 extern struct fake_osi_alarm_set_on_mloop fake_osi_alarm_set_on_mloop_;
 
 constexpr int max_num_of_ases = 5;
+constexpr le_audio::types::LeAudioContextType
+    kLeAudioDefaultConfigurationContext =
+        le_audio::types::LeAudioContextType::UNSPECIFIED;
 
 static constexpr char kNotifyUpperLayerAboutGroupBeingInIdleDuringCall[] =
     "persist.bluetooth.leaudio.notify.idle.during.call";
@@ -4390,12 +4393,12 @@ TEST_F(UnicastTest, SpeakerStreamingNonDefault) {
   /* When session is closed, the hal client mocks are freed - get new ones */
   SetUpMockAudioHal();
   /* Expect the previous release to clear the old audio session metadata */
-  auto default_impl_context = types::LeAudioContextType::MEDIA;
   LeAudioClient::Get()->GroupSetActive(group_id);
   EXPECT_CALL(mock_state_machine_,
               StartStream(_, types::LeAudioContextType::VOICEASSISTANTS, _, _))
       .Times(0);
-  EXPECT_CALL(mock_state_machine_, StartStream(_, default_impl_context, _, _))
+  EXPECT_CALL(mock_state_machine_,
+              StartStream(_, kLeAudioDefaultConfigurationContext, _, _))
       .Times(1);
   LocalAudioSourceResume();
 }
@@ -4567,7 +4570,7 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchNoReconfigure) {
       .sink = types::AudioContexts(types::LeAudioContextType::NOTIFICATIONS),
       .source = types::AudioContexts()};
   EXPECT_CALL(mock_state_machine_,
-              StartStream(_, types::LeAudioContextType::MEDIA, contexts, _))
+              StartStream(_, kLeAudioDefaultConfigurationContext, contexts, _))
       .Times(1);
 
   StartStreaming(AUDIO_USAGE_NOTIFICATION, AUDIO_CONTENT_TYPE_UNKNOWN,
@@ -4578,15 +4581,14 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchNoReconfigure) {
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 
-  // Do a metadata content switch to ALERTS but stay on MEDIA configuration
+  // Do a metadata content switch to ALERTS but stay on previous configuration
   EXPECT_CALL(*mock_le_audio_source_hal_client_, OnDestroyed()).Times(0);
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Stop).Times(0);
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start).Times(0);
   contexts = {.sink = types::AudioContexts(types::LeAudioContextType::ALERTS),
               .source = types::AudioContexts()};
-  EXPECT_CALL(
-      mock_state_machine_,
-      StartStream(_, le_audio::types::LeAudioContextType::MEDIA, contexts, _))
+  EXPECT_CALL(mock_state_machine_,
+              StartStream(_, kLeAudioDefaultConfigurationContext, contexts, _))
       .Times(1);
   UpdateLocalSourceMetadata(AUDIO_USAGE_ALARM, AUDIO_CONTENT_TYPE_UNKNOWN);
 
@@ -4595,7 +4597,8 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchNoReconfigure) {
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 
-  // Do a metadata content switch to EMERGENCY but stay on MEDIA configuration
+  // Do a metadata content switch to EMERGENCY but stay on previous
+  // configuration
   EXPECT_CALL(*mock_le_audio_source_hal_client_, OnDestroyed()).Times(0);
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Stop).Times(0);
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start).Times(0);
@@ -4603,9 +4606,8 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchNoReconfigure) {
   contexts = {
       .sink = types::AudioContexts(types::LeAudioContextType::EMERGENCYALARM),
       .source = types::AudioContexts()};
-  EXPECT_CALL(
-      mock_state_machine_,
-      StartStream(_, le_audio::types::LeAudioContextType::MEDIA, contexts, _))
+  EXPECT_CALL(mock_state_machine_,
+              StartStream(_, kLeAudioDefaultConfigurationContext, contexts, _))
       .Times(1);
   UpdateLocalSourceMetadata(AUDIO_USAGE_EMERGENCY, AUDIO_CONTENT_TYPE_UNKNOWN);
 
@@ -4613,7 +4615,7 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchNoReconfigure) {
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 
-  // Do a metadata content switch to INSTRUCTIONAL but stay on MEDIA
+  // Do a metadata content switch to INSTRUCTIONAL but stay on previous
   // configuration
   EXPECT_CALL(*mock_le_audio_source_hal_client_, OnDestroyed()).Times(0);
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Stop).Times(0);
@@ -4621,9 +4623,8 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchNoReconfigure) {
   contexts = {
       .sink = types::AudioContexts(types::LeAudioContextType::INSTRUCTIONAL),
       .source = types::AudioContexts()};
-  EXPECT_CALL(
-      mock_state_machine_,
-      StartStream(_, le_audio::types::LeAudioContextType::MEDIA, contexts, _))
+  EXPECT_CALL(mock_state_machine_,
+              StartStream(_, kLeAudioDefaultConfigurationContext, contexts, _))
       .Times(1);
   UpdateLocalSourceMetadata(AUDIO_USAGE_ASSISTANCE_NAVIGATION_GUIDANCE,
                             AUDIO_CONTENT_TYPE_UNKNOWN);
@@ -5566,12 +5567,12 @@ TEST_F(UnicastTest, StartNotAvailableContextType) {
   // Expect configuring to the default config since the EMERGENCYALARM is
   // not on the list of supported contexts and UNSPECIFIED will be used in
   // the metadata.
-  auto default_config = types::LeAudioContextType::MEDIA;
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   types::BidirectionalPair<types::AudioContexts> metadata = {
       .sink = types::AudioContexts(types::LeAudioContextType::UNSPECIFIED),
       .source = types::AudioContexts()};
-  EXPECT_CALL(mock_state_machine_, StartStream(_, default_config, metadata, _))
+  EXPECT_CALL(mock_state_machine_,
+              StartStream(_, kLeAudioDefaultConfigurationContext, metadata, _))
       .Times(1);
 
   LeAudioClient::Get()->GroupSetActive(group_id);
@@ -5624,12 +5625,12 @@ TEST_F(UnicastTest, StartNotAvailableUnsupportedContextTypeUnspecifiedAvail) {
   // Expect configuring to the default config since the EMERGENCYALARM is
   // not on the list of supported contexts and UNSPECIFIED will be used in
   // the metadata.
-  auto default_config = types::LeAudioContextType::MEDIA;
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   types::BidirectionalPair<types::AudioContexts> metadata = {
       .sink = types::AudioContexts(types::LeAudioContextType::UNSPECIFIED),
       .source = types::AudioContexts()};
-  EXPECT_CALL(mock_state_machine_, StartStream(_, default_config, metadata, _))
+  EXPECT_CALL(mock_state_machine_,
+              StartStream(_, kLeAudioDefaultConfigurationContext, metadata, _))
       .Times(1);
 
   LeAudioClient::Get()->GroupSetActive(group_id);
