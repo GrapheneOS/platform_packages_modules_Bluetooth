@@ -132,8 +132,8 @@ std::shared_ptr<BT_HDR> getArbitraryBtHdr(FuzzedDataProvider* fdp) {
   }
 
   uint16_t hdr_size = bytes.size() + sizeof(BT_HDR);
-  std::shared_ptr<BT_HDR> bt_hdr(
-      reinterpret_cast<BT_HDR*>(calloc(hdr_size, sizeof(uint8_t))), free);
+  std::shared_ptr<BT_HDR> bt_hdr(reinterpret_cast<BT_HDR*>(calloc(1, hdr_size)),
+                                 free);
 
   bt_hdr->event = fdp->ConsumeIntegral<uint16_t>();
   bt_hdr->len = bytes.size();
