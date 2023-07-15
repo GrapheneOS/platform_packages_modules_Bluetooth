@@ -16,6 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" msgid="2326164424236203271">"బ్లూటూత్"</string>
     <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"డౌన్‌లోడ్ మేనేజర్‌ను యాక్సెస్ చేయండి."</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"బ్లూటూత్ భాగస్వామ్య మేనేజర్‌ను యాక్సెస్ చేయడానికి యాప్‌ను అనుమతిస్తుంది మరియు ఫైళ్లను బదిలీ చేయడానికి దీన్ని ఉపయోగిస్తుంది."</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"అనుమతి లిస్ట్‌లో ఉంచిన బ్లూటూత్ పరికర యాక్సెస్."</string>

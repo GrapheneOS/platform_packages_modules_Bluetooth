@@ -16,6 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" msgid="2326164424236203271">"藍牙"</string>
     <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"存取下載管理員。"</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"允許應用程式存取 BluetoothShare 管理員並使用 BluetoothShare 管理員傳輸檔案。"</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"將藍牙裝置加入允許名單。"</string>
