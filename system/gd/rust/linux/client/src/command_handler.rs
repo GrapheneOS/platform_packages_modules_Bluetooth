@@ -366,29 +366,32 @@ impl CommandHandler {
     }
 
     /// Entry point for command and arguments
-    pub fn process_cmd_line(&mut self, command: &str, args: &Vec<String>) {
+    pub fn process_cmd_line(&mut self, command: &str, args: &Vec<String>) -> bool {
         // Ignore empty line
         match command {
-            "" => {}
+            "" => false,
             _ => match self.command_options.get(command) {
                 Some(cmd) => {
                     let rules = cmd.rules.clone();
                     match (cmd.function_pointer)(self, &args) {
-                        Ok(()) => {}
+                        Ok(()) => true,
                         Err(CommandError::InvalidArgs) => {
                             print_error!("Invalid arguments. Usage:\n{}", rules.join("\n"));
+                            false
                         }
                         Err(CommandError::Failed(msg)) => {
                             print_error!("Command failed: {}", msg);
+                            false
                         }
                     }
                 }
                 None => {
                     println!("'{}' is an invalid command!", command);
                     self.cmd_help(&args).ok();
+                    false
                 }
             },
-        };
+        }
     }
 
     fn lock_context(&self) -> std::sync::MutexGuard<ClientContext> {
