@@ -37,6 +37,5 @@ void btu_hcif_send_cmd_with_cb(const base::Location& posted_from,
                                base::OnceCallback<void(uint8_t*, uint16_t)> cb);
 namespace bluetooth::legacy::testing {
 void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,
-                                 const uint8_t* p_cmd,
-                                 void* p_vsc_status_cback);
+                                 const uint8_t* p_cmd);
 }  // namespace bluetooth::legacy::testing
