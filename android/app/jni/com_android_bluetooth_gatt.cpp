@@ -2400,9 +2400,10 @@ static void startAdvertisingSetNative(
   env->ReleaseByteArrayElements(periodic_data, periodic_data_data, JNI_ABORT);
 
   sGattIf->advertiser->StartAdvertisingSet(
-      reg_id, base::Bind(&ble_advertising_set_started_cb, reg_id, server_if),
-      params, data_vec, scan_resp_vec, periodicParams, periodic_data_vec,
-      duration, maxExtAdvEvents, base::Bind(ble_advertising_set_timeout_cb));
+      kAdvertiserClientIdJni, reg_id,
+      base::Bind(&ble_advertising_set_started_cb, reg_id, server_if), params,
+      data_vec, scan_resp_vec, periodicParams, periodic_data_vec, duration,
+      maxExtAdvEvents, base::Bind(ble_advertising_set_timeout_cb));
 }
 
 static void stopAdvertisingSetNative(JNIEnv* env, jobject object,

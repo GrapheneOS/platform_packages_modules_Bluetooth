@@ -754,8 +754,6 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback(
       btm_cb.cmn_ble_vsc_cb.energy_support,
       btm_cb.cmn_ble_vsc_cb.extended_scan_support);
 
-  btm_ble_adv_init();
-
   if (btm_cb.cmn_ble_vsc_cb.max_filter > 0) btm_ble_adv_filter_init();
 
   /* VS capability included and non-4.2 device */
