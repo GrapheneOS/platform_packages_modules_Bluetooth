@@ -368,8 +368,6 @@ static void event_shut_down_stack(ProfileStopCallback stopProfiles) {
 
   module_shut_down(get_local_module(RUST_MODULE));
 
-  do_in_main_thread(FROM_HERE, base::BindOnce(&btm_ble_multi_adv_cleanup));
-
   do_in_main_thread(FROM_HERE, base::BindOnce(&btm_ble_scanner_cleanup));
 
   btif_dm_on_disable();

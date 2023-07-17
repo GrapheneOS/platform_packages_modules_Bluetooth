@@ -20,14 +20,17 @@
 using namespace le_audio::broadcaster;
 
 IBroadcastStateMachineCallbacks* callbacks;
-void BroadcastStateMachine::Initialize(IBroadcastStateMachineCallbacks* cb) {
+AdvertisingCallbacks* adv_callbacks;
+void BroadcastStateMachine::Initialize(IBroadcastStateMachineCallbacks* cb,
+                                       AdvertisingCallbacks* adv_cb) {
   callbacks = cb;
+  adv_callbacks = adv_cb;
 }
 
 std::unique_ptr<BroadcastStateMachine> BroadcastStateMachine::CreateInstance(
     BroadcastStateMachineConfig msg) {
-  auto instance =
-      std::make_unique<MockBroadcastStateMachine>(std::move(msg), callbacks);
+  auto instance = std::make_unique<MockBroadcastStateMachine>(
+      std::move(msg), callbacks, adv_callbacks);
   MockBroadcastStateMachine::last_instance_ = instance.get();
   return std::move(instance);
 }
