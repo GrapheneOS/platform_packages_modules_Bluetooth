@@ -25,6 +25,7 @@
 #include "base/functional/callback.h"
 #include "broadcaster_types.h"
 #include "bta_le_audio_broadcaster_api.h"
+#include "main/shim/le_advertising_manager.h"
 
 namespace {
 template <int S, typename StateT = uint8_t>
@@ -110,8 +111,14 @@ class BroadcastStateMachine : public StateMachine<5> {
   static constexpr uint8_t kAdvSidUndefined = 0xFF;
   static constexpr uint8_t kPaIntervalMax = 0xA0; /* 160 * 0.625 = 100ms */
   static constexpr uint8_t kPaIntervalMin = 0x50; /* 80 * 0.625 = 50ms */
+  // LEA broadcast assigned register id, use positive number 0x1
+  // this should not matter since
+  // le_advertising_manager will maintain the reg_id together with client_id
+  // and java/jni is using negative number
+  static constexpr uint8_t kLeAudioBroadcastRegId = 0x1;
 
-  static void Initialize(IBroadcastStateMachineCallbacks*);
+  static void Initialize(IBroadcastStateMachineCallbacks*,
+                         AdvertisingCallbacks* adv_callbacks);
   static std::unique_ptr<BroadcastStateMachine> CreateInstance(
       BroadcastStateMachineConfig msg);
 
@@ -165,6 +172,9 @@ class BroadcastStateMachine : public StateMachine<5> {
       uint32_t broadcast_id, const std::string& broadcast_name,
       const bluetooth::le_audio::PublicBroadcastAnnouncementData&
           announcement) = 0;
+  virtual void OnCreateAnnouncement(uint8_t advertising_sid, int8_t tx_power,
+                                    uint8_t status) = 0;
+  virtual void OnEnableAnnouncement(bool enable, uint8_t status) = 0;
   void SetMuted(bool muted) { is_muted_ = muted; };
   bool IsMuted() const { return is_muted_; };
 
