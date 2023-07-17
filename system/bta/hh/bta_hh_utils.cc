@@ -117,12 +117,19 @@ tBTA_HH_DEV_CB* bta_hh_get_cb(const RawAddress& bda) {
 void bta_hh_clean_up_kdev(tBTA_HH_DEV_CB* p_cb) {
   uint8_t index;
 
-  if (p_cb->hid_handle != BTA_HH_INVALID_HANDLE) {
-    if (p_cb->is_le_device)
-      bta_hh_cb.le_cb_index[BTA_HH_GET_LE_CB_IDX(p_cb->hid_handle)] =
-          BTA_HH_IDX_INVALID;
-    else
+  if (p_cb->is_le_device) {
+    uint8_t le_hid_handle = BTA_HH_GET_LE_CB_IDX(p_cb->hid_handle);
+    if (le_hid_handle >= BTA_HH_LE_MAX_KNOWN) {
+      LOG_WARN("Invalid LE hid_handle %d", p_cb->hid_handle);
+    } else {
+      bta_hh_cb.le_cb_index[le_hid_handle] = BTA_HH_IDX_INVALID;
+    }
+  } else {
+    if (p_cb->hid_handle >= BTA_HH_MAX_KNOWN) {
+      LOG_WARN("Invalid hid_handle %d", p_cb->hid_handle);
+    } else {
       bta_hh_cb.cb_index[p_cb->hid_handle] = BTA_HH_IDX_INVALID;
+    }
   }
 
   /* reset device control block */
