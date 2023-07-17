@@ -34,6 +34,7 @@
 #include "main/shim/dumpsys.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
 #include "sdpdefs.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/sdp_api.h"
@@ -69,7 +70,8 @@ static uint16_t a2dp_attr_list[] = {
  * Returns          Nothing.
  *
  *****************************************************************************/
-static void a2dp_sdp_cback(tSDP_STATUS status) {
+static void a2dp_sdp_cback(UNUSED_ATTR const RawAddress& bd_addr,
+                           tSDP_STATUS status) {
   tSDP_DISC_REC* p_rec = NULL;
   tSDP_DISC_ATTR* p_attr;
   bool found = false;

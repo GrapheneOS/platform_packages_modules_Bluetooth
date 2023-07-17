@@ -20,6 +20,7 @@
 
 #include <cstddef>
 
+#include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/sdp_api.h"
 #include "stack/sdp/internal/sdp_api.h"
 #include "stack/sdp/sdpint.h"
@@ -142,7 +143,7 @@ TEST_F(StackSdpMainTest, sdp_service_search_request_queuing) {
   ASSERT_EQ(p_ccb2->con_state, SDP_STATE_IDLE);
 }
 
-void sdp_callback(tSDP_RESULT result) {
+void sdp_callback(UNUSED_ATTR const RawAddress& bd_addr, tSDP_RESULT result) {
   if (result == SDP_SUCCESS) {
     ASSERT_TRUE(SDP_ServiceSearchRequest(addr, sdp_db, nullptr));
   }
