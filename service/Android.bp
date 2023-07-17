@@ -24,6 +24,7 @@ filegroup {
         "src/AdapterState.kt",
         "src/RadioModeListener.kt",
         "src/com/**/*.kt",
+        "src/satellite/ModeListener.kt",
     ],
     visibility: [":__subpackages__"],
 }
@@ -164,6 +165,8 @@ android_robolectric_test {
         "src/AdapterStateTest.kt",
         "src/RadioModeListener.kt",
         "src/RadioModeListenerTest.kt",
+        "src/satellite/ModeListener.kt",
+        "src/satellite/ModeListenerTest.kt",
     ],
 
     static_libs: [
