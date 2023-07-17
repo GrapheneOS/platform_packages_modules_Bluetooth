@@ -17,6 +17,7 @@
 #include "gd/rust/topshim/hfp/hfp_shim.h"
 
 #include "btif/include/btif_hf.h"
+#include "gd/common/strings.h"
 #include "gd/os/log.h"
 #include "include/hardware/bt_hf.h"
 #include "src/profiles/hfp.rs.h"
@@ -40,6 +41,10 @@ static void audio_state_cb(bluetooth::headset::bthf_audio_state_t state, RawAddr
 
 static void volume_update_cb(uint8_t volume, RawAddress* addr) {
   rusty::hfp_volume_update_callback(volume, *addr);
+}
+
+static void vendor_specific_at_command_cb(char* at_string, RawAddress* addr) {
+  rusty::hfp_vendor_specific_at_command_callback(::rust::String{at_string}, *addr);
 }
 
 static void battery_level_update_cb(uint8_t battery_level, RawAddress* addr) {
@@ -209,8 +214,27 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
   }
 
   void UnknownAtCallback(char* at_string, RawAddress* bd_addr) override {
-    LOG_WARN("Reply Error to UnknownAtCallback:%s", at_string);
-    headset_->AtResponse(headset::BTHF_AT_RESPONSE_ERROR, 0, bd_addr);
+    const std::string at_command = common::ToString(at_string);
+    // We are able to support +XAPL, +IPHONEACCEV, and +XEVENT commands,
+    // everything else will get an error reply.
+    const bool is_xapl = at_command.find("+XAPL") != std::string::npos;
+    const bool is_iphoneaccev = at_command.find("+IPHONEACCEV") != std::string::npos;
+    const bool is_xevent = at_command.find("+XEVENT") != std::string::npos;
+    if (!is_xapl && !is_iphoneaccev && !is_xevent) {
+      LOG_WARN("Reply Error to UnknownAtCallback:%s", at_string);
+      headset_->AtResponse(headset::BTHF_AT_RESPONSE_ERROR, 0, bd_addr);
+      return;
+    }
+
+    if (is_xapl) {
+      // Respond that we support battery level reporting only (2).
+      headset_->FormattedAtResponse("+XAPL=iPhone,2", bd_addr);
+    }
+
+    // Ack all supported commands and bubble commands up for further processing
+    // if desired.
+    topshim::rust::internal::vendor_specific_at_command_cb(at_string, bd_addr);
+    headset_->AtResponse(headset::BTHF_AT_RESPONSE_OK, 0, bd_addr);
   }
 
   void KeyPressedCallback([[maybe_unused]] RawAddress* bd_addr) override {}
