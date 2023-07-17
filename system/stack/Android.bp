@@ -220,7 +220,6 @@ cc_library_static {
         "btm/btm_ble_bgconn.cc",
         "btm/btm_ble_cont_energy.cc",
         "btm/btm_ble_gap.cc",
-        "btm/btm_ble_multi_adv.cc",
         "btm/btm_ble_privacy.cc",
         "btm/btm_ble_scanner.cc",
         "btm/btm_client_interface.cc",
@@ -826,47 +825,6 @@ cc_test {
     ],
 }
 
-// Bluetooth stack multi-advertising unit tests for target
-cc_test {
-    name: "net_test_stack_multi_adv",
-    defaults: [
-        "bluetooth_gtest_x86_asan_workaround",
-        "fluoride_defaults",
-        "mts_defaults",
-    ],
-    test_suites: ["device-tests"],
-    local_include_dirs: [
-        "btm",
-        "include",
-    ],
-    include_dirs: [
-        "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/gd",
-        "packages/modules/Bluetooth/system/internal_include",
-        "packages/modules/Bluetooth/system/internal_include",
-    ],
-    srcs: [
-        ":TestMockDevice",
-        "btm/btm_ble_multi_adv.cc",
-        "test/ble_advertiser_test.cc",
-    ],
-    shared_libs: [
-        "libbinder_ndk",
-        "libcrypto",
-        "libcutils",
-    ],
-    static_libs: [
-        "android.system.suspend.control-V1-ndk",
-        "libbluetooth-types",
-        "libchrome",
-        "libgmock",
-        "liblog",
-    ],
-    sanitize: {
-        cfi: false,
-    },
-}
-
 // Bluetooth stack advertise data parsing unit tests for target
 cc_test {
     name: "net_test_stack_ad_parser",
@@ -1447,7 +1405,6 @@ cc_test {
         "btm/btm_ble_bgconn.cc",
         "btm/btm_ble_cont_energy.cc",
         "btm/btm_ble_gap.cc",
-        "btm/btm_ble_multi_adv.cc",
         "btm/btm_ble_privacy.cc",
         "btm/btm_ble_scanner.cc",
         "btm/btm_client_interface.cc",

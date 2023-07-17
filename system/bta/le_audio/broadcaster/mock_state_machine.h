@@ -26,8 +26,9 @@ class MockBroadcastStateMachine
  public:
   MockBroadcastStateMachine(
       le_audio::broadcaster::BroadcastStateMachineConfig cfg,
-      le_audio::broadcaster::IBroadcastStateMachineCallbacks* cb)
-      : cfg(cfg), cb(cb) {
+      le_audio::broadcaster::IBroadcastStateMachineCallbacks* cb,
+      AdvertisingCallbacks* adv_cb)
+      : cfg(cfg), cb(cb), adv_cb(adv_cb) {
     advertising_sid_ = ++instance_counter_;
 
     ON_CALL(*this, Initialize).WillByDefault([this]() {
@@ -149,11 +150,17 @@ class MockBroadcastStateMachine
                const void* data),
               (override));
   MOCK_METHOD((uint8_t), GetAdvertisingSid, (), (const override));
+  MOCK_METHOD((void), OnCreateAnnouncement,
+              (uint8_t advertising_sid, int8_t tx_power, uint8_t status),
+              (override));
+  MOCK_METHOD((void), OnEnableAnnouncement, (bool enable, uint8_t status),
+              (override));
 
   bool result_ = true;
   std::optional<le_audio::broadcaster::BigConfig> big_config_ = std::nullopt;
   le_audio::broadcaster::BroadcastStateMachineConfig cfg;
   le_audio::broadcaster::IBroadcastStateMachineCallbacks* cb;
+  AdvertisingCallbacks* adv_cb;
   void SetExpectedState(BroadcastStateMachine::State state) { SetState(state); }
   void SetExpectedResult(bool result) { result_ = result; }
   void SetExpectedBigConfig(

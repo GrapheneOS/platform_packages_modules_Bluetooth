@@ -114,7 +114,6 @@ source_set("stack") {
     "btm/btm_ble_bgconn.cc",
     "btm/btm_ble_cont_energy.cc",
     "btm/btm_ble_gap.cc",
-    "btm/btm_ble_multi_adv.cc",
     "btm/btm_ble_privacy.cc",
     "btm/btm_ble_scanner.cc",
     "btm/btm_client_interface.cc",
@@ -379,35 +378,6 @@ if (defined(use.android) && use.android) {
 
     configs += [
       "//bt/system:external_tinyxml2",
-      "//bt/system:external_gmock_main",
-      "//bt/system:target_defaults",
-    ]
-  }
-
-  executable("net_test_stack_multi_adv") {
-    sources = [
-      "btm/btm_ble_multi_adv.cc",
-      "test/ble_advertiser_test.cc",
-    ]
-
-    include_dirs = [
-      "include",
-      "//bt/system/",
-      "//bt/system/internal_include",
-      "//bt/system/stack/btm",
-    ]
-
-    libs = [
-      "dl",
-      "pthread",
-      "resolv",
-      "rt",
-      "z",
-    ]
-
-    deps = [ "//bt/system/types" ]
-
-    configs += [
       "//bt/system:external_gmock_main",
       "//bt/system:target_defaults",
     ]
