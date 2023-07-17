@@ -350,6 +350,7 @@ enum class AudioStreamDataPathState {
   CIS_PENDING,
   CIS_ESTABLISHED,
   DATA_PATH_ESTABLISHED,
+  DATA_PATH_REMOVING,
 };
 
 enum class CisType {
