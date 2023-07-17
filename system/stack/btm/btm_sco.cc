@@ -1708,7 +1708,7 @@ static uint16_t btm_sco_voice_settings_to_legacy(enh_esco_params_t* p_params) {
  ******************************************************************************/
 tBTM_SCO_DEBUG_DUMP BTM_GetScoDebugDump() {
   tSCO_CONN* active_sco = btm_get_active_sco();
-  tBTM_SCO_DEBUG_DUMP debug_dump;
+  tBTM_SCO_DEBUG_DUMP debug_dump = {};
 
   debug_dump.is_active = active_sco != nullptr;
   if (!debug_dump.is_active) return debug_dump;
