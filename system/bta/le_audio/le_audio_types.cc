@@ -787,9 +787,13 @@ uint32_t AdjustAllocationForOffloader(uint32_t allocation) {
 namespace types {
 std::ostream& operator<<(std::ostream& os,
                          const AudioStreamDataPathState& state) {
-  static const char* char_value_[6] = {
-      "IDLE",        "CIS_DISCONNECTING", "CIS_ASSIGNED",
-      "CIS_PENDING", "CIS_ESTABLISHED",   "DATA_PATH_ESTABLISHED"};
+  static const char* char_value_[7] = {"IDLE",
+                                       "CIS_DISCONNECTING",
+                                       "CIS_ASSIGNED",
+                                       "CIS_PENDING",
+                                       "CIS_ESTABLISHED",
+                                       "DATA_PATH_ESTABLISHED",
+                                       "DATA_PATH_REMOVING"};
 
   os << char_value_[static_cast<uint8_t>(state)] << " ("
      << "0x" << std::setfill('0') << std::setw(2) << static_cast<int>(state)
