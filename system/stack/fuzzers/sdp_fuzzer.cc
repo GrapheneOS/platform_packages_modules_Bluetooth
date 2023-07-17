@@ -220,10 +220,13 @@ static void FuzzAsClient(const uint8_t* data, size_t size) {
 
   bool is_di_discover = fdp.ConsumeBool();
   if (is_di_discover) {
-    SDP_ServiceSearchRequest(kDummyAddr, p_db.get(), [](tSDP_RESULT result) {});
+    SDP_ServiceSearchRequest(
+        kDummyAddr, p_db.get(),
+        [](const RawAddress& bd_addr, tSDP_RESULT result) {});
   } else {
-    SDP_ServiceSearchAttributeRequest(kDummyAddr, p_db.get(),
-                                      [](tSDP_RESULT result) {});
+    SDP_ServiceSearchAttributeRequest(
+        kDummyAddr, p_db.get(),
+        [](const RawAddress& bd_addr, tSDP_RESULT result) {});
   }
   cb_info.pL2CA_ConnectCfm_Cb(kDummyCID, L2CAP_CONN_OK);
 

@@ -34,6 +34,7 @@
 #include "bta/jv/bta_jv_int.h"
 #include "bta/sys/bta_sys.h"
 #include "osi/include/allocator.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_sec.h"
 #include "stack/include/avct_api.h"  // AVCT_PSM
 #include "stack/include/avdt_api.h"  // AVDT_PSM
@@ -795,7 +796,8 @@ void bta_jv_free_scn(int32_t type /* One of BTA_JV_CONN_TYPE_ */,
  * Returns      void
  *
  ******************************************************************************/
-static void bta_jv_start_discovery_cback(tSDP_RESULT result,
+static void bta_jv_start_discovery_cback(UNUSED_ATTR const RawAddress& bd_addr,
+                                         tSDP_RESULT result,
                                          const void* user_data) {
   tBTA_JV_STATUS status;
   uint32_t* p_rfcomm_slot_id =

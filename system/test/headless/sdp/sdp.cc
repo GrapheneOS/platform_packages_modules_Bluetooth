@@ -22,6 +22,7 @@
 
 #include "base/logging.h"     // LOG() stdout and android log
 #include "osi/include/log.h"  // android log only
+#include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/sdp_api.h"
 #include "test/headless/get_options.h"
 #include "test/headless/headless.h"
@@ -32,8 +33,9 @@
 using namespace bluetooth::legacy::stack::sdp;
 using namespace bluetooth::test::headless;
 
-static void bta_jv_start_discovery_callback(tSDP_STATUS result,
-                                            const void* user_data) {
+static void bta_jv_start_discovery_callback(
+    UNUSED_ATTR const RawAddress& bd_addr, tSDP_STATUS result,
+    const void* user_data) {
   auto promise =
       static_cast<std::promise<uint16_t>*>(const_cast<void*>(user_data));
   promise->set_value(result);

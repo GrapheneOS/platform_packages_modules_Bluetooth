@@ -31,6 +31,7 @@
 #include "bta/include/bta_hf_client_api.h"
 #include "bta/sys/bta_sys.h"
 #include "osi/include/allocator.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
 #include "osi/include/properties.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/btm_api.h"
@@ -58,7 +59,8 @@ using namespace bluetooth::legacy::stack::sdp;
  * Returns          void
  *
  ******************************************************************************/
-static void bta_hf_client_sdp_cback(tSDP_STATUS status, const void* data) {
+static void bta_hf_client_sdp_cback(UNUSED_ATTR const RawAddress& bd_addr,
+                                    tSDP_STATUS status, const void* data) {
   uint16_t event;
   tBTA_HF_CLIENT_DISC_RESULT* p_buf = (tBTA_HF_CLIENT_DISC_RESULT*)osi_malloc(
       sizeof(tBTA_HF_CLIENT_DISC_RESULT));

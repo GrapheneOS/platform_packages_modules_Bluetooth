@@ -39,6 +39,7 @@
 #include "device/include/interop.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_sec.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/sdp_api.h"
@@ -350,7 +351,8 @@ descriptor_discovery_done:
 }
 
 /* Process the discovery result from sdp */
-void bta_gattc_sdp_callback(tSDP_STATUS sdp_status, const void* user_data) {
+void bta_gattc_sdp_callback(UNUSED_ATTR const RawAddress& bd_addr,
+                            tSDP_STATUS sdp_status, const void* user_data) {
   tBTA_GATTC_CB_DATA* cb_data = (tBTA_GATTC_CB_DATA*)user_data;
   tBTA_GATTC_SERV* p_srvc_cb = bta_gattc_find_scb_by_cid(cb_data->sdp_conn_id);
 
