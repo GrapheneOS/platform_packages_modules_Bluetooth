@@ -4538,6 +4538,76 @@ TEST_F(StateMachineTest, StreamClearAfterReleaseAndConnectionTimeout) {
   testing::Mock::VerifyAndClearExpectations(&mock_iso_manager_);
 }
 
+TEST_F(StateMachineTest, VerifyThereIsNoDoubleDataPathRemoval) {
+  auto context_type = kContextTypeConversational;
+  const auto leaudio_group_id = 4;
+  const auto num_devices = 1;
+
+  /* Symulate banded headphonse */
+  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
+                   kLeAudioCodecLC3ChannelCountTwoChannel;
+
+  /* Scenario
+  1. Phone call to 1 device
+  2. Stop the stream
+  3. Get both ASE sink and Source to releasing
+  4. Verify only 1 RemoveDataPath is called
+  */
+
+  // Prepare multiple fake connected devices in a group
+  auto* group = PrepareSingleTestDeviceGroup(
+      leaudio_group_id, context_type, num_devices,
+      kContextTypeConversational | kContextTypeMedia);
+  ASSERT_EQ(group->Size(), num_devices);
+
+  PrepareConfigureCodecHandler(group);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group);
+  PrepareReleaseHandler(group);
+  PrepareReceiverStartReady(group);
+
+  EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
+  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(1);
+
+  /*Test ends before full clean*/
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
+
+  InjectInitialIdleNotification(group);
+
+  // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+
+  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
+      group, context_type,
+      {.sink = types::AudioContexts(context_type),
+       .source = types::AudioContexts(context_type)}));
+
+  // Check if group has transitioned to a proper state
+  ASSERT_EQ(group->GetState(),
+            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+  ASSERT_EQ(1, get_func_call_count("alarm_cancel"));
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::RELEASING));
+
+  /* Do not trigger any action on removeIsoData path.*/
+  ON_CALL(*mock_iso_manager_, RemoveIsoDataPath).WillByDefault(Return());
+
+  LeAudioGroupStateMachine::Get()->StopStream(group);
+
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+  testing::Mock::VerifyAndClearExpectations(&mock_iso_manager_);
+}
+
 TEST_F(StateMachineTest, StreamStartWithDifferentContextFromConfiguredState) {
   auto context_type = kContextTypeConversational;
   const auto leaudio_group_id = 6;
