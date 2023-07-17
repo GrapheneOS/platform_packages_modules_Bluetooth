@@ -22,6 +22,7 @@ default-members = [
   "system/gd/rust/linux/service",
   "system/gd/rust/linux/stack",
   "system/gd/rust/linux/client",
+  "system/gd/rust/linux/utils",
 ]
 
 members = [
@@ -31,5 +32,6 @@ members = [
   "system/gd/rust/linux/service",
   "system/gd/rust/linux/stack",
   "system/gd/rust/linux/client",
+  "system/gd/rust/linux/utils",
   "floss/hcidoc",
 ]
