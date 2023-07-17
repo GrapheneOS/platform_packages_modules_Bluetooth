@@ -103,9 +103,19 @@ class BluetoothAirplaneModeListener extends Handler {
         mNotificationManager = notificationManager;
         mContext = context;
 
+        String airplaneModeRadios =
+                Settings.Global.getString(
+                        mContext.getContentResolver(), Settings.Global.AIRPLANE_MODE_RADIOS);
+        if (airplaneModeRadios != null
+                && !airplaneModeRadios.contains(Settings.Global.RADIO_BLUETOOTH)) {
+            Log.w(TAG, "BluetoothAirplaneModeListener: blocked by AIRPLANE_MODE_RADIOS");
+            mIsAirplaneModeOn = false;
+            return;
+        }
+
         mIsAirplaneModeOn = isGlobalAirplaneModeOn(mContext);
 
-        context.getContentResolver()
+        mContext.getContentResolver()
                 .registerContentObserver(
                         Settings.Global.getUriFor(Settings.Global.AIRPLANE_MODE_ON),
                         true,
