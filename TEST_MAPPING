@@ -69,9 +69,6 @@
     {
       "name": "net_test_stack_ad_parser"
     },
-    {
-      "name": "net_test_stack_multi_adv"
-    },
     // go/a-unit-tests tests (unit_test: true)
     // Thoses test run on the host in the CI automatically.
     // Run the one that are available on the device on the
@@ -278,9 +275,6 @@
     },
     {
       "name": "net_test_stack_ad_parser"
-    },
-    {
-      "name": "net_test_stack_multi_adv"
     },
     // go/a-unit-tests tests (unit_test: true)
     // Thoses test run on the host in the CI automatically.

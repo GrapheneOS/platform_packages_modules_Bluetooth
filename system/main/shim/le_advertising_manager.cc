@@ -79,6 +79,13 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
   void Unregister(uint8_t advertiser_id) override {
     LOG(INFO) << __func__ << " in shim layer";
     bluetooth::shim::GetAdvertising()->RemoveAdvertiser(advertiser_id);
+    int reg_id =
+        bluetooth::shim::GetAdvertising()->GetAdvertiserRegId(advertiser_id);
+    uint8_t client_id = is_native_advertiser(reg_id);
+    // if registered by native client, remove the register id
+    if (client_id != kAdvertiserClientIdJni) {
+      native_reg_id_map[client_id].erase(reg_id);
+    }
     BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le advert stopped",
                    base::StringPrintf("advert_id:%d", advertiser_id));
   }
@@ -173,7 +180,8 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
         set_terminated_callback, bluetooth::shim::GetGdShimHandler());
   }
 
-  void StartAdvertisingSet(int reg_id, IdTxPowerStatusCallback register_cb,
+  void StartAdvertisingSet(uint8_t client_id, int reg_id,
+                           IdTxPowerStatusCallback register_cb,
                            AdvertiseParameters params,
                            std::vector<uint8_t> advertise_data,
                            std::vector<uint8_t> scan_response_data,
@@ -230,12 +238,17 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
       offset += len + 1;  // 1 byte for len
     }
 
+    // if registered by native client, add the register id
+    if (client_id != kAdvertiserClientIdJni) {
+      native_reg_id_map[client_id].insert(reg_id);
+    }
+
     bluetooth::shim::GetAdvertising()->ExtendedCreateAdvertiser(
         reg_id, config, scan_callback, set_terminated_callback, duration,
         maxExtAdvEvents, bluetooth::shim::GetGdShimHandler());
 
-    LOG(INFO) << "create advertising set, reg_id:" << reg_id;
-
+    LOG_INFO("create advertising set, client_id:%d, reg_id:%d", client_id,
+             reg_id);
     BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le advert started",
                    base::StringPrintf("reg_id:%d", reg_id));
 
@@ -290,6 +303,11 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
     advertising_callbacks_ = callbacks;
   }
 
+  void RegisterCallbacksNative(AdvertisingCallbacks* callbacks,
+                               uint8_t client_id) {
+    native_adv_callbacks_map_[client_id] = callbacks;
+  }
+
   void on_scan(Address address, AddressType address_type) {
     LOG(INFO) << __func__ << " in shim layer";
   }
@@ -311,6 +329,16 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
   void OnAdvertisingSetStarted(int reg_id, uint8_t advertiser_id,
                                int8_t tx_power,
                                AdvertisingStatus status) override {
+    uint8_t client_id = is_native_advertiser(reg_id);
+    if (client_id != kAdvertiserClientIdJni) {
+      // Invoke callback for native client
+      do_in_main_thread(
+          FROM_HERE,
+          base::Bind(&AdvertisingCallbacks::OnAdvertisingSetStarted,
+                     base::Unretained(native_adv_callbacks_map_[client_id]),
+                     reg_id, advertiser_id, tx_power, status));
+      return;
+    }
     do_in_jni_thread(
         FROM_HERE, base::Bind(&AdvertisingCallbacks::OnAdvertisingSetStarted,
                               base::Unretained(advertising_callbacks_), reg_id,
@@ -319,6 +347,18 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
 
   void OnAdvertisingEnabled(uint8_t advertiser_id, bool enable,
                             uint8_t status) {
+    int reg_id =
+        bluetooth::shim::GetAdvertising()->GetAdvertiserRegId(advertiser_id);
+    uint8_t client_id = is_native_advertiser(reg_id);
+    if (client_id != kAdvertiserClientIdJni) {
+      // Invoke callback for native client
+      do_in_main_thread(
+          FROM_HERE,
+          base::Bind(&AdvertisingCallbacks::OnAdvertisingEnabled,
+                     base::Unretained(native_adv_callbacks_map_[client_id]),
+                     advertiser_id, enable, status));
+      return;
+    }
     do_in_jni_thread(FROM_HERE,
                      base::Bind(&AdvertisingCallbacks::OnAdvertisingEnabled,
                                 base::Unretained(advertising_callbacks_),
@@ -388,6 +428,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
   }
 
   AdvertisingCallbacks* advertising_callbacks_;
+  std::map<uint8_t, AdvertisingCallbacks*> native_adv_callbacks_map_;
 
  private:
   void parse_parameter(bluetooth::hci::AdvertisingConfig& config,
@@ -445,7 +486,19 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
     config.include_adi = periodic_params.include_adi;
   }
 
+  uint8_t is_native_advertiser(int reg_id) {
+    // Return client id if it's native advertiser, otherwise return jni id as
+    // default
+    for (auto const& entry : native_adv_callbacks_map_) {
+      if (native_reg_id_map[entry.first].count(reg_id)) {
+        return entry.first;
+      }
+    }
+    return kAdvertiserClientIdJni;
+  }
+
   std::map<uint8_t, GetAddressCallback> address_callbacks_;
+  std::map<uint8_t, std::set<int>> native_reg_id_map;
 };
 
 BleAdvertiserInterfaceImpl* bt_le_advertiser_instance = nullptr;

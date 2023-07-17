@@ -197,6 +197,10 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     return num_instances_;
   }
 
+  int get_advertiser_reg_id(AdvertiserId advertiser_id) {
+    return id_map_[advertiser_id];
+  }
+
   AdvertisingApiType get_advertising_api_type() const {
     return advertising_api_type_;
   }
@@ -1636,6 +1640,10 @@ std::string LeAdvertisingManager::ToString() const {
 
 size_t LeAdvertisingManager::GetNumberOfAdvertisingInstances() const {
   return pimpl_->GetNumberOfAdvertisingInstances();
+}
+
+int LeAdvertisingManager::GetAdvertiserRegId(AdvertiserId advertiser_id) {
+  return pimpl_->get_advertiser_reg_id(advertiser_id);
 }
 
 void LeAdvertisingManager::ExtendedCreateAdvertiser(

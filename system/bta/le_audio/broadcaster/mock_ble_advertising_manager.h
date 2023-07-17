@@ -23,8 +23,9 @@
 #include <gmock/gmock.h>
 
 #include "ble_advertiser.h"
+#include "include/hardware/ble_advertiser.h"
 
-class MockBleAdvertisingManager : public BleAdvertisingManager {
+class MockBleAdvertisingManager : public BleAdvertiserInterface {
  public:
   MockBleAdvertisingManager() = default;
   MockBleAdvertisingManager(const MockBleAdvertisingManager&) = delete;
@@ -33,77 +34,56 @@ class MockBleAdvertisingManager : public BleAdvertisingManager {
 
   ~MockBleAdvertisingManager() override = default;
 
-  /* Allows getting and setting BleAdvertiserHciInterface dependency */
-  BleAdvertiserHciInterface* GetBleAdvertiserHciInterface() {
-    return ble_adv_hci_interface_;
-  }
-  void SetBleAdvertiserHciInterfaceForTesting(
-      BleAdvertiserHciInterface* interface) {
-    ble_adv_hci_interface_ = interface;
-  }
-
-  base::WeakPtr<MockBleAdvertisingManager> GetWeakPtr() {
-    return weak_factory_.GetWeakPtr();
-  }
+  static void Initialize();
+  static void CleanUp();
+  static MockBleAdvertisingManager* Get();
 
   MOCK_METHOD((void), StartAdvertising,
-              (uint8_t advertiser_id, MultiAdvCb cb,
-               tBTM_BLE_ADV_PARAMS* params, std::vector<uint8_t> advertise_data,
-               std::vector<uint8_t> scan_response_data, int duration,
+              (uint8_t advertiser_id, StatusCallback cb,
+               AdvertiseParameters params, std::vector<uint8_t> advertise_data,
+               std::vector<uint8_t> scan_response_data, int timeout_s,
                MultiAdvCb timeout_cb),
               (override));
   MOCK_METHOD((void), StartAdvertisingSet,
-              (base::Callback<void(uint8_t /* inst_id */, int8_t /* tx_power */,
-                                   uint8_t /* status */)>
-                   cb,
-               tBTM_BLE_ADV_PARAMS* params, std::vector<uint8_t> advertise_data,
+              (uint8_t client_id, int reg_id,
+               IdTxPowerStatusCallback register_cb, AdvertiseParameters params,
+               std::vector<uint8_t> advertise_data,
                std::vector<uint8_t> scan_response_data,
-               tBLE_PERIODIC_ADV_PARAMS* periodic_params,
+               PeriodicAdvertisingParameters periodic_params,
                std::vector<uint8_t> periodic_data, uint16_t duration,
-               uint8_t maxExtAdvEvents,
-               base::Callback<void(uint8_t /* inst_id */, uint8_t /* status */)>
-                   timeout_cb),
+               uint8_t maxExtAdvEvents, IdStatusCallback timeout_cb),
               (override));
-  MOCK_METHOD((void), RegisterAdvertiser,
-              (base::Callback<void(uint8_t inst_id, uint8_t status)>),
-              (override));
+  MOCK_METHOD((void), RegisterAdvertiser, (IdStatusCallback cb), (override));
   MOCK_METHOD((void), Enable,
-              (uint8_t inst_id, bool enable, MultiAdvCb cb, uint16_t duration,
-               uint8_t maxExtAdvEvents, MultiAdvCb timeout_cb),
+              (uint8_t advertiser_id, bool enable, StatusCallback cb,
+               uint16_t duration, uint8_t maxExtAdvEvents,
+               StatusCallback timeout_cb),
               (override));
   MOCK_METHOD((void), SetParameters,
-              (uint8_t inst_id, tBTM_BLE_ADV_PARAMS* p_params, ParametersCb cb),
+              (uint8_t advertiser_id, AdvertiseParameters params,
+               ParametersCallback cb),
               (override));
   MOCK_METHOD((void), SetData,
-              (uint8_t inst_id, bool is_scan_rsp, std::vector<uint8_t> data,
-               MultiAdvCb cb),
+              (int advertiser_id, bool set_scan_rsp, std::vector<uint8_t> data,
+               StatusCallback cb),
               (override));
   MOCK_METHOD((void), SetPeriodicAdvertisingParameters,
-              (uint8_t inst_id, tBLE_PERIODIC_ADV_PARAMS* params,
-               MultiAdvCb cb),
+              (int advertiser_id, PeriodicAdvertisingParameters periodic_params,
+               StatusCallback cb),
               (override));
   MOCK_METHOD((void), SetPeriodicAdvertisingData,
-              (uint8_t inst_id, std::vector<uint8_t> data, MultiAdvCb cb),
+              (int advertiser_id, std::vector<uint8_t> data, StatusCallback cb),
               (override));
   MOCK_METHOD((void), SetPeriodicAdvertisingEnable,
-              (uint8_t inst_id, bool enable, bool include_adi, MultiAdvCb cb),
+              (int advertiser_id, bool enable, bool include_adi,
+               StatusCallback cb),
               (override));
-  MOCK_METHOD((void), Unregister, (uint8_t inst_id), (override));
-  MOCK_METHOD((void), Suspend, (), (override));
-  MOCK_METHOD((void), Resume, (), (override));
-  MOCK_METHOD((void), OnAdvertisingSetTerminated,
-              (uint8_t status, uint8_t advertising_handle,
-               uint16_t connection_handle,
-               uint8_t num_completed_extended_adv_events),
+  MOCK_METHOD((void), Unregister, (uint8_t advertiser_id), (override));
+  MOCK_METHOD((void), GetOwnAddress,
+              (uint8_t advertiser_id, GetAddressCallback cb), (override));
+  MOCK_METHOD((void), RegisterCallbacks, (AdvertisingCallbacks * callbacks),
               (override));
-  MOCK_METHOD(
-      (void), GetOwnAddress,
-      (uint8_t inst_id,
-       base::Callback<void(uint8_t /* address_type*/, RawAddress /*address*/)>
-           cb),
-      (override));
-
- private:
-  base::WeakPtrFactory<MockBleAdvertisingManager> weak_factory_{this};
-  BleAdvertiserHciInterface* ble_adv_hci_interface_;
+  MOCK_METHOD((void), RegisterCallbacksNative,
+              (AdvertisingCallbacks * callbacks, uint8_t client_id),
+              (override));
 };
