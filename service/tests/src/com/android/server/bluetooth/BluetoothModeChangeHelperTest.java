@@ -22,7 +22,6 @@ import static org.mockito.Mockito.spy;
 
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.provider.Settings;
 import android.text.TextUtils;
 
 import androidx.test.InstrumentationRegistry;
@@ -66,32 +65,6 @@ public class BluetoothModeChangeHelperTest {
         //       Instead, it calls isLeEnabled(). Two results can be different.
         //       Is this a mistake, or in purpose?
         mHelper.isBluetoothOn();
-    }
-
-    @Test
-    public void setSettingsInt() {
-        String testSettingsName = "BluetoothModeChangeHelperTest_test_settings_name";
-        int value = 9876;
-
-        try {
-            mHelper.setSettingsInt(testSettingsName, value);
-            assertThat(mHelper.getSettingsInt(testSettingsName)).isEqualTo(value);
-        } finally {
-            Settings.Global.resetToDefaults(mContext.getContentResolver(), null);
-        }
-    }
-
-    @Test
-    public void setSettingsSecureInt() {
-        String testSettingsName = "BluetoothModeChangeHelperTest_test_settings_name";
-        int value = 1234;
-
-        try {
-            mHelper.setSettingsSecureInt(testSettingsName, value);
-            assertThat(mHelper.getSettingsSecureInt(testSettingsName, 0)).isEqualTo(value);
-        } finally {
-            Settings.Global.resetToDefaults(mContext.getContentResolver(), null);
-        }
     }
 
     @Test

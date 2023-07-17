@@ -95,6 +95,13 @@ public class BluetoothManagerServiceTest {
 
     boolean mHasException = false;
 
+    static {
+        // Required for reading DeviceConfig.
+        InstrumentationRegistry.getInstrumentation()
+                .getUiAutomation()
+                .adoptShellPermissionIdentity(android.Manifest.permission.READ_DEVICE_CONFIG);
+    }
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
