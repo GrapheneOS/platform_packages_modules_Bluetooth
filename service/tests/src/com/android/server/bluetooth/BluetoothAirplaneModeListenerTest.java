@@ -28,15 +28,18 @@ import static com.android.server.bluetooth.BluetoothAirplaneModeListener.WIFI_AP
 
 import static org.mockito.Mockito.*;
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Looper;
 import android.provider.Settings;
+import android.test.mock.MockContentResolver;
 
 import androidx.test.filters.MediumTest;
+import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
+
+import com.android.internal.util.test.FakeSettingsProvider;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -54,16 +57,25 @@ public class BluetoothAirplaneModeListenerTest {
 
     @Mock private Context mContext;
     @Mock private BluetoothServerProxy mBluetoothServerProxy;
-    @Mock private ContentResolver mContentResolver;
     @Mock private BluetoothManagerService mBluetoothManagerService;
     @Mock private BluetoothModeChangeHelper mHelper;
     @Mock private BluetoothNotificationManager mBluetoothNotificationManager;
     @Mock private PackageManager mPackageManager;
     @Mock private Resources mResources;
+    private MockContentResolver mContentResolver;
+
+    static {
+        // Required for reading DeviceConfig during BluetoothManagerService static init
+        InstrumentationRegistry.getInstrumentation()
+                .getUiAutomation()
+                .adoptShellPermissionIdentity(android.Manifest.permission.READ_DEVICE_CONFIG);
+    }
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        mContentResolver = new MockContentResolver();
+        mContentResolver.addProvider(Settings.AUTHORITY, new FakeSettingsProvider());
         when(mContext.getContentResolver()).thenReturn(mContentResolver);
         when(mHelper.getSettingsInt(BluetoothAirplaneModeListener.TOAST_COUNT))
                 .thenReturn(BluetoothAirplaneModeListener.MAX_TOAST_COUNT);
