@@ -20,27 +20,27 @@
 #include <base/memory/weak_ptr.h>
 
 #include "ble_advertiser_hci_interface.h"
+#include "main/shim/le_advertising_manager.h"
 
 namespace {
-BleAdvertisingManager* instance;
-base::WeakPtr<MockBleAdvertisingManager> instance_weakptr;
+MockBleAdvertisingManager* bt_le_advertiser_instance;
 }  // namespace
 
-void BleAdvertisingManager::Initialize(BleAdvertiserHciInterface* interface) {
-  MockBleAdvertisingManager* manager = new MockBleAdvertisingManager();
-  manager->SetBleAdvertiserHciInterfaceForTesting(interface);
-
-  instance = manager;
-  instance_weakptr = ((MockBleAdvertisingManager*)instance)->GetWeakPtr();
+void MockBleAdvertisingManager::Initialize() {
+  if (bt_le_advertiser_instance == nullptr) {
+    bt_le_advertiser_instance = new MockBleAdvertisingManager();
+  }
 }
 
-void BleAdvertisingManager::CleanUp() {
-  delete instance;
-  instance = nullptr;
+void MockBleAdvertisingManager::CleanUp() {
+  delete bt_le_advertiser_instance;
+  bt_le_advertiser_instance = nullptr;
 }
 
-bool BleAdvertisingManager::IsInitialized() { return instance; }
+MockBleAdvertisingManager* MockBleAdvertisingManager::Get() {
+  return bt_le_advertiser_instance;
+}
 
-base::WeakPtr<BleAdvertisingManager> BleAdvertisingManager::Get() {
-  return instance_weakptr;
+BleAdvertiserInterface* bluetooth::shim::get_ble_advertiser_instance() {
+  return static_cast<BleAdvertiserInterface*>(bt_le_advertiser_instance);
 }

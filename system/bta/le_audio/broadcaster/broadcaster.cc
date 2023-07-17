@@ -91,7 +91,8 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     LOG_INFO();
 
     /* Register State machine callbacks */
-    BroadcastStateMachine::Initialize(&state_machine_callbacks_);
+    BroadcastStateMachine::Initialize(&state_machine_callbacks_,
+                                      &state_machine_adv_callbacks_);
 
     GenerateBroadcastIds();
   }
@@ -851,6 +852,93 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     }
   } state_machine_callbacks_;
 
+  static class BroadcastAdvertisingCallbacks : public AdvertisingCallbacks {
+    void OnAdvertisingSetStarted(int reg_id, uint8_t advertiser_id,
+                                 int8_t tx_power, uint8_t status) {
+      if (!instance) return;
+
+      if (reg_id == BroadcastStateMachine::kLeAudioBroadcastRegId &&
+          !instance->pending_broadcasts_.empty()) {
+        instance->pending_broadcasts_.back()->OnCreateAnnouncement(
+            advertiser_id, tx_power, status);
+      } else {
+        LOG_WARN(
+            "Ignored OnAdvertisingSetStarted callback reg_id:%d "
+            "advertiser_id:%d",
+            reg_id, advertiser_id);
+      }
+    }
+
+    void OnAdvertisingEnabled(uint8_t advertiser_id, bool enable,
+                              uint8_t status) {
+      if (!instance) return;
+
+      auto const& iter = std::find_if(
+          instance->broadcasts_.cbegin(), instance->broadcasts_.cend(),
+          [advertiser_id](auto const& sm) {
+            return sm.second->GetAdvertisingSid() == advertiser_id;
+          });
+      if (iter != instance->broadcasts_.cend()) {
+        iter->second->OnEnableAnnouncement(enable, status);
+      } else {
+        LOG_WARN("Ignored OnAdvertisingEnabled callback advertiser_id:%d",
+                 advertiser_id);
+      }
+    }
+
+    void OnAdvertisingDataSet(uint8_t advertiser_id, uint8_t status) {
+      LOG_WARN(
+          "Not being used, ignored OnAdvertisingDataSet callback "
+          "advertiser_id:%d",
+          advertiser_id);
+    }
+
+    void OnScanResponseDataSet(uint8_t advertiser_id, uint8_t status) {
+      LOG_WARN(
+          "Not being used, ignored OnScanResponseDataSet callback "
+          "advertiser_id:%d",
+          advertiser_id);
+    }
+
+    void OnAdvertisingParametersUpdated(uint8_t advertiser_id, int8_t tx_power,
+                                        uint8_t status) {
+      LOG_WARN(
+          "Not being used, ignored OnAdvertisingParametersUpdated callback "
+          "advertiser_id:%d",
+          advertiser_id);
+    }
+
+    void OnPeriodicAdvertisingParametersUpdated(uint8_t advertiser_id,
+                                                uint8_t status) {
+      LOG_WARN(
+          "Not being used, ignored OnPeriodicAdvertisingParametersUpdated "
+          "callback advertiser_id:%d",
+          advertiser_id);
+    }
+
+    void OnPeriodicAdvertisingDataSet(uint8_t advertiser_id, uint8_t status) {
+      LOG_WARN(
+          "Not being used, ignored OnPeriodicAdvertisingDataSet callback "
+          "advertiser_id:%d",
+          advertiser_id);
+    }
+
+    void OnPeriodicAdvertisingEnabled(uint8_t advertiser_id, bool enable,
+                                      uint8_t status) {
+      LOG_WARN(
+          "Not being used, ignored OnPeriodicAdvertisingEnabled callback "
+          "advertiser_id:%d",
+          advertiser_id);
+    }
+
+    void OnOwnAddressRead(uint8_t advertiser_id, uint8_t address_type,
+                          RawAddress address) {
+      LOG_WARN(
+          "Not being used, ignored OnOwnAddressRead callback advertiser_id:%d",
+          advertiser_id);
+    }
+  } state_machine_adv_callbacks_;
+
   static class LeAudioSourceCallbacksImpl
       : public LeAudioSourceAudioHalClient::Callbacks {
    public:
@@ -1033,7 +1121,8 @@ LeAudioBroadcasterImpl::BroadcastStateMachineCallbacks
     LeAudioBroadcasterImpl::state_machine_callbacks_;
 LeAudioBroadcasterImpl::LeAudioSourceCallbacksImpl
     LeAudioBroadcasterImpl::audio_receiver_;
-
+LeAudioBroadcasterImpl::BroadcastAdvertisingCallbacks
+    LeAudioBroadcasterImpl::state_machine_adv_callbacks_;
 } /* namespace */
 
 void LeAudioBroadcaster::Initialize(
