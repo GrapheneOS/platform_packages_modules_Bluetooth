@@ -261,7 +261,8 @@ static void bta_hh_sdp_cback(uint16_t result, uint16_t attr_mask,
  * Returns          void
  *
  ******************************************************************************/
-static void bta_hh_di_sdp_cback(tSDP_RESULT result) {
+static void bta_hh_di_sdp_cback(UNUSED_ATTR const RawAddress& bd_addr,
+                                tSDP_RESULT result) {
   tBTA_HH_DEV_CB* p_cb = bta_hh_cb.p_cur;
   tBTA_HH_STATUS status = BTA_HH_ERR_SDP;
   tSDP_DI_GET_RECORD di_rec;

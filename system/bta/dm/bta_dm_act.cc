@@ -98,7 +98,8 @@ static void bta_dm_service_search_remname_cback(const RawAddress& bd_addr,
 static void bta_dm_remname_cback(const tBTM_REMOTE_DEV_NAME* p);
 static void bta_dm_find_services(const RawAddress& bd_addr);
 static void bta_dm_discover_next_device(void);
-static void bta_dm_sdp_callback(tSDP_STATUS sdp_status);
+static void bta_dm_sdp_callback(const RawAddress& bd_addr,
+                                tSDP_STATUS sdp_status);
 static uint8_t bta_dm_pin_cback(const RawAddress& bd_addr, DEV_CLASS dev_class,
                                 const tBTM_BD_NAME bd_name, bool min_16_digit);
 static uint8_t bta_dm_new_link_key_cback(const RawAddress& bd_addr,
@@ -2110,7 +2111,8 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
  * Returns          void
  *
  ******************************************************************************/
-static void bta_dm_sdp_callback(tSDP_STATUS sdp_status) {
+static void bta_dm_sdp_callback(UNUSED_ATTR const RawAddress& bd_addr,
+                                tSDP_STATUS sdp_status) {
   tBTA_DM_SDP_RESULT* p_msg =
       (tBTA_DM_SDP_RESULT*)osi_malloc(sizeof(tBTA_DM_SDP_RESULT));
 
