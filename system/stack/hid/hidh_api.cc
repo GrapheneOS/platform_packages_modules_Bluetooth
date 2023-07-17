@@ -34,6 +34,7 @@
 #include "hiddefs.h"
 #include "hidh_int.h"
 #include "osi/include/allocator.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
@@ -46,7 +47,8 @@ using bluetooth::Uuid;
 
 tHID_HOST_CTB hh_cb;
 
-static void hidh_search_callback(tSDP_RESULT sdp_result);
+static void hidh_search_callback(const RawAddress& bd_addr,
+                                 tSDP_RESULT sdp_result);
 
 /*******************************************************************************
  *
@@ -104,7 +106,8 @@ void hidh_get_str_attr(tSDP_DISC_REC* p_rec, uint16_t attr_id, uint16_t max_len,
     str[0] = '\0';
 }
 
-static void hidh_search_callback(tSDP_RESULT sdp_result) {
+static void hidh_search_callback(UNUSED_ATTR const RawAddress& bd_addr,
+                                 tSDP_RESULT sdp_result) {
   tSDP_DISCOVERY_DB* p_db = hh_cb.p_sdp_db;
   tSDP_DISC_REC* p_rec;
   tSDP_DISC_ATTR *p_attr, *p_subattr1, *p_subattr2, *p_repdesc;

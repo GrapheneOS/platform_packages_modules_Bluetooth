@@ -36,6 +36,7 @@
 #include "device/include/interop_config.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_sco_hfp_hal.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btu.h"  // do_in_main_thread
@@ -58,12 +59,12 @@ using bluetooth::Uuid;
 #endif
 
 /* declare sdp callback functions */
-void bta_ag_sdp_cback_1(tSDP_RESULT);
-void bta_ag_sdp_cback_2(tSDP_RESULT);
-void bta_ag_sdp_cback_3(tSDP_RESULT);
-void bta_ag_sdp_cback_4(tSDP_RESULT);
-void bta_ag_sdp_cback_5(tSDP_RESULT);
-void bta_ag_sdp_cback_6(tSDP_RESULT);
+void bta_ag_sdp_cback_1(const RawAddress& bd_addr, tSDP_RESULT);
+void bta_ag_sdp_cback_2(const RawAddress& bd_addr, tSDP_RESULT);
+void bta_ag_sdp_cback_3(const RawAddress& bd_addr, tSDP_RESULT);
+void bta_ag_sdp_cback_4(const RawAddress& bd_addr, tSDP_RESULT);
+void bta_ag_sdp_cback_5(const RawAddress& bd_addr, tSDP_RESULT);
+void bta_ag_sdp_cback_6(const RawAddress& bd_addr, tSDP_RESULT);
 
 /* SDP callback function table */
 typedef tSDP_DISC_CMPL_CB* tBTA_AG_SDP_CBACK;
@@ -110,12 +111,30 @@ static void bta_ag_sdp_cback(uint16_t status, uint8_t idx) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_ag_sdp_cback_1(tSDP_STATUS status) { bta_ag_sdp_cback(status, 1); }
-void bta_ag_sdp_cback_2(tSDP_STATUS status) { bta_ag_sdp_cback(status, 2); }
-void bta_ag_sdp_cback_3(tSDP_STATUS status) { bta_ag_sdp_cback(status, 3); }
-void bta_ag_sdp_cback_4(tSDP_STATUS status) { bta_ag_sdp_cback(status, 4); }
-void bta_ag_sdp_cback_5(tSDP_STATUS status) { bta_ag_sdp_cback(status, 5); }
-void bta_ag_sdp_cback_6(tSDP_STATUS status) { bta_ag_sdp_cback(status, 6); }
+void bta_ag_sdp_cback_1(UNUSED_ATTR const RawAddress& bd_addr,
+                        tSDP_STATUS status) {
+  bta_ag_sdp_cback(status, 1);
+}
+void bta_ag_sdp_cback_2(UNUSED_ATTR const RawAddress& bd_addr,
+                        tSDP_STATUS status) {
+  bta_ag_sdp_cback(status, 2);
+}
+void bta_ag_sdp_cback_3(UNUSED_ATTR const RawAddress& bd_addr,
+                        tSDP_STATUS status) {
+  bta_ag_sdp_cback(status, 3);
+}
+void bta_ag_sdp_cback_4(UNUSED_ATTR const RawAddress& bd_addr,
+                        tSDP_STATUS status) {
+  bta_ag_sdp_cback(status, 4);
+}
+void bta_ag_sdp_cback_5(UNUSED_ATTR const RawAddress& bd_addr,
+                        tSDP_STATUS status) {
+  bta_ag_sdp_cback(status, 5);
+}
+void bta_ag_sdp_cback_6(UNUSED_ATTR const RawAddress& bd_addr,
+                        tSDP_STATUS status) {
+  bta_ag_sdp_cback(status, 6);
+}
 
 /******************************************************************************
  *

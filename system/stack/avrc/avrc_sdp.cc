@@ -25,6 +25,7 @@
 
 #include "avrc_api.h"
 #include "avrc_int.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
@@ -58,7 +59,8 @@ static uint16_t a2dp_attr_list_sdp[] = {
  * Returns          Nothing.
  *
  *****************************************************************************/
-static void avrc_sdp_cback(tSDP_STATUS status) {
+static void avrc_sdp_cback(UNUSED_ATTR const RawAddress& bd_addr,
+                           tSDP_STATUS status) {
   AVRC_TRACE_API("%s status: %d", __func__, status);
 
   /* reset service_uuid, so can start another find service */
@@ -149,7 +151,7 @@ uint16_t AVRC_FindService(uint16_t service_uuid, const RawAddress& bd_addr,
     if (!result) {
       AVRC_TRACE_ERROR("%s: Failed to init SDP for peer %s", __func__,
                        ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
-      avrc_sdp_cback(SDP_GENERIC_ERROR);
+      avrc_sdp_cback(bd_addr, SDP_GENERIC_ERROR);
     }
   }
 
