@@ -412,9 +412,9 @@ tCONN_CB* sdpu_allocate_ccb(void) {
  ******************************************************************************/
 void sdpu_callback(tCONN_CB& ccb, tSDP_REASON reason) {
   if (ccb.p_cb) {
-    (ccb.p_cb)(reason);
+    (ccb.p_cb)(ccb.device_address, reason);
   } else if (ccb.p_cb2) {
-    (ccb.p_cb2)(reason, ccb.user_data);
+    (ccb.p_cb2)(ccb.device_address, reason, ccb.user_data);
   }
 }
 
