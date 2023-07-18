@@ -1161,16 +1161,19 @@ tINQ_DB_ENT* btm_inq_db_find(const RawAddress& p_bda) {
  * Returns          pointer to entry
  *
  ******************************************************************************/
-tINQ_DB_ENT* btm_inq_db_new(const RawAddress& p_bda) {
-  uint16_t xx;
-  uint64_t ot = UINT64_MAX;
+tINQ_DB_ENT* btm_inq_db_new(const RawAddress& p_bda, bool is_ble) {
+  uint16_t xx = 0, yy = 0;
+  uint32_t ot = 0xFFFFFFFF;
   int8_t i_rssi = 0;
 
-  std::lock_guard<std::mutex> lock(inq_db_lock_);
-  tINQ_DB_ENT* p_ent = inq_db_;
-  tINQ_DB_ENT* p_old = inq_db_;
+  if (is_ble) yy = BTM_INQ_DB_SIZE / 2;
+  else yy = 0;
 
-  for (xx = 0; xx < BTM_INQ_DB_SIZE; xx++, p_ent++) {
+  std::lock_guard<std::mutex> lock(inq_db_lock_);
+  tINQ_DB_ENT* p_ent = &inq_db_[yy];
+  tINQ_DB_ENT* p_old = &inq_db_[yy];
+
+  for (xx = 0; xx < BTM_INQ_DB_SIZE / 2; xx++, p_ent++) {
     if (!p_ent->in_use) {
       memset(p_ent, 0, sizeof(tINQ_DB_ENT));
       p_ent->inq_info.results.remote_bd_addr = p_bda;
@@ -1324,7 +1327,7 @@ void btm_process_inq_results(const uint8_t* p, uint8_t hci_evt_len,
     /* If existing entry, use that, else get a new one (possibly reusing the
      * oldest) */
     if (p_i == NULL) {
-      p_i = btm_inq_db_new(bda);
+      p_i = btm_inq_db_new(bda, false);
       is_new = true;
     }
 
