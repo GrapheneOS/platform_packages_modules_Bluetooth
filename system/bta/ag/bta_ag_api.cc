@@ -243,6 +243,10 @@ void BTA_AgSetScoAllowed(bool value) {
 }
 
 void BTA_AgSetActiveDevice(const RawAddress& active_device_addr) {
-  do_in_main_thread(FROM_HERE, base::BindOnce(&bta_ag_api_set_active_device,
-                                              active_device_addr));
+  if (active_device_addr.IsEmpty()) {
+    do_in_main_thread(FROM_HERE, base::BindOnce(&bta_clear_active_device));
+  } else {
+    do_in_main_thread(FROM_HERE, base::BindOnce(&bta_ag_api_set_active_device,
+                                                active_device_addr));
+  }
 }
