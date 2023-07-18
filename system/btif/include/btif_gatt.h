@@ -32,6 +32,5 @@
 extern const btgatt_client_interface_t btgattClientInterface;
 extern const btgatt_server_interface_t btgattServerInterface;
 
-BleAdvertiserInterface* get_ble_advertiser_instance();
 BleScannerInterface* get_ble_scanner_instance();
 #endif
