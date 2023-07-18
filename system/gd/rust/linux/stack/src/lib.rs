@@ -196,6 +196,7 @@ impl Stack {
             match m.unwrap() {
                 Message::Shutdown => {
                     bluetooth.lock().unwrap().disable();
+                    bluetooth.lock().unwrap().cleanup();
                 }
 
                 Message::AdapterReady => {

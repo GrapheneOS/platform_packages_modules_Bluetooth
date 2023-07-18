@@ -723,6 +723,11 @@ impl IBluetooth for BluetoothDBus {
         dbus_generated!()
     }
 
+    fn init(&mut self, init_flags: Vec<String>) -> bool {
+        // Not implemented by server
+        true
+    }
+
     fn enable(&mut self) -> bool {
         // Not implemented by server
         true
@@ -731,6 +736,10 @@ impl IBluetooth for BluetoothDBus {
     fn disable(&mut self) -> bool {
         // Not implemented by server
         true
+    }
+
+    fn cleanup(&mut self) {
+        // Not implemented by server
     }
 
     #[dbus_method("GetAddress")]
