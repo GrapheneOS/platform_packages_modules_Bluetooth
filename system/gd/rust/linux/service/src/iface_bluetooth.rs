@@ -440,14 +440,23 @@ impl IBluetooth for IBluetoothDBus {
         dbus_generated!()
     }
 
+    // Not exposed over D-Bus. The stack is automatically initialized when the daemon starts.
+    fn init(&mut self, init_flags: Vec<String>) -> bool {
+        dbus_generated!()
+    }
+
     // Not exposed over D-Bus. The stack is automatically enabled when the daemon starts.
     fn enable(&mut self) -> bool {
         dbus_generated!()
     }
 
     // Not exposed over D-Bus. The stack is automatically disabled when the daemon exits.
-    // TODO(b/189495858): Handle shutdown properly when SIGTERM is received.
     fn disable(&mut self) -> bool {
+        dbus_generated!()
+    }
+
+    // Not exposed over D-Bus. The stack is automatically cleaned up when the daemon exits.
+    fn cleanup(&mut self) {
         dbus_generated!()
     }
 
