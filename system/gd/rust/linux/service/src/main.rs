@@ -20,7 +20,7 @@ use btstack::{
     battery_manager::BatteryManager,
     battery_provider_manager::BatteryProviderManager,
     battery_service::BatteryService,
-    bluetooth::{get_bt_dispatcher, Bluetooth, IBluetooth},
+    bluetooth::{Bluetooth, IBluetooth},
     bluetooth_admin::BluetoothAdmin,
     bluetooth_gatt::BluetoothGatt,
     bluetooth_logging::BluetoothLogging,
@@ -382,13 +382,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         // Hold locks and initialize all interfaces. This must be done AFTER DBus is
         // initialized so DBus can properly enforce user policies.
         {
-            intf.lock().unwrap().initialize(get_bt_dispatcher(tx.clone()), init_flags);
-
             let adapter = bluetooth.clone();
             bluetooth_media.lock().unwrap().set_adapter(adapter.clone());
             bluetooth_admin.lock().unwrap().set_adapter(adapter.clone());
 
             let mut bluetooth = bluetooth.lock().unwrap();
+            bluetooth.init(init_flags);
             bluetooth.init_profiles();
             bluetooth.enable();
 

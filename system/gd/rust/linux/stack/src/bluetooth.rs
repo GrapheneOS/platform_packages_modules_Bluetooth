@@ -79,6 +79,9 @@ pub trait IBluetooth {
     /// Removes registered callback.
     fn unregister_connection_callback(&mut self, callback_id: u32) -> bool;
 
+    /// Inits the bluetooth interface. Should always be called before enable.
+    fn init(&mut self, init_flags: Vec<String>) -> bool;
+
     /// Enables the adapter.
     ///
     /// Returns true if the request is accepted.
@@ -88,6 +91,9 @@ pub trait IBluetooth {
     ///
     /// Returns true if the request is accepted.
     fn disable(&mut self) -> bool;
+
+    /// Cleans up the bluetooth interface. Should always be called after disable.
+    fn cleanup(&mut self);
 
     /// Returns the Bluetooth address of the local adapter.
     fn get_address(&self) -> String;
@@ -1788,12 +1794,20 @@ impl IBluetooth for Bluetooth {
         self.connection_callbacks.remove_callback(callback_id)
     }
 
+    fn init(&mut self, init_flags: Vec<String>) -> bool {
+        self.intf.lock().unwrap().initialize(get_bt_dispatcher(self.tx.clone()), init_flags)
+    }
+
     fn enable(&mut self) -> bool {
         self.intf.lock().unwrap().enable() == 0
     }
 
     fn disable(&mut self) -> bool {
         self.intf.lock().unwrap().disable() == 0
+    }
+
+    fn cleanup(&mut self) {
+        self.intf.lock().unwrap().cleanup();
     }
 
     fn get_address(&self) -> String {
