@@ -34,6 +34,8 @@ import static com.android.bluetooth.Utils.hasBluetoothPrivilegedPermission;
 import static com.android.bluetooth.Utils.isDualModeAudioEnabled;
 import static com.android.bluetooth.Utils.isPackageNameAccurate;
 
+import static java.util.Objects.requireNonNull;
+
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
@@ -165,7 +167,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -597,6 +598,10 @@ public class AdapterService extends Service {
         }
     }
 
+    final @NonNull <T> T getNonNullSystemService(@NonNull Class<T> clazz) {
+        return requireNonNull(getSystemService(clazz), clazz.getSimpleName() + " cannot be null");
+    }
+
     @Override
     @RequiresPermission(
             allOf = {
@@ -618,6 +623,14 @@ public class AdapterService extends Service {
         initMetricsLogger();
         debugLog("onCreate()");
         mDeviceConfigListener.start();
+
+        mUserManager = getNonNullSystemService(UserManager.class);
+        mAppOps = getNonNullSystemService(AppOpsManager.class);
+        mAlarmManager = getNonNullSystemService(AlarmManager.class);
+        mPowerManager = getNonNullSystemService(PowerManager.class);
+        mBatteryStatsManager = getNonNullSystemService(BatteryStatsManager.class);
+        mCompanionDeviceManager = getNonNullSystemService(CompanionDeviceManager.class);
+
         mRemoteDevices = new RemoteDevices(this, mLooper);
         mRemoteDevices.init();
         clearDiscoveringPackages();
@@ -638,7 +651,6 @@ public class AdapterService extends Service {
                 getApplicationContext()
                         .getPackageManager()
                         .hasSystemFeature(PackageManager.FEATURE_LEANBACK_ONLY);
-        mUserManager = getSystemService(UserManager.class);
         initNative(
                 mUserManager.isGuestUser(),
                 isCommonCriteriaMode(),
@@ -652,20 +664,15 @@ public class AdapterService extends Service {
         mBluetoothQualityReportReadyCallbacks =
                 new RemoteCallbackList<IBluetoothQualityReportReadyCallback>();
         mCallbacks = new RemoteCallbackList<IBluetoothCallback>();
-        mAppOps = getSystemService(AppOpsManager.class);
         // Load the name and address
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDADDR);
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDNAME);
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE);
-        mAlarmManager = getSystemService(AlarmManager.class);
-        mPowerManager = getSystemService(PowerManager.class);
-        mBatteryStatsManager = getSystemService(BatteryStatsManager.class);
-        mCompanionDeviceManager = getSystemService(CompanionDeviceManager.class);
 
         mBluetoothKeystoreService.initJni();
 
         mBluetoothQualityReportNativeInterface =
-                Objects.requireNonNull(
+                requireNonNull(
                         BluetoothQualityReportNativeInterface.getInstance(),
                         "BluetoothQualityReportNativeInterface cannot be null when BQR starts");
         mBluetoothQualityReportNativeInterface.init();
@@ -4956,8 +4963,8 @@ public class AdapterService extends Service {
             if (!callerIsSystemOrActiveOrManagedUser(service, TAG, "setPreferredAudioProfiles")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
-            Objects.requireNonNull(device);
-            Objects.requireNonNull(modeToProfileBundle);
+            requireNonNull(device);
+            requireNonNull(modeToProfileBundle);
             if (!BluetoothAdapter.checkBluetoothAddress(device.getAddress())) {
                 throw new IllegalArgumentException("device cannot have an invalid address");
             }
@@ -4992,7 +4999,7 @@ public class AdapterService extends Service {
             if (!callerIsSystemOrActiveOrManagedUser(service, TAG, "getPreferredAudioProfiles")) {
                 return Bundle.EMPTY;
             }
-            Objects.requireNonNull(device);
+            requireNonNull(device);
             if (!BluetoothAdapter.checkBluetoothAddress(device.getAddress())) {
                 throw new IllegalArgumentException("device cannot have an invalid address");
             }
@@ -5028,7 +5035,7 @@ public class AdapterService extends Service {
             if (!callerIsSystem(TAG, "setPreferredAudioProfiles")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
-            Objects.requireNonNull(device);
+            requireNonNull(device);
             if (!BluetoothAdapter.checkBluetoothAddress(device.getAddress())) {
                 throw new IllegalArgumentException("device cannot have an invalid address");
             }
@@ -5071,7 +5078,7 @@ public class AdapterService extends Service {
                     service, TAG, "registerPreferredAudioProfilesChangedCallback")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
-            Objects.requireNonNull(callback);
+            requireNonNull(callback);
             if (!Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION;
             }
@@ -5115,7 +5122,7 @@ public class AdapterService extends Service {
                     service, TAG, "unregisterPreferredAudioProfilesChangedCallback")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
-            Objects.requireNonNull(callback);
+            requireNonNull(callback);
             if (!Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION;
             }
@@ -5159,7 +5166,7 @@ public class AdapterService extends Service {
                     service, TAG, "registerBluetoothQualityReportReadyCallback")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
-            Objects.requireNonNull(callback);
+            requireNonNull(callback);
             if (!Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION;
             }
@@ -5197,7 +5204,7 @@ public class AdapterService extends Service {
                     service, TAG, "unregisterBluetoothQualityReportReadyCallback")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
-            Objects.requireNonNull(callback);
+            requireNonNull(callback);
             if (!Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION;
             }
@@ -7201,7 +7208,7 @@ public class AdapterService extends Service {
             };
 
     private boolean isCommonCriteriaMode() {
-        return getSystemService(DevicePolicyManager.class).isCommonCriteriaModeEnabled(null);
+        return getNonNullSystemService(DevicePolicyManager.class).isCommonCriteriaModeEnabled(null);
     }
 
     @SuppressLint("AndroidFrameworkRequiresPermission")

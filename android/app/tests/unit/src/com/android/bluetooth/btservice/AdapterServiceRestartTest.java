@@ -20,11 +20,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import android.app.AlarmManager;
+import android.app.AppOpsManager;
 import android.app.admin.DevicePolicyManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.IBluetoothCallback;
+import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -103,16 +105,25 @@ public class AdapterServiceRestartTest {
 
     private @Mock Context mMockContext;
     private @Mock ApplicationInfo mMockApplicationInfo;
-    private @Mock AlarmManager mMockAlarmManager;
     private @Mock Resources mMockResources;
-    private @Mock UserManager mMockUserManager;
-    private @Mock DevicePolicyManager mMockDevicePolicyManager;
     private @Mock IBluetoothCallback mIBluetoothCallback;
     private @Mock Binder mBinder;
-    private @Mock AudioManager mAudioManager;
     private @Mock android.app.Application mApplication;
     private @Mock MetricsLogger mMockMetricsLogger;
 
+    // Mocked SystemService
+    private @Mock AlarmManager mMockAlarmManager;
+    private @Mock AppOpsManager mMockAppOpsManager;
+    private @Mock AudioManager mMockAudioManager;
+    private @Mock DevicePolicyManager mMockDevicePolicyManager;
+    private @Mock UserManager mMockUserManager;
+
+    // SystemService that are not mocked
+    private BluetoothManager mBluetoothManager;
+    private CompanionDeviceManager mCompanionDeviceManager;
+    private PowerManager mPowerManager;
+    private PermissionCheckerManager mPermissionCheckerManager;
+    private PermissionManager mPermissionManager;
     // BatteryStatsManager is final and cannot be mocked with regular mockito, so just mock the
     // underlying binder calls.
     final BatteryStatsManager mBatteryStatsManager =
@@ -121,10 +132,6 @@ public class AdapterServiceRestartTest {
     private final AttributionSource mAttributionSource = new AttributionSource.Builder(
             Process.myUid()).build();
 
-    private BluetoothManager mBluetoothManager;
-    private PowerManager mPowerManager;
-    private PermissionCheckerManager mPermissionCheckerManager;
-    private PermissionManager mPermissionManager;
     private PackageManager mMockPackageManager;
     private MockContentResolver mMockContentResolver;
     private HashMap<String, HashMap<String, String>> mAdapterConfig;
@@ -178,6 +185,11 @@ public class AdapterServiceRestartTest {
                 AdapterServiceTest.getMetricsSalt(adapterConfig));
     }
 
+    <T> void mockGetSystemService(String serviceName, Class<T> serviceClass, T mockService) {
+        when(mMockContext.getSystemService(eq(serviceName))).thenReturn(mockService);
+        when(mMockContext.getSystemServiceName(eq(serviceClass))).thenReturn(serviceName);
+    }
+
     @Before
     public void setUp() throws PackageManager.NameNotFoundException {
         Log.e(TAG, "setUp()");
@@ -222,6 +234,10 @@ public class AdapterServiceRestartTest {
         mBluetoothManager = InstrumentationRegistry.getTargetContext()
                 .getSystemService(BluetoothManager.class);
 
+        mCompanionDeviceManager =
+                InstrumentationRegistry.getTargetContext()
+                        .getSystemService(CompanionDeviceManager.class);
+
         when(mMockContext.getCacheDir()).thenReturn(InstrumentationRegistry.getTargetContext()
                 .getCacheDir());
         when(mMockContext.getApplicationInfo()).thenReturn(mMockApplicationInfo);
@@ -232,37 +248,29 @@ public class AdapterServiceRestartTest {
         when(mMockContext.getResources()).thenReturn(mMockResources);
         when(mMockContext.getUserId()).thenReturn(Process.BLUETOOTH_UID);
         when(mMockContext.getPackageManager()).thenReturn(mMockPackageManager);
-        when(mMockContext.getSystemService(Context.USER_SERVICE)).thenReturn(mMockUserManager);
-        when(mMockContext.getSystemServiceName(UserManager.class)).thenReturn(Context.USER_SERVICE);
-        when(mMockContext.getSystemService(Context.DEVICE_POLICY_SERVICE)).thenReturn(
-                mMockDevicePolicyManager);
-        when(mMockContext.getSystemServiceName(DevicePolicyManager.class))
-                .thenReturn(Context.DEVICE_POLICY_SERVICE);
-        when(mMockContext.getSystemService(Context.POWER_SERVICE)).thenReturn(mPowerManager);
-        when(mMockContext.getSystemServiceName(PowerManager.class))
-                .thenReturn(Context.POWER_SERVICE);
-        when(mMockContext.getSystemServiceName(PermissionCheckerManager.class))
-                .thenReturn(Context.PERMISSION_CHECKER_SERVICE);
-        when(mMockContext.getSystemService(Context.PERMISSION_CHECKER_SERVICE))
-                .thenReturn(mPermissionCheckerManager);
-        when(mMockContext.getSystemServiceName(PermissionManager.class))
-                .thenReturn(Context.PERMISSION_SERVICE);
-        when(mMockContext.getSystemService(Context.PERMISSION_SERVICE))
-                .thenReturn(mPermissionManager);
-        when(mMockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mMockAlarmManager);
-        when(mMockContext.getSystemServiceName(AlarmManager.class))
-                .thenReturn(Context.ALARM_SERVICE);
-        when(mMockContext.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mAudioManager);
-        when(mMockContext.getSystemServiceName(AudioManager.class))
-                .thenReturn(Context.AUDIO_SERVICE);
-        when(mMockContext.getSystemService(Context.BATTERY_STATS_SERVICE))
-                .thenReturn(mBatteryStatsManager);
-        when(mMockContext.getSystemServiceName(BatteryStatsManager.class))
-                .thenReturn(Context.BATTERY_STATS_SERVICE);
-        when(mMockContext.getSystemService(Context.BLUETOOTH_SERVICE))
-                .thenReturn(mBluetoothManager);
-        when(mMockContext.getSystemServiceName(BluetoothManager.class))
-                .thenReturn(Context.BLUETOOTH_SERVICE);
+
+        mockGetSystemService(Context.ALARM_SERVICE, AlarmManager.class, mMockAlarmManager);
+        mockGetSystemService(Context.APP_OPS_SERVICE, AppOpsManager.class, mMockAppOpsManager);
+        mockGetSystemService(Context.AUDIO_SERVICE, AudioManager.class, mMockAudioManager);
+        mockGetSystemService(
+                Context.DEVICE_POLICY_SERVICE, DevicePolicyManager.class, mMockDevicePolicyManager);
+        mockGetSystemService(Context.USER_SERVICE, UserManager.class, mMockUserManager);
+
+        mockGetSystemService(
+                Context.BATTERY_STATS_SERVICE, BatteryStatsManager.class, mBatteryStatsManager);
+        mockGetSystemService(Context.BLUETOOTH_SERVICE, BluetoothManager.class, mBluetoothManager);
+        mockGetSystemService(
+                Context.COMPANION_DEVICE_SERVICE,
+                CompanionDeviceManager.class,
+                mCompanionDeviceManager);
+        mockGetSystemService(
+                Context.PERMISSION_CHECKER_SERVICE,
+                PermissionCheckerManager.class,
+                mPermissionCheckerManager);
+        mockGetSystemService(
+                Context.PERMISSION_SERVICE, PermissionManager.class, mPermissionManager);
+        mockGetSystemService(Context.POWER_SERVICE, PowerManager.class, mPowerManager);
+
         when(mMockContext.getSharedPreferences(anyString(), anyInt()))
                 .thenReturn(InstrumentationRegistry.getTargetContext()
                         .getSharedPreferences("AdapterServiceTestPrefs", Context.MODE_PRIVATE));
