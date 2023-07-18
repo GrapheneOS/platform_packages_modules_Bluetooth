@@ -1456,7 +1456,10 @@ void bta_ag_set_sco_allowed(bool value) {
 
 const RawAddress& bta_ag_get_active_device() { return active_device_addr; }
 
-void bta_clear_active_device() { active_device_addr = RawAddress::kEmpty; }
+void bta_clear_active_device() {
+  LOG_DEBUG("Set bta active device to null");
+  active_device_addr = RawAddress::kEmpty;
+}
 
 void bta_ag_api_set_active_device(const RawAddress& new_active_device) {
   if (new_active_device.IsEmpty()) {
