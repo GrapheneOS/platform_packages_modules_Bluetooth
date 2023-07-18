@@ -232,6 +232,8 @@ bt_status_t btif_storage_remove_hid_info(const RawAddress& remote_bd_addr) {
   btif_config_remove(bdstr, "HidSSRMaxLatency");
   btif_config_remove(bdstr, "HidSSRMinTimeout");
   btif_config_remove(bdstr, "HidDescriptor");
+  btif_config_remove(bdstr, "HidReport");
+  btif_config_remove(bdstr, "HidReportVersion");
   return BT_STATUS_SUCCESS;
 }
 
