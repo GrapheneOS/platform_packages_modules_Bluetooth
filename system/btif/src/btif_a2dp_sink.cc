@@ -680,8 +680,10 @@ uint8_t btif_a2dp_sink_enqueue_buf(BT_HDR* p_pkt) {
   p_msg->offset = 0;
   memcpy(p_msg->data, p_pkt->data + p_pkt->offset, p_pkt->len);
   fixed_queue_enqueue(btif_a2dp_sink_cb.rx_audio_queue, p_msg);
-  if (fixed_queue_length(btif_a2dp_sink_cb.rx_audio_queue) ==
-      MAX_A2DP_DELAYED_START_FRAME_COUNT) {
+  // Avoid other checks if alarm has already been initialized.
+  if (btif_a2dp_sink_cb.decode_alarm == nullptr &&
+      fixed_queue_length(btif_a2dp_sink_cb.rx_audio_queue) >=
+          MAX_A2DP_DELAYED_START_FRAME_COUNT) {
     BTIF_TRACE_DEBUG("%s: Initiate decoding. Current focus state:%d", __func__,
                      btif_a2dp_sink_cb.rx_focus_state);
     if (btif_a2dp_sink_cb.rx_focus_state == BTIF_A2DP_SINK_FOCUS_GRANTED) {
