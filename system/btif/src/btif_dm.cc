@@ -80,6 +80,7 @@
 #include "gd/common/lru_cache.h"
 #include "internal_include/stack_config.h"
 #include "main/shim/dumpsys.h"
+#include "main/shim/le_advertising_manager.h"
 #include "main/shim/shim.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
@@ -3143,7 +3144,7 @@ static std::optional<uint8_t> oob_advertiser_id_;
 static void stop_oob_advertiser() {
   // For chasing an advertising bug b/237023051
   LOG_DEBUG("oob_advertiser_id: %d", oob_advertiser_id_.value());
-  auto advertiser = get_ble_advertiser_instance();
+  auto advertiser = bluetooth::shim::get_ble_advertiser_instance();
   advertiser->Unregister(oob_advertiser_id_.value());
   oob_advertiser_id_ = {};
 }
@@ -3207,7 +3208,7 @@ static void start_advertising_callback(uint8_t id, tBT_TRANSPORT transport,
     return;
   }
   LOG_DEBUG("OOB advertiser with id %hhd", id);
-  auto advertiser = get_ble_advertiser_instance();
+  auto advertiser = bluetooth::shim::get_ble_advertiser_instance();
   advertiser->GetOwnAddress(
       id, base::Bind(&get_address_callback, transport, is_valid, c, r));
 }
@@ -3215,7 +3216,7 @@ static void start_advertising_callback(uint8_t id, tBT_TRANSPORT transport,
 static void timeout_cb(uint8_t id, tBTM_STATUS status) {
   LOG_INFO("OOB advertiser with id %hhd timed out with status %hhd", id,
            status);
-  auto advertiser = get_ble_advertiser_instance();
+  auto advertiser = bluetooth::shim::get_ble_advertiser_instance();
   advertiser->Unregister(id);
   SMP_ClearLocScOobData();
   waiting_on_oob_advertiser_start = false;
@@ -3239,7 +3240,7 @@ static void id_status_callback(tBT_TRANSPORT transport, bool is_valid,
   oob_advertiser_id_ = id;
   LOG_INFO("oob_advertiser_id: %d", id);
 
-  auto advertiser = get_ble_advertiser_instance();
+  auto advertiser = bluetooth::shim::get_ble_advertiser_instance();
   AdvertiseParameters parameters{};
   parameters.advertising_event_properties =
       0x0045 /* connectable, discoverable, tx power */;
@@ -3266,7 +3267,7 @@ static void id_status_callback(tBT_TRANSPORT transport, bool is_valid,
 // Step One: Start the advertiser
 static void start_oob_advertiser(tBT_TRANSPORT transport, bool is_valid,
                                  const Octet16& c, const Octet16& r) {
-  auto advertiser = get_ble_advertiser_instance();
+  auto advertiser = bluetooth::shim::get_ble_advertiser_instance();
   advertiser->RegisterAdvertiser(
       base::Bind(&id_status_callback, transport, is_valid, c, r));
 }
