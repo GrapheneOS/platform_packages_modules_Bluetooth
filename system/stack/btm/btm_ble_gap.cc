@@ -2831,7 +2831,7 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, tBLE_ADDR_TYPE addr_type,
   /* If existing entry, use that, else get  a new one (possibly reusing the
    * oldest) */
   if (p_i == NULL) {
-    p_i = btm_inq_db_new(bda);
+    p_i = btm_inq_db_new(bda, true);
     if (p_i != NULL) {
       p_inq->inq_cmpl_info.num_resp++;
       p_i->time_of_resp = bluetooth::common::time_get_os_boottime_ms();
@@ -2937,7 +2937,7 @@ void btm_ble_process_adv_pkt_cont_for_inquiry(
   /* If existing entry, use that, else get  a new one (possibly reusing the
    * oldest) */
   if (p_i == NULL) {
-    p_i = btm_inq_db_new(bda);
+    p_i = btm_inq_db_new(bda, true);
     if (p_i != NULL) {
       p_inq->inq_cmpl_info.num_resp++;
       p_i->time_of_resp = bluetooth::common::time_get_os_boottime_ms();

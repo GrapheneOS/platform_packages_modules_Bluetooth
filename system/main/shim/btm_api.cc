@@ -66,7 +66,7 @@ std::mutex btm_cb_mutex_;
 
 bool btm_inq_find_bdaddr(const RawAddress& p_bda);
 extern tINQ_DB_ENT* btm_inq_db_find(const RawAddress& raw_address);
-extern tINQ_DB_ENT* btm_inq_db_new(const RawAddress& p_bda);
+extern tINQ_DB_ENT* btm_inq_db_new(const RawAddress& p_bda, bool is_ble);
 
 /**
  * Legacy bluetooth btm stack entry points
