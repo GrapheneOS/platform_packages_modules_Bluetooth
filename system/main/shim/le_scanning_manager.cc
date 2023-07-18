@@ -775,21 +775,19 @@ void BleScannerInterfaceImpl::handle_remote_properties(
     if (!address_cache_.find(bd_addr)) {
       address_cache_.add(bd_addr);
 
-      if (p_eir_remote_name) {
-        if (remote_name_len > BD_NAME_LEN + 1 ||
-            (remote_name_len == BD_NAME_LEN + 1 &&
-             p_eir_remote_name[BD_NAME_LEN] != '\0')) {
-          LOG_INFO("%s dropping invalid packet - device name too long: %d",
-                   __func__, remote_name_len);
-          return;
-        }
-
-        memcpy(bdname.name, p_eir_remote_name, remote_name_len);
-        if (remote_name_len < BD_NAME_LEN + 1)
-          bdname.name[remote_name_len] = '\0';
-        btif_dm_update_ble_remote_properties(bd_addr, bdname.name, NULL,
-                                             device_type);
+      if (remote_name_len > BD_NAME_LEN + 1 ||
+          (remote_name_len == BD_NAME_LEN + 1 &&
+           p_eir_remote_name[BD_NAME_LEN] != '\0')) {
+        LOG_INFO("%s dropping invalid packet - device name too long: %d",
+                 __func__, remote_name_len);
+        return;
       }
+
+      memcpy(bdname.name, p_eir_remote_name, remote_name_len);
+      if (remote_name_len < BD_NAME_LEN + 1)
+        bdname.name[remote_name_len] = '\0';
+      btif_dm_update_ble_remote_properties(bd_addr, bdname.name, NULL,
+                                           device_type);
     }
   }
 
