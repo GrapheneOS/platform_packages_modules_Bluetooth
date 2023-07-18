@@ -35,8 +35,8 @@
 #include "stack/include/btm_log_history.h"
 #include "stack/include/l2c_api.h"
 #include "stack/include/smp_api_types.h"
-#include "stack/smp/p_256_ecc_pp.h"
-#include "stack/smp/smp_int.h"
+#include "p_256_ecc_pp.h"
+#include "smp_int.h"
 #include "types/raw_address.h"
 
 namespace {
