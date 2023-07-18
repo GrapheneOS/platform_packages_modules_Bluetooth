@@ -20,6 +20,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -490,6 +491,10 @@ public class HeadsetNativeInterface {
      */
     @VisibleForTesting
     public boolean setActiveDevice(BluetoothDevice device) {
+        // Set bt_stack's active device to default if java layer set active device to null
+        if (device == null) {
+            return setActiveDeviceNative(Utils.getBytesFromAddress("00:00:00:00:00:00"));
+        }
         return setActiveDeviceNative(getByteAddress(device));
     }
 
