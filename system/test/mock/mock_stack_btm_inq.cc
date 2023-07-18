@@ -248,9 +248,9 @@ void btm_inq_db_init(void) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_inq::btm_inq_db_init();
 }
-tINQ_DB_ENT* btm_inq_db_new(const RawAddress& p_bda) {
+tINQ_DB_ENT* btm_inq_db_new(const RawAddress& p_bda, bool is_ble) {
   inc_func_call_count(__func__);
-  return test::mock::stack_btm_inq::btm_inq_db_new(p_bda);
+  return test::mock::stack_btm_inq::btm_inq_db_new(p_bda, is_ble);
 }
 void btm_inq_db_reset(void) {
   inc_func_call_count(__func__);
