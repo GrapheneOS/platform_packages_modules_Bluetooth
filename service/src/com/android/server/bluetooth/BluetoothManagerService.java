@@ -25,12 +25,7 @@ import static android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF;
 import static android.bluetooth.BluetoothAdapter.STATE_TURNING_ON;
 import static android.os.PowerExemptionManager.TEMPORARY_ALLOW_LIST_TYPE_FOREGROUND_SERVICE_ALLOWED;
 
-import static com.android.server.bluetooth.BluetoothAirplaneModeListener.APM_BT_ENABLED_NOTIFICATION;
 import static com.android.server.bluetooth.BluetoothAirplaneModeListener.APM_ENHANCEMENT;
-import static com.android.server.bluetooth.BluetoothAirplaneModeListener.APM_USER_TOGGLED_BLUETOOTH;
-import static com.android.server.bluetooth.BluetoothAirplaneModeListener.BLUETOOTH_APM_STATE;
-import static com.android.server.bluetooth.BluetoothAirplaneModeListener.NOTIFICATION_NOT_SHOWN;
-import static com.android.server.bluetooth.BluetoothAirplaneModeListener.USED;
 
 import static java.util.Objects.requireNonNull;
 
@@ -175,9 +170,6 @@ class BluetoothManagerService {
     // but Airplane mode will affect Bluetooth state at start up
     // and Airplane mode will have higher priority.
     @VisibleForTesting static final int BLUETOOTH_ON_AIRPLANE = 2;
-
-    private static final int BLUETOOTH_OFF_APM = 0;
-    private static final int BLUETOOTH_ON_APM = 1;
 
     private static final int FLAGS_SYSTEM_APP =
             ApplicationInfo.FLAG_SYSTEM | ApplicationInfo.FLAG_UPDATED_SYSTEM_APP;
@@ -759,11 +751,6 @@ class BluetoothManagerService {
         return mBluetoothSatelliteModeListener.isSatelliteModeOn();
     }
 
-    /** Returns true if airplane mode enhancement feature is enabled */
-    private boolean isApmEnhancementOn() {
-        return Settings.Global.getInt(mContext.getContentResolver(), APM_ENHANCEMENT, 0) == 1;
-    }
-
     /** Returns true if the Bluetooth saved state is "on" */
     private boolean isBluetoothPersistedStateOn() {
         final int state =
@@ -809,43 +796,6 @@ class BluetoothManagerService {
         } finally {
             Binder.restoreCallingIdentity(callingIdentity);
         }
-    }
-
-    /** Set the Settings Secure Int value for foreground user */
-    private void setSettingsSecureInt(String name, int value) {
-        if (DBG) {
-            Log.d(TAG, "Persisting Settings Secure Int: " + name + "=" + value);
-        }
-
-        // waive WRITE_SECURE_SETTINGS permission check
-        final long callingIdentity = Binder.clearCallingIdentity();
-        try {
-            Context userContext =
-                    mContext.createContextAsUser(
-                            UserHandle.of(ActivityManager.getCurrentUser()), 0);
-            Settings.Secure.putInt(userContext.getContentResolver(), name, value);
-        } finally {
-            Binder.restoreCallingIdentity(callingIdentity);
-        }
-    }
-
-    /** Return whether APM notification has been shown */
-    private boolean isFirstTimeNotification(String name) {
-        boolean firstTime = false;
-        // waive WRITE_SECURE_SETTINGS permission check
-        final long callingIdentity = Binder.clearCallingIdentity();
-        try {
-            Context userContext =
-                    mContext.createContextAsUser(
-                            UserHandle.of(ActivityManager.getCurrentUser()), 0);
-            firstTime =
-                    Settings.Secure.getInt(
-                                    userContext.getContentResolver(), name, NOTIFICATION_NOT_SHOWN)
-                            == NOTIFICATION_NOT_SHOWN;
-        } finally {
-            Binder.restoreCallingIdentity(callingIdentity);
-        }
-        return firstTime;
     }
 
     /**
@@ -1307,27 +1257,7 @@ class BluetoothManagerService {
         synchronized (mReceiver) {
             mQuietEnableExternal = false;
             mEnableExternal = true;
-            if (isAirplaneModeOn()) {
-                mBluetoothAirplaneModeListener.updateBluetoothToggledTime();
-                if (isApmEnhancementOn()) {
-                    setSettingsSecureInt(BLUETOOTH_APM_STATE, BLUETOOTH_ON_APM);
-                    setSettingsSecureInt(APM_USER_TOGGLED_BLUETOOTH, USED);
-                    if (isFirstTimeNotification(APM_BT_ENABLED_NOTIFICATION)) {
-                        final long callingIdentity = Binder.clearCallingIdentity();
-                        try {
-                            mBluetoothAirplaneModeListener.sendApmNotification(
-                                    "bluetooth_enabled_apm_title",
-                                    "bluetooth_enabled_apm_message",
-                                    APM_BT_ENABLED_NOTIFICATION);
-                        } catch (Exception e) {
-                            Log.e(TAG, "APM enhancement BT enabled notification not shown");
-                        } finally {
-                            Binder.restoreCallingIdentity(callingIdentity);
-                        }
-                    }
-                }
-            }
-            // waive WRITE_SECURE_SETTINGS permission check
+            mBluetoothAirplaneModeListener.notifyUserToggledBluetooth(true);
             sendEnableMsg(
                     false,
                     BluetoothProtoEnums.ENABLE_DISABLE_REASON_APPLICATION_REQUEST,
@@ -1357,13 +1287,7 @@ class BluetoothManagerService {
         }
 
         synchronized (mReceiver) {
-            if (isAirplaneModeOn()) {
-                mBluetoothAirplaneModeListener.updateBluetoothToggledTime();
-                if (isApmEnhancementOn()) {
-                    setSettingsSecureInt(BLUETOOTH_APM_STATE, BLUETOOTH_OFF_APM);
-                    setSettingsSecureInt(APM_USER_TOGGLED_BLUETOOTH, USED);
-                }
-            }
+            mBluetoothAirplaneModeListener.notifyUserToggledBluetooth(false);
 
             if (persist) {
                 persistBluetoothSetting(BLUETOOTH_OFF);
