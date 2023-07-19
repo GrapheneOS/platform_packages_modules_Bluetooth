@@ -20,7 +20,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.os.Looper;
 
 import androidx.test.InstrumentationRegistry;
@@ -57,6 +59,7 @@ public class ProfileServiceTest {
     @Rule public final ServiceTestRule mServiceTestRule = new ServiceTestRule();
     @Mock private AdapterService mMockAdapterService;
     @Mock private DatabaseManager mDatabaseManager;
+    @Mock private LocationManager mLocationManager;
 
     private Class[] mProfiles;
     ConcurrentHashMap<String, Boolean> mStartedProfileMap = new ConcurrentHashMap();
@@ -115,6 +118,10 @@ public class ProfileServiceTest {
                 return mStartedProfileMap.get((String) args[0]);
             }
         });
+        when(mMockAdapterService.getSystemService(Context.LOCATION_SERVICE))
+                .thenReturn(mLocationManager);
+        when(mMockAdapterService.getSystemServiceName(LocationManager.class))
+                .thenReturn(Context.LOCATION_SERVICE);
 
         mProfiles = Config.getSupportedProfiles();
 
