@@ -379,7 +379,6 @@ init_flags!(
         gd_hal_snoop_logger_filtering = true,
         gd_l2cap,
         gd_link_policy,
-        gd_rust,
         hci_adapter: i32,
         hfp_dynamic_version = true,
         irk_rotation,
