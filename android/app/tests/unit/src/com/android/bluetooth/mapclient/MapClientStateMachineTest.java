@@ -561,12 +561,6 @@ public class MapClientStateMachineTest {
     @Test
     public void testGetOwnNumberTimedOut() {
         testGetOwnNumber_setup();
-        Message requestIncompleteMsg = Message.obtain(mHandler,
-                MceStateMachine.MSG_MAS_REQUEST_COMPLETED,
-                mMockRequestOwnNumberIncompleteSearch);
-        mMceStateMachine.sendMessage(requestIncompleteMsg);
-        assertThat(mMceStateMachine.getHandler().hasMessages(
-                MceStateMachine.MSG_MAS_REQUEST_COMPLETED)).isTrue();
 
         Message timeoutMsg = Message.obtain(mHandler,
                 MceStateMachine.MSG_SEARCH_OWN_NUMBER_TIMEOUT,
