@@ -410,8 +410,10 @@ class AudioContexts {
   }
   bool any() const { return !none(); }
 
-  void set(LeAudioContextType const& v) { mValue |= static_cast<T>(v); }
+  void set(const LeAudioContextType& v) { mValue |= static_cast<T>(v); }
+  void set_all(const AudioContexts& v) { mValue |= v.value(); }
   void unset(const LeAudioContextType& v) { mValue &= ~static_cast<T>(v); }
+  void unset_all(const AudioContexts& v) { mValue &= ~v.value(); }
 
   bool test(const LeAudioContextType& v) const {
     return (mValue & static_cast<T>(v)) != 0;
@@ -728,11 +730,6 @@ struct ase {
   std::vector<uint8_t> metadata;
 
   AseState state;
-};
-
-struct BidirectAsesPair {
-  struct ase* sink;
-  struct ase* source;
 };
 
 struct acs_ac_record {

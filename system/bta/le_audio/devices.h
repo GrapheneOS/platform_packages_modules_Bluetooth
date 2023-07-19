@@ -155,8 +155,9 @@ class LeAudioDevice {
                                           types::AseState state);
   struct types::ase* GetNextActiveAse(struct types::ase* ase);
   struct types::ase* GetAseToMatchBidirectionCis(struct types::ase* ase);
-  types::BidirectAsesPair GetAsesByCisConnHdl(uint16_t conn_hdl);
-  types::BidirectAsesPair GetAsesByCisId(uint8_t cis_id);
+  types::BidirectionalPair<struct types::ase*> GetAsesByCisConnHdl(
+      uint16_t conn_hdl);
+  types::BidirectionalPair<struct types::ase*> GetAsesByCisId(uint8_t cis_id);
   bool HaveActiveAse(void);
   bool HaveAllActiveAsesSameState(types::AseState state);
   bool HaveAnyUnconfiguredAses(void);
@@ -181,15 +182,25 @@ class LeAudioDevice {
           metadata_context_types,
       const types::BidirectionalPair<std::vector<uint8_t>>& ccid_lists,
       bool reuse_cis_id);
-  void SetSupportedContexts(types::AudioContexts snk_contexts,
-                            types::AudioContexts src_contexts);
+
+  inline types::AudioContexts GetSupportedContexts(
+      int direction = (types::kLeAudioDirectionSink |
+                       types::kLeAudioDirectionSource)) const {
+    return supp_contexts_.get(direction);
+  }
+  inline void SetSupportedContexts(
+      types::BidirectionalPair<types::AudioContexts> contexts) {
+    supp_contexts_ = contexts;
+  }
+
   inline types::AudioContexts GetAvailableContexts(
       int direction = (types::kLeAudioDirectionSink |
-                       types::kLeAudioDirectionSource)) {
+                       types::kLeAudioDirectionSource)) const {
     return avail_contexts_.get(direction);
   }
-  types::AudioContexts SetAvailableContexts(types::AudioContexts snk_cont_val,
-                                            types::AudioContexts src_cont_val);
+  types::AudioContexts SetAvailableContexts(
+      types::BidirectionalPair<types::AudioContexts> cont_val);
+
   void DeactivateAllAses(void);
   bool ActivateConfiguredAses(types::LeAudioContextType context_type);
 
@@ -221,15 +232,15 @@ class LeAudioDevices {
   void Add(const RawAddress& address, le_audio::DeviceConnectState state,
            int group_id = bluetooth::groups::kGroupUnknown);
   void Remove(const RawAddress& address);
-  LeAudioDevice* FindByAddress(const RawAddress& address);
-  std::shared_ptr<LeAudioDevice> GetByAddress(const RawAddress& address);
-  LeAudioDevice* FindByConnId(uint16_t conn_id);
-  LeAudioDevice* FindByCisConnHdl(uint8_t cig_id, uint16_t conn_hdl);
+  LeAudioDevice* FindByAddress(const RawAddress& address) const;
+  std::shared_ptr<LeAudioDevice> GetByAddress(const RawAddress& address) const;
+  LeAudioDevice* FindByConnId(uint16_t conn_id) const;
+  LeAudioDevice* FindByCisConnHdl(uint8_t cig_id, uint16_t conn_hdl) const;
   void SetInitialGroupAutoconnectState(int group_id, int gatt_if,
                                        tBTM_BLE_CONN_TYPE reconnection_mode,
                                        bool current_dev_autoconnect_flag);
-  size_t Size(void);
-  void Dump(int fd, int group_id);
+  size_t Size(void) const;
+  void Dump(int fd, int group_id) const;
   void Cleanup(tGATT_IF client_if);
 
  private:
@@ -273,7 +284,11 @@ class LeAudioDeviceGroup {
                                     types::LeAudioContextType::UNINITIALIZED),
                                 .source = types::AudioContexts(
                                     types::LeAudioContextType::UNINITIALIZED)}),
-        group_available_contexts_(types::LeAudioContextType::UNINITIALIZED),
+        group_available_contexts_(
+            {.sink =
+                 types::AudioContexts(types::LeAudioContextType::UNINITIALIZED),
+             .source = types::AudioContexts(
+                 types::LeAudioContextType::UNINITIALIZED)}),
         pending_group_available_contexts_change_(
             types::LeAudioContextType::UNINITIALIZED),
         target_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
@@ -295,44 +310,45 @@ class LeAudioDeviceGroup {
 
   void AddNode(const std::shared_ptr<LeAudioDevice>& leAudioDevice);
   void RemoveNode(const std::shared_ptr<LeAudioDevice>& leAudioDevice);
-  bool IsEmpty(void);
-  bool IsAnyDeviceConnected(void);
-  int Size(void);
-  int NumOfConnected(
-      types::LeAudioContextType context_type = types::LeAudioContextType::RFU);
+  bool IsEmpty(void) const;
+  bool IsAnyDeviceConnected(void) const;
+  int Size(void) const;
+  int NumOfConnected(types::LeAudioContextType context_type =
+                         types::LeAudioContextType::RFU) const;
   bool Activate(types::LeAudioContextType context_type);
   void Deactivate(void);
-  types::CigState GetCigState(void);
+  types::CigState GetCigState(void) const;
   void SetCigState(le_audio::types::CigState state);
   void CigClearCis(void);
   void ClearSinksFromConfiguration(void);
   void ClearSourcesFromConfiguration(void);
   void Cleanup(void);
-  LeAudioDevice* GetFirstDevice(void);
-  LeAudioDevice* GetFirstDeviceWithActiveContext(
-      types::LeAudioContextType context_type);
+  LeAudioDevice* GetFirstDevice(void) const;
+  LeAudioDevice* GetFirstDeviceWithAvailableContext(
+      types::LeAudioContextType context_type) const;
   le_audio::types::LeAudioConfigurationStrategy GetGroupStrategy(
-      int expected_group_size);
-  int GetAseCount(uint8_t direction);
-  LeAudioDevice* GetNextDevice(LeAudioDevice* leAudioDevice);
-  LeAudioDevice* GetNextDeviceWithActiveContext(
-      LeAudioDevice* leAudioDevice, types::LeAudioContextType context_type);
-  LeAudioDevice* GetFirstActiveDevice(void);
-  LeAudioDevice* GetNextActiveDevice(LeAudioDevice* leAudioDevice);
+      int expected_group_size) const;
+  int GetAseCount(uint8_t direction) const;
+  LeAudioDevice* GetNextDevice(LeAudioDevice* leAudioDevice) const;
+  LeAudioDevice* GetNextDeviceWithAvailableContext(
+      LeAudioDevice* leAudioDevice,
+      types::LeAudioContextType context_type) const;
+  LeAudioDevice* GetFirstActiveDevice(void) const;
+  LeAudioDevice* GetNextActiveDevice(LeAudioDevice* leAudioDevice) const;
   LeAudioDevice* GetFirstActiveDeviceByDataPathState(
-      types::AudioStreamDataPathState data_path_state);
+      types::AudioStreamDataPathState data_path_state) const;
   LeAudioDevice* GetNextActiveDeviceByDataPathState(
       LeAudioDevice* leAudioDevice,
-      types::AudioStreamDataPathState data_path_state);
-  bool IsDeviceInTheGroup(LeAudioDevice* leAudioDevice);
-  bool HaveAllActiveDevicesAsesTheSameState(types::AseState state);
-  bool HaveAnyActiveDeviceInUnconfiguredState();
-  bool IsGroupStreamReady(void);
-  bool IsGroupReadyToCreateStream(void);
-  bool IsGroupReadyToSuspendStream(void);
-  bool HaveAllCisesDisconnected(void);
-  uint8_t GetFirstFreeCisId(void);
-  uint8_t GetFirstFreeCisId(types::CisType cis_type);
+      types::AudioStreamDataPathState data_path_state) const;
+  bool IsDeviceInTheGroup(LeAudioDevice* leAudioDevice) const;
+  bool HaveAllActiveDevicesAsesTheSameState(types::AseState state) const;
+  bool HaveAnyActiveDeviceInUnconfiguredState() const;
+  bool IsGroupStreamReady(void) const;
+  bool IsGroupReadyToCreateStream(void) const;
+  bool IsGroupReadyToSuspendStream(void) const;
+  bool HaveAllCisesDisconnected(void) const;
+  uint8_t GetFirstFreeCisId(void) const;
+  uint8_t GetFirstFreeCisId(types::CisType cis_type) const;
   void CigGenerateCisIds(types::LeAudioContextType context_type);
   bool CigAssignCisIds(LeAudioDevice* leAudioDevice);
   void CigAssignCisConnHandles(const std::vector<uint16_t>& conn_handles);
@@ -344,45 +360,46 @@ class LeAudioDeviceGroup {
                      metadata_context_types,
                  types::BidirectionalPair<std::vector<uint8_t>> ccid_lists = {
                      .sink = {}, .source = {}});
-  uint32_t GetSduInterval(uint8_t direction);
-  uint8_t GetSCA(void);
-  uint8_t GetPacking(void);
-  uint8_t GetFraming(void);
-  uint16_t GetMaxTransportLatencyStom(void);
-  uint16_t GetMaxTransportLatencyMtos(void);
+  uint32_t GetSduInterval(uint8_t direction) const;
+  uint8_t GetSCA(void) const;
+  uint8_t GetPacking(void) const;
+  uint8_t GetFraming(void) const;
+  uint16_t GetMaxTransportLatencyStom(void) const;
+  uint16_t GetMaxTransportLatencyMtos(void) const;
   void SetTransportLatency(uint8_t direction, uint32_t transport_latency_us);
-  uint8_t GetRtn(uint8_t direction, uint8_t cis_id);
-  uint16_t GetMaxSduSize(uint8_t direction, uint8_t cis_id);
-  uint8_t GetPhyBitmask(uint8_t direction);
-  uint8_t GetTargetPhy(uint8_t direction);
-  bool GetPresentationDelay(uint32_t* delay, uint8_t direction);
-  uint16_t GetRemoteDelay(uint8_t direction);
+  uint8_t GetRtn(uint8_t direction, uint8_t cis_id) const;
+  uint16_t GetMaxSduSize(uint8_t direction, uint8_t cis_id) const;
+  uint8_t GetPhyBitmask(uint8_t direction) const;
+  uint8_t GetTargetPhy(uint8_t direction) const;
+  bool GetPresentationDelay(uint32_t* delay, uint8_t direction) const;
+  uint16_t GetRemoteDelay(uint8_t direction) const;
   bool UpdateAudioSetConfigurationCache(
       types::AudioContexts updated_context_bits);
   bool UpdateAudioSetConfigurationCache(void);
   bool ReloadAudioLocations(void);
   bool ReloadAudioDirections(void);
-  const set_configurations::AudioSetConfiguration* GetActiveConfiguration(void);
-  bool IsPendingConfiguration(void);
+  const set_configurations::AudioSetConfiguration* GetActiveConfiguration(
+      void) const;
+  bool IsPendingConfiguration(void) const;
   void SetPendingConfiguration(void);
   void ClearPendingConfiguration(void);
   void AddToAllowListNotConnectedGroupMembers(int gatt_if);
   void Disable(int gatt_if);
   void Enable(int gatt_if, tBTM_BLE_CONN_TYPE reconnection_mode);
-  bool IsEnabled(void);
+  bool IsEnabled(void) const;
   bool IsAudioSetConfigurationSupported(
       LeAudioDevice* leAudioDevice,
-      const set_configurations::AudioSetConfiguration* audio_set_conf);
+      const set_configurations::AudioSetConfiguration* audio_set_conf) const;
   std::optional<LeAudioCodecConfiguration> GetCodecConfigurationByDirection(
       types::LeAudioContextType group_context_type, uint8_t direction) const;
   bool IsAudioSetConfigurationAvailable(
       types::LeAudioContextType group_context_type) const;
   bool IsMetadataChanged(
       const types::BidirectionalPair<types::AudioContexts>& context_types,
-      const types::BidirectionalPair<std::vector<uint8_t>>& ccid_lists);
+      const types::BidirectionalPair<std::vector<uint8_t>>& ccid_lists) const;
   void CreateStreamVectorForOffloader(uint8_t direction);
   void StreamOffloaderUpdated(uint8_t direction);
-  bool IsConfiguredForContext(types::LeAudioContextType context_type);
+  bool IsConfiguredForContext(types::LeAudioContextType context_type) const;
   void RemoveCisFromStreamIfNeeded(LeAudioDevice* leAudioDevice,
                                    uint16_t cis_conn_hdl);
 
@@ -438,27 +455,34 @@ class LeAudioDeviceGroup {
     return metadata_context_type_;
   }
 
-  inline void SetAvailableContexts(types::AudioContexts new_contexts) {
+  inline void SetAvailableContexts(
+      types::BidirectionalPair<types::AudioContexts> new_contexts) {
     group_available_contexts_ = new_contexts;
   }
 
-  inline types::AudioContexts GetAvailableContexts(void) const {
-    return group_available_contexts_;
+  inline types::AudioContexts GetAvailableContexts(
+      int direction = (types::kLeAudioDirectionSink |
+                       types::kLeAudioDirectionSource)) const {
+    return group_available_contexts_.get(direction);
   }
 
-  bool IsInTransition(void);
-  bool IsStreaming(void);
-  bool IsReleasingOrIdle(void);
+  types::AudioContexts GetSupportedContexts(
+      int direction = (types::kLeAudioDirectionSink |
+                       types::kLeAudioDirectionSource)) const;
 
-  void PrintDebugState(void);
-  void Dump(int fd, int active_group_id);
+  bool IsInTransition(void) const;
+  bool IsStreaming(void) const;
+  bool IsReleasingOrIdle(void) const;
+
+  void PrintDebugState(void) const;
+  void Dump(int fd, int active_group_id) const;
 
  private:
   uint32_t transport_latency_mtos_us_;
   uint32_t transport_latency_stom_us_;
 
   const set_configurations::AudioSetConfiguration*
-  FindFirstSupportedConfiguration(types::LeAudioContextType context_type);
+  FindFirstSupportedConfiguration(types::LeAudioContextType context_type) const;
   bool ConfigureAses(
       const set_configurations::AudioSetConfiguration* audio_set_conf,
       types::LeAudioContextType context_type,
@@ -468,9 +492,9 @@ class LeAudioDeviceGroup {
   bool IsAudioSetConfigurationSupported(
       const set_configurations::AudioSetConfiguration* audio_set_configuration,
       types::LeAudioContextType context_type,
-      types::LeAudioConfigurationStrategy required_snk_strategy);
-  uint32_t GetTransportLatencyUs(uint8_t direction);
-  bool IsCisPartOfCurrentStream(uint16_t cis_conn_hdl);
+      types::LeAudioConfigurationStrategy required_snk_strategy) const;
+  uint32_t GetTransportLatencyUs(uint8_t direction) const;
+  bool IsCisPartOfCurrentStream(uint16_t cis_conn_hdl) const;
 
   /* Current configuration and metadata context types */
   types::LeAudioContextType configuration_context_type_;
@@ -480,7 +504,7 @@ class LeAudioDeviceGroup {
    * It's being updated each time group members connect, disconnect or their
    * individual available audio contexts are changed.
    */
-  types::AudioContexts group_available_contexts_;
+  types::BidirectionalPair<types::AudioContexts> group_available_contexts_;
 
   /* A temporary mask for bits which were either added or removed when the
    * group available context type changes. It usually means we should refresh
@@ -508,12 +532,12 @@ class LeAudioDeviceGroups {
  public:
   LeAudioDeviceGroup* Add(int group_id);
   void Remove(const int group_id);
-  LeAudioDeviceGroup* FindById(int group_id);
-  std::vector<int> GetGroupsIds(void);
-  size_t Size();
-  bool IsAnyInTransition();
+  LeAudioDeviceGroup* FindById(int group_id) const;
+  std::vector<int> GetGroupsIds(void) const;
+  size_t Size() const;
+  bool IsAnyInTransition() const;
   void Cleanup(void);
-  void Dump(int fd, int active_group_id);
+  void Dump(int fd, int active_group_id) const;
 
  private:
   std::vector<std::unique_ptr<LeAudioDeviceGroup>> groups_;
