@@ -21,10 +21,13 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertisingSetParameters;
 import android.bluetooth.le.PeriodicAdvertisingParameters;
+import android.content.Context;
+import android.location.LocationManager;
 import android.os.Binder;
 
 import androidx.test.filters.SmallTest;
@@ -61,6 +64,8 @@ public class ContextMapTest {
     @Mock
     private AdapterService mAdapterService;
 
+    @Mock private LocationManager mLocationManager;
+
     @Mock
     private AppAdvertiseStats appAdvertiseStats;
 
@@ -74,6 +79,10 @@ public class ContextMapTest {
 
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true).when(mAdapterService).isStartedProfile(anyString());
+        when(mAdapterService.getSystemService(Context.LOCATION_SERVICE))
+                .thenReturn(mLocationManager);
+        when(mAdapterService.getSystemServiceName(LocationManager.class))
+                .thenReturn(Context.LOCATION_SERVICE);
 
         TestUtils.startService(mServiceRule, GattService.class);
         mService = GattService.getGattService();

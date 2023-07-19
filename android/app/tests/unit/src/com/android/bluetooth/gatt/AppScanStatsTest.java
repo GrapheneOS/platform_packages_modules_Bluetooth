@@ -20,9 +20,12 @@ import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
+import android.content.Context;
+import android.location.LocationManager;
 import android.os.WorkSource;
 
 import androidx.test.filters.SmallTest;
@@ -31,7 +34,6 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
-import com.android.bluetooth.btservice.BluetoothAdapterProxy;
 
 import org.junit.After;
 import org.junit.Before;
@@ -62,12 +64,18 @@ public class AppScanStatsTest {
     @Mock
     private AdapterService mAdapterService;
 
+    @Mock private LocationManager mLocationManager;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
 
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true).when(mAdapterService).isStartedProfile(anyString());
+        when(mAdapterService.getSystemService(Context.LOCATION_SERVICE))
+                .thenReturn(mLocationManager);
+        when(mAdapterService.getSystemServiceName(LocationManager.class))
+                .thenReturn(Context.LOCATION_SERVICE);
 
         TestUtils.startService(mServiceRule, GattService.class);
         mService = GattService.getGattService();
