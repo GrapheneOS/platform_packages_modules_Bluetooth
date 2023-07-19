@@ -38,7 +38,8 @@ final class AvrcpVersion {
     public int minor;
 
     public static AvrcpVersion getCurrentSystemPropertiesValue() {
-        String version = SystemProperties.get(AVRCP_VERSION_PROPERTY);
+        // Make sure this default version agrees with avrc_api.h's "AVRC_DEFAULT_VERSION"
+        String version = SystemProperties.get(AVRCP_VERSION_PROPERTY, AVRCP_VERSION_1_5_STRING);
         switch (version) {
             case AVRCP_VERSION_1_3_STRING:
                 return AVRCP_VERSION_1_3;
