@@ -661,40 +661,38 @@ bool ParseAudioLocations(types::AudioLocations& audio_locations, uint16_t len,
   return true;
 }
 
-bool ParseSupportedAudioContexts(struct acs_supported_audio_contexts& contexts,
-                                 uint16_t len, const uint8_t* value) {
+bool ParseSupportedAudioContexts(
+    types::BidirectionalPair<types::AudioContexts>& contexts, uint16_t len,
+    const uint8_t* value) {
   if (len != kAseAudioSuppContRspMinLen) {
     LOG(ERROR) << "Wrong len of Audio Supported Context characteristic";
     return false;
   }
 
-  STREAM_TO_UINT16(contexts.snk_supp_cont.value_ref(), value);
-  STREAM_TO_UINT16(contexts.src_supp_cont.value_ref(), value);
+  STREAM_TO_UINT16(contexts.sink.value_ref(), value);
+  STREAM_TO_UINT16(contexts.source.value_ref(), value);
 
   LOG(INFO) << "Supported Audio Contexts: "
-            << "\n\tSupported Sink Contexts: "
-            << contexts.snk_supp_cont.to_string()
-            << "\n\tSupported Source Contexts: "
-            << contexts.src_supp_cont.to_string();
+            << "\n\tSupported Sink Contexts: " << contexts.sink.to_string()
+            << "\n\tSupported Source Contexts: " << contexts.source.to_string();
 
   return true;
 }
 
-bool ParseAvailableAudioContexts(struct acs_available_audio_contexts& contexts,
-                                 uint16_t len, const uint8_t* value) {
+bool ParseAvailableAudioContexts(
+    types::BidirectionalPair<types::AudioContexts>& contexts, uint16_t len,
+    const uint8_t* value) {
   if (len != kAseAudioAvailRspMinLen) {
     LOG(ERROR) << "Wrong len of Audio Availability characteristic";
     return false;
   }
 
-  STREAM_TO_UINT16(contexts.snk_avail_cont.value_ref(), value);
-  STREAM_TO_UINT16(contexts.src_avail_cont.value_ref(), value);
+  STREAM_TO_UINT16(contexts.sink.value_ref(), value);
+  STREAM_TO_UINT16(contexts.source.value_ref(), value);
 
   LOG(INFO) << "Available Audio Contexts: "
-            << "\n\tAvailable Sink Contexts: "
-            << contexts.snk_avail_cont.to_string()
-            << "\n\tAvailable Source Contexts: "
-            << contexts.src_avail_cont.to_string();
+            << "\n\tAvailable Sink Contexts: " << contexts.sink.to_string()
+            << "\n\tAvailable Source Contexts: " << contexts.source.to_string();
 
   return true;
 }
