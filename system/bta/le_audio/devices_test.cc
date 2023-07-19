@@ -511,10 +511,12 @@ class LeAudioAseConfigurationTest : public Test {
       device->ases_.push_back(ase);
     }
 
-    device->SetSupportedContexts(AudioContexts(kLeAudioContextAllTypes),
-                                 AudioContexts(kLeAudioContextAllTypes));
-    device->SetAvailableContexts(AudioContexts(kLeAudioContextAllTypes),
-                                 AudioContexts(kLeAudioContextAllTypes));
+    device->SetSupportedContexts(
+        {.sink = AudioContexts(kLeAudioContextAllTypes),
+         .source = AudioContexts(kLeAudioContextAllTypes)});
+    device->SetAvailableContexts(
+        {.sink = AudioContexts(kLeAudioContextAllTypes),
+         .source = AudioContexts(kLeAudioContextAllTypes)});
     device->snk_audio_locations_ =
         ::le_audio::codec_spec_conf::kLeAudioLocationFrontLeft |
         ::le_audio::codec_spec_conf::kLeAudioLocationFrontRight;
@@ -932,10 +934,10 @@ TEST_F(LeAudioAseConfigurationTest, test_context_update) {
   auto remote_src_supp_contexts = AudioContexts(
       LeAudioContextType::CONVERSATIONAL | LeAudioContextType::UNSPECIFIED);
 
-  left->SetSupportedContexts(remote_snk_supp_contexts,
-                             remote_src_supp_contexts);
-  right->SetSupportedContexts(remote_snk_supp_contexts,
-                              remote_src_supp_contexts);
+  left->SetSupportedContexts(
+      {.sink = remote_snk_supp_contexts, .source = remote_src_supp_contexts});
+  right->SetSupportedContexts(
+      {.sink = remote_snk_supp_contexts, .source = remote_src_supp_contexts});
 
   /* ...but UNSPECIFIED and SOUNDEFFECTS are unavailable */
   auto remote_snk_avail_contexts = AudioContexts(
@@ -943,16 +945,16 @@ TEST_F(LeAudioAseConfigurationTest, test_context_update) {
   auto remote_src_avail_contexts =
       AudioContexts(LeAudioContextType::CONVERSATIONAL);
 
-  left->SetAvailableContexts(remote_snk_avail_contexts,
-                             remote_src_avail_contexts);
+  left->SetAvailableContexts(
+      {.sink = remote_snk_avail_contexts, .source = remote_src_avail_contexts});
   ASSERT_EQ(left->GetAvailableContexts(),
             remote_snk_avail_contexts | remote_src_avail_contexts);
 
   // Just for fun let's add one more context to the right earbud
   auto right_bud_only_context = LeAudioContextType::ALERTS;
   right->SetAvailableContexts(
-      remote_snk_avail_contexts | right_bud_only_context,
-      remote_src_avail_contexts);
+      {.sink = remote_snk_avail_contexts | right_bud_only_context,
+       .source = remote_src_avail_contexts});
   ASSERT_EQ(right->GetAvailableContexts(), remote_snk_avail_contexts |
                                                remote_src_avail_contexts |
                                                right_bud_only_context);
@@ -1046,9 +1048,11 @@ TEST_F(LeAudioAseConfigurationTest, test_context_update) {
 
   /* Block the ALERTS context */
   right->SetAvailableContexts(
-      right->GetAvailableContexts(::le_audio::types::kLeAudioDirectionSink) &
-          ~AudioContexts(LeAudioContextType::ALERTS),
-      right->GetAvailableContexts(::le_audio::types::kLeAudioDirectionSource));
+      {.sink = right->GetAvailableContexts(
+                   ::le_audio::types::kLeAudioDirectionSink) &
+               ~AudioContexts(LeAudioContextType::ALERTS),
+       .source = right->GetAvailableContexts(
+           ::le_audio::types::kLeAudioDirectionSource)});
   group_->UpdateAudioSetConfigurationCache(group_->GetAvailableContexts());
   ASSERT_EQ(group_->GetAvailableContexts(),
             left->GetAvailableContexts() | right->GetAvailableContexts());
