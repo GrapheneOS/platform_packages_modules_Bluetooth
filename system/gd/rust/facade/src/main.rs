@@ -61,9 +61,11 @@ async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
             rootcanal_port,
             matches.get_one::<String>("btsnoop").cloned(),
         ))
-        .bind("0.0.0.0", root_server_port)
         .build()
         .unwrap();
+    let addr = format!("0.0.0.0:{}", root_server_port);
+    let creds = ServerCredentials::insecure();
+    server.add_listening_port(addr, creds).unwrap();
     server.start();
 
     sigint.next().await;

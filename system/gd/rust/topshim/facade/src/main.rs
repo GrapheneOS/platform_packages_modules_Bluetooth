@@ -114,9 +114,11 @@ async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
         .register_service(hf_client_service_impl)
         .register_service(hfp_service_impl)
         .register_service(media_service_impl)
-        .bind("0.0.0.0", grpc_port)
         .build()
         .unwrap();
+    let addr = format!("0.0.0.0:{}", grpc_port);
+    let creds = ServerCredentials::insecure();
+    server.add_listening_port(addr, creds).unwrap();
     server.start();
 
     sigint.next().await;
