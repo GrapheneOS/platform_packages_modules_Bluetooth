@@ -30,6 +30,7 @@
 #define HCI_PROTO_VERSION_4_1 0x07 /* Version for BT spec 4.1          */
 #define HCI_PROTO_VERSION_4_2 0x08 /* Version for BT spec 4.2          */
 #define HCI_PROTO_VERSION_5_0 0x09 /* Version for BT spec 5.0          */
+#define HCI_PROTO_VERSION_5_2 0x0B /* Version for BT spec 5.2          */
 
 /*
  *  Definitions for HCI groups
