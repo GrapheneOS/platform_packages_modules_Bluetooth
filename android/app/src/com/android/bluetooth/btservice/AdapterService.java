@@ -233,10 +233,8 @@ public class AdapterService extends Service {
     static final String BLUETOOTH_ENABLE_LE_AUDIO_ALLOW_LIST =
             "persist.bluetooth.leaudio.enable_allow_list";
 
-    static final String PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE =
-            "phonebook_access_permission";
-    static final String MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE =
-            "message_access_permission";
+    static final String PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE = "phonebook_access_permission";
+    static final String MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE = "message_access_permission";
     static final String SIM_ACCESS_PERMISSION_PREFERENCE_FILE = "sim_access_permission";
 
     private static final int CONTROLLER_ENERGY_UPDATE_TIMEOUT_MILLIS = 30;
@@ -257,9 +255,11 @@ public class AdapterService extends Service {
         QUALITY_REPORT_ID_CONTROLLER_DBG_INFO(0x13);
 
         private final int value;
+
         private BqrQualityReportId(int value) {
             this.value = value;
         }
+
         public int getValue() {
             return value;
         }
@@ -292,8 +292,7 @@ public class AdapterService extends Service {
     }
 
     private BluetoothAdapter mAdapter;
-    @VisibleForTesting
-    AdapterProperties mAdapterProperties;
+    @VisibleForTesting AdapterProperties mAdapterProperties;
     private AdapterState mAdapterStateMachine;
     private BondStateMachine mBondStateMachine;
     private JniCallbacks mJniCallbacks;
@@ -315,7 +314,7 @@ public class AdapterService extends Service {
     // Map<groupId, PendingAudioProfilePreferenceRequest>
     private final Map<Integer, PendingAudioProfilePreferenceRequest>
             mCsipGroupsPendingAudioProfileChanges = new HashMap<>();
-    //Only BluetoothManagerService should be registered
+    // Only BluetoothManagerService should be registered
     private RemoteCallbackList<IBluetoothCallback> mCallbacks;
     private int mCurrentRequestId;
     private boolean mQuietmode = false;
@@ -448,18 +447,23 @@ public class AdapterService extends Service {
                     onGattUnbind();
                     break;
                 case MESSAGE_PREFERRED_AUDIO_PROFILES_AUDIO_FRAMEWORK_TIMEOUT:
-                    errorLog("handleMessage() - "
-                            + "MESSAGE_PREFERRED_PROFILE_CHANGE_AUDIO_FRAMEWORK_TIMEOUT");
+                    errorLog(
+                            "handleMessage() - "
+                                    + "MESSAGE_PREFERRED_PROFILE_CHANGE_AUDIO_FRAMEWORK_TIMEOUT");
                     int groupId = (int) msg.obj;
 
                     synchronized (mCsipGroupsPendingAudioProfileChanges) {
                         removeFromPendingAudioProfileChanges(groupId);
                         PendingAudioProfilePreferenceRequest request =
                                 mCsipGroupsPendingAudioProfileChanges.remove(groupId);
-                        Log.e(TAG, "Preferred audio profiles change audio framework timeout for "
-                                + "device " + request.mDeviceRequested);
-                        sendPreferredAudioProfilesCallbackToApps(request.mDeviceRequested,
-                                request.mRequestedPreferences, BluetoothStatusCodes.ERROR_TIMEOUT);
+                        Log.e(
+                                TAG,
+                                "Preferred audio profiles change audio framework timeout for "
+                                        + ("device " + request.mDeviceRequested));
+                        sendPreferredAudioProfilesCallbackToApps(
+                                request.mDeviceRequested,
+                                request.mRequestedPreferences,
+                                BluetoothStatusCodes.ERROR_TIMEOUT);
                     }
                     break;
             }
@@ -537,8 +541,10 @@ public class AdapterService extends Service {
                     // TODO(b/228875190): GATT is assumed supported. GATT is expected to be the only
                     // profile available in the "BLE ON" state. If only GATT is left, send
                     // BREDR_STOPPED. If GATT is stopped, deinitialize the hardware.
-                    if ((mRunningProfiles.size() == 1 && (GattService.class.getSimpleName()
-                            .equals(mRunningProfiles.get(0).getName())))) {
+                    if ((mRunningProfiles.size() == 1
+                            && (GattService.class
+                                    .getSimpleName()
+                                    .equals(mRunningProfiles.get(0).getName())))) {
                         mAdapterStateMachine.sendMessage(AdapterState.BREDR_STOPPED);
                     } else if (mRunningProfiles.size() == 0) {
                         disableNative();
@@ -553,8 +559,8 @@ public class AdapterService extends Service {
     private final AdapterServiceHandler mHandler = new AdapterServiceHandler();
 
     /**
-     * Stores information about requests made to the audio framework arising from calls to
-     * {@link BluetoothAdapter#setPreferredAudioProfiles(BluetoothDevice, Bundle)}.
+     * Stores information about requests made to the audio framework arising from calls to {@link
+     * BluetoothAdapter#setPreferredAudioProfiles(BluetoothDevice, Bundle)}.
      */
     private static class PendingAudioProfilePreferenceRequest {
         // The newly requested preferences
@@ -569,11 +575,11 @@ public class AdapterService extends Service {
          *
          * @param preferences newly requested preferences
          * @param numRequestsToAudioFramework how many active device changed requests are sent to
-         *                                    the audio framework
+         *     the audio framework
          * @param device the device with which the request was made
          */
-        PendingAudioProfilePreferenceRequest(Bundle preferences,
-                int numRequestsToAudioFramework, BluetoothDevice device) {
+        PendingAudioProfilePreferenceRequest(
+                Bundle preferences, int numRequestsToAudioFramework, BluetoothDevice device) {
             mRequestedPreferences = preferences;
             mRemainingRequestsToAudioFramework = numRequestsToAudioFramework;
             mDeviceRequested = device;
@@ -591,7 +597,7 @@ public class AdapterService extends Service {
                 android.Manifest.permission.INTERACT_ACROSS_USERS,
                 android.Manifest.permission.CREATE_USERS,
                 android.Manifest.permission.MANAGE_USERS,
-    })
+            })
     public void onCreate() {
         super.onCreate();
         initMetricsLogger();
@@ -613,11 +619,18 @@ public class AdapterService extends Service {
         BluetoothFrameworkInitializer.initializeBinderCallsStats(getApplicationContext());
 
         // Android TV doesn't show consent dialogs for just works and encryption only le pairing
-        boolean isAtvDevice = getApplicationContext().getPackageManager().hasSystemFeature(
-                PackageManager.FEATURE_LEANBACK_ONLY);
+        boolean isAtvDevice =
+                getApplicationContext()
+                        .getPackageManager()
+                        .hasSystemFeature(PackageManager.FEATURE_LEANBACK_ONLY);
         mUserManager = getSystemService(UserManager.class);
-        initNative(mUserManager.isGuestUser(), isCommonCriteriaMode(), configCompareResult,
-                getInitFlags(), isAtvDevice, getApplicationInfo().dataDir);
+        initNative(
+                mUserManager.isGuestUser(),
+                isCommonCriteriaMode(),
+                configCompareResult,
+                getInitFlags(),
+                isAtvDevice,
+                getApplicationInfo().dataDir);
         mNativeAvailable = true;
         mPreferredAudioProfilesCallbacks =
                 new RemoteCallbackList<IBluetoothPreferredAudioProfilesCallback>();
@@ -625,7 +638,7 @@ public class AdapterService extends Service {
                 new RemoteCallbackList<IBluetoothQualityReportReadyCallback>();
         mCallbacks = new RemoteCallbackList<IBluetoothCallback>();
         mAppOps = getSystemService(AppOpsManager.class);
-        //Load the name and address
+        // Load the name and address
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDADDR);
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDNAME);
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE);
@@ -651,8 +664,10 @@ public class AdapterService extends Service {
         mDatabaseManager = new DatabaseManager(this);
         mDatabaseManager.start(MetadataDatabase.createDatabase(this));
 
-        boolean isAutomotiveDevice = getApplicationContext().getPackageManager().hasSystemFeature(
-                PackageManager.FEATURE_AUTOMOTIVE);
+        boolean isAutomotiveDevice =
+                getApplicationContext()
+                        .getPackageManager()
+                        .hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE);
 
         /*
          * Phone policy is specific to phone implementations and hence if a device wants to exclude
@@ -671,8 +686,8 @@ public class AdapterService extends Service {
         mActiveDeviceManager = new ActiveDeviceManager(this, new ServiceFactory());
         mActiveDeviceManager.start();
 
-        mSilenceDeviceManager = new SilenceDeviceManager(this, new ServiceFactory(),
-                Looper.getMainLooper());
+        mSilenceDeviceManager =
+                new SilenceDeviceManager(this, new ServiceFactory(), Looper.getMainLooper());
         mSilenceDeviceManager.start();
 
         mBtCompanionManager = new CompanionManager(this, new ServiceFactory());
@@ -692,20 +707,22 @@ public class AdapterService extends Service {
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-                getSharedPreferences(PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE,
-                        Context.MODE_PRIVATE);
-                getSharedPreferences(MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE,
-                        Context.MODE_PRIVATE);
+                getSharedPreferences(
+                        PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE, Context.MODE_PRIVATE);
+                getSharedPreferences(
+                        MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE, Context.MODE_PRIVATE);
                 getSharedPreferences(SIM_ACCESS_PERMISSION_PREFERENCE_FILE, Context.MODE_PRIVATE);
                 return null;
             }
         }.execute();
 
         try {
-            int systemUiUid = getApplicationContext()
-                    .createContextAsUser(UserHandle.SYSTEM, /* flags= */ 0)
-                    .getPackageManager()
-                    .getPackageUid("com.android.systemui", PackageManager.MATCH_SYSTEM_ONLY);
+            int systemUiUid =
+                    getApplicationContext()
+                            .createContextAsUser(UserHandle.SYSTEM, /* flags= */ 0)
+                            .getPackageManager()
+                            .getPackageUid(
+                                    "com.android.systemui", PackageManager.MATCH_SYSTEM_ONLY);
 
             Utils.setSystemUiUid(systemUiUid);
         } catch (PackageManager.NameNotFoundException e) {
@@ -760,13 +777,13 @@ public class AdapterService extends Service {
     }
 
     /**
-     *  Log L2CAP CoC Server Connection Metrics
+     * Log L2CAP CoC Server Connection Metrics
      *
-     *  @param port port of socket
-     *  @param isSecured if secured API is called
-     *  @param result transaction result of the connection
-     *  @param connectionLatencyMillis latency of the connection
-     *  @param timeoutMillis timeout set by the app
+     * @param port port of socket
+     * @param isSecured if secured API is called
+     * @param result transaction result of the connection
+     * @param socketCreationLatencyMillis latency of the connection
+     * @param timeoutMillis timeout set by the app
      */
     public void logL2capcocServerConnection(
             BluetoothDevice device,
@@ -786,31 +803,43 @@ public class AdapterService extends Service {
         long currentTime = System.currentTimeMillis();
         long endToEndLatencyMillis = currentTime - socketCreationTimeMillis;
         long socketAcceptanceLatencyMillis = currentTime - socketConnectionTimeMillis;
-        Log.i(TAG, "Statslog L2capcoc server connection. metricId "
-                + metricId + " port " + port + " isSecured " + isSecured
-                + " result " + result + " endToEndLatencyMillis " + endToEndLatencyMillis
-                + " socketCreationLatencyMillis " + socketCreationLatencyMillis
-                + " socketAcceptanceLatencyMillis " + socketAcceptanceLatencyMillis
-                + " timeout set by app " + timeoutMillis + " appUid " + appUid);
+        Log.i(
+                TAG,
+                "Statslog L2capcoc server connection."
+                        + (" metricId " + metricId)
+                        + (" port " + port)
+                        + (" isSecured " + isSecured)
+                        + (" result " + result)
+                        + (" endToEndLatencyMillis " + endToEndLatencyMillis)
+                        + (" socketCreationLatencyMillis " + socketCreationLatencyMillis)
+                        + (" socketAcceptanceLatencyMillis " + socketAcceptanceLatencyMillis)
+                        + (" timeout set by app " + timeoutMillis)
+                        + (" appUid " + appUid));
         BluetoothStatsLog.write(
                 BluetoothStatsLog.BLUETOOTH_L2CAP_COC_SERVER_CONNECTION,
-                metricId, port, isSecured, result, endToEndLatencyMillis, timeoutMillis, appUid,
-                socketCreationLatencyMillis, socketAcceptanceLatencyMillis);
+                metricId,
+                port,
+                isSecured,
+                result,
+                endToEndLatencyMillis,
+                timeoutMillis,
+                appUid,
+                socketCreationLatencyMillis,
+                socketAcceptanceLatencyMillis);
     }
 
     public void setMetricsLogger(MetricsLogger metricsLogger) {
         mMetricsLogger = metricsLogger;
     }
 
-
     /**
-     *  Log L2CAP CoC Client Connection Metrics
+     * Log L2CAP CoC Client Connection Metrics
      *
-     *  @param device Bluetooth device
-     *  @param port port of socket
-     *  @param isSecured if secured API is called
-     *  @param result transaction result of the connection
-     *  @param connectionLatencyMillis latency of the connection
+     * @param device Bluetooth device
+     * @param port port of socket
+     * @param isSecured if secured API is called
+     * @param result transaction result of the connection
+     * @param socketCreationLatencyMillis latency of the connection
      */
     public void logL2capcocClientConnection(
             BluetoothDevice device,
@@ -826,27 +855,39 @@ public class AdapterService extends Service {
         long currentTime = System.currentTimeMillis();
         long endToEndLatencyMillis = currentTime - socketCreationTimeMillis;
         long socketConnectionLatencyMillis = currentTime - socketConnectionTimeMillis;
-        Log.i(TAG, "Statslog L2capcoc client connection. metricId "
-                + metricId + " port " + port + " isSecured " + isSecured
-                + " result " + result + " endToEndLatencyMillis " + endToEndLatencyMillis
-                + " socketCreationLatencyMillis " + socketCreationLatencyMillis
-                + " socketConnectionLatencyMillis " + socketConnectionLatencyMillis
-                + " appUid " + appUid);
+        Log.i(
+                TAG,
+                "Statslog L2capcoc client connection."
+                        + (" metricId " + metricId)
+                        + (" port " + port)
+                        + (" isSecured " + isSecured)
+                        + (" result " + result)
+                        + (" endToEndLatencyMillis " + endToEndLatencyMillis)
+                        + (" socketCreationLatencyMillis " + socketCreationLatencyMillis)
+                        + (" socketConnectionLatencyMillis " + socketConnectionLatencyMillis)
+                        + (" appUid " + appUid));
         BluetoothStatsLog.write(
                 BluetoothStatsLog.BLUETOOTH_L2CAP_COC_CLIENT_CONNECTION,
-                metricId, port, isSecured, result, endToEndLatencyMillis,
-                appUid, socketCreationLatencyMillis, socketConnectionLatencyMillis);
+                metricId,
+                port,
+                isSecured,
+                result,
+                endToEndLatencyMillis,
+                appUid,
+                socketCreationLatencyMillis,
+                socketConnectionLatencyMillis);
     }
 
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.UPDATE_DEVICE_STATS,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.UPDATE_DEVICE_STATS,
+            })
     void bringUpBle() {
         debugLog("bleOnProcessStart()");
 
-        if (getResources().getBoolean(
-                R.bool.config_bluetooth_reload_supported_profiles_when_enabled)) {
+        if (getResources()
+                .getBoolean(R.bool.config_bluetooth_reload_supported_profiles_when_enabled)) {
             Config.init(getApplicationContext());
         }
 
@@ -868,14 +909,21 @@ public class AdapterService extends Service {
         mJniCallbacks.init(mBondStateMachine, mRemoteDevices);
 
         mBatteryStatsManager.reportBleScanReset();
-        BluetoothStatsLog.write_non_chained(BluetoothStatsLog.BLE_SCAN_STATE_CHANGED, -1, null,
-                BluetoothStatsLog.BLE_SCAN_STATE_CHANGED__STATE__RESET, false, false, false);
+        BluetoothStatsLog.write_non_chained(
+                BluetoothStatsLog.BLE_SCAN_STATE_CHANGED,
+                -1,
+                null,
+                BluetoothStatsLog.BLE_SCAN_STATE_CHANGED__STATE__RESET,
+                false,
+                false,
+                false);
 
         // TODO(b/228875190): GATT is assumed supported. As a result, we don't respect the
         // configuration sysprop. Configuring a device without GATT, although rare, will cause stack
         // start up errors yielding init loops.
         if (!GattService.isEnabled()) {
-            Log.w(TAG,
+            Log.w(
+                    TAG,
                     "GATT is configured off but the stack assumes it to be enabled. Start anyway.");
         }
         startGattProfileService();
@@ -902,8 +950,10 @@ public class AdapterService extends Service {
         // TODO(b/228875190): GATT is assumed supported. If we support no other profiles then just
         // move on to BREDR_STARTED. Note that configuring GATT to NOT supported will cause adapter
         // initialization failures
-        if (supportedProfileServices.length == 1 && GattService.class.getSimpleName()
-                .equals(supportedProfileServices[0].getSimpleName())) {
+        if (supportedProfileServices.length == 1
+                && GattService.class
+                        .getSimpleName()
+                        .equals(supportedProfileServices[0].getSimpleName())) {
             mAdapterProperties.onBluetoothReady();
             updateUuids();
             mAdapterStateMachine.sendMessage(AdapterState.BREDR_STARTED);
@@ -920,8 +970,11 @@ public class AdapterService extends Service {
         Class[] supportedProfileServices = Config.getSupportedProfiles();
         // TODO(b/228875190): GATT is assumed supported. If we support no profiles then just move on
         // to BREDR_STOPPED
-        if (supportedProfileServices.length == 1 && (mRunningProfiles.size() == 1
-                && GattService.class.getSimpleName().equals(mRunningProfiles.get(0).getName()))) {
+        if (supportedProfileServices.length == 1
+                && (mRunningProfiles.size() == 1
+                        && GattService.class
+                                .getSimpleName()
+                                .equals(mRunningProfiles.get(0).getName()))) {
             debugLog("stopProfileServices() - No profiles services to stop or already stopped.");
             mAdapterStateMachine.sendMessage(AdapterState.BREDR_STOPPED);
         } else {
@@ -1030,8 +1083,12 @@ public class AdapterService extends Service {
         invalidateBluetoothGetStateCache();
         if (mCallbacks != null) {
             int n = mCallbacks.beginBroadcast();
-            debugLog("updateAdapterState() - Broadcasting state " + BluetoothAdapter.nameForState(
-                    newState) + " to " + n + " receivers.");
+            debugLog(
+                    "updateAdapterState() - Broadcasting state "
+                            + BluetoothAdapter.nameForState(newState)
+                            + " to "
+                            + n
+                            + " receivers.");
             for (int i = 0; i < n; i++) {
                 try {
                     mCallbacks.getBroadcastItem(i).onBluetoothStateChange(prevState, newState);
@@ -1044,11 +1101,12 @@ public class AdapterService extends Service {
 
         // Turn the Adapter all the way off if we are disabling and the snoop log setting changed.
         if (newState == BluetoothAdapter.STATE_BLE_TURNING_ON) {
-            sSnoopLogSettingAtEnable = BluetoothProperties.snoop_log_mode()
-                    .orElse(BluetoothProperties.snoop_log_mode_values.EMPTY);
+            sSnoopLogSettingAtEnable =
+                    BluetoothProperties.snoop_log_mode()
+                            .orElse(BluetoothProperties.snoop_log_mode_values.EMPTY);
             sDefaultSnoopLogSettingAtEnable =
-                    Settings.Global.getString(getContentResolver(),
-                            Settings.Global.BLUETOOTH_BTSNOOP_DEFAULT_MODE);
+                    Settings.Global.getString(
+                            getContentResolver(), Settings.Global.BLUETOOTH_BTSNOOP_DEFAULT_MODE);
 
             sSnoopLogFilterHeadersSettingAtEnable =
                     BluetoothProperties.snoop_log_filter_snoop_headers_enabled().orElse(false);
@@ -1058,10 +1116,10 @@ public class AdapterService extends Service {
                     BluetoothProperties.snoop_log_filter_profile_rfcomm_enabled().orElse(false);
             sSnoopLogFilterProfilePbapModeSettingAtEnable =
                     BluetoothProperties.snoop_log_filter_profile_pbap()
-                    .orElse(BluetoothProperties.snoop_log_filter_profile_pbap_values.EMPTY);
+                            .orElse(BluetoothProperties.snoop_log_filter_profile_pbap_values.EMPTY);
             sSnoopLogFilterProfileMapModeSettingAtEnable =
                     BluetoothProperties.snoop_log_filter_profile_map()
-                    .orElse(BluetoothProperties.snoop_log_filter_profile_map_values.EMPTY);
+                            .orElse(BluetoothProperties.snoop_log_filter_profile_map_values.EMPTY);
 
             BluetoothProperties.snoop_default_mode(
                     BluetoothProperties.snoop_default_mode_values.DISABLED);
@@ -1072,12 +1130,13 @@ public class AdapterService extends Service {
                 }
             }
         } else if (newState == BluetoothAdapter.STATE_BLE_ON
-                   && prevState != BluetoothAdapter.STATE_OFF) {
-            var snoopLogSetting = BluetoothProperties.snoop_log_mode()
-                    .orElse(BluetoothProperties.snoop_log_mode_values.EMPTY);
+                && prevState != BluetoothAdapter.STATE_OFF) {
+            var snoopLogSetting =
+                    BluetoothProperties.snoop_log_mode()
+                            .orElse(BluetoothProperties.snoop_log_mode_values.EMPTY);
             var snoopDefaultModeSetting =
-                    Settings.Global.getString(getContentResolver(),
-                            Settings.Global.BLUETOOTH_BTSNOOP_DEFAULT_MODE);
+                    Settings.Global.getString(
+                            getContentResolver(), Settings.Global.BLUETOOTH_BTSNOOP_DEFAULT_MODE);
 
             var snoopLogFilterHeadersSettingAtEnable =
                     BluetoothProperties.snoop_log_filter_snoop_headers_enabled().orElse(false);
@@ -1088,10 +1147,10 @@ public class AdapterService extends Service {
 
             var snoopLogFilterProfilePbapModeSetting =
                     BluetoothProperties.snoop_log_filter_profile_pbap()
-                    .orElse(BluetoothProperties.snoop_log_filter_profile_pbap_values.EMPTY);
+                            .orElse(BluetoothProperties.snoop_log_filter_profile_pbap_values.EMPTY);
             var snoopLogFilterProfileMapModeSetting =
                     BluetoothProperties.snoop_log_filter_profile_map()
-                    .orElse(BluetoothProperties.snoop_log_filter_profile_map_values.EMPTY);
+                            .orElse(BluetoothProperties.snoop_log_filter_profile_map_values.EMPTY);
 
             if (!(sSnoopLogSettingAtEnable == snoopLogSetting)
                     || !(sDefaultSnoopLogSettingAtEnable == snoopDefaultModeSetting)
@@ -1122,17 +1181,26 @@ public class AdapterService extends Service {
 
         if (reportId == BqrQualityReportId.QUALITY_REPORT_ID_SCO_VOICE_CHOPPY.getValue()) {
             if (bluetoothInCallService == null) {
-                Log.w(TAG, "No BluetoothInCallService while trying to send BQR."
-                        + " timestamp: " + timestamp + " reportId: " + reportId
-                        + " rssi: " + rssi + " snr: " + snr
-                        + " retransmissionCount: " + retransmissionCount
-                        + " packetsNotReceiveCount: " + packetsNotReceiveCount
-                        + " negativeAcknowledgementCount: " + negativeAcknowledgementCount);
+                Log.w(
+                        TAG,
+                        "No BluetoothInCallService while trying to send BQR."
+                                + (" timestamp: " + timestamp)
+                                + (" reportId: " + reportId)
+                                + (" rssi: " + rssi)
+                                + (" snr: " + snr)
+                                + (" retransmissionCount: " + retransmissionCount)
+                                + (" packetsNotReceiveCount: " + packetsNotReceiveCount)
+                                + (" negativeAcknowledgementCount: "
+                                        + negativeAcknowledgementCount));
                 return;
             }
             bluetoothInCallService.sendBluetoothCallQualityReport(
-                    timestamp, rssi, snr, retransmissionCount,
-                    packetsNotReceiveCount, negativeAcknowledgementCount);
+                    timestamp,
+                    rssi,
+                    snr,
+                    retransmissionCount,
+                    packetsNotReceiveCount,
+                    negativeAcknowledgementCount);
         }
     }
 
@@ -1144,22 +1212,31 @@ public class AdapterService extends Service {
      * @param bluetoothQualityReport a Parcel that contains information about Bluetooth Quality
      * @return whether the Bluetooth stack acknowledged the change successfully
      */
-    public int bluetoothQualityReportReadyCallback(BluetoothDevice device,
-            BluetoothQualityReport bluetoothQualityReport) {
+    public int bluetoothQualityReportReadyCallback(
+            BluetoothDevice device, BluetoothQualityReport bluetoothQualityReport) {
         synchronized (mBluetoothQualityReportReadyCallbacks) {
             if (mBluetoothQualityReportReadyCallbacks != null) {
                 int n = mBluetoothQualityReportReadyCallbacks.beginBroadcast();
-                debugLog("bluetoothQualityReportReadyCallback() - "
-                        + "Broadcasting Bluetooth Quality Report to " + n + " receivers.");
+                debugLog(
+                        "bluetoothQualityReportReadyCallback() - "
+                                + "Broadcasting Bluetooth Quality Report to "
+                                + n
+                                + " receivers.");
                 for (int i = 0; i < n; i++) {
                     try {
-                        mBluetoothQualityReportReadyCallbacks.getBroadcastItem(i)
-                                .onBluetoothQualityReportReady(device,
+                        mBluetoothQualityReportReadyCallbacks
+                                .getBroadcastItem(i)
+                                .onBluetoothQualityReportReady(
+                                        device,
                                         bluetoothQualityReport,
                                         BluetoothStatusCodes.SUCCESS);
                     } catch (RemoteException e) {
-                        debugLog("bluetoothQualityReportReadyCallback() - Callback #" + i
-                                + " failed (" + e + ")");
+                        debugLog(
+                                "bluetoothQualityReportReadyCallback() - Callback #"
+                                        + i
+                                        + " failed ("
+                                        + e
+                                        + ")");
                     }
                 }
                 mBluetoothQualityReportReadyCallbacks.finishBroadcast();
@@ -1186,10 +1263,13 @@ public class AdapterService extends Service {
         switchBufferSizeIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, activeDevices.get(0));
         switchBufferSizeIntent.putExtra(
                 BluetoothDevice.EXTRA_LOW_LATENCY_BUFFER_SIZE, isLowLatencyBufferSize);
-        sendBroadcastMultiplePermissions(switchBufferSizeIntent, new String[] {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED
-        }, null);
+        sendBroadcastMultiplePermissions(
+                switchBufferSizeIntent,
+                new String[] {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED
+                },
+                null);
     }
 
     void switchCodecCallback(boolean isLowLatencyBufferSize) {
@@ -1305,7 +1385,7 @@ public class AdapterService extends Service {
 
         if (mBinder != null) {
             mBinder.cleanup();
-            mBinder = null;  //Do not remove. Otherwise Binder leak!
+            mBinder = null; // Do not remove. Otherwise Binder leak!
         }
 
         if (mPreferredAudioProfilesCallbacks != null) {
@@ -1368,11 +1448,11 @@ public class AdapterService extends Service {
         }
 
         // Check if any device in the CSIP group is a dual mode audio sink device
-        for (BluetoothDevice groupDevice: mLeAudioService.getGroupDevices(
-                mLeAudioService.getGroupId(device))) {
+        for (BluetoothDevice groupDevice :
+                mLeAudioService.getGroupDevices(mLeAudioService.getGroupId(device))) {
             if (isProfileSupported(groupDevice, BluetoothProfile.LE_AUDIO)
                     && (isProfileSupported(groupDevice, BluetoothProfile.HEADSET)
-                    || isProfileSupported(groupDevice, BluetoothProfile.A2DP))) {
+                            || isProfileSupported(groupDevice, BluetoothProfile.A2DP))) {
                 return true;
             }
         }
@@ -1387,11 +1467,11 @@ public class AdapterService extends Service {
      * @return {@code true} if duplex is supported on the remote device, {@code false} otherwise
      */
     private boolean isDuplexAudioSupported(List<BluetoothDevice> groupDevices) {
-        for (BluetoothDevice device: groupDevices) {
+        for (BluetoothDevice device : groupDevices) {
             if (isProfileSupported(device, BluetoothProfile.HEADSET)
                     || (isProfileSupported(device, BluetoothProfile.LE_AUDIO)
-                    && mLeAudioService != null
-                    && mLeAudioService.isLeAudioDuplexSupported(device))) {
+                            && mLeAudioService != null
+                            && mLeAudioService.isLeAudioDuplexSupported(device))) {
                 return true;
             }
         }
@@ -1406,11 +1486,11 @@ public class AdapterService extends Service {
      * @return {@code true} if output only is supported, {@code false} otherwise
      */
     private boolean isOutputOnlyAudioSupported(List<BluetoothDevice> groupDevices) {
-        for (BluetoothDevice device: groupDevices) {
+        for (BluetoothDevice device : groupDevices) {
             if (isProfileSupported(device, BluetoothProfile.A2DP)
                     || (isProfileSupported(device, BluetoothProfile.LE_AUDIO)
-                    && mLeAudioService != null
-                    && mLeAudioService.isLeAudioOutputSupported(device))) {
+                            && mLeAudioService != null
+                            && mLeAudioService.isLeAudioOutputSupported(device))) {
                 return true;
             }
         }
@@ -1421,8 +1501,8 @@ public class AdapterService extends Service {
      * Verifies whether the profile is supported by the local bluetooth adapter by checking a
      * bitmask of its supported profiles
      *
-     * @param device            is the remote device we wish to connect to
-     * @param profile           is the profile we are checking for support
+     * @param device is the remote device we wish to connect to
+     * @param profile is the profile we are checking for support
      * @return true if the profile is supported by both the local and remote device, false otherwise
      */
     @VisibleForTesting
@@ -1436,9 +1516,9 @@ public class AdapterService extends Service {
 
         if (profile == BluetoothProfile.HEADSET) {
             return (Utils.arrayContains(localDeviceUuids, BluetoothUuid.HSP_AG)
-                    && Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.HSP))
+                            && Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.HSP))
                     || (Utils.arrayContains(localDeviceUuids, BluetoothUuid.HFP_AG)
-                    && Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.HFP));
+                            && Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.HFP));
         }
         if (profile == BluetoothProfile.HEADSET_CLIENT) {
             return Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.HFP_AG)
@@ -1512,54 +1592,65 @@ public class AdapterService extends Service {
     /**
      * Checks if the connectino policy of all profiles are unknown for the given device
      *
-     * @param device is the device for which we are checking if the connection policy of
-     * all profiles are unknown
+     * @param device is the device for which we are checking if the connection policy of all
+     *     profiles are unknown
      * @return false if one of profile is enabled or disabled, true otherwise
      */
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     boolean isAllProfilesUnknown(BluetoothDevice device) {
-        if (mA2dpService != null && mA2dpService.getConnectionPolicy(device)
-                != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
+        if (mA2dpService != null
+                && mA2dpService.getConnectionPolicy(device)
+                        != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
         }
-        if (mA2dpSinkService != null && mA2dpSinkService.getConnectionPolicy(device)
-                != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
+        if (mA2dpSinkService != null
+                && mA2dpSinkService.getConnectionPolicy(device)
+                        != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
         }
-        if (mHeadsetService != null && mHeadsetService.getConnectionPolicy(device)
-                != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
+        if (mHeadsetService != null
+                && mHeadsetService.getConnectionPolicy(device)
+                        != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
         }
-        if (mHeadsetClientService != null && mHeadsetClientService.getConnectionPolicy(device)
-                != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
+        if (mHeadsetClientService != null
+                && mHeadsetClientService.getConnectionPolicy(device)
+                        != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
         }
-        if (mMapClientService != null && mMapClientService.getConnectionPolicy(device)
-                != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
+        if (mMapClientService != null
+                && mMapClientService.getConnectionPolicy(device)
+                        != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
         }
-        if (mHidHostService != null && mHidHostService.getConnectionPolicy(device)
-                != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
+        if (mHidHostService != null
+                && mHidHostService.getConnectionPolicy(device)
+                        != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
         }
-        if (mPanService != null && mPanService.getConnectionPolicy(device)
-                != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
+        if (mPanService != null
+                && mPanService.getConnectionPolicy(device)
+                        != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
         }
-        if (mPbapClientService != null && mPbapClientService.getConnectionPolicy(device)
-                != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
+        if (mPbapClientService != null
+                && mPbapClientService.getConnectionPolicy(device)
+                        != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
         }
-        if (mHearingAidService != null && mHearingAidService.getConnectionPolicy(device)
-                != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
+        if (mHearingAidService != null
+                && mHearingAidService.getConnectionPolicy(device)
+                        != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
         }
-        if (mHapClientService != null && mHapClientService.getConnectionPolicy(device)
-                != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
+        if (mHapClientService != null
+                && mHapClientService.getConnectionPolicy(device)
+                        != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
         }
-        if (mVolumeControlService != null && mVolumeControlService.getConnectionPolicy(device)
-                != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
+        if (mVolumeControlService != null
+                && mVolumeControlService.getConnectionPolicy(device)
+                        != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
         }
         if (mCsipSetCoordinatorService != null
@@ -1567,28 +1658,31 @@ public class AdapterService extends Service {
                         != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
         }
-        if (mLeAudioService != null && mLeAudioService.getConnectionPolicy(device)
-                != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
+        if (mLeAudioService != null
+                && mLeAudioService.getConnectionPolicy(device)
+                        != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
         }
-        if (mBassClientService != null && mBassClientService.getConnectionPolicy(device)
-                 != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
+        if (mBassClientService != null
+                && mBassClientService.getConnectionPolicy(device)
+                        != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
         }
         return true;
     }
 
     /**
-     * Connects only available profiles
-     * (those with {@link BluetoothProfile#CONNECTION_POLICY_ALLOWED})
+     * Connects only available profiles (those with {@link
+     * BluetoothProfile#CONNECTION_POLICY_ALLOWED})
      *
      * @param device is the device with which we are connecting the profiles
      * @return {@link BluetoothStatusCodes#SUCCESS}
      */
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-            android.Manifest.permission.MODIFY_PHONE_STATE,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                android.Manifest.permission.MODIFY_PHONE_STATE,
+            })
     private int connectEnabledProfiles(BluetoothDevice device) {
         if (mCsipSetCoordinatorService != null
                 && isProfileSupported(device, BluetoothProfile.CSIP_SET_COORDINATOR)
@@ -1597,95 +1691,99 @@ public class AdapterService extends Service {
             Log.i(TAG, "connectEnabledProfiles: Connecting Coordinated Set Profile");
             mCsipSetCoordinatorService.connect(device);
         }
-        if (mA2dpService != null && isProfileSupported(
-                device, BluetoothProfile.A2DP) && mA2dpService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+        if (mA2dpService != null
+                && isProfileSupported(device, BluetoothProfile.A2DP)
+                && mA2dpService.getConnectionPolicy(device)
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting A2dp");
             mA2dpService.connect(device);
         }
-        if (mA2dpSinkService != null && isProfileSupported(
-                device, BluetoothProfile.A2DP_SINK) && mA2dpSinkService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+        if (mA2dpSinkService != null
+                && isProfileSupported(device, BluetoothProfile.A2DP_SINK)
+                && mA2dpSinkService.getConnectionPolicy(device)
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting A2dp Sink");
             mA2dpSinkService.connect(device);
         }
-        if (mHeadsetService != null && isProfileSupported(
-                device, BluetoothProfile.HEADSET) && mHeadsetService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+        if (mHeadsetService != null
+                && isProfileSupported(device, BluetoothProfile.HEADSET)
+                && mHeadsetService.getConnectionPolicy(device)
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting Headset Profile");
             mHeadsetService.connect(device);
         }
-        if (mHeadsetClientService != null && isProfileSupported(
-                device, BluetoothProfile.HEADSET_CLIENT)
+        if (mHeadsetClientService != null
+                && isProfileSupported(device, BluetoothProfile.HEADSET_CLIENT)
                 && mHeadsetClientService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting HFP");
             mHeadsetClientService.connect(device);
         }
-        if (mMapClientService != null && isProfileSupported(
-                device, BluetoothProfile.MAP_CLIENT)
+        if (mMapClientService != null
+                && isProfileSupported(device, BluetoothProfile.MAP_CLIENT)
                 && mMapClientService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting MAP");
             mMapClientService.connect(device);
         }
-        if (mHidHostService != null && isProfileSupported(
-                device, BluetoothProfile.HID_HOST) && mHidHostService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+        if (mHidHostService != null
+                && isProfileSupported(device, BluetoothProfile.HID_HOST)
+                && mHidHostService.getConnectionPolicy(device)
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting Hid Host Profile");
             mHidHostService.connect(device);
         }
-        if (mPanService != null && isProfileSupported(
-                device, BluetoothProfile.PAN) && mPanService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+        if (mPanService != null
+                && isProfileSupported(device, BluetoothProfile.PAN)
+                && mPanService.getConnectionPolicy(device)
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting Pan Profile");
             mPanService.connect(device);
         }
-        if (mPbapClientService != null && isProfileSupported(
-                device, BluetoothProfile.PBAP_CLIENT)
+        if (mPbapClientService != null
+                && isProfileSupported(device, BluetoothProfile.PBAP_CLIENT)
                 && mPbapClientService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting Pbap");
             mPbapClientService.connect(device);
         }
-        if (mHearingAidService != null && isProfileSupported(
-                device, BluetoothProfile.HEARING_AID)
+        if (mHearingAidService != null
+                && isProfileSupported(device, BluetoothProfile.HEARING_AID)
                 && mHearingAidService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting Hearing Aid Profile");
             mHearingAidService.connect(device);
         }
-        if (mHapClientService != null && isProfileSupported(
-                device, BluetoothProfile.HAP_CLIENT)
+        if (mHapClientService != null
+                && isProfileSupported(device, BluetoothProfile.HAP_CLIENT)
                 && mHapClientService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting HAS Profile");
             mHapClientService.connect(device);
         }
-        if (mVolumeControlService != null && isProfileSupported(
-                device, BluetoothProfile.VOLUME_CONTROL)
+        if (mVolumeControlService != null
+                && isProfileSupported(device, BluetoothProfile.VOLUME_CONTROL)
                 && mVolumeControlService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting Volume Control Profile");
             mVolumeControlService.connect(device);
         }
-        if (mLeAudioService != null && isProfileSupported(
-                device, BluetoothProfile.LE_AUDIO)
+        if (mLeAudioService != null
+                && isProfileSupported(device, BluetoothProfile.LE_AUDIO)
                 && mLeAudioService.getConnectionPolicy(device)
                         > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting LeAudio profile (BAP)");
             mLeAudioService.connect(device);
         }
-        if (mBassClientService != null && isProfileSupported(
-                device, BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT)
+        if (mBassClientService != null
+                && isProfileSupported(device, BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT)
                 && mBassClientService.getConnectionPolicy(device)
                         > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting LE Broadcast Assistant Profile");
             mBassClientService.connect(device);
         }
         if (mBatteryService != null
-                && isProfileSupported(
-                device, BluetoothProfile.BATTERY)
+                && isProfileSupported(device, BluetoothProfile.BATTERY)
                 && mBatteryService.getConnectionPolicy(device)
                         > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting Battery Service");
@@ -1709,9 +1807,7 @@ public class AdapterService extends Service {
         return false;
     }
 
-    /**
-     * Initializes all the profile services fields
-     */
+    /** Initializes all the profile services fields */
     private void initProfileServices() {
         Log.i(TAG, "initProfileServices: Initializing all bluetooth profile services");
         mA2dpService = A2dpService.getA2dpService();
@@ -1743,8 +1839,11 @@ public class AdapterService extends Service {
             PendingIntent pendingIntent,
             AttributionSource attributionSource) {
         if (mBluetoothServerSockets.containsKey(uuid.getUuid())) {
-            Log.d(TAG, String.format(
-                        "Cannot start RFCOMM listener: UUID %s already in use.", uuid.getUuid()));
+            Log.d(
+                    TAG,
+                    String.format(
+                            "Cannot start RFCOMM listener: UUID %s already in use.",
+                            uuid.getUuid()));
             return BluetoothStatusCodes.RFCOMM_LISTENER_START_FAILED_UUID_IN_USE;
         }
 
@@ -1763,8 +1862,11 @@ public class AdapterService extends Service {
         RfcommListenerData listenerData = mBluetoothServerSockets.get(uuid.getUuid());
 
         if (listenerData == null) {
-            Log.d(TAG, String.format(
-                        "Cannot stop RFCOMM listener: UUID %s is not registered.", uuid.getUuid()));
+            Log.d(
+                    TAG,
+                    String.format(
+                            "Cannot stop RFCOMM listener: UUID %s is not registered.",
+                            uuid.getUuid()));
             return BluetoothStatusCodes.RFCOMM_LISTENER_OPERATION_FAILED_NO_MATCHING_SERVICE_RECORD;
         }
 
@@ -1816,7 +1918,7 @@ public class AdapterService extends Service {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private void handleIncomingRfcommConnections(UUID uuid) {
         RfcommListenerData listenerData = mBluetoothServerSockets.get(uuid);
-        for (;;) {
+        while (true) {
             BluetoothSocket socket;
             try {
                 socket = listenerData.mServerSocket.accept();
@@ -1956,12 +2058,12 @@ public class AdapterService extends Service {
     }
 
     /**
-     *  Get an metadata of given device and key
+     * Get an metadata of given device and key
      *
-     *  @param device Bluetooth device
-     *  @param key Metadata key
-     *  @param value Metadata value
-     *  @return if metadata is set successfully
+     * @param device Bluetooth device
+     * @param key Metadata key
+     * @param value Metadata value
+     * @return if metadata is set successfully
      */
     public boolean setMetadata(BluetoothDevice device, int key, byte[] value) {
         if (value == null || value.length > BluetoothDevice.METADATA_MAX_LENGTH) {
@@ -1971,31 +2073,27 @@ public class AdapterService extends Service {
     }
 
     /**
-     *  Get an metadata of given device and key
+     * Get an metadata of given device and key
      *
-     *  @param device Bluetooth device
-     *  @param key Metadata key
-     *  @return value of given device and key combination
+     * @param device Bluetooth device
+     * @param key Metadata key
+     * @return value of given device and key combination
      */
     public byte[] getMetadata(BluetoothDevice device, int key) {
         return mDatabaseManager.getCustomMeta(device, key);
     }
 
-    /**
-     * Handlers for incoming service calls
-     */
+    /** Handlers for incoming service calls */
     private AdapterServiceBinder mBinder;
 
     /**
-     * The Binder implementation must be declared to be a static class, with
-     * the AdapterService instance passed in the constructor. Furthermore,
-     * when the AdapterService shuts down, the reference to the AdapterService
-     * must be explicitly removed.
+     * The Binder implementation must be declared to be a static class, with the AdapterService
+     * instance passed in the constructor. Furthermore, when the AdapterService shuts down, the
+     * reference to the AdapterService must be explicitly removed.
      *
-     * Otherwise, a memory leak can occur from repeated starting/stopping the
-     * service...Please refer to android.os.Binder for further details on
-     * why an inner instance class should be avoided.
-     *
+     * <p>Otherwise, a memory leak can occur from repeated starting/stopping the service...Please
+     * refer to android.os.Binder for further details on why an inner instance class should be
+     * avoided.
      */
     @VisibleForTesting
     public static class AdapterServiceBinder extends IBluetooth.Stub {
@@ -2026,6 +2124,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         private int getState() {
             // don't check caller, may be called from system UI
             AdapterService service = getService();
@@ -2037,22 +2136,25 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void enable(boolean quietMode, AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void enable(
+                boolean quietMode, AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(enable(quietMode, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(value = android.Manifest.permission.BLUETOOTH_CONNECT,
+
+        @RequiresPermission(
+                value = android.Manifest.permission.BLUETOOTH_CONNECT,
                 anyOf = {
                     android.Manifest.permission.INTERACT_ACROSS_USERS,
                     android.Manifest.permission.MANAGE_USERS,
-        })
+                })
         private boolean enable(boolean quietMode, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "enable")
+            if (service == null
+                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "enable")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService enable")) {
                 return false;
@@ -2069,10 +2171,12 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private boolean disable(AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "disable")
+            if (service == null
+                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "disable")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService disable")) {
                 return false;
@@ -2082,21 +2186,23 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getAddress(AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void getAddress(AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getAddress(source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.LOCAL_MAC_ADDRESS,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.LOCAL_MAC_ADDRESS,
+                })
         private String getAddress(AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getAddress")
+            if (service == null
+                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getAddress")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService getAddress")) {
                 return null;
@@ -2126,10 +2232,12 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private List<ParcelUuid> getUuids(AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getUuids")
+            if (service == null
+                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getUuids")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService getUuids")) {
                 return new ArrayList<>();
@@ -2150,13 +2258,15 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         public String getIdentityAddress(String address) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getIdentityAddress")
                     || !Utils.checkConnectPermissionForDataDelivery(
-                            service, Utils.getCallingAttributionSource(mService),
-                                "AdapterService getIdentityAddress")) {
+                            service,
+                            Utils.getCallingAttributionSource(mService),
+                            "AdapterService getIdentityAddress")) {
                 return null;
             }
             enforceBluetoothPrivilegedPermission(service);
@@ -2171,10 +2281,12 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private String getName(AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getName")
+            if (service == null
+                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getName")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService getName")) {
                 return null;
@@ -2184,20 +2296,21 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getNameLengthForAdvertise(AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void getNameLengthForAdvertise(
+                AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getNameLengthForAdvertise(source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)
         private int getNameLengthForAdvertise(AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "getNameLengthForAdvertise")
+                    || !callerIsSystemOrActiveOrManagedUser(
+                            service, TAG, "getNameLengthForAdvertise")
                     || !Utils.checkAdvertisePermissionForDataDelivery(
                             service, attributionSource, TAG)) {
                 return -1;
@@ -2207,18 +2320,20 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void setName(String name, AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void setName(
+                String name, AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setName(name, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private boolean setName(String name, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setName")
+            if (service == null
+                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setName")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService setName")) {
                 return false;
@@ -2235,6 +2350,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private int getIoCapability(AttributionSource attributionSource) {
             AdapterService service = getService();
@@ -2249,18 +2365,20 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void setIoCapability(int capability, AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void setIoCapability(
+                int capability, AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setIoCapability(capability, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private boolean setIoCapability(int capability, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
@@ -2272,7 +2390,7 @@ public class AdapterService extends Service {
             enforceBluetoothPrivilegedPermission(service);
 
             if (!isValidIoCapability(capability)) {
-              return false;
+                return false;
             }
 
             return service.mAdapterProperties.setIoCapability(capability);
@@ -2286,11 +2404,13 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @VisibleForTesting
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         int getScanMode(AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getScanMode")
+            if (service == null
+                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getScanMode")
                     || !Utils.checkScanPermissionForDataDelivery(
                             service, attributionSource, "AdapterService getScanMode")) {
                 return BluetoothAdapter.SCAN_MODE_NONE;
@@ -2300,14 +2420,15 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void setScanMode(int mode, AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void setScanMode(
+                int mode, AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setScanMode(mode, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         private int setScanMode(int mode, AttributionSource attributionSource) {
             AdapterService service = getService();
@@ -2320,18 +2441,20 @@ public class AdapterService extends Service {
             enforceBluetoothPrivilegedPermission(service);
 
             return service.mAdapterProperties.setScanMode(mode)
-                    ? BluetoothStatusCodes.SUCCESS : BluetoothStatusCodes.ERROR_UNKNOWN;
+                    ? BluetoothStatusCodes.SUCCESS
+                    : BluetoothStatusCodes.ERROR_UNKNOWN;
         }
 
         @Override
-        public void getDiscoverableTimeout(AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void getDiscoverableTimeout(
+                AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getDiscoverableTimeout(source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         private long getDiscoverableTimeout(AttributionSource attributionSource) {
             AdapterService service = getService();
@@ -2346,14 +2469,15 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void setDiscoverableTimeout(long timeout, AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void setDiscoverableTimeout(
+                long timeout, AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setDiscoverableTimeout(timeout, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         private int setDiscoverableTimeout(long timeout, AttributionSource attributionSource) {
             AdapterService service = getService();
@@ -2366,7 +2490,8 @@ public class AdapterService extends Service {
             enforceBluetoothPrivilegedPermission(service);
 
             return service.mAdapterProperties.setDiscoverableTimeout((int) timeout)
-                    ? BluetoothStatusCodes.SUCCESS : BluetoothStatusCodes.ERROR_UNKNOWN;
+                    ? BluetoothStatusCodes.SUCCESS
+                    : BluetoothStatusCodes.ERROR_UNKNOWN;
         }
 
         @Override
@@ -2377,6 +2502,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         private boolean startDiscovery(AttributionSource attributionSource) {
             AdapterService service = getService();
@@ -2401,6 +2527,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         private boolean cancelDiscovery(AttributionSource attributionSource) {
             AdapterService service = getService();
@@ -2423,6 +2550,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         private boolean isDiscovering(AttributionSource attributionSource) {
             AdapterService service = getService();
@@ -2437,18 +2565,20 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getDiscoveryEndMillis(AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void getDiscoveryEndMillis(
+                AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getDiscoveryEndMillis(source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private long getDiscoveryEndMillis(AttributionSource source) {
             AdapterService service = getService();
             if (service == null
@@ -2463,24 +2593,29 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getMostRecentlyConnectedDevices(AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void getMostRecentlyConnectedDevices(
+                AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getMostRecentlyConnectedDevices(source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private List<BluetoothDevice> getMostRecentlyConnectedDevices(
                 AttributionSource attributionSource) {
             // don't check caller, may be called from system UI
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForDataDelivery(
-                    service, attributionSource, "AdapterService getMostRecentlyConnectedDevices")) {
+            if (service == null
+                    || !Utils.checkConnectPermissionForDataDelivery(
+                            service,
+                            attributionSource,
+                            "AdapterService getMostRecentlyConnectedDevices")) {
                 return new ArrayList<>();
             }
 
@@ -2497,12 +2632,14 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private List<BluetoothDevice> getBondedDevices(AttributionSource attributionSource) {
             // don't check caller, may be called from system UI
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForDataDelivery(
-                    service, attributionSource, "AdapterService getBondedDevices")) {
+            if (service == null
+                    || !Utils.checkConnectPermissionForDataDelivery(
+                            service, attributionSource, "AdapterService getBondedDevices")) {
                 return new ArrayList<>();
             }
 
@@ -2517,6 +2654,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         private int getAdapterConnectionState() {
             // don't check caller, may be called from system UI
             AdapterService service = getService();
@@ -2528,8 +2666,8 @@ public class AdapterService extends Service {
         }
 
         /**
-         * This method has an associated binder cache.  The invalidation
-         * methods must be changed if the logic behind this method changes.
+         * This method has an associated binder cache. The invalidation methods must be changed if
+         * the logic behind this method changes.
          */
         @Override
         public void getProfileConnectionState(int profile, AttributionSource source,
@@ -2540,6 +2678,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private int getProfileConnectionState(int profile, AttributionSource source) {
             AdapterService service = getService();
@@ -2564,21 +2703,31 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void createBond(BluetoothDevice device, int transport, OobData remoteP192Data,
-                OobData remoteP256Data, AttributionSource source,
+        public void createBond(
+                BluetoothDevice device,
+                int transport,
+                OobData remoteP192Data,
+                OobData remoteP256Data,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
-                receiver.send(createBond(device, transport, remoteP192Data, remoteP256Data,
-                            source));
+                receiver.send(
+                        createBond(device, transport, remoteP192Data, remoteP256Data, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-        private boolean createBond(BluetoothDevice device, int transport, OobData remoteP192Data,
-                OobData remoteP256Data, AttributionSource attributionSource) {
+        private boolean createBond(
+                BluetoothDevice device,
+                int transport,
+                OobData remoteP192Data,
+                OobData remoteP256Data,
+                AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "createBond")
+            if (service == null
+                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "createBond")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService createBond")) {
                 return false;
@@ -2589,12 +2738,18 @@ public class AdapterService extends Service {
             // BluetoothDevice#createBond requires BLUETOOTH_ADMIN only.
             service.enforceBluetoothPrivilegedPermissionIfNeeded(remoteP192Data, remoteP256Data);
 
-            return service.createBond(device, transport, remoteP192Data, remoteP256Data,
+            return service.createBond(
+                    device,
+                    transport,
+                    remoteP192Data,
+                    remoteP256Data,
                     attributionSource.getPackageName());
         }
 
         @Override
-        public void cancelBondProcess(BluetoothDevice device, AttributionSource source,
+        public void cancelBondProcess(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(cancelBondProcess(device, source));
@@ -2602,10 +2757,12 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private boolean cancelBondProcess(
                 BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
@@ -2627,7 +2784,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void removeBond(BluetoothDevice device, AttributionSource source,
+        public void removeBond(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(removeBond(device, source));
@@ -2635,6 +2794,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private boolean removeBond(BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
@@ -2659,7 +2819,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getBondState(BluetoothDevice device, AttributionSource source,
+        public void getBondState(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getBondState(device, source));
@@ -2667,12 +2829,14 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private int getBondState(BluetoothDevice device, AttributionSource attributionSource) {
             // don't check caller, may be called from system UI
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForDataDelivery(
-                    service, attributionSource, "AdapterService getBondState")) {
+            if (service == null
+                    || !Utils.checkConnectPermissionForDataDelivery(
+                            service, attributionSource, "AdapterService getBondState")) {
                 return BluetoothDevice.BOND_NONE;
             }
 
@@ -2680,7 +2844,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void isBondingInitiatedLocally(BluetoothDevice device, AttributionSource source,
+        public void isBondingInitiatedLocally(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(isBondingInitiatedLocally(device, source));
@@ -2688,13 +2854,17 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private boolean isBondingInitiatedLocally(
                 BluetoothDevice device, AttributionSource attributionSource) {
             // don't check caller, may be called from system UI
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForDataDelivery(
-                    service, attributionSource, "AdapterService isBondingInitiatedLocally")) {
+            if (service == null
+                    || !Utils.checkConnectPermissionForDataDelivery(
+                            service,
+                            attributionSource,
+                            "AdapterService isBondingInitiatedLocally")) {
                 return false;
             }
 
@@ -2703,8 +2873,11 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void generateLocalOobData(int transport, IBluetoothOobDataCallback callback,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void generateLocalOobData(
+                int transport,
+                IBluetoothOobDataCallback callback,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 generateLocalOobData(transport, callback, source);
                 receiver.send(null);
@@ -2712,12 +2885,14 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
-        private void generateLocalOobData(int transport, IBluetoothOobDataCallback callback,
-                AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
+        private void generateLocalOobData(
+                int transport, IBluetoothOobDataCallback callback, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "generateLocalOobData")
@@ -2729,18 +2904,20 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getSupportedProfiles(AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void getSupportedProfiles(
+                AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getSupportedProfiles(source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private long getSupportedProfiles(AttributionSource source) {
             AdapterService service = getService();
             if (service == null
@@ -2753,20 +2930,24 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getConnectionState(BluetoothDevice device,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void getConnectionState(
+                BluetoothDevice device,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getConnectionState(device, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private int getConnectionState(
                 BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForDataDelivery(
-                    service, attributionSource, "AdapterService getConnectionState")) {
+            if (service == null
+                    || !Utils.checkConnectPermissionForDataDelivery(
+                            service, attributionSource, "AdapterService getConnectionState")) {
                 return BluetoothProfile.STATE_DISCONNECTED;
             }
 
@@ -2774,25 +2955,30 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getConnectionHandle(BluetoothDevice device, int transport,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void getConnectionHandle(
+                BluetoothDevice device,
+                int transport,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getConnectionHandle(device, transport, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private int getConnectionHandle(
                 BluetoothDevice device, int transport, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getConnectionHandle")
                     || !Utils.checkConnectPermissionForDataDelivery(
-                        service, attributionSource, TAG)) {
+                            service, attributionSource, TAG)) {
                 return BluetoothDevice.ERROR;
             }
 
@@ -2802,7 +2988,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void canBondWithoutDialog(BluetoothDevice device, AttributionSource source,
+        public void canBondWithoutDialog(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(canBondWithoutDialog(device, source));
@@ -2810,10 +2998,12 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private boolean canBondWithoutDialog(BluetoothDevice device, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
@@ -2827,8 +3017,8 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getPackageNameOfBondingApplication(BluetoothDevice device,
-                SynchronousResultReceiver receiver) {
+        public void getPackageNameOfBondingApplication(
+                BluetoothDevice device, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getPackageNameOfBondingApplication(device));
             } catch (RuntimeException e) {
@@ -2836,11 +3026,12 @@ public class AdapterService extends Service {
             }
         }
 
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
-        private String getPackageNameOfBondingApplication(BluetoothDevice device)  {
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
+        private String getPackageNameOfBondingApplication(BluetoothDevice device) {
             AdapterService service = getService();
 
             if (service == null) {
@@ -2853,21 +3044,25 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void removeActiveDevice(@ActiveDeviceUse int profiles,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void removeActiveDevice(
+                @ActiveDeviceUse int profiles,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(removeActiveDevice(profiles, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-                android.Manifest.permission.MODIFY_PHONE_STATE,
-        })
-        private boolean removeActiveDevice(@ActiveDeviceUse int profiles,
-                AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                    android.Manifest.permission.MODIFY_PHONE_STATE,
+                })
+        private boolean removeActiveDevice(
+                @ActiveDeviceUse int profiles, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "removeActiveDevice")
@@ -2878,21 +3073,26 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void setActiveDevice(BluetoothDevice device, @ActiveDeviceUse int profiles,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void setActiveDevice(
+                BluetoothDevice device,
+                @ActiveDeviceUse int profiles,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setActiveDevice(device, profiles, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-                android.Manifest.permission.MODIFY_PHONE_STATE,
-        })
-        private boolean setActiveDevice(BluetoothDevice device, @ActiveDeviceUse int profiles,
-                AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                    android.Manifest.permission.MODIFY_PHONE_STATE,
+                })
+        private boolean setActiveDevice(
+                BluetoothDevice device, @ActiveDeviceUse int profiles, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setActiveDevice")
@@ -2906,20 +3106,24 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getActiveDevices(@ActiveDeviceProfile int profile,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void getActiveDevices(
+                @ActiveDeviceProfile int profile,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getActiveDevices(profile, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
-        private List<BluetoothDevice> getActiveDevices(@ActiveDeviceProfile int profile,
-                AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
+        private List<BluetoothDevice> getActiveDevices(
+                @ActiveDeviceProfile int profile, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getActiveDevices")
@@ -2933,21 +3137,24 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void connectAllEnabledProfiles(BluetoothDevice device,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void connectAllEnabledProfiles(
+                BluetoothDevice device,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(connectAllEnabledProfiles(device, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-                android.Manifest.permission.MODIFY_PHONE_STATE,
-        })
-        private int connectAllEnabledProfiles(BluetoothDevice device,
-                AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                    android.Manifest.permission.MODIFY_PHONE_STATE,
+                })
+        private int connectAllEnabledProfiles(BluetoothDevice device, AttributionSource source) {
             AdapterService service = getService();
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
@@ -2977,26 +3184,29 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void disconnectAllEnabledProfiles(BluetoothDevice device,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void disconnectAllEnabledProfiles(
+                BluetoothDevice device,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(disconnectAllEnabledProfiles(device, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
-        private int disconnectAllEnabledProfiles(BluetoothDevice device,
-                AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
+        private int disconnectAllEnabledProfiles(BluetoothDevice device, AttributionSource source) {
             AdapterService service = getService();
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
             }
-            if (!callerIsSystemOrActiveOrManagedUser(service,
-                    TAG, "disconnectAllEnabledProfiles")) {
+            if (!callerIsSystemOrActiveOrManagedUser(
+                    service, TAG, "disconnectAllEnabledProfiles")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
             if (device == null) {
@@ -3021,7 +3231,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getRemoteName(BluetoothDevice device, AttributionSource source,
+        public void getRemoteName(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getRemoteName(device, source));
@@ -3029,6 +3241,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private String getRemoteName(BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
@@ -3043,7 +3256,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getRemoteType(BluetoothDevice device, AttributionSource source,
+        public void getRemoteType(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getRemoteType(device, source));
@@ -3051,6 +3266,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private int getRemoteType(BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
@@ -3063,11 +3279,14 @@ public class AdapterService extends Service {
 
             DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
             return deviceProp != null
-                    ? deviceProp.getDeviceType() : BluetoothDevice.DEVICE_TYPE_UNKNOWN;
+                    ? deviceProp.getDeviceType()
+                    : BluetoothDevice.DEVICE_TYPE_UNKNOWN;
         }
 
         @Override
-        public void getRemoteAlias(BluetoothDevice device, AttributionSource source,
+        public void getRemoteAlias(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getRemoteAlias(device, source));
@@ -3075,9 +3294,9 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-        private String getRemoteAlias(
-                BluetoothDevice device, AttributionSource attributionSource) {
+        private String getRemoteAlias(BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getRemoteAlias")
@@ -3091,7 +3310,10 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void setRemoteAlias(BluetoothDevice device, String name, AttributionSource source,
+        public void setRemoteAlias(
+                BluetoothDevice device,
+                String name,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setRemoteAlias(device, name, source));
@@ -3099,9 +3321,10 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-        private int setRemoteAlias(BluetoothDevice device, String name,
-                AttributionSource attributionSource) {
+        private int setRemoteAlias(
+                BluetoothDevice device, String name, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
@@ -3118,8 +3341,12 @@ public class AdapterService extends Service {
                         service, attributionSource, "AdapterService setRemoteAlias")) {
                     return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION;
                 }
-                enforceCdmAssociation(service.mCompanionDeviceManager, service,
-                        attributionSource.getPackageName(), Binder.getCallingUid(), device);
+                enforceCdmAssociation(
+                        service.mCompanionDeviceManager,
+                        service,
+                        attributionSource.getPackageName(),
+                        Binder.getCallingUid(),
+                        device);
             }
 
             DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
@@ -3131,7 +3358,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getRemoteClass(BluetoothDevice device, AttributionSource source,
+        public void getRemoteClass(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getRemoteClass(device, source));
@@ -3139,6 +3368,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private int getRemoteClass(BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
@@ -3154,7 +3384,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getRemoteUuids(BluetoothDevice device, AttributionSource source,
+        public void getRemoteUuids(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getRemoteUuids(device, source));
@@ -3162,6 +3394,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private List<ParcelUuid> getRemoteUuids(
                 BluetoothDevice device, AttributionSource attributionSource) {
@@ -3181,21 +3414,26 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void fetchRemoteUuids(BluetoothDevice device, int transport,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void fetchRemoteUuids(
+                BluetoothDevice device,
+                int transport,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 // SDP Initiated SDP fetch UUID request
                 receiver.send(fetchRemoteUuids(device, transport, source));
-                MetricsLogger.getInstance().cacheCount(
-                        BluetoothProtoEnums.SDP_FETCH_UUID_REQUEST, 1);
+                MetricsLogger.getInstance()
+                        .cacheCount(BluetoothProtoEnums.SDP_FETCH_UUID_REQUEST, 1);
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private boolean fetchRemoteUuids(
                 BluetoothDevice device, int transport, AttributionSource attributionSource) {
             AdapterService service = getService();
@@ -3214,16 +3452,26 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void setPin(
+                BluetoothDevice device,
+                boolean accept,
+                int len,
+                byte[] pinCode,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setPin(device, accept, len, pinCode, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-        private boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode,
+        private boolean setPin(
+                BluetoothDevice device,
+                boolean accept,
+                int len,
+                byte[] pinCode,
                 AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
@@ -3240,27 +3488,37 @@ public class AdapterService extends Service {
                 return false;
             }
             if (pinCode.length != len) {
-                android.util.EventLog.writeEvent(0x534e4554, "139287605", -1,
-                        "PIN code length mismatch");
+                android.util.EventLog.writeEvent(
+                        0x534e4554, "139287605", -1, "PIN code length mismatch");
                 return false;
             }
-            service.logUserBondResponse(device, accept,
-                    BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_PIN_REPLIED);
+            service.logUserBondResponse(
+                    device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_PIN_REPLIED);
             return service.pinReplyNative(
                     getBytesFromAddress(device.getAddress()), accept, len, pinCode);
         }
 
         @Override
-        public void setPasskey(BluetoothDevice device, boolean accept, int len, byte[] passkey,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void setPasskey(
+                BluetoothDevice device,
+                boolean accept,
+                int len,
+                byte[] passkey,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setPasskey(device, accept, len, passkey, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-        private boolean setPasskey(BluetoothDevice device, boolean accept, int len, byte[] passkey,
+        private boolean setPasskey(
+                BluetoothDevice device,
+                boolean accept,
+                int len,
+                byte[] passkey,
                 AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
@@ -3275,11 +3533,12 @@ public class AdapterService extends Service {
                 return false;
             }
             if (passkey.length != len) {
-                android.util.EventLog.writeEvent(0x534e4554, "139287605", -1,
-                        "Passkey length mismatch");
+                android.util.EventLog.writeEvent(
+                        0x534e4554, "139287605", -1, "Passkey length mismatch");
                 return false;
             }
-            service.logUserBondResponse(device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED);
+            service.logUserBondResponse(
+                    device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED);
             return service.sspReplyNative(
                     getBytesFromAddress(device.getAddress()),
                     AbstractionLayer.BT_SSP_VARIANT_PASSKEY_ENTRY,
@@ -3288,20 +3547,25 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void setPairingConfirmation(BluetoothDevice device, boolean accept,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void setPairingConfirmation(
+                BluetoothDevice device,
+                boolean accept,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setPairingConfirmation(device, accept, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
-        private boolean setPairingConfirmation(BluetoothDevice device, boolean accept,
-                AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
+        private boolean setPairingConfirmation(
+                BluetoothDevice device, boolean accept, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setPairingConfirmation")
@@ -3315,7 +3579,8 @@ public class AdapterService extends Service {
             if (deviceProp == null || !deviceProp.isBonding()) {
                 return false;
             }
-            service.logUserBondResponse(device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED);
+            service.logUserBondResponse(
+                    device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED);
             return service.sspReplyNative(
                     getBytesFromAddress(device.getAddress()),
                     AbstractionLayer.BT_SSP_VARIANT_PASSKEY_CONFIRMATION,
@@ -3324,7 +3589,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getSilenceMode(BluetoothDevice device, AttributionSource source,
+        public void getSilenceMode(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getSilenceMode(device, source));
@@ -3332,10 +3599,12 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private boolean getSilenceMode(BluetoothDevice device, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
@@ -3350,20 +3619,25 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void setSilenceMode(BluetoothDevice device, boolean silence,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void setSilenceMode(
+                BluetoothDevice device,
+                boolean silence,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setSilenceMode(device, silence, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
-        private boolean setSilenceMode(BluetoothDevice device, boolean silence,
-                AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
+        private boolean setSilenceMode(
+                BluetoothDevice device, boolean silence, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setSilenceMode")
@@ -3378,7 +3652,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getPhonebookAccessPermission(BluetoothDevice device, AttributionSource source,
+        public void getPhonebookAccessPermission(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getPhonebookAccessPermission(device, source));
@@ -3386,6 +3662,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private int getPhonebookAccessPermission(
                 BluetoothDevice device, AttributionSource attributionSource) {
@@ -3394,32 +3671,40 @@ public class AdapterService extends Service {
                     || !callerIsSystemOrActiveOrManagedUser(
                             service, TAG, "getPhonebookAccessPermission")
                     || !Utils.checkConnectPermissionForDataDelivery(
-                    service, attributionSource, "AdapterService getPhonebookAccessPermission")) {
+                            service,
+                            attributionSource,
+                            "AdapterService getPhonebookAccessPermission")) {
                 return BluetoothDevice.ACCESS_UNKNOWN;
             }
 
-            return service.getDeviceAccessFromPrefs(device, PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE);
+            return service.getDeviceAccessFromPrefs(
+                    device, PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE);
         }
 
         @Override
-        public void setPhonebookAccessPermission(BluetoothDevice device, int value,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void setPhonebookAccessPermission(
+                BluetoothDevice device,
+                int value,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setPhonebookAccessPermission(device, value, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
-        private boolean setPhonebookAccessPermission(BluetoothDevice device, int value,
-                AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
+        private boolean setPhonebookAccessPermission(
+                BluetoothDevice device, int value, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "setPhonebookAccessPermission")
+                    || !callerIsSystemOrActiveOrManagedUser(
+                            service, TAG, "setPhonebookAccessPermission")
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -3431,7 +3716,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getMessageAccessPermission(BluetoothDevice device, AttributionSource source,
+        public void getMessageAccessPermission(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getMessageAccessPermission(device, source));
@@ -3439,40 +3726,49 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private int getMessageAccessPermission(
                 BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "getMessageAccessPermission")
+                    || !callerIsSystemOrActiveOrManagedUser(
+                            service, TAG, "getMessageAccessPermission")
                     || !Utils.checkConnectPermissionForDataDelivery(
-                    service, attributionSource, "AdapterService getMessageAccessPermission")) {
+                            service,
+                            attributionSource,
+                            "AdapterService getMessageAccessPermission")) {
                 return BluetoothDevice.ACCESS_UNKNOWN;
             }
 
-            return service.getDeviceAccessFromPrefs(device, MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE);
+            return service.getDeviceAccessFromPrefs(
+                    device, MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE);
         }
 
         @Override
-        public void setMessageAccessPermission(BluetoothDevice device, int value,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void setMessageAccessPermission(
+                BluetoothDevice device,
+                int value,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setMessageAccessPermission(device, value, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
-        private boolean setMessageAccessPermission(BluetoothDevice device, int value,
-                AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
+        private boolean setMessageAccessPermission(
+                BluetoothDevice device, int value, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "setMessageAccessPermission")
+                    || !callerIsSystemOrActiveOrManagedUser(
+                            service, TAG, "setMessageAccessPermission")
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -3484,7 +3780,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getSimAccessPermission(BluetoothDevice device, AttributionSource source,
+        public void getSimAccessPermission(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getSimAccessPermission(device, source));
@@ -3492,13 +3790,13 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private int getSimAccessPermission(
                 BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "getSimAccessPermission")
+                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getSimAccessPermission")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService getSimAccessPermission")) {
                 return BluetoothDevice.ACCESS_UNKNOWN;
@@ -3508,20 +3806,25 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void setSimAccessPermission(BluetoothDevice device, int value,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void setSimAccessPermission(
+                BluetoothDevice device,
+                int value,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setSimAccessPermission(device, value, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
-        private boolean setSimAccessPermission(BluetoothDevice device, int value,
-                AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
+        private boolean setSimAccessPermission(
+                BluetoothDevice device, int value, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setSimAccessPermission")
@@ -3608,7 +3911,10 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void sdpSearch(BluetoothDevice device, ParcelUuid uuid, AttributionSource source,
+        public void sdpSearch(
+                BluetoothDevice device,
+                ParcelUuid uuid,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(sdpSearch(device, uuid, source));
@@ -3616,6 +3922,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private boolean sdpSearch(
                 BluetoothDevice device, ParcelUuid uuid, AttributionSource attributionSource) {
@@ -3635,7 +3942,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getBatteryLevel(BluetoothDevice device, AttributionSource source,
+        public void getBatteryLevel(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getBatteryLevel(device, source));
@@ -3643,6 +3952,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private int getBatteryLevel(BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
@@ -3661,42 +3971,48 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getMaxConnectedAudioDevices(AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void getMaxConnectedAudioDevices(
+                AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getMaxConnectedAudioDevices(source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private int getMaxConnectedAudioDevices(AttributionSource attributionSource) {
             // don't check caller, may be called from system UI
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForDataDelivery(
-                    service, attributionSource, "AdapterService getMaxConnectedAudioDevices")) {
+            if (service == null
+                    || !Utils.checkConnectPermissionForDataDelivery(
+                            service,
+                            attributionSource,
+                            "AdapterService getMaxConnectedAudioDevices")) {
                 return -1;
             }
 
             return service.getMaxConnectedAudioDevices();
         }
 
-        //@Override
+        // @Override
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-        public void isA2dpOffloadEnabled(AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void isA2dpOffloadEnabled(
+                AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(isA2dpOffloadEnabled(source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private boolean isA2dpOffloadEnabled(AttributionSource attributionSource) {
             // don't check caller, may be called from system UI
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForDataDelivery(
-                    service, attributionSource, "AdapterService isA2dpOffloadEnabled")) {
+            if (service == null
+                    || !Utils.checkConnectPermissionForDataDelivery(
+                            service, attributionSource, "AdapterService isA2dpOffloadEnabled")) {
                 return false;
             }
 
@@ -3711,11 +4027,13 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @VisibleForTesting
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         boolean factoryReset(AttributionSource source) {
             AdapterService service = getService();
             if (service == null
@@ -3741,24 +4059,28 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void registerBluetoothConnectionCallback(IBluetoothConnectionCallback callback,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void registerBluetoothConnectionCallback(
+                IBluetoothConnectionCallback callback,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(registerBluetoothConnectionCallback(callback, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
-        private boolean registerBluetoothConnectionCallback(IBluetoothConnectionCallback callback,
-                AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
+        private boolean registerBluetoothConnectionCallback(
+                IBluetoothConnectionCallback callback, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "registerBluetoothConnectionCallback")
+                    || !callerIsSystemOrActiveOrManagedUser(
+                            service, TAG, "registerBluetoothConnectionCallback")
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -3768,24 +4090,28 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void unregisterBluetoothConnectionCallback(IBluetoothConnectionCallback callback,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void unregisterBluetoothConnectionCallback(
+                IBluetoothConnectionCallback callback,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(unregisterBluetoothConnectionCallback(callback, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private boolean unregisterBluetoothConnectionCallback(
                 IBluetoothConnectionCallback callback, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "unregisterBluetoothConnectionCallback")
+                    || !callerIsSystemOrActiveOrManagedUser(
+                            service, TAG, "unregisterBluetoothConnectionCallback")
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -3794,7 +4120,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void registerCallback(IBluetoothCallback callback, AttributionSource source,
+        public void registerCallback(
+                IBluetoothCallback callback,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 registerCallback(callback, source);
@@ -3803,11 +4131,13 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @VisibleForTesting
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         void registerCallback(IBluetoothCallback callback, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
@@ -3822,7 +4152,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void unregisterCallback(IBluetoothCallback callback, AttributionSource source,
+        public void unregisterCallback(
+                IBluetoothCallback callback,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 unregisterCallback(callback, source);
@@ -3831,14 +4163,17 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         @VisibleForTesting
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         void unregisterCallback(IBluetoothCallback callback, AttributionSource source) {
             AdapterService service = getService();
-            if (service == null || service.mCallbacks == null
+            if (service == null
+                    || service.mCallbacks == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "unregisterCallback")
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return;
@@ -3857,6 +4192,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         private boolean isMultiAdvertisementSupported() {
             AdapterService service = getService();
             if (service == null) {
@@ -3868,8 +4204,8 @@ public class AdapterService extends Service {
         }
 
         /**
-         * This method has an associated binder cache.  The invalidation
-         * methods must be changed if the logic behind this method changes.
+         * This method has an associated binder cache. The invalidation methods must be changed if
+         * the logic behind this method changes.
          */
         @Override
         public void isOffloadedFilteringSupported(SynchronousResultReceiver receiver) {
@@ -3879,6 +4215,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         private boolean isOffloadedFilteringSupported() {
             AdapterService service = getService();
             if (service == null) {
@@ -3897,6 +4234,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         private boolean isOffloadedScanBatchingSupported() {
             AdapterService service = getService();
             if (service == null) {
@@ -3915,6 +4253,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         private boolean isLe2MPhySupported() {
             AdapterService service = getService();
             if (service == null) {
@@ -3932,6 +4271,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         private boolean isLeCodedPhySupported() {
             AdapterService service = getService();
             if (service == null) {
@@ -3949,6 +4289,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         private boolean isLeExtendedAdvertisingSupported() {
             AdapterService service = getService();
             if (service == null) {
@@ -3966,6 +4307,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         private boolean isLePeriodicAdvertisingSupported() {
             AdapterService service = getService();
             if (service == null) {
@@ -3983,6 +4325,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         private int isLeAudioSupported() {
             AdapterService service = getService();
             if (service == null) {
@@ -4008,6 +4351,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         private int isLeAudioBroadcastSourceSupported() {
             AdapterService service = getService();
             if (service == null) {
@@ -4030,6 +4374,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         public int isLeAudioBroadcastAssistantSupported() {
             AdapterService service = getService();
             if (service == null) {
@@ -4047,23 +4392,23 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void isDistanceMeasurementSupported(AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void isDistanceMeasurementSupported(
+                AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(isDistanceMeasurementSupported(source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
+
         public int isDistanceMeasurementSupported(AttributionSource source) {
             AdapterService service = getService();
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
-            } else if (!callerIsSystemOrActiveOrManagedUser(service, TAG,
-                    "isDistanceMeasurementSupported")) {
+            } else if (!callerIsSystemOrActiveOrManagedUser(
+                    service, TAG, "isDistanceMeasurementSupported")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
-            } else if (!Utils.checkConnectPermissionForDataDelivery(
-                    service, source, TAG)) {
+            } else if (!Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION;
             }
             enforceBluetoothPrivilegedPermission(service);
@@ -4078,6 +4423,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         private int getLeMaximumAdvertisingDataLength() {
             AdapterService service = getService();
             if (service == null) {
@@ -4095,6 +4441,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
+
         private boolean isActivityAndEnergyReportingSupported() {
             AdapterService service = getService();
             if (service == null) {
@@ -4105,18 +4452,20 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void reportActivityInfo(AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void reportActivityInfo(
+                AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(reportActivityInfo(source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private BluetoothActivityEnergyInfo reportActivityInfo(AttributionSource source) {
             AdapterService service = getService();
             if (service == null
@@ -4130,8 +4479,10 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void registerMetadataListener(IBluetoothMetadataListener listener,
-                BluetoothDevice device, AttributionSource source,
+        public void registerMetadataListener(
+                IBluetoothMetadataListener listener,
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(registerMetadataListener(listener, device, source));
@@ -4139,16 +4490,20 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
-        private boolean registerMetadataListener(IBluetoothMetadataListener listener,
-                BluetoothDevice device, AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
+        private boolean registerMetadataListener(
+                IBluetoothMetadataListener listener,
+                BluetoothDevice device,
+                AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "registerMetadataListener")
+                    || !callerIsSystemOrActiveOrManagedUser(
+                            service, TAG, "registerMetadataListener")
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -4171,7 +4526,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void unregisterMetadataListener(BluetoothDevice device, AttributionSource source,
+        public void unregisterMetadataListener(
+                BluetoothDevice device,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(unregisterMetadataListener(device, source));
@@ -4179,16 +4536,18 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
-        private boolean unregisterMetadataListener(BluetoothDevice device,
-                AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
+        private boolean unregisterMetadataListener(
+                BluetoothDevice device, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "unregisterMetadataListener")
+                    || !callerIsSystemOrActiveOrManagedUser(
+                            service, TAG, "unregisterMetadataListener")
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -4205,20 +4564,26 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void setMetadata(BluetoothDevice device, int key, byte[] value,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void setMetadata(
+                BluetoothDevice device,
+                int key,
+                byte[] value,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setMetadata(device, key, value, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
-        private boolean setMetadata(BluetoothDevice device, int key, byte[] value,
-                AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
+        private boolean setMetadata(
+                BluetoothDevice device, int key, byte[] value, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setMetadata")
@@ -4235,7 +4600,10 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getMetadata(BluetoothDevice device, int key, AttributionSource source,
+        public void getMetadata(
+                BluetoothDevice device,
+                int key,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getMetadata(device, key, source));
@@ -4243,12 +4611,13 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
-        private byte[] getMetadata(BluetoothDevice device, int key,
-                AttributionSource source) {
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
+        private byte[] getMetadata(BluetoothDevice device, int key, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getMetadata")
@@ -4262,20 +4631,23 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void isRequestAudioPolicyAsSinkSupported(BluetoothDevice device,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void isRequestAudioPolicyAsSinkSupported(
+                BluetoothDevice device,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(isRequestAudioPolicyAsSinkSupported(device, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        private int isRequestAudioPolicyAsSinkSupported(BluetoothDevice device,
-                AttributionSource source) {
+
+        private int isRequestAudioPolicyAsSinkSupported(
+                BluetoothDevice device, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG,
-                        "isRequestAudioPolicyAsSinkSupported")
+                    || !callerIsSystemOrActiveOrManagedUser(
+                            service, TAG, "isRequestAudioPolicyAsSinkSupported")
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return BluetoothStatusCodes.FEATURE_NOT_CONFIGURED;
             }
@@ -4284,8 +4656,10 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void requestAudioPolicyAsSink(BluetoothDevice device,
-                BluetoothSinkAudioPolicy policies, AttributionSource source,
+        public void requestAudioPolicyAsSink(
+                BluetoothDevice device,
+                BluetoothSinkAudioPolicy policies,
+                AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(requestAudioPolicyAsSink(device, policies, source));
@@ -4293,16 +4667,18 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
-        private int requestAudioPolicyAsSink(BluetoothDevice device,
-                BluetoothSinkAudioPolicy policies, AttributionSource source) {
+
+        private int requestAudioPolicyAsSink(
+                BluetoothDevice device,
+                BluetoothSinkAudioPolicy policies,
+                AttributionSource source) {
             AdapterService service = getService();
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
-            } else if (!callerIsSystemOrActiveOrManagedUser(service,
-                    TAG, "requestAudioPolicyAsSink")) {
+            } else if (!callerIsSystemOrActiveOrManagedUser(
+                    service, TAG, "requestAudioPolicyAsSink")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
-            } else if (!Utils.checkConnectPermissionForDataDelivery(
-                    service, source, TAG)) {
+            } else if (!Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION;
             }
             enforceBluetoothPrivilegedPermission(service);
@@ -4310,20 +4686,23 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getRequestedAudioPolicyAsSink(BluetoothDevice device,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void getRequestedAudioPolicyAsSink(
+                BluetoothDevice device,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getRequestedAudioPolicyAsSink(device, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        private BluetoothSinkAudioPolicy getRequestedAudioPolicyAsSink(BluetoothDevice device,
-                AttributionSource source) {
+
+        private BluetoothSinkAudioPolicy getRequestedAudioPolicyAsSink(
+                BluetoothDevice device, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "getRequestedAudioPolicyAsSink")
+                    || !callerIsSystemOrActiveOrManagedUser(
+                            service, TAG, "getRequestedAudioPolicyAsSink")
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return null;
             }
@@ -4332,8 +4711,8 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void requestActivityInfo(IBluetoothActivityEnergyInfoListener listener,
-                    AttributionSource source) {
+        public void requestActivityInfo(
+                IBluetoothActivityEnergyInfoListener listener, AttributionSource source) {
             BluetoothActivityEnergyInfo info = reportActivityInfo(source);
             try {
                 listener.onBluetoothActivityEnergyInfoAvailable(info);
@@ -4415,25 +4794,28 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void allowLowLatencyAudio(boolean allowed, BluetoothDevice device,
-                SynchronousResultReceiver receiver) {
+        public void allowLowLatencyAudio(
+                boolean allowed, BluetoothDevice device, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(allowLowLatencyAudio(allowed, device));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private boolean allowLowLatencyAudio(boolean allowed, BluetoothDevice device) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "allowLowLatencyAudio")
                     || !Utils.checkConnectPermissionForDataDelivery(
-                            service, Utils.getCallingAttributionSource(service),
-                                "AdapterService allowLowLatencyAudio")) {
+                            service,
+                            Utils.getCallingAttributionSource(service),
+                            "AdapterService allowLowLatencyAudio")) {
                 return false;
             }
             enforceBluetoothPrivilegedPermission(service);
@@ -4441,18 +4823,24 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void startRfcommListener(String name, ParcelUuid uuid, PendingIntent pendingIntent,
-                AttributionSource attributionSource, SynchronousResultReceiver receiver) {
+        public void startRfcommListener(
+                String name,
+                ParcelUuid uuid,
+                PendingIntent pendingIntent,
+                AttributionSource attributionSource,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(startRfcommListener(name, uuid, pendingIntent, attributionSource));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private int startRfcommListener(
                 String name,
                 ParcelUuid uuid,
@@ -4470,7 +4858,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void stopRfcommListener(ParcelUuid uuid, AttributionSource attributionSource,
+        public void stopRfcommListener(
+                ParcelUuid uuid,
+                AttributionSource attributionSource,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(stopRfcommListener(uuid, attributionSource));
@@ -4478,10 +4868,12 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private int stopRfcommListener(ParcelUuid uuid, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
@@ -4495,26 +4887,31 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void retrievePendingSocketForServiceRecord(ParcelUuid uuid,
-                AttributionSource attributionSource, SynchronousResultReceiver receiver) {
+        public void retrievePendingSocketForServiceRecord(
+                ParcelUuid uuid,
+                AttributionSource attributionSource,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(retrievePendingSocketForServiceRecord(uuid, attributionSource));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private IncomingRfcommSocketInfo retrievePendingSocketForServiceRecord(
                 ParcelUuid uuid, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "retrievePendingSocketForServiceRecord")
+                    || !callerIsSystemOrActiveOrManagedUser(
+                            service, TAG, "retrievePendingSocketForServiceRecord")
                     || !Utils.checkConnectPermissionForDataDelivery(
-                            service, attributionSource,
+                            service,
+                            attributionSource,
                             "AdapterService retrievePendingSocketForServiceRecord")) {
                 return null;
             }
@@ -4525,9 +4922,11 @@ public class AdapterService extends Service {
         @Override
         public void setForegroundUserId(int userId, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForDataDelivery(
-                    service, Utils.getCallingAttributionSource(mService),
-                    "AdapterService setForegroundUserId")) {
+            if (service == null
+                    || !Utils.checkConnectPermissionForDataDelivery(
+                            service,
+                            Utils.getCallingAttributionSource(mService),
+                            "AdapterService setForegroundUserId")) {
                 return;
             }
             enforceBluetoothPrivilegedPermission(service);
@@ -4535,8 +4934,11 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void setPreferredAudioProfiles(BluetoothDevice device, Bundle modeToProfileBundle,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void setPreferredAudioProfiles(
+                BluetoothDevice device,
+                Bundle modeToProfileBundle,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setPreferredAudioProfiles(device, modeToProfileBundle, source));
             } catch (RuntimeException e) {
@@ -4544,8 +4946,8 @@ public class AdapterService extends Service {
             }
         }
 
-        private int setPreferredAudioProfiles(BluetoothDevice device, Bundle modeToProfileBundle,
-                AttributionSource source) {
+        private int setPreferredAudioProfiles(
+                BluetoothDevice device, Bundle modeToProfileBundle, AttributionSource source) {
             AdapterService service = getService();
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
@@ -4570,8 +4972,10 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getPreferredAudioProfiles(BluetoothDevice device,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void getPreferredAudioProfiles(
+                BluetoothDevice device,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getPreferredAudioProfiles(device, source));
             } catch (RuntimeException e) {
@@ -4579,8 +4983,7 @@ public class AdapterService extends Service {
             }
         }
 
-        private Bundle getPreferredAudioProfiles(BluetoothDevice device,
-                AttributionSource source) {
+        private Bundle getPreferredAudioProfiles(BluetoothDevice device, AttributionSource source) {
             AdapterService service = getService();
             if (service == null) {
                 return Bundle.EMPTY;
@@ -4604,8 +5007,10 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void notifyActiveDeviceChangeApplied(BluetoothDevice device,
-                AttributionSource source, SynchronousResultReceiver receiver) {
+        public void notifyActiveDeviceChangeApplied(
+                BluetoothDevice device,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
             try {
                 receiver.send(notifyActiveDeviceChangeApplied(device, source));
             } catch (RuntimeException e) {
@@ -4613,8 +5018,8 @@ public class AdapterService extends Service {
             }
         }
 
-        private int notifyActiveDeviceChangeApplied(BluetoothDevice device,
-                AttributionSource source) {
+        private int notifyActiveDeviceChangeApplied(
+                BluetoothDevice device, AttributionSource source) {
             AdapterService service = getService();
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
@@ -4640,26 +5045,29 @@ public class AdapterService extends Service {
         @Override
         public void registerPreferredAudioProfilesChangedCallback(
                 IBluetoothPreferredAudioProfilesCallback callback,
-                AttributionSource attributionSource, SynchronousResultReceiver receiver) {
+                AttributionSource attributionSource,
+                SynchronousResultReceiver receiver) {
             try {
-                receiver.send(registerPreferredAudioProfilesChangedCallback(callback,
-                        attributionSource));
+                receiver.send(
+                        registerPreferredAudioProfilesChangedCallback(callback, attributionSource));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private int registerPreferredAudioProfilesChangedCallback(
                 IBluetoothPreferredAudioProfilesCallback callback, AttributionSource source) {
             AdapterService service = getService();
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
             }
-            if (!callerIsSystemOrActiveOrManagedUser(service, TAG,
-                    "registerPreferredAudioProfilesChangedCallback")) {
+            if (!callerIsSystemOrActiveOrManagedUser(
+                    service, TAG, "registerPreferredAudioProfilesChangedCallback")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
             Objects.requireNonNull(callback);
@@ -4680,26 +5088,30 @@ public class AdapterService extends Service {
         @Override
         public void unregisterPreferredAudioProfilesChangedCallback(
                 IBluetoothPreferredAudioProfilesCallback callback,
-                AttributionSource attributionSource, SynchronousResultReceiver receiver) {
+                AttributionSource attributionSource,
+                SynchronousResultReceiver receiver) {
             try {
-                receiver.send(unregisterPreferredAudioProfilesChangedCallback(callback,
-                        attributionSource));
+                receiver.send(
+                        unregisterPreferredAudioProfilesChangedCallback(
+                                callback, attributionSource));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private int unregisterPreferredAudioProfilesChangedCallback(
                 IBluetoothPreferredAudioProfilesCallback callback, AttributionSource source) {
             AdapterService service = getService();
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
             }
-            if (!callerIsSystemOrActiveOrManagedUser(service, TAG,
-                    "unregisterPreferredAudioProfilesChangedCallback")) {
+            if (!callerIsSystemOrActiveOrManagedUser(
+                    service, TAG, "unregisterPreferredAudioProfilesChangedCallback")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
             Objects.requireNonNull(callback);
@@ -4709,8 +5121,10 @@ public class AdapterService extends Service {
             enforceBluetoothPrivilegedPermission(service);
 
             if (!service.mPreferredAudioProfilesCallbacks.unregister(callback)) {
-                Log.e(TAG, "unregisterPreferredAudioProfilesChangedCallback: callback was never "
-                        + "registered");
+                Log.e(
+                        TAG,
+                        "unregisterPreferredAudioProfilesChangedCallback: callback was never "
+                                + "registered");
                 return BluetoothStatusCodes.ERROR_CALLBACK_NOT_REGISTERED;
             }
             return BluetoothStatusCodes.SUCCESS;
@@ -4719,27 +5133,29 @@ public class AdapterService extends Service {
         @Override
         public void registerBluetoothQualityReportReadyCallback(
                 IBluetoothQualityReportReadyCallback callback,
-                AttributionSource attributionSource, SynchronousResultReceiver receiver) {
+                AttributionSource attributionSource,
+                SynchronousResultReceiver receiver) {
             try {
-                receiver.send(registerBluetoothQualityReportReadyCallback(callback,
-                        attributionSource));
+                receiver.send(
+                        registerBluetoothQualityReportReadyCallback(callback, attributionSource));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
 
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private int registerBluetoothQualityReportReadyCallback(
                 IBluetoothQualityReportReadyCallback callback, AttributionSource source) {
             AdapterService service = getService();
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
             }
-            if (!callerIsSystemOrActiveOrManagedUser(service, TAG,
-                    "registerBluetoothQualityReportReadyCallback")) {
+            if (!callerIsSystemOrActiveOrManagedUser(
+                    service, TAG, "registerBluetoothQualityReportReadyCallback")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
             Objects.requireNonNull(callback);
@@ -4755,26 +5171,29 @@ public class AdapterService extends Service {
         @Override
         public void unregisterBluetoothQualityReportReadyCallback(
                 IBluetoothQualityReportReadyCallback callback,
-                AttributionSource attributionSource, SynchronousResultReceiver receiver) {
+                AttributionSource attributionSource,
+                SynchronousResultReceiver receiver) {
             try {
-                receiver.send(unregisterBluetoothQualityReportReadyCallback(callback,
-                        attributionSource));
+                receiver.send(
+                        unregisterBluetoothQualityReportReadyCallback(callback, attributionSource));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        @RequiresPermission(allOf = {
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-        })
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
         private int unregisterBluetoothQualityReportReadyCallback(
                 IBluetoothQualityReportReadyCallback callback, AttributionSource source) {
             AdapterService service = getService();
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
             }
-            if (!callerIsSystemOrActiveOrManagedUser(service, TAG,
-                    "unregisterBluetoothQualityReportReadyCallback")) {
+            if (!callerIsSystemOrActiveOrManagedUser(
+                    service, TAG, "unregisterBluetoothQualityReportReadyCallback")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
             Objects.requireNonNull(callback);
@@ -4784,8 +5203,10 @@ public class AdapterService extends Service {
             enforceBluetoothPrivilegedPermission(service);
 
             if (!service.mBluetoothQualityReportReadyCallbacks.unregister(callback)) {
-                Log.e(TAG, "unregisterBluetoothQualityReportReadyCallback: callback was never "
-                        + "registered");
+                Log.e(
+                        TAG,
+                        "unregisterBluetoothQualityReportReadyCallback: callback was never "
+                                + "registered");
                 return BluetoothStatusCodes.ERROR_CALLBACK_NOT_REGISTERED;
             }
             return BluetoothStatusCodes.SUCCESS;
@@ -4806,10 +5227,11 @@ public class AdapterService extends Service {
                 AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG,
-                            "getOffloadedTransportDiscoveryDataScanSupported")
+                    || !callerIsSystemOrActiveOrManagedUser(
+                            service, TAG, "getOffloadedTransportDiscoveryDataScanSupported")
                     || !Utils.checkScanPermissionForDataDelivery(
-                            service, attributionSource,
+                            service,
+                            attributionSource,
                             "getOffloadedTransportDiscoveryDataScanSupported")) {
                 return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_SCAN_PERMISSION;
             }
@@ -4844,14 +5266,15 @@ public class AdapterService extends Service {
     }
 
     /**
-     * Gets the preferred audio profiles for the device. See
-     * {@link BluetoothAdapter#getPreferredAudioProfiles(BluetoothDevice)} for more details.
+     * Gets the preferred audio profiles for the device. See {@link
+     * BluetoothAdapter#getPreferredAudioProfiles(BluetoothDevice)} for more details.
      *
      * @param device is the remote device whose preferences we want to fetch
      * @return a Bundle containing the preferred audio profiles for the device
      */
     public Bundle getPreferredAudioProfiles(BluetoothDevice device) {
-        if (!isDualModeAudioEnabled() || mLeAudioService == null
+        if (!isDualModeAudioEnabled()
+                || mLeAudioService == null
                 || !isDualModeAudioSinkDevice(device)) {
             return Bundle.EMPTY;
         }
@@ -4863,7 +5286,7 @@ public class AdapterService extends Service {
 
         // If there are no preferences stored, return the defaults
         Bundle storedBundle = Bundle.EMPTY;
-        for (BluetoothDevice groupDevice: groupDevices) {
+        for (BluetoothDevice groupDevice : groupDevices) {
             Bundle groupDevicePreferences = mDatabaseManager.getPreferredAudioProfiles(groupDevice);
             if (!groupDevicePreferences.isEmpty()) {
                 storedBundle = groupDevicePreferences;
@@ -4876,20 +5299,22 @@ public class AdapterService extends Service {
             boolean useDefaultPreferences = false;
             if (isOutputOnlyAudioSupported(groupDevices)) {
                 // Gets the default output only audio profile or defaults to LE_AUDIO if not present
-                int outputOnlyDefault = BluetoothProperties.getDefaultOutputOnlyAudioProfile()
-                        .orElse(BluetoothProfile.LE_AUDIO);
+                int outputOnlyDefault =
+                        BluetoothProperties.getDefaultOutputOnlyAudioProfile()
+                                .orElse(BluetoothProfile.LE_AUDIO);
                 if (outputOnlyDefault != BluetoothProfile.A2DP
                         && outputOnlyDefault != BluetoothProfile.LE_AUDIO) {
                     outputOnlyDefault = BluetoothProfile.LE_AUDIO;
                 }
-                defaultPreferencesBundle.putInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY,
-                        outputOnlyDefault);
+                defaultPreferencesBundle.putInt(
+                        BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY, outputOnlyDefault);
                 useDefaultPreferences = true;
             }
             if (isDuplexAudioSupported(groupDevices)) {
                 // Gets the default duplex audio profile or defaults to LE_AUDIO if not present
-                int duplexDefault = BluetoothProperties.getDefaultDuplexAudioProfile().orElse(
-                        BluetoothProfile.LE_AUDIO);
+                int duplexDefault =
+                        BluetoothProperties.getDefaultDuplexAudioProfile()
+                                .orElse(BluetoothProfile.LE_AUDIO);
                 if (duplexDefault != BluetoothProfile.HEADSET
                         && duplexDefault != BluetoothProfile.LE_AUDIO) {
                     duplexDefault = BluetoothProfile.LE_AUDIO;
@@ -4906,8 +5331,8 @@ public class AdapterService extends Service {
     }
 
     /**
-     * Sets the preferred audio profiles for the device. See
-     * {@link BluetoothAdapter#setPreferredAudioProfiles(BluetoothDevice, Bundle)} for more details.
+     * Sets the preferred audio profiles for the device. See {@link
+     * BluetoothAdapter#setPreferredAudioProfiles(BluetoothDevice, Bundle)} for more details.
      *
      * @param device is the remote device whose preferences we want to fetch
      * @param modeToProfileBundle is the preferences we want to set for the device
@@ -4938,12 +5363,12 @@ public class AdapterService extends Service {
         Bundle strippedPreferences = new Bundle();
         if (modeToProfileBundle.containsKey(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY)
                 && isOutputOnlyAudioSupported(groupDevices)) {
-            int outputOnlyProfile = modeToProfileBundle.getInt(
-                    BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY);
+            int outputOnlyProfile =
+                    modeToProfileBundle.getInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY);
             if (outputOnlyProfile != BluetoothProfile.A2DP
                     && outputOnlyProfile != BluetoothProfile.LE_AUDIO) {
-                throw new IllegalArgumentException("AUDIO_MODE_OUTPUT_ONLY has invalid value: "
-                        + outputOnlyProfile);
+                throw new IllegalArgumentException(
+                        "AUDIO_MODE_OUTPUT_ONLY has invalid value: " + outputOnlyProfile);
             }
             strippedPreferences.putInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY, outputOnlyProfile);
         }
@@ -4952,8 +5377,8 @@ public class AdapterService extends Service {
             int duplexProfile = modeToProfileBundle.getInt(BluetoothAdapter.AUDIO_MODE_DUPLEX);
             if (duplexProfile != BluetoothProfile.HEADSET
                     && duplexProfile != BluetoothProfile.LE_AUDIO) {
-                throw new IllegalArgumentException("AUDIO_MODE_DUPLEX has invalid value: "
-                        + duplexProfile);
+                throw new IllegalArgumentException(
+                        "AUDIO_MODE_DUPLEX has invalid value: " + duplexProfile);
             }
             strippedPreferences.putInt(BluetoothAdapter.AUDIO_MODE_DUPLEX, duplexProfile);
         }
@@ -4965,24 +5390,25 @@ public class AdapterService extends Service {
 
             Bundle previousPreferences = getPreferredAudioProfiles(device);
 
-            int dbResult = mDatabaseManager.setPreferredAudioProfiles(groupDevices,
-                    strippedPreferences);
+            int dbResult =
+                    mDatabaseManager.setPreferredAudioProfiles(groupDevices, strippedPreferences);
             if (dbResult != BluetoothStatusCodes.SUCCESS) {
                 return dbResult;
             }
 
-            int outputOnlyPreference = strippedPreferences.getInt(
-                    BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY);
+            int outputOnlyPreference =
+                    strippedPreferences.getInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY);
             if (outputOnlyPreference == 0) {
-                outputOnlyPreference = previousPreferences.getInt(
-                        BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY);
+                outputOnlyPreference =
+                        previousPreferences.getInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY);
             }
             int duplexPreference = strippedPreferences.getInt(BluetoothAdapter.AUDIO_MODE_DUPLEX);
             if (duplexPreference == 0) {
                 duplexPreference = previousPreferences.getInt(BluetoothAdapter.AUDIO_MODE_DUPLEX);
             }
 
-            mLeAudioService.sendAudioProfilePreferencesToNative(groupId,
+            mLeAudioService.sendAudioProfilePreferencesToNative(
+                    groupId,
                     outputOnlyPreference == BluetoothProfile.LE_AUDIO,
                     duplexPreference == BluetoothProfile.LE_AUDIO);
 
@@ -4993,8 +5419,10 @@ public class AdapterService extends Service {
             mCsipGroupsPendingAudioProfileChanges.put(groupId, holdRequest);
 
             // Notifies audio framework via the handler thread to avoid this blocking calls
-            mHandler.post(() -> sendPreferredAudioProfileChangeToAudioFramework(
-                    device, strippedPreferences, previousPreferences));
+            mHandler.post(
+                    () ->
+                            sendPreferredAudioProfileChangeToAudioFramework(
+                                    device, strippedPreferences, previousPreferences));
             return BluetoothStatusCodes.SUCCESS;
         }
     }
@@ -5005,24 +5433,29 @@ public class AdapterService extends Service {
      * @param device is the device with updated audio preferences
      * @param strippedPreferences is a {@link Bundle} containing the preferences
      */
-    private void sendPreferredAudioProfileChangeToAudioFramework(BluetoothDevice device,
-            Bundle strippedPreferences, Bundle previousPreferences) {
+    private void sendPreferredAudioProfileChangeToAudioFramework(
+            BluetoothDevice device, Bundle strippedPreferences, Bundle previousPreferences) {
         int newOutput = strippedPreferences.getInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY);
         int newDuplex = strippedPreferences.getInt(BluetoothAdapter.AUDIO_MODE_DUPLEX);
         int previousOutput = previousPreferences.getInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY);
         int previousDuplex = previousPreferences.getInt(BluetoothAdapter.AUDIO_MODE_DUPLEX);
 
-        Log.i(TAG, "sendPreferredAudioProfileChangeToAudioFramework: changing output from "
-                + BluetoothProfile.getProfileName(previousOutput) + " to "
-                + BluetoothProfile.getProfileName(newOutput) + " and duplex from "
-                + BluetoothProfile.getProfileName(previousDuplex) + " to "
-                + BluetoothProfile.getProfileName(newDuplex));
+        Log.i(
+                TAG,
+                "sendPreferredAudioProfileChangeToAudioFramework: changing output from "
+                        + BluetoothProfile.getProfileName(previousOutput)
+                        + " to "
+                        + BluetoothProfile.getProfileName(newOutput)
+                        + " and duplex from "
+                        + BluetoothProfile.getProfileName(previousDuplex)
+                        + " to "
+                        + BluetoothProfile.getProfileName(newDuplex));
 
         // If no change from existing preferences, do not inform audio framework
         if (previousOutput == newOutput && previousDuplex == newDuplex) {
             Log.i(TAG, "No change to preferred audio profiles, no requests to Audio FW");
-            sendPreferredAudioProfilesCallbackToApps(device, strippedPreferences,
-                    BluetoothStatusCodes.SUCCESS);
+            sendPreferredAudioProfilesCallbackToApps(
+                    device, strippedPreferences, BluetoothStatusCodes.SUCCESS);
             return;
         }
 
@@ -5032,17 +5465,20 @@ public class AdapterService extends Service {
         int groupId = mLeAudioService.getGroupId(device);
         List<BluetoothDevice> groupDevices = mLeAudioService.getGroupDevices(groupId);
         if (groupDevices.isEmpty()) {
-            Log.i(TAG, "sendPreferredAudioProfileChangeToAudioFramework: Empty LEA group for "
-                    + "device - " + device);
-            sendPreferredAudioProfilesCallbackToApps(device, strippedPreferences,
-                    BluetoothStatusCodes.ERROR_DEVICE_NOT_BONDED);
+            Log.i(
+                    TAG,
+                    "sendPreferredAudioProfileChangeToAudioFramework: Empty LEA group for "
+                            + "device - "
+                            + device);
+            sendPreferredAudioProfilesCallbackToApps(
+                    device, strippedPreferences, BluetoothStatusCodes.ERROR_DEVICE_NOT_BONDED);
             return;
         }
 
         synchronized (mCsipGroupsPendingAudioProfileChanges) {
-
             if (previousOutput != newOutput) {
-                if (newOutput == BluetoothProfile.A2DP && mA2dpService.getActiveDevice() != null
+                if (newOutput == BluetoothProfile.A2DP
+                        && mA2dpService.getActiveDevice() != null
                         && groupDevices.contains(mA2dpService.getActiveDevice())) {
                     Log.i(TAG, "Sent change for AUDIO_MODE_OUTPUT_ONLY to A2DP to Audio FW");
                     numRequestsToAudioFw +=
@@ -5071,47 +5507,57 @@ public class AdapterService extends Service {
                 }
             }
 
-            Log.i(TAG,
-                    "sendPreferredAudioProfileChangeToAudioFramework: sent " + numRequestsToAudioFw
-                            + " request(s) to the Audio Framework for device: " + device);
+            Log.i(
+                    TAG,
+                    "sendPreferredAudioProfileChangeToAudioFramework: sent "
+                            + numRequestsToAudioFw
+                            + " request(s) to the Audio Framework for device: "
+                            + device);
 
             if (numRequestsToAudioFw > 0) {
-                mCsipGroupsPendingAudioProfileChanges.put(groupId,
-                        new PendingAudioProfilePreferenceRequest(strippedPreferences,
-                                numRequestsToAudioFw, device));
+                mCsipGroupsPendingAudioProfileChanges.put(
+                        groupId,
+                        new PendingAudioProfilePreferenceRequest(
+                                strippedPreferences, numRequestsToAudioFw, device));
 
-                Message m = mHandler.obtainMessage(
-                        MESSAGE_PREFERRED_AUDIO_PROFILES_AUDIO_FRAMEWORK_TIMEOUT);
+                Message m =
+                        mHandler.obtainMessage(
+                                MESSAGE_PREFERRED_AUDIO_PROFILES_AUDIO_FRAMEWORK_TIMEOUT);
                 m.obj = groupId;
                 mHandler.sendMessageDelayed(m, PREFERRED_AUDIO_PROFILE_CHANGE_TIMEOUT.toMillis());
                 return;
             }
         }
-        sendPreferredAudioProfilesCallbackToApps(device, strippedPreferences,
-                BluetoothStatusCodes.SUCCESS);
+        sendPreferredAudioProfilesCallbackToApps(
+                device, strippedPreferences, BluetoothStatusCodes.SUCCESS);
     }
 
     private void removeFromPendingAudioProfileChanges(int groupId) {
         synchronized (mCsipGroupsPendingAudioProfileChanges) {
-            Log.i(TAG, "removeFromPendingAudioProfileChanges: Timeout on change for groupId="
-                    + groupId);
+            Log.i(
+                    TAG,
+                    "removeFromPendingAudioProfileChanges: Timeout on change for groupId="
+                            + groupId);
             if (!mCsipGroupsPendingAudioProfileChanges.containsKey(groupId)) {
-                Log.e(TAG, "removeFromPendingAudioProfileChanges( " + groupId + ", " + groupId
-                        + ") is not pending");
+                Log.e(
+                        TAG,
+                        "removeFromPendingAudioProfileChanges( "
+                                + groupId
+                                + ", "
+                                + groupId
+                                + ") is not pending");
                 return;
             }
         }
     }
 
     /**
-     * Notification from the audio framework that an active device change has taken effect.
-     * See {@link BluetoothAdapter#notifyActiveDeviceChangeApplied(BluetoothDevice)} for
-     * more details.
+     * Notification from the audio framework that an active device change has taken effect. See
+     * {@link BluetoothAdapter#notifyActiveDeviceChangeApplied(BluetoothDevice)} for more details.
      *
      * @param device the remote device whose preferred audio profiles have been changed
      * @return whether the Bluetooth stack acknowledged the change successfully
      */
-
     private int notifyActiveDeviceChangeApplied(BluetoothDevice device) {
         if (mLeAudioService == null) {
             Log.e(TAG, "LE Audio profile not enabled");
@@ -5125,8 +5571,11 @@ public class AdapterService extends Service {
 
         synchronized (mCsipGroupsPendingAudioProfileChanges) {
             if (!mCsipGroupsPendingAudioProfileChanges.containsKey(groupId)) {
-                Log.e(TAG, "notifyActiveDeviceChangeApplied, but no pending request for "
-                        + "groupId: " + groupId);
+                Log.e(
+                        TAG,
+                        "notifyActiveDeviceChangeApplied, but no pending request for "
+                                + "groupId: "
+                                + groupId);
                 return BluetoothStatusCodes.ERROR_UNKNOWN;
             }
 
@@ -5135,10 +5584,14 @@ public class AdapterService extends Service {
 
             // If this is the final audio framework request, send callback to apps
             if (pendingRequest.mRemainingRequestsToAudioFramework == 1) {
-                Log.i(TAG, "notifyActiveDeviceChangeApplied: Complete for device "
-                        + pendingRequest.mDeviceRequested);
-                sendPreferredAudioProfilesCallbackToApps(pendingRequest.mDeviceRequested,
-                        pendingRequest.mRequestedPreferences, BluetoothStatusCodes.SUCCESS);
+                Log.i(
+                        TAG,
+                        "notifyActiveDeviceChangeApplied: Complete for device "
+                                + pendingRequest.mDeviceRequested);
+                sendPreferredAudioProfilesCallbackToApps(
+                        pendingRequest.mDeviceRequested,
+                        pendingRequest.mRequestedPreferences,
+                        BluetoothStatusCodes.SUCCESS);
                 // Removes the timeout from the handler
                 mHandler.removeMessages(
                         MESSAGE_PREFERRED_AUDIO_PROFILES_AUDIO_FRAMEWORK_TIMEOUT, groupId);
@@ -5148,40 +5601,50 @@ public class AdapterService extends Service {
                                 pendingRequest.mRequestedPreferences,
                                 pendingRequest.mRemainingRequestsToAudioFramework - 1,
                                 pendingRequest.mDeviceRequested);
-                Log.i(TAG, "notifyActiveDeviceChangeApplied: Updating device "
-                        + updatedPendingRequest.mDeviceRequested
-                        + " with new remaining requests count="
-                        + updatedPendingRequest.mRemainingRequestsToAudioFramework);
+                Log.i(
+                        TAG,
+                        "notifyActiveDeviceChangeApplied: Updating device "
+                                + updatedPendingRequest.mDeviceRequested
+                                + " with new remaining requests count="
+                                + updatedPendingRequest.mRemainingRequestsToAudioFramework);
                 mCsipGroupsPendingAudioProfileChanges.put(groupId, updatedPendingRequest);
             } else {
-                Log.i(TAG, "notifyActiveDeviceChangeApplied: " + pendingRequest.mDeviceRequested
-                        + " has no remaining requests to audio framework, but is still present in"
-                        + " mCsipGroupsPendingAudioProfileChanges");
+                Log.i(
+                        TAG,
+                        "notifyActiveDeviceChangeApplied: "
+                                + pendingRequest.mDeviceRequested
+                                + " has no remaining requests to audio framework, but is still"
+                                + " present in mCsipGroupsPendingAudioProfileChanges");
             }
         }
 
         return BluetoothStatusCodes.SUCCESS;
     }
 
-    private void sendPreferredAudioProfilesCallbackToApps(BluetoothDevice device,
-            Bundle preferredAudioProfiles, int status) {
+    private void sendPreferredAudioProfilesCallbackToApps(
+            BluetoothDevice device, Bundle preferredAudioProfiles, int status) {
         if (mPreferredAudioProfilesCallbacks == null) {
             return;
         }
 
         int n = mPreferredAudioProfilesCallbacks.beginBroadcast();
-        debugLog("sendPreferredAudioProfilesCallbackToApps() - Broadcasting audio profile "
-                + "change callback to device: " + device + " and status=" + status + " to " + n
-                + " receivers.");
+        debugLog(
+                "sendPreferredAudioProfilesCallbackToApps() - Broadcasting audio profile "
+                        + ("change callback to device: " + device)
+                        + (" and status=" + status)
+                        + (" to " + n + " receivers."));
         for (int i = 0; i < n; i++) {
             try {
-                mPreferredAudioProfilesCallbacks.getBroadcastItem(i)
-                        .onPreferredAudioProfilesChanged(device,
-                                preferredAudioProfiles,
-                                status);
+                mPreferredAudioProfilesCallbacks
+                        .getBroadcastItem(i)
+                        .onPreferredAudioProfilesChanged(device, preferredAudioProfiles, status);
             } catch (RemoteException e) {
-                debugLog("sendPreferredAudioProfilesCallbackToApps() - Callback #" + i
-                        + " failed (" + e + ")");
+                debugLog(
+                        "sendPreferredAudioProfilesCallbackToApps() - Callback #"
+                                + i
+                                + " failed ("
+                                + e
+                                + ")");
             }
         }
         mPreferredAudioProfilesCallbacks.finishBroadcast();
@@ -5200,14 +5663,15 @@ public class AdapterService extends Service {
         return BluetoothAdapter.STATE_OFF;
     }
 
-    @RequiresPermission(anyOf = {
-            android.Manifest.permission.INTERACT_ACROSS_USERS,
-            android.Manifest.permission.MANAGE_USERS,
-    })
+    @RequiresPermission(
+            anyOf = {
+                android.Manifest.permission.INTERACT_ACROSS_USERS,
+                android.Manifest.permission.MANAGE_USERS,
+            })
     public synchronized boolean enable(boolean quietMode) {
         // Enforce the user restriction for disallowing Bluetooth if it was set.
-        if (mUserManager.hasUserRestrictionForUser(UserManager.DISALLOW_BLUETOOTH,
-                    UserHandle.SYSTEM)) {
+        if (mUserManager.hasUserRestrictionForUser(
+                UserManager.DISALLOW_BLUETOOTH, UserHandle.SYSTEM)) {
             debugLog("enable() called when Bluetooth was disallowed");
             return false;
         }
@@ -5324,7 +5788,8 @@ public class AdapterService extends Service {
     }
 
     public String getIdentityAddress(String address) {
-        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address.toUpperCase());
+        BluetoothDevice device =
+                BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address.toUpperCase());
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp != null && deviceProp.getIdentityAddress() != null) {
             return deviceProp.getIdentityAddress();
@@ -5338,8 +5803,12 @@ public class AdapterService extends Service {
         public UserHandle user;
     }
 
-    boolean createBond(BluetoothDevice device, int transport, OobData remoteP192Data,
-            OobData remoteP256Data, String callingPackage) {
+    boolean createBond(
+            BluetoothDevice device,
+            int transport,
+            OobData remoteP192Data,
+            OobData remoteP256Data,
+            String callingPackage) {
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp != null && deviceProp.getBondState() != BluetoothDevice.BOND_NONE) {
             // true for BONDING, false for BONDED
@@ -5382,20 +5851,18 @@ public class AdapterService extends Service {
         return true;
     }
 
-    private final ArrayDeque<IBluetoothOobDataCallback> mOobDataCallbackQueue =
-            new ArrayDeque<>();
+    private final ArrayDeque<IBluetoothOobDataCallback> mOobDataCallbackQueue = new ArrayDeque<>();
 
     /**
      * Fetches the local OOB data to give out to remote.
      *
      * @param transport - specify data transport.
      * @param callback - callback used to receive the requested {@link OobData}; null will be
-     * ignored silently.
-     *
+     *     ignored silently.
      * @hide
      */
-    public synchronized void generateLocalOobData(int transport,
-            IBluetoothOobDataCallback callback) {
+    public synchronized void generateLocalOobData(
+            int transport, IBluetoothOobDataCallback callback) {
         if (callback == null) {
             Log.e(TAG, "'callback' argument must not be null!");
             return;
@@ -5409,7 +5876,8 @@ public class AdapterService extends Service {
             return;
         }
         mOobDataCallbackQueue.offer(callback);
-        mHandler.postDelayed(() -> removeFromOobDataCallbackQueue(callback),
+        mHandler.postDelayed(
+                () -> removeFromOobDataCallbackQueue(callback),
                 GENERATE_LOCAL_OOB_DATA_TIMEOUT.toMillis());
         generateLocalOobDataNative(transport);
     }
@@ -5481,10 +5949,9 @@ public class AdapterService extends Service {
      * Get the bond state of a particular {@link BluetoothDevice}
      *
      * @param device remote device of interest
-     * @return bond state <p>Possible values are
-     * {@link BluetoothDevice#BOND_NONE},
-     * {@link BluetoothDevice#BOND_BONDING},
-     * {@link BluetoothDevice#BOND_BONDED}.
+     * @return bond state
+     *     <p>Possible values are {@link BluetoothDevice#BOND_NONE}, {@link
+     *     BluetoothDevice#BOND_BONDING}, {@link BluetoothDevice#BOND_BONDED}.
      */
     @VisibleForTesting
     public int getBondState(BluetoothDevice device) {
@@ -5536,9 +6003,9 @@ public class AdapterService extends Service {
     }
 
     /**
-     * Checks whether the device was recently associated with the comapnion app that called
-     * {@link BluetoothDevice#createBond}. This allows these devices to skip the pairing dialog if
-     * their pairing variant is {@link BluetoothDevice#PAIRING_VARIANT_CONSENT}.
+     * Checks whether the device was recently associated with the comapnion app that called {@link
+     * BluetoothDevice#createBond}. This allows these devices to skip the pairing dialog if their
+     * pairing variant is {@link BluetoothDevice#PAIRING_VARIANT_CONSENT}.
      *
      * @param device the bluetooth device that is being bonded
      * @return true if it was recently associated and we can bypass the dialog, false otherwise
@@ -5547,15 +6014,15 @@ public class AdapterService extends Service {
         if (mBondAttemptCallerInfo.containsKey(device.getAddress())) {
             CallerInfo bondCallerInfo = mBondAttemptCallerInfo.get(device.getAddress());
 
-            return mCompanionDeviceManager.canPairWithoutPrompt(bondCallerInfo.callerPackageName,
-                    device.getAddress(), bondCallerInfo.user);
+            return mCompanionDeviceManager.canPairWithoutPrompt(
+                    bondCallerInfo.callerPackageName, device.getAddress(), bondCallerInfo.user);
         }
         return false;
     }
 
     /**
-     * Returns the package name of the most recent caller that called
-     * {@link BluetoothDevice#createBond} on the given device.
+     * Returns the package name of the most recent caller that called {@link
+     * BluetoothDevice#createBond} on the given device.
      */
     @Nullable
     public String getPackageNameOfBondingApplication(BluetoothDevice device) {
@@ -5571,22 +6038,22 @@ public class AdapterService extends Service {
      *
      * @param device is the remote bluetooth device
      * @param profiles is a constant that references for which profiles we'll be setting the remote
-     *                 device as our active device. One of the following:
-     *                 {@link BluetoothAdapter#ACTIVE_DEVICE_AUDIO},
-     *                 {@link BluetoothAdapter#ACTIVE_DEVICE_PHONE_CALL}
-     *                 {@link BluetoothAdapter#ACTIVE_DEVICE_ALL}
+     *     device as our active device. One of the following: {@link
+     *     BluetoothAdapter#ACTIVE_DEVICE_AUDIO}, {@link BluetoothAdapter#ACTIVE_DEVICE_PHONE_CALL}
+     *     {@link BluetoothAdapter#ACTIVE_DEVICE_ALL}
      * @return false if profiles value is not one of the constants we accept, true otherwise
      */
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-            android.Manifest.permission.MODIFY_PHONE_STATE,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                android.Manifest.permission.MODIFY_PHONE_STATE,
+            })
     public boolean setActiveDevice(BluetoothDevice device, @ActiveDeviceUse int profiles) {
         boolean setA2dp = false;
         boolean setHeadset = false;
 
         // Determine for which profiles we want to set device as our active device
-        switch(profiles) {
+        switch (profiles) {
             case BluetoothAdapter.ACTIVE_DEVICE_AUDIO:
                 setA2dp = true;
                 break;
@@ -5601,16 +6068,21 @@ public class AdapterService extends Service {
                 return false;
         }
 
-
-        boolean a2dpSupported = mA2dpService != null && (device == null
-                || mA2dpService.getConnectionPolicy(device)
-                == BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-        boolean hfpSupported = mHeadsetService != null && (device == null
-                || mHeadsetService.getConnectionPolicy(device)
-                == BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-        boolean leAudioSupported = mLeAudioService != null && (device == null
-                || mLeAudioService.getConnectionPolicy(device)
-                == BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        boolean a2dpSupported =
+                mA2dpService != null
+                        && (device == null
+                                || mA2dpService.getConnectionPolicy(device)
+                                        == BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        boolean hfpSupported =
+                mHeadsetService != null
+                        && (device == null
+                                || mHeadsetService.getConnectionPolicy(device)
+                                        == BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        boolean leAudioSupported =
+                mLeAudioService != null
+                        && (device == null
+                                || mLeAudioService.getConnectionPolicy(device)
+                                        == BluetoothProfile.CONNECTION_POLICY_ALLOWED);
 
         if (leAudioSupported) {
             Log.i(TAG, "setActiveDevice: Setting active Le Audio device " + device);
@@ -5630,9 +6102,10 @@ public class AdapterService extends Service {
             }
         }
 
-        if (mHearingAidService != null && (device == null
-                || mHearingAidService.getConnectionPolicy(device)
-                == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
+        if (mHearingAidService != null
+                && (device == null
+                        || mHearingAidService.getConnectionPolicy(device)
+                                == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
             Log.i(TAG, "setActiveDevice: Setting active Hearing Aid " + device);
             if (device == null) {
                 mHearingAidService.removeActiveDevice(false);
@@ -5651,9 +6124,10 @@ public class AdapterService extends Service {
 
     /**
      * Checks if all supported classic audio profiles are active on this LE Audio device.
+     *
      * @param leAudioDevice the remote device
      * @return {@code true} if all supported classic audio profiles are active on this device,
-     * {@code false} otherwise
+     *     {@code false} otherwise
      */
     public boolean isAllSupportedClassicAudioProfilesActive(BluetoothDevice leAudioDevice) {
         if (mLeAudioService == null) {
@@ -5681,12 +6155,9 @@ public class AdapterService extends Service {
     /**
      * Get the active devices for the BluetoothProfile specified
      *
-     * @param profile is the profile from which we want the active devices.
-     *                Possible values are:
-     *                {@link BluetoothProfile#HEADSET},
-     *                {@link BluetoothProfile#A2DP},
-     *                {@link BluetoothProfile#HEARING_AID}
-     *                {@link BluetoothProfile#LE_AUDIO}
+     * @param profile is the profile from which we want the active devices. Possible values are:
+     *     {@link BluetoothProfile#HEADSET}, {@link BluetoothProfile#A2DP}, {@link
+     *     BluetoothProfile#HEARING_AID} {@link BluetoothProfile#LE_AUDIO}
      * @return A list of active bluetooth devices
      */
     public List<BluetoothDevice> getActiveDevices(@ActiveDeviceProfile int profile) {
@@ -5720,17 +6191,23 @@ public class AdapterService extends Service {
                     Log.e(TAG, "getActiveDevices: HearingAidService is null");
                 } else {
                     activeDevices = mHearingAidService.getActiveDevices();
-                    Log.i(TAG, "getActiveDevices: Hearing Aid devices: Left["
-                            + activeDevices.get(0) + "] - Right[" + activeDevices.get(1) + "]");
+                    Log.i(
+                            TAG,
+                            "getActiveDevices: Hearing Aid devices:"
+                                    + (" Left[" + activeDevices.get(0) + "] -")
+                                    + (" Right[" + activeDevices.get(1) + "]"));
                 }
                 break;
             case BluetoothProfile.LE_AUDIO:
                 if (mLeAudioService == null) {
-                Log.e(TAG, "getActiveDevices: LeAudioService is null");
+                    Log.e(TAG, "getActiveDevices: LeAudioService is null");
                 } else {
                     activeDevices = mLeAudioService.getActiveDevices();
-                    Log.i(TAG, "getActiveDevices: LeAudio devices: Lead["
-                            + activeDevices.get(0) + "] - member_1[" + activeDevices.get(1) + "]");
+                    Log.i(
+                            TAG,
+                            "getActiveDevices: LeAudio devices:"
+                                    + (" Lead[" + activeDevices.get(0) + "] -")
+                                    + (" member_1[" + activeDevices.get(1) + "]"));
                 }
                 break;
             default:
@@ -5745,12 +6222,13 @@ public class AdapterService extends Service {
      *
      * @param device is the remote device with which to connect these profiles
      * @return {@link BluetoothStatusCodes#SUCCESS} if all profiles connections are attempted, false
-     *         if an error occurred
+     *     if an error occurred
      */
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-            android.Manifest.permission.MODIFY_PHONE_STATE,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                android.Manifest.permission.MODIFY_PHONE_STATE,
+            })
     public int connectAllEnabledProfiles(BluetoothDevice device) {
         if (!profileServicesRunning()) {
             Log.e(TAG, "connectAllEnabledProfiles: Not all profile services running");
@@ -5772,10 +6250,11 @@ public class AdapterService extends Service {
      *
      * @param device is the remote device with which to connect all supported profiles
      */
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-            android.Manifest.permission.MODIFY_PHONE_STATE,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                android.Manifest.permission.MODIFY_PHONE_STATE,
+            })
     void connectAllSupportedProfiles(BluetoothDevice device) {
         int numProfilesConnected = 0;
 
@@ -5786,111 +6265,105 @@ public class AdapterService extends Service {
             mA2dpService.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
-        if (mA2dpSinkService != null && isProfileSupported(
-                device, BluetoothProfile.A2DP_SINK)) {
+        if (mA2dpSinkService != null && isProfileSupported(device, BluetoothProfile.A2DP_SINK)) {
             Log.i(TAG, "connectAllSupportedProfiles: Connecting A2dp Sink");
-            mA2dpSinkService.setConnectionPolicy(device,
-                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            mA2dpSinkService.setConnectionPolicy(
+                    device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
-        if (mHeadsetService != null && isProfileSupported(
-                device, BluetoothProfile.HEADSET)) {
+        if (mHeadsetService != null && isProfileSupported(device, BluetoothProfile.HEADSET)) {
             Log.i(TAG, "connectAllSupportedProfiles: Connecting Headset Profile");
             mHeadsetService.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
-        if (mHeadsetClientService != null && isProfileSupported(
-                device, BluetoothProfile.HEADSET_CLIENT)) {
+        if (mHeadsetClientService != null
+                && isProfileSupported(device, BluetoothProfile.HEADSET_CLIENT)) {
             Log.i(TAG, "connectAllSupportedProfiles: Connecting HFP");
-            mHeadsetClientService.setConnectionPolicy(device,
-                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            mHeadsetClientService.setConnectionPolicy(
+                    device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
-        if (mMapClientService != null && isProfileSupported(
-                device, BluetoothProfile.MAP_CLIENT)) {
+        if (mMapClientService != null && isProfileSupported(device, BluetoothProfile.MAP_CLIENT)) {
             Log.i(TAG, "connectAllSupportedProfiles: Connecting MAP");
-            mMapClientService.setConnectionPolicy(device,
-                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            mMapClientService.setConnectionPolicy(
+                    device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
-        if (mHidHostService != null && isProfileSupported(
-                device, BluetoothProfile.HID_HOST)) {
+        if (mHidHostService != null && isProfileSupported(device, BluetoothProfile.HID_HOST)) {
             Log.i(TAG, "connectAllSupportedProfiles: Connecting Hid Host Profile");
             mHidHostService.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
-        if (mPanService != null && isProfileSupported(
-                device, BluetoothProfile.PAN)) {
+        if (mPanService != null && isProfileSupported(device, BluetoothProfile.PAN)) {
             Log.i(TAG, "connectAllSupportedProfiles: Connecting Pan Profile");
             mPanService.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
-        if (mPbapClientService != null && isProfileSupported(
-                device, BluetoothProfile.PBAP_CLIENT)) {
+        if (mPbapClientService != null
+                && isProfileSupported(device, BluetoothProfile.PBAP_CLIENT)) {
             Log.i(TAG, "connectAllSupportedProfiles: Connecting Pbap");
-            mPbapClientService.setConnectionPolicy(device,
-                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            mPbapClientService.setConnectionPolicy(
+                    device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
-        if (mHearingAidService != null && isProfileSupported(
-                device, BluetoothProfile.HEARING_AID)) {
-            if (mHapClientService != null && isProfileSupported(
-                    device, BluetoothProfile.HAP_CLIENT)) {
-                Log.i(TAG, "connectAllSupportedProfiles: Hearing Access Client Profile is enabled"
-                        + " at the same time with Hearing Aid Profile, ignore Hearing Aid Profile");
+        if (mHearingAidService != null
+                && isProfileSupported(device, BluetoothProfile.HEARING_AID)) {
+            if (mHapClientService != null
+                    && isProfileSupported(device, BluetoothProfile.HAP_CLIENT)) {
+                Log.i(
+                        TAG,
+                        "connectAllSupportedProfiles: Hearing Access Client Profile is enabled at"
+                                + " the same time with Hearing Aid Profile, ignore Hearing Aid"
+                                + " Profile");
             } else {
                 Log.i(TAG, "connectAllSupportedProfiles: Connecting Hearing Aid Profile");
-                mHearingAidService.setConnectionPolicy(device,
-                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+                mHearingAidService.setConnectionPolicy(
+                        device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
                 numProfilesConnected++;
             }
         }
-        if (mHapClientService != null && isProfileSupported(
-                device, BluetoothProfile.HAP_CLIENT)) {
+        if (mHapClientService != null && isProfileSupported(device, BluetoothProfile.HAP_CLIENT)) {
             Log.i(TAG, "connectAllSupportedProfiles: Connecting Hearing Access Client Profile");
-            mHapClientService.setConnectionPolicy(device,
-                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            mHapClientService.setConnectionPolicy(
+                    device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
-        if (mVolumeControlService != null && isProfileSupported(
-                device, BluetoothProfile.VOLUME_CONTROL)) {
+        if (mVolumeControlService != null
+                && isProfileSupported(device, BluetoothProfile.VOLUME_CONTROL)) {
             Log.i(TAG, "connectAllSupportedProfiles: Connecting Volume Control Profile");
-            mVolumeControlService.setConnectionPolicy(device,
-                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            mVolumeControlService.setConnectionPolicy(
+                    device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
         if (mCsipSetCoordinatorService != null
-                && isProfileSupported(
-                device, BluetoothProfile.CSIP_SET_COORDINATOR)) {
+                && isProfileSupported(device, BluetoothProfile.CSIP_SET_COORDINATOR)) {
             Log.i(TAG, "connectAllSupportedProfiles: Connecting Coordinated Set Profile");
             mCsipSetCoordinatorService.setConnectionPolicy(
                     device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
-        if (mLeAudioService != null && isProfileSupported(
-                device, BluetoothProfile.LE_AUDIO)) {
+        if (mLeAudioService != null && isProfileSupported(device, BluetoothProfile.LE_AUDIO)) {
             Log.i(TAG, "connectAllSupportedProfiles: Connecting LeAudio profile (BAP)");
-            mLeAudioService.setConnectionPolicy(device,
-                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            mLeAudioService.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
-        if (mBassClientService != null && isProfileSupported(
-                device, BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT)) {
+        if (mBassClientService != null
+                && isProfileSupported(device, BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT)) {
             Log.i(TAG, "connectAllSupportedProfiles: Connecting LE Broadcast Assistant Profile");
-            mBassClientService.setConnectionPolicy(device,
-                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            mBassClientService.setConnectionPolicy(
+                    device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
-        if (mBatteryService != null && isProfileSupported(
-                device, BluetoothProfile.BATTERY)) {
+        if (mBatteryService != null && isProfileSupported(device, BluetoothProfile.BATTERY)) {
             Log.i(TAG, "connectAllSupportedProfiles: Connecting Battery Service");
-            mBatteryService.setConnectionPolicy(device,
-                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            mBatteryService.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
 
-        Log.i(TAG, "connectAllSupportedProfiles: Number of Profiles Connected: "
-                + numProfilesConnected);
+        Log.i(
+                TAG,
+                "connectAllSupportedProfiles: Number of Profiles Connected: "
+                        + numProfilesConnected);
     }
 
     /**
@@ -5906,141 +6379,146 @@ public class AdapterService extends Service {
             return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
         }
 
-        if (mA2dpService != null && (mA2dpService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mA2dpService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+        if (mA2dpService != null
+                && (mA2dpService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED
+                        || mA2dpService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting A2dp");
             mA2dpService.disconnect(device);
         }
-        if (mA2dpSinkService != null && (mA2dpSinkService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mA2dpSinkService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+        if (mA2dpSinkService != null
+                && (mA2dpSinkService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED
+                        || mA2dpSinkService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting A2dp Sink");
             mA2dpSinkService.disconnect(device);
         }
-        if (mHeadsetService != null && (mHeadsetService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                ||  mHeadsetService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
-            Log.i(TAG,
-                    "disconnectAllEnabledProfiles: Disconnecting Headset Profile");
+        if (mHeadsetService != null
+                && (mHeadsetService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED
+                        || mHeadsetService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Headset Profile");
             mHeadsetService.disconnect(device);
         }
-        if (mHeadsetClientService != null && (mHeadsetClientService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mHeadsetClientService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+        if (mHeadsetClientService != null
+                && (mHeadsetClientService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTED
+                        || mHeadsetClientService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting HFP");
             mHeadsetClientService.disconnect(device);
         }
-        if (mMapClientService != null && (mMapClientService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mMapClientService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+        if (mMapClientService != null
+                && (mMapClientService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED
+                        || mMapClientService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting MAP Client");
             mMapClientService.disconnect(device);
         }
-        if (mMapService != null && (mMapService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mMapService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+        if (mMapService != null
+                && (mMapService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED
+                        || mMapService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting MAP");
             mMapService.disconnect(device);
         }
-        if (mHidDeviceService != null && (mHidDeviceService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mHidDeviceService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+        if (mHidDeviceService != null
+                && (mHidDeviceService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED
+                        || mHidDeviceService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Hid Device Profile");
             mHidDeviceService.disconnect(device);
         }
-        if (mHidHostService != null && (mHidHostService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mHidHostService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+        if (mHidHostService != null
+                && (mHidHostService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED
+                        || mHidHostService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Hid Host Profile");
             mHidHostService.disconnect(device);
         }
-        if (mPanService != null && (mPanService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mPanService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+        if (mPanService != null
+                && (mPanService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED
+                        || mPanService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Pan Profile");
             mPanService.disconnect(device);
         }
-        if (mPbapClientService != null && (mPbapClientService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mPbapClientService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+        if (mPbapClientService != null
+                && (mPbapClientService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTED
+                        || mPbapClientService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Pbap Client");
             mPbapClientService.disconnect(device);
         }
-        if (mPbapService != null && (mPbapService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mPbapService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+        if (mPbapService != null
+                && (mPbapService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED
+                        || mPbapService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Pbap Server");
             mPbapService.disconnect(device);
         }
-        if (mHearingAidService != null && (mHearingAidService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mHearingAidService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+        if (mHearingAidService != null
+                && (mHearingAidService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTED
+                        || mHearingAidService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Hearing Aid Profile");
             mHearingAidService.disconnect(device);
         }
-        if (mHapClientService != null && (mHapClientService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mHapClientService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+        if (mHapClientService != null
+                && (mHapClientService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED
+                        || mHapClientService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Hearing Access Profile Client");
             mHapClientService.disconnect(device);
         }
-        if (mVolumeControlService != null && (mVolumeControlService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mVolumeControlService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+        if (mVolumeControlService != null
+                && (mVolumeControlService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTED
+                        || mVolumeControlService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Volume Control Profile");
             mVolumeControlService.disconnect(device);
         }
-        if (mSapService != null && (mSapService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mSapService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+        if (mSapService != null
+                && (mSapService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED
+                        || mSapService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Sap Profile");
             mSapService.disconnect(device);
         }
         if (mCsipSetCoordinatorService != null
                 && (mCsipSetCoordinatorService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mCsipSetCoordinatorService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+                                == BluetoothProfile.STATE_CONNECTED
+                        || mCsipSetCoordinatorService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Coordinater Set Profile");
             mCsipSetCoordinatorService.disconnect(device);
         }
-        if (mLeAudioService != null && (mLeAudioService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mLeAudioService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
+        if (mLeAudioService != null
+                && (mLeAudioService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED
+                        || mLeAudioService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting LeAudio profile (BAP)");
             mLeAudioService.disconnect(device);
         }
-        if (mBassClientService != null && (mBassClientService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mBassClientService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
-            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting "
+        if (mBassClientService != null
+                && (mBassClientService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTED
+                        || mBassClientService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
+            Log.i(
+                    TAG,
+                    "disconnectAllEnabledProfiles: Disconnecting "
                             + "LE Broadcast Assistant Profile");
             mBassClientService.disconnect(device);
         }
-        if (mBatteryService != null && (mBatteryService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED
-                || mBatteryService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTING)) {
-            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting "
-                            + "Battery Service");
+        if (mBatteryService != null
+                && (mBatteryService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED
+                        || mBatteryService.getConnectionState(device)
+                                == BluetoothProfile.STATE_CONNECTING)) {
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting " + "Battery Service");
             mBatteryService.disconnect(device);
         }
 
@@ -6085,18 +6563,18 @@ public class AdapterService extends Service {
 
     /**
      * Converts HCI disconnect reasons to Android disconnect reasons.
-     * <p>
-     * The HCI Error Codes used for ACL disconnect reasons propagated up from native code were
+     *
+     * <p>The HCI Error Codes used for ACL disconnect reasons propagated up from native code were
      * copied from: packages/modules/Bluetooth/system/stack/include/hci_error_code.h
-     * <p>
-     * These error codes are specified and described in Bluetooth Core Spec v5.1, Vol 2, Part D.
+     *
+     * <p>These error codes are specified and described in Bluetooth Core Spec v5.1, Vol 2, Part D.
      *
      * @param hciReason is the raw HCI disconnect reason from native.
      * @return the Android disconnect reason for apps.
      */
     static @BluetoothAdapter.BluetoothConnectionCallback.DisconnectReason int
             hciToAndroidDisconnectReason(int hciReason) {
-        switch(hciReason) {
+        switch (hciReason) {
             case /*HCI_SUCCESS*/ 0x00:
             case /*HCI_ERR_UNSPECIFIED*/ 0x1F:
             case /*HCI_ERR_UNDEFINED*/ 0xff:
@@ -6158,8 +6636,11 @@ public class AdapterService extends Service {
     void logUserBondResponse(BluetoothDevice device, boolean accepted, int event) {
         final long token = Binder.clearCallingIdentity();
         try {
-            BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
-                    obfuscateAddress(device), 0, device.getType(),
+            BluetoothStatsLog.write(
+                    BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
+                    obfuscateAddress(device),
+                    0,
+                    device.getType(),
                     BluetoothDevice.BOND_BONDING,
                     event,
                     accepted ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
@@ -6239,7 +6720,7 @@ public class AdapterService extends Service {
      * @return true, if the LE audio broadcast source is supported
      */
     public boolean isLeAudioBroadcastSourceSupported() {
-        return  mAdapterProperties.isLePeriodicAdvertisingSupported()
+        return mAdapterProperties.isLePeriodicAdvertisingSupported()
                 && mAdapterProperties.isLeExtendedAdvertisingSupported()
                 && mAdapterProperties.isLeIsochronousBroadcasterSupported();
     }
@@ -6251,9 +6732,10 @@ public class AdapterService extends Service {
      */
     public boolean isLeAudioBroadcastAssistantSupported() {
         return mAdapterProperties.isLePeriodicAdvertisingSupported()
-            && mAdapterProperties.isLeExtendedAdvertisingSupported()
-            && (mAdapterProperties.isLePeriodicAdvertisingSyncTransferSenderSupported()
-                || mAdapterProperties.isLePeriodicAdvertisingSyncTransferRecipientSupported());
+                && mAdapterProperties.isLeExtendedAdvertisingSupported()
+                && (mAdapterProperties.isLePeriodicAdvertisingSyncTransferSenderSupported()
+                        || mAdapterProperties
+                                .isLePeriodicAdvertisingSyncTransferRecipientSupported());
     }
 
     public long getSupportedProfilesBitMask() {
@@ -6318,8 +6800,12 @@ public class AdapterService extends Service {
             }
 
             final BluetoothActivityEnergyInfo info =
-                    new BluetoothActivityEnergyInfo(SystemClock.elapsedRealtime(),
-                            mStackReportedState, mTxTimeTotalMs, mRxTimeTotalMs, mIdleTimeTotalMs,
+                    new BluetoothActivityEnergyInfo(
+                            SystemClock.elapsedRealtime(),
+                            mStackReportedState,
+                            mTxTimeTotalMs,
+                            mRxTimeTotalMs,
+                            mIdleTimeTotalMs,
                             mEnergyUsedTotalVoltAmpSecMicro);
 
             // Count the number of entries that have byte counts > 0
@@ -6353,7 +6839,8 @@ public class AdapterService extends Service {
 
     /**
      * Return if offloaded TDS filter is supported.
-     * @return  {@code BluetoothStatusCodes.FEATURE_SUPPORTED} if supported
+     *
+     * @return {@code BluetoothStatusCodes.FEATURE_SUPPORTED} if supported
      */
     public int getOffloadedTransportDiscoveryDataScanSupported() {
         if (mAdapterProperties.isOffloadedTransportDiscoveryDataScanSupported()) {
@@ -6409,7 +6896,7 @@ public class AdapterService extends Service {
             case AbstractionLayer.BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE:
                 return BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
         }
-        //errorLog("Incorrect scan mode in convertScanModeFromHal");
+        // errorLog("Incorrect scan mode in convertScanModeFromHal");
         return -1;
     }
 
@@ -6424,13 +6911,18 @@ public class AdapterService extends Service {
             }
 
             long wakeupTime = SystemClock.elapsedRealtime() + delayMillis;
-            int type = shouldWake ? AlarmManager.ELAPSED_REALTIME_WAKEUP
-                    : AlarmManager.ELAPSED_REALTIME;
+            int type =
+                    shouldWake
+                            ? AlarmManager.ELAPSED_REALTIME_WAKEUP
+                            : AlarmManager.ELAPSED_REALTIME;
 
             Intent intent = new Intent(ACTION_ALARM_WAKEUP);
             mPendingAlarm =
-                    PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT
-                            | PendingIntent.FLAG_IMMUTABLE);
+                    PendingIntent.getBroadcast(
+                            this,
+                            0,
+                            intent,
+                            PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
             mAlarmManager.setExact(type, wakeupTime, mPendingAlarm);
             return true;
         }
@@ -6473,8 +6965,15 @@ public class AdapterService extends Service {
         return true;
     }
 
-    private void energyInfoCallback(int status, int ctrlState, long txTime, long rxTime,
-            long idleTime, long energyUsed, UidTraffic[] data) throws RemoteException {
+    private void energyInfoCallback(
+            int status,
+            int ctrlState,
+            long txTime,
+            long rxTime,
+            long idleTime,
+            long energyUsed,
+            UidTraffic[] data)
+            throws RemoteException {
         if (ctrlState >= BluetoothActivityEnergyInfo.BT_STACK_STATE_INVALID
                 && ctrlState <= BluetoothActivityEnergyInfo.BT_STACK_STATE_STATE_IDLE) {
             // Energy is product of mA, V and ms. If the chipset doesn't
@@ -6484,8 +6983,10 @@ public class AdapterService extends Service {
                     final long txMah = Math.multiplyExact(txTime, getTxCurrentMa());
                     final long rxMah = Math.multiplyExact(rxTime, getRxCurrentMa());
                     final long idleMah = Math.multiplyExact(idleTime, getIdleCurrentMa());
-                    energyUsed = (long) (Math.addExact(Math.addExact(txMah, rxMah), idleMah)
-                            * getOperatingVolt());
+                    energyUsed =
+                            (long)
+                                    (Math.addExact(Math.addExact(txMah, rxMah), idleMah)
+                                            * getOperatingVolt());
                 } catch (ArithmeticException e) {
                     Log.wtf(TAG, "overflow in bluetooth energy callback", e);
                     // Energy is already 0 if the exception was thrown.
@@ -6531,14 +7032,18 @@ public class AdapterService extends Service {
             }
         }
 
-        verboseLog("energyInfoCallback() status = " + status + "txTime = " + txTime + "rxTime = "
-                + rxTime + "idleTime = " + idleTime + "energyUsed = " + energyUsed + "ctrlState = "
-                + ctrlState + "traffic = " + Arrays.toString(data));
+        verboseLog(
+                "energyInfoCallback()"
+                        + (" status = " + status)
+                        + (" txTime = " + txTime)
+                        + (" rxTime = " + rxTime)
+                        + (" idleTime = " + idleTime)
+                        + (" energyUsed = " + energyUsed)
+                        + (" ctrlState = " + ctrlState)
+                        + (" traffic = " + Arrays.toString(data)));
     }
 
-    /**
-     * Update metadata change to registered listeners
-     */
+    /** Update metadata change to registered listeners */
     @VisibleForTesting
     public void metadataChanged(String address, int key, byte[] value) {
         BluetoothDevice device = mRemoteDevices.getDevice(Utils.getBytesFromAddress(address));
@@ -6683,23 +7188,24 @@ public class AdapterService extends Service {
         Log.e(TAG, msg);
     }
 
-    private final BroadcastReceiver mAlarmBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            synchronized (AdapterService.this) {
-                mPendingAlarm = null;
-                alarmFiredNative();
-            }
-        }
-    };
+    private final BroadcastReceiver mAlarmBroadcastReceiver =
+            new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    synchronized (AdapterService.this) {
+                        mPendingAlarm = null;
+                        alarmFiredNative();
+                    }
+                }
+            };
 
     private boolean isCommonCriteriaMode() {
         return getSystemService(DevicePolicyManager.class).isCommonCriteriaModeEnabled(null);
     }
 
     @SuppressLint("AndroidFrameworkRequiresPermission")
-    private void enforceBluetoothPrivilegedPermissionIfNeeded(OobData remoteP192Data,
-            OobData remoteP256Data) {
+    private void enforceBluetoothPrivilegedPermissionIfNeeded(
+            OobData remoteP192Data, OobData remoteP256Data) {
         if (remoteP192Data != null || remoteP256Data != null) {
             enforceBluetoothPrivilegedPermission(this);
         }
@@ -6710,10 +7216,10 @@ public class AdapterService extends Service {
         final DeviceConfig.Properties properties =
                 DeviceConfig.getProperties(DeviceConfig.NAMESPACE_BLUETOOTH);
         ArrayList<String> initFlags = new ArrayList<>();
-        for (String property: properties.getKeyset()) {
+        for (String property : properties.getKeyset()) {
             if (property.startsWith("INIT_")) {
-                initFlags.add(String.format("%s=%s", property,
-                            properties.getString(property, null)));
+                initFlags.add(
+                        String.format("%s=%s", property, properties.getString(property, null)));
             }
         }
         return initFlags.toArray(new String[0]);
@@ -6722,50 +7228,59 @@ public class AdapterService extends Service {
     private final Object mDeviceConfigLock = new Object();
 
     /**
-     * Predicate that can be applied to names to determine if a device is
-     * well-known to be used for physical location.
+     * Predicate that can be applied to names to determine if a device is well-known to be used for
+     * physical location.
      */
     @GuardedBy("mDeviceConfigLock")
     private Predicate<String> mLocationDenylistName = (v) -> false;
 
     /**
-     * Predicate that can be applied to MAC addresses to determine if a device
-     * is well-known to be used for physical location.
+     * Predicate that can be applied to MAC addresses to determine if a device is well-known to be
+     * used for physical location.
      */
     @GuardedBy("mDeviceConfigLock")
     private Predicate<byte[]> mLocationDenylistMac = (v) -> false;
 
     /**
-     * Predicate that can be applied to Advertising Data payloads to determine
-     * if a device is well-known to be used for physical location.
+     * Predicate that can be applied to Advertising Data payloads to determine if a device is
+     * well-known to be used for physical location.
      */
     @GuardedBy("mDeviceConfigLock")
     private Predicate<byte[]> mLocationDenylistAdvertisingData = (v) -> false;
 
     @GuardedBy("mDeviceConfigLock")
     private int mScanQuotaCount = DeviceConfigListener.DEFAULT_SCAN_QUOTA_COUNT;
+
     @GuardedBy("mDeviceConfigLock")
     private long mScanQuotaWindowMillis = DeviceConfigListener.DEFAULT_SCAN_QUOTA_WINDOW_MILLIS;
+
     @GuardedBy("mDeviceConfigLock")
     private long mScanTimeoutMillis = DeviceConfigListener.DEFAULT_SCAN_TIMEOUT_MILLIS;
+
     @GuardedBy("mDeviceConfigLock")
     private int mScanUpgradeDurationMillis =
             DeviceConfigListener.DEFAULT_SCAN_UPGRADE_DURATION_MILLIS;
+
     @GuardedBy("mDeviceConfigLock")
     private int mScanDowngradeDurationMillis =
             DeviceConfigListener.DEFAULT_SCAN_DOWNGRADE_DURATION_BT_CONNECTING_MILLIS;
+
     @GuardedBy("mDeviceConfigLock")
     private int mScreenOffLowPowerWindowMillis =
             ScanManager.SCAN_MODE_SCREEN_OFF_LOW_POWER_WINDOW_MS;
+
     @GuardedBy("mDeviceConfigLock")
     private int mScreenOffLowPowerIntervalMillis =
             ScanManager.SCAN_MODE_SCREEN_OFF_LOW_POWER_INTERVAL_MS;
+
     @GuardedBy("mDeviceConfigLock")
     private int mScreenOffBalancedWindowMillis =
             ScanManager.SCAN_MODE_SCREEN_OFF_BALANCED_WINDOW_MS;
+
     @GuardedBy("mDeviceConfigLock")
     private int mScreenOffBalancedIntervalMillis =
             ScanManager.SCAN_MODE_SCREEN_OFF_BALANCED_INTERVAL_MS;
+
     @GuardedBy("mDeviceConfigLock")
     private String mLeAudioAllowList;
 
@@ -6787,81 +7302,63 @@ public class AdapterService extends Service {
         }
     }
 
-    /**
-     * Returns scan quota count.
-     */
+    /** Returns scan quota count. */
     public int getScanQuotaCount() {
         synchronized (mDeviceConfigLock) {
             return mScanQuotaCount;
         }
     }
 
-    /**
-     * Returns scan quota window in millis.
-     */
+    /** Returns scan quota window in millis. */
     public long getScanQuotaWindowMillis() {
         synchronized (mDeviceConfigLock) {
             return mScanQuotaWindowMillis;
         }
     }
 
-    /**
-     * Returns scan timeout in millis.
-     */
+    /** Returns scan timeout in millis. */
     public long getScanTimeoutMillis() {
         synchronized (mDeviceConfigLock) {
             return mScanTimeoutMillis;
         }
     }
 
-    /**
-     * Returns scan upgrade duration in millis.
-     */
+    /** Returns scan upgrade duration in millis. */
     public long getScanUpgradeDurationMillis() {
         synchronized (mDeviceConfigLock) {
             return mScanUpgradeDurationMillis;
         }
     }
 
-    /**
-     * Returns scan downgrade duration in millis.
-     */
+    /** Returns scan downgrade duration in millis. */
     public long getScanDowngradeDurationMillis() {
         synchronized (mDeviceConfigLock) {
             return mScanDowngradeDurationMillis;
         }
     }
 
-    /**
-     * Returns SCREEN_OFF_BALANCED scan window in millis.
-     */
+    /** Returns SCREEN_OFF_BALANCED scan window in millis. */
     public int getScreenOffBalancedWindowMillis() {
         synchronized (mDeviceConfigLock) {
             return mScreenOffBalancedWindowMillis;
         }
     }
 
-    /**
-     * Returns SCREEN_OFF_BALANCED scan interval in millis.
-     */
+    /** Returns SCREEN_OFF_BALANCED scan interval in millis. */
     public int getScreenOffBalancedIntervalMillis() {
         synchronized (mDeviceConfigLock) {
             return mScreenOffBalancedIntervalMillis;
         }
     }
 
-    /**
-     * Returns SCREEN_OFF low power scan window in millis.
-     */
+    /** Returns SCREEN_OFF low power scan window in millis. */
     public int getScreenOffLowPowerWindowMillis() {
         synchronized (mDeviceConfigLock) {
             return mScreenOffLowPowerWindowMillis;
         }
     }
 
-    /**
-     * Returns SCREEN_OFF low power scan interval in millis.
-     */
+    /** Returns SCREEN_OFF low power scan interval in millis. */
     public int getScreenOffLowPowerIntervalMillis() {
         synchronized (mDeviceConfigLock) {
             return mScreenOffLowPowerIntervalMillis;
@@ -6871,20 +7368,14 @@ public class AdapterService extends Service {
     private final DeviceConfigListener mDeviceConfigListener = new DeviceConfigListener();
 
     private class DeviceConfigListener implements DeviceConfig.OnPropertiesChangedListener {
-        private static final String LOCATION_DENYLIST_NAME =
-                "location_denylist_name";
-        private static final String LOCATION_DENYLIST_MAC =
-                "location_denylist_mac";
+        private static final String LOCATION_DENYLIST_NAME = "location_denylist_name";
+        private static final String LOCATION_DENYLIST_MAC = "location_denylist_mac";
         private static final String LOCATION_DENYLIST_ADVERTISING_DATA =
                 "location_denylist_advertising_data";
-        private static final String SCAN_QUOTA_COUNT =
-                "scan_quota_count";
-        private static final String SCAN_QUOTA_WINDOW_MILLIS =
-                "scan_quota_window_millis";
-        private static final String SCAN_TIMEOUT_MILLIS =
-                "scan_timeout_millis";
-        private static final String SCAN_UPGRADE_DURATION_MILLIS =
-                "scan_upgrade_duration_millis";
+        private static final String SCAN_QUOTA_COUNT = "scan_quota_count";
+        private static final String SCAN_QUOTA_WINDOW_MILLIS = "scan_quota_window_millis";
+        private static final String SCAN_TIMEOUT_MILLIS = "scan_timeout_millis";
+        private static final String SCAN_UPGRADE_DURATION_MILLIS = "scan_upgrade_duration_millis";
         private static final String SCAN_DOWNGRADE_DURATION_MILLIS =
                 "scan_downgrade_duration_millis";
         private static final String SCREEN_OFF_LOW_POWER_WINDOW_MILLIS =
@@ -6895,12 +7386,9 @@ public class AdapterService extends Service {
                 "screen_off_balanced_window_millis";
         private static final String SCREEN_OFF_BALANCED_INTERVAL_MILLIS =
                 "screen_off_balanced_interval_millis";
-        private static final String LE_AUDIO_ALLOW_LIST =
-                "le_audio_allow_list";
+        private static final String LE_AUDIO_ALLOW_LIST = "le_audio_allow_list";
 
-        /**
-         * Default denylist which matches Eddystone and iBeacon payloads.
-         */
+        /** Default denylist which matches Eddystone and iBeacon payloads. */
         private static final String DEFAULT_LOCATION_DENYLIST_ADVERTISING_DATA =
                 "⊆0016AAFE/00FFFFFF,⊆00FF4C0002/00FFFFFFFF";
 
@@ -6913,8 +7401,8 @@ public class AdapterService extends Service {
 
         @RequiresPermission(android.Manifest.permission.READ_DEVICE_CONFIG)
         public void start() {
-            DeviceConfig.addOnPropertiesChangedListener(DeviceConfig.NAMESPACE_BLUETOOTH,
-                    BackgroundThread.getExecutor(), this);
+            DeviceConfig.addOnPropertiesChangedListener(
+                    DeviceConfig.NAMESPACE_BLUETOOTH, BackgroundThread.getExecutor(), this);
             onPropertiesChanged(DeviceConfig.getProperties(DeviceConfig.NAMESPACE_BLUETOOTH));
         }
 
@@ -6922,36 +7410,46 @@ public class AdapterService extends Service {
         public void onPropertiesChanged(DeviceConfig.Properties properties) {
             synchronized (mDeviceConfigLock) {
                 final String name = properties.getString(LOCATION_DENYLIST_NAME, null);
-                mLocationDenylistName = !TextUtils.isEmpty(name)
-                        ? Pattern.compile(name).asPredicate()
-                        : (v) -> false;
-                mLocationDenylistMac = BytesMatcher
-                        .decode(properties.getString(LOCATION_DENYLIST_MAC, null));
-                mLocationDenylistAdvertisingData = BytesMatcher
-                        .decode(properties.getString(LOCATION_DENYLIST_ADVERTISING_DATA,
-                                DEFAULT_LOCATION_DENYLIST_ADVERTISING_DATA));
-                mScanQuotaCount = properties.getInt(SCAN_QUOTA_COUNT,
-                        DEFAULT_SCAN_QUOTA_COUNT);
-                mScanQuotaWindowMillis = properties.getLong(SCAN_QUOTA_WINDOW_MILLIS,
-                        DEFAULT_SCAN_QUOTA_WINDOW_MILLIS);
-                mScanTimeoutMillis = properties.getLong(SCAN_TIMEOUT_MILLIS,
-                        DEFAULT_SCAN_TIMEOUT_MILLIS);
-                mScanUpgradeDurationMillis = properties.getInt(SCAN_UPGRADE_DURATION_MILLIS,
-                        DEFAULT_SCAN_UPGRADE_DURATION_MILLIS);
-                mScanDowngradeDurationMillis = properties.getInt(SCAN_DOWNGRADE_DURATION_MILLIS,
-                        DEFAULT_SCAN_DOWNGRADE_DURATION_BT_CONNECTING_MILLIS);
-                mScreenOffLowPowerWindowMillis = properties.getInt(
-                        SCREEN_OFF_LOW_POWER_WINDOW_MILLIS,
-                        ScanManager.SCAN_MODE_SCREEN_OFF_LOW_POWER_WINDOW_MS);
-                mScreenOffLowPowerIntervalMillis = properties.getInt(
-                        SCREEN_OFF_LOW_POWER_INTERVAL_MILLIS,
-                        ScanManager.SCAN_MODE_SCREEN_OFF_LOW_POWER_INTERVAL_MS);
-                mScreenOffBalancedWindowMillis = properties.getInt(
-                        SCREEN_OFF_BALANCED_WINDOW_MILLIS,
-                        ScanManager.SCAN_MODE_SCREEN_OFF_BALANCED_WINDOW_MS);
-                mScreenOffBalancedIntervalMillis = properties.getInt(
-                        SCREEN_OFF_BALANCED_INTERVAL_MILLIS,
-                        ScanManager.SCAN_MODE_SCREEN_OFF_BALANCED_INTERVAL_MS);
+                mLocationDenylistName =
+                        !TextUtils.isEmpty(name)
+                                ? Pattern.compile(name).asPredicate()
+                                : (v) -> false;
+                mLocationDenylistMac =
+                        BytesMatcher.decode(properties.getString(LOCATION_DENYLIST_MAC, null));
+                mLocationDenylistAdvertisingData =
+                        BytesMatcher.decode(
+                                properties.getString(
+                                        LOCATION_DENYLIST_ADVERTISING_DATA,
+                                        DEFAULT_LOCATION_DENYLIST_ADVERTISING_DATA));
+                mScanQuotaCount = properties.getInt(SCAN_QUOTA_COUNT, DEFAULT_SCAN_QUOTA_COUNT);
+                mScanQuotaWindowMillis =
+                        properties.getLong(
+                                SCAN_QUOTA_WINDOW_MILLIS, DEFAULT_SCAN_QUOTA_WINDOW_MILLIS);
+                mScanTimeoutMillis =
+                        properties.getLong(SCAN_TIMEOUT_MILLIS, DEFAULT_SCAN_TIMEOUT_MILLIS);
+                mScanUpgradeDurationMillis =
+                        properties.getInt(
+                                SCAN_UPGRADE_DURATION_MILLIS, DEFAULT_SCAN_UPGRADE_DURATION_MILLIS);
+                mScanDowngradeDurationMillis =
+                        properties.getInt(
+                                SCAN_DOWNGRADE_DURATION_MILLIS,
+                                DEFAULT_SCAN_DOWNGRADE_DURATION_BT_CONNECTING_MILLIS);
+                mScreenOffLowPowerWindowMillis =
+                        properties.getInt(
+                                SCREEN_OFF_LOW_POWER_WINDOW_MILLIS,
+                                ScanManager.SCAN_MODE_SCREEN_OFF_LOW_POWER_WINDOW_MS);
+                mScreenOffLowPowerIntervalMillis =
+                        properties.getInt(
+                                SCREEN_OFF_LOW_POWER_INTERVAL_MILLIS,
+                                ScanManager.SCAN_MODE_SCREEN_OFF_LOW_POWER_INTERVAL_MS);
+                mScreenOffBalancedWindowMillis =
+                        properties.getInt(
+                                SCREEN_OFF_BALANCED_WINDOW_MILLIS,
+                                ScanManager.SCAN_MODE_SCREEN_OFF_BALANCED_WINDOW_MS);
+                mScreenOffBalancedIntervalMillis =
+                        properties.getInt(
+                                SCREEN_OFF_BALANCED_INTERVAL_MILLIS,
+                                ScanManager.SCAN_MODE_SCREEN_OFF_BALANCED_INTERVAL_MS);
                 mLeAudioAllowList = properties.getString(LE_AUDIO_ALLOW_LIST, "");
 
                 if (mLeAudioAllowList.isEmpty()) {
@@ -6969,11 +7467,11 @@ public class AdapterService extends Service {
     }
 
     /**
-     *  Obfuscate Bluetooth MAC address into a PII free ID string
+     * Obfuscate Bluetooth MAC address into a PII free ID string
      *
-     *  @param device Bluetooth device whose MAC address will be obfuscated
-     *  @return a byte array that is unique to this MAC address on this device,
-     *          or empty byte array when either device is null or obfuscateAddressNative fails
+     * @param device Bluetooth device whose MAC address will be obfuscated
+     * @return a byte array that is unique to this MAC address on this device, or empty byte array
+     *     when either device is null or obfuscateAddressNative fails
      */
     public byte[] obfuscateAddress(BluetoothDevice device) {
         if (device == null) {
@@ -6985,10 +7483,10 @@ public class AdapterService extends Service {
     /**
      * Get dynamic audio buffer size supported type
      *
-     * @return support <p>Possible values are
-     * {@link BluetoothA2dp#DYNAMIC_BUFFER_SUPPORT_NONE},
-     * {@link BluetoothA2dp#DYNAMIC_BUFFER_SUPPORT_A2DP_OFFLOAD},
-     * {@link BluetoothA2dp#DYNAMIC_BUFFER_SUPPORT_A2DP_SOFTWARE_ENCODING}.
+     * @return support
+     *     <p>Possible values are {@link BluetoothA2dp#DYNAMIC_BUFFER_SUPPORT_NONE}, {@link
+     *     BluetoothA2dp#DYNAMIC_BUFFER_SUPPORT_A2DP_OFFLOAD}, {@link
+     *     BluetoothA2dp#DYNAMIC_BUFFER_SUPPORT_A2DP_SOFTWARE_ENCODING}.
      */
     public int getDynamicBufferSupport() {
         return mAdapterProperties.getDynamicBufferSupport();
@@ -7015,10 +7513,10 @@ public class AdapterService extends Service {
     }
 
     /**
-     *  Get an incremental id of Bluetooth metrics and log
+     * Get an incremental id of Bluetooth metrics and log
      *
-     *  @param device Bluetooth device
-     *  @return int of id for Bluetooth metrics and logging, 0 if the device is invalid
+     * @param device Bluetooth device
+     * @return int of id for Bluetooth metrics and logging, 0 if the device is invalid
      */
     public int getMetricId(BluetoothDevice device) {
         if (device == null) {
@@ -7032,10 +7530,10 @@ public class AdapterService extends Service {
     }
 
     /**
-     *  Call for the AdapterService receives bond state change
+     * Call for the AdapterService receives bond state change
      *
-     *  @param device Bluetooth device
-     *  @param state bond state
+     * @param device Bluetooth device
+     * @param state bond state
      */
     public void onBondStateChanged(BluetoothDevice device, int state) {
         if (mBtCompanionManager != null) {
@@ -7106,40 +7604,36 @@ public class AdapterService extends Service {
     }
 
     /**
-     *  Allow audio low latency
+     * Allow audio low latency
      *
-     *  @param allowed true if audio low latency is being allowed
-     *  @param device device whose audio low latency will be allowed or disallowed
-     *  @return boolean true if audio low latency is successfully allowed or disallowed
+     * @param allowed true if audio low latency is being allowed
+     * @param device device whose audio low latency will be allowed or disallowed
+     * @return boolean true if audio low latency is successfully allowed or disallowed
      */
     public boolean allowLowLatencyAudio(boolean allowed, BluetoothDevice device) {
         return allowLowLatencyAudioNative(allowed, Utils.getByteAddress(device));
     }
 
     /**
-     *  get remote PBAP PCE version.
+     * get remote PBAP PCE version.
      *
-     *  @param address of remote device
-     *  @return int value other than 0  if remote PBAP PCE version is found
+     * @param address of remote device
+     * @return int value other than 0 if remote PBAP PCE version is found
      */
-
     public int getRemotePbapPceVersion(String address) {
         return getRemotePbapPceVersionNative(address);
     }
 
     /**
-     *  check, if PBAP PSE dynamic version upgrade is enabled.
+     * check, if PBAP PSE dynamic version upgrade is enabled.
      *
-     *  @return true/false.
+     * @return true/false.
      */
-
     public boolean pbapPseDynamicVersionUpgradeIsEnabled() {
         return pbapPseDynamicVersionUpgradeIsEnabledNative();
     }
 
-    /**
-     * Sets the battery level of the remote device
-     */
+    /** Sets the battery level of the remote device */
     public void setBatteryLevel(BluetoothDevice device, int batteryLevel) {
         if (batteryLevel == BATTERY_LEVEL_UNKNOWN) {
             mRemoteDevices.resetBatteryLevel(device);
@@ -7160,8 +7654,7 @@ public class AdapterService extends Service {
         return interopMatchAddrOrNameNative(feature.name(), address);
     }
 
-    public void interopDatabaseAddAddr(InteropFeature feature,
-            String address, int length) {
+    public void interopDatabaseAddAddr(InteropFeature feature, String address, int length) {
         interopDatabaseAddRemoveAddrNative(true, feature.name(), address, length);
     }
 
@@ -7194,11 +7687,11 @@ public class AdapterService extends Service {
     }
 
     /**
-     *  Checks the remote device is in the LE Audio allow list or not.
+     * Checks the remote device is in the LE Audio allow list or not.
      *
-     *  @param device the device to check
-     *  @return boolean true if le audio allow list is not enabled or the device
-     *          is in the allow list, false otherwise.
+     * @param device the device to check
+     * @return boolean true if le audio allow list is not enabled or the device is in the allow
+     *     list, false otherwise.
      */
     public boolean isLeAudioAllowed(BluetoothDevice device) {
         if (!mLeAudioAllowListEnabled) {
@@ -7207,22 +7700,24 @@ public class AdapterService extends Service {
 
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
 
-        if (deviceProp == null || deviceProp.getModelName() == null
+        if (deviceProp == null
+                || deviceProp.getModelName() == null
                 || !mLeAudioAllowDevices.contains(deviceProp.getModelName())) {
 
             if (mLeAudioService != null) {
-                mLeAudioService.setConnectionPolicy(device,
-                        BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+                mLeAudioService.setConnectionPolicy(
+                        device, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
             }
 
-            Log.e(TAG, String.format("Device %s not in the LE Audio allow list, ", device)
-                    + "force LE Audio policy to forbidden");
+            Log.e(
+                    TAG,
+                    String.format("Device %s not in the LE Audio allow list, ", device)
+                            + "force LE Audio policy to forbidden");
             return false;
         }
 
         if (mLeAudioService != null) {
-            mLeAudioService.setConnectionPolicy(device,
-                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            mLeAudioService.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         }
 
         return true;
@@ -7257,8 +7752,12 @@ public class AdapterService extends Service {
 
     static native void classInitNative();
 
-    native boolean initNative(boolean startRestricted, boolean isCommonCriteriaMode,
-            int configCompareResult, String[] initFlags, boolean isAtvDevice,
+    native boolean initNative(
+            boolean startRestricted,
+            boolean isCommonCriteriaMode,
+            int configCompareResult,
+            String[] initFlags,
+            boolean isAtvDevice,
             String userDataDirectory);
 
     native void cleanupNative();
@@ -7291,8 +7790,8 @@ public class AdapterService extends Service {
     public native boolean createBondNative(byte[] address, int addressType, int transport);
 
     /*package*/
-    native boolean createBondOutOfBandNative(byte[] address, int transport,
-            OobData p192Data, OobData p256Data);
+    native boolean createBondOutOfBandNative(
+            byte[] address, int transport, OobData p192Data, OobData p256Data);
 
     /*package*/
     public native boolean removeBondNative(byte[] address);
@@ -7353,13 +7852,19 @@ public class AdapterService extends Service {
     private native void metadataChangedNative(byte[] address, int key, byte[] value);
 
     private native boolean interopMatchAddrNative(String featureName, String address);
+
     private native boolean interopMatchNameNative(String featureName, String name);
+
     private native boolean interopMatchAddrOrNameNative(String featureName, String address);
-    private native void interopDatabaseAddRemoveAddrNative(boolean doAdd,
-            String featureName, String address, int length);
-    private native void interopDatabaseAddRemoveNameNative(boolean doAdd,
-            String featureBame, String name);
+
+    private native void interopDatabaseAddRemoveAddrNative(
+            boolean doAdd, String featureName, String address, int length);
+
+    private native void interopDatabaseAddRemoveNameNative(
+            boolean doAdd, String featureBame, String name);
+
     private native int getRemotePbapPceVersionNative(String address);
+
     private native boolean pbapPseDynamicVersionUpgradeIsEnabledNative();
 
     // Returns if this is a mock object. This is currently used in testing so that we may not call
