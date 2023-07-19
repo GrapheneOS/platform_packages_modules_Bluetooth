@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include "common/init_flags.h"
 #include "hci/address.h"
 #include "hci/hci_packets.h"
 #include "hci/le_rand_callback.h"
@@ -219,24 +218,7 @@ class Controller : public Module {
   static constexpr uint64_t kLeEventMask42 = 0x00000000000003ff;
   static constexpr uint64_t kLeEventMask41 = 0x000000000000003f;
 
-  static uint64_t MaskLeEventMask(HciVersion version, uint64_t mask) {
-    if (!common::init_flags::subrating_is_enabled()) {
-      mask = mask & ~(static_cast<uint64_t>(LLFeaturesBits::CONNECTION_SUBRATING_HOST_SUPPORT));
-    }
-    if (version >= HciVersion::V_5_3) {
-      return mask;
-    } else if (version >= HciVersion::V_5_2) {
-      return mask & kLeEventMask52;
-    } else if (version >= HciVersion::V_5_1) {
-      return mask & kLeEventMask51;
-    } else if (version >= HciVersion::V_5_0) {
-      return mask & kLeEventMask50;
-    } else if (version >= HciVersion::V_4_2) {
-      return mask & kLeEventMask42;
-    } else {
-      return mask & kLeEventMask41;
-    }
-  }
+  static uint64_t MaskLeEventMask(HciVersion version, uint64_t mask);
 
  protected:
   void ListDependencies(ModuleList* list) const override;
