@@ -109,7 +109,6 @@ cc_library_static {
         "le_audio/hal_verifier.cc",
         "le_audio/le_audio_health_status.cc",
         "le_audio/le_audio_log_history.cc",
-        "le_audio/le_audio_set_configuration_provider.cc",
         "le_audio/le_audio_set_configuration_provider_json.cc",
         "le_audio/le_audio_types.cc",
         "le_audio/le_audio_utils.cc",

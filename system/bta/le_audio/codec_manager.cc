@@ -95,8 +95,9 @@ struct codec_manager_impl {
                             kIsoDataPathPlatformDefault, {});
     btm_configure_data_path(btm_data_direction::CONTROLLER_TO_HOST,
                             kIsoDataPathPlatformDefault, {});
-    UpdateOffloadCapability(offloading_preference);
     SetCodecLocation(CodecLocation::ADSP);
+    le_audio::AudioSetConfigurationProvider::Initialize();
+    UpdateOffloadCapability(offloading_preference);
   }
   ~codec_manager_impl() {
     if (GetCodecLocation() != CodecLocation::HOST) {
@@ -105,6 +106,7 @@ struct codec_manager_impl {
       btm_configure_data_path(btm_data_direction::CONTROLLER_TO_HOST,
                               kIsoDataPathHci, {});
     }
+    le_audio::AudioSetConfigurationProvider::Cleanup();
   }
   CodecLocation GetCodecLocation(void) const { return codec_location_; }
 

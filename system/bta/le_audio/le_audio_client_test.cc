@@ -1399,7 +1399,7 @@ class UnicastTestNoInit : public Test {
 
     if (LeAudioClient::IsLeAudioClientRunning()) {
       EXPECT_CALL(mock_gatt_interface_, AppDeregister(gatt_if)).Times(1);
-      LeAudioClient::Cleanup(base::DoNothing());
+      LeAudioClient::Cleanup();
       ASSERT_FALSE(LeAudioClient::IsLeAudioClientRunning());
     }
 

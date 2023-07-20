@@ -167,7 +167,7 @@ class MockLeAudioGroupStateMachineCallbacks
   MOCK_METHOD((void), OnStateTransitionTimeout, (int group_id), (override));
 };
 
-class StateMachineTest : public Test {
+class StateMachineTestBase : public Test {
  protected:
   uint8_t ase_id_last_assigned = types::ase::kAseIdInvalid;
   uint8_t additional_snk_ases = 0;
@@ -181,7 +181,7 @@ class StateMachineTest : public Test {
   uint8_t overwrite_cis_status_idx_;
   std::vector<uint8_t> cis_status_;
 
-  void SetUp() override {
+  virtual void SetUp() override {
     bluetooth::common::InitFlags::Load(test_flags);
     reset_mock_function_count_map();
     controller::SetMockControllerInterface(&mock_controller_);
@@ -243,7 +243,6 @@ class StateMachineTest : public Test {
         }));
 
     ConfigureIsoManagerMock();
-    ConfigCodecManagerMock();
   }
 
   void HandleCtpOperation(LeAudioDevice* device, std::vector<uint8_t> value,
@@ -455,7 +454,7 @@ class StateMachineTest : public Test {
         });
   }
 
-  void ConfigCodecManagerMock() {
+  void ConfigCodecManagerMock(types::CodecLocation location) {
     codec_manager_ = le_audio::CodecManager::GetInstance();
     ASSERT_NE(codec_manager_, nullptr);
     std::vector<bluetooth::le_audio::btle_audio_codec_config_t>
@@ -464,7 +463,7 @@ class StateMachineTest : public Test {
     mock_codec_manager_ = MockCodecManager::GetInstance();
     ASSERT_NE(mock_codec_manager_, nullptr);
     ON_CALL(*mock_codec_manager_, GetCodecLocation())
-        .WillByDefault(Return(types::CodecLocation::HOST));
+        .WillByDefault(Return(location));
   }
 
   void TearDown() override {
@@ -1287,6 +1286,20 @@ class StateMachineTest : public Test {
   std::map<uint8_t, std::unique_ptr<LeAudioDeviceGroup>>
       le_audio_device_groups_;
   bool group_create_command_disallowed_ = false;
+};
+
+class StateMachineTest : public StateMachineTestBase {
+  void SetUp() override {
+    ConfigCodecManagerMock(types::CodecLocation::HOST);
+    StateMachineTestBase::SetUp();
+  }
+};
+
+class StateMachineTestAdsp : public StateMachineTestBase {
+  void SetUp() override {
+    ConfigCodecManagerMock(types::CodecLocation::ADSP);
+    StateMachineTestBase::SetUp();
+  }
 };
 
 TEST_F(StateMachineTest, testInit) {
@@ -3348,9 +3361,7 @@ TEST_F(StateMachineTest, testConfigureDataPathForHost) {
   /* Can be called for every context when fetching the configuration from the
    * AudioSetConfigurationProvider.
    */
-  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation())
-      .Times(AtLeast(1))
-      .WillRepeatedly(Return(types::CodecLocation::HOST));
+  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation()).Times(AtLeast(1));
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
@@ -3376,7 +3387,8 @@ TEST_F(StateMachineTest, testConfigureDataPathForHost) {
       {.sink = types::AudioContexts(context_type),
        .source = types::AudioContexts(context_type)}));
 }
-TEST_F(StateMachineTest, testConfigureDataPathForAdsp) {
+
+TEST_F(StateMachineTestAdsp, testConfigureDataPathForAdsp) {
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
   channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
@@ -3385,9 +3397,7 @@ TEST_F(StateMachineTest, testConfigureDataPathForAdsp) {
   /* Can be called for every context when fetching the configuration from the
    * AudioSetConfigurationProvider.
    */
-  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation())
-      .Times(AtLeast(1))
-      .WillRepeatedly(Return(types::CodecLocation::ADSP));
+  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation()).Times(AtLeast(1));
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
@@ -3415,7 +3425,7 @@ TEST_F(StateMachineTest, testConfigureDataPathForAdsp) {
        .source = types::AudioContexts(context_type)}));
 }
 
-TEST_F(StateMachineTest, testStreamConfigurationAdspDownMix) {
+TEST_F(StateMachineTestAdsp, testStreamConfigurationAdspDownMix) {
   const auto context_type = kContextTypeConversational;
   const int leaudio_group_id = 4;
   const int num_devices = 2;
@@ -3428,9 +3438,7 @@ TEST_F(StateMachineTest, testStreamConfigurationAdspDownMix) {
   /* Can be called for every context when fetching the configuration from the
    * AudioSetConfigurationProvider.
    */
-  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation())
-      .Times(AtLeast(1))
-      .WillRepeatedly(Return(types::CodecLocation::ADSP));
+  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation()).Times(AtLeast(1));
 
   PrepareConfigureCodecHandler(group);
   PrepareConfigureQosHandler(group);
