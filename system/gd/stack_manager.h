@@ -44,6 +44,7 @@ class StackManager {
 
   void handle_start_up(ModuleList* modules, os::Thread* stack_thread, std::promise<void> promise);
   void handle_shut_down(std::promise<void> promise);
+  static std::chrono::milliseconds get_gd_stack_timeout_ms(bool is_start);
 };
 
 }  // namespace bluetooth
