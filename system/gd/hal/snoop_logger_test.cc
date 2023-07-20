@@ -116,7 +116,6 @@ using namespace std::chrono_literals;
 const char* test_flags[] = {
     "INIT_logging_debug_enabled_for_all=true",
     "INIT_gd_hal_snoop_logger_socket=true",
-    "INIT_gd_hal_snoop_logger_filtering=true",
     nullptr,
 };
 
