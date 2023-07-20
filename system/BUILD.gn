@@ -119,12 +119,6 @@ config("target_defaults") {
     "TARGET_FLOSS",
     "EXPORT_SYMBOL=__attribute__((visibility(\"default\")))",
     "FALLTHROUGH_INTENDED=[[clang::fallthrough]]",
-    # BTIF_HF_FEATURES is not actually passed to btadapterd.
-    # These features are hardcoded in system/btif/src/btif_hf.cc
-    # BTA_AG_FEAT_ECS (Enhanced Call Status 0x040) |
-    # BTA_AG_FEAT_CODEC (Codec Negotiation 0x200) |
-    # BTA_AG_FEAT_UNAT (Codec Negotiation 0x20000)
-    "BTIF_HF_FEATURES=0x00020240",
   ]
 
   if (!(defined(use.bt_nonstandard_codecs) && use.bt_nonstandard_codecs)) {

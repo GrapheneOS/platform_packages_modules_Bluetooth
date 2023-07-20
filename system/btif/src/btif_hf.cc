@@ -166,7 +166,8 @@ static uint32_t get_hf_features() {
           DEFAULT_BTIF_HF_FEATURES);
   return hf_features;
 #elif TARGET_FLOSS
-  return BTA_AG_FEAT_ECS | BTA_AG_FEAT_CODEC | BTA_AG_FEAT_UNAT;
+  return BTA_AG_FEAT_ECS | BTA_AG_FEAT_CODEC | BTA_AG_FEAT_UNAT |
+         BTA_AG_FEAT_HF_IND;
 #else
   return DEFAULT_BTIF_HF_FEATURES;
 #endif
