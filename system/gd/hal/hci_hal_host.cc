@@ -60,7 +60,6 @@ constexpr uint16_t HCI_DEV_NONE = 0xffff;
 
 /* reference from <kernel>/include/net/bluetooth/mgmt.h */
 #define MGMT_OP_INDEX_LIST 0x0003
-#define MGMT_EV_INDEX_ADDED 0x0004
 #define MGMT_EV_COMMAND_COMP 0x0001
 #define MGMT_EV_SIZE_MAX 1024
 #define REPEAT_ON_INTR(fn) \
@@ -145,23 +144,32 @@ int waitHciDev(int hci_interface) {
         break;
       }
 
-      if (ev.opcode == MGMT_EV_INDEX_ADDED && ev.index == hci_interface) {
-        close(fd);
-        return -1;
-      } else if (ev.opcode == MGMT_EV_COMMAND_COMP) {
+      if (ev.opcode == MGMT_EV_COMMAND_COMP) {
         struct mgmt_event_read_index* cc;
         int i;
 
         cc = (struct mgmt_event_read_index*)ev.data;
 
-        if (cc->cc_opcode != MGMT_OP_INDEX_LIST || cc->status != 0) continue;
+        if (cc->cc_opcode != MGMT_OP_INDEX_LIST) continue;
 
-        for (i = 0; i < cc->num_intf; i++) {
-          if (cc->index[i] == hci_interface) {
-            close(fd);
-            return 0;
+        // Find the interface in the list of available indices. If unavailable,
+        // the result is -1.
+        ret = -1;
+        if (cc->status == 0) {
+          for (i = 0; i < cc->num_intf; i++) {
+            if (cc->index[i] == hci_interface) {
+              ret = 0;
+              break;
+            }
           }
+        } else {
+          // Unlikely event (probably developer error or driver shut down).
+          LOG_ERROR("Failed to read index list: status(%d)", cc->status);
         }
+
+        // Close and return result of Index List.
+        close(fd);
+        return ret;
       }
     }
   }
