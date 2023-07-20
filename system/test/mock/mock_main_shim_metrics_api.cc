@@ -106,10 +106,11 @@ void bluetooth::shim::LogMetricA2dpPlaybackEvent(const RawAddress& raw_address,
 }
 void bluetooth::shim::LogMetricHfpPacketLossStats(const RawAddress& raw_address,
                                                   int num_decoded_frames,
-                                                  double packet_loss_ratio) {
+                                                  double packet_loss_ratio,
+                                                  uint16_t codec_type) {
   inc_func_call_count(__func__);
   test::mock::main_shim_metrics_api::LogMetricHfpPacketLossStats(
-      raw_address, num_decoded_frames, packet_loss_ratio);
+      raw_address, num_decoded_frames, packet_loss_ratio, codec_type);
 }
 void bluetooth::shim::LogMetricReadRssiResult(const RawAddress& raw_address,
                                               uint16_t handle,
