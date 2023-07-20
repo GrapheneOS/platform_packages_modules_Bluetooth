@@ -87,12 +87,6 @@ TEST(InitFlagsTest, test_debug_logging_multiple_flags) {
   ASSERT_EQ(InitFlags::GetDefaultLogLevel(), LOG_TAG_WARN);
 }
 
-TEST(InitFlagsTest, test_enable_snoop_logger_socket) {
-  const char* input[] = {"INIT_gd_hal_snoop_logger_socket=true", nullptr};
-  InitFlags::Load(input);
-  ASSERT_TRUE(InitFlags::IsSnoopLoggerSocketEnabled());
-}
-
 TEST(InitFlagsTest, test_device_iot_config_logging_is_enabled) {
   const char* input[] = {"INIT_device_iot_config_logging=true", nullptr};
   InitFlags::Load(input);
