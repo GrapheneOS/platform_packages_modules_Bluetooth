@@ -56,4 +56,5 @@ void log_counter_metrics(android::bluetooth::CodePathCounterKeyEnum key,
 
 void log_hfp_audio_packet_loss_stats(const RawAddress& address,
                                      int num_decoded_frames,
-                                     double packet_loss_ratio);
+                                     double packet_loss_ratio,
+                                     uint16_t codec_type);

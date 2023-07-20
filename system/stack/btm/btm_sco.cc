@@ -55,6 +55,7 @@
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/hci_error_code.h"
+#include "stack/include/sdpdefs.h"
 #include "stack/include/stack_metrics_logging.h"
 #include "types/class_of_device.h"
 #include "types/raw_address.h"
@@ -1244,21 +1245,27 @@ void btm_sco_on_disconnected(uint16_t hci_handle, tHCI_REASON reason) {
           p_sco->esco.setup.transmit_coding_format.coding_format));
 
   if (p_sco->is_inband()) {
-    if (p_sco->is_swb()) {
-      /* TODO: log PLC stats */
-      bluetooth::audio::sco::swb::cleanup();
-    } else if (p_sco->is_wbs()) {
+    if (p_sco->is_wbs() || p_sco->is_swb()) {
+      auto fill_plc_stats = p_sco->is_swb()
+                                ? bluetooth::audio::sco::swb::fill_plc_stats
+                                : bluetooth::audio::sco::wbs::fill_plc_stats;
+
       int num_decoded_frames;
       double packet_loss_ratio;
-      if (bluetooth::audio::sco::wbs::fill_plc_stats(&num_decoded_frames,
-                                                     &packet_loss_ratio)) {
+      if (fill_plc_stats(&num_decoded_frames, &packet_loss_ratio)) {
+        const uint16_t codec_type =
+            p_sco->is_swb() ? UUID_CODEC_LC3 : UUID_CODEC_MSBC;
+
         log_hfp_audio_packet_loss_stats(bd_addr, num_decoded_frames,
-                                        packet_loss_ratio);
+                                        packet_loss_ratio, codec_type);
       } else {
         LOG_WARN("Failed to get the packet loss stats");
       }
 
-      bluetooth::audio::sco::wbs::cleanup();
+      auto cleanup = p_sco->is_swb() ? bluetooth::audio::sco::swb::cleanup
+                                     : bluetooth::audio::sco::wbs::cleanup;
+
+      cleanup();
     }
 
     bluetooth::audio::sco::cleanup();
