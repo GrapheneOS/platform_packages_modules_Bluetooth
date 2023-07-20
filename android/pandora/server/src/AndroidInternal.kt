@@ -17,11 +17,13 @@
 package com.android.pandora
 
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothDevicePicker
 import android.bluetooth.BluetoothManager
 import android.content.ComponentName
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Environment
@@ -43,8 +45,12 @@ import java.io.File
 import java.io.FileOutputStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.shareIn
 import pandora.AndroidGrpc.AndroidImplBase
 import pandora.AndroidProto.*
 
@@ -54,6 +60,7 @@ private const val TAG = "PandoraAndroidInternal"
 class AndroidInternal(val context: Context) : AndroidImplBase(), Closeable {
 
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
+    private val flow: Flow<Intent>
     private val INCOMING_FILE_ACCEPT_BTN = "ACCEPT"
     private val INCOMING_FILE_TITLE = "Incoming file"
     private val INCOMING_FILE_WAIT_TIMEOUT = 2000L
@@ -73,6 +80,10 @@ class AndroidInternal(val context: Context) : AndroidImplBase(), Closeable {
 
     init {
         createImageFile()
+
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(BluetoothDevice.ACTION_FOUND)
+        flow = intentFlow(context, intentFilter, scope).shareIn(scope, SharingStarted.Eagerly)
     }
 
     override fun close() {
@@ -150,8 +161,12 @@ class AndroidInternal(val context: Context) : AndroidImplBase(), Closeable {
 
     override fun sendFile(request: SendFileRequest, responseObserver: StreamObserver<Empty>) {
         grpcUnary<Empty>(scope, responseObserver) {
+            val bluetoothDevice = request.address.toBluetoothDevice(bluetoothAdapter)
             initiateSendFile(getImageId(IMAGE_FILE_NAME), "image/bmp")
-            waitAndSelectBluetoothDevice(request.name)
+            waitBluetoothDevice(bluetoothDevice)
+            val intent = Intent(BluetoothDevicePicker.ACTION_DEVICE_SELECTED)
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bluetoothDevice)
+            context.sendBroadcast(intent)
             Empty.getDefaultInstance()
         }
     }
@@ -164,14 +179,15 @@ class AndroidInternal(val context: Context) : AndroidImplBase(), Closeable {
         }
     }
 
-    suspend private fun waitAndSelectBluetoothDevice(name: String) {
-        var selectJob =
-            scope.async {
-                device
-                    .wait(Until.findObject(By.textContains(name)), BT_DEVICE_SELECT_WAIT_TIMEOUT)
-                    .click()
+    suspend private fun waitBluetoothDevice(bluetoothDevice: BluetoothDevice) {
+        bluetoothAdapter.startDiscovery()
+        flow
+            .filter {
+                it.action == BluetoothDevice.ACTION_FOUND &&
+                    it.getBluetoothDeviceExtra() == bluetoothDevice
             }
-        selectJob.await()
+            .first()
+        bluetoothAdapter.cancelDiscovery()
     }
 
     private fun initiateSendFile(imageId: Long, type: String) {

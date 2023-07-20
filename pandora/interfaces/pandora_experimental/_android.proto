@@ -4,6 +4,7 @@ option java_outer_classname = "AndroidProto";
 
 package pandora;
 
+import "pandora/host.proto";
 import "google/protobuf/empty.proto";
 
 // This file contains Android-specific protos and rpcs that should not be part
@@ -47,8 +48,8 @@ message SetAccessPermissionRequest {
 }
 
 message SendFileRequest {
-  // Peer Bluetooth Device name.
-  string name = 1;
+  // Peer Bluetooth Device Address as array of 6 bytes.
+  bytes address = 1;
 }
 
 // Internal representation of a Connection - not exposed to clients, included here
