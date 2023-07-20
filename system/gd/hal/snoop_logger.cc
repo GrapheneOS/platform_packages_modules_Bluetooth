@@ -1254,7 +1254,7 @@ void SnoopLogger::Capture(HciPacket& packet, Direction direction, PacketType typ
 
     if (socket_ != nullptr) {
       socket_->Write(&header, sizeof(PacketHeaderType));
-      socket_->Write(packet.data(), packet.size());
+      socket_->Write(packet.data(), (size_t)(length - 1));
     }
 
     // std::ofstream::flush() pushes user data into kernel memory. The data will be written even if this process
