@@ -193,12 +193,12 @@ extern struct log_counter_metrics log_counter_metrics;
 // Name: log_hfp_audio_packet_loss_stats
 struct log_hfp_audio_packet_loss_stats {
   std::function<void(const RawAddress& address, int num_decoded_frames,
-                     double packet_loss_ratio)>
+                     double packet_loss_ratio, uint16_t codec_type)>
       body{[](const RawAddress& address, int num_decoded_frames,
-              double packet_loss_ratio) {}};
+              double packet_loss_ratio, uint16_t codec_type) {}};
   void operator()(const RawAddress& address, int num_decoded_frames,
-                  double packet_loss_ratio) {
-    body(address, num_decoded_frames, packet_loss_ratio);
+                  double packet_loss_ratio, uint16_t codec_type) {
+    body(address, num_decoded_frames, packet_loss_ratio, codec_type);
   };
 };
 extern struct log_hfp_audio_packet_loss_stats log_hfp_audio_packet_loss_stats;

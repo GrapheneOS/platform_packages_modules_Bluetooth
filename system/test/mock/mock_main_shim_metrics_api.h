@@ -131,15 +131,15 @@ struct LogMetricA2dpPlaybackEvent {
 extern struct LogMetricA2dpPlaybackEvent LogMetricA2dpPlaybackEvent;
 // Name: LogMetricHfpPacketLossStats
 // Params: const RawAddress& raw_address, int num_decoded_frames, double
-// packet_loss_ratio Returns: void
+// packet_loss_ratio, uint16_t codec_type Returns: void
 struct LogMetricHfpPacketLossStats {
   std::function<void(const RawAddress& raw_address, int num_decoded_frames,
-                     double packet_loss_ratio)>
+                     double packet_loss_ratio, uint16_t codec_type)>
       body{[](const RawAddress& raw_address, int num_decoded_frames,
-              double packet_loss_ratio) {}};
+              double packet_loss_ratio, uint16_t codec_type) {}};
   void operator()(const RawAddress& raw_address, int num_decoded_frames,
-                  double packet_loss_ratio) {
-    body(raw_address, num_decoded_frames, packet_loss_ratio);
+                  double packet_loss_ratio, uint16_t codec_type) {
+    body(raw_address, num_decoded_frames, packet_loss_ratio, codec_type);
   };
 };
 extern struct LogMetricHfpPacketLossStats LogMetricHfpPacketLossStats;
