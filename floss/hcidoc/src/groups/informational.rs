@@ -145,6 +145,17 @@ struct AclInformation {
     initiator: InitiatorType,
 }
 
+impl AclInformation {
+    pub fn new(handle: ConnectionHandle) -> Self {
+        AclInformation {
+            start_time: INVALID_TS,
+            end_time: INVALID_TS,
+            handle: handle,
+            initiator: InitiatorType::Unknown,
+        }
+    }
+}
+
 impl fmt::Display for AclInformation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fn print_time(ts: NaiveDateTime) -> String {
@@ -174,11 +185,17 @@ impl fmt::Display for AclInformation {
 struct InformationalRule {
     devices: HashMap<Address, DeviceInformation>,
     handles: HashMap<ConnectionHandle, Address>,
+    // unknownConnections store connections which is initiated before btsnoop starts.
+    unknown_connections: HashMap<ConnectionHandle, AclInformation>,
 }
 
 impl InformationalRule {
     pub fn new() -> Self {
-        InformationalRule { devices: HashMap::new(), handles: HashMap::new() }
+        InformationalRule {
+            devices: HashMap::new(),
+            handles: HashMap::new(),
+            unknown_connections: HashMap::new(),
+        }
     }
 
     fn get_or_allocate_device(&mut self, address: &Address) -> &mut DeviceInformation {
@@ -186,6 +203,16 @@ impl InformationalRule {
             self.devices.insert(*address, DeviceInformation::new(*address));
         }
         return self.devices.get_mut(address).unwrap();
+    }
+
+    fn get_or_allocate_unknown_connection(
+        &mut self,
+        handle: &ConnectionHandle,
+    ) -> &mut AclInformation {
+        if !self.unknown_connections.contains_key(handle) {
+            self.unknown_connections.insert(*handle, AclInformation::new(*handle));
+        }
+        return self.unknown_connections.get_mut(handle).unwrap();
     }
 
     fn report_address_type(&mut self, address: &Address, address_type: AddressType) {
@@ -222,7 +249,8 @@ impl InformationalRule {
 
     fn report_connection_end(&mut self, handle: ConnectionHandle, ts: NaiveDateTime) {
         if !self.handles.contains_key(&handle) {
-            // For simplicity we can't process unknown handle. This probably can be improved.
+            let conn = self.get_or_allocate_unknown_connection(&handle);
+            conn.end_time = ts;
             return;
         }
         let info = self.get_or_allocate_device(&self.handles.get(&handle).unwrap().clone());
@@ -467,6 +495,16 @@ impl Rule for InformationalRule {
         addresses.sort_unstable_by(|a, b| sort_addresses(&self.devices[a], &self.devices[b]));
 
         let _ = writeln!(writer, "InformationalRule report:");
+        if !self.unknown_connections.is_empty() {
+            let _ = writeln!(
+                writer,
+                "Connections initiated before snoop start, {} connections",
+                self.unknown_connections.len()
+            );
+            for (_, acl) in &self.unknown_connections {
+                let _ = write!(writer, "{}", acl);
+            }
+        }
         for address in addresses {
             let _ = write!(writer, "{}", self.devices[&address]);
         }
