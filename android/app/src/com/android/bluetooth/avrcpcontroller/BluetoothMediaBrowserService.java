@@ -230,14 +230,16 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
         if (DBG) Log.d(TAG, "onLoadChildren parentMediaId= " + parentMediaId);
         BrowseResult contents = getContents(parentMediaId);
         byte status = contents.getStatus();
-        if (status == BrowseResult.DOWNLOAD_PENDING && contents == null) {
-            Log.i(TAG, "Download pending - no contents, id= " + parentMediaId);
+        List<MediaItem> results = contents.getResults();
+        if (status == BrowseResult.DOWNLOAD_PENDING && results == null) {
+            Log.i(TAG, "Download pending - no results, id= " + parentMediaId);
             result.detach();
         } else {
             if (DBG) {
-                Log.d(TAG, "id= " + parentMediaId + ", status= " + contents.getStatusString());
+                Log.d(TAG, "id= " + parentMediaId + ", status= " + contents.getStatusString()
+                        + ", results=" + results);
             }
-            result.sendResult(contents.getResults());
+            result.sendResult(results);
         }
     }
 
