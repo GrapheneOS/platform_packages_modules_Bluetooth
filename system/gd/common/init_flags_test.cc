@@ -99,12 +99,6 @@ TEST(InitFlagsTest, test_device_iot_config_logging_is_enabled) {
   ASSERT_TRUE(InitFlags::IsDeviceIotConfigLoggingEnabled());
 }
 
-TEST(InitFlagsTest, test_enable_snoop_logger_filtering) {
-  const char* input[] = {"INIT_gd_hal_snoop_logger_filtering=true", nullptr};
-  InitFlags::Load(input);
-  ASSERT_TRUE(InitFlags::IsSnoopLoggerFilteringEnabled());
-}
-
 TEST(InitFlagsTest, test_enable_bluetooth_quality_report_callback) {
   const char* input[] = {"INIT_bluetooth_quality_report_callback=true", nullptr};
   InitFlags::Load(input);

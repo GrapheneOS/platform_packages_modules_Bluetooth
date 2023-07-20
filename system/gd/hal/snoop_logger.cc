@@ -496,11 +496,6 @@ SnoopLogger::SnoopLogger(
       snoop_log_persists(snoop_log_persists) {
   btsnoop_mode_ = btsnoop_mode;
 
-  if (btsnoop_mode_ == kBtSnoopLogModeFiltered &&
-      !bluetooth::common::InitFlags::IsSnoopLoggerFilteringEnabled()) {
-    btsnoop_mode_ = kBtSnoopLogModeDisabled;
-  }
-
   if (btsnoop_mode_ == kBtSnoopLogModeFiltered) {
     LOG_INFO("Snoop Logs filtered mode enabled");
     EnableFilters();
