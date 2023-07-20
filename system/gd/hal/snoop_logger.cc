@@ -1322,18 +1322,17 @@ void SnoopLogger::Start() {
       EnableFilters();
     }
 
-    if (bluetooth::common::InitFlags::IsSnoopLoggerSocketEnabled()) {
-      auto snoop_logger_socket = std::make_unique<SnoopLoggerSocket>(&syscall_if);
-      snoop_logger_socket_thread_ = std::make_unique<SnoopLoggerSocketThread>(std::move(snoop_logger_socket));
-      auto thread_started_future = snoop_logger_socket_thread_->Start();
-      thread_started_future.wait();
-      if (thread_started_future.get()) {
-        RegisterSocket(snoop_logger_socket_thread_.get());
-      } else {
-        snoop_logger_socket_thread_->Stop();
-        snoop_logger_socket_thread_.reset();
-        snoop_logger_socket_thread_ = nullptr;
-      }
+    auto snoop_logger_socket = std::make_unique<SnoopLoggerSocket>(&syscall_if);
+    snoop_logger_socket_thread_ =
+        std::make_unique<SnoopLoggerSocketThread>(std::move(snoop_logger_socket));
+    auto thread_started_future = snoop_logger_socket_thread_->Start();
+    thread_started_future.wait();
+    if (thread_started_future.get()) {
+      RegisterSocket(snoop_logger_socket_thread_.get());
+    } else {
+      snoop_logger_socket_thread_->Stop();
+      snoop_logger_socket_thread_.reset();
+      snoop_logger_socket_thread_ = nullptr;
     }
   }
   alarm_ = std::make_unique<os::RepeatingAlarm>(GetHandler());
