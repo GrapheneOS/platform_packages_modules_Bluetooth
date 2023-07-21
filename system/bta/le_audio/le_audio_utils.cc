@@ -150,9 +150,8 @@ static const char* audioSourceToStr(audio_source_t source) {
   return "UNKNOWN";
 }
 
-AudioContexts GetAllowedAudioContextsFromSourceMetadata(
-    const std::vector<struct playback_track_metadata>& source_metadata,
-    AudioContexts allowed_contexts) {
+AudioContexts GetAudioContextsFromSourceMetadata(
+    const std::vector<struct playback_track_metadata>& source_metadata) {
   AudioContexts track_contexts;
   for (auto& track : source_metadata) {
     if (track.content_type == 0 && track.usage == 0) continue;
@@ -165,16 +164,11 @@ AudioContexts GetAllowedAudioContextsFromSourceMetadata(
     track_contexts.set(
         AudioContentToLeAudioContext(track.content_type, track.usage));
   }
-  track_contexts &= allowed_contexts;
-  LOG_INFO("%s: allowed context= %s", __func__,
-           track_contexts.to_string().c_str());
-
   return track_contexts;
 }
 
-AudioContexts GetAllowedAudioContextsFromSinkMetadata(
-    const std::vector<struct record_track_metadata>& sink_metadata,
-    AudioContexts allowed_contexts) {
+AudioContexts GetAudioContextsFromSinkMetadata(
+    const std::vector<struct record_track_metadata>& sink_metadata) {
   AudioContexts all_track_contexts;
 
   for (auto& track : sink_metadata) {
@@ -183,20 +177,17 @@ AudioContexts GetAllowedAudioContextsFromSinkMetadata(
 
     LOG_DEBUG(
         "source=%s(0x%02x), gain=%f, destination device=0x%08x, destination "
-        "device address=%.32s, allowed_contexts=%s",
+        "device address=%.32s",
         audioSourceToStr(track.source), track.source, track.gain,
-        track.dest_device, track.dest_device_address,
-        bluetooth::common::ToString(allowed_contexts).c_str());
+        track.dest_device, track.dest_device_address);
 
-    if ((track.source == AUDIO_SOURCE_MIC) &&
-        (allowed_contexts.test(LeAudioContextType::LIVE))) {
+    if (track.source == AUDIO_SOURCE_MIC) {
       track_context = LeAudioContextType::LIVE;
 
-    } else if ((track.source == AUDIO_SOURCE_VOICE_COMMUNICATION) &&
-               (allowed_contexts.test(LeAudioContextType::CONVERSATIONAL))) {
+    } else if (track.source == AUDIO_SOURCE_VOICE_COMMUNICATION) {
       track_context = LeAudioContextType::CONVERSATIONAL;
 
-    } else if (allowed_contexts.test(LeAudioContextType::VOICEASSISTANTS)) {
+    } else {
       /* Fallback to voice assistant
        * This will handle also a case when the device is
        * AUDIO_SOURCE_VOICE_RECOGNITION
