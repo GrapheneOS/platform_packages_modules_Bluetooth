@@ -29,7 +29,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.IBluetoothCallback;
 import android.companion.CompanionDeviceManager;
-import android.content.AttributionSource;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -58,31 +57,6 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.Utils;
-import com.android.bluetooth.a2dp.A2dpService;
-import com.android.bluetooth.a2dpsink.A2dpSinkService;
-import com.android.bluetooth.avrcp.AvrcpTargetService;
-import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
-import com.android.bluetooth.bas.BatteryService;
-import com.android.bluetooth.bass_client.BassClientService;
-import com.android.bluetooth.csip.CsipSetCoordinatorService;
-import com.android.bluetooth.gatt.GattService;
-import com.android.bluetooth.hap.HapClientService;
-import com.android.bluetooth.hearingaid.HearingAidService;
-import com.android.bluetooth.hfp.HeadsetService;
-import com.android.bluetooth.hfpclient.HeadsetClientService;
-import com.android.bluetooth.hid.HidDeviceService;
-import com.android.bluetooth.hid.HidHostService;
-import com.android.bluetooth.le_audio.LeAudioService;
-import com.android.bluetooth.map.BluetoothMapService;
-import com.android.bluetooth.mapclient.MapClientService;
-import com.android.bluetooth.mcp.McpService;
-import com.android.bluetooth.opp.BluetoothOppService;
-import com.android.bluetooth.pan.PanService;
-import com.android.bluetooth.pbap.BluetoothPbapService;
-import com.android.bluetooth.pbapclient.PbapClientService;
-import com.android.bluetooth.sap.SapService;
-import com.android.bluetooth.tbs.TbsService;
-import com.android.bluetooth.vc.VolumeControlService;
 import com.android.internal.app.IBatteryStats;
 
 import org.junit.After;
@@ -102,7 +76,6 @@ public class AdapterServiceRestartTest {
     private static final String TAG = AdapterServiceTest.class.getSimpleName();
 
     private AdapterService mAdapterService;
-    private AdapterService.AdapterServiceBinder mServiceBinder;
 
     private @Mock Context mMockContext;
     private @Mock ApplicationInfo mMockApplicationInfo;
@@ -130,59 +103,14 @@ public class AdapterServiceRestartTest {
     final BatteryStatsManager mBatteryStatsManager =
             new BatteryStatsManager(mock(IBatteryStats.class));
 
-    private final AttributionSource mAttributionSource = new AttributionSource.Builder(
-            Process.myUid()).build();
-
     private PackageManager mMockPackageManager;
     private MockContentResolver mMockContentResolver;
     private HashMap<String, HashMap<String, String>> mAdapterConfig;
     private int mForegroundUserId;
 
-    private void configureEnabledProfiles() {
-        Log.e(TAG, "configureEnabledProfiles");
-        Config.setProfileEnabled(PanService.class, true);
-        Config.setProfileEnabled(BluetoothPbapService.class, true);
-        Config.setProfileEnabled(GattService.class, true);
-
-        Config.setProfileEnabled(A2dpService.class, false);
-        Config.setProfileEnabled(A2dpSinkService.class, false);
-        Config.setProfileEnabled(AvrcpTargetService.class, false);
-        Config.setProfileEnabled(AvrcpControllerService.class, false);
-        Config.setProfileEnabled(BassClientService.class, false);
-        Config.setProfileEnabled(BatteryService.class, false);
-        Config.setProfileEnabled(CsipSetCoordinatorService.class, false);
-        Config.setProfileEnabled(HapClientService.class, false);
-        Config.setProfileEnabled(HeadsetService.class, false);
-        Config.setProfileEnabled(HeadsetClientService.class, false);
-        Config.setProfileEnabled(HearingAidService.class, false);
-        Config.setProfileEnabled(HidDeviceService.class, false);
-        Config.setProfileEnabled(HidHostService.class, false);
-        Config.setProfileEnabled(LeAudioService.class, false);
-        Config.setProfileEnabled(TbsService.class, false);
-        Config.setProfileEnabled(BluetoothMapService.class, false);
-        Config.setProfileEnabled(MapClientService.class, false);
-        Config.setProfileEnabled(McpService.class, false);
-        Config.setProfileEnabled(BluetoothOppService.class, false);
-        Config.setProfileEnabled(PbapClientService.class, false);
-        Config.setProfileEnabled(SapService.class, false);
-        Config.setProfileEnabled(VolumeControlService.class, false);
-    }
-
     @BeforeClass
     public static void setupClass() {
-        Log.e(TAG, "setupClass");
-        // Bring native layer up and down to make sure config files are properly loaded
-        if (Looper.myLooper() == null) {
-            Looper.prepare();
-        }
-        assertThat(Looper.myLooper()).isNotNull();
-        AdapterService adapterService = new AdapterService();
-        adapterService.initNative(false /* is_restricted */, false /* is_common_criteria_mode */,
-                0 /* config_compare_result */, new String[0], false, "");
-        adapterService.cleanupNative();
-        HashMap<String, HashMap<String, String>> adapterConfig = TestUtils.readAdapterConfig();
-        assertThat(adapterConfig).isNotNull();
-        assertThat(AdapterServiceTest.getMetricsSalt(adapterConfig)).isNotNull();
+        AdapterServiceTest.setupClass();
     }
 
     <T> void mockGetSystemService(String serviceName, Class<T> serviceClass, T mockService) {
@@ -210,7 +138,6 @@ public class AdapterServiceRestartTest {
 
         androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().runOnMainSync(
                 () -> mAdapterService = new AdapterService());
-        mServiceBinder = new AdapterService.AdapterServiceBinder(mAdapterService);
         mMockPackageManager = mock(PackageManager.class);
         when(mMockPackageManager.getPermissionInfo(any(), anyInt()))
                 .thenReturn(new PermissionInfo());
@@ -275,7 +202,6 @@ public class AdapterServiceRestartTest {
                 .thenReturn(InstrumentationRegistry.getTargetContext()
                         .getSharedPreferences("AdapterServiceTestPrefs", Context.MODE_PRIVATE));
 
-        when(mMockContext.getAttributionSource()).thenReturn(mAttributionSource);
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             return InstrumentationRegistry.getTargetContext().getDatabasePath((String) args[0]);
@@ -297,7 +223,7 @@ public class AdapterServiceRestartTest {
         when(mMockMetricsLogger.init(any())).thenReturn(true);
         when(mMockMetricsLogger.close()).thenReturn(true);
 
-        configureEnabledProfiles();
+        AdapterServiceTest.configureEnabledProfiles();
         Config.init(mMockContext);
 
         mAdapterService.setMetricsLogger(mMockMetricsLogger);
@@ -309,7 +235,7 @@ public class AdapterServiceRestartTest {
         // Wait for any async events to drain
         androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync();
 
-        mServiceBinder.registerCallback(mIBluetoothCallback, mAttributionSource);
+        mAdapterService.registerCallback(mIBluetoothCallback);
 
         mAdapterConfig = TestUtils.readAdapterConfig();
         assertThat(mAdapterConfig).isNotNull();
@@ -322,7 +248,7 @@ public class AdapterServiceRestartTest {
         // Restores the foregroundUserId to the ID prior to the test setup
         Utils.setForegroundUserId(mForegroundUserId);
 
-        mServiceBinder.unregisterCallback(mIBluetoothCallback, mAttributionSource);
+        mAdapterService.unregisterCallback(mIBluetoothCallback);
         mAdapterService.cleanup();
     }
 

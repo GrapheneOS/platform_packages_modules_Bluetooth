@@ -2426,9 +2426,8 @@ public class AdapterService extends Service {
             }
         }
 
-        @VisibleForTesting
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
-        int getScanMode(AttributionSource attributionSource) {
+        private int getScanMode(AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getScanMode")
@@ -2437,7 +2436,7 @@ public class AdapterService extends Service {
                 return BluetoothAdapter.SCAN_MODE_NONE;
             }
 
-            return service.mAdapterProperties.getScanMode();
+            return service.getScanMode();
         }
 
         @Override
@@ -4036,13 +4035,12 @@ public class AdapterService extends Service {
             }
         }
 
-        @VisibleForTesting
         @RequiresPermission(
                 allOf = {
                     android.Manifest.permission.BLUETOOTH_CONNECT,
                     android.Manifest.permission.BLUETOOTH_PRIVILEGED,
                 })
-        boolean factoryReset(AttributionSource source) {
+        private boolean factoryReset(AttributionSource source) {
             AdapterService service = getService();
             if (service == null
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
@@ -4050,20 +4048,7 @@ public class AdapterService extends Service {
             }
 
             enforceBluetoothPrivilegedPermission(service);
-
-            if (service.mDatabaseManager != null) {
-                service.mDatabaseManager.factoryReset();
-            }
-
-            if (service.mBluetoothKeystoreService != null) {
-                service.mBluetoothKeystoreService.factoryReset();
-            }
-
-            if (service.mBtCompanionManager != null) {
-                service.mBtCompanionManager.factoryReset();
-            }
-
-            return service.factoryResetNative();
+            return service.factoryReset();
         }
 
         @Override
@@ -4140,13 +4125,12 @@ public class AdapterService extends Service {
             }
         }
 
-        @VisibleForTesting
         @RequiresPermission(
                 allOf = {
                     android.Manifest.permission.BLUETOOTH_CONNECT,
                     android.Manifest.permission.BLUETOOTH_PRIVILEGED,
                 })
-        void registerCallback(IBluetoothCallback callback, AttributionSource source) {
+        private void registerCallback(IBluetoothCallback callback, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "registerCallback")
@@ -4156,7 +4140,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            service.mCallbacks.register(callback);
+            service.registerCallback(callback);
         }
 
         @Override
@@ -4178,7 +4162,7 @@ public class AdapterService extends Service {
                     android.Manifest.permission.BLUETOOTH_CONNECT,
                     android.Manifest.permission.BLUETOOTH_PRIVILEGED,
                 })
-        void unregisterCallback(IBluetoothCallback callback, AttributionSource source) {
+        private void unregisterCallback(IBluetoothCallback callback, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
                     || service.mCallbacks == null
@@ -4189,7 +4173,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            service.mCallbacks.unregister(callback);
+            service.unregisterCallback(callback);
         }
 
         @Override
@@ -4739,13 +4723,12 @@ public class AdapterService extends Service {
             }
         }
 
-        @VisibleForTesting
         @RequiresPermission(
                 allOf = {
                     android.Manifest.permission.BLUETOOTH_CONNECT,
                     android.Manifest.permission.BLUETOOTH_PRIVILEGED,
                 })
-        void startBrEdr(AttributionSource source) {
+        private void startBrEdr(AttributionSource source) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "startBrEdr")
@@ -4768,13 +4751,12 @@ public class AdapterService extends Service {
             }
         }
 
-        @VisibleForTesting
         @RequiresPermission(
                 allOf = {
                     android.Manifest.permission.BLUETOOTH_CONNECT,
                     android.Manifest.permission.BLUETOOTH_PRIVILEGED,
                 })
-        void stopBle(AttributionSource source) {
+        private void stopBle(AttributionSource source) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "stopBle")
@@ -6779,6 +6761,48 @@ public class AdapterService extends Service {
      */
     public boolean isA2dpOffloadEnabled() {
         return mAdapterProperties.isA2dpOffloadEnabled();
+    }
+
+    @VisibleForTesting
+    void registerCallback(IBluetoothCallback callback) {
+        mCallbacks.register(callback);
+    }
+
+    @VisibleForTesting
+    void unregisterCallback(IBluetoothCallback callback) {
+        mCallbacks.unregister(callback);
+    }
+
+    @VisibleForTesting
+    void startBrEdr() {
+        mAdapterStateMachine.sendMessage(AdapterState.USER_TURN_ON);
+    }
+
+    @VisibleForTesting
+    void stopBle() {
+        mAdapterStateMachine.sendMessage(AdapterState.BLE_TURN_OFF);
+    }
+
+    @VisibleForTesting
+    boolean factoryReset() {
+        if (mDatabaseManager != null) {
+            mDatabaseManager.factoryReset();
+        }
+
+        if (mBluetoothKeystoreService != null) {
+            mBluetoothKeystoreService.factoryReset();
+        }
+
+        if (mBtCompanionManager != null) {
+            mBtCompanionManager.factoryReset();
+        }
+
+        return factoryResetNative();
+    }
+
+    @VisibleForTesting
+    int getScanMode() {
+        return mAdapterProperties.getScanMode();
     }
 
     public String[] getAllowlistedMediaPlayers() {
