@@ -115,6 +115,9 @@ public class McpService extends ProfileService {
         synchronized (mLock) {
             if (getGmcsLocked() == null) {
                 // Initialize the Media Control Service Server
+                if (mGmcs != null) {
+                    mGmcs.cleanup();
+                }
                 mGmcs = new MediaControlProfile(this);
                 // Requires this service to be already started thus we have to make it an async call
                 mHandler.post(() -> {
