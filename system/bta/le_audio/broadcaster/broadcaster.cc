@@ -59,7 +59,7 @@ using le_audio::types::CodecLocation;
 using le_audio::types::kLeAudioCodingFormatLC3;
 using le_audio::types::LeAudioContextType;
 using le_audio::types::LeAudioLtvMap;
-using le_audio::utils::GetAllowedAudioContextsFromSourceMetadata;
+using le_audio::utils::GetAudioContextsFromSourceMetadata;
 
 namespace {
 class LeAudioBroadcasterImpl;
@@ -1084,9 +1084,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
       if (!instance) return;
 
       /* TODO: Should we take supported contexts from ASCS? */
-      auto supported_context_types = le_audio::types::kLeAudioContextAllTypes;
-      auto contexts = GetAllowedAudioContextsFromSourceMetadata(
-          source_metadata, supported_context_types);
+      auto contexts = GetAudioContextsFromSourceMetadata(source_metadata);
       if (contexts.any()) {
         /* NOTICE: We probably don't want to change the stream configuration
          * on each metadata change, so just update the context type metadata.
