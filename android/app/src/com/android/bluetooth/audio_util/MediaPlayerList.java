@@ -247,6 +247,7 @@ public class MediaPlayerList {
     }
 
     public void cleanup() {
+        mCallback = null;
         mContext.unregisterReceiver(mPackageChangedBroadcastReceiver);
 
         mActivePlayerId = NO_ACTIVE_PLAYER;
