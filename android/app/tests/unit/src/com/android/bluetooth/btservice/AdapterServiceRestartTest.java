@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.btservice;
 
+import static android.bluetooth.BluetoothAdapter.STATE_OFF;
+
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -272,7 +274,7 @@ public class AdapterServiceRestartTest {
         }
         byte[] metricsSalt = AdapterServiceTest.getMetricsSalt(mAdapterConfig);
         assertThat(metricsSalt).isNotNull();
-        assertThat(mAdapterService.getState()).isEqualTo(BluetoothAdapter.STATE_OFF);
+        assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
         byte[] obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
         assertThat(obfuscatedAddress1).isNotEmpty();
@@ -286,7 +288,7 @@ public class AdapterServiceRestartTest {
         assertThat(metricsSalt2).isNotNull();
         assertThat(metricsSalt).isEqualTo(metricsSalt2);
 
-        assertThat(mAdapterService.getState()).isEqualTo(BluetoothAdapter.STATE_OFF);
+        assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
         byte[] obfuscatedAddress2 = mAdapterService.obfuscateAddress(device);
         assertThat(obfuscatedAddress2).isNotEmpty();
         assertThat(AdapterServiceTest.isByteArrayAllZero(obfuscatedAddress2)).isFalse();
@@ -300,13 +302,13 @@ public class AdapterServiceRestartTest {
     @Test
     public void testgetMetricId_PersistentBetweenAdapterServiceInitialization() throws
             PackageManager.NameNotFoundException {
-        assertThat(mAdapterService.getState()).isEqualTo(BluetoothAdapter.STATE_OFF);
+        assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
         int initialMetricId = mAdapterService.getMetricId(device);
         assertThat(initialMetricId).isGreaterThan(0);
         tearDown();
         setUp();
-        assertThat(mAdapterService.getState()).isEqualTo(BluetoothAdapter.STATE_OFF);
+        assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
         assertThat(mAdapterService.getMetricId(device)).isEqualTo(initialMetricId);
     }
 }

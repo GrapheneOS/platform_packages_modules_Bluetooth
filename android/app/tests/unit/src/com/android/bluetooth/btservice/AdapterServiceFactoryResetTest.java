@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.btservice;
 
+import static android.bluetooth.BluetoothAdapter.STATE_OFF;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -304,7 +305,7 @@ public class AdapterServiceFactoryResetTest {
             + " after factory reset")
     @Test
     public void testObfuscateBluetoothAddress_FactoryReset() {
-        assertThat(mAdapterService.getState()).isNotEqualTo(BluetoothAdapter.STATE_ON);
+        assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
         byte[] obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
         assertThat(obfuscatedAddress1).isNotEmpty();
@@ -335,7 +336,7 @@ public class AdapterServiceFactoryResetTest {
             throws PackageManager.NameNotFoundException {
         byte[] metricsSalt1 = AdapterServiceTest.getMetricsSalt(mAdapterConfig);
         assertThat(metricsSalt1).isNotNull();
-        assertThat(mAdapterService.getState()).isNotEqualTo(BluetoothAdapter.STATE_ON);
+        assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
         byte[] obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
         assertThat(obfuscatedAddress1).isNotEmpty();
