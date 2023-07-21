@@ -21,6 +21,7 @@
 #include <memory>
 #include <optional>
 #include <tuple>
+#include <utility>  // for std::pair
 #include <vector>
 
 #ifdef __ANDROID__
@@ -373,14 +374,18 @@ class LeAudioDeviceGroup {
   uint8_t GetTargetPhy(uint8_t direction) const;
   bool GetPresentationDelay(uint32_t* delay, uint8_t direction) const;
   uint16_t GetRemoteDelay(uint8_t direction) const;
-  bool UpdateAudioSetConfigurationCache(
-      types::AudioContexts updated_context_bits);
-  bool UpdateAudioSetConfigurationCache(void);
+  bool UpdateAudioContextAvailability(void);
+  bool UpdateAudioSetConfigurationCache(types::LeAudioContextType ctx_type);
   bool ReloadAudioLocations(void);
   bool ReloadAudioDirections(void);
   const set_configurations::AudioSetConfiguration* GetActiveConfiguration(
       void) const;
   bool IsPendingConfiguration(void) const;
+  const set_configurations::AudioSetConfiguration* GetConfiguration(
+      types::LeAudioContextType ctx_type);
+  const set_configurations::AudioSetConfiguration* GetCachedConfiguration(
+      types::LeAudioContextType ctx_type) const;
+  void InvalidateCachedConfigurations(void);
   void SetPendingConfiguration(void);
   void ClearPendingConfiguration(void);
   void AddToAllowListNotConnectedGroupMembers(int gatt_if);
@@ -391,9 +396,12 @@ class LeAudioDeviceGroup {
       LeAudioDevice* leAudioDevice,
       const set_configurations::AudioSetConfiguration* audio_set_conf) const;
   std::optional<LeAudioCodecConfiguration> GetCodecConfigurationByDirection(
+      types::LeAudioContextType group_context_type, uint8_t direction);
+  std::optional<LeAudioCodecConfiguration>
+  GetCachedCodecConfigurationByDirection(
       types::LeAudioContextType group_context_type, uint8_t direction) const;
   bool IsAudioSetConfigurationAvailable(
-      types::LeAudioContextType group_context_type) const;
+      types::LeAudioContextType group_context_type);
   bool IsMetadataChanged(
       const types::BidirectionalPair<types::AudioContexts>& context_types,
       const types::BidirectionalPair<std::vector<uint8_t>>& ccid_lists) const;
@@ -470,6 +478,9 @@ class LeAudioDeviceGroup {
       int direction = (types::kLeAudioDirectionSink |
                        types::kLeAudioDirectionSource)) const;
 
+  types::BidirectionalPair<types::AudioContexts> GetLatestAvailableContexts(
+      void) const;
+
   bool IsInTransition(void) const;
   bool IsStreaming(void) const;
   bool IsReleasingOrIdle(void) const;
@@ -513,11 +524,12 @@ class LeAudioDeviceGroup {
   types::AudioContexts pending_group_available_contexts_change_;
 
   /* Possible configuration cache - refreshed on each group context availability
-   * change
+   * change. Stored as a pair of (is_valid_cache, configuration*). `pair.first`
+   * being `false` means that the cached value should be refreshed.
    */
   std::map<types::LeAudioContextType,
-           const set_configurations::AudioSetConfiguration*>
-      available_context_to_configuration_map;
+           std::pair<bool, const set_configurations::AudioSetConfiguration*>>
+      context_to_configuration_cache_map;
 
   types::AseState target_state_;
   types::AseState current_state_;
