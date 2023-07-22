@@ -578,7 +578,8 @@ public class AdapterServiceTest {
     public void enable_isCorrectScanMode() {
         doEnable(false);
 
-        verify(mMockContext, times(2)).sendBroadcast(any(), eq(BLUETOOTH_SCAN), any(Bundle.class));
+        verify(mMockContext, timeout(ONE_SECOND_MS).times(2))
+                .sendBroadcast(any(), eq(BLUETOOTH_SCAN), any(Bundle.class));
 
         final int scanMode = mAdapterService.getScanMode();
         assertThat(scanMode)
