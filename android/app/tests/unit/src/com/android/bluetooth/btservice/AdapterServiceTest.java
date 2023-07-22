@@ -44,16 +44,18 @@ import android.content.pm.PackageManager;
 import android.content.pm.PermissionInfo;
 import android.content.res.Resources;
 import android.media.AudioManager;
-import android.os.AsyncTask;
 import android.os.BatteryStatsManager;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.os.PowerManager;
 import android.os.Process;
 import android.os.RemoteException;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.os.test.TestLooper;
 import android.permission.PermissionCheckerManager;
 import android.permission.PermissionManager;
 import android.provider.Settings;
@@ -98,7 +100,6 @@ import com.android.internal.app.IBatteryStats;
 import libcore.util.HexEncoding;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -112,6 +113,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -122,6 +124,10 @@ public class AdapterServiceTest {
     private static final String TAG = AdapterServiceTest.class.getSimpleName();
     private static final String TEST_BT_ADDR_1 = "00:11:22:33:44:55";
     private static final String TEST_BT_ADDR_2 = "00:11:22:33:44:66";
+
+    private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED = 1;
+    private static final int MESSAGE_PROFILE_SERVICE_REGISTERED = 2;
+    private static final int MESSAGE_PROFILE_SERVICE_UNREGISTERED = 3;
 
     private AdapterService mAdapterService;
 
@@ -166,6 +172,7 @@ public class AdapterServiceTest {
     private MockContentResolver mMockContentResolver;
     private HashMap<String, HashMap<String, String>> mAdapterConfig;
     private int mForegroundUserId;
+    private TestLooper mLooper;
 
     static void configureEnabledProfiles() {
         Log.e(TAG, "configureEnabledProfiles");
@@ -205,7 +212,7 @@ public class AdapterServiceTest {
             Looper.prepare();
         }
         assertThat(Looper.myLooper()).isNotNull();
-        AdapterService adapterService = new AdapterService();
+        AdapterService adapterService = new AdapterService(Looper.myLooper());
         adapterService.initNative(false /* is_restricted */, false /* is_common_criteria_mode */,
                 0 /* config_compare_result */, new String[0], false, "");
         adapterService.cleanupNative();
@@ -223,21 +230,15 @@ public class AdapterServiceTest {
     public void setUp() throws PackageManager.NameNotFoundException {
         Log.e(TAG, "setUp()");
         MockitoAnnotations.initMocks(this);
-        if (Looper.myLooper() == null) {
-            Looper.prepare();
-        }
-        assertThat(Looper.myLooper()).isNotNull();
 
-        // Dispatch all async work through instrumentation so we can wait until
-        // it's drained below
-        AsyncTask.setDefaultExecutor((r) -> {
-            InstrumentationRegistry.getInstrumentation().runOnMainSync(r);
-        });
-        InstrumentationRegistry.getInstrumentation().getUiAutomation()
-                .adoptShellPermissionIdentity();
+        mLooper = new TestLooper();
+        Handler handler = new Handler(mLooper.getLooper());
 
-        InstrumentationRegistry.getInstrumentation().runOnMainSync(
-                () -> mAdapterService = new AdapterService());
+        // Post the creation of AdapterService since it rely on Looper.myLooper()
+        handler.post(() -> mAdapterService = new AdapterService(mLooper.getLooper()));
+        assertThat(mLooper.dispatchAll()).isEqualTo(1);
+        assertThat(mAdapterService).isNotNull();
+
         mMockPackageManager = mock(PackageManager.class);
         when(mMockPackageManager.getPermissionInfo(any(), anyInt()))
                 .thenReturn(new PermissionInfo());
@@ -338,8 +339,7 @@ public class AdapterServiceTest {
         mAdapterService.attach(mMockContext, null, null, null, mApplication, null);
         mAdapterService.onCreate();
 
-        // Wait for any async events to drain
-        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        mLooper.dispatchAll();
 
         mAdapterService.registerCallback(mIBluetoothCallback);
 
@@ -358,14 +358,38 @@ public class AdapterServiceTest {
         mAdapterService.unregisterCallback(mIBluetoothCallback);
     }
 
-    @AfterClass
-    public static void tearDownOnce() {
-        AsyncTask.setDefaultExecutor(AsyncTask.SERIAL_EXECUTOR);
+    /**
+     * Dispatch all the message on the Loopper and check that the `what` is expected
+     *
+     * @param what list of message that are expected to be run by the handler
+     */
+    private void syncHandler(int... what) {
+        syncHandler(mLooper, what);
     }
 
-    private void verifyStateChange(int prevState, int currState, int callNumber, int timeoutMs) {
+    private static void syncHandler(TestLooper looper, int... what) {
+        IntStream.of(what)
+                .forEach(
+                        w -> {
+                            Message msg = looper.nextMessage();
+                            assertThat(msg).isNotNull();
+                            assertThat(msg.what).isEqualTo(w);
+                            Log.d(TAG, "Processing message: " + msg.what);
+                            msg.getTarget().dispatchMessage(msg);
+                        });
+    }
+
+    private void verifyStateChange(int prevState, int currState) {
         try {
-            verify(mIBluetoothCallback, timeout(timeoutMs).times(callNumber))
+            verify(mIBluetoothCallback).onBluetoothStateChange(prevState, currState);
+        } catch (RemoteException e) {
+            // the mocked onBluetoothStateChange doesn't throw RemoteException
+        }
+    }
+
+    private void verifyStateChange(int prevState, int currState, int timeoutMs) {
+        try {
+            verify(mIBluetoothCallback, timeout(timeoutMs))
                     .onBluetoothStateChange(prevState, currState);
         } catch (RemoteException e) {
             // the mocked onBluetoothStateChange doesn't throw RemoteException
@@ -381,21 +405,81 @@ public class AdapterServiceTest {
         }
     }
 
+    private static void verifyStateChange(IBluetoothCallback cb, int prevState, int currState) {
+        try {
+            verify(cb).onBluetoothStateChange(prevState, currState);
+        } catch (RemoteException e) {
+            // the mocked onBluetoothStateChange doesn't throw RemoteException
+        }
+    }
+
+    static void offToBleOn(
+            TestLooper looper,
+            ProfileService gattService,
+            AdapterService adapter,
+            Context ctx,
+            IBluetoothCallback callback) {
+        adapter.enable(false);
+        syncHandler(looper, AdapterState.BLE_TURN_ON);
+        verifyStateChange(callback, STATE_OFF, STATE_BLE_TURNING_ON);
+        verify(ctx).bindServiceAsUser(any(), any(), anyInt(), any());
+
+        adapter.addProfile(gattService);
+        syncHandler(looper, MESSAGE_PROFILE_SERVICE_REGISTERED);
+
+        adapter.onProfileServiceStateChanged(gattService, STATE_ON);
+        syncHandler(looper, MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
+
+        // Native loop is not in TestLooper and it will sent a event later
+        looper.startAutoDispatch();
+        verifyStateChange(callback, STATE_BLE_TURNING_ON, STATE_BLE_ON, NATIVE_INIT_MS);
+        looper.stopAutoDispatch(); // stop autoDispatch ASAP
+
+        assertThat(adapter.getState()).isEqualTo(STATE_BLE_ON);
+    }
+
+    static void onToBleOn(
+            TestLooper looper,
+            AdapterService adapter,
+            Context ctx,
+            IBluetoothCallback callback,
+            boolean onlyGatt,
+            List<ProfileService> services) {
+        adapter.disable();
+        syncHandler(looper, AdapterState.USER_TURN_OFF);
+        verifyStateChange(callback, STATE_ON, STATE_TURNING_OFF);
+
+        if (!onlyGatt) {
+            // Stop PBAP and PAN services
+            verify(ctx, times(4)).startService(any());
+
+            for (ProfileService service : services) {
+                adapter.onProfileServiceStateChanged(service, STATE_OFF);
+                syncHandler(looper, MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
+            }
+        }
+
+        syncHandler(looper, AdapterState.BREDR_STOPPED);
+        verifyStateChange(callback, STATE_TURNING_OFF, STATE_BLE_ON);
+
+        assertThat(adapter.getState()).isEqualTo(STATE_BLE_ON);
+    }
+
     void doEnable(boolean onlyGatt) {
         doEnable(
+                mLooper,
                 mMockGattService,
                 mAdapterService,
                 mMockContext,
-                1,
                 onlyGatt,
                 List.of(mMockService, mMockService2));
     }
     // Method is re-used in other AdapterService*Test
     static void doEnable(
+            TestLooper looper,
             ProfileService gattService,
             AdapterService adapter,
             Context ctx,
-            int invocationNumber,
             boolean onlyGatt,
             List<ProfileService> services) {
         Log.e(TAG, "doEnable() start");
@@ -407,40 +491,30 @@ public class AdapterServiceTest {
 
         assertThat(adapter.getState()).isEqualTo(STATE_OFF);
 
-        adapter.enable(false);
-
-        verifyStateChange(callback, STATE_OFF, STATE_BLE_TURNING_ON, CONTEXT_SWITCH_MS);
-
-        // Start GATT
-        verify(ctx, timeout(GATT_START_TIME_MS).times(invocationNumber))
-                .bindServiceAsUser(any(), any(), anyInt(), any());
-        adapter.addProfile(gattService);
-        adapter.onProfileServiceStateChanged(gattService, STATE_ON);
-
-        verifyStateChange(callback, STATE_BLE_TURNING_ON, STATE_BLE_ON, NATIVE_INIT_MS);
+        offToBleOn(looper, gattService, adapter, ctx, callback);
 
         adapter.startBrEdr();
-
-        verifyStateChange(callback, STATE_BLE_ON, STATE_TURNING_ON, CONTEXT_SWITCH_MS);
+        syncHandler(looper, AdapterState.USER_TURN_ON);
+        verifyStateChange(callback, STATE_BLE_ON, STATE_TURNING_ON);
 
         if (!onlyGatt) {
             // Start Mock PBAP and PAN services
-            verify(ctx, timeout(ONE_SECOND_MS).times(4 * invocationNumber - 2)).startService(any());
+            verify(ctx, times(2)).startService(any());
 
             for (ProfileService service : services) {
                 adapter.addProfile(service);
+                syncHandler(looper, MESSAGE_PROFILE_SERVICE_REGISTERED);
             }
             // Keep in 2 separate loop to first add the services and then eventually trigger the
             // ON transition during the callback
             for (ProfileService service : services) {
                 adapter.onProfileServiceStateChanged(service, STATE_ON);
+                syncHandler(looper, MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
             }
         }
+        syncHandler(looper, AdapterState.BREDR_STARTED);
+        verifyStateChange(callback, STATE_TURNING_ON, STATE_ON);
 
-        verifyStateChange(callback, STATE_TURNING_ON, STATE_ON, PROFILE_SERVICE_TOGGLE_TIME_MS);
-
-        verify(ctx, timeout(CONTEXT_SWITCH_MS).times(2 * invocationNumber))
-                .sendBroadcast(any(), eq(BLUETOOTH_SCAN), any(Bundle.class));
         assertThat(adapter.getState()).isEqualTo(STATE_ON);
         adapter.unregisterCallback(callback);
         Log.e(TAG, "doEnable() complete success");
@@ -448,19 +522,19 @@ public class AdapterServiceTest {
 
     void doDisable(boolean onlyGatt) {
         doDisable(
+                mLooper,
                 mMockGattService,
                 mAdapterService,
                 mMockContext,
-                1,
                 onlyGatt,
                 List.of(mMockService, mMockService2));
     }
 
     private static void doDisable(
+            TestLooper looper,
             ProfileService gattService,
             AdapterService adapter,
             Context ctx,
-            int invocationNumber,
             boolean onlyGatt,
             List<ProfileService> services) {
         Log.e(TAG, "doDisable() start");
@@ -471,31 +545,20 @@ public class AdapterServiceTest {
 
         assertThat(adapter.getState()).isEqualTo(STATE_ON);
 
-        adapter.disable();
-
-        verifyStateChange(callback, STATE_ON, STATE_TURNING_OFF, CONTEXT_SWITCH_MS);
-
-        if (!onlyGatt) {
-            // Stop PBAP and PAN services
-            verify(ctx, timeout(ONE_SECOND_MS).times(4 * invocationNumber)).startService(any());
-
-            for (ProfileService service : services) {
-                adapter.onProfileServiceStateChanged(service, STATE_OFF);
-            }
-        }
-
-        verifyStateChange(
-                callback, STATE_TURNING_OFF, STATE_BLE_ON, PROFILE_SERVICE_TOGGLE_TIME_MS);
+        onToBleOn(looper, adapter, ctx, callback, onlyGatt, services);
 
         adapter.stopBle();
+        syncHandler(looper, AdapterState.BLE_TURN_OFF);
+        verifyStateChange(callback, STATE_BLE_ON, STATE_BLE_TURNING_OFF);
+        verify(ctx).unbindService(any());
 
-        verifyStateChange(callback, STATE_BLE_ON, STATE_BLE_TURNING_OFF, CONTEXT_SWITCH_MS);
-
-        // Stop GATT
-        verify(ctx, timeout(ONE_SECOND_MS).times(invocationNumber)).unbindService(any());
         adapter.onProfileServiceStateChanged(gattService, STATE_OFF);
+        syncHandler(looper, MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
 
+        // Native loop is not in TestLooper and it will sent a event later
+        looper.startAutoDispatch();
         verifyStateChange(callback, STATE_BLE_TURNING_OFF, STATE_OFF, NATIVE_DISABLE_MS);
+        looper.stopAutoDispatch(); // stop autoDispatch ASAP
 
         assertThat(adapter.getState()).isEqualTo(STATE_OFF);
         adapter.unregisterCallback(callback);
@@ -514,6 +577,9 @@ public class AdapterServiceTest {
     @Test
     public void enable_isCorrectScanMode() {
         doEnable(false);
+
+        verify(mMockContext, times(2)).sendBroadcast(any(), eq(BLUETOOTH_SCAN), any(Bundle.class));
+
         final int scanMode = mAdapterService.getScanMode();
         assertThat(scanMode)
                 .isAnyOf(
@@ -565,25 +631,21 @@ public class AdapterServiceTest {
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
 
         mAdapterService.enable(false);
+        syncHandler(AdapterState.BLE_TURN_ON);
+        verifyStateChange(STATE_OFF, STATE_BLE_TURNING_ON);
+        verify(mMockContext).bindServiceAsUser(any(), any(), anyInt(), any());
 
-        verifyStateChange(STATE_OFF, STATE_BLE_TURNING_ON, 1, CONTEXT_SWITCH_MS);
-
-        // Start GATT
-        verify(mMockContext, timeout(GATT_START_TIME_MS))
-                .bindServiceAsUser(any(), any(), anyInt(), any());
         mAdapterService.addProfile(mMockGattService);
+        syncHandler(MESSAGE_PROFILE_SERVICE_REGISTERED);
 
-        verifyStateChange(
-                STATE_BLE_TURNING_ON,
-                STATE_BLE_TURNING_OFF,
-                1,
-                AdapterState.BLE_START_TIMEOUT_DELAY + CONTEXT_SWITCH_MS);
+        mLooper.moveTimeForward(120_000); // Skip time so the timeout fire
+        syncHandler(AdapterState.BLE_START_TIMEOUT);
+        verify(mMockContext).unbindService(any());
 
-        // Stop GATT
-        verify(mMockContext, timeout(AdapterState.BLE_STOP_TIMEOUT_DELAY + CONTEXT_SWITCH_MS))
-                .unbindService(any());
-
-        verifyStateChange(STATE_BLE_TURNING_OFF, STATE_OFF, 1, NATIVE_DISABLE_MS);
+        // Native loop is not in TestLooper and it will sent a event later
+        mLooper.startAutoDispatch();
+        verifyStateChange(STATE_BLE_TURNING_OFF, STATE_OFF, NATIVE_DISABLE_MS);
+        mLooper.stopAutoDispatch(); // stop autoDispatch ASAP
 
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
     }
@@ -595,32 +657,23 @@ public class AdapterServiceTest {
     @Test
     public void testGattStopTimeout() {
         doEnable(false);
-        assertThat(mAdapterService.getState()).isEqualTo(STATE_ON);
 
-        mAdapterService.disable();
-
-        verifyStateChange(STATE_ON, STATE_TURNING_OFF, 1, CONTEXT_SWITCH_MS);
-
-        // Stop PBAP and PAN services
-        verify(mMockContext, timeout(ONE_SECOND_MS).times(4)).startService(any());
-        mAdapterService.onProfileServiceStateChanged(mMockService, STATE_OFF);
-        mAdapterService.onProfileServiceStateChanged(mMockService2, STATE_OFF);
-
-        verifyStateChange(STATE_TURNING_OFF, STATE_BLE_ON, 1, CONTEXT_SWITCH_MS);
+        onToBleOn(
+                mLooper,
+                mAdapterService,
+                mMockContext,
+                mIBluetoothCallback,
+                false,
+                List.of(mMockService, mMockService2));
 
         mAdapterService.stopBle();
+        syncHandler(AdapterState.BLE_TURN_OFF);
+        verifyStateChange(STATE_BLE_ON, STATE_BLE_TURNING_OFF, CONTEXT_SWITCH_MS);
+        verify(mMockContext).unbindService(any()); // Stop GATT
 
-        verifyStateChange(STATE_BLE_ON, STATE_BLE_TURNING_OFF, 1, CONTEXT_SWITCH_MS);
-
-        // Stop GATT
-        verify(mMockContext, timeout(AdapterState.BLE_STOP_TIMEOUT_DELAY + CONTEXT_SWITCH_MS))
-                .unbindService(any());
-
-        verifyStateChange(
-                STATE_BLE_TURNING_OFF,
-                STATE_OFF,
-                1,
-                AdapterState.BLE_STOP_TIMEOUT_DELAY + NATIVE_DISABLE_MS);
+        mLooper.moveTimeForward(120_000); // Skip time so the timeout fire
+        syncHandler(AdapterState.BLE_STOP_TIMEOUT);
+        verifyStateChange(STATE_BLE_TURNING_OFF, STATE_OFF);
 
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
     }
@@ -633,39 +686,32 @@ public class AdapterServiceTest {
     public void testProfileStartTimeout() {
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
 
-        mAdapterService.enable(false);
-
-        verifyStateChange(STATE_OFF, STATE_BLE_TURNING_ON, 1, CONTEXT_SWITCH_MS);
-
-        // Start GATT
-        verify(mMockContext, timeout(GATT_START_TIME_MS))
-                .bindServiceAsUser(any(), any(), anyInt(), any());
-        mAdapterService.addProfile(mMockGattService);
-        mAdapterService.onProfileServiceStateChanged(mMockGattService, STATE_ON);
-
-        verifyStateChange(STATE_BLE_TURNING_ON, STATE_BLE_ON, 1, NATIVE_INIT_MS);
+        offToBleOn(mLooper, mMockGattService, mAdapterService, mMockContext, mIBluetoothCallback);
 
         mAdapterService.startBrEdr();
+        syncHandler(AdapterState.USER_TURN_ON);
+        verifyStateChange(STATE_BLE_ON, STATE_TURNING_ON);
+        verify(mMockContext, times(2)).startService(any()); // Register Mock PBAP and PAN services
 
-        verifyStateChange(STATE_BLE_ON, STATE_TURNING_ON, 1, CONTEXT_SWITCH_MS);
-
-        // Register Mock PBAP and PAN services
-        verify(mMockContext, timeout(ONE_SECOND_MS).times(2)).startService(any());
         mAdapterService.addProfile(mMockService);
+        syncHandler(MESSAGE_PROFILE_SERVICE_REGISTERED);
         mAdapterService.addProfile(mMockService2);
+        syncHandler(MESSAGE_PROFILE_SERVICE_REGISTERED);
         mAdapterService.onProfileServiceStateChanged(mMockService, STATE_ON);
+        syncHandler(MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
 
-        verifyStateChange(
-                STATE_TURNING_ON,
-                STATE_TURNING_OFF,
-                1,
-                AdapterState.BREDR_START_TIMEOUT_DELAY + CONTEXT_SWITCH_MS);
+        // Skip onProfileServiceStateChanged for mMockService2 to be in the test situation
 
-        // Stop PBAP and PAN services
-        verify(mMockContext, timeout(ONE_SECOND_MS).times(4)).startService(any());
+        mLooper.moveTimeForward(120_000); // Skip time so the timeout fire
+        syncHandler(AdapterState.BREDR_START_TIMEOUT);
+
+        verifyStateChange(STATE_TURNING_ON, STATE_TURNING_OFF);
+        verify(mMockContext, times(4)).startService(any()); // Stop PBAP and PAN services
+
         mAdapterService.onProfileServiceStateChanged(mMockService, STATE_OFF);
-
-        verifyStateChange(STATE_TURNING_OFF, STATE_BLE_ON, 1, CONTEXT_SWITCH_MS);
+        syncHandler(MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
+        syncHandler(AdapterState.BREDR_STOPPED);
+        verifyStateChange(STATE_TURNING_OFF, STATE_BLE_ON);
 
         // Ensure GATT is still running
         verify(mMockContext, times(0)).unbindService(any());
@@ -679,32 +725,28 @@ public class AdapterServiceTest {
     public void testProfileStopTimeout() {
         doEnable(false);
 
-        assertThat(mAdapterService.getState()).isEqualTo(STATE_ON);
-
         mAdapterService.disable();
+        syncHandler(AdapterState.USER_TURN_OFF);
+        verifyStateChange(STATE_ON, STATE_TURNING_OFF);
+        verify(mMockContext, times(4)).startService(any());
 
-        verifyStateChange(STATE_ON, STATE_TURNING_OFF, 1, CONTEXT_SWITCH_MS);
-
-        // Stop PBAP and PAN services
-        verify(mMockContext, timeout(ONE_SECOND_MS).times(4)).startService(any());
         mAdapterService.onProfileServiceStateChanged(mMockService, STATE_OFF);
+        syncHandler(MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
 
-        verifyStateChange(
-                STATE_TURNING_OFF,
-                STATE_BLE_TURNING_OFF,
-                1,
-                AdapterState.BREDR_STOP_TIMEOUT_DELAY + CONTEXT_SWITCH_MS);
+        // Skip onProfileServiceStateChanged for mMockService2 to be in the test situation
 
-        // Stop GATT
-        verify(mMockContext, timeout(AdapterState.BLE_STOP_TIMEOUT_DELAY + CONTEXT_SWITCH_MS))
-                .unbindService(any());
+        mLooper.moveTimeForward(120_000); // Skip time so the timeout fire
+        syncHandler(AdapterState.BREDR_STOP_TIMEOUT);
+        verifyStateChange(STATE_TURNING_OFF, STATE_BLE_TURNING_OFF);
+        verify(mMockContext).unbindService(any());
+
         mAdapterService.onProfileServiceStateChanged(mMockGattService, STATE_OFF);
+        syncHandler(MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
 
-        verifyStateChange(
-                STATE_BLE_TURNING_OFF,
-                STATE_OFF,
-                1,
-                AdapterState.BLE_STOP_TIMEOUT_DELAY + NATIVE_DISABLE_MS);
+        // TODO(b/280518177): The only timeout to fire here should be the BREDR
+        mLooper.moveTimeForward(120_000); // Skip time so the timeout fire
+        syncHandler(AdapterState.BLE_STOP_TIMEOUT);
+        verifyStateChange(STATE_BLE_TURNING_OFF, STATE_OFF);
 
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
     }
@@ -721,8 +763,6 @@ public class AdapterServiceTest {
         BluetoothProperties.snoop_log_mode(BluetoothProperties.snoop_log_mode_values.DISABLED);
         doEnable(false);
 
-        assertThat(mAdapterService.getState()).isEqualTo(STATE_ON);
-
         assertThat(
                         BluetoothProperties.snoop_log_mode()
                                 .orElse(BluetoothProperties.snoop_log_mode_values.EMPTY))
@@ -730,28 +770,26 @@ public class AdapterServiceTest {
 
         BluetoothProperties.snoop_log_mode(BluetoothProperties.snoop_log_mode_values.FULL);
 
-        mAdapterService.disable();
+        onToBleOn(
+                mLooper,
+                mAdapterService,
+                mMockContext,
+                mIBluetoothCallback,
+                false,
+                List.of(mMockService, mMockService2));
 
-        verifyStateChange(STATE_ON, STATE_TURNING_OFF, 1, CONTEXT_SWITCH_MS);
-
-        // Stop PBAP and PAN services
-        verify(mMockContext, timeout(ONE_SECOND_MS).times(4)).startService(any());
-        mAdapterService.onProfileServiceStateChanged(mMockService, STATE_OFF);
-        mAdapterService.onProfileServiceStateChanged(mMockService2, STATE_OFF);
-
-        verifyStateChange(STATE_TURNING_OFF, STATE_BLE_ON, 1, CONTEXT_SWITCH_MS);
-
-        // Don't call stopBle().  The Adapter should turn itself off.
-
-        verifyStateChange(STATE_BLE_ON, STATE_BLE_TURNING_OFF, 1, CONTEXT_SWITCH_MS);
-
-        // Stop GATT
-        verify(mMockContext, timeout(AdapterState.BLE_STOP_TIMEOUT_DELAY + CONTEXT_SWITCH_MS))
-                .unbindService(any());
+        // Do not call stopBle().  The Adapter should turn itself off.
+        syncHandler(AdapterState.BLE_TURN_OFF);
+        verifyStateChange(STATE_BLE_ON, STATE_BLE_TURNING_OFF, CONTEXT_SWITCH_MS);
+        verify(mMockContext).unbindService(any()); // stop Gatt
 
         mAdapterService.onProfileServiceStateChanged(mMockGattService, STATE_OFF);
+        syncHandler(MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
 
-        verifyStateChange(STATE_BLE_TURNING_OFF, STATE_OFF, 1, NATIVE_DISABLE_MS);
+        // Native loop is not in TestLooper and it will sent a event later
+        mLooper.startAutoDispatch();
+        verifyStateChange(STATE_BLE_TURNING_OFF, STATE_OFF, NATIVE_DISABLE_MS);
+        mLooper.stopAutoDispatch(); // stop autoDispatch ASAP
 
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
 

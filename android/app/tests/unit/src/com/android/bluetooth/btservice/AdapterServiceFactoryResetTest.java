@@ -37,15 +37,15 @@ import android.content.pm.PackageManager;
 import android.content.pm.PermissionInfo;
 import android.content.res.Resources;
 import android.media.AudioManager;
-import android.os.AsyncTask;
 import android.os.BatteryStatsManager;
 import android.os.Binder;
 import android.os.Bundle;
-import android.os.Looper;
+import android.os.Handler;
 import android.os.PowerManager;
 import android.os.Process;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.os.test.TestLooper;
 import android.permission.PermissionCheckerManager;
 import android.permission.PermissionManager;
 import android.provider.Settings;
@@ -62,7 +62,6 @@ import com.android.bluetooth.Utils;
 import com.android.internal.app.IBatteryStats;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -120,6 +119,7 @@ public class AdapterServiceFactoryResetTest {
     private MockContentResolver mMockContentResolver;
     private HashMap<String, HashMap<String, String>> mAdapterConfig;
     private int mForegroundUserId;
+    private TestLooper mLooper;
 
     @BeforeClass
     public static void setupClass() {
@@ -135,22 +135,15 @@ public class AdapterServiceFactoryResetTest {
     public void setUp() throws PackageManager.NameNotFoundException {
         Log.e(TAG, "setUp()");
         MockitoAnnotations.initMocks(this);
-        if (Looper.myLooper() == null) {
-            Looper.prepare();
-        }
-        assertThat(Looper.myLooper()).isNotNull();
 
-        // Dispatch all async work through instrumentation so we can wait until
-        // it's drained below
-        AsyncTask.setDefaultExecutor((r) -> {
-            androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
-                    .runOnMainSync(r);
-        });
-        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getUiAutomation()
-                .adoptShellPermissionIdentity();
+        mLooper = new TestLooper();
+        Handler handler = new Handler(mLooper.getLooper());
 
-        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().runOnMainSync(
-                () -> mAdapterService = new AdapterService());
+        // Post the creation of AdapterService since it rely on Looper.myLooper()
+        handler.post(() -> mAdapterService = new AdapterService(mLooper.getLooper()));
+        assertThat(mLooper.dispatchAll()).isEqualTo(1);
+        assertThat(mAdapterService).isNotNull();
+
         mMockPackageManager = mock(PackageManager.class);
         when(mMockPackageManager.getPermissionInfo(any(), anyInt()))
                 .thenReturn(new PermissionInfo());
@@ -251,8 +244,7 @@ public class AdapterServiceFactoryResetTest {
         mAdapterService.attach(mMockContext, null, null, null, mApplication, null);
         mAdapterService.onCreate();
 
-        // Wait for any async events to drain
-        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        mLooper.dispatchAll();
 
         mAdapterConfig = TestUtils.readAdapterConfig();
         assertThat(mAdapterConfig).isNotNull();
@@ -271,17 +263,12 @@ public class AdapterServiceFactoryResetTest {
         mAdapterService.cleanup();
     }
 
-    @AfterClass
-    public static void tearDownOnce() {
-        AsyncTask.setDefaultExecutor(AsyncTask.SERIAL_EXECUTOR);
-    }
-
     void doEnable() {
         AdapterServiceTest.doEnable(
+                mLooper,
                 mMockGattService,
                 mAdapterService,
                 mMockContext,
-                1,
                 false,
                 List.of(mMockService, mMockService2));
     }
