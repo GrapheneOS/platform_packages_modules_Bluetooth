@@ -27,6 +27,7 @@ import android.os.Parcelable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -184,6 +185,60 @@ public final class BluetoothLeBroadcastReceiveState implements Parcelable {
     private final int mNumSubgroups;
     private final List<Long> mBisSyncState;
     private final List<BluetoothLeAudioContentMetadata> mSubgroupMetadata;
+
+    private static String paSyncStateToString(int paSyncState) {
+        switch (paSyncState) {
+            case 0x00:
+                return "Not synchronized to PA: [" + Integer.toString(paSyncState) + "]";
+            case 0x01:
+                return "SyncInfo Request: [" + Integer.toString(paSyncState) + "]";
+            case 0x02:
+                return "Synchronized to PA: [" + Integer.toString(paSyncState) + "]";
+            case 0x03:
+                return "Failed to synchronize to PA: [" + Integer.toString(paSyncState) + "]";
+            case 0x04:
+                return "No PAST: [" + Integer.toString(paSyncState) + "]";
+            default:
+                return "RFU: [" + Integer.toString(paSyncState) + "]";
+        }
+    }
+
+    private static String bigEncryptionStateToString(int bigEncryptionState) {
+        switch (bigEncryptionState) {
+            case 0x00:
+                return "Not encrypted: [" + Integer.toString(bigEncryptionState) + "]";
+            case 0x01:
+                return "Broadcast_Code required: [" + Integer.toString(bigEncryptionState) + "]";
+            case 0x02:
+                return "Decrypting: [" + Integer.toString(bigEncryptionState) + "]";
+            case 0x03:
+                return "Bad_Code (incorrect encryption key): ["
+                        + Integer.toString(bigEncryptionState)
+                        + "]";
+            default:
+                return "RFU: [" + Integer.toString(bigEncryptionState) + "]";
+        }
+    }
+
+    private static String bisSyncStateToString(Long bisSyncState, int bisSyncStateIndex) {
+        if (bisSyncState == 0) {
+            return "Not synchronized to BIS_index["
+                    + Integer.toString(bisSyncStateIndex)
+                    + "]: ["
+                    + String.valueOf(bisSyncState)
+                    + "]";
+        } else if (bisSyncState > 0 && bisSyncState < 0xFFFFFFFF) {
+            return "Synchronized to BIS_index["
+                    + Integer.toString(bisSyncStateIndex)
+                    + "]: ["
+                    + String.valueOf(bisSyncState)
+                    + "]";
+        } else if (bisSyncState == 0xFFFFFFFF) {
+            return "Failed to sync to BIG: [" + String.valueOf(bisSyncState) + "]";
+        } else {
+            return "[" + String.valueOf(bisSyncState) + "]";
+        }
+    }
 
     /**
      * Constructor to create a read-only {@link BluetoothLeBroadcastReceiveState} instance.
@@ -443,6 +498,50 @@ public final class BluetoothLeBroadcastReceiveState implements Parcelable {
         out.writeInt(mNumSubgroups);
         out.writeList(mBisSyncState);
         out.writeTypedList(mSubgroupMetadata);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @hide
+     */
+    @Override
+    public String toString() {
+        String receiveState =
+                ("Receiver state: "
+                        + "\n  Source ID:"
+                        + mSourceId
+                        + "\n  Source Address Type:"
+                        + (int) mSourceAddressType
+                        + "\n  Source Address:"
+                        + mSourceDevice.toString()
+                        + "\n  Source Adv SID:"
+                        + mSourceAdvertisingSid
+                        + "\n  Broadcast ID:"
+                        + mBroadcastId
+                        + "\n  PA Sync State:"
+                        + paSyncStateToString(mPaSyncState)
+                        + "\n  BIG Encryption Status:"
+                        + bigEncryptionStateToString(mBigEncryptionState)
+                        + "\n  Bad Broadcast Code:"
+                        + Arrays.toString(mBadCode)
+                        + "\n  Number Of Subgroups:"
+                        + mNumSubgroups);
+        for (int i = 0; i < mNumSubgroups; i++) {
+            receiveState +=
+                    ("\n    Subgroup index:"
+                                    + i
+                                    + "\n      BIS Sync State:"
+                                    + bisSyncStateToString(mBisSyncState.get(i), i))
+                            + "\n      Metadata:"
+                            + "\n        ProgramInfo:"
+                            + mSubgroupMetadata.get(i).getProgramInfo()
+                            + "\n        Language:"
+                            + mSubgroupMetadata.get(i).getLanguage()
+                            + "\n        RawData:"
+                            + Arrays.toString(mSubgroupMetadata.get(i).getRawMetadata());
+        }
+        return receiveState;
     }
 
     /**
