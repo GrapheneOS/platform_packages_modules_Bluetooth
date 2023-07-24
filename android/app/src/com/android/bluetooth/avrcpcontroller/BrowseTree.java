@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -140,6 +141,7 @@ public class BrowseTree {
         private int mExpectedChildrenCount;
 
         BrowseNode(AvrcpItem item) {
+            Objects.requireNonNull(item, "Cannot have a browse node with a null item");
             mItem = item;
         }
 
@@ -337,19 +339,21 @@ public class BrowseTree {
             return getID().equals(otherNode.getID());
         }
 
+        public synchronized void toTreeString(int depth, StringBuilder sb) {
+            for (int i = 0; i <= depth; i++) {
+                sb.append("  ");
+            }
+            sb.append(toString() + "\n");
+            for (BrowseNode node : mChildren) {
+                node.toTreeString(depth + 1, sb);
+            }
+        }
+
         @Override
         public synchronized String toString() {
-            if (VDBG) {
-                String serialized = "[ Name: " + mItem.getTitle()
-                        + " Scope:" + mBrowseScope + " expected Children: "
-                        + mExpectedChildrenCount + "] ";
-                for (BrowseNode node : mChildren) {
-                    serialized += node.toString();
-                }
-                return serialized;
-            } else {
-                return "ID: " + getID();
-            }
+            return "[Id: " + getID()
+                    + " Name: " + getMediaItem().getDescription().getTitle()
+                    + " Size: " + mChildren.size() + "]";
         }
 
         // Returns true if target is a descendant of this.
@@ -495,18 +499,21 @@ public class BrowseTree {
         return parents;
     }
 
+    /**
+     * Dump the state of the AVRCP browse tree
+     */
+    public void dump(StringBuilder sb) {
+        mRootNode.toTreeString(0, sb);
+        sb.append("\n  Image handles in use (" + mCoverArtMap.size() + "):");
+        for (String handle : mCoverArtMap.keySet()) {
+            sb.append("\n    " + handle);
+        }
+        sb.append("\n");
+    }
 
     @Override
     public String toString() {
-        String serialized = "Size: " + mBrowseMap.size();
-        if (VDBG) {
-            serialized += mRootNode.toString();
-            serialized += "\n  Image handles in use (" + mCoverArtMap.size() + "):";
-            for (String handle : mCoverArtMap.keySet()) {
-                serialized += "\n    " + handle + "\n";
-            }
-        }
-        return serialized;
+        return "[BrowseTree size=" + mBrowseMap.size() + "]";
     }
 
     // Calculates the path to target node.
