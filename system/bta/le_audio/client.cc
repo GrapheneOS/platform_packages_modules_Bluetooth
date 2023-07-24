@@ -1783,35 +1783,35 @@ class LeAudioClientImpl : public LeAudioClient {
               contexts, len, value)) {
         return;
       }
-        leAudioDevice->SetAvailableContexts(contexts);
-        leAudioDevice->SetAvailableContexts(contexts);
 
-        if (!group) {
+      leAudioDevice->SetAvailableContexts(contexts);
+
+      if (!group) {
         return;
-        }
+      }
 
-        /* Check if we should attach to stream this device */
-        if (group->IsInTransition() || !group->IsStreaming()) {
+      /* Check if we should attach to stream this device */
+      if (group->IsInTransition() || !group->IsStreaming()) {
         return;
-        }
+      }
 
-        if (leAudioDevice->HaveActiveAse()) {
+      if (leAudioDevice->HaveActiveAse()) {
         /* Do nothing, device is streaming */
         return;
-        }
+      }
 
-        if (leAudioDevice->GetConnectionState() !=
-            DeviceConnectState::CONNECTED) {
+      if (leAudioDevice->GetConnectionState() !=
+          DeviceConnectState::CONNECTED) {
         /* Do nothing, wait until device is connected */
         return;
-        }
+      }
 
-        auto group_metadata_contexts =
-            get_bidirectional(group->GetMetadataContexts());
-        auto device_available_contexts = leAudioDevice->GetAvailableContexts();
-        if (group_metadata_contexts.test_any(device_available_contexts)) {
+      auto group_metadata_contexts =
+          get_bidirectional(group->GetMetadataContexts());
+      auto device_available_contexts = leAudioDevice->GetAvailableContexts();
+      if (group_metadata_contexts.test_any(device_available_contexts)) {
         AttachToStreamingGroupIfNeeded(leAudioDevice);
-        }
+      }
 
     } else if (hdl == leAudioDevice->audio_supp_cont_hdls_.val_hdl) {
       BidirectionalPair<AudioContexts> supp_audio_contexts;
