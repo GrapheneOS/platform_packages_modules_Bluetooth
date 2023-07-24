@@ -783,11 +783,11 @@ public class BassClientStateMachine extends StateMachine {
                 );
             }
         } else {
-            byte metaDataSyncState = receiverState[BassConstants.BCAST_RCVR_STATE_PA_SYNC_IDX];
-            byte encryptionStatus = receiverState[BassConstants.BCAST_RCVR_STATE_ENC_STATUS_IDX];
+            byte paSyncState = receiverState[BassConstants.BCAST_RCVR_STATE_PA_SYNC_IDX];
+            byte bigEncryptionStatus = receiverState[BassConstants.BCAST_RCVR_STATE_ENC_STATUS_IDX];
             byte[] badBroadcastCode = null;
             int badBroadcastCodeLen = 0;
-            if (encryptionStatus
+            if (bigEncryptionStatus
                     == BluetoothLeBroadcastReceiveState.BIG_ENCRYPTION_STATE_BAD_CODE) {
                 badBroadcastCode = new byte[BassConstants.BCAST_RCVR_STATE_BADCODE_SIZE];
                 System.arraycopy(
@@ -804,13 +804,13 @@ public class BassClientStateMachine extends StateMachine {
                     + badBroadcastCodeLen + 1;
             ArrayList<BluetoothLeAudioContentMetadata> metadataList =
                     new ArrayList<BluetoothLeAudioContentMetadata>();
-            ArrayList<Long> audioSyncState = new ArrayList<Long>();
+            ArrayList<Long> bisSyncState = new ArrayList<Long>();
             for (int i = 0; i < numSubGroups; i++) {
-                byte[] audioSyncIndex = new byte[BassConstants.BCAST_RCVR_STATE_BIS_SYNC_SIZE];
-                System.arraycopy(receiverState, offset, audioSyncIndex, 0,
+                byte[] bisSyncIndex = new byte[BassConstants.BCAST_RCVR_STATE_BIS_SYNC_SIZE];
+                System.arraycopy(receiverState, offset, bisSyncIndex, 0,
                         BassConstants.BCAST_RCVR_STATE_BIS_SYNC_SIZE);
                 offset += BassConstants.BCAST_RCVR_STATE_BIS_SYNC_SIZE;
-                audioSyncState.add((long) Utils.byteArrayToInt(audioSyncIndex));
+                bisSyncState.add((long) Utils.byteArrayToInt(bisSyncIndex));
 
                 byte metaDataLength = receiverState[offset++];
                 if (metaDataLength > 0) {
@@ -851,24 +851,13 @@ public class BassClientStateMachine extends StateMachine {
                     device,
                     sourceAdvSid,
                     broadcastId,
-                    (int) metaDataSyncState,
-                    (int) encryptionStatus,
+                    (int) paSyncState,
+                    (int) bigEncryptionStatus,
                     badBroadcastCode,
                     numSubGroups,
-                    audioSyncState,
+                    bisSyncState,
                     metadataList);
-            log("Receiver state: "
-                    + "\n\tSource ID: " + sourceId
-                    + "\n\tSource Address Type: " + (int) sourceAddressType
-                    + "\n\tDevice: " + device
-                    + "\n\tSource Adv SID: " + sourceAdvSid
-                    + "\n\tBroadcast ID: " + broadcastId
-                    + "\n\tMetadata Sync State: " + (int) metaDataSyncState
-                    + "\n\tEncryption Status: " + (int) encryptionStatus
-                    + "\n\tBad Broadcast Code: " + Arrays.toString(badBroadcastCode)
-                    + "\n\tNumber Of Subgroups: " + numSubGroups
-                    + "\n\tAudio Sync State: " + audioSyncState
-                    + "\n\tMetadata: " + metadataList);
+            log(recvState.toString());
         }
         return recvState;
     }
