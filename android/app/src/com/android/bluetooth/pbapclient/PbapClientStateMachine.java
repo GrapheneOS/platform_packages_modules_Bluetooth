@@ -225,8 +225,10 @@ class PbapClientStateMachine extends StateMachine {
 
         @Override
         public void exit() {
-            mSdpReceiver.unregister();
-            mSdpReceiver = null;
+            if (mSdpReceiver != null) {
+                mSdpReceiver.unregister();
+                mSdpReceiver = null;
+            }
         }
 
         private class SDPBroadcastReceiver extends BroadcastReceiver {
