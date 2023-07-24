@@ -207,7 +207,7 @@ public class BrowseTreeTest {
     @Test
     public void toString_returnsSizeInfo() {
         BrowseTree browseTree = new BrowseTree(mTestDevice);
-
-        assertThat(browseTree.toString()).isEqualTo("Size: " + browseTree.mBrowseMap.size());
+        assertThat(browseTree.toString()).isEqualTo(
+                "[BrowseTree size=" + browseTree.mBrowseMap.size() + "]");
     }
 }

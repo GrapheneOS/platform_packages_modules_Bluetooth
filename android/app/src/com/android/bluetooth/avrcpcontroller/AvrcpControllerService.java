@@ -908,10 +908,7 @@ public class AvrcpControllerService extends ProfileService {
      */
     public synchronized boolean disconnect(BluetoothDevice device) {
         if (DBG) {
-            StringBuilder sb = new StringBuilder();
-            dump(sb);
-            Log.d(TAG, "MAP disconnect device: " + device
-                    + ", InstanceMap start state: " + sb.toString());
+            Log.d(TAG, "disconnect(device=" + device + ")");
         }
         AvrcpControllerStateMachine stateMachine = mDeviceStateMap.get(device);
         // a map state machine instance doesn't exist. maybe it is already gone?
@@ -924,12 +921,6 @@ public class AvrcpControllerService extends ProfileService {
             return false;
         }
         stateMachine.disconnect();
-        if (DBG) {
-            StringBuilder sb = new StringBuilder();
-            dump(sb);
-            Log.d(TAG, "MAP disconnect device: " + device
-                    + ", InstanceMap start state: " + sb.toString());
-        }
         return true;
     }
 
@@ -1005,7 +996,8 @@ public class AvrcpControllerService extends ProfileService {
                     "==== StateMachine for " + stateMachine.getDevice() + " ====");
             stateMachine.dump(sb);
         }
-        sb.append("\n  sBrowseTree: " + sBrowseTree.toString());
+        sb.append("\n  BrowseTree:\n");
+        sBrowseTree.dump(sb);
 
         sb.append("\n  Cover Artwork Enabled: " + (mCoverArtEnabled ? "True" : "False"));
         if (mCoverArtManager != null) {
