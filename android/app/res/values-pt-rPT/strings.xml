@@ -119,7 +119,7 @@
     <string name="bluetooth_a2dp_sink_queue_name" msgid="7521243473328258997">"A tocar"</string>
     <string name="bluetooth_map_settings_save" msgid="8309113239113961550">"Guardar"</string>
     <string name="bluetooth_map_settings_cancel" msgid="3374494364625947793">"Cancelar"</string>
-    <string name="bluetooth_map_settings_intro" msgid="4748160773998753325">"Selecione as contas que pretende partilhar através de Bluetooth. Ao ligar, ainda tem de aceitar eventuais acessos às contas."</string>
+    <string name="bluetooth_map_settings_intro" msgid="4748160773998753325">"Selecione as contas que quer partilhar através de Bluetooth. Ao ligar, ainda tem de aceitar eventuais acessos às contas."</string>
     <string name="bluetooth_map_settings_count" msgid="183013143617807702">"Ranhuras restantes:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="3501432663809664982">"Ícone de app"</string>
     <string name="bluetooth_map_settings_title" msgid="4226030082708590023">"Definições de partilha de mensagens por Bluetooth"</string>
