@@ -430,7 +430,7 @@ public class AdapterServiceTest {
         adapter.onProfileServiceStateChanged(gattService, STATE_ON);
         syncHandler(looper, MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
 
-        // Native loop is not in TestLooper and it will sent a event later
+        // Native loop is not in TestLooper and it will send a event later
         looper.startAutoDispatch();
         verifyStateChange(callback, STATE_BLE_TURNING_ON, STATE_BLE_ON, NATIVE_INIT_MS);
         looper.stopAutoDispatch(); // stop autoDispatch ASAP
@@ -555,7 +555,7 @@ public class AdapterServiceTest {
         adapter.onProfileServiceStateChanged(gattService, STATE_OFF);
         syncHandler(looper, MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
 
-        // Native loop is not in TestLooper and it will sent a event later
+        // Native loop is not in TestLooper and it will send a event later
         looper.startAutoDispatch();
         verifyStateChange(callback, STATE_BLE_TURNING_OFF, STATE_OFF, NATIVE_DISABLE_MS);
         looper.stopAutoDispatch(); // stop autoDispatch ASAP
@@ -639,11 +639,11 @@ public class AdapterServiceTest {
         mAdapterService.addProfile(mMockGattService);
         syncHandler(MESSAGE_PROFILE_SERVICE_REGISTERED);
 
-        mLooper.moveTimeForward(120_000); // Skip time so the timeout fire
+        mLooper.moveTimeForward(120_000); // Skip time so the timeout fires
         syncHandler(AdapterState.BLE_START_TIMEOUT);
         verify(mMockContext).unbindService(any());
 
-        // Native loop is not in TestLooper and it will sent a event later
+        // Native loop is not in TestLooper and it will send a event later
         mLooper.startAutoDispatch();
         verifyStateChange(STATE_BLE_TURNING_OFF, STATE_OFF, NATIVE_DISABLE_MS);
         mLooper.stopAutoDispatch(); // stop autoDispatch ASAP
@@ -672,7 +672,7 @@ public class AdapterServiceTest {
         verifyStateChange(STATE_BLE_ON, STATE_BLE_TURNING_OFF, CONTEXT_SWITCH_MS);
         verify(mMockContext).unbindService(any()); // Stop GATT
 
-        mLooper.moveTimeForward(120_000); // Skip time so the timeout fire
+        mLooper.moveTimeForward(120_000); // Skip time so the timeout fires
         syncHandler(AdapterState.BLE_STOP_TIMEOUT);
         verifyStateChange(STATE_BLE_TURNING_OFF, STATE_OFF);
 
@@ -703,7 +703,7 @@ public class AdapterServiceTest {
 
         // Skip onProfileServiceStateChanged for mMockService2 to be in the test situation
 
-        mLooper.moveTimeForward(120_000); // Skip time so the timeout fire
+        mLooper.moveTimeForward(120_000); // Skip time so the timeout fires
         syncHandler(AdapterState.BREDR_START_TIMEOUT);
 
         verifyStateChange(STATE_TURNING_ON, STATE_TURNING_OFF);
@@ -736,7 +736,7 @@ public class AdapterServiceTest {
 
         // Skip onProfileServiceStateChanged for mMockService2 to be in the test situation
 
-        mLooper.moveTimeForward(120_000); // Skip time so the timeout fire
+        mLooper.moveTimeForward(120_000); // Skip time so the timeout fires
         syncHandler(AdapterState.BREDR_STOP_TIMEOUT);
         verifyStateChange(STATE_TURNING_OFF, STATE_BLE_TURNING_OFF);
         verify(mMockContext).unbindService(any());
@@ -745,7 +745,7 @@ public class AdapterServiceTest {
         syncHandler(MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
 
         // TODO(b/280518177): The only timeout to fire here should be the BREDR
-        mLooper.moveTimeForward(120_000); // Skip time so the timeout fire
+        mLooper.moveTimeForward(120_000); // Skip time so the timeout fires
         syncHandler(AdapterState.BLE_STOP_TIMEOUT);
         verifyStateChange(STATE_BLE_TURNING_OFF, STATE_OFF);
 
@@ -787,7 +787,7 @@ public class AdapterServiceTest {
         mAdapterService.onProfileServiceStateChanged(mMockGattService, STATE_OFF);
         syncHandler(MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
 
-        // Native loop is not in TestLooper and it will sent a event later
+        // Native loop is not in TestLooper and it will send a event later
         mLooper.startAutoDispatch();
         verifyStateChange(STATE_BLE_TURNING_OFF, STATE_OFF, NATIVE_DISABLE_MS);
         mLooper.stopAutoDispatch(); // stop autoDispatch ASAP
