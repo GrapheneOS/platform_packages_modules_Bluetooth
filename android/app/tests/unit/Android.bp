@@ -28,6 +28,7 @@ java_defaults {
         "androidx.test.rules",
         "androidx.test.uiautomator_uiautomator",
         "framework-bluetooth-pre-jarjar",
+        "frameworks-base-testutils",
         "gson",
         "mockito-target",
         "truth-prebuilt",
