@@ -1050,7 +1050,7 @@ public class BassClientService extends ProfileService {
     public void addSource(BluetoothDevice sink, BluetoothLeBroadcastMetadata sourceMetadata,
             boolean isGroupOp) {
         log("addSource: device: " + sink + " sourceMetadata" + sourceMetadata
-                + " isGroupOp" + isGroupOp);
+                + " isGroupOp: " + isGroupOp);
 
         List<BluetoothDevice> devices = getTargetDeviceList(sink, isGroupOp);
         // Don't coordinate it as a group if there's no group or there is one device only
@@ -1206,7 +1206,7 @@ public class BassClientService extends ProfileService {
      * @param sourceId source ID as delivered in onSourceAdded
      */
     public void removeSource(BluetoothDevice sink, int sourceId) {
-        log("removeSource: device = " + sink + "sourceId " + sourceId);
+        log("removeSource: device = " + sink + ", sourceId " + sourceId);
 
         Map<BluetoothDevice, Integer> devices = getGroupManagedDeviceSources(sink, sourceId).second;
         for (Map.Entry<BluetoothDevice, Integer> deviceSourceIdPair : devices.entrySet()) {
