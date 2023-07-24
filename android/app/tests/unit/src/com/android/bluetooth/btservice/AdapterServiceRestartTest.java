@@ -162,6 +162,9 @@ public class AdapterServiceRestartTest {
 
         when(mMockContext.getCacheDir()).thenReturn(InstrumentationRegistry.getTargetContext()
                 .getCacheDir());
+        when(mMockContext.getUser())
+                .thenReturn(InstrumentationRegistry.getTargetContext().getUser());
+        when(mMockContext.getPackageName()).thenReturn("com.android.bluetooth");
         when(mMockContext.getApplicationInfo()).thenReturn(mMockApplicationInfo);
         when(mMockContext.getContentResolver()).thenReturn(mMockContentResolver);
         when(mMockContext.getApplicationContext()).thenReturn(mMockContext);

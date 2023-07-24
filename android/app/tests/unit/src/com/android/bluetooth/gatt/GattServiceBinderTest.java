@@ -756,13 +756,6 @@ public class GattServiceBinderTest {
     }
 
     @Test
-    public void unregAll() throws Exception {
-        mBinder.unregAll(mAttributionSource);
-
-        verify(mService).unregAll(mAttributionSource);
-    }
-
-    @Test
     public void numHwTrackFiltersAvailable() throws Exception {
         mBinder.numHwTrackFiltersAvailable(mAttributionSource, SynchronousResultReceiver.get());
 

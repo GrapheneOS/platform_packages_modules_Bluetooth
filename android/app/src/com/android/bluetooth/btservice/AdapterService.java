@@ -79,11 +79,9 @@ import android.bluetooth.UidTraffic;
 import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
@@ -370,7 +368,7 @@ public class AdapterService extends Service {
     private BassClientService mBassClientService;
     private BatteryService mBatteryService;
     private BluetoothQualityReportNativeInterface mBluetoothQualityReportNativeInterface;
-    private IBluetoothGatt mBluetoothGatt;
+    private GattService mGattService;
 
     private volatile boolean mTestModeEnabled = false;
 
@@ -424,8 +422,6 @@ public class AdapterService extends Service {
     private static final int MESSAGE_PROFILE_SERVICE_REGISTERED = 2;
     private static final int MESSAGE_PROFILE_SERVICE_UNREGISTERED = 3;
     private static final int MESSAGE_PREFERRED_AUDIO_PROFILES_AUDIO_FRAMEWORK_TIMEOUT = 4;
-    private static final int MESSAGE_ON_PROFILE_SERVICE_BIND = 5;
-    private static final int MESSAGE_ON_PROFILE_SERVICE_UNBIND = 6;
 
     class AdapterServiceHandler extends Handler {
         AdapterServiceHandler(Looper looper) {
@@ -448,14 +444,6 @@ public class AdapterService extends Service {
                 case MESSAGE_PROFILE_SERVICE_UNREGISTERED:
                     verboseLog("handleMessage() - MESSAGE_PROFILE_SERVICE_UNREGISTERED");
                     unregisterProfileService((ProfileService) msg.obj);
-                    break;
-                case MESSAGE_ON_PROFILE_SERVICE_BIND:
-                    verboseLog("handleMessage() - MESSAGE_ON_PROFILE_SERVICE_BIND");
-                    onGattBind((IBinder) msg.obj);
-                    break;
-                case MESSAGE_ON_PROFILE_SERVICE_UNBIND:
-                    verboseLog("handleMessage() - MESSAGE_ON_PROFILE_SERVICE_UNBIND");
-                    onGattUnbind();
                     break;
                 case MESSAGE_PREFERRED_AUDIO_PROFILES_AUDIO_FRAMEWORK_TIMEOUT:
                     errorLog(
@@ -494,22 +482,6 @@ public class AdapterService extends Service {
                 return;
             }
             mRegisteredProfiles.remove(profile);
-        }
-
-        private void onGattBind(IBinder service) {
-            mBluetoothGatt = IBluetoothGatt.Stub.asInterface(service);
-            try {
-                mBluetoothGatt.startService();
-            } catch (RemoteException e) {
-                Log.e(TAG, "onGattBind: RemoteException", e);
-            }
-        }
-
-        private void onGattUnbind() {
-            mBluetoothGatt = null;
-            Log.e(
-                    TAG,
-                    "onGattUnbind: Gatt service has disconnected from AdapterService unexpectedly");
         }
 
         private void processProfileServiceStateChanged(ProfileService profile, int state) {
@@ -1002,47 +974,11 @@ public class AdapterService extends Service {
         }
     }
 
-    class GattServiceConnection implements ServiceConnection {
-        public void onServiceConnected(ComponentName componentName, IBinder service) {
-            String name = componentName.getClassName();
-            if (DBG) {
-                Log.d(TAG, "GattServiceConnection.onServiceConnected: " + name);
-            }
-            if (!name.equals(GattService.class.getName())) {
-                Log.e(TAG, "Unknown service connected: " + name);
-                return;
-            }
-            mHandler.obtainMessage(MESSAGE_ON_PROFILE_SERVICE_BIND, service).sendToTarget();
-        }
-
-        public void onServiceDisconnected(ComponentName componentName) {
-            // Called if we unexpectedly disconnect. This should never happen.
-            String name = componentName.getClassName();
-            Log.e(TAG, "GattServiceConnection.onServiceDisconnected: " + name);
-            if (!name.equals(GattService.class.getName())) {
-                Log.e(TAG, "Unknown service disconnected: " + name);
-                return;
-            }
-            mHandler.sendEmptyMessage(MESSAGE_ON_PROFILE_SERVICE_UNBIND);
-        }
-    }
-
-    private GattServiceConnection mGattConnection = new GattServiceConnection();
-
     private void startGattProfileService() {
         mStartedProfiles.add(GattService.class.getSimpleName());
 
-        Intent intent = new Intent(this, GattService.class);
-        if (!bindServiceAsUser(
-                intent,
-                mGattConnection,
-                Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT,
-                UserHandle.CURRENT)) {
-            // This should never happen
-            // unbindService will be called during stopGattProfileService triggered by AdapterState
-            Log.e(TAG, "Error while binding to gatt. This Bluetooth session will timeout");
-            unbindService(mGattConnection);
-        }
+        mGattService = new GattService(this);
+        ((ProfileService) mGattService).doStart();
     }
 
     private void stopGattProfileService() {
@@ -1053,15 +989,10 @@ public class AdapterService extends Service {
         }
 
         mStartedProfiles.remove(GattService.class.getSimpleName());
-
-        try {
-            if (mBluetoothGatt != null) {
-                mBluetoothGatt.stopService();
-            }
-        } catch (RemoteException e) {
-            Log.e(TAG, "stopGattProfileService: RemoteException", e);
+        if (mGattService != null) {
+            ((ProfileService) mGattService).doStop();
+            mGattService = null;
         }
-        unbindService(mGattConnection);
     }
 
     private void invalidateBluetoothGetStateCache() {
@@ -5241,6 +5172,7 @@ public class AdapterService extends Service {
             try {
                 AdapterService service = getService();
                 if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
                     service.unregAllGattClient(source);
                 }
                 receiver.send(null);
@@ -6880,16 +6812,15 @@ public class AdapterService extends Service {
     }
 
     IBluetoothGatt getBluetoothGatt() {
-        return mBluetoothGatt;
+        if (mGattService == null) {
+            return null;
+        }
+        return IBluetoothGatt.Stub.asInterface(((ProfileService) mGattService).getBinder());
     }
 
     void unregAllGattClient(AttributionSource source) {
-        if (mBluetoothGatt != null) {
-            try {
-                mBluetoothGatt.unregAll(source);
-            } catch (RemoteException e) {
-                Log.e(TAG, "Unable to disconnect all apps.", e);
-            }
+        if (mGattService != null) {
+            mGattService.unregAll(source);
         }
     }
 
