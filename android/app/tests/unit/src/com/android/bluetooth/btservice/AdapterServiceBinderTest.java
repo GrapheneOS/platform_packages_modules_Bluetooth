@@ -110,7 +110,7 @@ public class AdapterServiceBinderTest {
     @Test
     public void getScanMode() {
         mBinder.getScanMode(mAttributionSource, SynchronousResultReceiver.get());
-        verify(mService.mAdapterProperties).getScanMode();
+        verify(mService).getScanMode();
     }
 
     @Test
