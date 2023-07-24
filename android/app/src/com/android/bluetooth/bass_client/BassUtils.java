@@ -54,10 +54,6 @@ class BassUtils {
 
     static void printByteArray(byte[] array) {
         log("Entire byte Array as string: " + Arrays.toString(array));
-        log("printitng byte by bte");
-        for (int i = 0; i < array.length; i++) {
-            log("array[" + i + "] :" + Byte.toUnsignedInt(array[i]));
-        }
     }
 
     static void reverse(byte[] address) {
