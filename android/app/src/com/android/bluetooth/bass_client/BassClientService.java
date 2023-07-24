@@ -299,7 +299,7 @@ public class BassClientService extends ProfileService {
                 }
             }
         };
-        registerReceiver(mIntentReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        registerReceiver(mIntentReceiver, filter, Context.RECEIVER_EXPORTED);
 
         setBassClientService(this);
         // Saving PSync stuff for future addition
