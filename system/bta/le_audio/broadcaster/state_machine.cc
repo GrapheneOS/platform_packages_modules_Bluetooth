@@ -111,15 +111,9 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
                    base::Unretained(this->callbacks_), broadcast_id));
   }
 
-  RawAddress GetOwnAddress() override {
-    LOG_INFO();
-    return addr_;
-  }
+  RawAddress GetOwnAddress() override { return addr_; }
 
-  uint8_t GetOwnAddressType() override {
-    LOG_INFO();
-    return addr_type_;
-  }
+  uint8_t GetOwnAddressType() override { return addr_type_; }
 
   bluetooth::le_audio::BroadcastId GetBroadcastId() const override {
     return sm_config_.broadcast_id;
