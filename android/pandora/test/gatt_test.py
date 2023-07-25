@@ -24,7 +24,7 @@ from bumble.pairing import PairingConfig
 from bumble_experimental.gatt import GATTService
 from mobly import base_test, signals, test_runner
 from mobly.asserts import assert_equal  # type: ignore
-from mobly.asserts import assert_false  # type: ignore
+from mobly.asserts import assert_true  # type: ignore
 from mobly.asserts import assert_in  # type: ignore
 from mobly.asserts import assert_is_not_none  # type: ignore
 from mobly.asserts import assert_not_in  # type: ignore
@@ -282,9 +282,7 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
         control_frame = await fut
 
         assert_equal(bytes(control_frame)[10], 0x05)  # All connections refused – insufficient authentication
-
-        # TODO(b/289460863): change to assert_true when the test is fixed
-        assert_false(await is_connected(self.ref, ref_dut), "Device is no longer connected")
+        assert_true(await is_connected(self.ref, ref_dut), "Device is no longer connected")
 
 
 async def is_connected(device: PandoraDevice, connection: Connection) -> bool:
