@@ -244,8 +244,8 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
     }
 
     bluetooth::shim::GetAdvertising()->ExtendedCreateAdvertiser(
-        reg_id, config, scan_callback, set_terminated_callback, duration,
-        maxExtAdvEvents, bluetooth::shim::GetGdShimHandler());
+        client_id, reg_id, config, scan_callback, set_terminated_callback,
+        duration, maxExtAdvEvents, bluetooth::shim::GetGdShimHandler());
 
     LOG_INFO("create advertising set, client_id:%d, reg_id:%d", client_id,
              reg_id);

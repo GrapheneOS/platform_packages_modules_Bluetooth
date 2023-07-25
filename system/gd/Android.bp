@@ -228,6 +228,10 @@ cc_binary {
     defaults: [
         "gd_defaults",
     ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/types",
+    ],
     host_supported: true,
     srcs: [
         ":BluetoothFacade_hci_hal",
@@ -308,6 +312,10 @@ cc_test {
         "bluetooth_gtest_x86_asan_workaround",
         "gd_defaults",
         "mts_defaults",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/types",
     ],
     host_supported: true,
     // TODO(b/231993739): Reenable isolated:true by deleting the explicit disable below

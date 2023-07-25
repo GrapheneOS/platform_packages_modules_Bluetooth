@@ -36,7 +36,8 @@ class MockLeAdvertisingManager : public LeAdvertisingManager {
   MOCK_METHOD(
       AdvertiserId,
       ExtendedCreateAdvertiser,
-      (int regId,
+      (uint8_t client_id,
+       int regId,
        const AdvertisingConfig,
        const common::Callback<void(Address, AddressType)>&,
        const common::Callback<void(ErrorCode, uint8_t, uint8_t)>&,
