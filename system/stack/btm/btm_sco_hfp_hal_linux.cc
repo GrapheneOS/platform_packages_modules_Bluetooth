@@ -314,7 +314,7 @@ bool get_swb_supported() {
   for (cached_codec_info c : cached_codecs) {
     // SWB runs on the same path as MSBC non-offload.
     if (c.inner.codec == MSBC_TRANSPARENT) {
-      return osi_property_get_bool("bluetooth.sco.swb_supported", false);
+      return true;
     }
   }
   return false;
