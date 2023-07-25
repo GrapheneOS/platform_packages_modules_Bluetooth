@@ -581,11 +581,7 @@ public class AdapterServiceTest {
         verify(mMockContext, timeout(ONE_SECOND_MS).times(2))
                 .sendBroadcast(any(), eq(BLUETOOTH_SCAN), any(Bundle.class));
 
-        final int scanMode = mAdapterService.getScanMode();
-        assertThat(scanMode)
-                .isAnyOf(
-                        BluetoothAdapter.SCAN_MODE_CONNECTABLE,
-                        BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
+        assertThat(mAdapterService.getScanMode()).isEqualTo(BluetoothAdapter.SCAN_MODE_CONNECTABLE);
     }
 
     /**
