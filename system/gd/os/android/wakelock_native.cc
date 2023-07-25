@@ -24,11 +24,11 @@
 #include <aidl/android/system/suspend/IWakeLock.h>
 #include <android/binder_ibinder.h>
 #include <android/binder_manager.h>
-
 #include <fcntl.h>
 #include <unistd.h>
 
 #include <cerrno>
+#include <functional>
 #include <string>
 
 // We want the os/log.h definitions
