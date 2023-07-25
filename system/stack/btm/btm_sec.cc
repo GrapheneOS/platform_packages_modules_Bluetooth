@@ -3397,7 +3397,10 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
           p_dev_rec->sec_flags |= BTM_SEC_16_DIGIT_PIN_AUTHED;
         }
       } else if (p_dev_rec->ble_hci_handle == handle) {  // BLE
-        p_dev_rec->sec_flags |= BTM_SEC_LE_ENCRYPTED;
+        p_dev_rec->set_le_device_encrypted();
+        if (p_dev_rec->is_le_link_key_authenticated()) {
+            p_dev_rec->set_le_device_authenticated();
+        }
       } else {
         LOG_ERROR(
             "Received encryption change for unknown device handle:0x%04x "
