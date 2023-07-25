@@ -19,10 +19,10 @@ LOCAL_host_executables := \
 	$(HOST_OUT_EXECUTABLES)/root-canal
 
 LOCAL_host_python_hci_packets_library := \
-	$(SOONG_OUT_DIR)/.intermediates/packages/modules/Bluetooth/system/gd/gd_hci_packets_python3_gen/gen/hci_packets.py
+	$(SOONG_OUT_DIR)/.intermediates/packages/modules/Bluetooth/system/pdl/hci/gd_hci_packets_python3_gen/gen/hci_packets.py
 
 LOCAL_host_python_smp_packets_library := \
-	$(SOONG_OUT_DIR)/.intermediates/packages/modules/Bluetooth/system/gd/gd_smp_packets_python3_gen/gen/smp_packets.py
+	$(SOONG_OUT_DIR)/.intermediates/packages/modules/Bluetooth/system/pdl/security/gd_smp_packets_python3_gen/gen/smp_packets.py
 
 LOCAL_host_python_extension_libraries := \
 	$(HOST_OUT_SHARED_LIBRARIES)/bluetooth_packets_python3.so
