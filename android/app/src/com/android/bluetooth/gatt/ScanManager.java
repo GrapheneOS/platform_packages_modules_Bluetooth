@@ -1365,14 +1365,15 @@ public class ScanManager {
                                     + client.scannerId + ")");
                     setOpportunisticScanClient(client);
                     removeScanFilters(client.scannerId);
-                    client.stats.setScanTimeout(client.scannerId);
+
                 } else {
                     Log.w(TAG,
                             "Moving filtered scan client to downgraded scan (scannerId "
                                     + client.scannerId + ")");
                     client.updateScanMode(ScanSettings.SCAN_MODE_LOW_POWER);
-                    client.stats.setScanTimeout(client.scannerId);
                 }
+                client.stats.setScanTimeout(client.scannerId);
+                client.stats.recordScanTimeoutCountMetrics();
             }
 
             // The scan should continue for background scans
