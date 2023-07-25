@@ -38,6 +38,7 @@ import java.util.List;
 public class BrowseNodeTest {
     private static final int TEST_PLAYER_ID = 1;
     private static final String TEST_UUID = "1111";
+    private static final String TEST_NAME = "item";
 
     private final byte[] mTestAddress = new byte[]{01, 01, 01, 01, 01, 01};
     private BluetoothAdapter mAdapter;
@@ -182,10 +183,45 @@ public class BrowseNodeTest {
     }
 
     @Test
-    public void toString_returnsId() {
-        BrowseNode browseNode = mBrowseTree.new BrowseNode(
-                new AvrcpItem.Builder().setUuid(TEST_UUID).build());
+    public void toTreeString_returnFormattedString() {
+        final String expected = "  [Id: 1111 Name: item Size: 2]\n"
+                + "    [Id: child1 Name: child1 Size: 1]\n"
+                + "      [Id: child3 Name: child3 Size: 0]\n"
+                + "    [Id: child2 Name: child2 Size: 0]\n";
 
-        assertThat(browseNode.toString()).isEqualTo("ID: " + TEST_UUID);
+        BrowseNode browseNode = mBrowseTree.new BrowseNode(new AvrcpItem.Builder()
+                .setUuid(TEST_UUID)
+                .setDisplayableName(TEST_NAME)
+                .build());
+        BrowseNode childNode1 = mBrowseTree.new BrowseNode(new AvrcpItem.Builder()
+                .setUuid("child1")
+                .setDisplayableName("child1")
+                .build());
+        BrowseNode childNode2 = mBrowseTree.new BrowseNode(new AvrcpItem.Builder()
+                .setUuid("child2")
+                .setDisplayableName("child2")
+                .build());
+        BrowseNode childNode3 = mBrowseTree.new BrowseNode(new AvrcpItem.Builder()
+                .setUuid("child3")
+                .setDisplayableName("child3")
+                .build());
+        childNode1.addChild(childNode3);
+        browseNode.addChild(childNode1);
+        browseNode.addChild(childNode2);
+
+        StringBuilder sb = new StringBuilder();
+        browseNode.toTreeString(0, sb);
+        assertThat(sb.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void toString_returnsId() {
+        BrowseNode browseNode = mBrowseTree.new BrowseNode(new AvrcpItem.Builder()
+                .setUuid(TEST_UUID)
+                .setDisplayableName(TEST_NAME)
+                .build());
+
+        assertThat(browseNode.toString()).isEqualTo(
+                "[Id: " + TEST_UUID + " Name: " + TEST_NAME + " Size: 0]");
     }
 }
