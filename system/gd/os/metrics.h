@@ -127,13 +127,13 @@ void LogMetricA2dpPlaybackEvent(const hci::Address& address, int playback_state,
  * @param address HFP device associated with this stats
  * @param num_decoded_frames number of decoded frames
  * @param packet_loss_ratio ratio of packet loss frames
- * @param codec_type codec type of the packet (mSBC=2, LC3=3)
+ * @param codec_id codec ID of the packet (mSBC=2, LC3=3)
  */
 void LogMetricHfpPacketLossStats(
     const hci::Address& address,
     int num_decoded_frames,
     double packet_loss_ratio,
-    uint16_t codec_type);
+    uint16_t codec_id);
 
 /**
  * Log read RSSI result
