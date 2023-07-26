@@ -64,6 +64,7 @@ tests = [
     'LMP.LIH.BV_144_C',
     'LMP.LIH.BV_149_C',
     'LL.scan_collision',
+    'LMP.page_collision',
 ]
 
 

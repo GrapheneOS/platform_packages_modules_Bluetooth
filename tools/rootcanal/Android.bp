@@ -316,6 +316,7 @@ python_test_host {
         "test/LL/DDI/ADV/*.py",
         "test/LL/DDI/SCN/*.py",
         "test/LMP/LIH/*.py",
+        "test/LMP/*.py",
         "test/main.py",
     ],
     data: [
