@@ -883,7 +883,12 @@ public class BassClientStateMachineTest {
 
         Message msg = mBassClientStateMachine.obtainMessage(CONNECTION_STATE_CHANGED);
         msg.obj = BluetoothProfile.STATE_CONNECTING;
+        BassClientStateMachine.BluetoothGattTestableWrapper btGatt =
+                Mockito.mock(BassClientStateMachine.BluetoothGattTestableWrapper.class);
+        mBassClientStateMachine.mBluetoothGatt = btGatt;
         sendMessageAndVerifyTransition(msg, BassClientStateMachine.Disconnected.class);
+        verify(btGatt).close();
+        assertNull(mBassClientStateMachine.mBluetoothGatt);
     }
 
     @Test
@@ -905,8 +910,13 @@ public class BassClientStateMachineTest {
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
         verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
 
+        BassClientStateMachine.BluetoothGattTestableWrapper btGatt =
+                Mockito.mock(BassClientStateMachine.BluetoothGattTestableWrapper.class);
+        mBassClientStateMachine.mBluetoothGatt = btGatt;
         Message msg = mBassClientStateMachine.obtainMessage(CONNECT_TIMEOUT, mTestDevice);
         sendMessageAndVerifyTransition(msg, BassClientStateMachine.Disconnected.class);
+        verify(btGatt).close();
+        assertNull(mBassClientStateMachine.mBluetoothGatt);
     }
 
     @Test
@@ -955,9 +965,14 @@ public class BassClientStateMachineTest {
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
         verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
 
+        BassClientStateMachine.BluetoothGattTestableWrapper btGatt =
+                Mockito.mock(BassClientStateMachine.BluetoothGattTestableWrapper.class);
+        mBassClientStateMachine.mBluetoothGatt = btGatt;
         Message noneConnectedMsg = mBassClientStateMachine.obtainMessage(CONNECTION_STATE_CHANGED);
         noneConnectedMsg.obj = BluetoothProfile.STATE_DISCONNECTING;
         sendMessageAndVerifyTransition(noneConnectedMsg, BassClientStateMachine.Disconnected.class);
+        verify(btGatt).close();
+        assertNull(mBassClientStateMachine.mBluetoothGatt);
     }
 
     @Test
@@ -1345,11 +1360,16 @@ public class BassClientStateMachineTest {
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
         verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
 
+        BassClientStateMachine.BluetoothGattTestableWrapper btGatt =
+                Mockito.mock(BassClientStateMachine.BluetoothGattTestableWrapper.class);
+        mBassClientStateMachine.mBluetoothGatt = btGatt;
         Message msgToNoneConnectedState =
                 mBassClientStateMachine.obtainMessage(CONNECTION_STATE_CHANGED);
         msgToNoneConnectedState.obj = BluetoothProfile.STATE_DISCONNECTING;
         sendMessageAndVerifyTransition(
                 msgToNoneConnectedState, BassClientStateMachine.Disconnected.class);
+        verify(btGatt).close();
+        assertNull(mBassClientStateMachine.mBluetoothGatt);
     }
 
     /**
