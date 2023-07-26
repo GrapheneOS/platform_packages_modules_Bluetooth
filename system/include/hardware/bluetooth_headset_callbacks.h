@@ -209,15 +209,15 @@ class Callbacks {
    * Callback for DebugDump.
    *
    * @param active whether the SCO is active
-   * @param wbs whether it is under WBS, false for NBS.
-   * @param total_num_decoded_frames the number of WBS frames decoded.
+   * @param codec_id the codec ID per spec: mSBC=2, LC3=3.
+   * @param total_num_decoded_frames the number of frames decoded.
    * @param pkt_loss_ratio the ratio of lost frames
    * @param begin_ts time of the packet status window starts in microseconds.
    * @param end_ts time of the packet status window ends in microseconds.
-   * @param pkt_status_in_hex recorded WBS packets' status in hex string.
-   * @param pkt_status_in_binary recorde WBS packets' status in binary string.
+   * @param pkt_status_in_hex recorded packets' status in hex string.
+   * @param pkt_status_in_binary recorde packets' status in binary string.
    */
-  virtual void DebugDumpCallback(bool active, bool wbs,
+  virtual void DebugDumpCallback(bool active, uint16_t codec_id,
                                  int total_num_decoded_frames,
                                  double pkt_loss_ratio, uint64_t begin_ts,
                                  uint64_t end_ts, const char* pkt_status_in_hex,

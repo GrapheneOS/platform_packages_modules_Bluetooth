@@ -796,6 +796,8 @@ struct tBTM_LC3_INFO {
 
   uint8_t num_encoded_lc3_pkts; /* Number of the encoded LC3 packets */
 
+  tBTM_SCO_PKT_STATUS* pkt_status; /* Record of LC3 packet status */
+
   static size_t get_supported_packet_size(size_t pkt_size,
                                           size_t* buffer_size) {
     int i;
@@ -842,12 +844,17 @@ struct tBTM_LC3_INFO {
     if (lc3_encode_buf) osi_free(lc3_encode_buf);
     lc3_encode_buf = (uint8_t*)osi_calloc(buf_size);
 
+    if (pkt_status) osi_free(pkt_status);
+    pkt_status = (tBTM_SCO_PKT_STATUS*)osi_calloc(sizeof(*pkt_status));
+    pkt_status->init();
+
     return packet_size;
   }
 
   void deinit() {
     if (lc3_decode_buf) osi_free(lc3_decode_buf);
     if (lc3_encode_buf) osi_free(lc3_encode_buf);
+    if (pkt_status) osi_free_and_reset((void**)&pkt_status);
   }
 
   size_t decodable() { return decode_buf_wo - decode_buf_ro; }
@@ -1041,6 +1048,8 @@ size_t decode(const uint8_t** out_data) {
   bool plc_conducted = !GetInterfaceToProfiles()->lc3Codec->decodePacket(
       frame_head, lc3_info->decoded_pcm_buf, sizeof(lc3_info->decoded_pcm_buf));
 
+  lc3_info->pkt_status->update(plc_conducted);
+
   ++decoded_frames;
   lost_frames += plc_conducted;
 
@@ -1097,6 +1106,13 @@ size_t dequeue_packet(const uint8_t** output) {
   }
 
   return lc3_info->mark_pkt_dequeued();
+}
+
+tBTM_SCO_PKT_STATUS* get_pkt_status() {
+  if (lc3_info == nullptr) {
+    return nullptr;
+  }
+  return lc3_info->pkt_status;
 }
 }  // namespace swb
 
