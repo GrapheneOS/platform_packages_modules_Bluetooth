@@ -50,6 +50,7 @@ import com.android.bluetooth.TestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -69,6 +70,12 @@ public class BluetoothOppNotificationTest {
 
     ComponentName mReceiverName;
     int mPreviousState;
+
+    // Activity tests can sometimes flaky because of external factors like system dialog, etc.
+    // making the expected Espresso's root not focused or the activity doesn't show up.
+    // Add retry rule to resolve this problem.
+    @Rule public TestUtils.RetryTestRule mRetryTestRule = new TestUtils.RetryTestRule();
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
