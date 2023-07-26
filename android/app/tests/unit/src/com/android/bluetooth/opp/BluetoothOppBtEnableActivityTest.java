@@ -39,6 +39,7 @@ import com.android.bluetooth.TestUtils;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
@@ -46,6 +47,11 @@ public class BluetoothOppBtEnableActivityTest {
 
     Intent mIntent;
     Context mTargetContext;
+
+    // Activity tests can sometimes flaky because of external factors like system dialog, etc.
+    // making the expected Espresso's root not focused or the activity doesn't show up.
+    // Add retry rule to resolve this problem.
+    @Rule public TestUtils.RetryTestRule mRetryTestRule = new TestUtils.RetryTestRule();
 
     @Before
     public void setUp() throws Exception {
