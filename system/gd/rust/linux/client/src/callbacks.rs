@@ -11,6 +11,7 @@ use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::{BtBondState, BtPropertyType, BtSspVariant, BtStatus, Uuid128Bit};
 use bt_topshim::profiles::gatt::{AdvertisingStatus, GattStatus, LePhy};
+use bt_topshim::profiles::hfp::HfpCodecId;
 use bt_topshim::profiles::sdp::BtSdpRecord;
 use btstack::bluetooth::{
     BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
@@ -1345,7 +1346,7 @@ impl IBluetoothMediaCallback for MediaCallback {
     fn on_hfp_debug_dump(
         &mut self,
         active: bool,
-        wbs: bool,
+        codec_id: u16,
         total_num_decoded_frames: i32,
         pkt_loss_ratio: f64,
         begin_ts: u64,
@@ -1356,7 +1357,9 @@ impl IBluetoothMediaCallback for MediaCallback {
         // Invoke run_callback so that the callback can be handled through
         // ForegroundActions::RunCallback in main.rs.
         self.context.lock().unwrap().run_callback(Box::new(move |_context| {
-            let wbs_dump = if active && wbs {
+            let is_wbs = codec_id == HfpCodecId::MSBC as u16;
+            let is_swb = codec_id == HfpCodecId::LC3 as u16;
+            let dump = if active && (is_wbs || is_swb) {
                 let mut to_split_binary = pkt_status_in_binary.clone();
                 let mut wrapped_binary = String::new();
                 while to_split_binary.len() > BINARY_PACKET_STATUS_WRAP {
@@ -1366,9 +1369,8 @@ impl IBluetoothMediaCallback for MediaCallback {
                     to_split_binary = remaining;
                 }
                 wrapped_binary.push_str(&to_split_binary);
-
                 format!(
-                    "\n--------WBS packet loss--------\n\
+                    "\n--------{} packet loss--------\n\
                        Decoded Packets: {}, Packet Loss Ratio: {} \n\
                        {} [begin]\n\
                        {} [end]\n\
@@ -1376,6 +1378,7 @@ impl IBluetoothMediaCallback for MediaCallback {
                        {}\n\
                        In binary format:\n\
                        {}",
+                    if is_wbs { "WBS" } else { "SWB" },
                     total_num_decoded_frames,
                     pkt_loss_ratio,
                     timestamp_to_string(begin_ts),
@@ -1389,12 +1392,18 @@ impl IBluetoothMediaCallback for MediaCallback {
 
             print_info!(
                 "\n--------HFP debug dump---------\n\
-                 HFP SCO: {}, Codec: {}\
-                 {}
-                 ",
+                     HFP SCO: {}, Codec: {}\
+                     {}
+                     ",
                 if active { "active" } else { "inactive" },
-                if wbs { "mSBC" } else { "CVSD" },
-                wbs_dump
+                if is_wbs {
+                    "mSBC"
+                } else if is_swb {
+                    "LC3"
+                } else {
+                    "CVSD"
+                },
+                dump
             );
         }));
     }
