@@ -24,8 +24,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 @RunWith(JUnit4.class)
 public class BaseDataTest {
@@ -36,9 +34,17 @@ public class BaseDataTest {
         assertThat(info.presentationDelay.length).isEqualTo(3);
         assertThat(info.codecId.length).isEqualTo(5);
 
-        assertThat(info.isCodecIdUnknown()).isFalse();
+        assertThat(info.codecId)
+                .isEqualTo(
+                        new byte[] {
+                            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
+                        });
         info.codecId[4] = (byte) 0xFE;
-        assertThat(info.isCodecIdUnknown()).isTrue();
+        assertThat(info.codecId)
+                .isNotEqualTo(
+                        new byte[] {
+                            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
+                        });
 
         // info.print() with different combination shouldn't crash.
         info.print();
@@ -48,9 +54,10 @@ public class BaseDataTest {
         info.print();
 
         info.level = 2;
-        info.metaDataLength = 1;
-        info.keyMetadataDiff.add("metadata-diff");
-        info.keyCodecCfgDiff.add("cfg-diff");
+        info.codecConfigLength = 3;
+        info.codecConfigInfo = new byte[] {(byte) 0x01, (byte) 0x05};
+        info.metaDataLength = 4;
+        info.metaData = new byte[] {(byte) 0x04, (byte) 0x80, (byte) 0x79, (byte) 0x76};
         info.print();
 
         info.level = 3;
@@ -61,22 +68,34 @@ public class BaseDataTest {
     public void parseBaseData() {
         assertThrows(IllegalArgumentException.class, () -> BaseData.parseBaseData(null));
 
-        byte[] serviceData = new byte[] {
-                // LEVEL 1
-                (byte) 0x01, (byte) 0x02, (byte) 0x03, // presentationDelay
-                (byte) 0x01,  // numSubGroups
-                // LEVEL 2
-                (byte) 0x01,  // numSubGroups
-                (byte) 0xFE,  // UNKNOWN_CODEC
-                (byte) 0x02,  // codecConfigLength
-                (byte) 0x01, (byte) 'A', // codecConfigInfo
-                (byte) 0x03,  // metaDataLength
-                (byte) 0x06, (byte) 0x07, (byte) 0x08,  // metaData
-                // LEVEL 3
-                (byte) 0x04,  // index
-                (byte) 0x03,  // codecConfigLength
-                (byte) 0x02, (byte) 'B', (byte) 'C' // codecConfigInfo
-        };
+        byte[] serviceData =
+                new byte[] {
+                    // LEVEL 1
+                    (byte) 0x01,
+                    (byte) 0x02,
+                    (byte) 0x03, // presentationDelay
+                    (byte) 0x01, // numSubGroups
+                    // LEVEL 2
+                    (byte) 0x01, // numSubGroups
+                    (byte) 0x00,
+                    (byte) 0x00,
+                    (byte) 0x00,
+                    (byte) 0x00,
+                    (byte) 0x00, // UNKNOWN_CODEC
+                    (byte) 0x02, // codecConfigLength
+                    (byte) 0x01,
+                    (byte) 'A', // codecConfigInfo
+                    (byte) 0x03, // metaDataLength
+                    (byte) 0x06,
+                    (byte) 0x07,
+                    (byte) 0x08, // metaData
+                    // LEVEL 3
+                    (byte) 0x04, // index
+                    (byte) 0x03, // codecConfigLength
+                    (byte) 0x02,
+                    (byte) 'B',
+                    (byte) 'C' // codecConfigInfo
+                };
 
         BaseData data = BaseData.parseBaseData(serviceData);
         BaseData.BaseInformation level = data.getLevelOne();
@@ -87,7 +106,7 @@ public class BaseDataTest {
         level = data.getLevelTwo().get(0);
 
         assertThat(level.numSubGroups).isEqualTo(1);
-        assertThat(level.isCodecIdUnknown()).isTrue();
+        assertThat(level.codecId).isEqualTo(new byte[] {0x00, 0x00, 0x00, 0x00, 0x00});
         assertThat(level.codecConfigLength).isEqualTo(2);
         assertThat(level.metaDataLength).isEqualTo(3);
 
