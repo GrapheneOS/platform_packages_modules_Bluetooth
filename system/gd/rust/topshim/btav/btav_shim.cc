@@ -246,7 +246,7 @@ static void audio_config_cb(
 }
 static bool mandatory_codec_preferred_cb(const RawAddress& addr) {
   rusty::mandatory_codec_preferred_callback(addr);
-  return true;
+  return false;
 }
 
 btav_source_callbacks_t g_callbacks = {
