@@ -305,7 +305,7 @@ public class BatteryStateMachineTest {
     }
 
     @Test
-    public void testDisconnetResetBatteryLevel() {
+    public void testDisconnectResetBatteryLevel() {
         allowConnection(true);
         allowConnectGatt(true);
 
