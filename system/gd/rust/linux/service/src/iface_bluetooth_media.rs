@@ -81,7 +81,7 @@ impl IBluetoothMediaCallback for BluetoothMediaCallbackDBus {
     fn on_hfp_debug_dump(
         &mut self,
         active: bool,
-        wbs: bool,
+        codec_id: u16,
         total_num_decoded_frames: i32,
         pkt_loss_ratio: f64,
         begin_ts: u64,
