@@ -442,7 +442,7 @@ public class BatteryService extends ProfileService {
      */
     @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
     public void handleBatteryChanged(BluetoothDevice device, int batteryLevel) {
-        mAdapterService.setBatteryLevel(device, batteryLevel);
+        mAdapterService.setBatteryLevel(device, batteryLevel, /*isBas=*/ true);
     }
 
     private BatteryStateMachine getOrCreateStateMachine(BluetoothDevice device) {
