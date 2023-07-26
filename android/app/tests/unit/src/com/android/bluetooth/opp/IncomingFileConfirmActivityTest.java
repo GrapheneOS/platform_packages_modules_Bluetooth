@@ -55,6 +55,7 @@ import com.google.common.base.Objects;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -62,7 +63,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -81,6 +81,11 @@ public class IncomingFileConfirmActivityTest {
     Context mTargetContext;
 
     static final int TIMEOUT_MS = 3_000;
+
+    // Activity tests can sometimes flaky because of external factors like system dialog, etc.
+    // making the expected Espresso's root not focused or the activity doesn't show up.
+    // Add retry rule to resolve this problem.
+    @Rule public TestUtils.RetryTestRule mRetryTestRule = new TestUtils.RetryTestRule();
 
     @Before
     public void setUp() throws Exception {
