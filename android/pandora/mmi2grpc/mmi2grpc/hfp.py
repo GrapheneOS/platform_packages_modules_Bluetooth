@@ -61,7 +61,8 @@ class HFPProxy(ProfileProxy):
         th.start()
 
     def test_started(self, test: str, pts_addr: bytes, **kwargs):
-        self.asyncWaitConnection(pts_addr)
+        if test not in ("HFP/AG/SLC/BV-02-C", "HFP/AG/SLC/BV-04-C"):
+            self.asyncWaitConnection(pts_addr)
 
         return "OK"
 
