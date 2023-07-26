@@ -113,7 +113,7 @@ static headset::bthf_call_state_t from_rust_call_state(rusty::CallState state) {
 
 static void debug_dump_cb(
     bool active,
-    bool wbs,
+    uint16_t codec_id,
     int total_num_decoded_frames,
     double packet_loss_ratio,
     uint64_t begin_ts,
@@ -122,7 +122,7 @@ static void debug_dump_cb(
     const char* pkt_status_in_binary) {
   rusty::hfp_debug_dump_callback(
       active,
-      wbs,
+      codec_id,
       total_num_decoded_frames,
       packet_loss_ratio,
       begin_ts,
@@ -273,7 +273,7 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
 
   void DebugDumpCallback(
       bool active,
-      bool wbs,
+      uint16_t codec_id,
       int total_num_decoded_frames,
       double packet_loss_ratio,
       uint64_t begin_ts,
@@ -281,9 +281,9 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
       const char* pkt_status_in_hex,
       const char* pkt_status_in_binary) override {
     LOG_WARN(
-        "DebugDumpCallback %d %d %d %f %llu %llu %s %s",
+        "DebugDumpCallback %d %u %d %f %llu %llu %s %s",
         active,
-        wbs,
+        codec_id,
         total_num_decoded_frames,
         packet_loss_ratio,
         (unsigned long long)begin_ts,
@@ -292,7 +292,7 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
         pkt_status_in_binary);
     topshim::rust::internal::debug_dump_cb(
         active,
-        wbs,
+        codec_id,
         total_num_decoded_frames,
         packet_loss_ratio,
         begin_ts,
