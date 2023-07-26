@@ -89,18 +89,22 @@ class LinkLayerController {
   void MakePeripheralConnection(const Address& addr, bool try_role_switch);
   ErrorCode RejectConnectionRequest(const Address& addr, uint8_t reason);
   void RejectPeripheralConnection(const Address& addr, uint8_t reason);
-  ErrorCode CreateConnection(const Address& addr, uint16_t packet_type,
+
+  // HCI command Create Connection (Vol 4, Part E § 7.1.5).
+  ErrorCode CreateConnection(const Address& bd_addr, uint16_t packet_type,
                              uint8_t page_scan_mode, uint16_t clock_offset,
                              uint8_t allow_role_switch);
-  ErrorCode CreateConnectionCancel(const Address& addr);
 
-  // Disconnect a link.
+  // HCI command Disconnect (Vol 4, Part E § 7.1.6).
   // \p host_reason is taken from the Disconnect command, and sent over
   // to the remote as disconnect error. \p controller_reason is the code
   // used in the DisconnectionComplete event.
   ErrorCode Disconnect(uint16_t handle, ErrorCode host_reason,
                        ErrorCode controller_reason =
                            ErrorCode::CONNECTION_TERMINATED_BY_LOCAL_HOST);
+
+  // HCI command Create Connection Cancel (Vol 4, Part E § 7.1.7).
+  ErrorCode CreateConnectionCancel(const Address& bd_addr);
 
   // Internal task scheduler.
   // This scheduler is driven by the tick function only,
@@ -165,6 +169,7 @@ class LinkLayerController {
 
   void Reset();
 
+  void Paging();
   void LeAdvertising();
   void LeScanning();
   void LeSynchronization();
@@ -1093,7 +1098,16 @@ class LinkLayerController {
   struct ControllerOps controller_ops_;
 
   // Classic state.
-  TaskId page_timeout_task_id_ = kInvalidTaskId;
+  struct Page {
+    Address bd_addr;
+    uint8_t allow_role_switch;
+    std::chrono::steady_clock::time_point next_page_event{};
+    std::chrono::steady_clock::time_point page_timeout{};
+  };
+
+  // Page substate.
+  // RootCanal will allow only one page request running at the same time.
+  std::optional<Page> page_;
 
   std::chrono::steady_clock::time_point last_inquiry_;
   model::packets::InquiryType inquiry_mode_{
