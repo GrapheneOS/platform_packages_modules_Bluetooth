@@ -1,4 +1,7 @@
-use bt_topshim::profiles::a2dp::{A2dpCodecConfig, PresentationPosition};
+use bt_topshim::profiles::a2dp::{
+    A2dpCodecBitsPerSample, A2dpCodecChannelMode, A2dpCodecConfig, A2dpCodecIndex,
+    A2dpCodecSampleRate, PresentationPosition,
+};
 use bt_topshim::profiles::avrcp::PlayerMetadata;
 use bt_topshim::profiles::hfp::HfpCodecCapability;
 use btstack::bluetooth_media::{BluetoothAudioDevice, IBluetoothMedia, IBluetoothMediaCallback};
@@ -11,9 +14,11 @@ use dbus::strings::Path;
 use dbus_macros::{dbus_method, dbus_propmap, dbus_proxy_obj, generate_dbus_exporter};
 
 use dbus_projection::DisconnectWatcher;
-use dbus_projection::{dbus_generated, impl_dbus_arg_from_into};
+use dbus_projection::{dbus_generated, impl_dbus_arg_enum, impl_dbus_arg_from_into};
 
 use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
+
+use num_traits::{FromPrimitive, ToPrimitive};
 
 use std::convert::{TryFrom, TryInto};
 use std::sync::Arc;
@@ -44,6 +49,10 @@ pub struct BluetoothAudioDeviceDBus {
 }
 
 impl_dbus_arg_from_into!(HfpCodecCapability, i32);
+impl_dbus_arg_enum!(A2dpCodecIndex);
+impl_dbus_arg_from_into!(A2dpCodecSampleRate, i32);
+impl_dbus_arg_from_into!(A2dpCodecBitsPerSample, i32);
+impl_dbus_arg_from_into!(A2dpCodecChannelMode, i32);
 
 #[dbus_proxy_obj(BluetoothMediaCallback, "org.chromium.bluetooth.BluetoothMediaCallback")]
 impl IBluetoothMediaCallback for BluetoothMediaCallbackDBus {
@@ -203,9 +212,11 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     #[dbus_method("SetAudioConfig")]
     fn set_audio_config(
         &mut self,
-        sample_rate: i32,
-        bits_per_sample: i32,
-        channel_mode: i32,
+        address: String,
+        codec_type: A2dpCodecIndex,
+        sample_rate: A2dpCodecSampleRate,
+        bits_per_sample: A2dpCodecBitsPerSample,
+        channel_mode: A2dpCodecChannelMode,
     ) -> bool {
         dbus_generated!()
     }
