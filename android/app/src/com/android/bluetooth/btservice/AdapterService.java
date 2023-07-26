@@ -7666,11 +7666,11 @@ public class AdapterService extends Service {
     }
 
     /** Sets the battery level of the remote device */
-    public void setBatteryLevel(BluetoothDevice device, int batteryLevel) {
+    public void setBatteryLevel(BluetoothDevice device, int batteryLevel, boolean isBas) {
         if (batteryLevel == BATTERY_LEVEL_UNKNOWN) {
-            mRemoteDevices.resetBatteryLevel(device);
+            mRemoteDevices.resetBatteryLevel(device, isBas);
         } else {
-            mRemoteDevices.updateBatteryLevel(device, batteryLevel);
+            mRemoteDevices.updateBatteryLevel(device, batteryLevel, isBas);
         }
     }
 
