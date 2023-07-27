@@ -60,8 +60,8 @@ class AndroidInternal(val context: Context) : AndroidImplBase(), Closeable {
 
     // PTS does not configure the Extended Inquiry Response with the
     // device name; the device will be found after the Inquiry Timeout
-    // (12.8sec) has elapsed.
-    private val BT_DEVICE_SELECT_WAIT_TIMEOUT = 20000L
+    // (40 secondes) has elapsed.
+    private val BT_DEVICE_SELECT_WAIT_TIMEOUT = 40000L
     private val IMAGE_FILE_NAME = "OPP_TEST_IMAGE.bmp"
 
     private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
