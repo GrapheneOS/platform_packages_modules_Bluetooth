@@ -664,7 +664,8 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
               L2CAP_LE_RESULT_SOURCE_CID_ALREADY_ALLOCATED;
         } else {
           /* Allocate a ccb for this.*/
-          temp_p_ccb = l2cu_allocate_ccb(p_lcb, 0);
+          temp_p_ccb = l2cu_allocate_ccb(
+              p_lcb, 0, con_info.psm == BT_PSM_EATT /* is_eatt */);
           if (temp_p_ccb == NULL) {
             LOG_ERROR("L2CAP - unable to allocate CCB");
             p_lcb->pending_ecoc_connection_cids[i] = 0;
@@ -1011,7 +1012,8 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
       }
 
       /* Allocate a ccb for this.*/
-      p_ccb = l2cu_allocate_ccb(p_lcb, 0);
+      p_ccb = l2cu_allocate_ccb(p_lcb, 0,
+                                con_info.psm == BT_PSM_EATT /* is_eatt */);
       if (p_ccb == NULL) {
         L2CAP_TRACE_ERROR("L2CAP - unable to allocate CCB");
         l2cu_reject_ble_connection(p_ccb, id, L2CAP_CONN_NO_RESOURCES);

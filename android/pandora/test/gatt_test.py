@@ -14,6 +14,7 @@
 
 import asyncio
 import avatar
+import grpc
 import logging
 
 from avatar import BumblePandoraDevice, PandoraDevice, PandoraDevices
@@ -23,6 +24,7 @@ from bumble.pairing import PairingConfig
 from bumble_experimental.gatt import GATTService
 from mobly import base_test, signals, test_runner
 from mobly.asserts import assert_equal  # type: ignore
+from mobly.asserts import assert_true  # type: ignore
 from mobly.asserts import assert_in  # type: ignore
 from mobly.asserts import assert_is_not_none  # type: ignore
 from mobly.asserts import assert_not_in  # type: ignore
@@ -237,6 +239,59 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
         # assert: but found both in the second discovery
         assert_in(SERVICE_UUID_1, (service.uuid for service in second_discovery.services))
         assert_in(SERVICE_UUID_2, (service.uuid for service in second_discovery.services))
+
+    @avatar.asynchronous
+    async def test_eatt_when_not_encrypted_no_timeout(self) -> None:
+        if not isinstance(self.ref, BumblePandoraDevice):
+            raise signals.TestSkip('Test require Bumble as reference device(s)')
+        advertise = self.dut.aio.host.Advertise(
+            legacy=True,
+            connectable=True,
+            own_address_type=RANDOM,
+            data=DataTypes(manufacturer_specific_data=b'pause cafe'),
+        )
+
+        scan = self.ref.aio.host.Scan()
+        dut = await anext((x async for x in scan if b'pause cafe' in x.data.manufacturer_specific_data))
+        scan.cancel()
+
+        ref_dut = (await self.ref.aio.host.ConnectLE(own_address_type=RANDOM, **dut.address_asdict())).connection
+        assert_is_not_none(ref_dut)
+        assert ref_dut
+        advertise.cancel()
+
+        connection = self.ref.device.lookup_connection(int.from_bytes(ref_dut.cookie.value, 'big'))
+        assert connection
+
+        connection_request = (
+            b"\x17"  # code of L2CAP_CREDIT_BASED_CONNECTION_REQ
+            b"\x01"  # identifier
+            b"\x0a\x00"  # data length
+            b"\x27\x00"  # psm(EATT)
+            b"\x64\x00"  # MTU
+            b"\x64\x00"  # MPS
+            b"\x64\x00"  # initial credit
+            b"\x40\x00"  # source cid[0]
+        )
+
+        fut = asyncio.get_running_loop().create_future()
+        setattr(self.ref.device.l2cap_channel_manager, "on_[0x18]", lambda _, _1, frame: fut.set_result(frame))
+        self.ref.device.l2cap_channel_manager.send_control_frame(  # type:ignore
+            connection, 0x05, connection_request
+        )
+        control_frame = await fut
+
+        assert_equal(bytes(control_frame)[10], 0x05)  # All connections refused – insufficient authentication
+        assert_true(await is_connected(self.ref, ref_dut), "Device is no longer connected")
+
+
+async def is_connected(device: PandoraDevice, connection: Connection) -> bool:
+    try:
+        await device.aio.host.WaitDisconnection(connection=connection, timeout=5)
+        return False
+    except grpc.RpcError as e:
+        assert_equal(e.code(), grpc.StatusCode.DEADLINE_EXCEEDED)  # type: ignore
+        return True
 
 
 if __name__ == '__main__':
