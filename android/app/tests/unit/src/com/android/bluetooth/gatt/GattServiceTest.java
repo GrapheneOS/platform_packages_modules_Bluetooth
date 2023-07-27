@@ -97,6 +97,7 @@ public class GattServiceTest {
     @Mock private GattService.ScannerMap mScannerMap;
     @Mock private GattService.ScannerMap.App mApp;
     @Mock private GattService.PendingIntentInfo mPiInfo;
+    @Mock private PeriodicScanManager mPeriodicScanManager;
     @Mock private ScanManager mScanManager;
     @Mock private Set<String> mReliableQueue;
     @Mock private GattService.ServerMap mServerMap;
@@ -126,6 +127,10 @@ public class GattServiceTest {
 
         GattObjectsFactory.setInstanceForTesting(mFactory);
         doReturn(mNativeInterface).when(mFactory).getNativeInterface();
+        doReturn(mScanManager).when(mFactory).createScanManager(any(), any(), any());
+        doReturn(mPeriodicScanManager).when(mFactory).createPeriodicScanManager(any());
+        doReturn(mDistanceMeasurementManager).when(mFactory)
+                .createDistanceMeasurementManager(any());
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mAttributionSource = mAdapter.getAttributionSource();
@@ -150,10 +155,8 @@ public class GattServiceTest {
 
         mService.mClientMap = mClientMap;
         mService.mScannerMap = mScannerMap;
-        mService.mScanManager = mScanManager;
         mService.mReliableQueue = mReliableQueue;
         mService.mServerMap = mServerMap;
-        mService.mDistanceMeasurementManager = mDistanceMeasurementManager;
     }
 
     @After
