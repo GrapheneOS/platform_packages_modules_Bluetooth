@@ -24,32 +24,32 @@ from bumble.core import (
     BT_L2CAP_PROTOCOL_ID,
     BT_RFCOMM_PROTOCOL_ID,
 )
-from bumble.rfcomm import Server as RfcommServer, DLC
+from bumble.hfp import HfpProtocol
+from bumble.rfcomm import DLC, Server as RfcommServer
 from bumble.sdp import (
-    DataElement,
-    ServiceAttribute,
+    SDP_BLUETOOTH_PROFILE_DESCRIPTOR_LIST_ATTRIBUTE_ID,
     SDP_PROTOCOL_DESCRIPTOR_LIST_ATTRIBUTE_ID,
     SDP_SERVICE_CLASS_ID_LIST_ATTRIBUTE_ID,
-    SDP_BLUETOOTH_PROFILE_DESCRIPTOR_LIST_ATTRIBUTE_ID,
     SDP_SERVICE_RECORD_HANDLE_ATTRIBUTE_ID,
+    DataElement,
+    ServiceAttribute,
 )
-from bumble.hfp import HfpProtocol
 from mobly import base_test, test_runner
 from mobly.asserts import assert_equal  # type: ignore
-from mobly.asserts import assert_not_equal  # type: ignore
 from mobly.asserts import assert_in  # type: ignore
+from mobly.asserts import assert_not_equal  # type: ignore
 from mobly.asserts import assert_not_in  # type: ignore
 from pandora.host_pb2 import Connection as PandoraConnection
 from pandora.security_pb2 import LEVEL2
-from typing import Optional, Tuple, List, Dict
+from typing import Dict, List, Optional, Tuple
 
 SDP_PROFILE_SUPPORTED_FEATURES_ID = 0x0311
 
-HFP_AG_FEATURE_HF_INDICATORS = (1 << 10)
+HFP_AG_FEATURE_HF_INDICATORS = 1 << 10
 HFP_AG_FEATURE_DEFAULT = HFP_AG_FEATURE_HF_INDICATORS
 
-HFP_HF_FEATURE_HF_INDICATORS = (1 << 8)
-HFP_HF_FEATURE_DEFAULT = hex(0x01b5)
+HFP_HF_FEATURE_HF_INDICATORS = 1 << 8
+HFP_HF_FEATURE_DEFAULT = hex(0x01B5)
 
 PROPERTY_HF_ENABLED = 'bluetooth.profile.hfp.hf.enabled'
 PROPERTY_HF_FEATURES = 'bluetooth.hfp.hf_client_features.config'
@@ -155,7 +155,6 @@ class HfpClientTest(base_test.BaseTestClass):  # type: ignore[misc]
         ref_dut_hfp_protocol = await self.make_hfp_connection()
 
         class TestAgServer(HfpAgServer):
-
             def on_brsf(self, hf_features: int) -> None:
                 # HF indicators should be enabled
                 assert_not_equal(hf_features & HFP_HF_FEATURE_HF_INDICATORS, 0)
@@ -172,8 +171,9 @@ class HfpClientTest(base_test.BaseTestClass):  # type: ignore[misc]
         await server.serve()
 
 
-def make_bumble_ag_sdp_records(hfp_version: int, rfcomm_channel: int,
-                               ag_sdp_features: int) -> Dict[int, List[ServiceAttribute]]:
+def make_bumble_ag_sdp_records(
+    hfp_version: int, rfcomm_channel: int, ag_sdp_features: int
+) -> Dict[int, List[ServiceAttribute]]:
     return {
         0x00010001: [
             ServiceAttribute(
@@ -182,29 +182,39 @@ def make_bumble_ag_sdp_records(hfp_version: int, rfcomm_channel: int,
             ),
             ServiceAttribute(
                 SDP_SERVICE_CLASS_ID_LIST_ATTRIBUTE_ID,
-                DataElement.sequence([
-                    DataElement.uuid(BT_HANDSFREE_AUDIO_GATEWAY_SERVICE),
-                    DataElement.uuid(BT_GENERIC_AUDIO_SERVICE),
-                ]),
+                DataElement.sequence(
+                    [
+                        DataElement.uuid(BT_HANDSFREE_AUDIO_GATEWAY_SERVICE),
+                        DataElement.uuid(BT_GENERIC_AUDIO_SERVICE),
+                    ]
+                ),
             ),
             ServiceAttribute(
                 SDP_PROTOCOL_DESCRIPTOR_LIST_ATTRIBUTE_ID,
-                DataElement.sequence([
-                    DataElement.sequence([DataElement.uuid(BT_L2CAP_PROTOCOL_ID)]),
-                    DataElement.sequence([
-                        DataElement.uuid(BT_RFCOMM_PROTOCOL_ID),
-                        DataElement.unsigned_integer_8(rfcomm_channel),
-                    ]),
-                ]),
+                DataElement.sequence(
+                    [
+                        DataElement.sequence([DataElement.uuid(BT_L2CAP_PROTOCOL_ID)]),
+                        DataElement.sequence(
+                            [
+                                DataElement.uuid(BT_RFCOMM_PROTOCOL_ID),
+                                DataElement.unsigned_integer_8(rfcomm_channel),
+                            ]
+                        ),
+                    ]
+                ),
             ),
             ServiceAttribute(
                 SDP_BLUETOOTH_PROFILE_DESCRIPTOR_LIST_ATTRIBUTE_ID,
-                DataElement.sequence([
-                    DataElement.sequence([
-                        DataElement.uuid(BT_HANDSFREE_AUDIO_GATEWAY_SERVICE),
-                        DataElement.unsigned_integer_16(hfp_version),
-                    ])
-                ]),
+                DataElement.sequence(
+                    [
+                        DataElement.sequence(
+                            [
+                                DataElement.uuid(BT_HANDSFREE_AUDIO_GATEWAY_SERVICE),
+                                DataElement.unsigned_integer_16(hfp_version),
+                            ]
+                        )
+                    ]
+                ),
             ),
             ServiceAttribute(
                 SDP_PROFILE_SUPPORTED_FEATURES_ID,
@@ -229,12 +239,12 @@ class HfpAgServer:
             line = await self.protocol.next_line()
 
             if line.startswith('AT+BRSF='):
-                hf_features = int(line[len('AT+BRSF='):])
+                hf_features = int(line[len('AT+BRSF=') :])
                 self.on_brsf(hf_features)
             elif line.startswith('AT+BIND=?'):
                 self.on_bind_read_capabilities()
             elif line.startswith('AT+BIND='):
-                indicators = [int(i) for i in line[len('AT+BIND='):].split(',')]
+                indicators = [int(i) for i in line[len('AT+BIND=') :].split(',')]
                 self.on_bind_list(indicators)
             elif line.startswith('AT+BIND?'):
                 self.on_bind_read_configuration()
@@ -243,14 +253,16 @@ class HfpAgServer:
             elif line.startswith('AT+CIND?'):
                 self.on_cind_test()
             # TODO(b/286226902): Implement handlers for these commands
-            elif line.startswith((
+            elif line.startswith(
+                (
                     'AT+CLIP=',
                     'AT+VGS=',
                     'AT+BIA=',
                     'AT+CMER=',
                     'AT+XEVENT=',
                     'AT+XAPL=',
-            )):
+                )
+            ):
                 self.protocol.send_response_line('OK')
             else:
                 self.protocol.send_response_line('ERROR')
@@ -267,9 +279,11 @@ class HfpAgServer:
 
     # AT+CIND=?
     def on_cind_test(self) -> None:
-        self.protocol.send_response_line('+CIND: ("call",(0,1)),("callsetup",(0-3)),("service",(0-1)),'
-                                         '("signal",(0-5)),("roam",(0,1)),("battchg",(0-5)),'
-                                         '("callheld",(0-2))')
+        self.protocol.send_response_line(
+            '+CIND: ("call",(0,1)),("callsetup",(0-3)),("service",(0-1)),'
+            '("signal",(0-5)),("roam",(0,1)),("battchg",(0-5)),'
+            '("callheld",(0-2))'
+        )
         self.protocol.send_response_line('OK')
 
     # AT+BIND=
