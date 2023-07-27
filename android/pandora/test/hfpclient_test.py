@@ -128,8 +128,8 @@ class HfpClientTest(base_test.BaseTestClass):  # type: ignore[misc]
         def on_dlc(dlc: DLC) -> None:
             dlc_connected.set_result(dlc)
 
-        rfcomm_server = RfcommServer(self.ref.device)
-        channel_number = rfcomm_server.listen(on_dlc)
+        rfcomm_server = RfcommServer(self.ref.device)  # type: ignore
+        channel_number = rfcomm_server.listen(on_dlc)  # type: ignore
 
         # Setup SDP records
         self.ref.device.sdp_service_records = make_bumble_ag_sdp_records(HFP_VERSION_1_7, channel_number, 0)
@@ -142,7 +142,7 @@ class HfpClientTest(base_test.BaseTestClass):  # type: ignore[misc]
         dlc = await dlc_connected
         assert isinstance(dlc, DLC)
 
-        return HfpProtocol(dlc)
+        return HfpProtocol(dlc)  # type: ignore
 
     @avatar.parameterized((True,), (False,))  # type: ignore[misc]
     @avatar.asynchronous
@@ -234,9 +234,12 @@ class HfpAgServer:
         self.terminated = False
         self.hf_features = 0  # Unknown
 
+    def send_response_line(self, response: str) -> None:
+        self.protocol.send_response_line(response)  # type: ignore
+
     async def serve(self) -> None:
         while not self.terminated:
-            line = await self.protocol.next_line()
+            line = await self.protocol.next_line()  # type: ignore
 
             if line.startswith('AT+BRSF='):
                 hf_features = int(line[len('AT+BRSF=') :])
@@ -263,44 +266,44 @@ class HfpAgServer:
                     'AT+XAPL=',
                 )
             ):
-                self.protocol.send_response_line('OK')
+                self.send_response_line('OK')
             else:
-                self.protocol.send_response_line('ERROR')
+                self.send_response_line('ERROR')
 
     def on_brsf(self, hf_features: int) -> None:
         self.hf_features = hf_features
-        self.protocol.send_response_line(f'+BRSF: {self.ag_features}')
-        self.protocol.send_response_line('OK')
+        self.send_response_line(f'+BRSF: {self.ag_features}')
+        self.send_response_line('OK')
 
     # AT+CIND?
     def on_cind_read(self) -> None:
-        self.protocol.send_response_line('+CIND: 0,0,1,4,1,5,0')
-        self.protocol.send_response_line('OK')
+        self.send_response_line('+CIND: 0,0,1,4,1,5,0')
+        self.send_response_line('OK')
 
     # AT+CIND=?
     def on_cind_test(self) -> None:
-        self.protocol.send_response_line(
+        self.send_response_line(
             '+CIND: ("call",(0,1)),("callsetup",(0-3)),("service",(0-1)),'
             '("signal",(0-5)),("roam",(0,1)),("battchg",(0-5)),'
             '("callheld",(0-2))'
         )
-        self.protocol.send_response_line('OK')
+        self.send_response_line('OK')
 
     # AT+BIND=
     def on_bind_list(self, indicators: list[int]) -> None:
         self.enabled_hf_indicators = indicators[:]
-        self.protocol.send_response_line('OK')
+        self.send_response_line('OK')
 
     # AT+BIND=?
     def on_bind_read_capabilities(self) -> None:
-        self.protocol.send_response_line('+BIND: ' + ','.join(map(str, self.enabled_hf_indicators)))
-        self.protocol.send_response_line('OK')
+        self.send_response_line('+BIND: ' + ','.join(map(str, self.enabled_hf_indicators)))
+        self.send_response_line('OK')
 
     # AT+BIND?
     def on_bind_read_configuration(self) -> None:
         for i in self.enabled_hf_indicators:
-            self.protocol.send_response_line(f'+BIND: {i},1')
-        self.protocol.send_response_line('OK')
+            self.send_response_line(f'+BIND: {i},1')
+        self.send_response_line('OK')
 
 
 if __name__ == '__main__':
