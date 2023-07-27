@@ -208,7 +208,7 @@ PhyDevice::Identifier TestModel::AddHciConnection(
   }};
   device->SetAddress(bluetooth_address);
 
-  INFO("Initialized device with address {}", bluetooth_address.ToString());
+  INFO(device->id_, "Initialized device with address {}", bluetooth_address.ToString());
 
   for (auto& [_, phy_layer] : phy_layers_) {
     phy_layer->Register(phy_devices_[device_id]);
