@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "hci/address.h"
-#include "hci/hci_packets.h"
+#include "packets/hci_packets.h"
 #include "rootcanal/configuration.pb.h"
 
 namespace rootcanal {
