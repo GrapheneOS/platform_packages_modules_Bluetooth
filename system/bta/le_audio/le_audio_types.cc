@@ -907,6 +907,23 @@ std::ostream& operator<<(std::ostream& os, const AudioContexts& contexts) {
   return os;
 }
 
+template <typename T>
+const T& BidirectionalPair<T>::get(uint8_t direction) const {
+  ASSERT_LOG(
+      direction < types::kLeAudioDirectionBoth,
+      "Unsupported complex direction. Consider using get_bidirectional<>() "
+      "instead.");
+  return (direction == types::kLeAudioDirectionSink) ? sink : source;
+}
+
+template <typename T>
+T& BidirectionalPair<T>::get(uint8_t direction) {
+  ASSERT_LOG(direction < types::kLeAudioDirectionBoth,
+             "Unsupported complex direction. Reference to a single complex"
+             " direction value is not supported.");
+  return (direction == types::kLeAudioDirectionSink) ? sink : source;
+}
+
 /* Bidirectional getter trait for AudioContexts bidirectional pair */
 template <>
 AudioContexts get_bidirectional(BidirectionalPair<AudioContexts> p) {

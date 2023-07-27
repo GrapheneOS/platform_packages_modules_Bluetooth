@@ -312,6 +312,8 @@ constexpr uint8_t kDefaultCsisSetSize = 2;
 
 constexpr uint8_t kLeAudioDirectionSink = 0x01;
 constexpr uint8_t kLeAudioDirectionSource = 0x02;
+constexpr uint8_t kLeAudioDirectionBoth =
+    kLeAudioDirectionSink | kLeAudioDirectionSource;
 
 /* Audio stream config types */
 constexpr uint8_t kFramingUnframedPduSupported = 0x00;
@@ -477,30 +479,20 @@ struct BidirectionalPair {
   T sink;
   T source;
 
-  T get(uint8_t direction) const {
-    if (direction ==
-        (types::kLeAudioDirectionSink | types::kLeAudioDirectionSource)) {
-      return get_bidirectional(*this);
-    } else if (direction == types::kLeAudioDirectionSink) {
-      return sink;
-    }
-    return source;
-  }
-  T& get_ref(uint8_t direction) {
-    return (direction == types::kLeAudioDirectionSink) ? sink : source;
-  }
+  const T& get(uint8_t direction) const;
+  T& get(uint8_t direction);
 
   BidirectionalPair<T>& operator=(const BidirectionalPair<T>&) = default;
-  bool operator==(const BidirectionalPair<T>& other) const {
-    return (sink == other.sink) && (source == other.source);
-  };
-  bool operator!=(const BidirectionalPair<T>& other) const {
-    return (sink != other.sink) || (source != other.source);
-  };
 };
 
 template <typename T>
 T get_bidirectional(BidirectionalPair<T> p);
+
+template <typename T>
+bool operator==(const types::BidirectionalPair<T>& lhs,
+                const types::BidirectionalPair<T>& rhs) {
+  return (lhs.sink == rhs.sink) && (lhs.source == rhs.source);
+}
 
 /* Configuration strategy */
 enum class LeAudioConfigurationStrategy : uint8_t {

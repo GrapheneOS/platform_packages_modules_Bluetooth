@@ -1604,7 +1604,7 @@ bool LeAudioDevice::ConfigureAses(
       /*Let's choose audio channel allocation if not set */
       ase->codec_config.audio_channel_allocation =
           PickAudioLocation(strategy, audio_locations,
-                            group_audio_locations_memo.get_ref(ent.direction));
+                            group_audio_locations_memo.get(ent.direction));
 
       /* Get default value if no requirement for specific frame blocks per sdu
        */
