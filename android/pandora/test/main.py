@@ -20,9 +20,9 @@ import cases.le_host_test
 import cases.le_security_test
 import cases.security_test
 import gatt_test
+import hfpclient_test
 import sdp_test
 import smp_test
-import hfpclient_test
 
 _TEST_CLASSES_LIST = [
     cases.host_test.HostTest,
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     # This is a hack for `tradefed` because of `b/166468397`.
     if '--' in sys.argv:
         index = sys.argv.index('--')
-        sys.argv = sys.argv[:1] + sys.argv[index + 1:]
+        sys.argv = sys.argv[:1] + sys.argv[index + 1 :]
 
     # Enable bumble snoop logger.
     ns, argv = _parse_cli_args()

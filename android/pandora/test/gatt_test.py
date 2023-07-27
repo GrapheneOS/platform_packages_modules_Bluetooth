@@ -24,10 +24,10 @@ from bumble.pairing import PairingConfig
 from bumble_experimental.gatt import GATTService
 from mobly import base_test, signals, test_runner
 from mobly.asserts import assert_equal  # type: ignore
-from mobly.asserts import assert_true  # type: ignore
 from mobly.asserts import assert_in  # type: ignore
 from mobly.asserts import assert_is_not_none  # type: ignore
 from mobly.asserts import assert_not_in  # type: ignore
+from mobly.asserts import assert_true  # type: ignore
 from pandora.host_pb2 import RANDOM, Connection, DataTypes
 from pandora.security_pb2 import LE_LEVEL3, PairingEventAnswer, SecureResponse
 from pandora_experimental.gatt_grpc import GATT
