@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-#include <hci/hci_packets.h>
 #include <hci/pcap_filter.h>
-#include <packet/raw_builder.h>
+#include <packets/hci_packets.h>
+
+#include "log.h"
 
 using namespace bluetooth::hci;
-using namespace bluetooth::packet;
 
 namespace rootcanal {
 
-static PacketView<kLittleEndian> create_packet_view(
+static pdl::packet::slice create_packet_view(
     std::vector<uint8_t> const& packet) {
   // Wrap the reference to the packet in a shared_ptr with created
   // a no-op deleter. The packet view will be short lived so there is no
   // risk of the reference leaking.
-  return PacketView<kLittleEndian>(std::shared_ptr<std::vector<uint8_t> const>(
+  return pdl::packet::slice(std::shared_ptr<std::vector<uint8_t> const>(
       &packet, [](std::vector<uint8_t> const* /* ptr */) {}));
 }
 
@@ -140,8 +140,7 @@ static std::vector<uint8_t> FilterHciAcl(std::vector<uint8_t> const& packet) {
   payload.resize(acl.GetPayload().size());
   ASSERT(acl.IsValid());
   return AclBuilder::Create(acl.GetHandle(), acl.GetPacketBoundaryFlag(),
-                            acl.GetBroadcastFlag(),
-                            std::make_unique<RawBuilder>(payload))
+                            acl.GetBroadcastFlag(), std::move(payload))
       ->SerializeToBytes();
 }
 
@@ -160,8 +159,7 @@ static std::vector<uint8_t> FilterHciIso(std::vector<uint8_t> const& packet) {
   payload.resize(iso.GetPayload().size());
   ASSERT(iso.IsValid());
   return IsoBuilder::Create(iso.GetConnectionHandle(), iso.GetPbFlag(),
-                            iso.GetTsFlag(),
-                            std::make_unique<RawBuilder>(payload))
+                            iso.GetTsFlag(), std::move(payload))
       ->SerializeToBytes();
 }
 

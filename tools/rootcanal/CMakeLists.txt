@@ -28,7 +28,8 @@ android_license(
 function(pdl_gen)
   # Parse arguments.
   set(options)
-  set(oneValueArgs NAME INPUT OUTPUT LANG)
+  set(oneValueArgs NAME INPUT OUTPUT LANG NAMESPACE)
+  set(multiValueArgs USING INCLUDE)
   cmake_parse_arguments(pdl "${options}" "${oneValueArgs}"
                         "${multiValueArgs}" ${ARGN})
 
@@ -66,102 +67,62 @@ function(pdl_gen)
         VERBATIM
         DEPENDS pdlc ${pdl_INPUT_ABSOLUTE})
   endif()
-endfunction()
 
-# ~~~
-# ! foobar : Compile .pdl files to C++/Rust!
-#
-# This function allows you to compile a set of .pdl files
-# to rust or C++. It will generate a set of headers and
-# sources.
-#
-# :GENERATED:  The set of sources that are generated.
-# Add these sources to the library you are building
-# :SRC:        The set of .pdl files to be compiled.
-# :INCLUDES:   Include directory used when generating sources.
-# :LANG:       Optional parameter indicating which language to use,
-# either rust or c++, defaults to c++
-# :NAMESPACE:  Root name space to use for the generated c++ classes.
-# :OUTPUT_DIR: Optional paramater of the directory where the generated
-# sources will be placed, defaults to CMAKE_CURRENT_BINARY_DIR/gens
-# :SOURCE_DIR: Root directory where sources can be found,
-# defaults to CMAKE_CURRENT_SOURCE_DIR
-# ~~~
-function(android_bluetooth_packet_gen)
-  # Parse arguments
-  set(options)
-  set(oneValueArgs OUTPUT_DIR GENERATED SOURCE_DIR INCLUDES NAMESPACE LANG)
-  set(multiValueArgs SRC)
-  cmake_parse_arguments(packet_gen "${options}" "${oneValueArgs}"
-                        "${multiValueArgs}" ${ARGN})
+  if(pdl_LANG STREQUAL "c++")
+    if(NOT pdl_NAMESPACE)
+        message(FATAL_ERROR "Error: namespace not specified")
+    endif()
 
-  if(NOT packet_gen_OUTPUT_DIR)
-    set(packet_gen_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/packet_gen)
-  endif()
+    foreach(namespace ${pdl_USING})
+        list(APPEND pdl_FLAGS --using-namespace)
+        list(APPEND pdl_FLAGS ${namespace})
+    endforeach()
+    foreach(header ${pdl_INCLUDE})
+        list(APPEND pdl_FLAGS --include-header)
+        list(APPEND pdl_FLAGS ${header})
+    endforeach()
 
-  if(packet_gen_NAMESPACE)
-    set(packet_gen_NAMESPACE "--root_namespace=${packet_gen_NAMESPACE}")
-  endif()
-
-  if(NOT packet_gen_SOURCE_DIR)
-    set(packet_gen_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-  endif()
-
-  if(NOT packet_gen_SRC)
-    message(
-      FATAL_ERROR
-        "Error: android_packet_gen_compile() called without any .yy files")
-    return()
-  endif()
-
-  set(SUFFIX_GEN "h")
-
-  if(packet_gen_LANG STREQUAL "rust")
-    set(SUFFIX_GEN "rs")
-    set(packet_gen_LANG "--rust")
-  endif()
-
-  # Configure packet_gen
-  android_compile_for_host(
-    bluetooth_packetgen ${ANDROID_QEMU2_TOP_DIR}/android/bluetooth/packet_gen
-    bluetooth_packetgen_EXECUTABLE)
-
-  set(BLUE_GEN "")
-  file(MAKE_DIRECTORY ${packet_gen_OUTPUT_DIR})
-
-  foreach(FIL ${packet_gen_SRC})
-    get_filename_component(
-      ABS_FIL ${packet_gen_SOURCE_DIR}/${packet_gen_INCLUDES}/${FIL} ABSOLUTE)
-    get_filename_component(FIL_WE ${FIL} NAME_WE)
-    get_filename_component(FIL_DIR ${FIL} DIRECTORY)
-    set(FIL_GEN "${packet_gen_OUTPUT_DIR}/${FIL_DIR}/${FIL_WE}.${SUFFIX_GEN}")
     add_custom_command(
-      OUTPUT "${FIL_GEN}"
-      COMMAND
-        ${bluetooth_packetgen_EXECUTABLE} ${packet_gen_NAMESPACE}
-        "--include=${packet_gen_INCLUDES}" "--out=${packet_gen_OUTPUT_DIR}"
-        ${packet_gen_INCLUDES}/${FIL} ${packet_gen_LANG}
-      COMMENT "Creating bluetooth packet headers from ${ABS_FIL}"
-      WORKING_DIRECTORY ${packet_gen_SOURCE_DIR}
-      VERBATIM
-      DEPENDS ${bluetooth_packetgen_EXECUTABLE} ${ABS_FIL})
-    list(APPEND BLUE_GEN ${FIL_GEN})
-    set_source_files_properties(${FIL_GEN} PROPERTIES GENERATED TRUE)
-  endforeach()
+        OUTPUT "${pdl_OUTPUT_ABSOLUTE}.json"
+        COMMAND
+        ${pdlc_EXECUTABLE}
+                --output-format json
+                "${pdl_INPUT_ABSOLUTE}"
+                    > "${pdl_OUTPUT_ABSOLUTE}.json"
+        COMMENT "Analyzing ${pdl_INPUT}"
+        VERBATIM
+        DEPENDS pdlc ${pdl_INPUT_ABSOLUTE})
 
-  # Make the library available
-  if(packet_gen_GENERATED)
-    set(${packet_gen_GENERATED} "${BLUE_GEN}" PARENT_SCOPE)
+    add_custom_command(
+        OUTPUT "${pdl_OUTPUT_ABSOLUTE}"
+        COMMAND
+        ${PDL_ROOT}/scripts/generate_cxx_backend.py
+                --input "${pdl_OUTPUT_ABSOLUTE}.json"
+                --output "${pdl_OUTPUT_ABSOLUTE}"
+                --namespace ${pdl_NAMESPACE}
+                ${pdl_FLAGS}
+        COMMENT "Generating c++ header from ${pdl_INPUT}"
+        VERBATIM
+        DEPENDS pdlc ${pdl_OUTPUT_ABSOLUTE}.json)
   endif()
 endfunction()
 
-android_bluetooth_packet_gen(
-  GENERATED BluetoothGeneratedPackets_h INCLUDES tools/rootcanal/packets
-  SRC hci/hci_packets.pdl SOURCE_DIR ${BT_ROOT}/..)
+pdl_gen(
+  NAME BluetoothGeneratedPackets_h
+  INPUT ${ROOTCANAL_ROOT}/packets/hci/hci_packets.pdl
+  OUTPUT packets/hci_packets.h
+  LANG c++
+  NAMESPACE "bluetooth::hci"
+  INCLUDE "hci/address.h")
 
-android_bluetooth_packet_gen(
-  GENERATED RootCanalGeneratedPackets_h INCLUDES tools/rootcanal NAMESPACE model
-  SRC packets/link_layer_packets.pdl SOURCE_DIR ${BT_ROOT}/..)
+pdl_gen(
+  NAME RootCanalGeneratedPackets_h
+  INPUT ${ROOTCANAL_ROOT}/packets/link_layer_packets.pdl
+  OUTPUT packets/link_layer_packets.h
+  LANG c++
+  NAMESPACE model::packets
+  INCLUDE "hci/address.h"
+  USING "bluetooth::hci")
 
 android_add_library(
   TARGET libscriptedbeaconpayload-protos-lite LICENSE Apache-2.0
@@ -220,30 +181,6 @@ target_include_directories(
     ${AOSP_ROOT}/external/fmtlib/include)
 
 android_add_library(
-  TARGET BluetoothPacketSources
-  LICENSE Apache-2.0
-  SOURCE_DIR ${BT_ROOT}/gd/packet
-  SRC bit_inserter.cc
-      byte_inserter.cc
-      byte_observer.cc
-      fragmenting_inserter.cc
-      iterator.cc
-      packet_view.cc
-      raw_builder.cc
-      view.cc
-  DEPS android-emu-base android-emu-base-headers librootcanal_log)
-
-target_include_directories(
-  BluetoothPacketSources PUBLIC
-    ${ROOTCANAL_ROOT}
-    ${ROOTCANAL_ROOT}/include
-    ${BT_ROOT}/gd
-    ${BT_ROOT})
-
-target_compile_options(BluetoothPacketSources
-                       PUBLIC -Wno-inconsistent-missing-override)
-
-android_add_library(
   TARGET libbt-rootcanal
   LICENSE Apache-2.0
   SOURCE_DIR ${ROOTCANAL_ROOT}
@@ -251,7 +188,6 @@ android_add_library(
       ${RootCanalGeneratedPackets_h}
       lib/crypto/crypto.cc
       lib/hci/address.cc
-      lib/hci/class_of_device.cc
       lib/hci/pcap_filter.cc
       lib/log.cc
       model/controller/acl_connection.cc
@@ -287,7 +223,6 @@ android_add_library(
   DEPS android-emu-base
        android-emu-base-headers
        android-emu-base-logging
-       BluetoothPacketSources
        crypto
        librootcanal_config
        libscriptedbeaconpayload-protos-lite)
@@ -300,9 +235,8 @@ target_include_directories(
   libbt-rootcanal
   PUBLIC ${ROOTCANAL_ROOT}/include
          ${ROOTCANAL_ROOT}
-         ${BT_ROOT}/gd
-         ${BT_ROOT}
-         ${CMAKE_CURRENT_BINARY_DIR}/packet_gen
+         ${PDL_ROOT}/scripts
+         ${CMAKE_CURRENT_BINARY_DIR}/pdl_gen
          ${CMAKE_CURRENT_BINARY_DIR}/config)
 
 target_compile_options(libbt-rootcanal
