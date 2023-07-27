@@ -18,6 +18,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <string>
 #include <vector>
@@ -34,7 +35,7 @@ using ::bluetooth::hci::Address;
 //  - Provide Get*() and Set*() functions for device attributes.
 class Device {
  public:
-  Device() { ASSERT(Address::FromString("BB:BB:BB:BB:BB:AD", address_)); }
+  Device();
   virtual ~Device() = default;
 
   // Return a string representation of the type of device.
