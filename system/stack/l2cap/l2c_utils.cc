@@ -1351,7 +1351,7 @@ void l2cu_change_pri_ccb(tL2C_CCB* p_ccb, tL2CAP_CHNL_PRIORITY priority) {
  * Returns          pointer to CCB, or NULL if none
  *
  ******************************************************************************/
-tL2C_CCB* l2cu_allocate_ccb(tL2C_LCB* p_lcb, uint16_t cid) {
+tL2C_CCB* l2cu_allocate_ccb(tL2C_LCB* p_lcb, uint16_t cid, bool is_eatt) {
   LOG_DEBUG("is_dynamic = %d, cid 0x%04x", p_lcb != nullptr, cid);
   if (!l2cb.p_free_ccb_first) {
     LOG_ERROR("First free ccb is null for cid 0x%04x", cid);
@@ -1471,7 +1471,12 @@ tL2C_CCB* l2cu_allocate_ccb(tL2C_LCB* p_lcb, uint16_t cid) {
 
   if (p_lcb != NULL) {
     // once a dynamic channel is opened, timeouts become active
-    p_lcb->with_active_local_clients = true;
+    // the exception for this is EATT, since that is managed by GATT clients,
+    // not by the L2CAP layer (GATT will keep the idle timeout at infinity while
+    // clients are active)
+    if (!is_eatt) {
+      p_lcb->with_active_local_clients = true;
+    }
   }
 
   return p_ccb;

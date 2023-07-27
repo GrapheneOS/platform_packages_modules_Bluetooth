@@ -838,7 +838,8 @@ std::vector<uint16_t> L2CA_ConnectCreditBasedReq(uint16_t psm,
 
   for (int i = 0; i < p_cfg->number_of_channels; i++) {
     /* Allocate a channel control block */
-    tL2C_CCB* p_ccb = l2cu_allocate_ccb(p_lcb, 0);
+    tL2C_CCB* p_ccb =
+        l2cu_allocate_ccb(p_lcb, 0, psm == BT_PSM_EATT /* is_eatt */);
     if (p_ccb == NULL) {
       if (i == 0) {
         L2CAP_TRACE_WARNING("%s no CCB, PSM: 0x%04x", __func__, psm);
