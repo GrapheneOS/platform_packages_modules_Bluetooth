@@ -280,13 +280,9 @@ public class GattService extends ProfileService {
 
     private AdapterService mAdapterService;
     private BluetoothAdapterProxy mBluetoothAdapterProxy;
-    @VisibleForTesting
     AdvertiseManager mAdvertiseManager;
-    @VisibleForTesting
     PeriodicScanManager mPeriodicScanManager;
-    @VisibleForTesting
     DistanceMeasurementManager mDistanceMeasurementManager;
-    @VisibleForTesting
     ScanManager mScanManager;
     private AppOpsManager mAppOps;
     private CompanionDeviceManager mCompanionManager;
@@ -348,13 +344,16 @@ public class GattService extends ProfileService {
         mAdvertiseManager = new AdvertiseManager(this, mAdapterService, mAdvertiserMap);
         mAdvertiseManager.start();
 
-        mScanManager = new ScanManager(this, mAdapterService, mBluetoothAdapterProxy);
+        mScanManager = GattObjectsFactory.getInstance()
+                .createScanManager(this, mAdapterService, mBluetoothAdapterProxy);
         mScanManager.start();
 
-        mPeriodicScanManager = new PeriodicScanManager(mAdapterService);
+        mPeriodicScanManager = GattObjectsFactory.getInstance()
+                .createPeriodicScanManager(mAdapterService);
         mPeriodicScanManager.start();
 
-        mDistanceMeasurementManager = new DistanceMeasurementManager(mAdapterService);
+        mDistanceMeasurementManager = GattObjectsFactory.getInstance()
+                .createDistanceMeasurementManager(mAdapterService);
         mDistanceMeasurementManager.start();
 
         setGattService(this);
