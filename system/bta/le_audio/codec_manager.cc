@@ -116,23 +116,27 @@ struct codec_manager_impl {
       const le_audio::stream_configuration& stream_conf, uint16_t delay_ms,
       std::function<void(const ::le_audio::offload_config& config)>
           update_receiver) {
-    if (stream_conf.sink_streams.empty()) return;
+    if (stream_conf.stream_params.sink.stream_locations.empty()) return;
 
-    if (stream_conf.sink_is_initial ||
+    if (stream_conf.offloader_config.sink.is_initial ||
         LeAudioHalVerifier::SupportsStreamActiveApi()) {
       sink_config.stream_map =
-          stream_conf.sink_offloader_streams_target_allocation;
+          stream_conf.offloader_config.sink.streams_target_allocation;
     } else {
       sink_config.stream_map =
-          stream_conf.sink_offloader_streams_current_allocation;
+          stream_conf.offloader_config.sink.streams_current_allocation;
     }
     // TODO: set the default value 16 for now, would change it if we support
     // mode bits_per_sample
     sink_config.bits_per_sample = 16;
-    sink_config.sampling_rate = stream_conf.sink_sample_frequency_hz;
-    sink_config.frame_duration = stream_conf.sink_frame_duration_us;
-    sink_config.octets_per_frame = stream_conf.sink_octets_per_codec_frame;
-    sink_config.blocks_per_sdu = stream_conf.sink_codec_frames_blocks_per_sdu;
+    sink_config.sampling_rate =
+        stream_conf.stream_params.sink.sample_frequency_hz;
+    sink_config.frame_duration =
+        stream_conf.stream_params.sink.frame_duration_us;
+    sink_config.octets_per_frame =
+        stream_conf.stream_params.sink.octets_per_codec_frame;
+    sink_config.blocks_per_sdu =
+        stream_conf.stream_params.sink.codec_frames_blocks_per_sdu;
     sink_config.peer_delay_ms = delay_ms;
     update_receiver(sink_config);
   }
@@ -141,24 +145,27 @@ struct codec_manager_impl {
       const le_audio::stream_configuration& stream_conf, uint16_t delay_ms,
       std::function<void(const ::le_audio::offload_config& config)>
           update_receiver) {
-    if (stream_conf.source_streams.empty()) return;
+    if (stream_conf.stream_params.source.stream_locations.empty()) return;
 
-    if (stream_conf.source_is_initial ||
+    if (stream_conf.offloader_config.source.is_initial ||
         LeAudioHalVerifier::SupportsStreamActiveApi()) {
       source_config.stream_map =
-          stream_conf.source_offloader_streams_target_allocation;
+          stream_conf.offloader_config.source.streams_target_allocation;
     } else {
       source_config.stream_map =
-          stream_conf.source_offloader_streams_current_allocation;
+          stream_conf.offloader_config.source.streams_current_allocation;
     }
     // TODO: set the default value 16 for now, would change it if we support
     // mode bits_per_sample
     source_config.bits_per_sample = 16;
-    source_config.sampling_rate = stream_conf.source_sample_frequency_hz;
-    source_config.frame_duration = stream_conf.source_frame_duration_us;
-    source_config.octets_per_frame = stream_conf.source_octets_per_codec_frame;
+    source_config.sampling_rate =
+        stream_conf.stream_params.source.sample_frequency_hz;
+    source_config.frame_duration =
+        stream_conf.stream_params.source.frame_duration_us;
+    source_config.octets_per_frame =
+        stream_conf.stream_params.source.octets_per_codec_frame;
     source_config.blocks_per_sdu =
-        stream_conf.source_codec_frames_blocks_per_sdu;
+        stream_conf.stream_params.source.codec_frames_blocks_per_sdu;
     source_config.peer_delay_ms = delay_ms;
     update_receiver(source_config);
   }

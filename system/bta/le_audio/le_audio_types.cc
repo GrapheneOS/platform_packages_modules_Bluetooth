@@ -946,6 +946,8 @@ AudioLocations get_bidirectional(BidirectionalPair<AudioLocations> bidir) {
 template struct BidirectionalPair<AudioContexts>;
 template struct BidirectionalPair<AudioLocations>;
 template struct BidirectionalPair<std::vector<uint8_t>>;
+template struct BidirectionalPair<ase*>;
+template struct BidirectionalPair<stream_parameters>;
 
 }  // namespace types
 }  // namespace le_audio

@@ -848,6 +848,29 @@ struct stream_map_info {
   bool is_stream_active;
 };
 
+struct offloader_stream_config {
+  /* cis_handle, target allocation, stream active state */
+  std::vector<stream_map_info> streams_target_allocation;
+  /* cis_handle, current allocation, stream active state */
+  std::vector<stream_map_info> streams_current_allocation;
+  bool has_changed;
+  bool is_initial;
+};
+
+struct stream_parameters {
+  /* For now we have always same frequency for all the channels */
+  uint32_t sample_frequency_hz;
+  uint32_t frame_duration_us;
+  uint16_t octets_per_codec_frame;
+  uint32_t audio_channel_allocation;
+  uint8_t codec_frames_blocks_per_sdu;
+  /* Number of channels is what we will request from audio framework */
+  uint8_t num_of_channels;
+  int num_of_devices;
+  /* cis_handle, audio location*/
+  std::vector<std::pair<uint16_t, uint32_t>> stream_locations;
+};
+
 struct stream_configuration {
   bool pending_configuration;
 
@@ -856,43 +879,12 @@ struct stream_configuration {
   /* Pointer to chosen req */
   const le_audio::set_configurations::AudioSetConfiguration* conf;
 
-  /* Sink configuration */
-  /* For now we have always same frequency for all the channels */
-  uint32_t sink_sample_frequency_hz;
-  uint32_t sink_frame_duration_us;
-  uint16_t sink_octets_per_codec_frame;
-  uint32_t sink_audio_channel_allocation;
-  uint8_t sink_codec_frames_blocks_per_sdu;
-  /* Number of channels is what we will request from audio framework */
-  uint8_t sink_num_of_channels;
-  int sink_num_of_devices;
-  /* cis_handle, audio location*/
-  std::vector<std::pair<uint16_t, uint32_t>> sink_streams;
-  /* cis_handle, target allocation, stream active state */
-  std::vector<stream_map_info> sink_offloader_streams_target_allocation;
-  /* cis_handle, current allocation, stream active state */
-  std::vector<stream_map_info> sink_offloader_streams_current_allocation;
-  bool sink_offloader_changed;
-  bool sink_is_initial;
+  /* Sink & Source configuration */
+  types::BidirectionalPair<stream_parameters> stream_params;
 
-  /* Source configuration */
-  /* For now we have always same frequency for all the channels */
-  uint32_t source_sample_frequency_hz;
-  uint32_t source_frame_duration_us;
-  uint16_t source_octets_per_codec_frame;
-  uint32_t source_audio_channel_allocation;
-  uint8_t source_codec_frames_blocks_per_sdu;
-  /* Number of channels is what we will request from audio framework */
-  uint8_t source_num_of_channels;
-  int source_num_of_devices;
-  /* cis_handle, audio location*/
-  std::vector<std::pair<uint16_t, uint32_t>> source_streams;
-  /* cis_handle, target allocation, stream active state */
-  std::vector<stream_map_info> source_offloader_streams_target_allocation;
-  /* cis_handle, current allocation, stream active state */
-  std::vector<stream_map_info> source_offloader_streams_current_allocation;
-  bool source_offloader_changed;
-  bool source_is_initial;
+  /* TODO: Make this struct free from the offloader specific data */
+  types::BidirectionalPair<offloader_stream_config> offloader_config;
+
   bool is_active;
 };
 

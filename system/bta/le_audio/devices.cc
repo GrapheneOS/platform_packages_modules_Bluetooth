@@ -59,6 +59,18 @@ using le_audio::types::LeAudioContextType;
 using le_audio::types::LeAudioLc3Config;
 
 namespace le_audio {
+namespace types {
+template struct BidirectionalPair<offloader_stream_config>;
+template <>
+offloader_stream_config& types::BidirectionalPair<offloader_stream_config>::get(
+    uint8_t direction) {
+  ASSERT_LOG(direction < types::kLeAudioDirectionBoth,
+             "Unsupported complex direction. Reference to a single complex"
+             " direction value is not supported.");
+  return (direction == types::kLeAudioDirectionSink) ? sink : source;
+}
+}  // namespace types
+
 std::ostream& operator<<(std::ostream& os, const DeviceConnectState& state) {
   const char* char_value_ = "UNKNOWN";
 
@@ -158,30 +170,40 @@ int LeAudioDeviceGroup::NumOfConnected(
 
 void LeAudioDeviceGroup::ClearSinksFromConfiguration(void) {
   LOG_INFO("Group %p, group_id %d", this, group_id_);
-  stream_conf.sink_streams.clear();
-  stream_conf.sink_offloader_streams_target_allocation.clear();
-  stream_conf.sink_offloader_streams_current_allocation.clear();
-  stream_conf.sink_audio_channel_allocation = 0;
-  stream_conf.sink_num_of_channels = 0;
-  stream_conf.sink_num_of_devices = 0;
-  stream_conf.sink_sample_frequency_hz = 0;
-  stream_conf.sink_codec_frames_blocks_per_sdu = 0;
-  stream_conf.sink_octets_per_codec_frame = 0;
-  stream_conf.sink_frame_duration_us = 0;
+  auto direction = types::kLeAudioDirectionSink;
+
+  auto& stream_params = stream_conf.stream_params.get(direction);
+  stream_params.stream_locations.clear();
+  stream_params.audio_channel_allocation = 0;
+  stream_params.num_of_channels = 0;
+  stream_params.num_of_devices = 0;
+  stream_params.sample_frequency_hz = 0;
+  stream_params.codec_frames_blocks_per_sdu = 0;
+  stream_params.octets_per_codec_frame = 0;
+  stream_params.frame_duration_us = 0;
+
+  auto& offload_config = stream_conf.offloader_config.get(direction);
+  offload_config.streams_target_allocation.clear();
+  offload_config.streams_current_allocation.clear();
 }
 
 void LeAudioDeviceGroup::ClearSourcesFromConfiguration(void) {
   LOG_INFO("Group %p, group_id %d", this, group_id_);
-  stream_conf.source_streams.clear();
-  stream_conf.source_offloader_streams_target_allocation.clear();
-  stream_conf.source_offloader_streams_current_allocation.clear();
-  stream_conf.source_audio_channel_allocation = 0;
-  stream_conf.source_num_of_channels = 0;
-  stream_conf.source_num_of_devices = 0;
-  stream_conf.source_sample_frequency_hz = 0;
-  stream_conf.source_codec_frames_blocks_per_sdu = 0;
-  stream_conf.source_octets_per_codec_frame = 0;
-  stream_conf.source_frame_duration_us = 0;
+  auto direction = types::kLeAudioDirectionSource;
+
+  auto& stream_params = stream_conf.stream_params.get(direction);
+  stream_params.stream_locations.clear();
+  stream_params.audio_channel_allocation = 0;
+  stream_params.num_of_channels = 0;
+  stream_params.num_of_devices = 0;
+  stream_params.sample_frequency_hz = 0;
+  stream_params.codec_frames_blocks_per_sdu = 0;
+  stream_params.octets_per_codec_frame = 0;
+  stream_params.frame_duration_us = 0;
+
+  auto& offload_config = stream_conf.offloader_config.get(direction);
+  offload_config.streams_target_allocation.clear();
+  offload_config.streams_current_allocation.clear();
 }
 
 void LeAudioDeviceGroup::CigClearCis(void) {
@@ -194,26 +216,32 @@ void LeAudioDeviceGroup::CigClearCis(void) {
 void LeAudioDeviceGroup::Cleanup(void) {
   /* Bluetooth is off while streaming - disconnect CISes and remove CIG */
   if (GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-    if (!stream_conf.sink_streams.empty()) {
-      for (auto [cis_handle, audio_location] : stream_conf.sink_streams) {
+    auto& sink_stream_locations =
+        stream_conf.stream_params.sink.stream_locations;
+    auto& source_stream_locations =
+        stream_conf.stream_params.source.stream_locations;
+
+    if (!sink_stream_locations.empty()) {
+      for (const auto kv_pair : sink_stream_locations) {
+        auto cis_handle = kv_pair.first;
         bluetooth::hci::IsoManager::GetInstance()->DisconnectCis(
             cis_handle, HCI_ERR_PEER_USER);
 
-        if (stream_conf.source_streams.empty()) {
+        /* Check the other direction if disconnecting bidirectional CIS */
+        if (source_stream_locations.empty()) {
           continue;
         }
-        uint16_t cis_hdl = cis_handle;
-        stream_conf.source_streams.erase(
+        source_stream_locations.erase(
             std::remove_if(
-                stream_conf.source_streams.begin(),
-                stream_conf.source_streams.end(),
-                [cis_hdl](auto& pair) { return pair.first == cis_hdl; }),
-            stream_conf.source_streams.end());
+                source_stream_locations.begin(), source_stream_locations.end(),
+                [&cis_handle](auto& pair) { return pair.first == cis_handle; }),
+            source_stream_locations.end());
       }
     }
 
-    if (!stream_conf.source_streams.empty()) {
-      for (auto [cis_handle, audio_location] : stream_conf.source_streams) {
+    /* Take care of the non-bidirectional CISes */
+    if (!source_stream_locations.empty()) {
+      for (auto [cis_handle, _] : source_stream_locations) {
         bluetooth::hci::IsoManager::GetInstance()->DisconnectCis(
             cis_handle, HCI_ERR_PEER_USER);
       }
@@ -1883,24 +1911,27 @@ bool LeAudioDeviceGroup::IsMetadataChanged(
 }
 
 bool LeAudioDeviceGroup::IsCisPartOfCurrentStream(uint16_t cis_conn_hdl) const {
+  auto& sink_stream_locations = stream_conf.stream_params.sink.stream_locations;
   auto iter = std::find_if(
-      stream_conf.sink_streams.begin(), stream_conf.sink_streams.end(),
+      sink_stream_locations.begin(), sink_stream_locations.end(),
       [cis_conn_hdl](auto& pair) { return cis_conn_hdl == pair.first; });
 
-  if (iter != stream_conf.sink_streams.end()) return true;
+  if (iter != sink_stream_locations.end()) return true;
 
+  auto& source_stream_locations =
+      stream_conf.stream_params.source.stream_locations;
   iter = std::find_if(
-      stream_conf.source_streams.begin(), stream_conf.source_streams.end(),
+      source_stream_locations.begin(), source_stream_locations.end(),
       [cis_conn_hdl](auto& pair) { return cis_conn_hdl == pair.first; });
 
-  return (iter != stream_conf.source_streams.end());
+  return (iter != source_stream_locations.end());
 }
 
 void LeAudioDeviceGroup::StreamOffloaderUpdated(uint8_t direction) {
   if (direction == le_audio::types::kLeAudioDirectionSource) {
-    stream_conf.source_is_initial = false;
+    stream_conf.offloader_config.source.is_initial = false;
   } else {
-    stream_conf.sink_is_initial = false;
+    stream_conf.offloader_config.sink.is_initial = false;
   }
 }
 
@@ -1910,70 +1941,55 @@ void LeAudioDeviceGroup::RemoveCisFromStreamIfNeeded(
 
   if (!IsCisPartOfCurrentStream(cis_conn_hdl)) return;
 
-  auto sink_channels = stream_conf.sink_num_of_channels;
-  auto source_channels = stream_conf.source_num_of_channels;
+  /* Cache the old values for comparison */
+  auto old_sink_channels = stream_conf.stream_params.sink.num_of_channels;
+  auto old_source_channels = stream_conf.stream_params.source.num_of_channels;
 
-  if (!stream_conf.sink_streams.empty() ||
-      !stream_conf.source_streams.empty()) {
-    stream_conf.sink_streams.erase(
+  for (auto dir :
+       {types::kLeAudioDirectionSink, types::kLeAudioDirectionSource}) {
+    auto& params = stream_conf.stream_params.get(dir);
+    params.stream_locations.erase(
         std::remove_if(
-            stream_conf.sink_streams.begin(), stream_conf.sink_streams.end(),
-            [leAudioDevice, &cis_conn_hdl, this](auto& pair) {
+            params.stream_locations.begin(), params.stream_locations.end(),
+            [leAudioDevice, &cis_conn_hdl, &params, dir](auto& pair) {
               if (!cis_conn_hdl) {
                 cis_conn_hdl = pair.first;
               }
               auto ases_pair = leAudioDevice->GetAsesByCisConnHdl(cis_conn_hdl);
-              if (ases_pair.sink && cis_conn_hdl == pair.first) {
-                stream_conf.sink_num_of_devices--;
-                stream_conf.sink_num_of_channels -=
-                    ases_pair.sink->codec_config.channel_count;
-                stream_conf.sink_audio_channel_allocation &= ~pair.second;
+              if (ases_pair.get(dir) && cis_conn_hdl == pair.first) {
+                params.num_of_devices--;
+                params.num_of_channels -=
+                    ases_pair.get(dir)->codec_config.channel_count;
+                params.audio_channel_allocation &= ~pair.second;
               }
-              return (ases_pair.sink && cis_conn_hdl == pair.first);
+              return (ases_pair.get(dir) && cis_conn_hdl == pair.first);
             }),
-        stream_conf.sink_streams.end());
-
-    stream_conf.source_streams.erase(
-        std::remove_if(
-            stream_conf.source_streams.begin(),
-            stream_conf.source_streams.end(),
-            [leAudioDevice, &cis_conn_hdl, this](auto& pair) {
-              if (!cis_conn_hdl) {
-                cis_conn_hdl = pair.first;
-              }
-              auto ases_pair = leAudioDevice->GetAsesByCisConnHdl(cis_conn_hdl);
-              if (ases_pair.source && cis_conn_hdl == pair.first) {
-                stream_conf.source_num_of_devices--;
-                stream_conf.source_num_of_channels -=
-                    ases_pair.source->codec_config.channel_count;
-                stream_conf.source_audio_channel_allocation &= ~pair.second;
-              }
-              return (ases_pair.source && cis_conn_hdl == pair.first);
-            }),
-        stream_conf.source_streams.end());
-
-    LOG_INFO(
-        " Sink Number Of Devices: %d"
-        ", Sink Number Of Channels: %d"
-        ", Source Number Of Devices: %d"
-        ", Source Number Of Channels: %d",
-        stream_conf.sink_num_of_devices, stream_conf.sink_num_of_channels,
-        stream_conf.source_num_of_devices, stream_conf.source_num_of_channels);
+        params.stream_locations.end());
   }
 
-  if (stream_conf.sink_num_of_channels == 0) {
+  LOG_INFO(
+      " Sink Number Of Devices: %d"
+      ", Sink Number Of Channels: %d"
+      ", Source Number Of Devices: %d"
+      ", Source Number Of Channels: %d",
+      stream_conf.stream_params.sink.num_of_devices,
+      stream_conf.stream_params.sink.num_of_channels,
+      stream_conf.stream_params.source.num_of_devices,
+      stream_conf.stream_params.source.num_of_channels);
+
+  if (stream_conf.stream_params.sink.num_of_channels == 0) {
     ClearSinksFromConfiguration();
   }
 
-  if (stream_conf.source_num_of_channels == 0) {
+  if (stream_conf.stream_params.source.num_of_channels == 0) {
     ClearSourcesFromConfiguration();
   }
 
   /* Update offloader streams if needed */
-  if (sink_channels > stream_conf.sink_num_of_channels) {
+  if (old_sink_channels > stream_conf.stream_params.sink.num_of_channels) {
     CreateStreamVectorForOffloader(le_audio::types::kLeAudioDirectionSink);
   }
-  if (source_channels > stream_conf.source_num_of_channels) {
+  if (old_source_channels > stream_conf.stream_params.source.num_of_channels) {
     CreateStreamVectorForOffloader(le_audio::types::kLeAudioDirectionSource);
   }
 
@@ -1995,29 +2011,29 @@ void LeAudioDeviceGroup::CreateStreamVectorForOffloader(uint8_t direction) {
   bool* changed_flag;
   bool* is_initial;
   if (direction == le_audio::types::kLeAudioDirectionSource) {
-    changed_flag = &stream_conf.source_offloader_changed;
-    is_initial = &stream_conf.source_is_initial;
+    changed_flag = &stream_conf.offloader_config.source.has_changed;
+    is_initial = &stream_conf.offloader_config.source.is_initial;
     cis_type = CisType::CIS_TYPE_UNIDIRECTIONAL_SOURCE;
-    streams = &stream_conf.source_streams;
+    streams = &stream_conf.stream_params.source.stream_locations;
     offloader_streams_target_allocation =
-        &stream_conf.source_offloader_streams_target_allocation;
+        &stream_conf.offloader_config.source.streams_target_allocation;
     offloader_streams_current_allocation =
-        &stream_conf.source_offloader_streams_current_allocation;
+        &stream_conf.offloader_config.source.streams_current_allocation;
     tag = "Source";
     available_allocations = AdjustAllocationForOffloader(
-        stream_conf.source_audio_channel_allocation);
+        stream_conf.stream_params.source.audio_channel_allocation);
   } else {
-    changed_flag = &stream_conf.sink_offloader_changed;
-    is_initial = &stream_conf.sink_is_initial;
+    changed_flag = &stream_conf.offloader_config.sink.has_changed;
+    is_initial = &stream_conf.offloader_config.sink.is_initial;
     cis_type = CisType::CIS_TYPE_UNIDIRECTIONAL_SINK;
-    streams = &stream_conf.sink_streams;
+    streams = &stream_conf.stream_params.sink.stream_locations;
     offloader_streams_target_allocation =
-        &stream_conf.sink_offloader_streams_target_allocation;
+        &stream_conf.offloader_config.sink.streams_target_allocation;
     offloader_streams_current_allocation =
-        &stream_conf.sink_offloader_streams_current_allocation;
+        &stream_conf.offloader_config.sink.streams_current_allocation;
     tag = "Sink";
-    available_allocations =
-        AdjustAllocationForOffloader(stream_conf.sink_audio_channel_allocation);
+    available_allocations = AdjustAllocationForOffloader(
+        stream_conf.stream_params.sink.audio_channel_allocation);
   }
 
   if (available_allocations == 0) {
@@ -2047,7 +2063,7 @@ void LeAudioDeviceGroup::CreateStreamVectorForOffloader(uint8_t direction) {
   if (*is_initial && !not_all_cises_connected) {
     *changed_flag = false;
   }
-  for (auto& cis_entry : cises_) {
+  for (auto const& cis_entry : cises_) {
     if ((cis_entry.type == CisType::CIS_TYPE_BIDIRECTIONAL ||
          cis_entry.type == cis_type) &&
         cis_entry.conn_handle != 0) {
@@ -2364,11 +2380,12 @@ void LeAudioDeviceGroup::Dump(int fd, int active_group_id) const {
          << "\n"
          << "      num of devices(connected): " << Size() << "("
          << NumOfConnected() << ")\n"
-         << ",     num of sinks(connected): " << stream_conf.sink_num_of_devices
-         << "(" << stream_conf.sink_streams.size() << ")\n"
+         << ",     num of sinks(connected): "
+         << stream_conf.stream_params.sink.num_of_devices << "("
+         << stream_conf.stream_params.sink.stream_locations.size() << ")\n"
          << "      num of sources(connected): "
-         << stream_conf.source_num_of_devices << "("
-         << stream_conf.source_streams.size() << ")\n"
+         << stream_conf.stream_params.source.num_of_devices << "("
+         << stream_conf.stream_params.source.stream_locations.size() << ")\n"
          << "      allocated CISes: " << static_cast<int>(cises_.size());
 
   if (cises_.size() > 0) {
