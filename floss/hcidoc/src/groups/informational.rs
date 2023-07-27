@@ -1,5 +1,6 @@
 ///! Rule group for general information.
 use chrono::NaiveDateTime;
+use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::convert::Into;
 use std::fmt;
@@ -17,7 +18,7 @@ type ConnectionHandle = u16;
 
 const INVALID_TS: NaiveDateTime = NaiveDateTime::MAX;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq, PartialOrd, Ord)]
 enum AddressType {
     None,
     BREDR,
@@ -108,24 +109,24 @@ impl DeviceInformation {
             acl_state: AclState::None,
         }
     }
+
+    fn print_names(names: &HashSet<String>) -> String {
+        if names.len() > 1 {
+            format!("{:?}", names)
+        } else {
+            names.iter().next().unwrap_or(&String::from("<Unknown name>")).to_owned()
+        }
+    }
 }
 
 impl fmt::Display for DeviceInformation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fn print_names(names: &HashSet<String>) -> String {
-            if names.len() > 1 {
-                format!("{:?}", names)
-            } else {
-                names.iter().next().unwrap_or(&String::from("<Unknown name>")).to_owned()
-            }
-        }
-
         let _ = writeln!(
             f,
             "{address} ({address_type}, {device_names}), {num_connections} connections",
             address = self.address,
             address_type = self.address_type,
-            device_names = print_names(&self.names),
+            device_names = DeviceInformation::print_names(&self.names),
             num_connections = self.acls.len()
         );
         for acl in &self.acls {
@@ -142,6 +143,17 @@ struct AclInformation {
     end_time: NaiveDateTime,
     handle: ConnectionHandle,
     initiator: InitiatorType,
+}
+
+impl AclInformation {
+    pub fn new(handle: ConnectionHandle) -> Self {
+        AclInformation {
+            start_time: INVALID_TS,
+            end_time: INVALID_TS,
+            handle: handle,
+            initiator: InitiatorType::Unknown,
+        }
+    }
 }
 
 impl fmt::Display for AclInformation {
@@ -161,7 +173,7 @@ impl fmt::Display for AclInformation {
 
         writeln!(
             f,
-            "> Handle: {handle}, {initiator}, {timestamp_info}",
+            "  Handle: {handle}, {initiator}, {timestamp_info}",
             handle = self.handle,
             initiator = self.initiator,
             timestamp_info = print_timestamps(self.start_time, self.end_time)
@@ -173,11 +185,17 @@ impl fmt::Display for AclInformation {
 struct InformationalRule {
     devices: HashMap<Address, DeviceInformation>,
     handles: HashMap<ConnectionHandle, Address>,
+    // unknownConnections store connections which is initiated before btsnoop starts.
+    unknown_connections: HashMap<ConnectionHandle, AclInformation>,
 }
 
 impl InformationalRule {
     pub fn new() -> Self {
-        InformationalRule { devices: HashMap::new(), handles: HashMap::new() }
+        InformationalRule {
+            devices: HashMap::new(),
+            handles: HashMap::new(),
+            unknown_connections: HashMap::new(),
+        }
     }
 
     fn get_or_allocate_device(&mut self, address: &Address) -> &mut DeviceInformation {
@@ -185,6 +203,16 @@ impl InformationalRule {
             self.devices.insert(*address, DeviceInformation::new(*address));
         }
         return self.devices.get_mut(address).unwrap();
+    }
+
+    fn get_or_allocate_unknown_connection(
+        &mut self,
+        handle: &ConnectionHandle,
+    ) -> &mut AclInformation {
+        if !self.unknown_connections.contains_key(handle) {
+            self.unknown_connections.insert(*handle, AclInformation::new(*handle));
+        }
+        return self.unknown_connections.get_mut(handle).unwrap();
     }
 
     fn report_address_type(&mut self, address: &Address, address_type: AddressType) {
@@ -221,7 +249,8 @@ impl InformationalRule {
 
     fn report_connection_end(&mut self, handle: ConnectionHandle, ts: NaiveDateTime) {
         if !self.handles.contains_key(&handle) {
-            // For simplicity we can't process unknown handle. This probably can be improved.
+            let conn = self.get_or_allocate_unknown_connection(&handle);
+            conn.end_time = ts;
             return;
         }
         let info = self.get_or_allocate_device(&self.handles.get(&handle).unwrap().clone());
@@ -416,13 +445,68 @@ impl Rule for InformationalRule {
     }
 
     fn report(&self, writer: &mut dyn Write) {
+        /* Sort when displaying the addresses, from the most to the least important:
+         * (1) Device with connections > Device without connections
+         * (2) Device with known name > Device with unknown name
+         * (3) BREDR > LE > Dual
+         * (4) Name, lexicographically (case sensitive)
+         * (5) Address, alphabetically
+         */
+        fn sort_addresses(a: &DeviceInformation, b: &DeviceInformation) -> Ordering {
+            let connection_order = a.acls.is_empty().cmp(&b.acls.is_empty());
+            if connection_order != Ordering::Equal {
+                return connection_order;
+            }
+
+            let known_name_order = a.names.is_empty().cmp(&b.names.is_empty());
+            if known_name_order != Ordering::Equal {
+                return known_name_order;
+            }
+
+            let address_type_order = a.address_type.cmp(&b.address_type);
+            if address_type_order != Ordering::Equal {
+                return address_type_order;
+            }
+
+            let a_name = format!("{}", DeviceInformation::print_names(&a.names));
+            let b_name = format!("{}", DeviceInformation::print_names(&b.names));
+            let name_order = a_name.cmp(&b_name);
+            if name_order != Ordering::Equal {
+                return name_order;
+            }
+
+            let a_address = <[u8; 6]>::from(a.address);
+            let b_address = <[u8; 6]>::from(b.address);
+            for i in (0..6).rev() {
+                let address_order = a_address[i].cmp(&b_address[i]);
+                if address_order != Ordering::Equal {
+                    return address_order;
+                }
+            }
+            // This shouldn't be executed
+            return Ordering::Equal;
+        }
+
         if self.devices.is_empty() {
             return;
         }
 
+        let mut addresses: Vec<Address> = self.devices.keys().cloned().collect();
+        addresses.sort_unstable_by(|a, b| sort_addresses(&self.devices[a], &self.devices[b]));
+
         let _ = writeln!(writer, "InformationalRule report:");
-        for (_, info) in &self.devices {
-            let _ = write!(writer, "{}", info);
+        if !self.unknown_connections.is_empty() {
+            let _ = writeln!(
+                writer,
+                "Connections initiated before snoop start, {} connections",
+                self.unknown_connections.len()
+            );
+            for (_, acl) in &self.unknown_connections {
+                let _ = write!(writer, "{}", acl);
+            }
+        }
+        for address in addresses {
+            let _ = write!(writer, "{}", self.devices[&address]);
         }
     }
 
