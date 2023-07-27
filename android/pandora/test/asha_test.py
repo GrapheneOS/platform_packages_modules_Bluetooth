@@ -16,10 +16,7 @@ import asyncio
 import avatar
 import enum
 import grpc
-import inspect
-import itertools
 import logging
-import math
 import numpy as np
 
 from avatar import BumblePandoraDevice, PandoraDevice, PandoraDevices, asynchronous
@@ -34,7 +31,7 @@ from mobly.asserts import assert_in  # type: ignore
 from mobly.asserts import assert_is_not_none  # type: ignore
 from mobly.asserts import assert_not_equal  # type: ignore
 from mobly.asserts import assert_true  # type: ignore
-from pandora._utils import AioStream, Stream
+from pandora._utils import AioStream
 from pandora.host_pb2 import PUBLIC, RANDOM, AdvertiseResponse, Connection, DataTypes, OwnAddressType, ScanningResponse
 from pandora.security_pb2 import LE_LEVEL3
 from pandora_experimental.asha_grpc_aio import Asha as AioAsha, add_AshaServicer_to_server
