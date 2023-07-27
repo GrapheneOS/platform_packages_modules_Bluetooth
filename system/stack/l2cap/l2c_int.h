@@ -719,7 +719,8 @@ void l2cu_enqueue_ccb(tL2C_CCB* p_ccb);
 void l2cu_dequeue_ccb(tL2C_CCB* p_ccb);
 void l2cu_change_pri_ccb(tL2C_CCB* p_ccb, tL2CAP_CHNL_PRIORITY priority);
 
-tL2C_CCB* l2cu_allocate_ccb(tL2C_LCB* p_lcb, uint16_t cid);
+tL2C_CCB* l2cu_allocate_ccb(tL2C_LCB* p_lcb, uint16_t cid,
+                            bool is_eatt = false);
 void l2cu_release_ccb(tL2C_CCB* p_ccb);
 tL2C_CCB* l2cu_find_ccb_by_cid(tL2C_LCB* p_lcb, uint16_t local_cid);
 tL2C_CCB* l2cu_find_ccb_by_remote_cid(tL2C_LCB* p_lcb, uint16_t remote_cid);
