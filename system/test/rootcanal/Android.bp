@@ -44,16 +44,12 @@ cc_binary {
         "libcrypto",
         "libcutils",
         "libhidlbase",
-        "libjsoncpp",
         "liblog",
         "libprotobuf-cpp-full",
         "libutils",
     ],
     cflags: [
         "-fvisibility=hidden",
-    ],
-    generated_headers: [
-        "libbt_init_flags_bridge_header",
     ],
     whole_static_libs: [
         "libbt-rootcanal",
@@ -64,6 +60,7 @@ cc_binary {
         "libscriptedbeaconpayload-protos-lite",
     ],
     include_dirs: [
+        "packages/modules/Bluetooth/tools/rootcanal/include",
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/internal_include",
@@ -93,13 +90,9 @@ cc_library_shared {
         "libcrypto",
         "libcutils",
         "libhidlbase",
-        "libjsoncpp",
         "liblog",
         "libprotobuf-cpp-full",
         "libutils",
-    ],
-    generated_headers: [
-        "libbt_init_flags_bridge_header",
     ],
     whole_static_libs: [
         "libbt-rootcanal",
@@ -110,6 +103,7 @@ cc_library_shared {
         "libscriptedbeaconpayload-protos-lite",
     ],
     include_dirs: [
+        "packages/modules/Bluetooth/tools/rootcanal/include",
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/internal_include",
