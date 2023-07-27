@@ -229,7 +229,7 @@ class AshaService(AshaServicer):
         if not (connection := self.device.lookup_connection(connection_handle)):
             raise RuntimeError(f"Unknown connection for connection_handle:{connection_handle}")
 
-        decoder = G722Decoder()
+        decoder = G722Decoder()  # type: ignore
         queue: asyncio.Queue[bytes] = asyncio.Queue()
 
         def on_data(asha_connection: BumbleConnection, data: bytes) -> None:
