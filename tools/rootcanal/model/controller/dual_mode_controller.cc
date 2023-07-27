@@ -1200,8 +1200,7 @@ void DualModeController::WriteClassOfDevice(CommandView command) {
   ASSERT(command_view.IsValid());
 
   DEBUG(id_, "<< Write Class of Device");
-  DEBUG(id_, "   class_of_device={}",
-        command_view.GetClassOfDevice().ToString());
+  DEBUG(id_, "   class_of_device={}", command_view.GetClassOfDevice());
 
   link_layer_controller_.SetClassOfDevice(command_view.GetClassOfDevice());
   send_event_(bluetooth::hci::WriteClassOfDeviceCompleteBuilder::Create(
