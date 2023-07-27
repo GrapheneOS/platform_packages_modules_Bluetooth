@@ -251,7 +251,6 @@ android_add_library(
       ${RootCanalGeneratedPackets_h}
       lib/crypto/crypto.cc
       lib/hci/address.cc
-      lib/hci/class_of_device.cc
       lib/hci/pcap_filter.cc
       lib/log.cc
       model/controller/acl_connection.cc
