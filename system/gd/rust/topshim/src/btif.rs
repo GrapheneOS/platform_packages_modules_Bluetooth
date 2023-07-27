@@ -201,6 +201,7 @@ pub enum BtStatus {
     JniEnvironmentError,
     JniThreadAttachError,
     WakeLockError,
+    Timeout,
 
     // Any statuses that couldn't be cleanly converted
     Unknown = 0xff,
