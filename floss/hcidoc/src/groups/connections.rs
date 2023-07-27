@@ -292,29 +292,24 @@ impl OddDisconnectionsRule {
 
             EventChild::DisconnectionComplete(dsc) => {
                 let handle = dsc.get_connection_handle();
-                match self.active_handles.remove(&handle) {
-                    Some(_) => {
-                        // Check if this is a NOCP type disconnection and flag it.
-                        match self.nocp_by_handle.get_mut(&handle) {
-                            Some(nocp_data) => {
-                                if let Some(acl_front_ts) = nocp_data.inflight_acl_ts.pop_front() {
-                                    self.signals.push(Signal {
-                                        index: packet.index,
-                                        ts: packet.ts.clone(),
-                                        tag: ConnectionSignal::NocpDisconnect.into(),
-                                    });
+                self.active_handles.remove(&handle);
 
-                                    self.reportable.push((
-                                                packet.ts,
-                                                format!("DisconnectionComplete for handle({}) showed incomplete in-flight ACL at {}",
-                                                handle, acl_front_ts)));
-                                }
-                            }
-                            None => (),
+                // Check if this is a NOCP type disconnection and flag it.
+                match self.nocp_by_handle.get_mut(&handle) {
+                    Some(nocp_data) => {
+                        if let Some(acl_front_ts) = nocp_data.inflight_acl_ts.pop_front() {
+                            self.signals.push(Signal {
+                                index: packet.index,
+                                ts: packet.ts.clone(),
+                                tag: ConnectionSignal::NocpDisconnect.into(),
+                            });
+
+                            self.reportable.push((
+                                        packet.ts,
+                                        format!("DisconnectionComplete for handle({}) showed incomplete in-flight ACL at {}",
+                                        handle, acl_front_ts)));
                         }
                     }
-
-                    // No issue if none, probably device is connected before snoop started.
                     None => (),
                 }
 
