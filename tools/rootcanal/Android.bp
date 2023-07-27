@@ -47,13 +47,12 @@ cc_defaults {
         "-fvisibility=hidden",
     ],
     include_dirs: [
+        "packages/modules/Bluetooth/tools/rootcanal/include",
         "packages/modules/Bluetooth/system/gd",
-    ],
-    local_include_dirs: [
-        "include",
     ],
     header_libs: [
         "libbase_headers",
+        "pdl_cxx_packet_runtime",
     ],
     generated_headers: [
         "rootcanal_bredr_bb_packets_cxx_gen",
@@ -67,7 +66,6 @@ filegroup {
     srcs: [
         "lib/crypto/crypto.cc",
         "lib/hci/address.cc",
-        "lib/hci/class_of_device.cc",
         "lib/hci/pcap_filter.cc",
         "lib/log.cc",
     ],
@@ -82,7 +80,6 @@ cc_library_static {
     host_supported: true,
     proprietary: true,
     srcs: [
-        ":BluetoothPacketSources",
         ":lib_sources",
         "model/controller/acl_connection.cc",
         "model/controller/acl_connection_handler.cc",
@@ -113,6 +110,9 @@ cc_library_static {
         "net/posix/posix_async_socket.cc",
         "net/posix/posix_async_socket_connector.cc",
         "net/posix/posix_async_socket_server.cc",
+    ],
+    export_header_lib_headers: [
+        "pdl_cxx_packet_runtime",
     ],
     export_include_dirs: [
         ".",
@@ -150,7 +150,6 @@ cc_library_host_shared {
         address: false,
     },
     srcs: [
-        ":BluetoothPacketSources",
         ":lib_sources",
         "model/controller/acl_connection.cc",
         "model/controller/acl_connection_handler.cc",
@@ -417,23 +416,36 @@ cc_binary_host {
 genrule {
     name: "rootcanal_hci_packets_cxx_gen",
     tools: [
-        "bluetooth_packetgen",
+        ":pdlc",
+        ":pdl_cxx_generator",
     ],
-    cmd: "$(location bluetooth_packetgen) --include=packages/modules/Bluetooth/tools/rootcanal/packets --out=$(genDir) $(in)",
+    cmd: "set -o pipefail;" +
+        " $(location :pdlc) $(in) |" +
+        " $(location :pdl_cxx_generator)" +
+        " --namespace bluetooth::hci" +
+        " --include-header hci/address.h" +
+        " --output $(out)",
     srcs: [
         "packets/hci/hci_packets.pdl",
     ],
     out: [
-        "hci/hci_packets.h",
+        "packets/hci_packets.h",
     ],
 }
 
 genrule {
     name: "rootcanal_link_layer_packets_cxx_gen",
     tools: [
-        "bluetooth_packetgen",
+        ":pdlc",
+        ":pdl_cxx_generator",
     ],
-    cmd: "$(location bluetooth_packetgen) --root_namespace=model --include=packages/modules/Bluetooth/tools/rootcanal --out=$(genDir) $(in)",
+    cmd: "set -o pipefail;" +
+        " $(location :pdlc) $(in) |" +
+        " $(location :pdl_cxx_generator)" +
+        " --namespace model::packets" +
+        " --include-header hci/address.h" +
+        " --using-namespace bluetooth::hci" +
+        " --output $(out)",
     srcs: [
         "packets/link_layer_packets.pdl",
     ],
@@ -445,9 +457,16 @@ genrule {
 genrule {
     name: "rootcanal_bredr_bb_packets_cxx_gen",
     tools: [
-        "bluetooth_packetgen",
+        ":pdlc",
+        ":pdl_cxx_generator",
     ],
-    cmd: "$(location bluetooth_packetgen) --root_namespace=bredr_bb --include=packages/modules/Bluetooth/tools/rootcanal/packets --out=$(genDir) $(in)",
+    cmd: "set -o pipefail;" +
+        " $(location :pdlc) $(in) |" +
+        " $(location :pdl_cxx_generator)" +
+        " --namespace bredr_bb" +
+        " --include-header hci/address.h" +
+        " --using-namespace bluetooth::hci" +
+        " --output $(out)",
     srcs: [
         "packets/bredr_bb.pdl",
     ],
