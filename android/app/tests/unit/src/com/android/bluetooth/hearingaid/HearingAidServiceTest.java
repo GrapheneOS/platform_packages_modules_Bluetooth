@@ -44,6 +44,7 @@ import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
+import com.android.bluetooth.btservice.ActiveDeviceManager;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.x.com.android.modules.utils.SynchronousResultReceiver;
@@ -80,6 +81,7 @@ public class HearingAidServiceTest {
     private BroadcastReceiver mHearingAidIntentReceiver;
 
     @Mock private AdapterService mAdapterService;
+    @Mock private ActiveDeviceManager mActiveDeviceManager;
     @Mock private DatabaseManager mDatabaseManager;
     @Mock private HearingAidNativeInterface mNativeInterface;
     @Mock private AudioManager mAudioManager;
@@ -97,6 +99,7 @@ public class HearingAidServiceTest {
         }
 
         TestUtils.setAdapterService(mAdapterService);
+        doReturn(mActiveDeviceManager).when(mAdapterService).getActiveDeviceManager();
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
 
