@@ -1544,8 +1544,7 @@ class LeAudioClientImpl : public LeAudioClient {
               dev->SetConnectionState(DeviceConnectState::DISCONNECTED);
             }
           }
-          if (group->GetState() ==
-              le_audio::types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+          if (group->IsStreaming() || !group->IsReleasingOrIdle()) {
             leAudioDevice->closing_stream_for_disconnection_ = true;
             groupStateMachine_->StopStream(group);
             return;
