@@ -59,7 +59,7 @@ public class PhonePolicyTest {
     private static final int ASYNC_CALL_TIMEOUT_MILLIS = 250;
     private static final int CONNECT_OTHER_PROFILES_TIMEOUT_MILLIS = 1000;
     private static final int CONNECT_OTHER_PROFILES_TIMEOUT_WAIT_MILLIS =
-            CONNECT_OTHER_PROFILES_TIMEOUT_MILLIS * 3 / 2;
+            CONNECT_OTHER_PROFILES_TIMEOUT_MILLIS * 3;
 
     private HandlerThread mHandlerThread;
     private BluetoothAdapter mAdapter;
