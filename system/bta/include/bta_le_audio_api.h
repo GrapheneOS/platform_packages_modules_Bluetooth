@@ -63,6 +63,9 @@ class LeAudioClient {
       bluetooth::le_audio::btle_audio_codec_config_t output_codec_config) = 0;
   virtual void SetCcidInformation(int ccid, int context_type) = 0;
   virtual void SetInCall(bool in_call) = 0;
+  virtual bool IsInCall() = 0;
+  virtual void SetInVoipCall(bool in_call) = 0;
+  virtual bool IsInVoipCall() = 0;
   virtual void SendAudioProfilePreferences(
       const int group_id, bool is_output_preference_le_audio,
       bool is_duplex_preference_le_audio) = 0;
