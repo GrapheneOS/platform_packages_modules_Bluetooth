@@ -1,4 +1,5 @@
 #[cxx::bridge(namespace = bluetooth::common::init_flags)]
+#[allow(unsafe_op_in_unsafe_fn)]
 mod ffi {
     struct InitFlagWithValue {
         flag: &'static str,
