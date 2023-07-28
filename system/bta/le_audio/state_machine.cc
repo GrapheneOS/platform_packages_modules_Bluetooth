@@ -137,8 +137,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     log_history_ = nullptr;
   }
 
-  bool AttachToStream(LeAudioDeviceGroup* group,
-                      LeAudioDevice* leAudioDevice) override {
+  bool AttachToStream(LeAudioDeviceGroup* group, LeAudioDevice* leAudioDevice,
+                      BidirectionalPair<std::vector<uint8_t>> ccids) override {
     LOG(INFO) << __func__ << " group id: " << group->group_id_
               << " device: " << ADDRESS_TO_LOGGABLE_STR(leAudioDevice->address_);
 
@@ -155,11 +155,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return false;
     }
 
-    BidirectionalPair<std::vector<uint8_t>> ccids = {
-        .sink = le_audio::ContentControlIdKeeper::GetInstance()->GetAllCcids(
-            group->GetMetadataContexts().sink),
-        .source = le_audio::ContentControlIdKeeper::GetInstance()->GetAllCcids(
-            group->GetMetadataContexts().source)};
     if (!group->Configure(group->GetConfigurationContextType(),
                           group->GetMetadataContexts(), ccids)) {
       LOG_ERROR(" failed to set ASE configuration");

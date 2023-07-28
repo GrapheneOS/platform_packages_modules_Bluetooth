@@ -739,16 +739,18 @@ class UnicastTestNoInit : public Test {
               return true;
             });
 
-    ON_CALL(mock_state_machine_, AttachToStream(_, _))
+    ON_CALL(mock_state_machine_, AttachToStream(_, _, _))
         .WillByDefault([](LeAudioDeviceGroup* group,
-                          LeAudioDevice* leAudioDevice) {
+                          LeAudioDevice* leAudioDevice,
+                          types::BidirectionalPair<std::vector<uint8_t>>
+                              ccids) {
           if (group->GetState() !=
               types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
             return false;
           }
 
           group->Configure(group->GetConfigurationContextType(),
-                           group->GetMetadataContexts());
+                           group->GetMetadataContexts(), ccids);
           if (!group->CigAssignCisIds(leAudioDevice)) return false;
           group->CigAssignCisConnHandlesToAses(leAudioDevice);
 
