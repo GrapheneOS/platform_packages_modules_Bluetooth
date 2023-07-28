@@ -501,6 +501,30 @@ class FlossAdvertisingClient(BluetoothAdvertisingCallbacks):
         self.proxy().UnregisterAdvertiserCallback(self.callback_id)
         return True
 
+    def register_callback_observer(self, name, observer):
+        """Add an observer for all callbacks.
+
+        Args:
+            name:
+                Name of the observer.
+            observer:
+                Observer that implements all callback classes.
+        """
+        if isinstance(observer, BluetoothAdvertisingCallbacks):
+            self.callbacks.add_observer(name, observer)
+
+    def unregister_callback_observer(self, name, observer):
+        """Remove an observer for all callbacks.
+
+        Args:
+            name:
+                Name of the observer.
+            observer:
+                Observer that implements all callback classes.
+        """
+        if isinstance(observer, BluetoothAdvertisingCallbacks):
+            self.callbacks.remove_observer(name, observer)
+
     @utils.glib_call(None)
     def start_advertising_set(self, parameters, advertise_data, scan_response, periodic_parameters, periodic_data,
                               duration, max_ext_adv_events):
