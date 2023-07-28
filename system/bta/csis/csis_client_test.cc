@@ -885,6 +885,40 @@ TEST_F(CsisClientTest, test_get_set_sirk) {
   ASSERT_EQ(g_1->GetSirk(), sirk);
 }
 
+TEST_F(CsisClientTest, test_csis_member_not_found) {
+  EXPECT_CALL(dm_interface, BTA_DmBleCsisObserve(true, _)).Times(1);
+  SetSampleDatabaseDoubleCsis(0x001, 1, 2);
+  TestAppRegister();
+
+  /* Here we handle Background Scan request */
+  Mock::VerifyAndClearExpectations(&dm_interface);
+
+  tBTA_DM_SEARCH_CBACK* p_results_cb = nullptr;
+  /* Here is actual Active Scan request  */
+  EXPECT_CALL(dm_interface, BTA_DmBleCsisObserve(true, _))
+      .WillOnce(DoAll(SaveArg<1>(&p_results_cb)));
+
+  TestConnect(test_address);
+  InjectConnectedEvent(test_address, 1);
+  GetSearchCompleteEvent(1);
+
+  Mock::VerifyAndClearExpectations(&dm_interface);
+  /* Verify that scanner has been called to start filtering  */
+  ASSERT_EQ(1, get_func_call_count("set_empty_filter"));
+
+  /* Check callback is not null and simulate no member found and scan
+   * completed*/
+  ASSERT_NE(p_results_cb, nullptr);
+
+  tBTA_DM_SEARCH result;
+  result.inq_cmpl.num_resps = 80;
+
+  p_results_cb(BTA_DM_INQ_CMPL_EVT, &result);
+
+  /* Verify that scanner has been called to stop filtering  */
+  ASSERT_EQ(2, get_func_call_count("set_empty_filter"));
+}
+
 class CsisMultiClientTest : public CsisClientTest {
  protected:
   const RawAddress test_address_1 = GetTestAddress(1);
