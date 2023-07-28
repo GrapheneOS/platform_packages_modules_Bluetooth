@@ -3323,7 +3323,8 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
 
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(1);
-  LeAudioGroupStateMachine::Get()->AttachToStream(group, lastDevice);
+  LeAudioGroupStateMachine::Get()->AttachToStream(
+      group, lastDevice, {.sink = {media_ccid}, .source = {}});
 
   // Check if group keeps streaming
   ASSERT_EQ(group->GetState(),
@@ -3404,8 +3405,8 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStreamDoNotAttach) {
   LeAudioGroupStateMachine::Get()->StopStream(group);
   testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
 
-  ASSERT_FALSE(
-      LeAudioGroupStateMachine::Get()->AttachToStream(group, lastDevice));
+  ASSERT_FALSE(LeAudioGroupStateMachine::Get()->AttachToStream(
+      group, lastDevice, {.sink = {}, .source = {}}));
 }
 
 TEST_F(StateMachineTest, testReconfigureAfterLateDeviceAttached) {
@@ -3664,7 +3665,8 @@ TEST_F(StateMachineTest, testAttachDeviceToTheConversationalStream) {
 
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
-  LeAudioGroupStateMachine::Get()->AttachToStream(group, lastDevice);
+  LeAudioGroupStateMachine::Get()->AttachToStream(
+      group, lastDevice, {.sink = {call_ccid}, .source = {call_ccid}});
 
   // Check if group keeps streaming
   ASSERT_EQ(group->GetState(),
@@ -4754,7 +4756,8 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStreamCisFailure) {
 
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(0);
-  LeAudioGroupStateMachine::Get()->AttachToStream(group, lastDevice);
+  LeAudioGroupStateMachine::Get()->AttachToStream(
+      group, lastDevice, {.sink = {media_ccid}, .source = {}});
 
   // Check if group keeps streaming
   ASSERT_EQ(group->GetState(),
