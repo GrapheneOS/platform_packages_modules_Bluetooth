@@ -43,6 +43,7 @@ async fn provide_hidl_hal(rt: Arc<Runtime>) -> RawHal {
 #[cxx::bridge(namespace = bluetooth::hal)]
 // TODO Either use or remove these functions, this shouldn't be the long term state
 #[allow(dead_code)]
+#[allow(unsafe_op_in_unsafe_fn)]
 mod ffi {
     unsafe extern "C++" {
         include!("src/hal/ffi/hidl.h");
