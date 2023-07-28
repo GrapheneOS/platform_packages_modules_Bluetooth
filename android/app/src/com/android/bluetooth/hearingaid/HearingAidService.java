@@ -155,9 +155,6 @@ public class HearingAidService extends ProfileService {
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         mBondStateChangedReceiver = new BondStateChangedReceiver();
         registerReceiver(mBondStateChangedReceiver, filter);
-        filter = new IntentFilter();
-        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
-        filter.addAction(BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED);
 
         // Mark service as started
         setHearingAidService(this);
@@ -733,6 +730,7 @@ public class HearingAidService extends ProfileService {
     }
 
     private void notifyActiveDeviceChanged() {
+        mAdapterService.getActiveDeviceManager().hearingAidActiveStateChanged(mActiveDevice);
         Intent intent = new Intent(BluetoothHearingAid.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mActiveDevice);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
@@ -746,11 +744,11 @@ public class HearingAidService extends ProfileService {
         public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) {
             for (AudioDeviceInfo deviceInfo : removedDevices) {
                 if (deviceInfo.getType() == AudioDeviceInfo.TYPE_HEARING_AID) {
-                    notifyActiveDeviceChanged();
                     if (DBG) {
                         Log.d(TAG, " onAudioDevicesRemoved: device type: " + deviceInfo.getType());
                     }
                     if (mAudioManager != null) {
+                        notifyActiveDeviceChanged();
                         mAudioManager.unregisterAudioDeviceCallback(this);
                     } else {
                         Log.w(TAG, "onAudioDevicesRemoved: mAudioManager is null");
@@ -766,11 +764,11 @@ public class HearingAidService extends ProfileService {
         public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) {
             for (AudioDeviceInfo deviceInfo : addedDevices) {
                 if (deviceInfo.getType() == AudioDeviceInfo.TYPE_HEARING_AID) {
-                    notifyActiveDeviceChanged();
                     if (DBG) {
                         Log.d(TAG, " onAudioDevicesAdded: device type: " + deviceInfo.getType());
                     }
                     if (mAudioManager != null) {
+                        notifyActiveDeviceChanged();
                         mAudioManager.unregisterAudioDeviceCallback(this);
                     } else {
                         Log.w(TAG, "onAudioDevicesAdded: mAudioManager is null");
@@ -964,6 +962,9 @@ public class HearingAidService extends ProfileService {
                 removeStateMachine(device);
             }
         }
+        mAdapterService
+                .getActiveDeviceManager()
+                .hearingAidConnectionStateChanged(device, fromState, toState);
     }
 
     /**
