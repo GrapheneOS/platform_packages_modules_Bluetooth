@@ -155,3 +155,25 @@ class SspVariant(enum.IntEnum):
     PASSKEY_ENTRY = 1
     CONSENT = 2
     PASSKEY_NOTIFICATION = 3
+
+
+class BleAddressType(enum.IntEnum):
+    BLE_ADDR_PUBLIC = 0x00
+    BLE_ADDR_RANDOM = 0x01
+    BLE_ADDR_PUBLIC_ID = 0x02
+    BLE_ADDR_RANDOM_ID = 0x03
+    BLE_ADDR_ANONYMOUS = 0xFF
+
+
+class OwnAddressType(enum.IntEnum):
+    DEFAULT = -1
+    PUBLIC = 0
+    RANDOM = 1
+
+
+class CompanyIdentifiers(enum.IntEnum):
+    """Bluetooth SIG Company ID values.
+
+    Bluetooth SIG official document: https://www.bluetooth.com/specifications/assigned-numbers/
+    """
+    GOOGLE = 0x00E0

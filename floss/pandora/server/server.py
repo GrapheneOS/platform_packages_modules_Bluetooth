@@ -1,0 +1,60 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""Floss bluetooth test server."""
+
+import asyncio
+import logging
+
+from floss.pandora.server import bluetooth as bluetoot_module
+from floss.pandora.server import host
+from floss.pandora.server import security
+import grpc
+from pandora import host_grpc_aio
+from pandora import security_grpc_aio
+
+
+async def serve(port):
+    """Start serving the Floss bluetooth test server."""
+
+    logging.basicConfig(filename='/var/log/grpc_server_log', filemode='a', level=logging.DEBUG)
+
+    try:
+        while True:
+            server = grpc.aio.server()
+            bluetooth = bluetoot_module.Bluetooth()
+            bluetooth.reset()
+
+            host_service = host.HostService(server, bluetooth)
+            host_grpc_aio.add_HostServicer_to_server(host_service, server)
+
+            security_service = security.SecurityService(server, bluetooth)
+            security_grpc_aio.add_SecurityServicer_to_server(security_service, server)
+
+            security_storage_service = security.SecurityStorageService(server, bluetooth)
+            security_grpc_aio.add_SecurityStorageServicer_to_server(security_storage_service, server)
+
+            server.add_insecure_port(f'localhost:{port}')
+            await server.start()
+            await server.wait_for_termination()
+
+            bluetooth.cleanup()
+            del bluetooth
+    finally:
+        await server.stop(None)
+        bluetooth.cleanup()
+        del bluetooth
+
+
+if __name__ == '__main__':
+    asyncio.run(serve(8999))
