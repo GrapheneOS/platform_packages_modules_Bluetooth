@@ -2,6 +2,7 @@
 
 pub use crate::parameter_provider::*;
 
+#[allow(unsafe_op_in_unsafe_fn)]
 #[cxx::bridge(namespace = "bluetooth::fake_bluetooth_keystore")]
 /// ffi extern module
 pub mod ffi {

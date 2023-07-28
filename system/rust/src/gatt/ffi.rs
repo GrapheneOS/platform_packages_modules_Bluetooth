@@ -39,6 +39,7 @@ use super::{
 #[allow(clippy::needless_lifetimes)]
 #[allow(clippy::too_many_arguments)]
 #[allow(missing_docs)]
+#[allow(unsafe_op_in_unsafe_fn)]
 mod inner {
     impl UniquePtr<GattServerCallbacks> {}
 

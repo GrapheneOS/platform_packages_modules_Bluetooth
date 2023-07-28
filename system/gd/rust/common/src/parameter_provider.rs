@@ -18,7 +18,11 @@ pub struct ParameterProvider {
     lock: Mutex<i32>,
 }
 
+// SAFETY: Nothing about `BluetoothKeystoreInterface` is bound to a specific thread, and all other
+// fields are `Send`.
 unsafe impl Send for ParameterProvider {}
+
+// SAFETY: Nothing about `BluetoothKeystoreInterface` is bound to a specific thread.
 unsafe impl Send for BluetoothKeystoreInterface {}
 
 impl ParameterProvider {

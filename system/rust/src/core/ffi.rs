@@ -12,12 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// TODO(b/290018030): Remove this and add proper safety comments.
+#![allow(clippy::undocumented_unsafe_blocks)]
+
 use crate::core::{start, stop};
 
 use cxx::{type_id, ExternType};
 pub use inner::*;
 
+// SAFETY: `GattServerCallbacks` can be passed between threads.
 unsafe impl Send for GattServerCallbacks {}
+
+// SAFETY: `future_t` can be passed between threads.
 unsafe impl Send for Future {}
 
 unsafe impl ExternType for Uuid {
@@ -30,7 +36,7 @@ unsafe impl ExternType for AddressWithType {
     type Kind = cxx::kind::Trivial;
 }
 
-#[allow(dead_code, missing_docs)]
+#[allow(dead_code, missing_docs, unsafe_op_in_unsafe_fn)]
 #[cxx::bridge]
 mod inner {
     #[derive(Debug)]
