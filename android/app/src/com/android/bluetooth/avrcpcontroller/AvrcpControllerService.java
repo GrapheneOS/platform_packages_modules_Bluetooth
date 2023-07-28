@@ -208,8 +208,12 @@ public class AvrcpControllerService extends ProfileService {
      */
     @VisibleForTesting
     boolean setActiveDevice(BluetoothDevice device) {
+        if (DBG) {
+            Log.d(TAG, "setActiveDevice(device=" + device + ")");
+        }
         A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
         if (a2dpSinkService == null) {
+            Log.w(TAG, "setActiveDevice(device=" + device + "): A2DP Sink not available");
             return false;
         }
 
@@ -242,6 +246,8 @@ public class AvrcpControllerService extends ProfileService {
                 return true;
             }
         }
+
+        Log.w(TAG, "setActiveDevice(device=" + device + "): A2DP Sink request failed");
         return false;
     }
 
@@ -333,15 +339,21 @@ public class AvrcpControllerService extends ProfileService {
             for (AvrcpControllerStateMachine stateMachine : mDeviceStateMap.values()) {
                 requestedNode = stateMachine.findNode(parentMediaId);
                 if (requestedNode != null) {
-                    Log.d(TAG, "Found a node");
                     break;
                 }
             }
         }
+
+        if (DBG) {
+            Log.d(TAG, "getContents(" + parentMediaId + "): "
+                    + (requestedNode == null
+                            ? "Failed to find node"
+                            : "node=" + requestedNode + ", device=" + requestedNode.getDevice()));
+        }
+
         // If we don't find a node in the tree then do not have any way to browse for the contents.
         // Return an empty list instead.
         if (requestedNode == null) {
-            if (DBG) Log.d(TAG, "Didn't find a node");
             return new BrowseResult(new ArrayList(0), BrowseResult.ERROR_MEDIA_ID_INVALID);
         }
         if (parentMediaId.equals(BrowseTree.ROOT) && requestedNode.getChildrenCount() == 0) {
@@ -355,15 +367,18 @@ public class AvrcpControllerService extends ProfileService {
 
         List<MediaItem> contents = requestedNode.getContents();
 
-        if (DBG) Log.d(TAG, "Returning contents");
         if (!requestedNode.isCached()) {
-            if (DBG) Log.d(TAG, "node is not cached");
+            if (DBG) Log.d(TAG, "getContents(" + parentMediaId + "): node download pending");
             refreshContents(requestedNode);
             /* Ongoing downloads can have partial results and we want to make sure they get sent
              * to the client. If a download gets kicked off as a result of this request, the
              * contents will be null until the first results arrive.
              */
             return new BrowseResult(contents, BrowseResult.DOWNLOAD_PENDING);
+        }
+        if (DBG) {
+            Log.d(TAG, "getContents(" + parentMediaId + "): return node, contents="
+                    + requestedNode.getContents());
         }
         return new BrowseResult(contents, BrowseResult.SUCCESS);
     }
