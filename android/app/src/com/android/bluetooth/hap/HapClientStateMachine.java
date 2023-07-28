@@ -179,6 +179,7 @@ final class HapClientStateMachine extends StateMachine {
         log("Connection state " + mDevice + ": " + profileStateToString(prevState)
                 + "->" + profileStateToString(newState));
 
+        mService.connectionStateChanged(mDevice, prevState, newState);
         Intent intent = new Intent(BluetoothHapClient.ACTION_HAP_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);

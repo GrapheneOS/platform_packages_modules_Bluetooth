@@ -23,7 +23,6 @@ import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHapClient;
 import android.bluetooth.BluetoothHearingAid;
 import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothProfile;
@@ -189,13 +188,6 @@ public class ActiveDeviceManager {
                         mHandler.post(() -> handleLeAudioDisconnected(device));
                     }
                     break;
-                case BluetoothHapClient.ACTION_HAP_CONNECTION_STATE_CHANGED:
-                    if (currentState == BluetoothProfile.STATE_CONNECTED) {
-                        mHandler.post(() -> handleHapConnected(device));
-                    } else if (previousState == BluetoothProfile.STATE_CONNECTED) {
-                        mHandler.post(() -> handleHapDisconnected(device));
-                    }
-                    break;
                 case BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED:
                     mHandler.post(() -> handleLeAudioActiveDeviceChanged(device));
                     break;
@@ -277,6 +269,21 @@ public class ActiveDeviceManager {
      */
     public void hearingAidActiveStateChanged(BluetoothDevice device) {
         mHandler.post(() -> handleHearingAidActiveDeviceChanged(device));
+    }
+
+    /**
+     * Called when HAP connection state changed by HapClientService
+     *
+     * @param device The device of which connection state was changed
+     * @param prevState The previous connection state of the device
+     * @param newState The new connection state of the device
+     */
+    public void hapConnectionStateChanged(BluetoothDevice device, int prevState, int newState) {
+        if (newState == BluetoothProfile.STATE_CONNECTED) {
+            mHandler.post(() -> handleHapConnected(device));
+        } else if (prevState == BluetoothProfile.STATE_CONNECTED) {
+            mHandler.post(() -> handleHapDisconnected(device));
+        }
     }
 
     private void handleAdapterStateChanged(int currentState) {
@@ -843,7 +850,6 @@ public class ActiveDeviceManager {
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         filter.addAction(BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
-        filter.addAction(BluetoothHapClient.ACTION_HAP_CONNECTION_STATE_CHANGED);
         mAdapterService.registerReceiver(mReceiver, filter, Context.RECEIVER_EXPORTED);
 
         mAudioManager.registerAudioDeviceCallback(mAudioManagerAudioDeviceCallback, mHandler);
