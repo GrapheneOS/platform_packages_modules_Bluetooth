@@ -649,6 +649,77 @@ prebuilt_etc {
 // bta unit tests for LE Audio
 // ========================================================
 cc_test {
+    name: "bluetooth_le_audio_codec_manager_test",
+    test_suites: ["device-tests"],
+    defaults: [
+        "bluetooth_gtest_x86_asan_workaround",
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
+    host_supported: true,
+    target: {
+        darwin: {
+            enabled: false,
+        },
+        android: {
+            sanitize: {
+                misc_undefined: ["bounds"],
+            },
+            whole_static_libs: [
+                "libPlatformProperties",
+            ],
+        },
+    },
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/bta/include",
+        "packages/modules/Bluetooth/system/bta/test/common",
+        "packages/modules/Bluetooth/system/btif/include",
+        "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/stack/include",
+    ],
+    srcs: [
+        ":TestCommonMockFunctions",
+        ":TestMockBtaLeAudioHalVerifier",
+        ":TestStubOsi",
+        "le_audio/codec_manager.cc",
+        "le_audio/codec_manager_test.cc",
+        "le_audio/le_audio_set_configuration_provider_json.cc",
+        "le_audio/le_audio_types.cc",
+        "test/common/btm_api_mock.cc",
+        "test/common/mock_controller.cc",
+    ],
+    data: [
+        ":audio_set_configurations_bfbs",
+        ":audio_set_configurations_json",
+        ":audio_set_scenarios_bfbs",
+        ":audio_set_scenarios_json",
+    ],
+    generated_headers: [
+        "LeAudioSetConfigSchemas_h",
+    ],
+    shared_libs: [
+        "android.hardware.bluetooth.audio@2.0",
+        "android.hardware.bluetooth.audio@2.1",
+        "libcrypto",
+        "libhidlbase",
+        "liblog", // __android_log_print
+    ],
+    static_libs: [
+        "libbluetooth_gd",
+        "libbt-common",
+        "libchrome",
+        "libevent",
+        "libflatbuffers-cpp",
+        "libgmock",
+        "libosi",
+    ],
+    sanitize: {
+        cfi: false,
+    },
+}
+
+cc_test {
     name: "bluetooth_le_audio_test",
     test_suites: ["device-tests"],
     defaults: [

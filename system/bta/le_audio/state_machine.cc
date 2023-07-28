@@ -759,7 +759,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     if (group->IsAnyDeviceConnected()) {
       /*
        * ACL of one of the device has been dropped. If number of CISes has
-       * changed notify upper layer so the offloader can be updated with CIS
+       * changed notify upper layer so the CodecManager can be updated with CIS
        * information.
        */
       if (!group->HaveAllCisesDisconnected()) {
@@ -769,7 +769,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
             (group->GetTargetState() ==
              AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING)) {
           /* We keep streaming but want others to let know user that it might
-           * be need to update offloader with new CIS configuration
+           * be need to update CodecManager with new CIS configuration
            */
           state_machine_callbacks_->StatusReportCb(
               group->group_id_, GroupStreamStatus::STREAMING);
@@ -1235,8 +1235,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         cis_conn_hdl, ase_audio_channel_allocation, params.num_of_devices,
         params.num_of_channels);
 
-    /* Update offloader streams */
-    group->CreateStreamVectorForOffloader(ase->direction);
+    /* Update CodecManager stream configuration */
+    state_machine_callbacks_->OnUpdatedCisConfiguration(group->group_id_,
+                                                        ase->direction);
   }
 
   bool CigCreate(LeAudioDeviceGroup* group) {

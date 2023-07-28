@@ -3398,12 +3398,16 @@ class LeAudioClientImpl : public LeAudioClient {
     ConfirmLocalAudioSourceStreamingRequest();
 
     if (!LeAudioHalVerifier::SupportsStreamActiveApi()) {
-      /* We update the target audio allocation before streamStarted that the
-       * offloder would know how to configure offloader encoder. We should check
-       * if we need to update the current
-       * allocation here as the target allocation and the current allocation is
-       * different */
-      updateOffloaderIfNeeded(group);
+      /* We update the target audio allocation before streamStarted so that the
+       * CodecManager would know how to configure the encoder. */
+      BidirectionalPair<uint16_t> delays_pair = {
+          .sink = group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink),
+          .source =
+              group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSource)};
+      CodecManager::GetInstance()->UpdateActiveAudioConfig(
+          group->stream_conf.stream_params, delays_pair,
+          std::bind(&LeAudioSourceAudioHalClient::UpdateAudioConfigToHal,
+                    le_audio_source_hal_client_.get(), std::placeholders::_1));
     }
 
     return true;
@@ -3464,12 +3468,16 @@ class LeAudioClientImpl : public LeAudioClient {
     ConfirmLocalAudioSinkStreamingRequest();
 
     if (!LeAudioHalVerifier::SupportsStreamActiveApi()) {
-      /* We update the target audio allocation before streamStarted that the
-       * offloder would know how to configure offloader encoder. We should check
-       * if we need to update the current
-       * allocation here as the target allocation and the current allocation is
-       * different */
-      updateOffloaderIfNeeded(group);
+      /* We update the target audio allocation before streamStarted so that the
+       * CodecManager would know how to configure the encoder. */
+      BidirectionalPair<uint16_t> delays_pair = {
+          .sink = group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink),
+          .source =
+              group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSource)};
+      CodecManager::GetInstance()->UpdateActiveAudioConfig(
+          group->stream_conf.stream_params, delays_pair,
+          std::bind(&LeAudioSourceAudioHalClient::UpdateAudioConfigToHal,
+                    le_audio_source_hal_client_.get(), std::placeholders::_1));
     }
   }
 
@@ -5018,41 +5026,6 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
-  void updateOffloaderIfNeeded(LeAudioDeviceGroup* group) {
-    if (CodecManager::GetInstance()->GetCodecLocation() !=
-        le_audio::types::CodecLocation::ADSP) {
-      return;
-    }
-
-    LOG_INFO("Group %p, group_id %d", group, group->group_id_);
-
-    const auto* stream_conf = &group->stream_conf;
-
-    if (stream_conf->offloader_config.sink.has_changed ||
-        stream_conf->offloader_config.sink.is_initial) {
-      LOG_INFO("Update sink offloader streams");
-      uint16_t remote_delay_ms =
-          group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink);
-      CodecManager::GetInstance()->UpdateActiveSourceAudioConfig(
-          *stream_conf, remote_delay_ms,
-          std::bind(&LeAudioSourceAudioHalClient::UpdateAudioConfigToHal,
-                    le_audio_source_hal_client_.get(), std::placeholders::_1));
-      group->StreamOffloaderUpdated(le_audio::types::kLeAudioDirectionSink);
-    }
-
-    if (stream_conf->offloader_config.source.has_changed ||
-        stream_conf->offloader_config.source.is_initial) {
-      LOG_INFO("Update source offloader streams");
-      uint16_t remote_delay_ms =
-          group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSource);
-      CodecManager::GetInstance()->UpdateActiveSinkAudioConfig(
-          *stream_conf, remote_delay_ms,
-          std::bind(&LeAudioSinkAudioHalClient::UpdateAudioConfigToHal,
-                    le_audio_sink_hal_client_.get(), std::placeholders::_1));
-      group->StreamOffloaderUpdated(le_audio::types::kLeAudioDirectionSource);
-    }
-  }
-
   void NotifyUpperLayerGroupTurnedIdleDuringCall(int group_id) {
     if (!osi_property_get_bool(kNotifyUpperLayerAboutGroupBeingInIdleDuringCall,
                                false)) {
@@ -5118,7 +5091,16 @@ class LeAudioClientImpl : public LeAudioClient {
         }
 
         if (group) {
-          updateOffloaderIfNeeded(group);
+          BidirectionalPair<uint16_t> delays_pair = {
+              .sink =
+                  group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink),
+              .source = group->GetRemoteDelay(
+                  le_audio::types::kLeAudioDirectionSource)};
+          CodecManager::GetInstance()->UpdateActiveAudioConfig(
+              group->stream_conf.stream_params, delays_pair,
+              std::bind(&LeAudioSourceAudioHalClient::UpdateAudioConfigToHal,
+                        le_audio_source_hal_client_.get(),
+                        std::placeholders::_1));
           if (reconnection_mode_ ==
               BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS) {
             group->AddToAllowListNotConnectedGroupMembers(gatt_if_);
@@ -5226,6 +5208,17 @@ class LeAudioClientImpl : public LeAudioClient {
       default:
         break;
     }
+  }
+
+  void OnUpdatedCisConfiguration(int group_id, uint8_t direction) {
+    LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
+    if (!group) {
+      LOG_ERROR("Invalid group_id: %d", group_id);
+      return;
+    }
+    CodecManager::GetInstance()->UpdateCisConfiguration(
+        group->cises_, group->stream_conf.stream_params.get(direction),
+        direction);
   }
 
  private:
@@ -5444,6 +5437,10 @@ class CallbacksImpl : public LeAudioGroupStateMachine::Callbacks {
 
   void OnStateTransitionTimeout(int group_id) override {
     if (instance) instance->OnLeAudioDeviceSetStateTimeout(group_id);
+  }
+
+  void OnUpdatedCisConfiguration(int group_id, uint8_t direction) {
+    if (instance) instance->OnUpdatedCisConfiguration(group_id, direction);
   }
 };
 

@@ -837,26 +837,6 @@ uint8_t get_num_of_devices_in_configuration(
     const AudioSetConfiguration* audio_set_configuration);
 }  // namespace set_configurations
 
-struct stream_map_info {
-  stream_map_info(uint16_t stream_handle, uint32_t audio_channel_allocation,
-                  bool is_stream_active)
-      : stream_handle(stream_handle),
-        audio_channel_allocation(audio_channel_allocation),
-        is_stream_active(is_stream_active) {}
-  uint16_t stream_handle;
-  uint32_t audio_channel_allocation;
-  bool is_stream_active;
-};
-
-struct offloader_stream_config {
-  /* cis_handle, target allocation, stream active state */
-  std::vector<stream_map_info> streams_target_allocation;
-  /* cis_handle, current allocation, stream active state */
-  std::vector<stream_map_info> streams_current_allocation;
-  bool has_changed;
-  bool is_initial;
-};
-
 struct stream_parameters {
   /* For now we have always same frequency for all the channels */
   uint32_t sample_frequency_hz;
@@ -882,9 +862,6 @@ struct stream_configuration {
   /* Sink & Source configuration */
   types::BidirectionalPair<stream_parameters> stream_params;
 
-  /* TODO: Make this struct free from the offloader specific data */
-  types::BidirectionalPair<offloader_stream_config> offloader_config;
-
   bool is_active;
 };
 
@@ -893,5 +870,4 @@ void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
 void AppendMetadataLtvEntryForStreamingContext(
     std::vector<uint8_t>& metadata, types::AudioContexts context_type);
 uint8_t GetMaxCodecFramesPerSduFromPac(const types::acs_ac_record* pac_record);
-uint32_t AdjustAllocationForOffloader(uint32_t allocation);
 }  // namespace le_audio

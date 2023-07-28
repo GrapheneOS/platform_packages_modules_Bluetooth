@@ -59,18 +59,6 @@ using le_audio::types::LeAudioContextType;
 using le_audio::types::LeAudioLc3Config;
 
 namespace le_audio {
-namespace types {
-template struct BidirectionalPair<offloader_stream_config>;
-template <>
-offloader_stream_config& types::BidirectionalPair<offloader_stream_config>::get(
-    uint8_t direction) {
-  ASSERT_LOG(direction < types::kLeAudioDirectionBoth,
-             "Unsupported complex direction. Reference to a single complex"
-             " direction value is not supported.");
-  return (direction == types::kLeAudioDirectionSink) ? sink : source;
-}
-}  // namespace types
-
 std::ostream& operator<<(std::ostream& os, const DeviceConnectState& state) {
   const char* char_value_ = "UNKNOWN";
 
@@ -182,9 +170,7 @@ void LeAudioDeviceGroup::ClearSinksFromConfiguration(void) {
   stream_params.octets_per_codec_frame = 0;
   stream_params.frame_duration_us = 0;
 
-  auto& offload_config = stream_conf.offloader_config.get(direction);
-  offload_config.streams_target_allocation.clear();
-  offload_config.streams_current_allocation.clear();
+  CodecManager::GetInstance()->ClearCisConfiguration(direction);
 }
 
 void LeAudioDeviceGroup::ClearSourcesFromConfiguration(void) {
@@ -201,9 +187,7 @@ void LeAudioDeviceGroup::ClearSourcesFromConfiguration(void) {
   stream_params.octets_per_codec_frame = 0;
   stream_params.frame_duration_us = 0;
 
-  auto& offload_config = stream_conf.offloader_config.get(direction);
-  offload_config.streams_target_allocation.clear();
-  offload_config.streams_current_allocation.clear();
+  CodecManager::GetInstance()->ClearCisConfiguration(direction);
 }
 
 void LeAudioDeviceGroup::CigClearCis(void) {
@@ -1927,14 +1911,6 @@ bool LeAudioDeviceGroup::IsCisPartOfCurrentStream(uint16_t cis_conn_hdl) const {
   return (iter != source_stream_locations.end());
 }
 
-void LeAudioDeviceGroup::StreamOffloaderUpdated(uint8_t direction) {
-  if (direction == le_audio::types::kLeAudioDirectionSource) {
-    stream_conf.offloader_config.source.is_initial = false;
-  } else {
-    stream_conf.offloader_config.sink.is_initial = false;
-  }
-}
-
 void LeAudioDeviceGroup::RemoveCisFromStreamIfNeeded(
     LeAudioDevice* leAudioDevice, uint16_t cis_conn_hdl) {
   LOG_INFO(" CIS Connection Handle: %d", cis_conn_hdl);
@@ -1985,124 +1961,21 @@ void LeAudioDeviceGroup::RemoveCisFromStreamIfNeeded(
     ClearSourcesFromConfiguration();
   }
 
-  /* Update offloader streams if needed */
+  /* Update CodecManager CIS configuration */
   if (old_sink_channels > stream_conf.stream_params.sink.num_of_channels) {
-    CreateStreamVectorForOffloader(le_audio::types::kLeAudioDirectionSink);
+    CodecManager::GetInstance()->UpdateCisConfiguration(
+        cises_,
+        stream_conf.stream_params.get(le_audio::types::kLeAudioDirectionSink),
+        le_audio::types::kLeAudioDirectionSink);
   }
   if (old_source_channels > stream_conf.stream_params.source.num_of_channels) {
-    CreateStreamVectorForOffloader(le_audio::types::kLeAudioDirectionSource);
+    CodecManager::GetInstance()->UpdateCisConfiguration(
+        cises_,
+        stream_conf.stream_params.get(le_audio::types::kLeAudioDirectionSource),
+        le_audio::types::kLeAudioDirectionSource);
   }
 
   CigUnassignCis(leAudioDevice);
-}
-
-void LeAudioDeviceGroup::CreateStreamVectorForOffloader(uint8_t direction) {
-  if (CodecManager::GetInstance()->GetCodecLocation() !=
-      le_audio::types::CodecLocation::ADSP) {
-    return;
-  }
-
-  CisType cis_type;
-  std::vector<std::pair<uint16_t, uint32_t>>* streams;
-  std::vector<stream_map_info>* offloader_streams_target_allocation;
-  std::vector<stream_map_info>* offloader_streams_current_allocation;
-  std::string tag;
-  uint32_t available_allocations = 0;
-  bool* changed_flag;
-  bool* is_initial;
-  if (direction == le_audio::types::kLeAudioDirectionSource) {
-    changed_flag = &stream_conf.offloader_config.source.has_changed;
-    is_initial = &stream_conf.offloader_config.source.is_initial;
-    cis_type = CisType::CIS_TYPE_UNIDIRECTIONAL_SOURCE;
-    streams = &stream_conf.stream_params.source.stream_locations;
-    offloader_streams_target_allocation =
-        &stream_conf.offloader_config.source.streams_target_allocation;
-    offloader_streams_current_allocation =
-        &stream_conf.offloader_config.source.streams_current_allocation;
-    tag = "Source";
-    available_allocations = AdjustAllocationForOffloader(
-        stream_conf.stream_params.source.audio_channel_allocation);
-  } else {
-    changed_flag = &stream_conf.offloader_config.sink.has_changed;
-    is_initial = &stream_conf.offloader_config.sink.is_initial;
-    cis_type = CisType::CIS_TYPE_UNIDIRECTIONAL_SINK;
-    streams = &stream_conf.stream_params.sink.stream_locations;
-    offloader_streams_target_allocation =
-        &stream_conf.offloader_config.sink.streams_target_allocation;
-    offloader_streams_current_allocation =
-        &stream_conf.offloader_config.sink.streams_current_allocation;
-    tag = "Sink";
-    available_allocations = AdjustAllocationForOffloader(
-        stream_conf.stream_params.sink.audio_channel_allocation);
-  }
-
-  if (available_allocations == 0) {
-    LOG_ERROR("There is no CIS connected");
-    return;
-  }
-
-  if (offloader_streams_target_allocation->size() == 0) {
-    *is_initial = true;
-  } else if (*is_initial || LeAudioHalVerifier::SupportsStreamActiveApi()) {
-    // As multiple CISes phone call case, the target_allocation already have the
-    // previous data, but the is_initial flag not be cleared. We need to clear
-    // here to avoid make duplicated target allocation stream map.
-    offloader_streams_target_allocation->clear();
-  }
-
-  offloader_streams_current_allocation->clear();
-  *changed_flag = true;
-  bool not_all_cises_connected = false;
-  if (available_allocations != codec_spec_conf::kLeAudioLocationStereo) {
-    not_all_cises_connected = true;
-  }
-
-  /* If the all cises are connected as stream started, reset changed_flag that
-   * the bt stack wouldn't send another audio configuration for the connection
-   * status */
-  if (*is_initial && !not_all_cises_connected) {
-    *changed_flag = false;
-  }
-  for (auto const& cis_entry : cises_) {
-    if ((cis_entry.type == CisType::CIS_TYPE_BIDIRECTIONAL ||
-         cis_entry.type == cis_type) &&
-        cis_entry.conn_handle != 0) {
-      uint32_t target_allocation = 0;
-      uint32_t current_allocation = 0;
-      bool is_active = false;
-      for (const auto& s : *streams) {
-        if (s.first == cis_entry.conn_handle) {
-          is_active = true;
-          target_allocation = AdjustAllocationForOffloader(s.second);
-          current_allocation = target_allocation;
-          if (not_all_cises_connected) {
-            /* Tell offloader to mix on this CIS.*/
-            current_allocation = codec_spec_conf::kLeAudioLocationStereo;
-          }
-          break;
-        }
-      }
-
-      if (target_allocation == 0) {
-        /* Take missing allocation for that one .*/
-        target_allocation =
-            codec_spec_conf::kLeAudioLocationStereo & ~available_allocations;
-      }
-
-      LOG_INFO(
-          "%s: Cis handle 0x%04x, target allocation  0x%08x, current "
-          "allocation 0x%08x, active: %d",
-          tag.c_str(), cis_entry.conn_handle, target_allocation,
-          current_allocation, is_active);
-
-      if (*is_initial || LeAudioHalVerifier::SupportsStreamActiveApi()) {
-        offloader_streams_target_allocation->emplace_back(stream_map_info(
-            cis_entry.conn_handle, target_allocation, is_active));
-      }
-      offloader_streams_current_allocation->emplace_back(stream_map_info(
-          cis_entry.conn_handle, current_allocation, is_active));
-    }
-  }
 }
 
 bool LeAudioDeviceGroup::IsPendingConfiguration(void) const {

@@ -416,8 +416,6 @@ class LeAudioDeviceGroup {
   bool IsMetadataChanged(
       const types::BidirectionalPair<types::AudioContexts>& context_types,
       const types::BidirectionalPair<std::vector<uint8_t>>& ccid_lists) const;
-  void CreateStreamVectorForOffloader(uint8_t direction);
-  void StreamOffloaderUpdated(uint8_t direction);
   bool IsConfiguredForContext(types::LeAudioContextType context_type) const;
   void RemoveCisFromStreamIfNeeded(LeAudioDevice* leAudioDevice,
                                    uint16_t cis_conn_hdl);

@@ -37,22 +37,14 @@ types::CodecLocation CodecManager::GetCodecLocation() const {
   return pimpl_->GetCodecLocation();
 }
 
-void CodecManager::UpdateActiveSourceAudioConfig(
-    const stream_configuration& stream_conf, uint16_t delay_ms,
+void CodecManager::UpdateActiveAudioConfig(
+    const types::BidirectionalPair<stream_parameters>& stream_params,
+    types::BidirectionalPair<uint16_t> delays_ms,
     std::function<void(const ::le_audio::offload_config& config)>
         update_receiver) {
   if (pimpl_)
-    return pimpl_->UpdateActiveSourceAudioConfig(stream_conf, delay_ms,
-                                                 update_receiver);
-}
-
-void CodecManager::UpdateActiveSinkAudioConfig(
-    const stream_configuration& stream_conf, uint16_t delay_ms,
-    std::function<void(const ::le_audio::offload_config& config)>
-        update_receiver) {
-  if (pimpl_)
-    return pimpl_->UpdateActiveSinkAudioConfig(stream_conf, delay_ms,
-                                               update_receiver);
+    return pimpl_->UpdateActiveAudioConfig(stream_params, delays_ms,
+                                           update_receiver);
 }
 
 const set_configurations::AudioSetConfigurations*
@@ -97,6 +89,17 @@ void CodecManager::Stop() {
   }
 
   mock_codec_manager_pimpl_ = nullptr;
+}
+
+void CodecManager::UpdateCisConfiguration(
+    const std::vector<struct types::cis>& cises,
+    const stream_parameters& stream_params, uint8_t direction) {
+  if (pimpl_)
+    return pimpl_->UpdateCisConfiguration(cises, stream_params, direction);
+}
+
+void CodecManager::ClearCisConfiguration(uint8_t direction) {
+  if (pimpl_) return pimpl_->ClearCisConfiguration(direction);
 }
 
 // CodecManager::~CodecManager() = default;

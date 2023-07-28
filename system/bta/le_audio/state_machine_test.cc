@@ -165,6 +165,8 @@ class MockLeAudioGroupStateMachineCallbacks
               (int group_id, bluetooth::le_audio::GroupStreamStatus status),
               (override));
   MOCK_METHOD((void), OnStateTransitionTimeout, (int group_id), (override));
+  MOCK_METHOD((void), OnUpdatedCisConfiguration,
+              (int group_id, uint8_t direction), (override));
 };
 
 class StateMachineTestBase : public Test {
@@ -3438,8 +3440,17 @@ TEST_F(StateMachineTestAdsp, testStreamConfigurationAdspDownMix) {
       leaudio_group_id, context_type, num_devices,
       types::AudioContexts(kContextTypeConversational));
 
-  /* Can be called for every context when fetching the configuration from the
-   * AudioSetConfigurationProvider.
+  EXPECT_CALL(mock_callbacks_,
+              OnUpdatedCisConfiguration(group->group_id_,
+                                        le_audio::types::kLeAudioDirectionSink))
+      .Times(1);
+  EXPECT_CALL(mock_callbacks_,
+              OnUpdatedCisConfiguration(
+                  group->group_id_, le_audio::types::kLeAudioDirectionSource))
+      .Times(1);
+
+  /* Can be called for every context when fetching the configuration from
+   * the AudioSetConfigurationProvider.
    */
   EXPECT_CALL(*mock_codec_manager_, GetCodecLocation()).Times(AtLeast(1));
 
@@ -3459,46 +3470,11 @@ TEST_F(StateMachineTestAdsp, testStreamConfigurationAdspDownMix) {
       {.sink = types::AudioContexts(context_type),
        .source = types::AudioContexts(context_type)}));
 
-  ASSERT_EQ(static_cast<int>(group->stream_conf.offloader_config.sink
-                                 .streams_target_allocation.size()),
-            2);
-  ASSERT_EQ(static_cast<int>(group->stream_conf.offloader_config.source
-                                 .streams_target_allocation.size()),
-            2);
-
   // Check if group has transitioned to a proper state
   ASSERT_EQ(group->GetState(),
             types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
 
-  uint32_t allocation = 0;
-  for (const auto& s :
-       group->stream_conf.offloader_config.sink.streams_target_allocation) {
-    allocation |= s.audio_channel_allocation;
-    ASSERT_FALSE(allocation == 0);
-  }
-  ASSERT_TRUE(allocation == codec_spec_conf::kLeAudioLocationStereo);
-
-  allocation = 0;
-  for (const auto& s :
-       group->stream_conf.offloader_config.source.streams_target_allocation) {
-    allocation |= s.audio_channel_allocation;
-    ASSERT_FALSE(allocation == 0);
-  }
-  ASSERT_TRUE(allocation == codec_spec_conf::kLeAudioLocationStereo);
-
-  for (const auto& s :
-       group->stream_conf.offloader_config.sink.streams_target_allocation) {
-    ASSERT_TRUE((s.audio_channel_allocation != 0) &&
-                (s.audio_channel_allocation !=
-                 codec_spec_conf::kLeAudioLocationStereo));
-  }
-
-  for (const auto& s :
-       group->stream_conf.offloader_config.source.streams_target_allocation) {
-    ASSERT_TRUE((s.audio_channel_allocation != 0) &&
-                (s.audio_channel_allocation !=
-                 codec_spec_conf::kLeAudioLocationStereo));
-  }
+  // Note: The actual channel mixing is verified by the CodecManager unit tests.
 }
 
 static void InjectCisDisconnected(LeAudioDeviceGroup* group,
