@@ -432,6 +432,30 @@ class FlossScannerClient(BluetoothScannerCallbacks):
         self.callback_id = self.proxy().RegisterScannerCallback(objpath)
         return True
 
+    def register_callback_observer(self, name, observer):
+        """Add an observer for all callbacks.
+
+        Args:
+            name:
+                Name of the observer.
+            observer:
+                Observer that implements all callback classes.
+        """
+        if isinstance(observer, BluetoothScannerCallbacks):
+            self.callbacks.add_observer(name, observer)
+
+    def unregister_callback_observer(self, name, observer):
+        """Remove an observer for all callbacks.
+
+        Args:
+            name:
+                Name of the observer.
+            observer:
+                Observer that implements all callback classes.
+        """
+        if isinstance(observer, BluetoothScannerCallbacks):
+            self.callbacks.remove_observer(name, observer)
+
     def wait_for_on_scanner_registered(self, uuid):
         """Waits for register scanner.
 
