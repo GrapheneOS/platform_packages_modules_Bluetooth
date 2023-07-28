@@ -1314,16 +1314,23 @@ class CsisClientImpl : public CsisClient {
     }
   }
 
-  void CsisActiveObserverSet(bool enable) {
+  static void csis_ad_type_filter_set(bool enable) {
     bool is_ad_type_filter_supported =
         bluetooth::shim::is_ad_type_filter_supported();
-    LOG_INFO("Group_id %d: enable: %d, is_ad_type_filter_supported: %d",
-             discovering_group_, enable, is_ad_type_filter_supported);
+
+    LOG_INFO("enable: %d, is_ad_type_filter_supported: %d", enable,
+             is_ad_type_filter_supported);
+
     if (is_ad_type_filter_supported) {
       bluetooth::shim::set_ad_type_rsi_filter(enable);
     } else {
       bluetooth::shim::set_empty_filter(enable);
     }
+  }
+
+  void CsisActiveObserverSet(bool enable) {
+    LOG_INFO("Group_id %d: enable: %d", discovering_group_, enable);
+    csis_ad_type_filter_set(enable);
 
     BTA_DmBleCsisObserve(
         enable, [](tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* p_data) {
@@ -1335,6 +1342,7 @@ class CsisClientImpl : public CsisClient {
           if (event == BTA_DM_INQ_CMPL_EVT) {
             LOG(INFO) << "BLE observe complete. Num Resp: "
                       << static_cast<int>(p_data->inq_cmpl.num_resps);
+            csis_ad_type_filter_set(false);
             instance->OnCsisObserveCompleted();
             instance->CsisObserverSetBackground(true);
             return;
