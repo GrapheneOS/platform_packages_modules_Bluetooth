@@ -1980,6 +1980,11 @@ public class BassClientStateMachine extends StateMachine {
             ProfileService.println(sb, "    " + line);
         }
         scanner.close();
+        for (Map.Entry<Integer, BluetoothLeBroadcastReceiveState> entry :
+                mBluetoothLeBroadcastReceiveStates.entrySet()) {
+            BluetoothLeBroadcastReceiveState state = entry.getValue();
+            sb.append(state);
+        }
     }
 
     @Override
