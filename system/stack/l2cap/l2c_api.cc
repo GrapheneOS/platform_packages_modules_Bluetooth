@@ -729,6 +729,11 @@ bool L2CA_ConnectCreditBasedRsp(const RawAddress& p_bd_addr, uint8_t id,
    */
   tL2C_CCB* p_ccb = l2cu_find_ccb_by_cid(p_lcb, p_lcb->pending_lead_cid);
 
+  if (!p_ccb) {
+    L2CAP_TRACE_ERROR("%s No CCB for CID:0x%04x", __func__, p_lcb->pending_lead_cid);
+    return false;
+  }
+
   for (uint16_t cid : accepted_lcids) {
     tL2C_CCB* temp_p_ccb = l2cu_find_ccb_by_cid(p_lcb, cid);
     if (temp_p_ccb == NULL) {
