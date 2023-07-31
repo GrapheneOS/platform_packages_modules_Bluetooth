@@ -39,9 +39,6 @@ cc_library {
     generated_sources: ["statslog_bt.cpp"],
     generated_headers: ["statslog_bt.h"],
     export_generated_headers: ["statslog_bt.h"],
-    shared_libs: [
-        "libcutils",
-    ],
     apex_available: [
         "com.android.btservices",
     ],
@@ -57,6 +54,7 @@ cc_library {
         },
         host: {
             static_libs: [
+                "libbase",
                 "libstatssocket",
             ],
             export_static_lib_headers: [
