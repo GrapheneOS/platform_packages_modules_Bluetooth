@@ -1370,24 +1370,7 @@ public class BassClientStateMachine extends StateMachine {
             log("no existing SI for update source op");
             return null;
         }
-        BluetoothDevice broadcastSource = metaData.getSourceDevice();
-        PeriodicAdvertisementResult paRes =
-                mService.getPeriodicAdvertisementResult(broadcastSource);
-        if (paRes == null) {
-            Log.e(TAG, "No matching psync, scan res for update");
-            mService.getCallbacks().notifySourceRemoveFailed(
-                    mDevice, sourceId, BluetoothStatusCodes.ERROR_UNKNOWN);
-            return null;
-        }
-        // populate metadata from BASE levelOne
-        BaseData base = mService.getBase(paRes.getSyncHandle());
-        if (base == null) {
-            Log.e(TAG, "No valid base data populated for this device");
-            mService.getCallbacks().notifySourceRemoveFailed(
-                    mDevice, sourceId, BluetoothStatusCodes.ERROR_UNKNOWN);
-            return null;
-        }
-        byte numSubGroups = base.getNumberOfSubgroupsofBIG();
+        byte numSubGroups = (byte) metaData.getSubgroups().size();
         byte[] res = new byte[UPDATE_SOURCE_FIXED_LENGTH + numSubGroups * 5];
         int offset = 0;
         // Opcode
