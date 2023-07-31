@@ -3957,6 +3957,9 @@ static void handle_get_metadata_attr_response(tBTA_AV_META_MSG* pmeta_msg,
         osi_free_and_reset((void**)&p_rsp->p_attrs[i].name.p_str);
       }
     }
+
+    osi_free_and_reset((void**)&p_rsp->p_attrs);
+
     do_in_jni_thread(FROM_HERE,
                      base::Bind(bt_rc_ctrl_callbacks->track_changed_cb,
                                 p_dev->rc_addr, p_rsp->num_attrs, p_attr));
