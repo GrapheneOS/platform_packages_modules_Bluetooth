@@ -50,6 +50,7 @@ import android.sysprop.BluetoothProperties;
 import android.util.Log;
 import android.util.Pair;
 
+import com.android.bluetooth.BluetoothEventLogger;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
@@ -60,6 +61,7 @@ import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -106,6 +108,11 @@ public class BassClientService extends ProfileService {
     private ScanCallback mSearchScanCallback;
     private Callbacks mCallbacks;
     private BroadcastReceiver mIntentReceiver;
+
+    private static final int LOG_NB_EVENTS = 100;
+    private static final BluetoothEventLogger sEventLogger =
+            new BluetoothEventLogger(LOG_NB_EVENTS, TAG + " event log");
+    ;
 
     @VisibleForTesting
     ServiceFactory mServiceFactory = new ServiceFactory();
@@ -645,6 +652,14 @@ public class BassClientService extends ProfileService {
             return;
         }
 
+        sEventLogger.logd(
+                DBG,
+                TAG,
+                "connectionStateChanged: fromState= "
+                        + BluetoothProfile.getConnectionStateName(fromState)
+                        + ", toState= "
+                        + BluetoothProfile.getConnectionStateName(toState));
+
         // Check if the device is disconnected - if unbond, remove the state machine
         if (toState == BluetoothProfile.STATE_DISCONNECTED) {
             mPendingGroupOp.remove(device);
@@ -946,6 +961,10 @@ public class BassClientService extends ProfileService {
                     int broadcastId = (int)(((broadcastIdArray[2] & 0xff) << 16)
                             | ((broadcastIdArray[1] & 0xff) << 8)
                             | (broadcastIdArray[0] & 0xff));
+
+                    sEventLogger.logd(DBG, TAG, "Broadcast Source Found: Broadcast ID: "
+                            + broadcastId);
+
                     if (mScanBroadcasts.get(broadcastId) == null) {
                         log("selectBroadcastSource: broadcastId " + broadcastId);
                         mScanBroadcasts.put(broadcastId, result);
@@ -981,6 +1000,7 @@ public class BassClientService extends ProfileService {
                                 serviceData, serviceDataMask).build());
             }
             scanner.startScan(filters, settings, mSearchScanCallback);
+            sEventLogger.logd(DBG, TAG, "startSearchingForSources");
             mCallbacks.notifySearchStarted(BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
         }
     }
@@ -1008,6 +1028,7 @@ public class BassClientService extends ProfileService {
             }
             scanner.stopScan(mSearchScanCallback);
             mSearchScanCallback = null;
+            sEventLogger.logd(DBG, TAG, "stopSearchingForSources");
             mCallbacks.notifySearchStopped(BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
             mScanBroadcasts.clear();
         }
@@ -1030,6 +1051,8 @@ public class BassClientService extends ProfileService {
         }
 
         synchronized (mStateMachines) {
+            sEventLogger.logd(DBG, TAG, "Select Broadcast Source");
+
             BassClientStateMachine stateMachine = getOrCreateStateMachine(sink);
             Message message = stateMachine.obtainMessage(
                     BassClientStateMachine.SELECT_BCAST_SOURCE);
@@ -1112,10 +1135,22 @@ public class BassClientService extends ProfileService {
                         sourceMetadata);
             }
 
+            sEventLogger.logd(
+                    DBG,
+                    TAG,
+                    "Add Broadcast Source: device: "
+                            + sink
+                            + ", sourceMetadata: "
+                            + sourceMetadata
+                            + ", isGroupOp: "
+                            + isGroupOp);
+
             Message message = stateMachine.obtainMessage(BassClientStateMachine.ADD_BCAST_SOURCE);
             message.obj = sourceMetadata;
             stateMachine.sendMessage(message);
             if (code != null && code.length != 0) {
+                sEventLogger.logd(DBG, TAG, "Set Broadcast Code (Add Source context)");
+
                 message = stateMachine.obtainMessage(BassClientStateMachine.SET_BCAST_CODE);
                 message.obj = sourceMetadata;
                 message.arg1 = BassClientStateMachine.ARGTYPE_METADATA;
@@ -1183,6 +1218,16 @@ public class BassClientService extends ProfileService {
                 throw new IllegalStateException("modifySource: source operation already pending");
             }
 
+            sEventLogger.logd(
+                    DBG,
+                    TAG,
+                    "Modify Broadcast Source: device: "
+                            + sink
+                            + ", sourceId: "
+                            + sourceId
+                            + ", updatedMetadata: "
+                            + updatedMetadata);
+
             Message message =
                     stateMachine.obtainMessage(BassClientStateMachine.UPDATE_BCAST_SOURCE);
             message.arg1 = deviceSourceId;
@@ -1190,6 +1235,7 @@ public class BassClientService extends ProfileService {
             message.obj = updatedMetadata;
             stateMachine.sendMessage(message);
             if (code != null && code.length != 0) {
+                sEventLogger.logd(DBG, TAG, "Set Broadcast Code (Modify Source context)");
                 message = stateMachine.obtainMessage(BassClientStateMachine.SET_BCAST_CODE);
                 message.obj = updatedMetadata;
                 message.arg1 = BassClientStateMachine.ARGTYPE_METADATA;
@@ -1238,6 +1284,14 @@ public class BassClientService extends ProfileService {
                     stateMachine.getCurrentBroadcastMetadata(sourceId);
             if (metaData != null && recvState != null && recvState.getPaSyncState()
                     == BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_SYNCHRONIZED) {
+                sEventLogger.logd(
+                        DBG,
+                        TAG,
+                        "Remove Broadcast Source(Force lost PA sync): device: "
+                                + sink
+                                + ", sourceId: "
+                                + sourceId);
+
                 log("Force source to lost PA sync");
                 Message message = stateMachine.obtainMessage(
                         BassClientStateMachine.UPDATE_BCAST_SOURCE);
@@ -1249,6 +1303,11 @@ public class BassClientService extends ProfileService {
 
                 continue;
             }
+
+            sEventLogger.logd(
+                    DBG,
+                    TAG,
+                    "Remove Broadcast Source: device: " + sink + ", sourceId: " + sourceId);
 
             Message message =
                     stateMachine.obtainMessage(BassClientStateMachine.REMOVE_BCAST_SOURCE);
@@ -1479,58 +1538,175 @@ public class BassClientService extends ProfileService {
         }
 
         void notifySearchStarted(int reason) {
+            sEventLogger.logd(DBG, TAG, "notifySearchStarted: " + ", reason: " + reason);
             obtainMessage(MSG_SEARCH_STARTED, reason, 0).sendToTarget();
         }
 
         void notifySearchStartFailed(int reason) {
+            sEventLogger.loge(TAG, "notifySearchStartFailed: " + ", reason: " + reason);
             obtainMessage(MSG_SEARCH_STARTED_FAILED, reason, 0).sendToTarget();
         }
 
         void notifySearchStopped(int reason) {
+            sEventLogger.logd(DBG, TAG, "notifySearchStopped: " + ", reason: " + reason);
             obtainMessage(MSG_SEARCH_STOPPED, reason, 0).sendToTarget();
         }
 
         void notifySearchStopFailed(int reason) {
+            sEventLogger.loge(TAG, "notifySearchStopFailed: " + ", reason: " + reason);
             obtainMessage(MSG_SEARCH_STOPPED_FAILED, reason, 0).sendToTarget();
         }
 
         void notifySourceFound(BluetoothLeBroadcastMetadata source) {
+            sEventLogger.logd(
+                    DBG,
+                    TAG,
+                    "invokeCallback: MSG_SOURCE_FOUND"
+                            + ", source: "
+                            + source.getSourceDevice()
+                            + ", broadcastId: "
+                            + source.getBroadcastId()
+                            + ", broadcastName: "
+                            + source.getBroadcastName()
+                            + ", isPublic: "
+                            + source.isPublicBroadcast()
+                            + ", isEncrypted: "
+                            + source.isEncrypted());
             obtainMessage(MSG_SOURCE_FOUND, 0, 0, source).sendToTarget();
         }
 
         void notifySourceAdded(BluetoothDevice sink, BluetoothLeBroadcastReceiveState recvState,
                 int reason) {
+            sEventLogger.logd(
+                    DBG,
+                    TAG,
+                    "notifySourceAdded: "
+                            + ", source: "
+                            + sink
+                            + ", sourceId: "
+                            + recvState.getSourceId()
+                            + ", reason: "
+                            + reason);
+
             ObjParams param = new ObjParams(sink, recvState);
             obtainMessage(MSG_SOURCE_ADDED, reason, recvState.getSourceId(), param).sendToTarget();
         }
 
         void notifySourceAddFailed(BluetoothDevice sink, BluetoothLeBroadcastMetadata source,
                 int reason) {
+            sEventLogger.loge(
+                    TAG, "notifySourceAddFailed: " + ", source: " + sink + ", reason: " + reason);
             ObjParams param = new ObjParams(sink, source);
             obtainMessage(MSG_SOURCE_ADDED_FAILED, reason, 0, param).sendToTarget();
         }
 
         void notifySourceModified(BluetoothDevice sink, int sourceId, int reason) {
+            sEventLogger.logd(
+                    DBG,
+                    TAG,
+                    "notifySourceModified: "
+                            + ", source: "
+                            + sink
+                            + ", sourceId: "
+                            + sourceId
+                            + ", reason: "
+                            + reason);
             obtainMessage(MSG_SOURCE_MODIFIED, reason, sourceId, sink).sendToTarget();
         }
 
         void notifySourceModifyFailed(BluetoothDevice sink, int sourceId, int reason) {
+            sEventLogger.loge(
+                    TAG,
+                    "notifySourceModifyFailed: " + ", source: " + sink + ", reason: " + reason);
             obtainMessage(MSG_SOURCE_MODIFIED_FAILED, reason, sourceId, sink).sendToTarget();
         }
 
         void notifySourceRemoved(BluetoothDevice sink, int sourceId, int reason) {
+            sEventLogger.logd(
+                    DBG,
+                    TAG,
+                    "notifySourceRemoved: "
+                            + ", source: "
+                            + sink
+                            + ", sourceId: "
+                            + sourceId
+                            + ", reason: "
+                            + reason);
             obtainMessage(MSG_SOURCE_REMOVED, reason, sourceId, sink).sendToTarget();
         }
 
         void notifySourceRemoveFailed(BluetoothDevice sink, int sourceId, int reason) {
+            sEventLogger.loge(
+                    TAG,
+                    "notifySourceRemoveFailed: "
+                            + ", source: "
+                            + sink
+                            + ", sourceId: "
+                            + sourceId
+                            + ", reason: "
+                            + reason);
             obtainMessage(MSG_SOURCE_REMOVED_FAILED, reason, sourceId, sink).sendToTarget();
         }
 
         void notifyReceiveStateChanged(BluetoothDevice sink, int sourceId,
                 BluetoothLeBroadcastReceiveState state) {
             ObjParams param = new ObjParams(sink, state);
+            String subgroupState = " / SUB GROUPS: ";
+            for (int i = 0; i < state.getNumSubgroups(); i++) {
+                subgroupState += "IDX: " + i + ", SYNC: " + state.getBisSyncState().get(i);
+            }
+
+            sEventLogger.logd(
+                    TAG,
+                    "notifyReceiveStateChanged: "
+                            + ", source: "
+                            + sink
+                            + ", state: SRC ID: "
+                            + state.getSourceId()
+                            + " / ADDR TYPE: "
+                            + state.getSourceAddressType()
+                            + " / SRC DEV: "
+                            + state.getSourceDevice()
+                            + " / ADV SID: "
+                            + state.getSourceAdvertisingSid()
+                            + " / BID: "
+                            + state.getBroadcastId()
+                            + " / PA STATE: "
+                            + state.getPaSyncState()
+                            + " / BENC STATE: "
+                            + state.getBigEncryptionState()
+                            + " / BAD CODE: "
+                            + Arrays.toString(state.getBadCode())
+                            + subgroupState);
             obtainMessage(MSG_RECEIVESTATE_CHANGED, 0, sourceId, param).sendToTarget();
         }
+    }
+
+    @Override
+    public void dump(StringBuilder sb) {
+        super.dump(sb);
+
+        sb.append("Broadcast Assistant Service instance:\n");
+
+        /* Dump first connected state machines */
+        for (Map.Entry<BluetoothDevice, BassClientStateMachine> entry : mStateMachines.entrySet()) {
+            BassClientStateMachine sm = entry.getValue();
+            if (sm.getConnectionState() == BluetoothProfile.STATE_CONNECTED) {
+                sm.dump(sb);
+            }
+        }
+
+        /* Dump at least all other than connected state machines */
+        for (Map.Entry<BluetoothDevice, BassClientStateMachine> entry : mStateMachines.entrySet()) {
+            BassClientStateMachine sm = entry.getValue();
+            if (sm.getConnectionState() != BluetoothProfile.STATE_CONNECTED) {
+                sm.dump(sb);
+            }
+        }
+
+        sb.append("\n");
+        sEventLogger.dump(sb);
+        sb.append("\n");
     }
 
     /** Binder object: must be a static class or memory leak may occur */
