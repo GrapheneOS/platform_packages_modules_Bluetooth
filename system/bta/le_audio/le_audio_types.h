@@ -31,8 +31,6 @@
 #include <variant>
 #include <vector>
 
-#include "bta_groups.h"
-#include "bta_le_audio_api.h"
 #include "bta_le_audio_uuids.h"
 #include "btm_iso_api_types.h"
 
