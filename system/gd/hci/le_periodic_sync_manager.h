@@ -347,6 +347,10 @@ class PeriodicSyncManager {
     LOG_DEBUG("[PSync]: sync_handle = %d", sync_handle);
     callbacks_->OnPeriodicSyncLost(sync_handle);
     auto periodic_sync = GetEstablishedSyncFromHandle(sync_handle);
+    if (periodic_sync == periodic_syncs_.end()) {
+      LOG_ERROR("[PSync]: index not found for handle %u", sync_handle);
+      return;
+    }
     periodic_syncs_.erase(periodic_sync);
   }
 
