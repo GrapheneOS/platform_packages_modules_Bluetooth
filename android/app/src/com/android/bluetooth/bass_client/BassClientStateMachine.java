@@ -457,6 +457,14 @@ public class BassClientStateMachine extends StateMachine {
         mNoStopScanOffload = false;
     }
 
+    private void resetBluetoothGatt() {
+        // cleanup mBluetoothGatt
+        if (mBluetoothGatt != null) {
+            mBluetoothGatt.close();
+            mBluetoothGatt = null;
+        }
+    }
+
     private BluetoothLeBroadcastMetadata getBroadcastMetadataFromBaseData(BaseData baseData,
             BluetoothDevice device) {
         return getBroadcastMetadataFromBaseData(baseData, device, false);
@@ -1261,6 +1269,7 @@ public class BassClientStateMachine extends StateMachine {
                         transitionTo(mConnected);
                     } else {
                         Log.w(TAG, "Connection failed to " + mDevice);
+                        resetBluetoothGatt();
                         transitionTo(mDisconnected);
                     }
                     break;
@@ -1271,6 +1280,7 @@ public class BassClientStateMachine extends StateMachine {
                         Log.e(TAG, "Unknown device timeout " + device);
                         break;
                     }
+                    resetBluetoothGatt();
                     transitionTo(mDisconnected);
                     break;
                 case PSYNC_ACTIVE_TIMEOUT:
@@ -1527,11 +1537,7 @@ public class BassClientStateMachine extends StateMachine {
                         Log.w(TAG, "device is already connected to Bass" + mDevice);
                     } else {
                         Log.w(TAG, "unexpected disconnected from " + mDevice);
-                        // cleanup mBluetoothGatt
-                        if (mBluetoothGatt != null) {
-                            mBluetoothGatt.close();
-                            mBluetoothGatt = null;
-                        }
+                        resetBluetoothGatt();
                         cancelActiveSync(null);
                         transitionTo(mDisconnected);
                     }
@@ -1812,6 +1818,8 @@ public class BassClientStateMachine extends StateMachine {
                         Log.w(TAG, "should never happen from this state");
                     } else {
                         Log.w(TAG, "Unexpected disconnection " + mDevice);
+                        resetBluetoothGatt();
+                        cancelActiveSync(null);
                         transitionTo(mDisconnected);
                     }
                     break;
