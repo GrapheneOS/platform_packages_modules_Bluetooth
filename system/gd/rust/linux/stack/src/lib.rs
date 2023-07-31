@@ -64,6 +64,7 @@ use bt_topshim::{
 pub enum Message {
     // Shuts down the stack.
     Shutdown,
+    Cleanup,
 
     // Adapter is enabled and ready.
     AdapterReady,
@@ -196,6 +197,9 @@ impl Stack {
             match m.unwrap() {
                 Message::Shutdown => {
                     bluetooth.lock().unwrap().disable();
+                }
+
+                Message::Cleanup => {
                     bluetooth.lock().unwrap().cleanup();
                 }
 
