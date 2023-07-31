@@ -247,6 +247,8 @@ mod tests {
         assert_eq!(now, "/data/misc/bluetooth/logs/btsnooz_hci.log");
     }
 
+    // TODO(b/290018030): Remove this and add proper safety comments.
+    #[allow(clippy::undocumented_unsafe_blocks)]
     #[ignore]
     #[tokio::test]
     async fn test_bt_keystore_interface() {
@@ -296,11 +298,20 @@ mod tests {
         }
 
         let current = (*param_provider.lock().await).get_bt_keystore_interface().await;
-        let address_current = format!("{:p}", &current);
-        let reality = *hex_to_dec(address_current);
-        let mut answer = *hex_to_dec(Arc::clone(&address1).lock().await.to_string());
+        let reality = current as i64;
+        // TODO: Fix unsoundness. `address1` contains a string representation of a pointer to a
+        // `cxx::UniquePtr` on the stack; either `choice_ptr1` (which is still in scope, so it is
+        // valid) or to `ptr1` (which is in another task which may have finished, so may not be
+        // valid). If it were valid, then transmuting the `cxx::UniquePtr` to an `i64` is probably
+        // fine, though a dubious thing to do.
+        let mut answer = unsafe { *(hex_to_dec(&address1.lock().await) as *const i64) };
         if *choice.lock().await == "2" {
-            answer = *hex_to_dec(Arc::clone(&address2).lock().await.to_string());
+            // TODO: Fix unsoundness. `address2` contains a string representation of a pointer to a
+            // `cxx::UniquePtr` on the stack; either `choice_ptr2` (which is still in scope, so it
+            // is valid) or to `ptr2` (which is in another task which may have finished, so may not
+            // be valid). If it were valid, then transmuting the `cxx::UniquePtr` to an `i64` is
+            // probably fine, though a dubious thing to do.
+            answer = unsafe { *(hex_to_dec(&address2.lock().await) as *const i64) };
         }
         assert_eq!(reality, answer);
     }
@@ -386,11 +397,9 @@ mod tests {
         assert_eq!(now, 0b11);
     }
 
-    fn hex_to_dec(origin: String) -> &'static i64 {
-        let address = unsafe {
-            let origin = origin.trim_start_matches("0x");
-            &*(usize::from_str_radix(origin, 16).unwrap() as *const i64)
-        };
-        address
+    /// Converts a hex string to an integer
+    fn hex_to_dec(origin: &str) -> usize {
+        let origin = origin.trim_start_matches("0x");
+        usize::from_str_radix(origin, 16).unwrap()
     }
 }
