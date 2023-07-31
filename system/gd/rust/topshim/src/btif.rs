@@ -331,6 +331,19 @@ impl Into<u32> for BtDiscMode {
 
 #[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
+pub enum BtThreadEvent {
+    Associate = 0,
+    Disassociate,
+}
+
+impl From<bindings::bt_cb_thread_evt> for BtThreadEvent {
+    fn from(item: bindings::bt_cb_thread_evt) -> Self {
+        BtThreadEvent::from_u32(item).unwrap_or(BtThreadEvent::Associate)
+    }
+}
+
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
 pub enum BtIoCap {
     Out,
     InOut,
@@ -882,8 +895,8 @@ pub enum BaseCallbacks {
         BtConnectionDirection,
         u16,
     ),
+    ThreadEvent(BtThreadEvent),
     // Unimplemented so far:
-    // thread_evt_cb
     // dut_mode_recv_cb
     // le_test_mode_cb
     // energy_info_cb
@@ -942,6 +955,8 @@ cb_variant!(BaseCb, le_address_associate_cb -> BaseCallbacks::LeAddressAssociate
     let _0 = unsafe { *(_0 as *const RawAddress) };
     let _1 = unsafe { *(_1 as *const RawAddress) };
 });
+
+cb_variant!(BaseCb, thread_evt_cb -> BaseCallbacks::ThreadEvent, u32 -> BtThreadEvent);
 
 cb_variant!(BaseCb, acl_state_cb -> BaseCallbacks::AclState,
 u32 -> BtStatus, *mut RawAddress, bindings::bt_acl_state_t -> BtAclState, i32 -> BtTransport, bindings::bt_hci_error_code_t -> BtHciErrorCode, bindings::bt_conn_direction_t -> BtConnectionDirection, u16 -> u16, {
@@ -1071,7 +1086,7 @@ impl BluetoothInterface {
             address_consolidate_cb: Some(address_consolidate_cb),
             le_address_associate_cb: Some(le_address_associate_cb),
             acl_state_changed_cb: Some(acl_state_cb),
-            thread_evt_cb: None,
+            thread_evt_cb: Some(thread_evt_cb),
             dut_mode_recv_cb: None,
             le_test_mode_cb: None,
             energy_info_cb: None,
