@@ -16,45 +16,21 @@
 
 package com.android.bluetooth.btservice.activityattribution;
 
-import android.util.Log;
+import static java.util.Objects.requireNonNull;
 
-import java.util.Objects;
+import android.util.Log;
 
 /**
  * Service used for attributes wakeup, wakelock and Bluetooth traffic into per-app and per-device
  * based activities.
  */
 public class ActivityAttributionService {
-    private static final String TAG = ActivityAttributionService.class.getSimpleName()
-    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
+    private static final String TAG = ActivityAttributionService.class.getSimpleName();
 
     private final ActivityAttributionNativeInterface mActivityAttributionNativeInterface =
-            Objects.requireNonNull(
+            requireNonNull(
                     ActivityAttributionNativeInterface.getInstance(),
                     "ActivityAttributionNativeInterface cannot be null");
-
-    private boolean mCleaned = false;
-
-    /** Cleans up the Activity Attribution service. */
-    public void cleanup() {
-        debugLog("cleanup()");
-        if (mCleaned) {
-            Log.e(TAG, "cleanup already called");
-            return;
-        }
-
-        mCleaned = true;
-
-        // Cleanup native interface
-        mActivityAttributionNativeInterface.cleanup();
-    }
-
-    /** Init JNI */
-    public void initJni() {
-        debugLog("initJni()");
-        // Initialize native interface
-        mActivityAttributionNativeInterface.init();
-    }
 
     /** Notify the UID and package name of the app, and the address of associated active device */
     public void notifyActivityAttributionInfo(int uid, String packageName, String deviceAddress) {
@@ -66,11 +42,5 @@ public class ActivityAttributionService {
                         + (" deviceAddress=" + deviceAddress));
         mActivityAttributionNativeInterface.notifyActivityAttributionInfo(
                 uid, packageName, deviceAddress);
-    }
-
-    private static void debugLog(String msg) {
-        if (DBG) {
-            Log.d(TAG, msg);
-        }
     }
 }

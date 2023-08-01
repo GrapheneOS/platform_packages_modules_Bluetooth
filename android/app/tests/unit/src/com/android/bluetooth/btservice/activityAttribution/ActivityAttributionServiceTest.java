@@ -19,7 +19,6 @@ package com.android.bluetooth.btservice.activityattribution;
 import android.os.Binder;
 import android.os.Process;
 
-import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,21 +27,12 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public final class ActivityAttributionServiceTest {
-    private static final String TAG = "ActivityAttributionServiceTest";
     private ActivityAttributionService mActivityAttributionService;
 
     @Before
     public void setUp() {
         Assume.assumeTrue("Ignore test when the user is not primary.", isPrimaryUser());
         mActivityAttributionService = new ActivityAttributionService();
-    }
-
-    @After
-    public void tearDown() {
-        if (!isPrimaryUser()) {
-            return;
-        }
-        mActivityAttributionService.cleanup();
     }
 
     private boolean isPrimaryUser() {

@@ -28,7 +28,5 @@ namespace shim {
 
 ActivityAttributionInterface* get_activity_attribution_instance();
 
-void init_activity_attribution();
-
 }  // namespace shim
 }  // namespace bluetooth

@@ -1359,10 +1359,6 @@ public class AdapterService extends Service {
             mSdpManager = null;
         }
 
-        if (mActivityAttributionService != null) {
-            mActivityAttributionService.cleanup();
-        }
-
         if (mNativeAvailable) {
             debugLog("cleanup() - Cleaning up adapter native");
             cleanupNative();

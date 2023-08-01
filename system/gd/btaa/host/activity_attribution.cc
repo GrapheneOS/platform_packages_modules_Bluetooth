@@ -29,8 +29,6 @@ void ActivityAttribution::OnWakelockReleased() {}
 
 void ActivityAttribution::OnWakeup() {}
 
-void ActivityAttribution::RegisterActivityAttributionCallback(ActivityAttributionCallback* callback) {}
-
 void ActivityAttribution::NotifyActivityAttributionInfo(
     int uid, const std::string& package_name, const std::string& device_address) {}
 
