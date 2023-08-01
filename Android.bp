@@ -76,6 +76,8 @@ cc_defaults {
         // there are too many unused parameters in all the code.
         "-Wno-unused-parameter",
     ],
+    c_std: "c99",
+    cpp_std: "c++17",
 }
 
 // Address Sanitizer is flaky on Android x86_64 binaries but it's not on x86

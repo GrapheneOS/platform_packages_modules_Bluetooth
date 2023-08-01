@@ -111,7 +111,7 @@ rust_bindgen {
     crate_name: "bt_topshim_wrapper_bindgen",
     source_stem: "bindings",
     defaults: ["bluetooth_cflags"],
-    cpp_std: "c++17",
+    c_std: "",
     host_supported: true,
     bindgen_flags: [
         "--allowlist-function=bt_.*",

@@ -49,7 +49,6 @@ genrule {
 cc_defaults {
     name: "bluetooth_flatbuffer_bundler_defaults",
     defaults: ["bluetooth_cflags"],
-    cpp_std: "c++17",
     generated_headers: [
         "BluetoothGeneratedBundlerSchema_h_bfbs",
     ],
