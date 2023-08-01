@@ -223,7 +223,7 @@ genrule {
         " $(location :pdl_python_generator)" +
         " --output $(out) --custom-type-location py.bluetooth",
     srcs: [
-        "packets/hci/hci_packets.pdl",
+        "packets/hci_packets.pdl",
     ],
     out: [
         "hci_packets.py",
@@ -425,7 +425,7 @@ genrule {
         " --include-header hci/address.h" +
         " --output $(out)",
     srcs: [
-        "packets/hci/hci_packets.pdl",
+        "packets/hci_packets.pdl",
     ],
     out: [
         "packets/hci_packets.h",
@@ -477,6 +477,6 @@ genrule {
 genrule {
     name: "rootcanal_hci_packets_rust_gen",
     defaults: ["pdl_rust_generator_defaults"],
-    srcs: ["packets/hci/hci_packets.pdl"],
+    srcs: ["packets/hci_packets.pdl"],
     out: ["hci_packets.rs"],
 }
