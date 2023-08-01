@@ -6092,7 +6092,10 @@ public class AdapterService extends Service {
         if (leAudioSupported) {
             Log.i(TAG, "setActiveDevice: Setting active Le Audio device " + device);
             if (device == null) {
-                mLeAudioService.removeActiveDevice(false);
+                /* If called by BluetoothAdapter it means Audio should not be stopped.
+                 * For this reason let's say that fallback device exists
+                 */
+                mLeAudioService.removeActiveDevice(true /* hasFallbackDevice */);
             } else {
                 mLeAudioService.setActiveDevice(device);
             }
