@@ -147,6 +147,9 @@ cc_library_static {
             ],
         },
     },
+    apex_available: [
+        "com.android.btservices",
+    ],
     host_supported: true,
     min_sdk_version: "Tiramisu",
 }
@@ -188,6 +191,9 @@ cc_library_static {
     static_libs: [
         "lib-bt-packets",
         "libcom.android.sysprop.bluetooth",
+    ],
+    apex_available: [
+        "com.android.btservices",
     ],
     host_supported: true,
     min_sdk_version: "Tiramisu",

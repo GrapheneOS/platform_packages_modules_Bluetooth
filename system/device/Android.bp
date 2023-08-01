@@ -28,6 +28,9 @@ cc_library_static {
         "src/esco_parameters.cc",
         "src/interop.cc",
     ],
+    apex_available: [
+        "com.android.btservices",
+    ],
     min_sdk_version: "Tiramisu",
 }
 
