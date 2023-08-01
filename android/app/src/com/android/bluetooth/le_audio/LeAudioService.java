@@ -170,6 +170,7 @@ public class LeAudioService extends ProfileService {
             mDirection = AUDIO_DIRECTION_NONE;
             mCodecStatus = null;
             mLostLeadDeviceWhileStreaming = null;
+            mCurrentLeadDevice = null;
             mInbandRingtoneEnabled = isInbandRingtonEnabled;
             mAvailableContexts = 0;
         }
@@ -180,6 +181,7 @@ public class LeAudioService extends ProfileService {
         public BluetoothLeAudioCodecStatus mCodecStatus;
         /* This can be non empty only for the streaming time */
         BluetoothDevice mLostLeadDeviceWhileStreaming;
+        BluetoothDevice mCurrentLeadDevice;
         Boolean mInbandRingtoneEnabled;
         Integer mAvailableContexts;
     }
@@ -604,31 +606,11 @@ public class LeAudioService extends ProfileService {
     }
 
     BluetoothDevice getConnectedGroupLeadDevice(int groupId) {
-        BluetoothDevice device = null;
-
-        if (mActiveAudioOutDevice != null
-                && getGroupId(mActiveAudioOutDevice) == groupId) {
-            device = mActiveAudioOutDevice;
-        } else {
-            device = getFirstDeviceFromGroup(groupId);
+        if (getGroupId(mActiveAudioOutDevice) == groupId) {
+            return mActiveAudioOutDevice;
         }
 
-        if (device == null) {
-            return device;
-        }
-
-        LeAudioDeviceDescriptor descriptor = getDeviceDescriptor(device);
-        if (descriptor == null) {
-            Log.e(TAG, "getConnectedGroupLeadDevice: No valid descriptor for device: " + device);
-            return null;
-        }
-
-        LeAudioStateMachine sm = descriptor.mStateMachine;
-        if (sm != null && sm.getConnectionState() == BluetoothProfile.STATE_CONNECTED) {
-            return device;
-        }
-
-        return null;
+        return getLeadDeviceForTheGroup(groupId);
     }
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
@@ -986,11 +968,23 @@ public class LeAudioService extends ProfileService {
         return 1;
     }
 
-    private BluetoothDevice getFirstDeviceFromGroup(Integer groupId) {
+    private BluetoothDevice getLeadDeviceForTheGroup(Integer groupId) {
         if (groupId == LE_AUDIO_GROUP_ID_INVALID) {
             return null;
         }
         synchronized (mGroupLock) {
+            LeAudioGroupDescriptor groupDescriptor = getGroupDescriptor(groupId);
+            if (groupDescriptor == null) {
+                Log.e(TAG, "Group " + groupId + " does not exist");
+                return null;
+            }
+
+            if (groupDescriptor.mCurrentLeadDevice != null
+                    && getConnectionState(groupDescriptor.mCurrentLeadDevice)
+                            == BluetoothProfile.STATE_CONNECTED) {
+                return groupDescriptor.mCurrentLeadDevice;
+            }
+
             for (LeAudioDeviceDescriptor descriptor : mDeviceDescriptors.values()) {
                 if (!descriptor.mGroupId.equals(groupId)) {
                     continue;
@@ -1000,7 +994,8 @@ public class LeAudioService extends ProfileService {
                 if (sm == null || sm.getConnectionState() != BluetoothProfile.STATE_CONNECTED) {
                     continue;
                 }
-                return sm.getDevice();
+                groupDescriptor.mCurrentLeadDevice = sm.getDevice();
+                return groupDescriptor.mCurrentLeadDevice;
             }
         }
         return null;
@@ -1302,7 +1297,7 @@ public class LeAudioService extends ProfileService {
         BluetoothDevice previousActiveInDevice = mActiveAudioInDevice;
 
         if (isActive) {
-            device = getFirstDeviceFromGroup(groupId);
+            device = getLeadDeviceForTheGroup(groupId);
         }
 
         boolean isNewActiveOutDevice = updateActiveOutDevice(device, groupId,
@@ -3833,7 +3828,6 @@ public class LeAudioService extends ProfileService {
                 ProfileService.println(sb, "  isConnected: " + groupDescriptor.mIsConnected);
                 ProfileService.println(sb, "  mDirection: " + groupDescriptor.mDirection);
                 ProfileService.println(sb, "  group lead: " + leadDevice);
-                ProfileService.println(sb, "  first device: " + getFirstDeviceFromGroup(groupId));
                 ProfileService.println(sb, "  lost lead device: "
                         + groupDescriptor.mLostLeadDeviceWhileStreaming);
                 ProfileService.println(sb, "  mInbandRingtoneEnabled: "
