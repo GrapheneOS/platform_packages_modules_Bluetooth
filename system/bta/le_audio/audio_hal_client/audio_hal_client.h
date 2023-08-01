@@ -102,7 +102,7 @@ class LeAudioSinkAudioHalClient {
   class Callbacks {
    public:
     virtual ~Callbacks() = default;
-    virtual void OnAudioSuspend(std::promise<void> do_suspend_promise) = 0;
+    virtual void OnAudioSuspend(void) = 0;
     virtual void OnAudioResume(void) = 0;
     virtual void OnAudioMetadataUpdate(
         std::vector<struct record_track_metadata> sink_metadata) = 0;
@@ -139,7 +139,7 @@ class LeAudioSourceAudioHalClient {
    public:
     virtual ~Callbacks() = default;
     virtual void OnAudioDataReady(const std::vector<uint8_t>& data) = 0;
-    virtual void OnAudioSuspend(std::promise<void> do_suspend_promise) = 0;
+    virtual void OnAudioSuspend(void) = 0;
     virtual void OnAudioResume(void) = 0;
     virtual void OnAudioMetadataUpdate(
         std::vector<struct playback_track_metadata> source_metadata) = 0;
