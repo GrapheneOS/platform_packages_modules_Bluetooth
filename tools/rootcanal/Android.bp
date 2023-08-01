@@ -313,8 +313,8 @@ python_test_host {
         "test/LL/CON_/PER/*.py",
         "test/LL/DDI/ADV/*.py",
         "test/LL/DDI/SCN/*.py",
-        "test/LMP/LIH/*.py",
         "test/LMP/*.py",
+        "test/LMP/LIH/*.py",
         "test/main.py",
     ],
     data: [
@@ -415,8 +415,8 @@ cc_binary_host {
 genrule {
     name: "rootcanal_hci_packets_cxx_gen",
     tools: [
-        ":pdlc",
         ":pdl_cxx_generator",
+        ":pdlc",
     ],
     cmd: "set -o pipefail;" +
         " $(location :pdlc) $(in) |" +
@@ -435,8 +435,8 @@ genrule {
 genrule {
     name: "rootcanal_link_layer_packets_cxx_gen",
     tools: [
-        ":pdlc",
         ":pdl_cxx_generator",
+        ":pdlc",
     ],
     cmd: "set -o pipefail;" +
         " $(location :pdlc) $(in) |" +
@@ -456,8 +456,8 @@ genrule {
 genrule {
     name: "rootcanal_bredr_bb_packets_cxx_gen",
     tools: [
-        ":pdlc",
         ":pdl_cxx_generator",
+        ":pdlc",
     ],
     cmd: "set -o pipefail;" +
         " $(location :pdlc) $(in) |" +
