@@ -2,7 +2,7 @@ message(STATUS "Enabling bluetooth LMP module.")
 
 pdl_gen(
     NAME hci_packets_rs
-    INPUT ${ROOTCANAL_ROOT}/packets/hci/hci_packets.pdl
+    INPUT ${ROOTCANAL_ROOT}/packets/hci_packets.pdl
     OUTPUT hci_packets.rs
     LANG rust)
 
