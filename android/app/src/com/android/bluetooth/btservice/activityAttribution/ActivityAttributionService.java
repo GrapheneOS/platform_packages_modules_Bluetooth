@@ -25,64 +25,28 @@ import java.util.Objects;
  * based activities.
  */
 public class ActivityAttributionService {
-    private boolean mCleaningUp;
-    private static ActivityAttributionService sActivityAttributionService;
-    private static final boolean DBG = false;
-    private static final String TAG = "ActivityAttributionService";
+    private static final String TAG = ActivityAttributionService.class.getSimpleName()
+    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
 
     private final ActivityAttributionNativeInterface mActivityAttributionNativeInterface =
             Objects.requireNonNull(
                     ActivityAttributionNativeInterface.getInstance(),
-                    "ActivityAttributionNativeInterface "
-                            + "cannot be null when ActivityAttributionService starts");
+                    "ActivityAttributionNativeInterface cannot be null");
 
-    /** Start and initialize the Activity Attribution service. */
-    public void start() {
-        debugLog("start()");
-
-        if (sActivityAttributionService != null) {
-            Log.e(TAG, "start() called twice");
-            return;
-        }
-
-        // Mark service as started
-        setActivityAttributionService(this);
-    }
+    private boolean mCleaned = false;
 
     /** Cleans up the Activity Attribution service. */
     public void cleanup() {
-        debugLog("cleanup");
-        if (mCleaningUp) {
-            debugLog("already doing cleanup");
+        debugLog("cleanup()");
+        if (mCleaned) {
+            Log.e(TAG, "cleanup already called");
             return;
         }
 
-        mCleaningUp = true;
-
-        if (sActivityAttributionService == null) {
-            debugLog("cleanup() called before start()");
-            return;
-        }
-
-        // Mark service as stopped
-        setActivityAttributionService(null);
+        mCleaned = true;
 
         // Cleanup native interface
         mActivityAttributionNativeInterface.cleanup();
-    }
-
-    /** Get the ActivityAttributionService instance */
-    public static synchronized ActivityAttributionService getActivityAttributionService() {
-        if (sActivityAttributionService == null) {
-            Log.w(TAG, "getActivityAttributionService(): service is NULL");
-            return null;
-        }
-
-        if (!sActivityAttributionService.isAvailable()) {
-            Log.w(TAG, "getActivityAttributionService(): service is not available");
-            return null;
-        }
-        return sActivityAttributionService;
     }
 
     /** Init JNI */
@@ -94,22 +58,14 @@ public class ActivityAttributionService {
 
     /** Notify the UID and package name of the app, and the address of associated active device */
     public void notifyActivityAttributionInfo(int uid, String packageName, String deviceAddress) {
-        Log.d(TAG, "notifyActivityAttributionInfo"
-                + " UID=" + uid
-                + " packageName=" + packageName
-                + " deviceAddress=" + deviceAddress);
+        Log.d(
+                TAG,
+                "notifyActivityAttributionInfo()"
+                        + (" UID=" + uid)
+                        + (" packageName=" + packageName)
+                        + (" deviceAddress=" + deviceAddress));
         mActivityAttributionNativeInterface.notifyActivityAttributionInfo(
                 uid, packageName, deviceAddress);
-    }
-
-    private boolean isAvailable() {
-        return !mCleaningUp;
-    }
-
-    private static synchronized void setActivityAttributionService(
-            ActivityAttributionService instance) {
-        debugLog("setActivityAttributionService(): set to: " + instance);
-        sActivityAttributionService = instance;
     }
 
     private static void debugLog(String msg) {

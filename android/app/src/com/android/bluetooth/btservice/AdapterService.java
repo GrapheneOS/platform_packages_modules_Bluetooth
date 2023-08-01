@@ -716,7 +716,6 @@ public class AdapterService extends Service {
         mBluetoothSocketManagerBinder = new BluetoothSocketManagerBinder(this);
 
         mActivityAttributionService = new ActivityAttributionService();
-        mActivityAttributionService.start();
 
         setAdapterService(this);
 
