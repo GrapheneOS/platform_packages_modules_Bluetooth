@@ -1132,6 +1132,37 @@ public class LeAudioService extends ProfileService {
     }
 
     /**
+     * Send broadcast intent about LeAudio connection state changed. This is called by
+     * LeAudioStateMachine.
+     */
+    void notifyConnectionStateChanged(BluetoothDevice device, int newState, int prevState) {
+        if (DBG) {
+            Log.d(
+                    TAG,
+                    "Notify connection state changed."
+                            + device
+                            + "("
+                            + prevState
+                            + " -> "
+                            + newState
+                            + ")");
+        }
+
+        mAdapterService
+                .getActiveDeviceManager()
+                .leAudioConnectionStateChanged(device, prevState, newState);
+        Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED);
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.addFlags(
+                Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
+                        | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+        Utils.sendBroadcast(
+                this, intent, BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
+    }
+
+    /**
      * Send broadcast intent about LeAudio active device.
      * This is called when AudioManager confirms, LeAudio device
      * is added or removed.
@@ -1143,6 +1174,7 @@ public class LeAudioService extends ProfileService {
                     + ". Currently active device is " + mActiveAudioOutDevice);
         }
 
+        mAdapterService.getActiveDeviceManager().leAudioActiveStateChanged(device);
         Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
