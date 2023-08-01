@@ -602,11 +602,6 @@ static void bond_state_changed(bt_status_t status, const RawAddress& bd_addr,
   GetInterfaceToProfiles()->events->invoke_bond_state_changed_cb(
       status, bd_addr, state, pairing_cb.fail_reason);
 
-  int dev_type;
-  if (!btif_get_device_type(bd_addr, &dev_type)) {
-    dev_type = BT_DEVICE_TYPE_BREDR;
-  }
-
   if ((state == BT_BOND_STATE_NONE) && (pairing_cb.bd_addr != bd_addr)
       && is_bonding_or_sdp()) {
     LOG_WARN("Ignoring bond state changed for unexpected device: %s pairing: %s",
