@@ -1369,7 +1369,8 @@ class UnicastTestNoInit : public Test {
     available_src_context_types_ = 0xffff;
     supported_snk_context_types_ = 0xffff;
     supported_src_context_types_ = 0xffff;
-    le_audio::AudioSetConfigurationProvider::Initialize();
+    le_audio::AudioSetConfigurationProvider::Initialize(
+        ::le_audio::types::CodecLocation::ADSP);
     ASSERT_FALSE(LeAudioClient::IsLeAudioClientRunning());
   }
 

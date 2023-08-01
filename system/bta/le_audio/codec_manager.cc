@@ -69,8 +69,7 @@ static std::unordered_map<
 
 struct codec_manager_impl {
  public:
-  codec_manager_impl(
-      const std::vector<btle_audio_codec_config_t>& offloading_preference) {
+  codec_manager_impl() {
     offload_enable_ = osi_property_get_bool(
                           "ro.bluetooth.leaudio_offload.supported", false) &&
                       !osi_property_get_bool(
@@ -96,7 +95,10 @@ struct codec_manager_impl {
     btm_configure_data_path(btm_data_direction::CONTROLLER_TO_HOST,
                             kIsoDataPathPlatformDefault, {});
     SetCodecLocation(CodecLocation::ADSP);
-    le_audio::AudioSetConfigurationProvider::Initialize();
+  }
+  void start(
+      const std::vector<btle_audio_codec_config_t>& offloading_preference) {
+    le_audio::AudioSetConfigurationProvider::Initialize(GetCodecLocation());
     UpdateOffloadCapability(offloading_preference);
   }
   ~codec_manager_impl() {
@@ -413,8 +415,8 @@ struct CodecManager::impl {
   void Start(
       const std::vector<btle_audio_codec_config_t>& offloading_preference) {
     LOG_ASSERT(!codec_manager_impl_);
-    codec_manager_impl_ =
-        std::make_unique<codec_manager_impl>(offloading_preference);
+    codec_manager_impl_ = std::make_unique<codec_manager_impl>();
+    codec_manager_impl_->start(offloading_preference);
   }
 
   void Stop() {

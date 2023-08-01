@@ -194,7 +194,6 @@ class StateMachineTestBase : public Test {
     do_not_send_cis_establish_event_ = false;
     cis_status_.clear();
 
-    ::le_audio::AudioSetConfigurationProvider::Initialize();
     LeAudioGroupStateMachine::Initialize(&mock_callbacks_);
 
     ContentControlIdKeeper::GetInstance()->Start();
@@ -1291,6 +1290,8 @@ class StateMachineTestBase : public Test {
 class StateMachineTest : public StateMachineTestBase {
   void SetUp() override {
     ConfigCodecManagerMock(types::CodecLocation::HOST);
+    ::le_audio::AudioSetConfigurationProvider::Initialize(
+        ::le_audio::types::CodecLocation::HOST);
     StateMachineTestBase::SetUp();
   }
 };
@@ -1298,6 +1299,8 @@ class StateMachineTest : public StateMachineTestBase {
 class StateMachineTestAdsp : public StateMachineTestBase {
   void SetUp() override {
     ConfigCodecManagerMock(types::CodecLocation::ADSP);
+    ::le_audio::AudioSetConfigurationProvider::Initialize(
+        ::le_audio::types::CodecLocation::ADSP);
     StateMachineTestBase::SetUp();
   }
 };
