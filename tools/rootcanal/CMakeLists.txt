@@ -1,4 +1,4 @@
-set(BT_ROOT ${AOSP_ROOT}/packages/modules/Bluetooth/system)
+set(BT_ROOT ${AOSP_ROOT}/packages/modules/Bluetooth)
 set(ROOTCANAL_ROOT ${AOSP_ROOT}/packages/modules/Bluetooth/tools/rootcanal)
 set(PDL_ROOT ${AOSP_ROOT}/external/rust/crates/pdl-compiler)
 
@@ -166,7 +166,7 @@ target_include_directories(libbt-rootcanal.headers INTERFACE ${ROOTCANAL_ROOT})
 target_link_libraries(libbt-rootcanal.headers
                       INTERFACE android-emu-base-headers)
 android_license(TARGET "libbt-rootcanal.headers" LIBNAME None SPDX Apache-2.0
-                LICENSE Apache-2.0 LOCAL "${BT_ROOT}/../NOTICE")
+                LICENSE Apache-2.0 LOCAL "${BT_ROOT}/NOTICE")
 
 android_add_library(
   TARGET librootcanal_log
