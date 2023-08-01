@@ -1,5 +1,3 @@
-#pragma once
-
 // Base
 #include "hardware/bluetooth.h"
 #include "include/hal_util.h"
