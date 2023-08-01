@@ -5014,7 +5014,7 @@ public class AdapterService extends Service {
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
             }
-            if (!callerIsSystem(TAG, "setPreferredAudioProfiles")) {
+            if (!callerIsSystem(TAG, "notifyActiveDeviceChangeApplied")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
             requireNonNull(device);
