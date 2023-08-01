@@ -24,9 +24,7 @@ package {
 
 cc_binary {
     name: "android.hardware.bluetooth@1.1-service.sim",
-    defaults: [
-        "gd_defaults",
-    ],
+    defaults: ["rootcanal_defaults"],
     proprietary: true,
     relative_install_path: "hw",
     srcs: [
@@ -36,7 +34,6 @@ cc_binary {
     visibility: [
         "//platform_testing/libraries/sts-common-util/host-side/rootcanal",
     ],
-    header_libs: ["libbluetooth_headers"],
     shared_libs: [
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
@@ -59,21 +56,12 @@ cc_binary {
         "android.hardware.bluetooth-hci",
         "libscriptedbeaconpayload-protos-lite",
     ],
-    include_dirs: [
-        "packages/modules/Bluetooth/tools/rootcanal/include",
-        "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/gd",
-        "packages/modules/Bluetooth/system/internal_include",
-        "packages/modules/Bluetooth/system/stack/include",
-    ],
     init_rc: ["android.hardware.bluetooth@1.1-service.sim.rc"],
 }
 
 cc_library_shared {
     name: "android.hardware.bluetooth@1.1-impl-sim",
-    defaults: [
-        "gd_defaults",
-    ],
+    defaults: ["rootcanal_defaults"],
     proprietary: true,
     relative_install_path: "hw",
     srcs: [
@@ -82,7 +70,6 @@ cc_library_shared {
     visibility: [
         "//platform_testing/libraries/sts-common-util/host-side/rootcanal",
     ],
-    header_libs: ["libbluetooth_headers"],
     shared_libs: [
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
@@ -101,12 +88,5 @@ cc_library_shared {
         "android.hardware.bluetooth-async",
         "android.hardware.bluetooth-hci",
         "libscriptedbeaconpayload-protos-lite",
-    ],
-    include_dirs: [
-        "packages/modules/Bluetooth/tools/rootcanal/include",
-        "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/gd",
-        "packages/modules/Bluetooth/system/internal_include",
-        "packages/modules/Bluetooth/system/stack/include",
     ],
 }
