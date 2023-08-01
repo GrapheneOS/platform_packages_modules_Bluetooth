@@ -30,7 +30,11 @@ public class ActivityAttributionService {
     private static final boolean DBG = false;
     private static final String TAG = "ActivityAttributionService";
 
-    ActivityAttributionNativeInterface mActivityAttributionNativeInterface;
+    private final ActivityAttributionNativeInterface mActivityAttributionNativeInterface =
+            Objects.requireNonNull(
+                    ActivityAttributionNativeInterface.getInstance(),
+                    "ActivityAttributionNativeInterface "
+                            + "cannot be null when ActivityAttributionService starts");
 
     /** Start and initialize the Activity Attribution service. */
     public void start() {
@@ -40,12 +44,6 @@ public class ActivityAttributionService {
             Log.e(TAG, "start() called twice");
             return;
         }
-
-        mActivityAttributionNativeInterface =
-                Objects.requireNonNull(
-                        ActivityAttributionNativeInterface.getInstance(),
-                        "ActivityAttributionNativeInterface "
-                                + "cannot be null when ActivityAttributionService starts");
 
         // Mark service as started
         setActivityAttributionService(this);
@@ -71,7 +69,6 @@ public class ActivityAttributionService {
 
         // Cleanup native interface
         mActivityAttributionNativeInterface.cleanup();
-        mActivityAttributionNativeInterface = null;
     }
 
     /** Get the ActivityAttributionService instance */
