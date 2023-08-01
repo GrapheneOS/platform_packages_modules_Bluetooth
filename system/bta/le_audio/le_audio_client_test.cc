@@ -72,6 +72,8 @@ using le_audio::LeAudioHealthStatus;
 using le_audio::LeAudioSinkAudioHalClient;
 using le_audio::LeAudioSourceAudioHalClient;
 
+using le_audio::types::AudioContexts;
+
 extern struct fake_osi_alarm_set_on_mloop fake_osi_alarm_set_on_mloop_;
 
 constexpr int max_num_of_ases = 5;
@@ -489,6 +491,30 @@ class UnicastTestNoInit : public Test {
               gatt_callback(BTA_GATTC_NOTIF_EVT, (tBTA_GATTC*)&event_data);
             },
             base::Unretained(this->gatt_callback), event_data));
+  }
+
+  void InjectContextTypes(const RawAddress& test_address, uint16_t conn_id,
+                          uint16_t handle, AudioContexts sink_ctxs,
+                          AudioContexts source_ctxs) {
+    std::vector<uint8_t> contexts = {
+        (uint8_t)(sink_ctxs.value()), (uint8_t)(sink_ctxs.value() >> 8),
+        (uint8_t)(source_ctxs.value()), (uint8_t)(source_ctxs.value() >> 8)};
+
+    InjectNotificationEvent(test_address, conn_id, handle, contexts);
+  }
+
+  void InjectSupportedContextTypes(const RawAddress& test_address,
+                                   uint16_t conn_id, AudioContexts sink_ctxs,
+                                   AudioContexts source_ctxs) {
+    /* 0x0077 pacs->supp_contexts_char + 1 */
+    InjectContextTypes(test_address, conn_id, 0x0077, sink_ctxs, source_ctxs);
+  }
+
+  void InjectAvailableContextTypes(const RawAddress& test_address,
+                                   uint16_t conn_id, AudioContexts sink_ctxs,
+                                   AudioContexts source_ctxs) {
+    /* 0x0074 is pacs->avail_contexts_char + 1 */
+    InjectContextTypes(test_address, conn_id, 0x0074, sink_ctxs, source_ctxs);
   }
 
   void SetUpMockGatt() {
@@ -4910,11 +4936,9 @@ TEST_F(UnicastTest, TwoEarbuds2ndReleaseAseRemoveAvailableContextAndBack) {
   ASSERT_NE(group, nullptr);
   auto device = group->GetFirstDevice();
 
-  /* Simulate available context type being cleared. 0x0074 is
-   * pacs->avail_contexts_char + 1 */
-  std::vector<uint8_t> cleared_avail_ctx = {0x00, 0x00, 0x00, 0x00};
-  InjectNotificationEvent(device->address_, device->conn_id_, 0x0074,
-                          cleared_avail_ctx);
+  /* Simulate available context type being cleared */
+  InjectAvailableContextTypes(device->address_, device->conn_id_,
+                              types::AudioContexts(0), types::AudioContexts(0));
   SyncOnMainLoop();
 
   /* Simulate ASE releasing and CIS Disconnection */
@@ -4939,9 +4963,9 @@ TEST_F(UnicastTest, TwoEarbuds2ndReleaseAseRemoveAvailableContextAndBack) {
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
 
   /* Bring back available context types */
-  std::vector<uint8_t> avail_ctx = {0xff, 0x00, 0xff, 0x00};
-  InjectNotificationEvent(device->address_, device->conn_id_, 0x0074,
-                          avail_ctx);
+  InjectAvailableContextTypes(device->address_, device->conn_id_,
+                              types::kLeAudioContextAllTypes,
+                              types::kLeAudioContextAllTypes);
   SyncOnMainLoop();
 
   /* Check both devices are streaming */
