@@ -135,7 +135,6 @@ cc_library_static {
     static_libs: [
         "libscriptedbeaconpayload-protos-lite",
     ],
-    include_dirs: ["packages/modules/Bluetooth/system/gd"],
 }
 
 // This library implements a foreigh function interface over DualModeController
@@ -179,7 +178,6 @@ cc_library_host_shared {
     cflags: [
         "-fexceptions",
     ],
-    include_dirs: ["packages/modules/Bluetooth/system/gd"],
 }
 
 // Generate the python parser+serializer backend for
@@ -293,7 +291,6 @@ cc_test_host {
     static_libs: [
         "libbt-rootcanal",
     ],
-    include_dirs: ["packages/modules/Bluetooth/system/gd"],
 }
 
 // Implement the Bluetooth official LL test suite for root-canal.
@@ -313,8 +310,8 @@ python_test_host {
         "test/LL/CON_/PER/*.py",
         "test/LL/DDI/ADV/*.py",
         "test/LL/DDI/SCN/*.py",
-        "test/LMP/LIH/*.py",
         "test/LMP/*.py",
+        "test/LMP/LIH/*.py",
         "test/main.py",
     ],
     data: [
@@ -367,7 +364,6 @@ cc_test_host {
             enabled: false,
         },
     },
-    include_dirs: ["packages/modules/Bluetooth/system/gd"],
 }
 
 // Linux RootCanal Executable
@@ -409,14 +405,13 @@ cc_binary_host {
             enabled: false,
         },
     },
-    include_dirs: ["packages/modules/Bluetooth/system/gd"],
 }
 
 genrule {
     name: "rootcanal_hci_packets_cxx_gen",
     tools: [
-        ":pdlc",
         ":pdl_cxx_generator",
+        ":pdlc",
     ],
     cmd: "set -o pipefail;" +
         " $(location :pdlc) $(in) |" +
@@ -435,8 +430,8 @@ genrule {
 genrule {
     name: "rootcanal_link_layer_packets_cxx_gen",
     tools: [
-        ":pdlc",
         ":pdl_cxx_generator",
+        ":pdlc",
     ],
     cmd: "set -o pipefail;" +
         " $(location :pdlc) $(in) |" +
@@ -456,8 +451,8 @@ genrule {
 genrule {
     name: "rootcanal_bredr_bb_packets_cxx_gen",
     tools: [
-        ":pdlc",
         ":pdl_cxx_generator",
+        ":pdlc",
     ],
     cmd: "set -o pipefail;" +
         " $(location :pdlc) $(in) |" +
