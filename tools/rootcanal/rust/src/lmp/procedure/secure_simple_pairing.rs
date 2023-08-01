@@ -439,12 +439,22 @@ pub async fn initiate(ctx: &impl Context) -> Result<(), ()> {
             | AuthenticationMethod::NumericComparisonUserConfirm => {
                 send_commitment(ctx, true).await;
 
-                user_confirmation_request(ctx).await?;
+                if user_confirmation_request(ctx).await.is_err() {
+                    ctx.send_lmp_packet(
+                        lmp::NumericComparisonFailedBuilder { transaction_id: 0 }.build(),
+                    );
+                    Err(())?;
+                }
                 Ok(())
             }
             AuthenticationMethod::PasskeyEntry => {
                 if initiator.io_capability == hci::IoCapability::KeyboardOnly {
-                    user_passkey_request(ctx).await?;
+                    if user_passkey_request(ctx).await.is_err() {
+                        ctx.send_lmp_packet(
+                            lmp::PasskeyFailedBuilder { transaction_id: 0 }.build(),
+                        );
+                        Err(())?;
+                    }
                 } else {
                     ctx.send_hci_event(
                         hci::UserPasskeyNotificationBuilder {
@@ -472,7 +482,6 @@ pub async fn initiate(ctx: &impl Context) -> Result<(), ()> {
     .await;
 
     if result.is_err() {
-        ctx.send_lmp_packet(lmp::NumericComparisonFailedBuilder { transaction_id: 0 }.build());
         ctx.send_hci_event(
             hci::SimplePairingCompleteBuilder {
                 status: hci::ErrorCode::AuthenticationFailure,
@@ -653,16 +662,36 @@ pub async fn respond(ctx: &impl Context, request: lmp::IoCapabilityReq) -> Resul
             user_confirmation.is_err()
         }
         AuthenticationMethod::PasskeyEntry => {
-            if responder.io_capability == hci::IoCapability::KeyboardOnly {
+            let skip_first_commitment = if responder.io_capability
+                == hci::IoCapability::KeyboardOnly
+            {
                 // TODO: handle error
                 let _user_passkey = user_passkey_request(ctx).await;
+                false
             } else {
                 ctx.send_hci_event(
                     hci::UserPasskeyNotificationBuilder { bd_addr: ctx.peer_address(), passkey: 0 }
                         .build(),
                 );
-            }
-            for _ in 0..PASSKEY_ENTRY_REPEAT_NUMBER {
+                match ctx
+                    .receive_lmp_packet::<Either<lmp::SimplePairingConfirm, lmp::PasskeyFailed>>()
+                    .await
+                {
+                    Either::Left(_) => true, // TODO: check for `confirm.get_commitment_value()`
+                    Either::Right(_) => {
+                        ctx.send_hci_event(
+                            hci::SimplePairingCompleteBuilder {
+                                status: hci::ErrorCode::AuthenticationFailure,
+                                bd_addr: ctx.peer_address(),
+                            }
+                            .build(),
+                        );
+                        return Err(());
+                    }
+                }
+            };
+            receive_commitment(ctx, skip_first_commitment).await;
+            for _ in 1..PASSKEY_ENTRY_REPEAT_NUMBER {
                 receive_commitment(ctx, false).await;
             }
             false
@@ -867,7 +896,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic] // TODO: make the test pass
     fn passkey_entry_initiator_failure_on_initiating_side() {
         let context = TestContext::new();
         let procedure = initiate;
@@ -876,7 +904,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic] // TODO: make the test pass
     fn passkey_entry_responder_failure_on_initiating_side() {
         let context = TestContext::new();
         let procedure = respond;
