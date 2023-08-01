@@ -18,6 +18,7 @@ package com.android.bluetooth.audio_util;
 
 import android.content.Context;
 import android.os.Looper;
+import android.text.TextUtils;
 
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -37,7 +38,7 @@ public final class MediaPlayerWrapperFactory {
         }
 
         MediaPlayerWrapper newWrapper;
-        if (controller.getPackageName().equals("com.google.android.music")) {
+        if (TextUtils.equals(controller.getPackageName(), "com.google.android.music")) {
             newWrapper = new GPMWrapper(context, controller, looper);
         } else {
             newWrapper = new MediaPlayerWrapper(context, controller, looper);
