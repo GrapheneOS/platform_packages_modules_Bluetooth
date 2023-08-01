@@ -90,10 +90,6 @@ cc_defaults {
     defaults: [
         "fluoride_defaults",
     ],
-    apex_available: [
-        "//apex_available:platform",
-        "com.android.btservices",
-    ],
     static_libs: [
         "libbt-protos-lite",
         "libflatbuffers-cpp",
