@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 public class Config {
@@ -171,9 +172,14 @@ public class Config {
                 profile.mSupported = enabled;
             }
         }
+        if (enabled) {
+            sSupportedProfiles.add(profileClass);
+        } else {
+            sSupportedProfiles.remove(profileClass);
+        }
     }
 
-    private static Class[] sSupportedProfiles = new Class[0];
+    private static List<Class> sSupportedProfiles = new ArrayList<>();
 
     private static boolean sIsGdEnabledUptoScanningLayer = false;
 
@@ -211,15 +217,20 @@ public class Config {
             setProfileEnabled(HearingAidService.class, false);
         }
 
-        ArrayList<Class> profiles = new ArrayList<>(PROFILE_SERVICES_AND_FLAGS.length);
-        for (ProfileConfig config : PROFILE_SERVICES_AND_FLAGS) {
-            Log.i(TAG, "init: profile=" + config.mClass.getSimpleName() + ", enabled="
-                    + config.mSupported);
-            if (config.mSupported) {
-                profiles.add(config.mClass);
+        synchronized (sSupportedProfiles) {
+            sSupportedProfiles.clear();
+            for (ProfileConfig config : PROFILE_SERVICES_AND_FLAGS) {
+                Log.i(
+                        TAG,
+                        "init: profile="
+                                + config.mClass.getSimpleName()
+                                + ", enabled="
+                                + config.mSupported);
+                if (config.mSupported) {
+                    sSupportedProfiles.add(config.mClass);
+                }
             }
         }
-        sSupportedProfiles = profiles.toArray(new Class[profiles.size()]);
 
         if (ctx == null) {
             return;
@@ -253,19 +264,17 @@ public class Config {
      * Remove the input profiles from the supported list.
      */
     static void removeProfileFromSupportedList(HashSet<Class> nonSupportedProfiles) {
-        ArrayList<Class> profilesList = new ArrayList<Class>(Arrays.asList(sSupportedProfiles));
-        Iterator<Class> iter = profilesList.iterator();
+        synchronized (sSupportedProfiles) {
+            Iterator<Class> iter = sSupportedProfiles.iterator();
+            while (iter.hasNext()) {
+                Class profileClass = iter.next();
 
-        while (iter.hasNext()) {
-            Class profileClass = iter.next();
-
-            if (nonSupportedProfiles.contains(profileClass)) {
-                iter.remove();
-                Log.v(TAG, "Remove " + profileClass.getSimpleName() + " from supported list.");
+                if (nonSupportedProfiles.contains(profileClass)) {
+                    iter.remove();
+                    Log.v(TAG, "Remove " + profileClass.getSimpleName() + " from supported list.");
+                }
             }
         }
-
-        sSupportedProfiles = profilesList.toArray(new Class[profilesList.size()]);
     }
 
     static void updateSupportedProfileMask(Boolean enable, Class profile, int supportedProfile) {
@@ -286,7 +295,9 @@ public class Config {
     }
 
     static Class[] getSupportedProfiles() {
-        return sSupportedProfiles;
+        synchronized (sSupportedProfiles) {
+            return sSupportedProfiles.toArray(new Class[0]);
+        }
     }
 
     static boolean isGdEnabledUpToScanningLayer() {
