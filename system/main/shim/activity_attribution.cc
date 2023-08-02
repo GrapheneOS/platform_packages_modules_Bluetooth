@@ -23,9 +23,7 @@
 #include "main/shim/entry.h"
 #include "types/raw_address.h"
 
-class ActivityAttributionInterfaceImpl
-    : public ActivityAttributionInterface,
-      public bluetooth::activity_attribution::ActivityAttributionCallback {
+class ActivityAttributionInterfaceImpl : public ActivityAttributionInterface {
  public:
   ~ActivityAttributionInterfaceImpl() override = default;
 
@@ -35,17 +33,6 @@ class ActivityAttributionInterfaceImpl
     return instance;
   }
 
-  void Init() override {
-    bluetooth::shim::GetActivityAttribution()
-        ->RegisterActivityAttributionCallback(this);
-  }
-
-  void RegisterCallbacks(ActivityAttributionCallbacks* callbacks) override {
-    this->callbacks = callbacks;
-  }
-
-  void Cleanup(void) override{};
-
   void NotifyActivityAttributionInfo(
       int uid, const std::string& package_name,
       const std::string& device_address) override {
@@ -53,44 +40,12 @@ class ActivityAttributionInterfaceImpl
         uid, package_name, device_address);
   }
 
-  void OnWakeup(const Activity activity,
-                const bluetooth::hci::Address& address) override {
-    do_in_jni_thread(
-        FROM_HERE, base::Bind(&ActivityAttributionCallbacks::OnWakeup,
-                              base::Unretained(callbacks),
-                              (ActivityAttributionCallbacks::Activity)activity,
-                              bluetooth::ToRawAddress(address)));
-  }
-
-  void OnActivityLogsReady(
-      const std::vector<BtaaAggregationEntry> logs) override {
-    std::vector<ActivityAttributionCallbacks::BtaaAggregationEntry>
-        callback_logs;
-    for (auto& it : logs) {
-      ActivityAttributionCallbacks::BtaaAggregationEntry entry{
-          bluetooth::ToRawAddress(it.address),
-          (ActivityAttributionCallbacks::Activity)it.activity, it.wakeup_count,
-          it.byte_count, it.wakelock_duration_ms};
-      callback_logs.push_back(entry);
-    }
-    do_in_jni_thread(
-        FROM_HERE,
-        base::Bind(&ActivityAttributionCallbacks::OnActivityLogsReady,
-                   base::Unretained(callbacks), callback_logs));
-  }
-
  private:
   // Private constructor to prevent construction.
   ActivityAttributionInterfaceImpl() {}
-
-  ActivityAttributionCallbacks* callbacks;
 };
 
 ActivityAttributionInterface*
 bluetooth::shim::get_activity_attribution_instance() {
   return ActivityAttributionInterfaceImpl::GetInstance();
-}
-
-void bluetooth::shim::init_activity_attribution() {
-  bluetooth::shim::get_activity_attribution_instance()->Init();
 }

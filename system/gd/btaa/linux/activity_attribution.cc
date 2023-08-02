@@ -26,13 +26,9 @@ struct ActivityAttribution::impl {
   impl(ActivityAttribution* module) {}
 
   void on_hci_packet(hal::HciPacket packet, hal::SnoopLogger::PacketType type, uint16_t length) {}
-
-  void register_callback(ActivityAttributionCallback* callback) {}
 };
 
 void ActivityAttribution::Capture(const hal::HciPacket& packet, hal::SnoopLogger::PacketType type) {}
-
-void ActivityAttribution::RegisterActivityAttributionCallback(ActivityAttributionCallback* callback) {}
 
 void ActivityAttribution::NotifyActivityAttributionInfo(
     int uid, const std::string& package_name, const std::string& device_address) {}
