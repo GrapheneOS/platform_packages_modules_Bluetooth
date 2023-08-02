@@ -69,7 +69,7 @@ class BluetoothDeathRecipient : public hidl_death_recipient {
   void setHasDied(bool has_died) { has_died_ = has_died; }
 
  private:
-  bool has_died_;
+  bool has_died_{false};
 };
 
 BluetoothHci::BluetoothHci()
