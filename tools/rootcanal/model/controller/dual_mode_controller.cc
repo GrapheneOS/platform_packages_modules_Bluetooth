@@ -33,11 +33,6 @@ constexpr uint16_t kLeMaximumDataLength = 64;
 constexpr uint16_t kLeMaximumDataTime = 0x148;
 constexpr uint8_t kTransmitPowerLevel = -20;
 
-static int next_instance_id() {
-  static int instance_counter = 0;
-  return instance_counter++;
-}
-
 // Device methods.
 std::string DualModeController::GetTypeString() const {
   return "Simulated Bluetooth Controller";
@@ -65,8 +60,7 @@ void DualModeController::SendCommandCompleteUnknownOpCodeEvent(
 }
 
 DualModeController::DualModeController(ControllerProperties properties)
-    : id_(next_instance_id()), properties_(std::move(properties)),
-      random_generator_(id_) {
+    : properties_(std::move(properties)), random_generator_(id_) {
   Address public_address{};
   ASSERT(Address::FromString("3C:5A:B4:04:05:06", public_address));
   SetAddress(public_address);

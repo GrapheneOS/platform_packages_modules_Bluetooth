@@ -1976,7 +1976,7 @@ void LinkLayerController::SetExtendedInquiryResponse(
 
 LinkLayerController::LinkLayerController(const Address& address,
                                          const ControllerProperties& properties,
-                                         int id)
+                                         uint32_t id)
     : id_(id),
       address_(address),
       properties_(properties),
