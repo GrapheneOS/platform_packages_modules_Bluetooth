@@ -345,8 +345,6 @@ class MockLeAclConnection
 
 namespace bluetooth {
 namespace shim {
-void init_activity_attribution() {}
-
 namespace testing {
 extern os::Handler* mock_handler_;
 
