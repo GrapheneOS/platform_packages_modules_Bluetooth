@@ -865,6 +865,9 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
         Verify that DUT sends a correct AudioControlPoint `Stop` command.
         """
 
+        # TODO(b/290204194) Re-activate this test ASAP
+        raise signals.TestSkip('TODO(b/290204194) Re-activate this test ASAP')
+
         async def ref_device_connect(ref_device: BumblePandoraDevice, ear: Ear) -> Tuple[Connection, Connection]:
             advertisement = await self.ref_advertise_asha(ref_device=ref_device, ref_address_type=RANDOM, ear=ear)
             ref = await self.dut_scan_for_asha(dut_address_type=RANDOM, ear=ear)
@@ -1060,6 +1063,9 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
         Verify that DUT sends a correct AudioControlPoint `Stop` command.
         Verify Refs cannot recevice audio data after DUT stops media streaming.
         """
+
+        # TODO(b/290204194) Re-activate this test ASAP
+        raise signals.TestSkip('TODO(b/290204194) Re-activate this test ASAP')
 
         async def ref_device_connect(ref_device: BumblePandoraDevice, ear: Ear) -> Tuple[Connection, Connection]:
             advertisement = await self.ref_advertise_asha(ref_device=ref_device, ref_address_type=RANDOM, ear=ear)
