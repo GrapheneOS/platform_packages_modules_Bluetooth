@@ -100,9 +100,13 @@ static void l2c_csm_indicate_connection_open(tL2C_CCB* p_ccb) {
   if (p_ccb->connection_initiator == L2CAP_INITIATOR_LOCAL) {
     (*p_ccb->p_rcb->api.pL2CA_ConnectCfm_Cb)(p_ccb->local_cid, L2CAP_CONN_OK);
   } else {
-    (*p_ccb->p_rcb->api.pL2CA_ConnectInd_Cb)(
-        p_ccb->p_lcb->remote_bd_addr, p_ccb->local_cid, p_ccb->p_rcb->psm,
-        p_ccb->remote_id);
+    if (*p_ccb->p_rcb->api.pL2CA_ConnectInd_Cb) {
+      (*p_ccb->p_rcb->api.pL2CA_ConnectInd_Cb)(
+          p_ccb->p_lcb->remote_bd_addr, p_ccb->local_cid, p_ccb->p_rcb->psm,
+          p_ccb->remote_id);
+    } else {
+      LOG_WARN("pL2CA_ConnectInd_Cb is null");
+    }
   }
   if (p_ccb->chnl_state == CST_OPEN && !p_ccb->p_lcb->is_transport_ble()) {
     (*p_ccb->p_rcb->api.pL2CA_ConfigCfm_Cb)(
