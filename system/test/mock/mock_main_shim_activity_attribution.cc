@@ -36,6 +36,3 @@ bluetooth::shim::get_activity_attribution_instance() {
   inc_func_call_count(__func__);
   return nullptr;
 }
-void bluetooth::shim::init_activity_attribution() {
-  inc_func_call_count(__func__);
-}

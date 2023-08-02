@@ -21,25 +21,14 @@
  */
 package com.android.bluetooth.btservice.activityattribution;
 
-import android.util.Log;
-
 import com.android.internal.annotations.GuardedBy;
-
-import java.util.Arrays;
 
 /** ActivityAttribution Native Interface to/from JNI. */
 public class ActivityAttributionNativeInterface {
-    private static final boolean DBG = false;
-    private static final String TAG = "ActivityAttributionNativeInterface";
-
     @GuardedBy("INSTANCE_LOCK")
     private static ActivityAttributionNativeInterface sInstance;
 
     private static final Object INSTANCE_LOCK = new Object();
-
-    static {
-        classInitNative();
-    }
 
     /** Get singleton instance. */
     public static ActivityAttributionNativeInterface getInstance() {
@@ -51,40 +40,11 @@ public class ActivityAttributionNativeInterface {
         }
     }
 
-    /** Initializes the native interface. */
-    public void init() {
-        initNative();
-    }
-
-    /** Cleanup the native interface. */
-    public void cleanup() {
-        cleanupNative();
-    }
-
     /** Notify the UID and package name of the app, and the address of associated active device */
     public void notifyActivityAttributionInfo(int uid, String packageName, String deviceAddress) {
         notifyActivityAttributionInfoNative(uid, packageName, deviceAddress);
     }
 
-    // Callbacks from the native stack back into the Java framework.
-    // All callbacks are routed via the Service which will disambiguate which
-    // state machine the message should be routed to.
-
-    private void onWakeup(int activity, byte[] address) {
-        Log.i(TAG, "onWakeup() BTAA: " + activity);
-    }
-
-    private void onActivityLogsReady(byte[] logs) {
-        Log.i(TAG, "onActivityLogsReady() BTAA: " + Arrays.toString(logs));
-    }
-
-    // Native methods that call into the JNI interface
-    private static native void classInitNative();
-
-    private native void initNative();
-
-    private native void cleanupNative();
-
     private native void notifyActivityAttributionInfoNative(
-        int uid, String packageName, String deviceAddress);
+            int uid, String packageName, String deviceAddress);
 }

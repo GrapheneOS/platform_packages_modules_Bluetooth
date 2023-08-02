@@ -158,10 +158,6 @@ struct ActivityAttribution::impl {
     attribution_processor_.OnWakeup();
   }
 
-  void register_callback(ActivityAttributionCallback* callback) {
-    callback_ = callback;
-  }
-
   void notify_activity_attribution_info(int uid, const std::string& package_name, const std::string& device_address) {
     attribution_processor_.NotifyActivityAttributionInfo(uid, package_name, device_address);
   }
@@ -171,7 +167,6 @@ struct ActivityAttribution::impl {
     attribution_processor_.Dump(std::move(promise), fb_builder);
   }
 
-  ActivityAttributionCallback* callback_;
   AttributionProcessor attribution_processor_;
   HciProcessor hci_processor_;
   WakelockProcessor wakelock_processor_;
@@ -211,10 +206,6 @@ void ActivityAttribution::OnWakelockReleased() {
 
 void ActivityAttribution::OnWakeup() {
   CallOn(pimpl_.get(), &impl::on_wakeup);
-}
-
-void ActivityAttribution::RegisterActivityAttributionCallback(ActivityAttributionCallback* callback) {
-  CallOn(pimpl_.get(), &impl::register_callback, callback);
 }
 
 void ActivityAttribution::NotifyActivityAttributionInfo(
