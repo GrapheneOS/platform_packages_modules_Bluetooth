@@ -1083,8 +1083,8 @@ static bool bta_dm_read_remote_device_name(const RawAddress& bd_addr,
   bta_dm_search_cb.peer_bdaddr = bd_addr;
   bta_dm_search_cb.peer_name[0] = 0;
 
-  btm_status = BTM_ReadRemoteDeviceName(bta_dm_search_cb.peer_bdaddr,
-                                        bta_dm_remname_cback, transport);
+  btm_status = get_btm_client_interface().peer.BTM_ReadRemoteDeviceName(
+      bta_dm_search_cb.peer_bdaddr, bta_dm_remname_cback, transport);
 
   if (btm_status == BTM_CMD_STARTED) {
     APPL_TRACE_DEBUG("%s: BTM_ReadRemoteDeviceName is started", __func__);
@@ -1097,7 +1097,8 @@ static bool bta_dm_read_remote_device_name(const RawAddress& bd_addr,
      * "bta_dm_remname_cback" */
     /* adding callback to get notified that current reading remote name done */
 
-    BTM_SecAddRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
+    get_btm_client_interface().security.BTM_SecAddRmtNameNotifyCallback(
+        &bta_dm_service_search_remname_cback);
 
     return (true);
   } else {
@@ -1423,7 +1424,8 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
       /* callbacks */
       /* start next bd_addr if necessary */
 
-      BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
+      get_btm_client_interface().security.BTM_SecDeleteRmtNameNotifyCallback(
+          &bta_dm_service_search_remname_cback);
 
       BTM_LogHistory(
           kBtmLogTag, bta_dm_search_cb.peer_bdaddr, "Discovery completed",
@@ -1493,7 +1495,8 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
     if (bta_dm_search_cb.p_sdp_db)
       osi_free_and_reset((void**)&bta_dm_search_cb.p_sdp_db);
 
-    BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
+    get_btm_client_interface().security.BTM_SecDeleteRmtNameNotifyCallback(
+        &bta_dm_service_search_remname_cback);
 
     p_msg = (tBTA_DM_MSG*)osi_calloc(sizeof(tBTA_DM_MSG));
     p_msg->hdr.event = BTA_DM_DISCOVERY_RESULT_EVT;
@@ -2056,8 +2059,8 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
          if connection exists, we don't have to wait for ACL
          link to go down to start search on next device */
       if (transport == BT_TRANSPORT_BR_EDR) {
-        if (BTM_IsAclConnectionUp(bta_dm_search_cb.peer_bdaddr,
-                                  BT_TRANSPORT_BR_EDR))
+        if (get_btm_client_interface().peer.BTM_IsAclConnectionUp(
+                bta_dm_search_cb.peer_bdaddr, BT_TRANSPORT_BR_EDR))
           bta_dm_search_cb.wait_disc = false;
         else
           bta_dm_search_cb.wait_disc = true;
@@ -2272,13 +2275,15 @@ static void bta_dm_remname_cback(const tBTM_REMOTE_DEV_NAME* p_remote_name) {
       p_remote_name->remote_bd_name[0], p_remote_name->length);
 
   if (bta_dm_search_cb.peer_bdaddr == p_remote_name->bd_addr) {
-    BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
+    get_btm_client_interface().security.BTM_SecDeleteRmtNameNotifyCallback(
+        &bta_dm_service_search_remname_cback);
   } else {
     // if we got a different response, maybe ignore it
     // we will have made a request directly from BTM_ReadRemoteDeviceName so we
     // expect a dedicated response for us
     if (p_remote_name->hci_status == HCI_ERR_CONNECTION_EXISTS) {
-      BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
+      get_btm_client_interface().security.BTM_SecDeleteRmtNameNotifyCallback(
+          &bta_dm_service_search_remname_cback);
       LOG_INFO(
           "Assume command failed due to disconnection hci_status:%s peer:%s",
           hci_error_code_text(p_remote_name->hci_status).c_str(),
@@ -3182,7 +3187,8 @@ static const char* bta_dm_get_remname(void) {
 
   /* If the name isn't already stored, try retrieving from BTM */
   if (*p_name == '\0') {
-    const char* p_temp = BTM_SecReadDevName(bta_dm_search_cb.peer_bdaddr);
+    const char* p_temp = get_btm_client_interface().security.BTM_SecReadDevName(
+        bta_dm_search_cb.peer_bdaddr);
     if (p_temp != NULL) p_name = (const char*)p_temp;
   }
 
