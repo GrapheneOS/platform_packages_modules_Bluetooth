@@ -585,16 +585,6 @@ struct bta_dm_pin_reply {
 };
 extern struct bta_dm_pin_reply bta_dm_pin_reply;
 
-// Name: bta_dm_proc_open_evt
-// Params: tBTA_GATTC_OPEN* p_data
-// Return: void
-struct bta_dm_proc_open_evt {
-  std::function<void(tBTA_GATTC_OPEN* p_data)> body{
-      [](tBTA_GATTC_OPEN* p_data) {}};
-  void operator()(tBTA_GATTC_OPEN* p_data) { body(p_data); };
-};
-extern struct bta_dm_proc_open_evt bta_dm_proc_open_evt;
-
 // Name: bta_dm_process_remove_device
 // Params: const RawAddress& bd_addr
 // Return: void
