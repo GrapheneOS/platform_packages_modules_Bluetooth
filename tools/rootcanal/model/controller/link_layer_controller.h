@@ -480,7 +480,8 @@ class LinkLayerController {
       bluetooth::hci::OwnAddressType own_address_type,
       bluetooth::hci::LeScanningFilterPolicy scanning_filter_policy,
       uint8_t scanning_phys,
-      std::vector<bluetooth::hci::PhyScanParameters> scanning_phy_parameters);
+      std::vector<bluetooth::hci::ScanningPhyParameters>
+          scanning_phy_parameters);
 
   // HCI command LE_Set_Extended_Scan_Enable (Vol 4, Part E § 7.8.65).
   ErrorCode LeSetExtendedScanEnable(
@@ -509,7 +510,7 @@ class LinkLayerController {
       bluetooth::hci::InitiatorFilterPolicy initiator_filter_policy,
       bluetooth::hci::OwnAddressType own_address_type,
       AddressWithType peer_address, uint8_t initiating_phys,
-      std::vector<bluetooth::hci::LeCreateConnPhyScanParameters>
+      std::vector<bluetooth::hci::InitiatingPhyParameters>
           initiating_phy_parameters);
 
   // Periodic Advertising
