@@ -4475,7 +4475,7 @@ void btm_dm_start_gatt_discovery(const RawAddress& bd_addr) {
  * Parameters:
  *
  ******************************************************************************/
-void bta_dm_proc_open_evt(tBTA_GATTC_OPEN* p_data) {
+static void bta_dm_proc_open_evt(tBTA_GATTC_OPEN* p_data) {
   VLOG(1) << "DM Search state= " << bta_dm_search_get_state()
           << " search_cb.peer_dbaddr:" << bta_dm_search_cb.peer_bdaddr
           << " connected_bda=" << p_data->remote_bda.address;
