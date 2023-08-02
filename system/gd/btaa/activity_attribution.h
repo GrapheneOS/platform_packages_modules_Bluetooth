@@ -36,17 +36,6 @@ struct BtaaAggregationEntry {
   CreationTime creation_time;
 };
 
-class ActivityAttributionCallback {
- public:
-  virtual ~ActivityAttributionCallback() = default;
-
-  // Callback when Bluetooth woke up the system
-  virtual void OnWakeup(const Activity activity, const hci::Address& address) = 0;
-
-  // Callback when Bluetooth activity logs are ready to be moved
-  virtual void OnActivityLogsReady(const std::vector<BtaaAggregationEntry> logs) = 0;
-};
-
 class ActivityAttribution : public bluetooth::Module {
  public:
   ActivityAttribution() = default;
@@ -59,7 +48,6 @@ class ActivityAttribution : public bluetooth::Module {
   void OnWakelockAcquired();
   void OnWakelockReleased();
   void OnWakeup();
-  void RegisterActivityAttributionCallback(ActivityAttributionCallback* callback);
   void NotifyActivityAttributionInfo(int uid, const std::string& package_name, const std::string& device_address);
 
   static const ModuleFactory Factory;
