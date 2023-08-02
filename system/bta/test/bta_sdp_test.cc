@@ -30,6 +30,10 @@
 void BTA_dm_on_hw_on();
 void BTA_dm_on_hw_off();
 
+namespace {
+const char kName[] = "Hello";
+}
+
 class BtaSdpTest : public testing::Test {
  protected:
   void SetUp() override {
@@ -100,5 +104,9 @@ TEST_F(BtaSdpRegisteredTest, bta_dm_sdp_result_SDP_SUCCESS) {
               .sdp_result = SDP_SUCCESS,
           },
   };
+  btm_client_interface.security.BTM_SecReadDevName =
+      [](const RawAddress& bd_addr) -> const char* { return kName; };
+  btm_client_interface.security.BTM_SecDeleteRmtNameNotifyCallback =
+      [](tBTM_RMT_NAME_CALLBACK*) -> bool { return true; };
   bta_dm_sdp_result(&msg);
 }
