@@ -3284,6 +3284,7 @@ void LinkLayerController::ConnectIncomingLeLegacyAdvertisingPdu(
   }
 
   initiator_.pending_connect_request = advertising_address;
+  initiator_.initiating_address = initiating_address.GetAddress();
 
   INFO(id_, "Sending LE Connect request to {} with initiating address {}",
        resolved_advertising_address, initiating_address);
@@ -3710,6 +3711,7 @@ void LinkLayerController::ConnectIncomingLeExtendedAdvertisingPdu(
   }
 
   initiator_.pending_connect_request = advertising_address;
+  initiator_.initiating_address = initiating_address.GetAddress();
 
   INFO(id_, "Sending LE Connect request to {} with initiating address {}",
        resolved_advertising_address, initiating_address);
