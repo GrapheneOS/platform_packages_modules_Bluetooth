@@ -109,7 +109,7 @@ endfunction()
 
 pdl_gen(
   NAME BluetoothGeneratedPackets_h
-  INPUT ${ROOTCANAL_ROOT}/packets/hci/hci_packets.pdl
+  INPUT ${ROOTCANAL_ROOT}/packets/hci_packets.pdl
   OUTPUT packets/hci_packets.h
   LANG c++
   NAMESPACE "bluetooth::hci"
