@@ -581,6 +581,8 @@ class AvrcpControllerStateMachine extends StateMachine {
                     mAddressedPlayer.updateCurrentTrack(track);
                     if (isActive()) {
                         BluetoothMediaBrowserService.trackChanged(track);
+                        BluetoothMediaBrowserService.notifyChanged(
+                                mAddressedPlayer.getPlaybackState());
                     }
                     if (previousTrack != null) {
                         removeUnusedArtwork(previousTrack.getCoverArtUuid());
