@@ -405,7 +405,7 @@ public class AvrcpControllerStateMachineTest {
                 BluetoothMediaBrowserService.getTransportControls();
         Assert.assertNotNull(transportControls);
         Assert.assertEquals(PlaybackStateCompat.STATE_NONE,
-                BluetoothMediaBrowserService.getPlaybackState());
+                BluetoothMediaBrowserService.getPlaybackState().getState());
         mAvrcpStateMachine.disconnect();
         numBroadcastsSent += 2;
         verify(mAvrcpControllerService,
@@ -434,7 +434,7 @@ public class AvrcpControllerStateMachineTest {
         int numBroadcastsSent = setUpConnectedState(false, true);
         Assert.assertEquals(1, mAvrcpControllerService.sBrowseTree.mRootNode.getChildrenCount());
         Assert.assertEquals(PlaybackStateCompat.STATE_NONE,
-                BluetoothMediaBrowserService.getPlaybackState());
+                BluetoothMediaBrowserService.getPlaybackState().getState());
         mAvrcpStateMachine.disconnect();
         numBroadcastsSent += 2;
         verify(mAvrcpControllerService,
@@ -1268,6 +1268,69 @@ public class AvrcpControllerStateMachineTest {
         Assert.assertFalse(mAvrcpStateMachine.isActive());
     }
 
+    @Test
+    public void testTrackChangedWhileActive_currentTrackAndQueueNumberUpdated() {
+        setUpConnectedState(true, true);
+
+        // Set track
+        AvrcpItem track = makeTrack("Song 1", "artist", "album", 1, 2, "none", 10, null);
+        setCurrentTrack(track);
+
+        // Set current Now Playing list
+        List<AvrcpItem> nowPlayingList = new ArrayList<AvrcpItem>();
+        nowPlayingList.add(makeNowPlayingItem(1, "Song 1"));
+        nowPlayingList.add(makeNowPlayingItem(2, "Song 2"));
+        setNowPlayingList(nowPlayingList);
+
+        // Set playing
+        setPlaybackState(PlaybackStateCompat.STATE_PLAYING);
+
+        // Wait
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+
+        // Verify track and playback state
+        MediaSessionCompat session = BluetoothMediaBrowserService.getSession();
+        Assert.assertNotNull(session);
+        MediaControllerCompat controller = session.getController();
+        Assert.assertNotNull(controller);
+
+        MediaMetadataCompat metadata = controller.getMetadata();
+        Assert.assertNotNull(metadata);
+        Assert.assertEquals("Song 1", metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE));
+        Assert.assertEquals("artist", metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST));
+        Assert.assertEquals("album", metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM));
+        Assert.assertEquals(1, metadata.getLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER));
+        Assert.assertEquals(2, metadata.getLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS));
+        Assert.assertEquals("none", metadata.getString(MediaMetadataCompat.METADATA_KEY_GENRE));
+        Assert.assertEquals(10, metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION));
+
+        PlaybackStateCompat playbackState = controller.getPlaybackState();
+        Assert.assertNotNull(playbackState);
+        Assert.assertEquals(PlaybackStateCompat.STATE_PLAYING, playbackState.getState());
+        Assert.assertEquals(0, playbackState.getActiveQueueItemId());
+
+        // Track changes, with new metadata and new track number
+        track = makeTrack("Song 2", "artist", "album", 2, 2, "none", 10, null);
+        setCurrentTrack(track);
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+
+        // Assert new track metadata and active queue item
+        metadata = controller.getMetadata();
+        Assert.assertNotNull(metadata);
+        Assert.assertEquals("Song 2", metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE));
+        Assert.assertEquals("artist", metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST));
+        Assert.assertEquals("album", metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM));
+        Assert.assertEquals(2, metadata.getLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER));
+        Assert.assertEquals(2, metadata.getLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS));
+        Assert.assertEquals("none", metadata.getString(MediaMetadataCompat.METADATA_KEY_GENRE));
+        Assert.assertEquals(10, metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION));
+
+        playbackState = controller.getPlaybackState();
+        Assert.assertNotNull(playbackState);
+        Assert.assertEquals(PlaybackStateCompat.STATE_PLAYING, playbackState.getState());
+        Assert.assertEquals(1, playbackState.getActiveQueueItemId());
+    }
+
     /**
      * Test receiving a track change update when we're not the active device
      */
@@ -1318,7 +1381,7 @@ public class AvrcpControllerStateMachineTest {
                 eq(mTestAddress), eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_DOWN));
         verify(mA2dpSinkService, never()).requestAudioFocus(mTestDevice, true);
         Assert.assertEquals(PlaybackStateCompat.STATE_ERROR,
-                BluetoothMediaBrowserService.getPlaybackState());
+                BluetoothMediaBrowserService.getPlaybackState().getState());
     }
 
     /**
