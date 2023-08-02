@@ -2061,10 +2061,10 @@ void DualModeController::LeCreateConnection(CommandView command) {
           command_view.GetPeerAddress(),
           command_view.GetPeerAddressType(),
       },
-      command_view.GetOwnAddressType(), command_view.GetConnIntervalMin(),
-      command_view.GetConnIntervalMax(), command_view.GetConnLatency(),
-      command_view.GetSupervisionTimeout(), command_view.GetMinimumCeLength(),
-      command_view.GetMaximumCeLength());
+      command_view.GetOwnAddressType(), command_view.GetConnectionIntervalMin(),
+      command_view.GetConnectionIntervalMax(), command_view.GetMaxLatency(),
+      command_view.GetSupervisionTimeout(), command_view.GetMinCeLength(),
+      command_view.GetMaxCeLength());
   send_event_(bluetooth::hci::LeCreateConnectionStatusBuilder::Create(
       status, kNumCommandPackets));
 }
@@ -2089,8 +2089,9 @@ void DualModeController::LeConnectionUpdate(CommandView command) {
   DEBUG(id_, "   connection_handle=0x{:x}", command_view.GetConnectionHandle());
 
   ErrorCode status = link_layer_controller_.LeConnectionUpdate(
-      command_view.GetConnectionHandle(), command_view.GetConnIntervalMin(),
-      command_view.GetConnIntervalMax(), command_view.GetConnLatency(),
+      command_view.GetConnectionHandle(),
+      command_view.GetConnectionIntervalMin(),
+      command_view.GetConnectionIntervalMax(), command_view.GetMaxLatency(),
       command_view.GetSupervisionTimeout());
 
   send_event_(bluetooth::hci::LeConnectionUpdateStatusBuilder::Create(
@@ -2608,7 +2609,7 @@ void DualModeController::LeSetExtendedScanParameters(CommandView command) {
 
   ErrorCode status = link_layer_controller_.LeSetExtendedScanParameters(
       command_view.GetOwnAddressType(), command_view.GetScanningFilterPolicy(),
-      command_view.GetScanningPhys(), command_view.GetParameters());
+      command_view.GetScanningPhys(), command_view.GetScanningPhyParameters());
   send_event_(
       bluetooth::hci::LeSetExtendedScanParametersCompleteBuilder::Create(
           kNumCommandPackets, status));
@@ -2639,18 +2640,30 @@ void DualModeController::LeExtendedCreateConnection(CommandView command) {
   DEBUG(id_, "<< LE Extended Create Connection");
   DEBUG(id_, "   peer_address={}", command_view.GetPeerAddress());
   DEBUG(id_, "   peer_address_type={}",
-        bluetooth::hci::AddressTypeText(command_view.GetPeerAddressType()));
+        bluetooth::hci::PeerAddressTypeText(command_view.GetPeerAddressType()));
   DEBUG(id_, "   initiator_filter_policy={}",
         bluetooth::hci::InitiatorFilterPolicyText(
             command_view.GetInitiatorFilterPolicy()));
+
+  AddressType peer_address_type;
+  switch (command_view.GetPeerAddressType()) {
+    case PeerAddressType::PUBLIC_DEVICE_OR_IDENTITY_ADDRESS:
+    default:
+      peer_address_type = AddressType::PUBLIC_DEVICE_ADDRESS;
+      break;
+    case PeerAddressType::RANDOM_DEVICE_OR_IDENTITY_ADDRESS:
+      peer_address_type = AddressType::RANDOM_DEVICE_ADDRESS;
+      break;
+  }
 
   ErrorCode status = link_layer_controller_.LeExtendedCreateConnection(
       command_view.GetInitiatorFilterPolicy(), command_view.GetOwnAddressType(),
       AddressWithType{
           command_view.GetPeerAddress(),
-          command_view.GetPeerAddressType(),
+          peer_address_type,
       },
-      command_view.GetInitiatingPhys(), command_view.GetPhyScanParameters());
+      command_view.GetInitiatingPhys(),
+      command_view.GetInitiatingPhyParameters());
   send_event_(bluetooth::hci::LeExtendedCreateConnectionStatusBuilder::Create(
       status, kNumCommandPackets));
 }
