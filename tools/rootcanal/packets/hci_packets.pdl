@@ -3279,12 +3279,12 @@ packet LeCreateConnection : Command (op_code = LE_CREATE_CONNECTION) {
   peer_address_type : AddressType,
   peer_address : Address,
   own_address_type : OwnAddressType,
-  conn_interval_min : 16, // 0x0006-0x0C80 (7.5ms to 4s)
-  conn_interval_max : 16, // 0x0006-0x0C80 (7.5ms to 4s)
-  conn_latency : 16, // 0x0006-0x01F3
+  connection_interval_min : 16, // 0x0006-0x0C80 (7.5ms to 4s)
+  connection_interval_max : 16, // 0x0006-0x0C80 (7.5ms to 4s)
+  max_latency : 16, // 0x0006-0x01F3
   supervision_timeout : 16, // 0x00A to 0x0C80 (100ms to 32s)
-  minimum_ce_length : 16, // 0.625ms
-  maximum_ce_length : 16, // 0.625ms
+  min_ce_length : 16, // 0.625ms
+  max_ce_length : 16, // 0.625ms
 }
 
 packet LeCreateConnectionStatus : CommandStatus (command_op_code = LE_CREATE_CONNECTION) {
@@ -3347,12 +3347,12 @@ packet LeRemoveDeviceFromFilterAcceptListComplete : CommandComplete (command_op_
 packet LeConnectionUpdate : Command (op_code = LE_CONNECTION_UPDATE) {
   connection_handle : 12,
   _reserved_ : 4,
-  conn_interval_min : 16, // 0x0006-0x0C80 (7.5ms to 4s)
-  conn_interval_max : 16, // 0x0006-0x0C80 (7.5ms to 4s)
-  conn_latency : 16, // 0x0006-0x01F3
+  connection_interval_min : 16, // 0x0006-0x0C80 (7.5ms to 4s)
+  connection_interval_max : 16, // 0x0006-0x0C80 (7.5ms to 4s)
+  max_latency : 16, // 0x0006-0x01F3
   supervision_timeout : 16, // 0x00A to 0x0C80 (100ms to 32s)
-  minimum_ce_length : 16, // 0.625ms
-  maximum_ce_length : 16, // 0.625ms
+  min_ce_length : 16, // 0.625ms
+  max_ce_length : 16, // 0.625ms
 }
 
 packet LeConnectionUpdateStatus : CommandStatus (command_op_code = LE_CONNECTION_UPDATE) {
@@ -3988,7 +3988,7 @@ packet LeSetPeriodicAdvertisingEnableComplete : CommandComplete (command_op_code
   status : ErrorCode,
 }
 
-struct PhyScanParameters {
+struct ScanningPhyParameters {
   le_scan_type : LeScanType,
   le_scan_interval : 16, // 0x0004-0xFFFF Default 0x10 (10ms)
   le_scan_window : 16, // 0x004-0xFFFF Default 0x10 (10ms)
@@ -3998,7 +3998,7 @@ packet LeSetExtendedScanParameters : Command (op_code = LE_SET_EXTENDED_SCAN_PAR
   own_address_type : OwnAddressType,
   scanning_filter_policy : LeScanningFilterPolicy,
   scanning_phys : 8,
-  parameters : PhyScanParameters[],
+  scanning_phy_parameters : ScanningPhyParameters[],
 }
 
 test LeSetExtendedScanParameters {
@@ -4040,12 +4040,12 @@ test LeSetExtendedScanEnableComplete {
   "\x0e\x04\x01\x42\x20\x00",
 }
 
-struct LeCreateConnPhyScanParameters {
+struct InitiatingPhyParameters {
   scan_interval : 16, // 0x0004-0xFFFF
   scan_window : 16, // < = LeScanInterval
-  conn_interval_min : 16, // 0x0006-0x0C80 (7.5ms to 4s)
-  conn_interval_max : 16, // 0x0006-0x0C80 (7.5ms to 4s)
-  conn_latency : 16, // 0x0006-0x01F3
+  connection_interval_min : 16, // 0x0006-0x0C80 (7.5ms to 4s)
+  connection_interval_max : 16, // 0x0006-0x0C80 (7.5ms to 4s)
+  max_latency : 16, // 0x0006-0x01F3
   supervision_timeout : 16, // 0x00A to 0x0C80 (100ms to 32s)
   min_ce_length : 16, // 0.625ms
   max_ce_length : 16, // 0.625ms
@@ -4054,10 +4054,10 @@ struct LeCreateConnPhyScanParameters {
 packet LeExtendedCreateConnection : Command (op_code = LE_EXTENDED_CREATE_CONNECTION) {
   initiator_filter_policy : InitiatorFilterPolicy,
   own_address_type : OwnAddressType,
-  peer_address_type : AddressType,
+  peer_address_type : PeerAddressType,
   peer_address : Address,
   initiating_phys : 8,
-  phy_scan_parameters : LeCreateConnPhyScanParameters[],
+  initiating_phy_parameters : InitiatingPhyParameters[],
 }
 
 test LeExtendedCreateConnection {
@@ -5625,8 +5625,8 @@ packet LeConnectionComplete : LeMetaEvent (subevent_code = CONNECTION_COMPLETE) 
   role : Role,
   peer_address_type : AddressType,
   peer_address : Address,
-  conn_interval : 16, // 0x006 - 0x0C80 (7.5ms - 4000ms)
-  conn_latency : 16,  // Number of connection events
+  connection_interval : 16, // 0x006 - 0x0C80 (7.5ms - 4000ms)
+  peripheral_latency : 16,
   supervision_timeout : 16,  // 0x000A to 0x0C80 (100ms to 32s)
   central_clock_accuracy : ClockAccuracy,
 }
@@ -5657,8 +5657,8 @@ packet LeConnectionUpdateComplete : LeMetaEvent (subevent_code = CONNECTION_UPDA
   status : ErrorCode,
   connection_handle : 12,
   _reserved_ : 4,
-  conn_interval : 16, // 0x006 - 0x0C80 (7.5ms - 4000ms)
-  conn_latency : 16,  // Number of connection events
+  connection_interval : 16, // 0x006 - 0x0C80 (7.5ms - 4000ms)
+  peripheral_latency : 16,  // Number of connection events
   supervision_timeout : 16,  // 0x000A to 0x0C80 (100ms to 32s)
 }
 
@@ -5713,8 +5713,8 @@ packet LeEnhancedConnectionComplete : LeMetaEvent (subevent_code = ENHANCED_CONN
   peer_address : Address,
   local_resolvable_private_address : Address,
   peer_resolvable_private_address : Address,
-  conn_interval : 16, // 0x006 - 0x0C80 (7.5ms - 4000ms)
-  conn_latency : 16,  // Number of connection events
+  connection_interval : 16, // 0x006 - 0x0C80 (7.5ms - 4000ms)
+  peripheral_latency : 16,
   supervision_timeout : 16,  // 0x000A to 0x0C80 (100ms to 32s)
   central_clock_accuracy : ClockAccuracy,
 }

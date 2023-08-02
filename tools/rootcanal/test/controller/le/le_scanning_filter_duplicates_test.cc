@@ -71,7 +71,7 @@ class LeScanningFilterDuplicates : public ::testing::Test {
 
   void StartExtendedScan(FilterDuplicates filter_duplicates,
                          uint16_t duration = 0, uint16_t period = 0) {
-    bluetooth::hci::PhyScanParameters param;
+    bluetooth::hci::ScanningPhyParameters param;
     param.le_scan_type_ = LeScanType::ACTIVE;
     param.le_scan_interval_ = 0x4;
     param.le_scan_window_ = 0x4;
