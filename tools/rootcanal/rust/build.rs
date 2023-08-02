@@ -31,7 +31,7 @@ fn main() {
     install_generated_module(
         "hci_packets.rs",
         "HCI_PACKETS_PREBUILT",
-        &PathBuf::from("../packets/hci/hci_packets.pdl").canonicalize().unwrap(),
+        &PathBuf::from("../packets/hci_packets.pdl").canonicalize().unwrap(),
     );
 }
 
