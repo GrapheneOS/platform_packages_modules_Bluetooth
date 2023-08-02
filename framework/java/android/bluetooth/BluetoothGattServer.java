@@ -668,7 +668,7 @@ public final class BluetoothGattServer implements BluetoothProfile {
 
     /**
      * Set the preferred connection PHY for this app. Please note that this is just a
-     * recommendation, whether the PHY change will happen depends on other applications peferences,
+     * recommendation, whether the PHY change will happen depends on other applications preferences,
      * local and remote controller capabilities. Controller can override these settings. <p> {@link
      * BluetoothGattServerCallback#onPhyUpdate} will be triggered as a result of this call, even if
      * no PHY change happens. It is also triggered when remote device updates the PHY.
@@ -856,7 +856,7 @@ public final class BluetoothGattServer implements BluetoothProfile {
     /**
      * Add a service to the list of services to be hosted.
      *
-     * <p>Once a service has been addded to the list, the service and its
+     * <p>Once a service has been added to the list, the service and its
      * included characteristics will be provided by the local device.
      *
      * <p>If the local device has already exposed services when this function
@@ -943,7 +943,7 @@ public final class BluetoothGattServer implements BluetoothProfile {
     /**
      * Returns a list of GATT services offered by this device.
      *
-     * <p>An application must call {@link #addService} to add a serice to the
+     * <p>An application must call {@link #addService} to add a service to the
      * list of services offered by this device.
      *
      * @return List of services. Returns an empty list if no services have been added yet.
