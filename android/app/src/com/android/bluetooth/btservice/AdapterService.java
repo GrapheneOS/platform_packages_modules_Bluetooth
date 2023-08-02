@@ -718,7 +718,6 @@ public class AdapterService extends Service {
         mBluetoothSocketManagerBinder = new BluetoothSocketManagerBinder(this);
 
         mActivityAttributionService = new ActivityAttributionService();
-        mActivityAttributionService.start();
 
         setAdapterService(this);
 
@@ -1360,10 +1359,6 @@ public class AdapterService extends Service {
         if (mSdpManager != null) {
             mSdpManager.cleanup();
             mSdpManager = null;
-        }
-
-        if (mActivityAttributionService != null) {
-            mActivityAttributionService.cleanup();
         }
 
         if (mNativeAvailable) {
