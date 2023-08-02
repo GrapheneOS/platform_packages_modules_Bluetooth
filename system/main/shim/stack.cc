@@ -148,9 +148,6 @@ void Stack::StartEverything() {
       !common::init_flags::gd_core_is_enabled()) {
     L2CA_UseLegacySecurityModule();
   }
-  if (common::init_flags::btaa_hci_is_enabled()) {
-    bluetooth::shim::init_activity_attribution();
-  }
 }
 
 void Stack::Start(ModuleList* modules) {

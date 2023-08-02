@@ -16,105 +16,31 @@
 
 package com.android.bluetooth.btservice.activityattribution;
 
-import android.util.Log;
+import static java.util.Objects.requireNonNull;
 
-import java.util.Objects;
+import android.util.Log;
 
 /**
  * Service used for attributes wakeup, wakelock and Bluetooth traffic into per-app and per-device
  * based activities.
  */
 public class ActivityAttributionService {
-    private boolean mCleaningUp;
-    private static ActivityAttributionService sActivityAttributionService;
-    private static final boolean DBG = false;
-    private static final String TAG = "ActivityAttributionService";
+    private static final String TAG = ActivityAttributionService.class.getSimpleName();
 
     private final ActivityAttributionNativeInterface mActivityAttributionNativeInterface =
-            Objects.requireNonNull(
+            requireNonNull(
                     ActivityAttributionNativeInterface.getInstance(),
-                    "ActivityAttributionNativeInterface "
-                            + "cannot be null when ActivityAttributionService starts");
-
-    /** Start and initialize the Activity Attribution service. */
-    public void start() {
-        debugLog("start()");
-
-        if (sActivityAttributionService != null) {
-            Log.e(TAG, "start() called twice");
-            return;
-        }
-
-        // Mark service as started
-        setActivityAttributionService(this);
-    }
-
-    /** Cleans up the Activity Attribution service. */
-    public void cleanup() {
-        debugLog("cleanup");
-        if (mCleaningUp) {
-            debugLog("already doing cleanup");
-            return;
-        }
-
-        mCleaningUp = true;
-
-        if (sActivityAttributionService == null) {
-            debugLog("cleanup() called before start()");
-            return;
-        }
-
-        // Mark service as stopped
-        setActivityAttributionService(null);
-
-        // Cleanup native interface
-        mActivityAttributionNativeInterface.cleanup();
-    }
-
-    /** Get the ActivityAttributionService instance */
-    public static synchronized ActivityAttributionService getActivityAttributionService() {
-        if (sActivityAttributionService == null) {
-            Log.w(TAG, "getActivityAttributionService(): service is NULL");
-            return null;
-        }
-
-        if (!sActivityAttributionService.isAvailable()) {
-            Log.w(TAG, "getActivityAttributionService(): service is not available");
-            return null;
-        }
-        return sActivityAttributionService;
-    }
-
-    /** Init JNI */
-    public void initJni() {
-        debugLog("initJni()");
-        // Initialize native interface
-        mActivityAttributionNativeInterface.init();
-    }
+                    "ActivityAttributionNativeInterface cannot be null");
 
     /** Notify the UID and package name of the app, and the address of associated active device */
     public void notifyActivityAttributionInfo(int uid, String packageName, String deviceAddress) {
-        Log.d(TAG, "notifyActivityAttributionInfo"
-                + " UID=" + uid
-                + " packageName=" + packageName
-                + " deviceAddress=" + deviceAddress);
+        Log.d(
+                TAG,
+                "notifyActivityAttributionInfo()"
+                        + (" UID=" + uid)
+                        + (" packageName=" + packageName)
+                        + (" deviceAddress=" + deviceAddress));
         mActivityAttributionNativeInterface.notifyActivityAttributionInfo(
                 uid, packageName, deviceAddress);
-    }
-
-    private boolean isAvailable() {
-        return !mCleaningUp;
-    }
-
-    private static synchronized void setActivityAttributionService(
-            ActivityAttributionService instance) {
-        debugLog("setActivityAttributionService(): set to: " + instance);
-        sActivityAttributionService = instance;
-    }
-
-    private static void debugLog(String msg) {
-        if (DBG) {
-            Log.d(TAG, msg);
-        }
     }
 }
