@@ -80,7 +80,6 @@ struct bta_dm_free_sdp_db bta_dm_free_sdp_db;
 struct bta_dm_inq_cmpl bta_dm_inq_cmpl;
 struct bta_dm_is_search_request_queued bta_dm_is_search_request_queued;
 struct bta_dm_pin_reply bta_dm_pin_reply;
-struct bta_dm_proc_open_evt bta_dm_proc_open_evt;
 struct bta_dm_process_remove_device bta_dm_process_remove_device;
 struct bta_dm_queue_disc bta_dm_queue_disc;
 struct bta_dm_queue_search bta_dm_queue_search;
@@ -294,10 +293,6 @@ bool bta_dm_is_search_request_queued() {
 void bta_dm_pin_reply(std::unique_ptr<tBTA_DM_API_PIN_REPLY> msg) {
   inc_func_call_count(__func__);
   test::mock::bta_dm_act::bta_dm_pin_reply(std::move(msg));
-}
-void bta_dm_proc_open_evt(tBTA_GATTC_OPEN* p_data) {
-  inc_func_call_count(__func__);
-  test::mock::bta_dm_act::bta_dm_proc_open_evt(p_data);
 }
 void bta_dm_process_remove_device(const RawAddress& bd_addr) {
   inc_func_call_count(__func__);
