@@ -4,6 +4,7 @@ use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::convert::Into;
 use std::fmt;
+use std::hash::Hash;
 use std::io::Write;
 
 use crate::engine::{Rule, RuleGroup, Signal};
@@ -17,6 +18,20 @@ use bt_packets::hci::{
 type ConnectionHandle = u16;
 
 const INVALID_TS: NaiveDateTime = NaiveDateTime::MAX;
+
+fn print_start_end_timestamps(start: NaiveDateTime, end: NaiveDateTime) -> String {
+    fn print_time(ts: NaiveDateTime) -> String {
+        if ts == INVALID_TS {
+            return "N/A".to_owned();
+        }
+        return format!("{}", ts.time());
+    }
+
+    if start == end && start != INVALID_TS {
+        return format!("{} - Failed", start.time());
+    }
+    return format!("{} to {}", print_time(start), print_time(end));
+}
 
 #[derive(Copy, Clone, Eq, PartialEq, PartialOrd, Ord)]
 enum AddressType {
@@ -110,6 +125,33 @@ impl DeviceInformation {
         }
     }
 
+    fn is_connection_active(&self) -> bool {
+        // not empty and last connection's end time is not set.
+        return !self.acls.is_empty() && self.acls.last().unwrap().end_time == INVALID_TS;
+    }
+
+    fn get_or_allocate_connection(&mut self, handle: &ConnectionHandle) -> &mut AclInformation {
+        if !self.is_connection_active() {
+            let acl = AclInformation::new(*handle);
+            self.acls.push(acl);
+        }
+        return self.acls.last_mut().unwrap();
+    }
+
+    fn report_connection_start(&mut self, handle: ConnectionHandle, ts: NaiveDateTime) {
+        let mut acl = AclInformation::new(handle);
+        let initiator = self.acl_state.into();
+        acl.report_start(initiator, ts);
+        self.acls.push(acl);
+        self.acl_state = AclState::Connected;
+    }
+
+    fn report_connection_end(&mut self, handle: ConnectionHandle, ts: NaiveDateTime) {
+        let acl = self.get_or_allocate_connection(&handle);
+        acl.report_end(ts);
+        self.acl_state = AclState::None;
+    }
+
     fn print_names(names: &HashSet<String>) -> String {
         if names.len() > 1 {
             format!("{:?}", names)
@@ -143,6 +185,7 @@ struct AclInformation {
     end_time: NaiveDateTime,
     handle: ConnectionHandle,
     initiator: InitiatorType,
+    profiles: HashMap<ProfileType, Vec<ProfileInformation>>,
 }
 
 impl AclInformation {
@@ -152,31 +195,128 @@ impl AclInformation {
             end_time: INVALID_TS,
             handle: handle,
             initiator: InitiatorType::Unknown,
+            profiles: HashMap::new(),
         }
+    }
+
+    fn get_or_allocate_profile(&mut self, profile_type: &ProfileType) -> &mut ProfileInformation {
+        if !self.profiles.contains_key(profile_type)
+            || self.profiles.get(profile_type).unwrap().last().unwrap().end_time != INVALID_TS
+        {
+            self.profiles.insert(*profile_type, vec![ProfileInformation::new(*profile_type)]);
+        }
+
+        return self.profiles.get_mut(profile_type).unwrap().last_mut().unwrap();
+    }
+
+    fn report_start(&mut self, initiator: InitiatorType, ts: NaiveDateTime) {
+        self.initiator = initiator;
+        self.start_time = ts;
+    }
+
+    fn report_end(&mut self, ts: NaiveDateTime) {
+        // disconnect the active profiles
+        let profile_types: Vec<ProfileType> = self.profiles.keys().cloned().collect();
+        for profile_type in profile_types {
+            if let Some(profile) = self.profiles.get(&profile_type).unwrap().last() {
+                if profile.end_time != INVALID_TS {
+                    self.report_profile_end(profile_type, ts);
+                }
+            }
+        }
+        self.end_time = ts;
+    }
+
+    fn report_profile_start(
+        &mut self,
+        profile_type: ProfileType,
+        initiator: InitiatorType,
+        ts: NaiveDateTime,
+    ) {
+        let mut profile = ProfileInformation::new(profile_type);
+        profile.report_start(initiator, ts);
+        if !self.profiles.contains_key(&profile_type) {
+            self.profiles.insert(profile_type, vec![]);
+        }
+        self.profiles.get_mut(&profile_type).unwrap().push(profile);
+    }
+
+    fn report_profile_end(&mut self, profile_type: ProfileType, ts: NaiveDateTime) {
+        let profile = self.get_or_allocate_profile(&profile_type);
+        profile.report_end(ts);
     }
 }
 
 impl fmt::Display for AclInformation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fn print_time(ts: NaiveDateTime) -> String {
-            if ts == INVALID_TS {
-                return "N/A".to_owned();
-            }
-            return format!("{}", ts.time());
-        }
-        fn print_timestamps(start: NaiveDateTime, end: NaiveDateTime) -> String {
-            if start == end {
-                return format!("{} - Failed", start.time());
-            }
-            return format!("{} to {}", print_time(start), print_time(end));
-        }
-
-        writeln!(
+        let _ = writeln!(
             f,
             "  Handle: {handle}, {initiator}, {timestamp_info}",
             handle = self.handle,
             initiator = self.initiator,
-            timestamp_info = print_timestamps(self.start_time, self.end_time)
+            timestamp_info = print_start_end_timestamps(self.start_time, self.end_time)
+        );
+
+        for (_profile_type, profiles) in self.profiles.iter() {
+            for profile in profiles {
+                let _ = write!(f, "{}", profile);
+            }
+        }
+
+        Ok(())
+    }
+}
+
+// Currently only HFP is possible to be detected. Other profiles needs us to parse L2CAP packets.
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+enum ProfileType {
+    HFP,
+}
+
+impl fmt::Display for ProfileType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let str = match self {
+            ProfileType::HFP => "HFP",
+        };
+        write!(f, "{}", str)
+    }
+}
+
+struct ProfileInformation {
+    start_time: NaiveDateTime,
+    end_time: NaiveDateTime,
+    profile_type: ProfileType,
+    initiator: InitiatorType,
+}
+
+impl ProfileInformation {
+    pub fn new(profile_type: ProfileType) -> Self {
+        ProfileInformation {
+            start_time: INVALID_TS,
+            end_time: INVALID_TS,
+            profile_type: profile_type,
+            initiator: InitiatorType::Unknown,
+        }
+    }
+
+    fn report_start(&mut self, initiator: InitiatorType, ts: NaiveDateTime) {
+        self.initiator = initiator;
+        self.start_time = ts;
+    }
+
+    fn report_end(&mut self, ts: NaiveDateTime) {
+        self.end_time = ts;
+    }
+}
+
+impl fmt::Display for ProfileInformation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(
+            f,
+            "    {profile}, {initiator}, {timestamp_info}",
+            profile = self.profile_type,
+            initiator = self.initiator,
+            timestamp_info = print_start_end_timestamps(self.start_time, self.end_time)
         )
     }
 }
@@ -185,6 +325,7 @@ impl fmt::Display for AclInformation {
 struct InformationalRule {
     devices: HashMap<Address, DeviceInformation>,
     handles: HashMap<ConnectionHandle, Address>,
+    sco_handles: HashMap<ConnectionHandle, ConnectionHandle>,
     // unknownConnections store connections which is initiated before btsnoop starts.
     unknown_connections: HashMap<ConnectionHandle, AclInformation>,
 }
@@ -194,6 +335,7 @@ impl InformationalRule {
         InformationalRule {
             devices: HashMap::new(),
             handles: HashMap::new(),
+            sco_handles: HashMap::new(),
             unknown_connections: HashMap::new(),
         }
     }
@@ -215,19 +357,30 @@ impl InformationalRule {
         return self.unknown_connections.get_mut(handle).unwrap();
     }
 
+    fn get_or_allocate_connection(&mut self, handle: &ConnectionHandle) -> &mut AclInformation {
+        if !self.handles.contains_key(&handle) {
+            let conn = self.get_or_allocate_unknown_connection(&handle);
+            return conn;
+        }
+
+        let address = &self.handles.get(handle).unwrap().clone();
+        let device = self.get_or_allocate_device(address);
+        return device.get_or_allocate_connection(handle);
+    }
+
     fn report_address_type(&mut self, address: &Address, address_type: AddressType) {
-        let info = self.get_or_allocate_device(address);
-        info.address_type.update(address_type);
+        let device = self.get_or_allocate_device(address);
+        device.address_type.update(address_type);
     }
 
     fn report_name(&mut self, address: &Address, name: &String) {
-        let info = self.get_or_allocate_device(address);
-        info.names.insert(name.into());
+        let device = self.get_or_allocate_device(address);
+        device.names.insert(name.into());
     }
 
     fn report_acl_state(&mut self, address: &Address, state: AclState) {
-        let info = self.get_or_allocate_device(address);
-        info.acl_state = state;
+        let device = self.get_or_allocate_device(address);
+        device.acl_state = state;
     }
 
     fn report_connection_start(
@@ -236,38 +389,62 @@ impl InformationalRule {
         handle: ConnectionHandle,
         ts: NaiveDateTime,
     ) {
-        let info = self.get_or_allocate_device(address);
-        info.acls.push(AclInformation {
-            start_time: ts,
-            end_time: INVALID_TS,
-            handle: handle,
-            initiator: info.acl_state.into(),
-        });
-        info.acl_state = AclState::Connected;
+        let device = self.get_or_allocate_device(address);
+        device.report_connection_start(handle, ts);
         self.handles.insert(handle, *address);
     }
 
-    fn report_connection_end(&mut self, handle: ConnectionHandle, ts: NaiveDateTime) {
-        if !self.handles.contains_key(&handle) {
-            let conn = self.get_or_allocate_unknown_connection(&handle);
-            conn.end_time = ts;
+    fn report_sco_connection_start(
+        &mut self,
+        address: &Address,
+        handle: ConnectionHandle,
+        ts: NaiveDateTime,
+    ) {
+        if !self.devices.contains_key(address) {
+            // To simplify things, let's not process unknown devices
             return;
         }
-        let info = self.get_or_allocate_device(&self.handles.get(&handle).unwrap().clone());
 
-        // If we can't find the matching acl connection, create one.
-        if info.acls.is_empty() || info.acls.last().unwrap().end_time != INVALID_TS {
-            info.acls.push(AclInformation {
-                start_time: INVALID_TS,
-                end_time: ts,
-                handle: handle,
-                initiator: InitiatorType::Unknown,
-            });
-        } else {
-            info.acls.last_mut().unwrap().end_time = ts;
+        let device = self.devices.get_mut(address).unwrap();
+        if !device.is_connection_active() {
+            // SCO is connected, but ACL is not. This is weird, but let's ignore for simplicity.
+            eprintln!("[{}] SCO is connected, but ACL is not.", address);
+            return;
         }
-        info.acl_state = AclState::None;
-        self.handles.remove(&handle);
+
+        // Whatever handle value works here - we aren't allocating a new one.
+        let acl = device.get_or_allocate_connection(&0);
+        let acl_handle = acl.handle;
+        // We need to listen the HCI commands to determine the correct initiator.
+        // Here we just assume host for simplicity.
+        acl.report_profile_start(ProfileType::HFP, InitiatorType::Host, ts);
+
+        self.sco_handles.insert(handle, acl_handle);
+    }
+
+    fn report_connection_end(&mut self, handle: ConnectionHandle, ts: NaiveDateTime) {
+        // This might be a SCO disconnection event, so check that first
+        if self.sco_handles.contains_key(&handle) {
+            let acl_handle = self.sco_handles[&handle];
+            let conn = self.get_or_allocate_connection(&acl_handle);
+            conn.report_profile_end(ProfileType::HFP, ts);
+            return;
+        }
+
+        // Not recognized as SCO, assume it's an ACL handle.
+        if let Some(address) = self.handles.get(&handle) {
+            // This device is known
+            let device = self.devices.get_mut(address).unwrap();
+            device.report_connection_end(handle, ts);
+            self.handles.remove(&handle);
+
+            // remove the associated SCO handle, if any
+            self.sco_handles.retain(|_sco_handle, acl_handle| *acl_handle != handle);
+        } else {
+            // Unknown device.
+            let conn = self.get_or_allocate_unknown_connection(&handle);
+            conn.report_end(ts);
+        }
     }
 
     fn report_reset(&mut self, ts: NaiveDateTime) {
@@ -276,6 +453,28 @@ impl InformationalRule {
         for handle in handles {
             self.report_connection_end(handle, ts);
         }
+        self.sco_handles.clear();
+    }
+
+    fn _report_profile_start(
+        &mut self,
+        handle: ConnectionHandle,
+        profile_type: ProfileType,
+        initiator: InitiatorType,
+        ts: NaiveDateTime,
+    ) {
+        let conn = self.get_or_allocate_connection(&handle);
+        conn.report_profile_start(profile_type, initiator, ts);
+    }
+
+    fn _report_profile_end(
+        &mut self,
+        handle: ConnectionHandle,
+        profile_type: ProfileType,
+        ts: NaiveDateTime,
+    ) {
+        let conn = self.get_or_allocate_connection(&handle);
+        conn.report_profile_end(profile_type, ts);
     }
 
     fn process_gap_data(&mut self, address: &Address, data: &GapData) {
@@ -319,6 +518,18 @@ impl Rule for InformationalRule {
                         packet.ts,
                     );
 
+                    // If failed, assume it's the end of connection.
+                    if ev.get_status() != ErrorCode::Success {
+                        self.report_connection_end(ev.get_connection_handle(), packet.ts);
+                    }
+                }
+
+                EventChild::SynchronousConnectionComplete(ev) => {
+                    self.report_sco_connection_start(
+                        &ev.get_bd_addr(),
+                        ev.get_connection_handle(),
+                        packet.ts,
+                    );
                     // If failed, assume it's the end of connection.
                     if ev.get_status() != ErrorCode::Success {
                         self.report_connection_end(ev.get_connection_handle(), packet.ts);
@@ -487,7 +698,7 @@ impl Rule for InformationalRule {
             return Ordering::Equal;
         }
 
-        if self.devices.is_empty() {
+        if self.devices.is_empty() && self.unknown_connections.is_empty() {
             return;
         }
 
