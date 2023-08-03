@@ -126,6 +126,7 @@ cc_library_shared {
         "libmodpb64",
         "libopus",
         "libosi",
+        "libprotobuf-cpp-lite",
         "libudrv-uipc",
         "libutils",
     ],
