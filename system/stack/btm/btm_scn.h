@@ -18,6 +18,6 @@
 
 #include <cstdint>
 
+uint8_t BTM_AllocateSCN(void);
 bool BTM_FreeSCN(uint8_t scn);
-bool BTM_TryAllocateSCN(uint8_t scn);
 bool BTM_TryAllocateSCN(uint8_t scn);
