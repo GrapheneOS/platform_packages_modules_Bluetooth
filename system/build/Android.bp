@@ -88,7 +88,6 @@ cc_defaults {
         "fluoride_defaults",
     ],
     static_libs: [
-        "libflatbuffers-cpp",
         "libprotobuf-cpp-lite",
     ],
 }
