@@ -341,7 +341,7 @@ public class AdapterServiceTest {
 
         mLooper.dispatchAll();
 
-        mAdapterService.registerCallback(mIBluetoothCallback);
+        mAdapterService.registerRemoteCallback(mIBluetoothCallback);
 
         mAdapterConfig = TestUtils.readAdapterConfig();
         assertThat(mAdapterConfig).isNotNull();
@@ -355,7 +355,7 @@ public class AdapterServiceTest {
         Utils.setForegroundUserId(mForegroundUserId);
 
         mAdapterService.cleanup();
-        mAdapterService.unregisterCallback(mIBluetoothCallback);
+        mAdapterService.unregisterRemoteCallback(mIBluetoothCallback);
     }
 
     /**
@@ -487,7 +487,7 @@ public class AdapterServiceTest {
         IBluetoothCallback callback = mock(IBluetoothCallback.class);
         Binder binder = mock(Binder.class);
         doReturn(binder).when(callback).asBinder();
-        adapter.registerCallback(callback);
+        adapter.registerRemoteCallback(callback);
 
         assertThat(adapter.getState()).isEqualTo(STATE_OFF);
 
@@ -516,7 +516,7 @@ public class AdapterServiceTest {
         verifyStateChange(callback, STATE_TURNING_ON, STATE_ON);
 
         assertThat(adapter.getState()).isEqualTo(STATE_ON);
-        adapter.unregisterCallback(callback);
+        adapter.unregisterRemoteCallback(callback);
         Log.e(TAG, "doEnable() complete success");
     }
 
@@ -541,7 +541,7 @@ public class AdapterServiceTest {
         IBluetoothCallback callback = mock(IBluetoothCallback.class);
         Binder binder = mock(Binder.class);
         doReturn(binder).when(callback).asBinder();
-        adapter.registerCallback(callback);
+        adapter.registerRemoteCallback(callback);
 
         assertThat(adapter.getState()).isEqualTo(STATE_ON);
 
@@ -561,7 +561,7 @@ public class AdapterServiceTest {
         looper.stopAutoDispatch(); // stop autoDispatch ASAP
 
         assertThat(adapter.getState()).isEqualTo(STATE_OFF);
-        adapter.unregisterCallback(callback);
+        adapter.unregisterRemoteCallback(callback);
         Log.e(TAG, "doDisable() complete success");
     }
 
