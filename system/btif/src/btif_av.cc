@@ -4035,9 +4035,9 @@ uint8_t btif_av_get_peer_sep(void) {
   }
 
   uint8_t peer_sep = peer->PeerSep();
-  LOG_INFO("Peer %s SEP is %s (%d)",
-           ADDRESS_TO_LOGGABLE_CSTR(peer->PeerAddress()),
-           (peer_sep == AVDT_TSEP_SRC) ? "Source" : "Sink", peer_sep);
+  BTIF_TRACE_DEBUG("Peer %s SEP is %s (%d)",
+                   ADDRESS_TO_LOGGABLE_CSTR(peer->PeerAddress()),
+                   (peer_sep == AVDT_TSEP_SRC) ? "Source" : "Sink", peer_sep);
   return peer_sep;
 }
 
