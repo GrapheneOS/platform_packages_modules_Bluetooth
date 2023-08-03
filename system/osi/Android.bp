@@ -160,7 +160,6 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libc++fs",
         "libchrome",
         "libevent",

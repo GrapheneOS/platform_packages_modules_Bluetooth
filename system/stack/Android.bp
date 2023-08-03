@@ -660,7 +660,6 @@ cc_test {
         "libbt-bta-core",
         "libbt-common",
         "libbt-hci",
-        "libbt-protos-lite",
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
         "libbt-stack",
@@ -739,7 +738,6 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libchrome",
         "libevent",
         "libflatbuffers-cpp",
@@ -932,7 +930,6 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libchrome",
         "libevent",
         "libgmock",
@@ -997,7 +994,6 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libchrome",
         "libevent",
         "liblog",
@@ -1106,7 +1102,6 @@ cc_test {
     static_libs: [
         "libFraunhoferAAC",
         "libbt-common",
-        "libbt-protos-lite",
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
         "libchrome",
@@ -1158,7 +1153,6 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libchrome",
         "liblog",
         "libosi",
@@ -1214,7 +1208,6 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libchrome",
         "libevent",
         "libgmock",
@@ -1321,7 +1314,6 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libchrome",
         "libevent",
         "libgmock",
@@ -1434,7 +1426,6 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
         "libbtdevice",
@@ -1488,7 +1479,6 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libbtdevice",
         "libbte",
         "libchrome",
@@ -1544,7 +1534,6 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libbtdevice",
         "libbte",
         "libchrome",
@@ -1616,7 +1605,6 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libbtdevice",
         "libchrome",
         "libevent",
@@ -1698,7 +1686,6 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libbtdevice",
         "libchrome",
         "libevent",
@@ -1780,7 +1767,6 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libbtdevice",
         "libchrome",
         "libevent",
@@ -1866,7 +1852,6 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libbtdevice",
         "libchrome",
         "libevent",
