@@ -11,11 +11,14 @@ pub use uhid_virt::OutputEvent;
 use uhid_virt::{Bus, CreateParams, InputEvent, StreamError, UHID_EVENT_SIZE};
 
 pub const BLUETOOTH_TELEPHONY_UHID_REPORT_ID: u8 = 1;
+pub const UHID_INPUT_HOOK_SWITCH: u8 = 1 << 0;
+pub const UHID_INPUT_PHONE_MUTE: u8 = 1 << 1;
 pub const UHID_OUTPUT_NONE: u8 = 0;
-pub const UHID_OUTPUT_RING: u8 = 1;
-pub const UHID_OUTPUT_OFF_HOOK: u8 = 2;
+pub const UHID_OUTPUT_RING: u8 = 1 << 0;
+pub const UHID_OUTPUT_OFF_HOOK: u8 = 1 << 1;
+pub const UHID_OUTPUT_MUTE: u8 = 1 << 2;
 
-const RDESC: [u8; 51] = [
+const RDESC: [u8; 55] = [
     0x05,
     0x0B, // Usage Page (Telephony)
     0x09,
@@ -32,16 +35,18 @@ const RDESC: [u8; 51] = [
     0x01, //   Logical Maximum (1)
     0x09,
     0x20, //   Usage (Hook Switch)
+    0x09,
+    0x2f, //   Usage (Phone Mute)
     0x75,
     0x01, //   Report Size (1)
     0x95,
-    0x01, //   Report Count (1)
+    0x02, //   Report Count (2)
     0x81,
     0x23, //   Input
     0x75,
     0x01, //   Report Size (1)
     0x95,
-    0x07, //   Report Count (7)
+    0x06, //   Report Count (6)
     0x81,
     0x01, //   Input
     0x05,
@@ -54,16 +59,18 @@ const RDESC: [u8; 51] = [
     0x18, //   Usage (Ring)
     0x09,
     0x17, //   Usage (Off-Hook)
+    0x09,
+    0x09, //   Usage (Mute)
     0x75,
     0x01, //   Report Size (1)
     0x95,
-    0x02, //   Report Count (2)
+    0x03, //   Report Count (3)
     0x91,
     0x22, //   Output
     0x75,
     0x01, //   Report Size (1)
     0x95,
-    0x06, //   Report Count (6)
+    0x05, //   Report Count (5)
     0x91,
     0x01, //   Output
     0xC0, // End Collection
@@ -149,8 +156,8 @@ impl UHidHfp {
         self.handle.write_all(&destroy_event)
     }
 
-    pub fn send_input(&mut self, status: bool) -> io::Result<()> {
-        let data: [u8; 2] = [BLUETOOTH_TELEPHONY_UHID_REPORT_ID, status.into()];
+    pub fn send_input(&mut self, report: u8) -> io::Result<()> {
+        let data: [u8; 2] = [BLUETOOTH_TELEPHONY_UHID_REPORT_ID, report];
         let input_event: [u8; UHID_EVENT_SIZE] = InputEvent::Input { data: &data }.into();
         self.handle.write_all(&input_event)
     }
