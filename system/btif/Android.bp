@@ -348,7 +348,6 @@ cc_test {
     static_libs: [
         "libbluetooth-types",
         "libchrome",
-        "libflatbuffers-cpp",
         "libosi",
     ],
     cflags: ["-DBUILDCFG"],
@@ -381,7 +380,6 @@ cc_test {
     static_libs: [
         "libbluetooth-types",
         "libchrome",
-        "libflatbuffers-cpp",
         "libosi",
     ],
     cflags: ["-DBUILDCFG"],
@@ -611,7 +609,6 @@ cc_test {
         "libchrome",
         "libcom.android.sysprop.bluetooth",
         "libevent",
-        "libflatbuffers-cpp",
         "libgmock",
     ],
     cflags: ["-DBUILDCFG"],
@@ -743,7 +740,6 @@ cc_test {
         "libchrome",
         "libcom.android.sysprop.bluetooth",
         "libevent",
-        "libflatbuffers-cpp",
         "libgmock",
     ],
     cflags: ["-DBUILDCFG"],
