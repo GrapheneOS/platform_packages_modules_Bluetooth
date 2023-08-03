@@ -45,11 +45,6 @@ java_defaults {
             "-Xep:ReferenceEquality:ERROR",
         ],
     },
-    product_variables: {
-        pdk: {
-            enabled: false,
-        },
-    },
 
     sdk_version: "system_server_current",
 
