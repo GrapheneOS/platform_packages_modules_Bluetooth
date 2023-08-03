@@ -206,7 +206,6 @@ cc_test {
     static_libs: [
         "libbluetooth-dumpsys",
         "libbt-common",
-        "libbt-protos-lite",
         "libbtdevice",
         "libchrome",
         "libevent",

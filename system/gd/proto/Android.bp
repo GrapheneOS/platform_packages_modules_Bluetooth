@@ -23,20 +23,11 @@ java_library_static {
     sdk_version: "current",
 }
 
-cc_library_static {
-    name: "libbt-protos-lite",
-    host_supported: true,
-    proto: {
-        export_proto_headers: true,
-        type: "lite",
-    },
+filegroup {
+    name: "bluetooth-metrics-proto",
     srcs: [
         "bluetooth/metrics/bluetooth.proto",
     ],
-    apex_available: [
-        "com.android.btservices",
-    ],
-    min_sdk_version: "30",
 }
 
 cc_library_static {
