@@ -18,44 +18,27 @@ package com.android.bluetooth.btservice.bluetoothkeystore;
 
 import android.util.Log;
 
-import com.android.internal.annotations.GuardedBy;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
-final class BluetoothKeystoreNativeInterface {
+/** Native interface to be used by BluetoothKeystoreService */
+public class BluetoothKeystoreNativeInterface {
+    private static final String TAG = BluetoothKeystoreNativeInterface.class.getSimpleName();
 
-    private static final String TAG = "BluetoothKeystoreNativeInterface";
-
-    @GuardedBy("INSTANCE_LOCK")
-    private static BluetoothKeystoreNativeInterface sInstance;
-    private static final Object INSTANCE_LOCK = new Object();
+    private BluetoothKeystoreService mBluetoothKeystoreService = null;
 
     static {
         classInitNative();
     }
 
-    private BluetoothKeystoreNativeInterface() {
-    }
-
-    /**
-     * Get singleton instance.
-     */
-    public static BluetoothKeystoreNativeInterface getInstance() {
-        synchronized (INSTANCE_LOCK) {
-            if (sInstance == null) {
-                sInstance = new BluetoothKeystoreNativeInterface();
-            }
-            return sInstance;
-        }
-    }
-
     /**
      * Initializes the native interface.
      *
-     * priorities to configure.
+     * <p>priorities to configure.
      */
-    public void init() {
+    public void init(BluetoothKeystoreService service) {
+        mBluetoothKeystoreService = service;
         initNative();
     }
 
@@ -64,6 +47,7 @@ final class BluetoothKeystoreNativeInterface {
      */
     public void cleanup() {
         cleanupNative();
+        mBluetoothKeystoreService = null;
     }
 
     // Callbacks from the native stack back into the Java framework.
@@ -71,30 +55,36 @@ final class BluetoothKeystoreNativeInterface {
     // state machine the message should be routed to.
 
     private void setEncryptKeyOrRemoveKeyCallback(String prefixString, String decryptedString) {
-        BluetoothKeystoreService service = BluetoothKeystoreService.getBluetoothKeystoreService();
-        if (service != null) {
-            try {
-                service.setEncryptKeyOrRemoveKey(prefixString, decryptedString);
-            } catch (InterruptedException e) {
-                Log.e(TAG, "Interrupted while operating.");
-            } catch (IOException e) {
-                Log.e(TAG, "IO error while file operating.");
-            } catch (NoSuchAlgorithmException e) {
-                Log.e(TAG, "encrypt could not find the algorithm: SHA256");
-            }
-        } else {
-            Log.e(TAG, "Event ignored, service not available: " + prefixString);
+        final BluetoothKeystoreService service = mBluetoothKeystoreService;
+
+        if (service == null) {
+            Log.e(
+                    TAG,
+                    "setEncryptKeyOrRemoveKeyCallback: Event ignored, service not available: "
+                            + prefixString);
+            return;
+        }
+
+        try {
+            service.setEncryptKeyOrRemoveKey(prefixString, decryptedString);
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Interrupted while operating.");
+        } catch (IOException e) {
+            Log.e(TAG, "IO error while file operating.");
+        } catch (NoSuchAlgorithmException e) {
+            Log.e(TAG, "encrypt could not find the algorithm: SHA256");
         }
     }
 
     private String getKeyCallback(String prefixString) {
-        BluetoothKeystoreService service = BluetoothKeystoreService.getBluetoothKeystoreService();
-        if (service != null) {
-            return service.getKey(prefixString);
-        } else {
-            Log.e(TAG, "Event ignored, service not available: " + prefixString);
+        final BluetoothKeystoreService service = mBluetoothKeystoreService;
+
+        if (service == null) {
+            Log.e(TAG, "getKeyCallback: Event ignored, service not available: " + prefixString);
             return null;
         }
+
+        return service.getKey(prefixString);
     }
 
     // Native methods that call into the JNI interface
