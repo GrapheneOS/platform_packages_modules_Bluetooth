@@ -77,7 +77,6 @@ cc_defaults {
         "libchrome",
         "libcutils",
         "libevent",
-        "libflatbuffers-cpp",
         "libg722codec",
         "libhidlbase",
         "libjsoncpp",

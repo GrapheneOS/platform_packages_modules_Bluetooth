@@ -407,7 +407,6 @@ cc_test {
         "libchrome",
         "libcom.android.sysprop.bluetooth",
         "libevent",
-        "libflatbuffers-cpp",
         "libgmock",
     ],
     sanitize: {
