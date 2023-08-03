@@ -292,7 +292,6 @@ cc_test {
         "libbt-bta-core",
         "libbt-common",
         "libbt-hci",
-        "libbt-protos-lite",
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
         "libbt-stack",
@@ -419,7 +418,6 @@ cc_test {
     static_libs: [
         "libbluetooth-types",
         "libbt-common",
-        "libbt-protos-lite",
         "libchrome",
         "libevent",
         "libosi-AllocationTestHarness",
