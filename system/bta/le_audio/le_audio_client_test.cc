@@ -73,6 +73,8 @@ using le_audio::LeAudioSinkAudioHalClient;
 using le_audio::LeAudioSourceAudioHalClient;
 
 using le_audio::types::AudioContexts;
+using le_audio::types::BidirectionalPair;
+using le_audio::types::LeAudioContextType;
 
 extern struct fake_osi_alarm_set_on_mloop fake_osi_alarm_set_on_mloop_;
 
@@ -4972,6 +4974,174 @@ TEST_F(UnicastTest, TwoEarbuds2ndReleaseAseRemoveAvailableContextAndBack) {
   cis_count_out = 2;
   cis_count_in = 0;
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
+}
+
+TEST_F(UnicastTest, StartStream_AvailableContextTypeNotifiedLater) {
+  uint8_t group_size = 2;
+  int group_id = 2;
+
+  available_snk_context_types_ = 0;
+
+  /* Scenario (Devices A and B called "Remote")
+   * 1. Remote  does supports all the context types, but has NO available
+   * contexts at the beginning
+   * 2. After connection Remote add Available context types
+   * 3. Android start stream with MEDIA
+   * 4. Make sure stream will be started
+   */
+
+  // Report working CSIS
+  ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+      .WillByDefault(Return(true));
+
+  const RawAddress test_address0 = GetTestAddress(0);
+  const RawAddress test_address1 = GetTestAddress(1);
+
+  // First earbud connects
+  ConnectCsisDevice(test_address0, 1 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontLeft,
+                    codec_spec_conf::kLeAudioLocationFrontLeft, group_size,
+                    group_id, 1 /* rank*/);
+
+  // Second earbud connects
+  ConnectCsisDevice(test_address1, 2 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontRight,
+                    codec_spec_conf::kLeAudioLocationFrontRight, group_size,
+                    group_id, 2 /* rank*/, true /*connect_through_csis*/);
+
+  // Inject Supported and available context types
+  auto sink_available_contexts = types::kLeAudioContextAllRemoteSinkOnly;
+  auto source_available_contexts = types::kLeAudioContextAllRemoteSource;
+
+  InjectAvailableContextTypes(test_address0, 1, sink_available_contexts,
+                              source_available_contexts);
+  InjectAvailableContextTypes(test_address1, 2, sink_available_contexts,
+                              source_available_contexts);
+  // Start streaming
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
+  EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+
+  ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
+      .WillByDefault(Invoke([&](int group_id) { return 2; }));
+
+  BidirectionalPair<AudioContexts> contexts = {
+      .sink = types::AudioContexts(types::LeAudioContextType::MEDIA),
+      .source = types::AudioContexts()};
+
+  EXPECT_CALL(
+      mock_state_machine_,
+      StartStream(_, le_audio::types::LeAudioContextType::MEDIA, contexts, _))
+      .Times(1);
+
+  StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
+
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+  SyncOnMainLoop();
+
+  // Expect two iso channel to be fed with data
+  uint8_t cis_count_out = 2;
+  uint8_t cis_count_in = 0;
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
+}
+
+TEST_F(UnicastTest, ModifyContextTypeOnDeviceA_WhileDeviceB_IsDisconnected) {
+  uint8_t group_size = 2;
+  int group_id = 2;
+
+  /* Scenario (Device A and B called Remote)
+   * 1. Remote set does supports all the context types and make them available
+   * 2. Android start stream with MEDIA, verify it works.
+   * 3. Android stops the stream
+   * 4. Device B disconnects
+   * 5. Device A removes Media from Available Contexts
+   * 6. Android start stream with MEDIA, verify it will be started without
+   * context Note: This behaviour will change in next patch.
+   */
+
+  // Report working CSIS
+  ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+      .WillByDefault(Return(true));
+
+  const RawAddress test_address0 = GetTestAddress(0);
+  const RawAddress test_address1 = GetTestAddress(1);
+
+  // First earbud connects
+  ConnectCsisDevice(test_address0, 1 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontLeft,
+                    codec_spec_conf::kLeAudioLocationFrontLeft, group_size,
+                    group_id, 1 /* rank*/);
+
+  // Second earbud connects
+  ConnectCsisDevice(test_address1, 2 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontRight,
+                    codec_spec_conf::kLeAudioLocationFrontRight, group_size,
+                    group_id, 2 /* rank*/, true /*connect_through_csis*/);
+
+  // Start streaming
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
+  EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+
+  ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
+      .WillByDefault(Invoke([&](int group_id) { return 2; }));
+
+  BidirectionalPair<AudioContexts> contexts = {
+      .sink = types::AudioContexts(types::LeAudioContextType::MEDIA),
+      .source = types::AudioContexts()};
+
+  EXPECT_CALL(
+      mock_state_machine_,
+      StartStream(_, le_audio::types::LeAudioContextType::MEDIA, contexts, _))
+      .Times(1);
+
+  StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+
+  // Expect two iso channel to be fed with data
+  uint8_t cis_count_out = 2;
+  uint8_t cis_count_in = 0;
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
+
+  // Stop
+  StopStreaming(group_id);
+  // simulate suspend timeout passed, alarm executing
+  fake_osi_alarm_set_on_mloop_.cb(fake_osi_alarm_set_on_mloop_.data);
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+
+  // Device B got disconnected
+  InjectDisconnectedEvent(2, GATT_CONN_TERMINATE_PEER_USER);
+  SyncOnMainLoop();
+
+  // Device A changes available context type
+  // Inject Supported and available context types
+  auto sink_supported_context = types::kLeAudioContextAllRemoteSinkOnly;
+  sink_supported_context.unset(LeAudioContextType::MEDIA);
+  sink_supported_context.set(LeAudioContextType::UNSPECIFIED);
+
+  auto source_supported_context = types::kLeAudioContextAllRemoteSource;
+  source_supported_context.set(LeAudioContextType::UNSPECIFIED);
+
+  InjectSupportedContextTypes(test_address0, 1, sink_supported_context,
+                              source_supported_context);
+  InjectAvailableContextTypes(test_address0, 1, sink_supported_context,
+                              source_supported_context);
+  SyncOnMainLoop();
+
+  contexts = {.sink = types::AudioContexts(), .source = types::AudioContexts()};
+
+  /* Android starts stream. */
+  EXPECT_CALL(mock_state_machine_, StartStream(_, _, _, _)).Times(1);
+
+  StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
 }
 
 TEST_F(UnicastTest, TwoEarbuds2ndDisconnected) {

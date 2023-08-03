@@ -1761,12 +1761,10 @@ class LeAudioClientImpl : public LeAudioClient {
             leAudioDevice->address_,
             leAudioDevice->snk_audio_locations_.to_ulong(),
             leAudioDevice->src_audio_locations_.to_ulong());
+        if (group && group->IsReleasingOrIdle()) {
+          UpdateLocationsAndContextsAvailability(leAudioDevice->group_id_);
+        }
       }
-
-      /* Read of source audio locations during initial attribute discovery.
-       * Group would be assigned once service search is completed.
-       */
-      UpdateLocationsAndContextsAvailability(leAudioDevice->group_id_);
     } else if (hdl == leAudioDevice->src_audio_locations_hdls_.val_hdl) {
       AudioLocations src_audio_locations;
 
@@ -1791,12 +1789,10 @@ class LeAudioClientImpl : public LeAudioClient {
             leAudioDevice->address_,
             leAudioDevice->snk_audio_locations_.to_ulong(),
             leAudioDevice->src_audio_locations_.to_ulong());
+        if (group && group->IsReleasingOrIdle()) {
+          UpdateLocationsAndContextsAvailability(leAudioDevice->group_id_);
+        }
       }
-
-      /* Read of source audio locations during initial attribute discovery.
-       * Group would be assigned once service search is completed.
-       */
-      UpdateLocationsAndContextsAvailability(leAudioDevice->group_id_);
     } else if (hdl == leAudioDevice->audio_avail_hdls_.val_hdl) {
       BidirectionalPair<AudioContexts> contexts;
       if (!le_audio::client_parser::pacs::ParseAvailableAudioContexts(
@@ -1810,8 +1806,16 @@ class LeAudioClientImpl : public LeAudioClient {
         return;
       }
 
-      /* Check if we should attach to stream this device */
-      if (group->IsInTransition() || !group->IsStreaming()) {
+      if (group->IsReleasingOrIdle()) {
+        /* Group is not streaming. Device does not have to be attach to the
+         * stream, and we can update context availability for the group
+         */
+        UpdateLocationsAndContextsAvailability(group);
+        return;
+      }
+
+      if (group->IsInTransition()) {
+        /* Group is in transition, do not take any actions now.*/
         return;
       }
 
@@ -5308,28 +5312,33 @@ class LeAudioClientImpl : public LeAudioClient {
          */
         FALLTHROUGH;
       case GroupStreamStatus::IDLE: {
-        if (group && group->IsPendingConfiguration()) {
-          SuspendedForReconfiguration();
-          auto remote_direction =
-              kLeAudioContextAllRemoteSource.test(configuration_context_type_)
-                  ? le_audio::types::kLeAudioDirectionSource
-                  : le_audio::types::kLeAudioDirectionSink;
-          auto remote_contexts =
-              DirectionalRealignMetadataAudioContexts(group, remote_direction);
-          ApplyRemoteMetadataAudioContextPolicy(group, remote_contexts,
-                                                remote_direction);
-          if (GroupStream(group->group_id_, configuration_context_type_,
-                          remote_contexts)) {
-            /* If configuration succeed wait for new status. */
-            return;
+        if (group) {
+          UpdateLocationsAndContextsAvailability(group->group_id_);
+          if (group->IsPendingConfiguration()) {
+            SuspendedForReconfiguration();
+            auto remote_direction =
+                kLeAudioContextAllRemoteSource.test(configuration_context_type_)
+                    ? le_audio::types::kLeAudioDirectionSource
+                    : le_audio::types::kLeAudioDirectionSink;
+            auto remote_contexts =
+                DirectionalRealignMetadataAudioContexts(group, remote_direction);
+            ApplyRemoteMetadataAudioContextPolicy(group, remote_contexts,
+                                                  remote_direction);
+            if (GroupStream(group->group_id_, configuration_context_type_,
+                            remote_contexts)) {
+              /* If configuration succeed wait for new status. */
+              return;
+            }
+            LOG_INFO("Clear pending configuration flag for group %d",
+                    group->group_id_);
+            group->ClearPendingConfiguration();
           }
-          LOG_INFO("Clear pending configuration flag for group %d",
-                   group->group_id_);
-          group->ClearPendingConfiguration();
         }
+
         stream_setup_end_timestamp_ = 0;
         stream_setup_start_timestamp_ = 0;
         CancelStreamingRequest();
+
         if (group) {
           NotifyUpperLayerGroupTurnedIdleDuringCall(group->group_id_);
           HandlePendingDeviceRemove(group);

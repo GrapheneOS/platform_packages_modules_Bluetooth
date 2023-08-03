@@ -798,11 +798,7 @@ uint16_t LeAudioDeviceGroup::GetRemoteDelay(uint8_t direction) const {
 }
 
 bool LeAudioDeviceGroup::UpdateAudioContextAvailability(void) {
-  LOG_DEBUG(
-      " group id: %d, available contexts sink: %s, available contexts source: "
-      "%s",
-      group_id_, group_available_contexts_.sink.to_string().c_str(),
-      group_available_contexts_.source.to_string().c_str());
+  LOG_DEBUG("%d", group_id_);
   auto old_contexts = GetAvailableContexts();
   SetAvailableContexts(GetLatestAvailableContexts());
   return old_contexts != GetAvailableContexts();
@@ -842,7 +838,8 @@ LeAudioDeviceGroup::GetLatestAvailableContexts() const {
   types::BidirectionalPair<types::AudioContexts> contexts;
   for (const auto& device : leAudioDevices_) {
     auto shared_ptr = device.lock();
-    if (shared_ptr) {
+    if (shared_ptr &&
+        shared_ptr->GetConnectionState() == DeviceConnectState::CONNECTED) {
       contexts.sink |=
           shared_ptr->GetAvailableContexts(types::kLeAudioDirectionSink);
       contexts.source |=
