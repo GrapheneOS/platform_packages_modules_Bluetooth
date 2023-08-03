@@ -18,6 +18,8 @@
 #ifndef BTM_INT_TYPES_H
 #define BTM_INT_TYPES_H
 
+#include <gtest/gtest_prod.h>
+
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -396,6 +398,14 @@ typedef struct tBTM_CB {
   friend bool BTM_FreeSCN(uint8_t scn);
   uint8_t btm_scn[BTM_MAX_SCN_];
   uint8_t btm_available_index;
+
+  // give access to private method for test:
+  friend class BtmAllocateSCNTest;
+  FRIEND_TEST(BtmAllocateSCNTest, can_allocate_all_scns);
+  FRIEND_TEST(BtmAllocateSCNTest, only_last_scn_available);
+  FRIEND_TEST(BtmAllocateSCNTest, scn_available_after_available_index);
+  FRIEND_TEST(BtmAllocateSCNTest, scn_available_before_available_index);
+  FRIEND_TEST(BtmAllocateSCNTest, no_scn_available);
 } tBTM_CB;
 
 /* security action for L2CAP COC channels */
