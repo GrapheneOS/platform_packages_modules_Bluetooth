@@ -98,10 +98,24 @@ pub mod ffi {
         Held,   // Only used by CLCC response
     }
 
+    #[derive(Debug, Copy, Clone)]
+    /*
+    When a SCO is created, it is necessary to have at least one call in the call list.
+    Otherwise, some headsets may not be able to output sound.
+
+    Therefore, we need to separate the call for CRAS from the call for the application so that
+    we can have a correct life cycle for the call list status.
+    */
+    pub enum CallSource {
+        CRAS,
+        HID,
+    }
+
     #[derive(Debug, Clone)]
     pub struct CallInfo {
         index: i32,
         dir_incoming: bool,
+        source: CallSource,
         state: CallState,
         number: String,
     }
@@ -210,6 +224,7 @@ impl TelephonyDeviceStatus {
 }
 
 pub type CallState = ffi::CallState;
+pub type CallSource = ffi::CallSource;
 pub type CallInfo = ffi::CallInfo;
 pub type PhoneState = ffi::PhoneState;
 pub type CallHoldCommand = ffi::CallHoldCommand;
