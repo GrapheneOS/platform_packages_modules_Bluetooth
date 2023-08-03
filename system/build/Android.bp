@@ -88,7 +88,6 @@ cc_defaults {
         "fluoride_defaults_fuzzable",
     ],
     static_libs: [
-        "libbluetooth_gd",
         "libstatslog_bt",
     ],
     target: {

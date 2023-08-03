@@ -345,6 +345,7 @@ cc_test {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbluetooth_gd",
         "libchrome",
         "libosi",
     ],
@@ -413,6 +414,7 @@ cc_test {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbluetooth_gd",
         "libbt-common",
         "libchrome",
         "libevent",
@@ -595,6 +597,7 @@ cc_test {
         "lib-bt-packets-base",
         "libaudio-a2dp-hw-utils",
         "libbluetooth-types",
+        "libbluetooth_gd",
         "libbt-audio-hal-interface",
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
@@ -728,6 +731,7 @@ cc_test {
         "lib-bt-packets-base",
         "libaudio-a2dp-hw-utils",
         "libbluetooth-types",
+        "libbluetooth_gd",
         "libbt-audio-hal-interface",
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
