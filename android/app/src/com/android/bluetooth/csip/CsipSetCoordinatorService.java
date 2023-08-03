@@ -847,7 +847,7 @@ public class CsipSetCoordinatorService extends ProfileService {
         intent.addFlags(
                 Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
                         | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-        sendBroadcast(intent, BLUETOOTH_PRIVILEGED);
+        sendOrderedBroadcast(intent, BLUETOOTH_PRIVILEGED);
 
         /* Notify registered parties */
         handleSetMemberAvailable(device, groupId);
@@ -890,7 +890,7 @@ public class CsipSetCoordinatorService extends ProfileService {
         if (intent != null) {
             intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
                     | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-            sendBroadcast(intent, BLUETOOTH_PRIVILEGED);
+            sendOrderedBroadcast(intent, BLUETOOTH_PRIVILEGED);
         }
 
         synchronized (mStateMachines) {
