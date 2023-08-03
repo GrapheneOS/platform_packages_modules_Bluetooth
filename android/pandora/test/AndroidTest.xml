@@ -23,9 +23,7 @@
         <option name="install-arg" value="-r" />
         <option name="install-arg" value="-g" />
     </target_preparer>
-    <target_preparer class="com.android.tradefed.targetprep.RunHostCommandTargetPreparer">
-        <option name="host-setup-command" value="adb -s $SERIAL forward tcp:6211 vsock:2:7300" />
-        <option name="host-teardown-command" value="adb -s $SERIAL forward --remove tcp:6211" />
+    <target_preparer class="com.android.tradefed.targetprep.RootcanalForwarderPreparer">
     </target_preparer>
     <target_preparer class="com.android.tradefed.targetprep.RunCommandTargetPreparer">
         <option name="run-command" value="cmd bluetooth_manager enable" />
