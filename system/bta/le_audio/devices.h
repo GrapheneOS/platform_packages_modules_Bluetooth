@@ -199,7 +199,7 @@ class LeAudioDevice {
                        types::kLeAudioDirectionSource)) const {
     return avail_contexts_.get(direction);
   }
-  types::AudioContexts SetAvailableContexts(
+  void SetAvailableContexts(
       types::BidirectionalPair<types::AudioContexts> cont_val);
 
   void DeactivateAllAses(void);
