@@ -28,9 +28,17 @@ cc_library_static {
         "stop_watch_legacy.cc",
         "time_util.cc",
     ],
+    proto: {
+        type: "lite",
+        canonical_path_from_root: false,
+        export_proto_headers: true,
+    },
     target: {
         android: {
-            srcs: ["metrics.cc"],
+            srcs: [
+                ":bluetooth-metrics-proto",
+                "metrics.cc",
+            ],
         },
         host: {
             srcs: ["metrics_linux.cc"],
@@ -88,7 +96,6 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libchrome",
         "libevent",
         "libgmock",
