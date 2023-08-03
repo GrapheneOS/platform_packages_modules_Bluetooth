@@ -71,7 +71,6 @@ cc_defaults {
     ],
     static_libs: [
         "libbt-common",
-        "libbt-protos-lite",
         "libcutils",
         "libgmock",
         "libosi",
@@ -95,7 +94,6 @@ cc_defaults {
         "com.android.btservices",
     ],
     static_libs: [
-        "libbt-protos-lite",
         "libflatbuffers-cpp",
         "libprotobuf-cpp-lite",
     ],
