@@ -406,13 +406,6 @@ class BtaAvCo {
   const tA2DP_ENCODER_INTERFACE* GetSourceEncoderInterface();
 
   /**
-   * Get the Sink decoder interface for the current codec.
-   *
-   * @return the Sink decoder interface for the current codec
-   */
-  const tA2DP_DECODER_INTERFACE* GetSinkDecoderInterface();
-
-  /**
    * Set the codec user configuration.
    *
    * @param peer_address the peer address
@@ -1447,8 +1440,8 @@ void BtaAvCo::UpdateMtu(tBTA_AV_HNDL bta_av_handle,
 }
 
 bool BtaAvCo::SetActivePeer(const RawAddress& peer_address) {
-  VLOG(1) << __func__ << ": peer_address="
-          << ADDRESS_TO_LOGGABLE_STR(peer_address);
+  LOG(INFO) << __func__
+            << ": peer_address=" << ADDRESS_TO_LOGGABLE_STR(peer_address);
 
   std::lock_guard<std::recursive_mutex> lock(codec_lock_);
 
@@ -1504,12 +1497,6 @@ const tA2DP_ENCODER_INTERFACE* BtaAvCo::GetSourceEncoderInterface() {
   std::lock_guard<std::recursive_mutex> lock(codec_lock_);
 
   return A2DP_GetEncoderInterface(codec_config_);
-}
-
-const tA2DP_DECODER_INTERFACE* BtaAvCo::GetSinkDecoderInterface() {
-  std::lock_guard<std::recursive_mutex> lock(codec_lock_);
-
-  return A2DP_GetDecoderInterface(codec_config_);
 }
 
 bool BtaAvCo::SetCodecUserConfig(
@@ -2262,10 +2249,6 @@ void bta_av_co_get_peer_params(const RawAddress& peer_address,
 
 const tA2DP_ENCODER_INTERFACE* bta_av_co_get_encoder_interface(void) {
   return bta_av_co_cb.GetSourceEncoderInterface();
-}
-
-const tA2DP_DECODER_INTERFACE* bta_av_co_get_decoder_interface(void) {
-  return bta_av_co_cb.GetSinkDecoderInterface();
 }
 
 bool bta_av_co_set_codec_user_config(

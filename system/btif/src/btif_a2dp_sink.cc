@@ -631,7 +631,8 @@ static void btif_a2dp_sink_decoder_update_event(
   btif_a2dp_sink_cb.rx_flush = false;
   APPL_TRACE_DEBUG("%s: reset to Sink role", __func__);
 
-  btif_a2dp_sink_cb.decoder_interface = bta_av_co_get_decoder_interface();
+  btif_a2dp_sink_cb.decoder_interface =
+      A2DP_GetDecoderInterface(p_buf->codec_info);
   if (btif_a2dp_sink_cb.decoder_interface == nullptr) {
     LOG_ERROR("%s: cannot stream audio: no source decoder interface", __func__);
     return;
