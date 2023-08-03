@@ -94,7 +94,6 @@ cc_defaults {
         "com.android.btservices",
     ],
     static_libs: [
-        "libflatbuffers-cpp",
         "libprotobuf-cpp-lite",
     ],
 }

@@ -164,6 +164,9 @@ cc_defaults {
         "libcrypto",
         "libflatbuffers-cpp",
     ],
+    export_shared_lib_headers: [
+        "libflatbuffers-cpp",
+    ],
     whole_static_libs: [
         "libc++fs",
     ],
@@ -470,7 +473,6 @@ cc_defaults {
     ],
     shared_libs: [
         "libcrypto",
-        "libflatbuffers-cpp",
         "libgrpc++",
         "libgrpc_wrap",
     ],

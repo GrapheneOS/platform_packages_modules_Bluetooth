@@ -143,7 +143,6 @@ cc_library_static {
         "-DBUILDCFG",
     ],
     shared_libs: [
-        "libflatbuffers-cpp",
     ],
     whole_static_libs: [
         "libbluetooth_gd", // Gabeldorsche
