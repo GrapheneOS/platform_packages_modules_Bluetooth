@@ -260,17 +260,6 @@ struct bta_av_co_audio_update_mtu {
 };
 extern struct bta_av_co_audio_update_mtu bta_av_co_audio_update_mtu;
 
-// Name: bta_av_co_get_decoder_interface
-// Params: void
-// Return: const tA2DP_DECODER_INTERFACE*
-struct bta_av_co_get_decoder_interface {
-  static const tA2DP_DECODER_INTERFACE* return_value;
-  std::function<const tA2DP_DECODER_INTERFACE*(void)> body{
-      [](void) { return return_value; }};
-  const tA2DP_DECODER_INTERFACE* operator()(void) { return body(); };
-};
-extern struct bta_av_co_get_decoder_interface bta_av_co_get_decoder_interface;
-
 // Name: bta_av_co_get_encoder_effective_frame_size
 // Params:
 // Return: int
