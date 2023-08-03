@@ -10,7 +10,7 @@ package {
 // HCI static library for target
 cc_library_static {
     name: "libbt-hci",
-    defaults: ["fluoride_basic_defaults"],
+    defaults: ["fluoride_defaults"],
     srcs: [
         "src/buffer_allocator.cc",
         "src/packet_fragmenter.cc",
@@ -45,7 +45,7 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "fluoride_basic_defaults",
+        "fluoride_defaults",
         "fluoride_test_defaults",
         "mts_defaults",
     ],

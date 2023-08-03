@@ -55,7 +55,7 @@ java_library {
 
 cc_library_shared {
     name: "libbluetooth_jni",
-    defaults: ["fluoride_basic_defaults"],
+    defaults: ["fluoride_defaults"],
     srcs: ["jni/**/*.cpp"],
     version_script: "libbluetooth_jni.map",
     header_libs: [
@@ -150,7 +150,7 @@ cc_library_shared {
 
 cc_library {
     name: "libbluetooth-core",
-    defaults: ["fluoride_basic_defaults"],
+    defaults: ["fluoride_defaults"],
     header_libs: [
         "jni_headers",
         "libbluetooth_headers",
