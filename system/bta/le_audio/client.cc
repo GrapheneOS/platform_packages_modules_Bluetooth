@@ -3816,6 +3816,12 @@ class LeAudioClientImpl : public LeAudioClient {
         DirectionalRealignMetadataAudioContexts(group, remote_direction);
     ApplyRemoteMetadataAudioContextPolicy(group, remote_contexts,
                                           remote_direction);
+
+    if (!remote_contexts.sink.any() && !remote_contexts.source.any()) {
+      LOG_WARN("Requested context type not available on the remote side");
+      return false;
+    }
+
     return GroupStream(active_group_id_, configuration_context_type_,
                        remote_contexts);
   }
