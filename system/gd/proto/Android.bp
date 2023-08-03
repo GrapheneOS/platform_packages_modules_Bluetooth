@@ -14,7 +14,6 @@ java_library_static {
         type: "lite",
     },
     srcs: [
-        "bluetooth/bluetoothKeystore/keystore.proto",
         "bluetooth/metrics/bluetooth.proto",
     ],
     apex_available: [
@@ -32,7 +31,6 @@ cc_library_static {
         type: "lite",
     },
     srcs: [
-        "bluetooth/bluetoothKeystore/keystore.proto",
         "bluetooth/metrics/bluetooth.proto",
     ],
     apex_available: [
@@ -50,7 +48,6 @@ cc_library_static {
         include_dirs: ["external/protobuf/src"],
     },
     srcs: [
-        "bluetooth/bluetoothKeystore/keystore.proto",
         "bluetooth/metrics/bluetooth.proto",
     ],
     apex_available: [
