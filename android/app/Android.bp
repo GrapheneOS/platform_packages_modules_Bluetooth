@@ -199,8 +199,12 @@ android_app {
     srcs: [
         ":statslog-bluetooth-java-gen",
         ":statslog-bt-restricted-java-gen",
+        "proto/keystore.proto",
         "src/**/*.java",
     ],
+    proto: {
+        type: "lite",
+    },
     aaptflags: [
         "--custom-package",
         "com.android.bluetooth",
