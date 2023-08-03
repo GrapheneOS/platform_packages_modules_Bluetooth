@@ -118,6 +118,7 @@ cc_library_shared {
         "libchrome",
         "libcutils",
         "libevent",
+        "libflatbuffers-cpp",
         "libfmq",
         "libg722codec",
         "libhidlbase",
