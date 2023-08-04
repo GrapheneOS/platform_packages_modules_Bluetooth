@@ -29,7 +29,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doReturn;
@@ -118,17 +117,15 @@ public class ScanManagerTest {
         MockitoAnnotations.initMocks(this);
 
         TestUtils.setAdapterService(mAdapterService);
-        doReturn(true).when(mAdapterService).isStartedProfile(anyString());
         when(mAdapterService.getScanTimeoutMillis()).
                 thenReturn((long) DELAY_DEFAULT_SCAN_TIMEOUT_MS);
         when(mAdapterService.getNumOfOffloadedScanFilterSupported())
                 .thenReturn(DEFAULT_NUM_OFFLOAD_SCAN_FILTER);
         when(mAdapterService.getOffloadedScanResultStorage())
                 .thenReturn(DEFAULT_BYTES_OFFLOAD_SCAN_RESULT_STORAGE);
-        when(mAdapterService.getSystemService(Context.LOCATION_SERVICE))
-                .thenReturn(mLocationManager);
-        when(mAdapterService.getSystemServiceName(LocationManager.class))
-                .thenReturn(Context.LOCATION_SERVICE);
+
+        TestUtils.mockGetSystemService(
+                mAdapterService, Context.LOCATION_SERVICE, LocationManager.class, mLocationManager);
         doReturn(true).when(mLocationManager).isLocationEnabled();
 
         BluetoothAdapterProxy.setInstanceForTesting(mBluetoothAdapterProxy);
@@ -143,9 +140,8 @@ public class ScanManagerTest {
 
         MetricsLogger.setInstanceForTesting(mMetricsLogger);
 
-        TestUtils.startService(mServiceRule, GattService.class);
-        mService = GattService.getGattService();
-        assertThat(mService).isNotNull();
+        mService = new GattService(InstrumentationRegistry.getTargetContext());
+        mService.start();
 
         mScanManager = mService.getScanManager();
         assertThat(mScanManager).isNotNull();
@@ -161,10 +157,9 @@ public class ScanManagerTest {
 
     @After
     public void tearDown() throws Exception {
-        doReturn(false).when(mAdapterService).isStartedProfile(anyString());
-        TestUtils.stopService(mServiceRule, GattService.class);
-        mService = GattService.getGattService();
-        assertThat(mService).isNull();
+        mService.stop();
+        mService = null;
+
         TestUtils.clearAdapterService(mAdapterService);
         BluetoothAdapterProxy.setInstanceForTesting(null);
         GattObjectsFactory.setInstanceForTesting(null);
