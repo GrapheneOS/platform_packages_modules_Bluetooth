@@ -10,7 +10,7 @@ package {
 
 cc_library_static {
     name: "libbtdevice",
-    defaults: ["fluoride_basic_defaults"],
+    defaults: ["fluoride_defaults"],
     host_supported: true,
     local_include_dirs: [
         "include",
