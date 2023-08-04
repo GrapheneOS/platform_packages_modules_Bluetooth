@@ -63,6 +63,9 @@ class LinkLayerController {
   static Address generate_rpa(
       std::array<uint8_t, LinkLayerController::kIrkSize> irk);
 
+  // Return true if the input IRK is all 0s.
+  static bool irk_is_zero(std::array<uint8_t, LinkLayerController::kIrkSize> irk);
+
   LinkLayerController(const Address& address,
                       const ControllerProperties& properties, int id = 0);
   ~LinkLayerController();
