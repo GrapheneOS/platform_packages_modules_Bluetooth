@@ -16,7 +16,6 @@
 
 package com.android.bluetooth.gatt;
 
-import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -59,6 +58,8 @@ public class AdvertiseManagerTest {
     @Mock
     private GattService.AdvertiserMap mAdvertiserMap;
 
+    @Mock private AdvertiseManagerNativeInterface mNativeInterface;
+
     @Mock
     private IAdvertisingSetCallback mCallback;
 
@@ -74,7 +75,9 @@ public class AdvertiseManagerTest {
 
         TestUtils.setAdapterService(mAdapterService);
 
-        mAdvertiseManager = new AdvertiseManager(mService, mAdapterService, mAdvertiserMap);
+        mAdvertiseManager =
+                new AdvertiseManager(mService, mNativeInterface, mAdapterService, mAdvertiserMap);
+
         AdvertisingSetParameters parameters = new AdvertisingSetParameters.Builder().build();
         AdvertiseData advertiseData = new AdvertiseData.Builder().build();
         AdvertiseData scanResponse = new AdvertiseData.Builder().build();
