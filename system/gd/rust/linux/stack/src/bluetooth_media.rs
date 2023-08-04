@@ -1095,6 +1095,15 @@ impl BluetoothMedia {
         let sleep_duration = (first_conn_ts + total_duration).saturating_duration_since(now_ts);
         sleep(sleep_duration).await;
 
+        Self::async_disconnect(fallback_tasks, device_states, txl, addr).await;
+    }
+
+    async fn async_disconnect(
+        fallback_tasks: &Arc<Mutex<HashMap<RawAddress, Option<(JoinHandle<()>, Instant)>>>>,
+        device_states: &Arc<Mutex<HashMap<RawAddress, DeviceConnectionStates>>>,
+        txl: &Sender<Message>,
+        addr: &RawAddress,
+    ) {
         device_states.lock().unwrap().insert(*addr, DeviceConnectionStates::Disconnecting);
         fallback_tasks.lock().unwrap().insert(*addr, None);
 
@@ -1119,6 +1128,16 @@ impl BluetoothMedia {
         let _ = txl.send(Message::Media(MediaActions::ForceEnterConnected(addr.to_string()))).await;
     }
 
+    fn is_bonded(&self, addr: &RawAddress) -> bool {
+        match &self.adapter {
+            Some(adapter) => {
+                BtBondState::Bonded
+                    == adapter.lock().unwrap().get_bond_state_by_addr(&addr.to_string())
+            }
+            _ => false,
+        }
+    }
+
     fn notify_media_capability_updated(&mut self, addr: RawAddress) {
         let mut guard = self.fallback_tasks.lock().unwrap();
         let mut states = self.device_states.lock().unwrap();
@@ -1135,8 +1154,22 @@ impl BluetoothMedia {
                 guard.insert(addr, None);
             } else {
                 // The device is already added or is disconnecting.
-                // Ignore unless all profiles are cleared.
+                // Ignore unless all profiles are cleared, where we need to do some clean up.
                 if !is_profile_cleared {
+                    // Unbonded device is special, we need to reject the connection from them.
+                    if !self.is_bonded(&addr) {
+                        let tasks = self.fallback_tasks.clone();
+                        let states = self.device_states.clone();
+                        let txl = self.tx.clone();
+                        let task = topstack::get_runtime().spawn(async move {
+                            warn!(
+                                "[{}]: Rejecting an unbonded device's attempt to connect media",
+                                DisplayAddress(&addr)
+                            );
+                            BluetoothMedia::async_disconnect(&tasks, &states, &txl, &addr).await;
+                        });
+                        guard.insert(addr, Some((task, first_conn_ts)));
+                    }
                     return;
                 }
             }
@@ -1222,39 +1255,18 @@ impl BluetoothMedia {
             }
             DeviceConnectionStates::FullyConnected => {
                 // Rejecting the unbonded connection after we finished our profile
-                // reconnectinglogic to avoid a collision.
-                if let Some(adapter) = &self.adapter {
-                    if BtBondState::Bonded
-                        != adapter.lock().unwrap().get_bond_state_by_addr(&addr.to_string())
-                    {
-                        warn!(
-                            "[{}]: Rejecting a unbonded device's attempt to connect to media profiles",
-                            DisplayAddress(&addr));
-                        let fallback_tasks = self.fallback_tasks.clone();
-                        let device_states = self.device_states.clone();
-                        let txl = self.tx.clone();
-                        let task = topstack::get_runtime().spawn(async move {
-                            {
-                                device_states
-                                    .lock()
-                                    .unwrap()
-                                    .insert(addr, DeviceConnectionStates::Disconnecting);
-                                fallback_tasks.lock().unwrap().insert(addr, None);
-                            }
+                // reconnecting logic to avoid a collision.
+                if !self.is_bonded(&addr) {
+                    warn!(
+                        "[{}]: Rejecting a unbonded device's attempt to connect to media profiles",
+                        DisplayAddress(&addr)
+                    );
 
-                            debug!(
-                                "[{}]: Device connection state: {:?}.",
-                                DisplayAddress(&addr),
-                                DeviceConnectionStates::Disconnecting
-                            );
-
-                            let _ = txl
-                                .send(Message::Media(MediaActions::Disconnect(addr.to_string())))
-                                .await;
-                        });
-                        guard.insert(addr, Some((task, first_conn_ts)));
-                        return;
-                    }
+                    let task = topstack::get_runtime().spawn(async move {
+                        BluetoothMedia::async_disconnect(&tasks, &device_states, &txl, &addr).await;
+                    });
+                    guard.insert(addr, Some((task, ts)));
+                    return;
                 }
 
                 let cur_a2dp_caps = self.a2dp_caps.get(&addr);
