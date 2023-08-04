@@ -675,6 +675,7 @@ cc_test {
         "libopus",
         "libosi",
         "libprotobuf-cpp-lite",
+        "libstatslog_bt",
         "libudrv-uipc",
     ],
     whole_static_libs: [
@@ -746,6 +747,7 @@ cc_test {
         "liblog",
         "libosi",
         "libprotobuf-cpp-lite",
+        "libstatslog_bt",
     ],
     target: {
         android: {
@@ -939,6 +941,7 @@ cc_test {
         "liblog",
         "libosi",
         "libosi-AllocationTestHarness",
+        "libstatslog_bt",
     ],
     target: {
         android: {
@@ -1004,6 +1007,7 @@ cc_test {
         "libosi",
         "libosi-AllocationTestHarness",
         "libprotobuf-cpp-lite",
+        "libstatslog_bt",
     ],
     target: {
         android: {
@@ -1217,6 +1221,7 @@ cc_test {
         "libgmock",
         "liblog",
         "libosi",
+        "libstatslog_bt",
     ],
     target: {
         android: {
@@ -1325,6 +1330,7 @@ cc_test {
         "liblog",
         "libosi",
         "libprotobuf-cpp-lite",
+        "libstatslog_bt",
     ],
     target: {
         android: {
@@ -1700,6 +1706,7 @@ cc_test {
         "liblog",
         "libosi",
         "libprotobuf-cpp-lite",
+        "libstatslog_bt",
     ],
     shared_libs: [
         "libbinder_ndk",
@@ -1781,6 +1788,7 @@ cc_test {
         "liblog",
         "libosi",
         "libprotobuf-cpp-lite",
+        "libstatslog_bt",
     ],
     shared_libs: [
         "libbinder_ndk",
@@ -1865,6 +1873,7 @@ cc_test {
         "libgmock",
         "liblog",
         "libosi",
+        "libstatslog_bt",
     ],
     shared_libs: [
         "libbinder_ndk",

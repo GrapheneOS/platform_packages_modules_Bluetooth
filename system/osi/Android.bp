@@ -167,6 +167,7 @@ cc_test {
         "libgmock",
         "libosi",
         "libprotobuf-cpp-lite",
+        "libstatslog_bt",
     ],
     target: {
         android: {
