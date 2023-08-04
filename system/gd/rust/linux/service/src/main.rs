@@ -431,7 +431,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 lazy_static! {
     /// Data needed for signal handling.
-    static ref SIG_DATA: Mutex<Option<(Sender<Message>, Arc<(SigData)>)>> = Mutex::new(None);
+    static ref SIG_DATA: Mutex<Option<(Sender<Message>, Arc<SigData>)>> = Mutex::new(None);
 }
 
 extern "C" fn handle_sigterm(_signum: i32) {
