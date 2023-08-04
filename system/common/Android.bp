@@ -10,7 +10,7 @@ package {
 cc_library_static {
     name: "libbt-common",
     defaults: [
-        "fluoride_basic_defaults",
+        "fluoride_defaults",
     ],
     host_supported: true,
     include_dirs: [
