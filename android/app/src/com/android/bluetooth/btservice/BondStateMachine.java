@@ -250,6 +250,11 @@ final class BondStateMachine extends StateMachine {
                     }
                     break;
                 case SSP_REQUEST:
+                    if (devProp == null) {
+                        errorLog("devProp is null, maybe the device is disconnected");
+                        break;
+                    }
+
                     int passkey = msg.arg1;
                     int variant = msg.arg2;
                     boolean displayPasskey =
@@ -262,6 +267,11 @@ final class BondStateMachine extends StateMachine {
                             variant);
                     break;
                 case PIN_REQUEST:
+                    if (devProp == null) {
+                        errorLog("devProp is null, maybe the device is disconnected");
+                        break;
+                    }
+
                     BluetoothClass btClass = dev.getBluetoothClass();
                     int btDeviceClass = btClass.getDeviceClass();
                     if (btDeviceClass == BluetoothClass.Device.PERIPHERAL_KEYBOARD || btDeviceClass
