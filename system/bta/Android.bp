@@ -9,7 +9,7 @@ package {
 
 cc_defaults {
     name: "fluoride_bta_defaults",
-    defaults: ["fluoride_basic_defaults"],
+    defaults: ["fluoride_defaults"],
     local_include_dirs: [
         "dm",
         "hd",
