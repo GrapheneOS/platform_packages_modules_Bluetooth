@@ -32,7 +32,7 @@ cc_test_library {
 // Bluetooth stack static library for target
 cc_library_static {
     name: "libbt-stack",
-    defaults: ["fluoride_basic_defaults"],
+    defaults: ["fluoride_defaults"],
     local_include_dirs: [
         "avct",
         "avdt",
@@ -169,7 +169,7 @@ filegroup {
 
 cc_library_static {
     name: "libbt-stack-core",
-    defaults: ["fluoride_basic_defaults"],
+    defaults: ["fluoride_defaults"],
     local_include_dirs: [
         "avct",
         "avdt",
