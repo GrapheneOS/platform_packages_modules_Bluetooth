@@ -46,7 +46,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -99,7 +98,7 @@ public class BluetoothKeystoreService {
     private static final int CONFIG_BACKUP_COMPARE_PASS = 0b10;
     private int mCompareResult;
 
-    BluetoothKeystoreNativeInterface mBluetoothKeystoreNativeInterface;
+    private final BluetoothKeystoreNativeInterface mBluetoothKeystoreNativeInterface;
 
     private ComputeDataThread mEncryptDataThread;
     private ComputeDataThread mDecryptDataThread;
@@ -113,8 +112,10 @@ public class BluetoothKeystoreService {
     private Base64.Decoder mDecoder = Base64.getDecoder();
     private Base64.Encoder mEncoder = Base64.getEncoder();
 
-    public BluetoothKeystoreService(boolean isCommonCriteriaMode) {
+    public BluetoothKeystoreService(
+            BluetoothKeystoreNativeInterface nativeInterface, boolean isCommonCriteriaMode) {
         debugLog("new BluetoothKeystoreService isCommonCriteriaMode: " + isCommonCriteriaMode);
+        mBluetoothKeystoreNativeInterface = nativeInterface;
         mIsCommonCriteriaMode = isCommonCriteriaMode;
         mCompareResult = CONFIG_COMPARE_INIT;
         startThread();
@@ -139,13 +140,6 @@ public class BluetoothKeystoreService {
             debugLog("cannot find the keystore.");
             return;
         }
-
-        mBluetoothKeystoreNativeInterface = Objects.requireNonNull(
-                BluetoothKeystoreNativeInterface.getInstance(),
-                "BluetoothKeystoreNativeInterface cannot be null when BluetoothKeystore starts");
-
-        // Mark service as started
-        setBluetoothKeystoreService(this);
 
         try {
             if (!keyStore.containsAlias(KEYALIAS) && mIsCommonCriteriaMode) {
@@ -187,12 +181,9 @@ public class BluetoothKeystoreService {
             debugLog("cleanup() called before start()");
             return;
         }
-        // Mark service as stopped
-        setBluetoothKeystoreService(null);
 
         // Cleanup native interface
         mBluetoothKeystoreNativeInterface.cleanup();
-        mBluetoothKeystoreNativeInterface = null;
 
         if (mIsCommonCriteriaMode) {
             cleanupForCommonCriteriaModeEnable();
@@ -296,35 +287,11 @@ public class BluetoothKeystoreService {
         stopThread();
         startThread();
         // Initialize native interface
-        if (mBluetoothKeystoreNativeInterface != null) {
-            mBluetoothKeystoreNativeInterface.init();
-        }
+        mBluetoothKeystoreNativeInterface.init(this);
     }
 
     private boolean isAvailable() {
         return !mCleaningUp;
-    }
-
-    /**
-     * Get the BluetoothKeystoreService instance
-     */
-    public static synchronized BluetoothKeystoreService getBluetoothKeystoreService() {
-        if (sBluetoothKeystoreService == null) {
-            debugLog("getBluetoothKeystoreService(): service is NULL");
-            return null;
-        }
-
-        if (!sBluetoothKeystoreService.isAvailable()) {
-            debugLog("getBluetoothKeystoreService(): service is not available");
-            return null;
-        }
-        return sBluetoothKeystoreService;
-    }
-
-    private static synchronized void setBluetoothKeystoreService(
-            BluetoothKeystoreService instance) {
-        debugLog("setBluetoothKeystoreService(): set to: " + instance);
-        sBluetoothKeystoreService = instance;
     }
 
     /**
