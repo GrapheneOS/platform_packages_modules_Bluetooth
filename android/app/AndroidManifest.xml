@@ -221,17 +221,6 @@
             </intent-filter>
         </service>
 
-        <!--  Generic Attribute (GATT) Profile Service  -->
-        <service android:process="@string/process"
-             android:name="com.android.bluetooth.gatt.GattService"
-             android:enabled="true"
-             android:exported="true"
-             android:permission="android.permission.ACCESS_BLUETOOTH_SHARE">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothGatt"/>
-            </intent-filter>
-        </service>
-
         <!--  Hearing Aid Profile (HAP) client Profile Service  -->
         <service android:process="@string/process"
              android:name="com.android.bluetooth.hap.HapClientService"
