@@ -682,7 +682,7 @@ ErrorCode LinkLayerController::LeAddDeviceToResolvingList(
   for (auto const& entry : le_resolving_list_) {
     if ((entry.peer_identity_address_type == peer_identity_address_type &&
          entry.peer_identity_address == peer_identity_address) ||
-        entry.peer_irk == peer_irk) {
+        (entry.peer_irk == peer_irk && !irk_is_zero(peer_irk))) {
       INFO(id_, "device is already present in the resolving list");
       return ErrorCode::INVALID_HCI_COMMAND_PARAMETERS;
     }
@@ -2835,6 +2835,10 @@ Address LinkLayerController::generate_rpa(
   rpa.address[2] = p[2];
   INFO("RPA {}", rpa);
   return rpa;
+}
+
+bool LinkLayerController::irk_is_zero(std::array<uint8_t, LinkLayerController::kIrkSize> irk) {
+    return std::all_of(irk.begin(), irk.end(), [](uint8_t b) { return b == 0; });
 }
 
 // Handle legacy advertising PDUs while in the Scanning state.
