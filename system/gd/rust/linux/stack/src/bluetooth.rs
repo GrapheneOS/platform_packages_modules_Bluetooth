@@ -509,7 +509,7 @@ pub struct Bluetooth {
     discoverable_timeout: Option<JoinHandle<()>>,
 
     /// Used to notify signal handler that we have turned off the stack.
-    sig_notifier: Arc<(SigData)>,
+    sig_notifier: Arc<SigData>,
 }
 
 impl Bluetooth {
@@ -518,7 +518,7 @@ impl Bluetooth {
         adapter_index: i32,
         hci_index: i32,
         tx: Sender<Message>,
-        sig_notifier: Arc<(SigData)>,
+        sig_notifier: Arc<SigData>,
         intf: Arc<Mutex<BluetoothInterface>>,
         bluetooth_admin: Arc<Mutex<Box<BluetoothAdmin>>>,
         bluetooth_gatt: Arc<Mutex<Box<BluetoothGatt>>>,
