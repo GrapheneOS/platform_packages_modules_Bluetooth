@@ -284,17 +284,29 @@ public class AdapterService extends Service {
         return sAdapterService;
     }
 
-    private static synchronized void setAdapterService(AdapterService instance) {
-        Log.d(TAG, "setAdapterService() - trying to set service to " + instance);
+    /** Allow test to set an AdapterService to be return by AdapterService.getAdapterService() */
+    @VisibleForTesting
+    public static synchronized void setAdapterService(AdapterService instance) {
         if (instance == null) {
+            Log.e(TAG, "setAdapterService() - instance is null");
             return;
         }
+        Log.d(TAG, "setAdapterService() - set service to " + instance);
         sAdapterService = instance;
     }
 
-    private static synchronized void clearAdapterService(AdapterService current) {
-        if (sAdapterService == current) {
+    /** Clear test Adapter service. See {@code setAdapterService} */
+    @VisibleForTesting
+    public static synchronized void clearAdapterService(AdapterService instance) {
+        if (sAdapterService == instance) {
+            Log.d(TAG, "clearAdapterService() - This adapter was cleared " + instance);
             sAdapterService = null;
+        } else {
+            Log.d(
+                    TAG,
+                    "clearAdapterService() - incorrect cleared adapter."
+                            + (" Instance=" + instance)
+                            + (" vs sAdapterService=" + sAdapterService));
         }
     }
 
