@@ -124,6 +124,7 @@ import com.android.bluetooth.bass_client.BassClientService;
 import com.android.bluetooth.btservice.InteropUtil.InteropFeature;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 import com.android.bluetooth.btservice.activityattribution.ActivityAttributionService;
+import com.android.bluetooth.btservice.bluetoothkeystore.BluetoothKeystoreNativeInterface;
 import com.android.bluetooth.btservice.bluetoothkeystore.BluetoothKeystoreService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.btservice.storage.MetadataDatabase;
@@ -641,7 +642,9 @@ public class AdapterService extends Service {
         mAdapterProperties = new AdapterProperties(this);
         mAdapterStateMachine = new AdapterState(this, mLooper);
         mJniCallbacks = new JniCallbacks(this, mAdapterProperties);
-        mBluetoothKeystoreService = new BluetoothKeystoreService(isCommonCriteriaMode());
+        mBluetoothKeystoreService =
+                new BluetoothKeystoreService(
+                        new BluetoothKeystoreNativeInterface(), isCommonCriteriaMode());
         mBluetoothKeystoreService.start();
         int configCompareResult = mBluetoothKeystoreService.getCompareResult();
 
