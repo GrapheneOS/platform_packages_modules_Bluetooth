@@ -67,6 +67,7 @@ import android.os.Process;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.provider.DeviceConfig;
@@ -113,10 +114,13 @@ class BluetoothManagerService {
     private static final int CRASH_LOG_MAX_SIZE = 100;
 
     private static final int DEFAULT_REBIND_COUNT = 3;
-    private static final int TIMEOUT_BIND_MS = 3000; // Maximum msec to wait for a bind
+    // Maximum msec to wait for a bind
+    private static final int TIMEOUT_BIND_MS =
+        3000 * SystemProperties.getInt("ro.hw_timeout_multiplier", 1);
 
     // Timeout value for synchronous binder call
-    private static final Duration SYNC_CALLS_TIMEOUT = Duration.ofSeconds(3);
+    private static final Duration SYNC_CALLS_TIMEOUT =
+        Duration.ofSeconds(3 * SystemProperties.getInt("ro.hw_timeout_multiplier", 1));
 
     /**
      * @return timeout value for synchronous binder call
@@ -126,15 +130,20 @@ class BluetoothManagerService {
     }
 
     // Maximum msec to wait for service restart
-    private static final int SERVICE_RESTART_TIME_MS = 400;
+    private static final int SERVICE_RESTART_TIME_MS
+        = 400 * SystemProperties.getInt("ro.hw_timeout_multiplier", 1);
     // Maximum msec to wait for restart due to error
-    private static final int ERROR_RESTART_TIME_MS = 3000;
+    private static final int ERROR_RESTART_TIME_MS
+        = 3000 * SystemProperties.getInt("ro.hw_timeout_multiplier", 1);
     // Maximum msec to delay MESSAGE_USER_SWITCHED
-    private static final int USER_SWITCHED_TIME_MS = 200;
+    private static final int USER_SWITCHED_TIME_MS
+        = 200 * SystemProperties.getInt("ro.hw_timeout_multiplier", 1);
     // Delay for the addProxy function in msec
-    private static final int ADD_PROXY_DELAY_MS = 100;
+    private static final int ADD_PROXY_DELAY_MS
+        = 100 * SystemProperties.getInt("ro.hw_timeout_multiplier", 1);
     // Delay for retrying enable and disable in msec
-    private static final int ENABLE_DISABLE_DELAY_MS = 300;
+    private static final int ENABLE_DISABLE_DELAY_MS
+        = 300 * SystemProperties.getInt("ro.hw_timeout_multiplier", 1);
 
     @VisibleForTesting static final int MESSAGE_ENABLE = 1;
     @VisibleForTesting static final int MESSAGE_DISABLE = 2;
