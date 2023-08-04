@@ -39,6 +39,7 @@ import androidx.test.uiautomator.UiDevice;
 import com.android.bluetooth.avrcpcontroller.BluetoothMediaBrowserService;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.gatt.GattService;
 
 import org.junit.Assert;
 import org.junit.rules.TestRule;
@@ -138,6 +139,21 @@ public class TestUtils {
         method.invoke(null, adapterService);
     }
 
+    /** Helper function to mock getSystemService calls */
+    public static <T> void mockGetSystemService(
+            Context ctx, String serviceName, Class<T> serviceClass, T mockService) {
+        when(ctx.getSystemService(eq(serviceName))).thenReturn(mockService);
+        when(ctx.getSystemServiceName(eq(serviceClass))).thenReturn(serviceName);
+    }
+
+    /** Helper function to mock getSystemService calls */
+    public static <T> T mockGetSystemService(
+            Context ctx, String serviceName, Class<T> serviceClass) {
+        T mockedService = mock(serviceClass);
+        mockGetSystemService(ctx, serviceName, serviceClass, mockedService);
+        return mockedService;
+    }
+
     /**
      * Start a profile service using the given {@link ServiceTestRule} and verify through
      * {@link AdapterService#getAdapterService()} that the service is actually started within
@@ -156,6 +172,9 @@ public class TestUtils {
      */
     public static <T extends ProfileService> void startService(ServiceTestRule serviceTestRule,
             Class<T> profileServiceClass) throws TimeoutException {
+        if (profileServiceClass == GattService.class) {
+            Assert.assertFalse("GattService cannot be started as a service", true);
+        }
         AdapterService adapterService = AdapterService.getAdapterService();
         Assert.assertNotNull("Adapter service should not be null", adapterService);
         Assert.assertTrue("AdapterService.getAdapterService() must return a mocked or spied object"

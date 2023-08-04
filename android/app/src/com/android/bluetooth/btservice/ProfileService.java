@@ -18,6 +18,8 @@ package com.android.bluetooth.btservice;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
+import static java.util.Objects.requireNonNull;
+
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
 import android.app.Service;
@@ -180,6 +182,11 @@ public abstract class ProfileService extends Service {
         return mBinder;
     }
 
+    IBinder getBinder() {
+        requireNonNull(mBinder, "Binder is null. onCreate need to be called first");
+        return mBinder;
+    }
+
     @Override
     // Suppressed since this is called from framework
     @SuppressLint("AndroidFrameworkRequiresPermission")
@@ -295,7 +302,7 @@ public abstract class ProfileService extends Service {
                 android.Manifest.permission.MANAGE_USERS,
                 android.Manifest.permission.INTERACT_ACROSS_USERS
             })
-    protected void doStart() {
+    void doStart() {
         Log.v(mName, "doStart");
         if (mAdapter == null) {
             Log.w(mName, "Can't start profile service: device does not have BT");
@@ -321,7 +328,7 @@ public abstract class ProfileService extends Service {
         mAdapterService.onProfileServiceStateChanged(this, BluetoothAdapter.STATE_ON);
     }
 
-    protected void doStop() {
+    void doStop() {
         Log.v(mName, "doStop");
         if (mAdapterService == null || mAdapterService.isStartedProfile(mName)) {
             Log.w(mName, "Unexpectedly do Stop, don't stop.");
