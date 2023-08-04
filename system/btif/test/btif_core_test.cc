@@ -31,6 +31,8 @@
 #include "include/hardware/bluetooth.h"
 #include "include/hardware/bt_av.h"
 #include "test/common/core_interface.h"
+#include "test/mock/mock_main_shim_controller.h"
+#include "test/mock/mock_stack_btm_sec.h"
 #include "types/raw_address.h"
 
 void set_hal_cbacks(bt_callbacks_t* callbacks);
@@ -48,6 +50,8 @@ module_t osi_module;
 module_t rust_module;
 
 namespace {
+
+const RawAddress kRawAddress({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 
 auto timeout_time = std::chrono::seconds(3);
 
@@ -147,8 +151,29 @@ class BtifCoreTest : public ::testing::Test {
   }
 };
 
+namespace {
+controller_t controller = {};
+}
+
+class BtifCoreWithControllerTest : public BtifCoreTest {
+  void SetUp() override {
+    BtifCoreTest::SetUp();
+    controller.supports_sniff_subrating = []() { return true; };
+    bluetooth::testing::controller = &controller;
+    ASSERT_TRUE(controller_get_interface() != nullptr);
+  }
+
+  void TearDown() override {
+    bluetooth::testing::controller = nullptr;
+    controller = {};
+    BtifCoreTest::TearDown();
+  }
+};
+
 std::promise<int> promise0;
 void callback0(int val) { promise0.set_value(val); }
+
+TEST_F(BtifCoreTest, test_nop) {}
 
 TEST_F(BtifCoreTest, test_post_on_bt_simple0) {
   const int val = 123;
@@ -637,4 +662,83 @@ TEST_F(BtifCoreTest, dump_rc_pdu) {
   oss << "Unknown PDU";
   ASSERT_STREQ(oss.str().c_str(),
                dump_rc_pdu(std::numeric_limits<uint8_t>::max()));
+}
+
+void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport,
+                   uint16_t acl_handle);
+
+TEST_F(BtifCoreWithControllerTest, btif_dm_get_connection_state__unconnected) {
+  ASSERT_EQ(0, btif_dm_get_connection_state(kRawAddress));
+}
+
+TEST_F(BtifCoreWithControllerTest,
+       btif_dm_get_connection_state__connected_no_encryption) {
+  bta_dm_acl_up(kRawAddress, BT_TRANSPORT_AUTO, 0x123);
+
+  test::mock::stack_btm_sec::BTM_IsEncrypted.body =
+      [](const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+        switch (transport) {
+          case BT_TRANSPORT_BR_EDR:
+            return false;
+          case BT_TRANSPORT_LE:
+            return false;
+        }
+        return false;
+      };
+  ASSERT_EQ(1, btif_dm_get_connection_state(kRawAddress));
+  test::mock::stack_btm_sec::BTM_IsEncrypted = {};
+}
+
+TEST_F(BtifCoreWithControllerTest,
+       btif_dm_get_connection_state__connected_classic_encryption) {
+  bta_dm_acl_up(kRawAddress, BT_TRANSPORT_AUTO, 0x123);
+
+  test::mock::stack_btm_sec::BTM_IsEncrypted.body =
+      [](const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+        switch (transport) {
+          case BT_TRANSPORT_BR_EDR:
+            return true;
+          case BT_TRANSPORT_LE:
+            return false;
+        }
+        return false;
+      };
+  ASSERT_EQ(3, btif_dm_get_connection_state(kRawAddress));
+  test::mock::stack_btm_sec::BTM_IsEncrypted = {};
+}
+
+TEST_F(BtifCoreWithControllerTest,
+       btif_dm_get_connection_state__connected_le_encryption) {
+  bta_dm_acl_up(kRawAddress, BT_TRANSPORT_AUTO, 0x123);
+
+  test::mock::stack_btm_sec::BTM_IsEncrypted.body =
+      [](const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+        switch (transport) {
+          case BT_TRANSPORT_BR_EDR:
+            return false;
+          case BT_TRANSPORT_LE:
+            return true;
+        }
+        return false;
+      };
+  ASSERT_EQ(5, btif_dm_get_connection_state(kRawAddress));
+  test::mock::stack_btm_sec::BTM_IsEncrypted = {};
+}
+
+TEST_F(BtifCoreWithControllerTest,
+       btif_dm_get_connection_state__connected_both_encryption) {
+  bta_dm_acl_up(kRawAddress, BT_TRANSPORT_AUTO, 0x123);
+
+  test::mock::stack_btm_sec::BTM_IsEncrypted.body =
+      [](const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+        switch (transport) {
+          case BT_TRANSPORT_BR_EDR:
+            return true;
+          case BT_TRANSPORT_LE:
+            return true;
+        }
+        return false;
+      };
+  ASSERT_EQ(7, btif_dm_get_connection_state(kRawAddress));
+  test::mock::stack_btm_sec::BTM_IsEncrypted = {};
 }
