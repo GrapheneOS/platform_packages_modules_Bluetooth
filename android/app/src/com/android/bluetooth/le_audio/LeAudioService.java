@@ -83,6 +83,7 @@ import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -139,6 +140,10 @@ public class LeAudioService extends ProfileService {
     LeAudioTmapGattServer mTmapGattServer;
     int mTmapRoleMask;
     boolean mTmapStarted = false;
+    private boolean mAwaitingBroadcastCreateResponse = false;
+    private final LinkedList<BluetoothLeBroadcastSettings> mCreateBroadcastQueue =
+            new LinkedList<>();
+
 
     @VisibleForTesting
     TbsService mTbsService;
@@ -359,6 +364,9 @@ public class LeAudioService extends ProfileService {
             Log.w(TAG, "stop() called before start()");
             return true;
         }
+
+        mCreateBroadcastQueue.clear();
+        mAwaitingBroadcastCreateResponse = false;
 
         mHandler.removeCallbacks(this::init);
         removeActiveDevice(false);
@@ -809,6 +817,22 @@ public class LeAudioService extends ProfileService {
             return;
         }
 
+        if (mAwaitingBroadcastCreateResponse) {
+            mCreateBroadcastQueue.add(broadcastSettings);
+            Log.i(TAG, "Broadcast creation queued due to waiting for a previous request response.");
+            return;
+        }
+
+        if (getActiveGroupId() != LE_AUDIO_GROUP_ID_INVALID) {
+            /* Broadcast would be created once unicast group became inactive */
+            Log.i(TAG, "Unicast group is active, queueing Broadcast creation, while the Unicast"
+                        + " group is deactivated.");
+            mCreateBroadcastQueue.add(broadcastSettings);
+            removeActiveDevice(true);
+
+            return;
+        }
+
         byte[] broadcastCode = broadcastSettings.getBroadcastCode();
         boolean isEncrypted = (broadcastCode != null) && (broadcastCode.length != 0);
         if (isEncrypted) {
@@ -829,6 +853,8 @@ public class LeAudioService extends ProfileService {
                 broadcastSettings.getPublicBroadcastMetadata();
 
         Log.i(TAG, "createBroadcast: isEncrypted=" + (isEncrypted ? "true" : "false"));
+
+        mAwaitingBroadcastCreateResponse = true;
         mLeAudioBroadcasterNativeInterface.createBroadcast(broadcastSettings.isPublicBroadcast(),
                 broadcastSettings.getBroadcastName(), broadcastCode,
                 publicMetadata == null ? null : publicMetadata.getRawMetadata(),
@@ -2061,6 +2087,11 @@ public class LeAudioService extends ProfileService {
                 }
                 case LeAudioStackEvent.GROUP_STATUS_INACTIVE: {
                     handleGroupTransitToInactive(groupId, false);
+
+                    if (!mCreateBroadcastQueue.isEmpty()) {
+                        BluetoothLeBroadcastSettings settings = mCreateBroadcastQueue.remove();
+                        createBroadcast(settings);
+                    }
                     break;
                 }
                 case LeAudioStackEvent.GROUP_STATUS_TURNED_IDLE_DURING_CALL: {
@@ -2087,9 +2118,18 @@ public class LeAudioService extends ProfileService {
 
                 // Start sending the actual stream
                 startBroadcast(broadcastId);
+
             } else {
                 // TODO: Improve reason reporting or extend the native stack event with reason code
                 notifyBroadcastStartFailed(broadcastId, BluetoothStatusCodes.ERROR_UNKNOWN);
+            }
+
+            mAwaitingBroadcastCreateResponse = false;
+
+            // In case if there were additional calls to create broadcast
+            if (!mCreateBroadcastQueue.isEmpty()) {
+                BluetoothLeBroadcastSettings settings = mCreateBroadcastQueue.remove();
+                createBroadcast(settings);
             }
 
         } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_BROADCAST_DESTROYED) {
