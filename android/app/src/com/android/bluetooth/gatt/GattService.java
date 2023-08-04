@@ -341,7 +341,12 @@ public class GattService extends ProfileService {
         mBluetoothAdapterProxy = BluetoothAdapterProxy.getInstance();
         mCompanionManager = getSystemService(CompanionDeviceManager.class);
         mAppOps = getSystemService(AppOpsManager.class);
-        mAdvertiseManager = new AdvertiseManager(this, mAdapterService, mAdvertiserMap);
+        mAdvertiseManager =
+                new AdvertiseManager(
+                        this,
+                        new AdvertiseManagerNativeInterface(),
+                        mAdapterService,
+                        mAdvertiserMap);
         mAdvertiseManager.start();
 
         mScanManager = GattObjectsFactory.getInstance()

@@ -2682,7 +2682,7 @@ static void stopDistanceMeasurementNative(JNIEnv* env, jobject object,
  * JNI function definitinos
  */
 
-// JNI functions defined in AdvertiseManager class.
+// JNI functions defined in AdvertiseManagerNativeInterface class.
 static JNINativeMethod sAdvertiseMethods[] = {
     {"classInitNative", "()V", (void*)advertiseClassInitNative},
     {"initializeNative", "()V", (void*)advertiseInitializeNative},
@@ -2691,8 +2691,8 @@ static JNINativeMethod sAdvertiseMethods[] = {
      "(Landroid/bluetooth/le/AdvertisingSetParameters;[B[BLandroid/bluetooth/"
      "le/PeriodicAdvertisingParameters;[BIIII)V",
      (void*)startAdvertisingSetNative},
-    {"getOwnAddressNative", "(I)V", (void*)getOwnAddressNative},
     {"stopAdvertisingSetNative", "(I)V", (void*)stopAdvertisingSetNative},
+    {"getOwnAddressNative", "(I)V", (void*)getOwnAddressNative},
     {"enableAdvertisingSetNative", "(IZII)V",
      (void*)enableAdvertisingSetNative},
     {"setAdvertisingDataNative", "(I[B)V", (void*)setAdvertisingDataNative},
@@ -2848,8 +2848,8 @@ int register_com_android_bluetooth_gatt(JNIEnv* env) {
       env, "com/android/bluetooth/gatt/ScanNativeInterface", sScanMethods,
       NELEM(sScanMethods));
   register_success &= jniRegisterNativeMethods(
-      env, "com/android/bluetooth/gatt/AdvertiseManager", sAdvertiseMethods,
-      NELEM(sAdvertiseMethods));
+      env, "com/android/bluetooth/gatt/AdvertiseManagerNativeInterface",
+      sAdvertiseMethods, NELEM(sAdvertiseMethods));
   register_success &= jniRegisterNativeMethods(
       env, "com/android/bluetooth/gatt/PeriodicScanManager",
       sPeriodicScanMethods, NELEM(sPeriodicScanMethods));
