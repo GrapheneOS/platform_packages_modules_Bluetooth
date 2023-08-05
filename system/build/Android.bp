@@ -55,7 +55,6 @@ cc_defaults {
         "libbt_shim_bridge",
         "libbt_shim_ffi",
     ],
-    min_sdk_version: "current",
 }
 
 cc_defaults {
