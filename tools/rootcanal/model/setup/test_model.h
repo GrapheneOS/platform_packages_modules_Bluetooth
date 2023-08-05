@@ -56,8 +56,8 @@ class TestModel {
   TestModel(TestModel& model) = delete;
   TestModel& operator=(const TestModel& model) = delete;
 
-  void SetReuseDeviceIds(bool reuse_device_ids) {
-    reuse_device_ids_ = reuse_device_ids;
+  void SetReuseDeviceAddresses(bool reuse_device_addresses) {
+    reuse_device_addresses_ = reuse_device_addresses;
   }
 
   // Allow derived classes to use custom phy layer.
@@ -66,8 +66,7 @@ class TestModel {
 
   // Allow derived classes to use custom phy devices.
   virtual std::shared_ptr<PhyDevice> CreatePhyDevice(
-      PhyDevice::Identifier id, std::string type,
-      std::shared_ptr<Device> device);
+      std::string type, std::shared_ptr<Device> device);
 
   // Test model commands
 
@@ -110,13 +109,14 @@ class TestModel {
   void Reset();
 
  private:
+  Address GenerateBluetoothAddress() const;
+
   std::map<PhyLayer::Identifier, std::shared_ptr<PhyLayer>> phy_layers_;
   std::map<PhyDevice::Identifier, std::shared_ptr<PhyDevice>> phy_devices_;
   std::string list_string_;
 
   // Generator for device identifiers.
-  PhyDevice::Identifier next_device_id_{0};
-  bool reuse_device_ids_{true};
+  bool reuse_device_addresses_{true};
 
   // Prefix used to generate public device addresses for hosts
   // connecting over TCP.
