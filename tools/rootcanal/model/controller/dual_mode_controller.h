@@ -50,9 +50,6 @@ using ::bluetooth::hci::CommandView;
 // "Hci" to distinguish it as a controller command.
 class DualModeController : public Device {
  public:
-  // Unique instance identifier.
-  const int id_;
-
   DualModeController(ControllerProperties properties = ControllerProperties());
   DualModeController(DualModeController&&) = delete;
   DualModeController(const DualModeController&) = delete;
