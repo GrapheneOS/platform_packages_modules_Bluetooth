@@ -1784,7 +1784,9 @@ void bta_av_getcap_results(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
  *
  ******************************************************************************/
 void bta_av_setconfig_rej(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
-  bta_av_adjust_seps_idx(p_scb, p_scb->avdt_handle);
+  uint8_t avdt_handle = p_data->ci_setconfig.avdt_handle;
+
+  bta_av_adjust_seps_idx(p_scb, avdt_handle);
   LOG_INFO("%s: sep_idx=%d avdt_handle=%d bta_handle=0x%x", __func__,
            p_scb->sep_idx, p_scb->avdt_handle, p_scb->hndl);
   AVDT_ConfigRsp(p_scb->avdt_handle, p_scb->avdt_label, AVDT_ERR_UNSUP_CFG, 0);
@@ -1792,7 +1794,7 @@ void bta_av_setconfig_rej(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   tBTA_AV bta_av_data = {
       .reject =
           {
-              .bd_addr = p_scb->PeerAddress(),
+              .bd_addr = p_data->str_msg.bd_addr,
               .hndl = p_scb->hndl,
           },
   };
