@@ -70,6 +70,7 @@ cc_test {
         "lib-bt-packets-avrcp",
         "lib-bt-packets-base",
         "libbase",
+        "libbluetooth_gd",
         "libbtdevice",
         "libchrome",
         "libcutils",

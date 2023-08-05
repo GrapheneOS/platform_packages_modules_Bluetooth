@@ -53,6 +53,7 @@ cc_test {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbluetooth_gd",
         "libbtcore",
         "libbtdevice",
         "libchrome",
