@@ -30,6 +30,10 @@
         <option name="run-command" value="settings put global ble_scan_always_enabled 0" />
         <option name="run-command" value="cmd bluetooth_manager disable" />
         <option name="run-command" value="cmd bluetooth_manager wait-for-state:STATE_OFF" />
+        <option name="run-command" value="settings put global satellite_mode_radios bluetooth" />
+        <option name="run-command" value="settings put global satellite_mode_enabled 1" />
+        <option name="teardown-command" value="settings delete global satellite_mode_radios" />
+        <option name="teardown-command" value="settings put global satellite_mode_enabled 0" />
         <option name="teardown-command" value="cmd bluetooth_manager enable" />
         <option name="teardown-command" value="cmd bluetooth_manager wait-for-state:STATE_ON" />
         <option name="teardown-command" value="settings put global ble_scan_always_enabled 1" />
