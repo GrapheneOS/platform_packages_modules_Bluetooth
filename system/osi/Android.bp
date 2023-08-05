@@ -159,6 +159,7 @@ cc_test {
         "test",
     ],
     static_libs: [
+        "libbluetooth_gd",
         "libbt-common",
         "libc++fs",
         "libchrome",
