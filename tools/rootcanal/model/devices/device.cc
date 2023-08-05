@@ -22,7 +22,14 @@
 
 namespace rootcanal {
 
-Device::Device() { ASSERT(Address::FromString("BB:BB:BB:BB:BB:AD", address_)); }
+static uint32_t next_instance_id() {
+  static uint32_t instance_counter = 0;
+  return instance_counter++;
+}
+
+Device::Device() : id_(next_instance_id()) {
+  ASSERT(Address::FromString("BB:BB:BB:BB:BB:AD", address_));
+}
 
 std::string Device::ToString() const {
   return GetTypeString() + "@" + address_.ToString();
