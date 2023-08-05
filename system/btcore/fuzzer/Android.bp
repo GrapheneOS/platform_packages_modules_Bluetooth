@@ -51,7 +51,6 @@ cc_defaults {
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/gd/rust/shim",
     ],
     header_libs: [
         "libbluetooth_headers",
