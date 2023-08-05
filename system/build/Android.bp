@@ -48,7 +48,6 @@ cc_defaults {
     generated_headers: [
         "cxx-bridge-header",
     ],
-    include_dirs: ["packages/modules/Bluetooth/system/gd/rust/shim"],
     static_libs: [
         "libbluetooth-types",
         "libbluetooth_rust_interop",
