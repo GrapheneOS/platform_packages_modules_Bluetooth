@@ -131,6 +131,7 @@ cc_library_static {
     static_libs: [
         "avrcp-target-service",
         "lib-bt-packets",
+        "libbluetooth_gd",
         "libbt-bta-core",
         "libcom.android.sysprop.bluetooth",
     ],
@@ -239,6 +240,7 @@ cc_test {
     static_libs: [
         "crypto_toolbox_for_tests",
         "libbluetooth-types",
+        "libbluetooth_gd",
         "libbt-audio-hal-interface",
         "libbt-bta",
         "libbt-bta-core",
@@ -284,6 +286,7 @@ cc_test {
     static_libs: [
         "crypto_toolbox_for_tests",
         "libbluetooth-types",
+        "libbluetooth_gd",
         "libbt-audio-hal-interface",
         "libbt-bta",
         "libbt-bta-core",
@@ -401,6 +404,7 @@ cc_test {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbluetooth_gd",
         "libbt-common",
         "libbtcore",
         "libbtdevice",
@@ -461,6 +465,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth_gd",
         "libbt-common",
         "libchrome",
         "libgmock",
@@ -504,6 +509,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth_gd",
         "libbt-common",
         "libchrome",
         "libgmock",
@@ -558,6 +564,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth_gd",
         "libbt-common",
         "libchrome",
         "libgmock",
@@ -721,6 +728,7 @@ cc_test {
         "liblog", // __android_log_print
     ],
     static_libs: [
+        "libbluetooth_gd",
         "libbt-common",
         "libchrome",
         "libevent",
@@ -791,6 +799,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth_gd",
         "libbt-audio-hal-interface",
         "libbt-common",
         "libchrome",
@@ -854,6 +863,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth_gd",
         "libbt-common",
         "libchrome",
         "libgmock",
@@ -906,6 +916,7 @@ cc_test {
         "liblog",
     ],
     static_libs: [
+        "libbluetooth_gd",
         "libbt-common",
         "libchrome",
         "libgmock",
@@ -1029,6 +1040,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth_gd",
         "libbt-common",
         "libchrome",
         "libgmock",
@@ -1090,6 +1102,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth_gd",
         "libbt-common",
         "libchrome",
         "libcom.android.sysprop.bluetooth",

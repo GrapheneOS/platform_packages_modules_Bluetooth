@@ -57,6 +57,7 @@ cc_library_static {
     ],
     host_supported: true,
     min_sdk_version: "Tiramisu",
+    static_libs: ["libbluetooth_gd"],
 }
 
 cc_library {
@@ -204,6 +205,7 @@ cc_test {
     ],
     static_libs: [
         "libbluetooth-dumpsys",
+        "libbluetooth_gd",
         "libbt-common",
         "libbtdevice",
         "libchrome",
