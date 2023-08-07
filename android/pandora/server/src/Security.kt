@@ -63,7 +63,8 @@ private const val TAG = "PandoraSecurity"
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Security(private val context: Context) : SecurityImplBase(), Closeable {
 
-    private val globalScope: CoroutineScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
+    private val globalScope: CoroutineScope =
+        CoroutineScope(Dispatchers.Default.limitedParallelism(1))
     private val flow: Flow<Intent>
 
     private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
@@ -102,7 +103,9 @@ class Security(private val context: Context) : SecurityImplBase(), Closeable {
         Log.d(TAG, "registering pairingReceiver")
         context.registerReceiver(pairingReceiver, intentFilter)
 
-        flow = intentFlow(context, intentFilter, globalScope).shareIn(globalScope, SharingStarted.Eagerly)
+        flow =
+            intentFlow(context, intentFilter, globalScope)
+                .shareIn(globalScope, SharingStarted.Eagerly)
     }
 
     override fun close() {
@@ -148,13 +151,17 @@ class Security(private val context: Context) : SecurityImplBase(), Closeable {
         }
     }
 
-    suspend fun waitBondIntent(bluetoothDevice: BluetoothDevice): Int =
-        flow
+    suspend fun waitBondIntent(bluetoothDevice: BluetoothDevice): Int {
+        if (bluetoothDevice.getBondState() == BOND_BONDED) {
+            return BOND_BONDED
+        }
+        return flow
             .filter { it.action == BluetoothDevice.ACTION_BOND_STATE_CHANGED }
             .filter { it.getBluetoothDeviceExtra() == bluetoothDevice }
             .map { it.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothAdapter.ERROR) }
             .filter { it == BOND_BONDED || it == BOND_NONE }
             .first()
+    }
 
     suspend fun waitBREDRSecurityLevel(
         bluetoothDevice: BluetoothDevice,
