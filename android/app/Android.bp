@@ -128,6 +128,7 @@ cc_library_shared {
         "libopus",
         "libosi",
         "libprotobuf-cpp-lite",
+        "libstatslog_bt",
         "libudrv-uipc",
         "libutils",
     ],

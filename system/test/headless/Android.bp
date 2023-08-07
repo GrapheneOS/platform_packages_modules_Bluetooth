@@ -112,6 +112,7 @@ cc_binary {
         "libopus",
         "libosi",
         "libprotobuf-cpp-lite",
+        "libstatslog_bt",
         "libudrv-uipc",
         "libz",
     ],
