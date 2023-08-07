@@ -229,6 +229,7 @@ cc_library_static {
         "libaudio-a2dp-hw-utils",
         "libbt-audio-hal-interface",
         "libbt-stack-core",
+        "libstatslog_bt",
     ],
     shared_libs: [
         "libcrypto",
@@ -304,6 +305,7 @@ cc_test {
         "libopus",
         "libosi",
         "libprotobuf-cpp-lite",
+        "libstatslog_bt",
         "libudrv-uipc",
     ],
     whole_static_libs: [
@@ -611,6 +613,7 @@ cc_test {
         "libcom.android.sysprop.bluetooth",
         "libevent",
         "libgmock",
+        "libstatslog_bt",
     ],
     cflags: ["-DBUILDCFG"],
     target: {
@@ -743,6 +746,7 @@ cc_test {
         "libcom.android.sysprop.bluetooth",
         "libevent",
         "libgmock",
+        "libstatslog_bt",
     ],
     cflags: ["-DBUILDCFG"],
     target: {
