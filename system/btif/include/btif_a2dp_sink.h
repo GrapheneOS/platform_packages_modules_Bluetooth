@@ -138,4 +138,7 @@ void btif_a2dp_sink_set_focus_state_req(btif_a2dp_sink_focus_state_t state);
 // |gain| is the audio track gain value to use.
 void btif_a2dp_sink_set_audio_track_gain(float gain);
 
+// Get audio track handle
+void * btif_a2dp_sink_get_audio_track(void);
+
 #endif /* BTIF_A2DP_SINK_H */
