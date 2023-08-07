@@ -105,6 +105,7 @@ import android.provider.DeviceConfig;
 import android.provider.Settings;
 import android.sysprop.BluetoothProperties;
 import android.text.TextUtils;
+import android.util.ArrayMap;
 import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
@@ -333,7 +334,8 @@ public class AdapterService extends Service {
     private final Map<Integer, PendingAudioProfilePreferenceRequest>
             mCsipGroupsPendingAudioProfileChanges = new HashMap<>();
     // Only BluetoothManagerService should be registered
-    private RemoteCallbackList<IBluetoothCallback> mCallbacks;
+    private RemoteCallbackList<IBluetoothCallback> mRemoteCallbacks;
+    private final Map<BluetoothStateCallback, Executor> mLocalCallbacks = new ArrayMap<>();
     private int mCurrentRequestId;
     private boolean mQuietmode = false;
     private HashMap<String, CallerInfo> mBondAttemptCallerInfo = new HashMap<>();
@@ -650,7 +652,7 @@ public class AdapterService extends Service {
                 new RemoteCallbackList<IBluetoothPreferredAudioProfilesCallback>();
         mBluetoothQualityReportReadyCallbacks =
                 new RemoteCallbackList<IBluetoothQualityReportReadyCallback>();
-        mCallbacks = new RemoteCallbackList<IBluetoothCallback>();
+        mRemoteCallbacks = new RemoteCallbackList<IBluetoothCallback>();
         // Load the name and address
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDADDR);
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDNAME);
@@ -1047,8 +1049,15 @@ public class AdapterService extends Service {
     void updateAdapterState(int prevState, int newState) {
         mAdapterProperties.setState(newState);
         invalidateBluetoothGetStateCache();
-        if (mCallbacks != null) {
-            int n = mCallbacks.beginBroadcast();
+
+        synchronized (mLocalCallbacks) {
+            for (Map.Entry<BluetoothStateCallback, Executor> e : mLocalCallbacks.entrySet()) {
+                e.getValue().execute(() -> e.getKey().onBluetoothStateChange(prevState, newState));
+            }
+        }
+
+        if (mRemoteCallbacks != null) {
+            int n = mRemoteCallbacks.beginBroadcast();
             debugLog(
                     "updateAdapterState() - Broadcasting state "
                             + BluetoothAdapter.nameForState(newState)
@@ -1057,12 +1066,14 @@ public class AdapterService extends Service {
                             + " receivers.");
             for (int i = 0; i < n; i++) {
                 try {
-                    mCallbacks.getBroadcastItem(i).onBluetoothStateChange(prevState, newState);
+                    mRemoteCallbacks
+                            .getBroadcastItem(i)
+                            .onBluetoothStateChange(prevState, newState);
                 } catch (RemoteException e) {
                     debugLog("updateAdapterState() - Callback #" + i + " failed (" + e + ")");
                 }
             }
-            mCallbacks.finishBroadcast();
+            mRemoteCallbacks.finishBroadcast();
         }
 
         // Turn the Adapter all the way off if we are disabling and the snoop log setting changed.
@@ -1358,8 +1369,8 @@ public class AdapterService extends Service {
             mBluetoothQualityReportReadyCallbacks.kill();
         }
 
-        if (mCallbacks != null) {
-            mCallbacks.kill();
+        if (mRemoteCallbacks != null) {
+            mRemoteCallbacks.kill();
         }
     }
 
@@ -4081,7 +4092,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            service.registerCallback(callback);
+            service.registerRemoteCallback(callback);
         }
 
         @Override
@@ -4106,7 +4117,7 @@ public class AdapterService extends Service {
         private void unregisterCallback(IBluetoothCallback callback, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || service.mCallbacks == null
+                    || service.mRemoteCallbacks == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "unregisterCallback")
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return;
@@ -4114,7 +4125,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            service.unregisterCallback(callback);
+            service.unregisterRemoteCallback(callback);
         }
 
         @Override
@@ -6708,14 +6719,28 @@ public class AdapterService extends Service {
         return mAdapterProperties.isA2dpOffloadEnabled();
     }
 
-    @VisibleForTesting
-    void registerCallback(IBluetoothCallback callback) {
-        mCallbacks.register(callback);
+    /** Register a bluetooth state callback */
+    public void registerBluetoothStateCallback(Executor executor, BluetoothStateCallback callback) {
+        synchronized (mLocalCallbacks) {
+            mLocalCallbacks.put(callback, executor);
+        }
+    }
+
+    /** Unregister a bluetooth state callback */
+    public void unregisterBluetoothStateCallback(BluetoothStateCallback callback) {
+        synchronized (mLocalCallbacks) {
+            mLocalCallbacks.remove(callback);
+        }
     }
 
     @VisibleForTesting
-    void unregisterCallback(IBluetoothCallback callback) {
-        mCallbacks.unregister(callback);
+    void registerRemoteCallback(IBluetoothCallback callback) {
+        mRemoteCallbacks.register(callback);
+    }
+
+    @VisibleForTesting
+    void unregisterRemoteCallback(IBluetoothCallback callback) {
+        mRemoteCallbacks.unregister(callback);
     }
 
     @VisibleForTesting
@@ -7440,6 +7465,17 @@ public class AdapterService extends Service {
                 }
             }
         }
+    }
+
+    /** A callback that will be called when AdapterState is changed */
+    public interface BluetoothStateCallback {
+        /**
+         * Called when the status of bluetooth adapter is changing
+         *
+         * @param prevState the previous Bluetooth state.
+         * @param newState the new Bluetooth state.
+         */
+        void onBluetoothStateChange(int prevState, int newState);
     }
 
     /**
