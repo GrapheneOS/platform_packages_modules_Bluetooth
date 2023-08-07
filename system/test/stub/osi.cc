@@ -28,7 +28,6 @@
 
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
-#include "osi/include/buffer.h"
 #include "osi/include/config.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/future.h"
@@ -400,24 +399,6 @@ void alarm_set_on_mloop(alarm_t* alarm, uint64_t interval_ms,
 int osi_rand(void) {
   inc_func_call_count(__func__);
   return 0;
-}
-
-buffer_t* buffer_new_ref(const buffer_t* buf) {
-  inc_func_call_count(__func__);
-  return nullptr;
-}
-buffer_t* buffer_new_slice(const buffer_t* buf, size_t slice_size) {
-  inc_func_call_count(__func__);
-  return nullptr;
-}
-size_t buffer_length(const buffer_t* buf) {
-  inc_func_call_count(__func__);
-  return 0;
-}
-void buffer_free(buffer_t* buffer) { inc_func_call_count(__func__); }
-void* buffer_ptr(const buffer_t* buf) {
-  inc_func_call_count(__func__);
-  return nullptr;
 }
 
 bool socket_listen(const socket_t* socket, port_t port) {
