@@ -253,8 +253,8 @@ static bool IsCodecConfigurationSupported(const types::LeAudioLtvMap& pacs,
   uint16_t u16_req_val, u16_pac_val;
 
   /* Sampling frequency */
-  auto req = reqs.Find(codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq);
-  auto pac = pacs.Find(codec_spec_caps::kLeAudioCodecLC3TypeSamplingFreq);
+  auto req = reqs.Find(codec_spec_conf::kLeAudioLtvTypeSamplingFreq);
+  auto pac = pacs.Find(codec_spec_caps::kLeAudioLtvTypeSamplingFreq);
   if (!req || !pac) {
     LOG_DEBUG(", lack of sampling frequency fields");
     return false;
@@ -287,8 +287,8 @@ static bool IsCodecConfigurationSupported(const types::LeAudioLtvMap& pacs,
   }
 
   /* Frame duration */
-  req = reqs.Find(codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration);
-  pac = pacs.Find(codec_spec_caps::kLeAudioCodecLC3TypeFrameDuration);
+  req = reqs.Find(codec_spec_conf::kLeAudioLtvTypeFrameDuration);
+  pac = pacs.Find(codec_spec_caps::kLeAudioLtvTypeFrameDuration);
   if (!req || !pac) {
     LOG_DEBUG(", lack of frame duration fields");
     return false;
@@ -297,8 +297,8 @@ static bool IsCodecConfigurationSupported(const types::LeAudioLtvMap& pacs,
   u8_req_val = VEC_UINT8_TO_UINT8(req.value());
   u8_pac_val = VEC_UINT8_TO_UINT8(pac.value());
 
-  if ((u8_req_val != codec_spec_conf::kLeAudioCodecLC3FrameDur7500us &&
-       u8_req_val != codec_spec_conf::kLeAudioCodecLC3FrameDur10000us) ||
+  if ((u8_req_val != codec_spec_conf::kLeAudioCodecFrameDur7500us &&
+       u8_req_val != codec_spec_conf::kLeAudioCodecFrameDur10000us) ||
       !(u8_pac_val &
         (codec_spec_caps::FrameDurationConfig2Capability(u8_req_val)))) {
     LOG_DEBUG(" Req:FrameDur=0x%04x", u8_req_val);
@@ -308,7 +308,7 @@ static bool IsCodecConfigurationSupported(const types::LeAudioLtvMap& pacs,
   }
 
   uint8_t required_audio_chan_num = lc3_config.GetChannelCount();
-  pac = pacs.Find(codec_spec_caps::kLeAudioCodecLC3TypeAudioChannelCounts);
+  pac = pacs.Find(codec_spec_caps::kLeAudioLtvTypeAudioChannelCounts);
 
   /*
    * BAP_Validation_r07 1.9.2 Audio channel support requirements
@@ -334,8 +334,8 @@ static bool IsCodecConfigurationSupported(const types::LeAudioLtvMap& pacs,
   }
 
   /* Octets per frame */
-  req = reqs.Find(codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame);
-  pac = pacs.Find(codec_spec_caps::kLeAudioCodecLC3TypeOctetPerFrame);
+  req = reqs.Find(codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame);
+  pac = pacs.Find(codec_spec_caps::kLeAudioLtvTypeOctetsPerCodecFrame);
 
   if (!req || !pac) {
     LOG_DEBUG(", lack of octet per frame fields");
@@ -446,22 +446,22 @@ const std::map<uint8_t, uint32_t> LeAudioLc3Config::sampling_freq_map = {
 
 /* Helper map for matching various frame durations notations */
 const std::map<uint8_t, uint32_t> LeAudioLc3Config::frame_duration_map = {
-    {codec_spec_conf::kLeAudioCodecLC3FrameDur7500us,
+    {codec_spec_conf::kLeAudioCodecFrameDur7500us,
      LeAudioCodecConfiguration::kInterval7500Us},
-    {codec_spec_conf::kLeAudioCodecLC3FrameDur10000us,
+    {codec_spec_conf::kLeAudioCodecFrameDur10000us,
      LeAudioCodecConfiguration::kInterval10000Us}};
 
 std::string CapabilityTypeToStr(const uint8_t& type) {
   switch (type) {
-    case codec_spec_caps::kLeAudioCodecLC3TypeSamplingFreq:
+    case codec_spec_caps::kLeAudioLtvTypeSamplingFreq:
       return "Supported Sampling Frequencies";
-    case codec_spec_caps::kLeAudioCodecLC3TypeFrameDuration:
+    case codec_spec_caps::kLeAudioLtvTypeFrameDuration:
       return "Supported Frame Durations";
-    case codec_spec_caps::kLeAudioCodecLC3TypeAudioChannelCounts:
+    case codec_spec_caps::kLeAudioLtvTypeAudioChannelCounts:
       return "Supported Audio Channel Count";
-    case codec_spec_caps::kLeAudioCodecLC3TypeOctetPerFrame:
+    case codec_spec_caps::kLeAudioLtvTypeOctetsPerCodecFrame:
       return "Supported Octets Per Codec Frame";
-    case codec_spec_caps::kLeAudioCodecLC3TypeMaxCodecFramesPerSdu:
+    case codec_spec_caps::kLeAudioLtvTypeMaxCodecFramesPerSdu:
       return "Supported Max Codec Frames Per SDU";
     default:
       return "Unknown";
@@ -473,7 +473,7 @@ std::string CapabilityValueToStr(const uint8_t& type,
   std::string string = "";
 
   switch (type) {
-    case codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq: {
+    case codec_spec_conf::kLeAudioLtvTypeSamplingFreq: {
       if (value.size() != 2) {
         return "Invalid size";
       }
@@ -522,66 +522,66 @@ std::string CapabilityValueToStr(const uint8_t& type,
 
       return string += " [kHz]\n";
     }
-    case codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration: {
+    case codec_spec_conf::kLeAudioLtvTypeFrameDuration: {
       if (value.size() != 1) {
         return "Invalid size";
       }
 
       uint8_t u8_val = VEC_UINT8_TO_UINT8(value);
 
-      if (u8_val & codec_spec_caps::kLeAudioCodecLC3FrameDur7500us) {
+      if (u8_val & codec_spec_caps::kLeAudioCodecFrameDur7500us) {
         string += "7.5";
       }
-      if (u8_val & codec_spec_caps::kLeAudioCodecLC3FrameDur10000us) {
+      if (u8_val & codec_spec_caps::kLeAudioCodecFrameDur10000us) {
         string += std::string((string.empty() ? "" : "|")) + "10";
       }
-      if (u8_val & codec_spec_caps::kLeAudioCodecLC3FrameDurPrefer7500us) {
+      if (u8_val & codec_spec_caps::kLeAudioCodecFrameDurPrefer7500us) {
         string += std::string((string.empty() ? "" : "|")) + "7.5 preferred";
       }
-      if (u8_val & codec_spec_caps::kLeAudioCodecLC3FrameDurPrefer10000us) {
+      if (u8_val & codec_spec_caps::kLeAudioCodecFrameDurPrefer10000us) {
         string += std::string((string.empty() ? "" : "|")) + "10 preferred";
       }
 
       return string += " [ms]\n";
     }
-    case codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation: {
+    case codec_spec_conf::kLeAudioLtvTypeAudioChannelAllocation: {
       if (value.size() != 1) {
         return "Invalid size";
       }
 
       uint8_t u8_val = VEC_UINT8_TO_UINT8(value);
 
-      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountNone) {
+      if (u8_val & codec_spec_caps::kLeAudioCodecChannelCountNone) {
         string += "0";
       }
-      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel) {
+      if (u8_val & codec_spec_caps::kLeAudioCodecChannelCountSingleChannel) {
         string += std::string((string.empty() ? "" : "|")) + "1";
       }
-      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountTwoChannel) {
+      if (u8_val & codec_spec_caps::kLeAudioCodecChannelCountTwoChannel) {
         string += std::string((string.empty() ? "" : "|")) + "2";
       }
-      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountThreeChannel) {
+      if (u8_val & codec_spec_caps::kLeAudioCodecChannelCountThreeChannel) {
         string += std::string((string.empty() ? "" : "|")) + "3";
       }
-      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountFourChannel) {
+      if (u8_val & codec_spec_caps::kLeAudioCodecChannelCountFourChannel) {
         string += std::string((string.empty() ? "" : "|")) + "4";
       }
-      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountFiveChannel) {
+      if (u8_val & codec_spec_caps::kLeAudioCodecChannelCountFiveChannel) {
         string += std::string((string.empty() ? "" : "|")) + "5";
       }
-      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountSixChannel) {
+      if (u8_val & codec_spec_caps::kLeAudioCodecChannelCountSixChannel) {
         string += std::string((string.empty() ? "" : "|")) + "6";
       }
-      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountSevenChannel) {
+      if (u8_val & codec_spec_caps::kLeAudioCodecChannelCountSevenChannel) {
         string += std::string((string.empty() ? "" : "|")) + "7";
       }
-      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountEightChannel) {
+      if (u8_val & codec_spec_caps::kLeAudioCodecChannelCountEightChannel) {
         string += std::string((string.empty() ? "" : "|")) + "8";
       }
 
       return string += " channel/s\n";
     }
-    case codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame: {
+    case codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame: {
       if (value.size() != 4) {
         return "Invalid size";
       }
@@ -595,7 +595,7 @@ std::string CapabilityValueToStr(const uint8_t& type,
 
       return string;
     }
-    case codec_spec_conf::kLeAudioCodecLC3TypeCodecFrameBlocksPerSdu: {
+    case codec_spec_conf::kLeAudioLtvTypeCodecFrameBlocksPerSdu: {
       if (value.size() != 1) {
         return "Invalid size";
       }
@@ -763,7 +763,7 @@ void AppendMetadataLtvEntryForStreamingContext(
 
 uint8_t GetMaxCodecFramesPerSduFromPac(const acs_ac_record* pac) {
   auto tlv_ent = pac->codec_spec_caps.Find(
-      codec_spec_caps::kLeAudioCodecLC3TypeMaxCodecFramesPerSdu);
+      codec_spec_caps::kLeAudioLtvTypeMaxCodecFramesPerSdu);
 
   if (tlv_ent) return VEC_UINT8_TO_UINT8(tlv_ent.value());
 

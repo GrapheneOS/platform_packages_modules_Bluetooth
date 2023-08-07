@@ -38,8 +38,8 @@
 #include "types/bt_transport.h"
 
 using ::le_audio::DeviceConnectState;
-using ::le_audio::codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel;
-using ::le_audio::codec_spec_caps::kLeAudioCodecLC3ChannelCountTwoChannel;
+using ::le_audio::codec_spec_caps::kLeAudioCodecChannelCountSingleChannel;
+using ::le_audio::codec_spec_caps::kLeAudioCodecChannelCountTwoChannel;
 using ::le_audio::types::LeAudioContextType;
 using ::testing::_;
 using ::testing::AnyNumber;
@@ -174,7 +174,7 @@ class StateMachineTestBase : public Test {
   uint8_t ase_id_last_assigned = types::ase::kAseIdInvalid;
   uint8_t additional_snk_ases = 0;
   uint8_t additional_src_ases = 0;
-  uint8_t channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel;
+  uint8_t channel_count_ = kLeAudioCodecChannelCountSingleChannel;
   uint16_t sample_freq_ = codec_specific::kCapSamplingFrequency16000Hz;
 
   /* Use to simulated error status on Cis creation */
@@ -1328,8 +1328,8 @@ TEST_F(StateMachineTest, testConfigureCodecSingle) {
    */
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 2;
-  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
-                   kLeAudioCodecLC3ChannelCountTwoChannel;
+  channel_count_ = kLeAudioCodecChannelCountSingleChannel |
+                   kLeAudioCodecChannelCountTwoChannel;
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
@@ -1560,8 +1560,8 @@ TEST_F(StateMachineTest, testStreamCreationError) {
    */
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
-  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
-                   kLeAudioCodecLC3ChannelCountTwoChannel;
+  channel_count_ = kLeAudioCodecChannelCountSingleChannel |
+                   kLeAudioCodecChannelCountTwoChannel;
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
@@ -1625,8 +1625,8 @@ TEST_F(StateMachineTest, testStreamSingle) {
    */
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
-  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
-                   kLeAudioCodecLC3ChannelCountTwoChannel;
+  channel_count_ = kLeAudioCodecChannelCountSingleChannel |
+                   kLeAudioCodecChannelCountTwoChannel;
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
@@ -2549,8 +2549,8 @@ TEST_F(StateMachineTest, testReleaseSingle) {
    */
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
-  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
-                   kLeAudioCodecLC3ChannelCountTwoChannel;
+  channel_count_ = kLeAudioCodecChannelCountSingleChannel |
+                   kLeAudioCodecChannelCountTwoChannel;
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
@@ -2613,8 +2613,8 @@ TEST_F(StateMachineTest, testReleaseCachingSingle) {
    */
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
-  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
-                   kLeAudioCodecLC3ChannelCountTwoChannel;
+  channel_count_ = kLeAudioCodecChannelCountSingleChannel |
+                   kLeAudioCodecChannelCountTwoChannel;
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
@@ -2686,8 +2686,8 @@ TEST_F(StateMachineTest,
        testStreamCaching_NoReconfigurationNeeded_SingleDevice) {
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
-  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
-                   kLeAudioCodecLC3ChannelCountTwoChannel;
+  channel_count_ = kLeAudioCodecChannelCountSingleChannel |
+                   kLeAudioCodecChannelCountTwoChannel;
 
   additional_snk_ases = 2;
   // Prepare fake connected device group
@@ -2783,8 +2783,8 @@ TEST_F(StateMachineTest,
        test_StreamCaching_ReconfigureForContextChange_SingleDevice) {
   auto context_type = kContextTypeConversational;
   const int leaudio_group_id = 4;
-  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
-                   kLeAudioCodecLC3ChannelCountTwoChannel;
+  channel_count_ = kLeAudioCodecChannelCountSingleChannel |
+                   kLeAudioCodecChannelCountTwoChannel;
 
   additional_snk_ases = 2;
   /* Prepare fake connected device group with update of Media and Conversational
@@ -3358,8 +3358,8 @@ TEST_F(StateMachineTest, testAseAutonomousRelease2Devices) {
 TEST_F(StateMachineTest, testStateTransitionTimeoutOnIdleState) {
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
-  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
-                   kLeAudioCodecLC3ChannelCountTwoChannel;
+  channel_count_ = kLeAudioCodecChannelCountSingleChannel |
+                   kLeAudioCodecChannelCountTwoChannel;
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
@@ -3415,8 +3415,8 @@ TEST_F(StateMachineTest, testStateIdleNotifyAclDisconnectedRemoveCig) {
 TEST_F(StateMachineTest, testStateTransitionTimeout) {
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
-  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
-                   kLeAudioCodecLC3ChannelCountTwoChannel;
+  channel_count_ = kLeAudioCodecChannelCountSingleChannel |
+                   kLeAudioCodecChannelCountTwoChannel;
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
@@ -3452,8 +3452,8 @@ MATCHER_P(dataPathIsEq, expected, "") { return (arg.data_path_id == expected); }
 TEST_F(StateMachineTest, testConfigureDataPathForHost) {
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
-  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
-                   kLeAudioCodecLC3ChannelCountTwoChannel;
+  channel_count_ = kLeAudioCodecChannelCountSingleChannel |
+                   kLeAudioCodecChannelCountTwoChannel;
 
   /* Can be called for every context when fetching the configuration from the
    * AudioSetConfigurationProvider.
@@ -3488,8 +3488,8 @@ TEST_F(StateMachineTest, testConfigureDataPathForHost) {
 TEST_F(StateMachineTestAdsp, testConfigureDataPathForAdsp) {
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
-  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
-                   kLeAudioCodecLC3ChannelCountTwoChannel;
+  channel_count_ = kLeAudioCodecChannelCountSingleChannel |
+                   kLeAudioCodecChannelCountTwoChannel;
 
   /* Can be called for every context when fetching the configuration from the
    * AudioSetConfigurationProvider.
@@ -4320,8 +4320,8 @@ TEST_F(StateMachineTest, BoundedHeadphonesConversationalToMediaChannelCount_2) {
   const auto new_context_type = kContextTypeMedia;
   const auto leaudio_group_id = 6;
   const auto num_devices = 1;
-  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
-                   kLeAudioCodecLC3ChannelCountTwoChannel;
+  channel_count_ = kLeAudioCodecChannelCountSingleChannel |
+                   kLeAudioCodecChannelCountTwoChannel;
 
   sample_freq_ |= codec_specific::kCapSamplingFrequency48000Hz |
                   codec_specific::kCapSamplingFrequency32000Hz;
@@ -4416,7 +4416,7 @@ TEST_F(StateMachineTest, BoundedHeadphonesConversationalToMediaChannelCount_1) {
   const auto new_context_type = kContextTypeMedia;
   const auto leaudio_group_id = 6;
   const auto num_devices = 1;
-  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel;
+  channel_count_ = kLeAudioCodecChannelCountSingleChannel;
 
   sample_freq_ |= codec_specific::kCapSamplingFrequency48000Hz |
                   codec_specific::kCapSamplingFrequency32000Hz;
@@ -4995,8 +4995,8 @@ TEST_F(StateMachineTest, VerifyThereIsNoDoubleDataPathRemoval) {
   const auto num_devices = 1;
 
   /* Symulate banded headphonse */
-  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
-                   kLeAudioCodecLC3ChannelCountTwoChannel;
+  channel_count_ = kLeAudioCodecChannelCountSingleChannel |
+                   kLeAudioCodecChannelCountTwoChannel;
 
   /* Scenario
   1. Phone call to 1 device

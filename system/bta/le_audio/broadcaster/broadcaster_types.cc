@@ -332,9 +332,9 @@ const std::map<uint32_t, uint8_t> sample_rate_to_sampling_freq_map = {
 
 const std::map<uint32_t, uint8_t> data_interval_ms_to_frame_duration = {
     {LeAudioCodecConfiguration::kInterval7500Us,
-     codec_spec_conf::kLeAudioCodecLC3FrameDur7500us},
+     codec_spec_conf::kLeAudioCodecFrameDur7500us},
     {LeAudioCodecConfiguration::kInterval10000Us,
-     codec_spec_conf::kLeAudioCodecLC3FrameDur10000us},
+     codec_spec_conf::kLeAudioCodecFrameDur10000us},
 };
 
 types::LeAudioLtvMap BroadcastCodecWrapper::GetBisCodecSpecData(
@@ -345,11 +345,11 @@ types::LeAudioLtvMap BroadcastCodecWrapper::GetBisCodecSpecData(
   switch (bis_idx) {
     case 1:
       return types::LeAudioLtvMap(
-          {{codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation,
+          {{codec_spec_conf::kLeAudioLtvTypeAudioChannelAllocation,
             UINT32_TO_VEC_UINT8(codec_spec_conf::kLeAudioLocationFrontLeft)}});
     case 2:
       return types::LeAudioLtvMap(
-          {{codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation,
+          {{codec_spec_conf::kLeAudioLtvTypeAudioChannelAllocation,
             UINT32_TO_VEC_UINT8(codec_spec_conf::kLeAudioLocationFrontRight)}});
       break;
     default:
@@ -366,23 +366,22 @@ types::LeAudioLtvMap BroadcastCodecWrapper::GetSubgroupCodecSpecData() const {
       << "Invalid data_interval";
 
   std::map<uint8_t, std::vector<uint8_t>> codec_spec_ltvs = {
-      {codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq,
+      {codec_spec_conf::kLeAudioLtvTypeSamplingFreq,
        UINT8_TO_VEC_UINT8(sample_rate_to_sampling_freq_map.at(
            source_codec_config.sample_rate))},
-      {codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration,
+      {codec_spec_conf::kLeAudioLtvTypeFrameDuration,
        UINT8_TO_VEC_UINT8(data_interval_ms_to_frame_duration.at(
            source_codec_config.data_interval_us))},
   };
 
   if (codec_id.coding_format == kLeAudioCodecIdLc3.coding_format) {
-    codec_spec_ltvs[codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame] =
+    codec_spec_ltvs[codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame] =
         UINT16_TO_VEC_UINT8(codec_frame_len);
   }
 
   if (source_codec_config.num_channels == 1) {
-    codec_spec_ltvs
-        [codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation] =
-            UINT32_TO_VEC_UINT8(codec_spec_conf::kLeAudioLocationFrontCenter);
+    codec_spec_ltvs[codec_spec_conf::kLeAudioLtvTypeAudioChannelAllocation] =
+        UINT32_TO_VEC_UINT8(codec_spec_conf::kLeAudioLocationFrontCenter);
   }
 
   return types::LeAudioLtvMap(codec_spec_ltvs);
