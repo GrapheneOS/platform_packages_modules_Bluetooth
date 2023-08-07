@@ -36,12 +36,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothDevicePicker;
 import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.database.CharArrayBuffer;
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -72,11 +70,11 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Performs the background Bluetooth OPP transfer. It also starts thread to
- * accept incoming OPP connection.
+ * Performs the background Bluetooth OPP transfer. It also starts thread to accept incoming OPP
+ * connection.
  */
-
-public class BluetoothOppService extends ProfileService implements IObexConnectionHandler {
+public class BluetoothOppService extends ProfileService
+        implements IObexConnectionHandler, AdapterService.BluetoothStateCallback {
     private static final boolean D = Constants.DEBUG;
     private static final boolean V = Constants.VERBOSE;
 
@@ -229,10 +227,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         mBatches = new ArrayList();
         mBatchId = 1;
 
-        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
-        registerReceiver(mBluetoothReceiver, filter);
-
         if (V) {
             BluetoothOppPreference preference = BluetoothOppPreference.getInstance(this);
             if (preference != null) {
@@ -265,6 +259,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         }.start();
 
         mAdapterService = AdapterService.getAdapterService();
+        mAdapterService.registerBluetoothStateCallback((command) -> mHandler.post(command), this);
         mObserver = new BluetoothShareContentObserver();
         getContentResolver().registerContentObserver(BluetoothShare.CONTENT_URI, true, mObserver);
         mNotifier = new BluetoothOppNotification(this);
@@ -283,6 +278,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
             Log.w(TAG, "stop() called before start()");
             return true;
         }
+        mAdapterService.unregisterBluetoothStateCallback(this);
         mAdapterService.notifyActivityAttributionInfo(
                 getAttributionSource(),
                 AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
@@ -545,13 +541,51 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         }
     }
 
+    @Override
+    public void onBluetoothStateChange(int prevState, int newState) {
+        switch (newState) {
+            case BluetoothAdapter.STATE_ON:
+                if (V) {
+                    Log.v(TAG, "Bluetooth state changed: STATE_ON");
+                }
+                startListener();
+                // If this is within a sending process, continue the handle
+                // logic to display device picker dialog.
+                synchronized (this) {
+                    if (BluetoothOppManager.getInstance(this).mSendingFlag) {
+                        // reset the flags
+                        BluetoothOppManager.getInstance(this).mSendingFlag = false;
+
+                        Intent in1 = new Intent(BluetoothDevicePicker.ACTION_LAUNCH);
+                        in1.putExtra(BluetoothDevicePicker.EXTRA_NEED_AUTH, false);
+                        in1.putExtra(
+                                BluetoothDevicePicker.EXTRA_FILTER_TYPE,
+                                BluetoothDevicePicker.FILTER_TYPE_TRANSFER);
+                        in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_PACKAGE, getPackageName());
+                        in1.putExtra(
+                                BluetoothDevicePicker.EXTRA_LAUNCH_CLASS,
+                                BluetoothOppReceiver.class.getName());
+
+                        in1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(in1);
+                    }
+                }
+                break;
+            case BluetoothAdapter.STATE_TURNING_OFF:
+                if (V) {
+                    Log.v(TAG, "Bluetooth state changed: STATE_TURNING_OFF");
+                }
+                mHandler.sendMessage(mHandler.obtainMessage(STOP_LISTENER));
+                break;
+        }
+    }
+
     private void unregisterReceivers() {
         try {
             if (mObserver != null) {
                 getContentResolver().unregisterContentObserver(mObserver);
                 mObserver = null;
             }
-            unregisterReceiver(mBluetoothReceiver);
         } catch (IllegalArgumentException e) {
             Log.w(TAG, "unregisterReceivers " + e.toString());
         }
@@ -566,51 +600,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                     + transport.toString());
         }
     }
-
-    private final BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-
-            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-                switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {
-                    case BluetoothAdapter.STATE_ON:
-                        if (V) {
-                            Log.v(TAG, "Bluetooth state changed: STATE_ON");
-                        }
-                        startListener();
-                        // If this is within a sending process, continue the handle
-                        // logic to display device picker dialog.
-                        synchronized (this) {
-                            if (BluetoothOppManager.getInstance(context).mSendingFlag) {
-                                // reset the flags
-                                BluetoothOppManager.getInstance(context).mSendingFlag = false;
-
-                                Intent in1 = new Intent(BluetoothDevicePicker.ACTION_LAUNCH);
-                                in1.putExtra(BluetoothDevicePicker.EXTRA_NEED_AUTH, false);
-                                in1.putExtra(BluetoothDevicePicker.EXTRA_FILTER_TYPE,
-                                        BluetoothDevicePicker.FILTER_TYPE_TRANSFER);
-                                in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_PACKAGE,
-                                        getPackageName());
-                                in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_CLASS,
-                                        BluetoothOppReceiver.class.getName());
-
-                                in1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                context.startActivity(in1);
-                            }
-                        }
-
-                        break;
-                    case BluetoothAdapter.STATE_TURNING_OFF:
-                        if (V) {
-                            Log.v(TAG, "Bluetooth state changed: STATE_TURNING_OFF");
-                        }
-                        mHandler.sendMessage(mHandler.obtainMessage(STOP_LISTENER));
-                        break;
-                }
-            }
-        }
-    };
 
     private void updateFromProvider() {
         synchronized (BluetoothOppService.this) {
