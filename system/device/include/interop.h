@@ -327,6 +327,11 @@ typedef enum {
   INTEROP_DISABLE_ROBUST_CACHING,
 
   INTEROP_HFP_1_7_ALLOWLIST,
+
+  // Some device may have problem in reconnect flow,
+  // need we initiate connection after signalling timeout
+  INTEROP_IGNORE_DISC_BEFORE_SIGNALLING_TIMEOUT,
+
   END_OF_INTEROP_LIST
 } interop_feature_t;
 
