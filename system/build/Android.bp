@@ -63,9 +63,6 @@ cc_defaults {
     defaults: [
         "fluoride_defaults_fuzzable",
     ],
-    static_libs: [
-        "libstatslog_bt",
-    ],
     target: {
         darwin: {
             // libstatslog_bt -> libbinder doesn't build on mac
