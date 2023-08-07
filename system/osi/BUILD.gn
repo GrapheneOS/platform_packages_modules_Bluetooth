@@ -19,7 +19,6 @@ static_library("osi") {
     "src/alarm.cc",
     "src/allocation_tracker.cc",
     "src/allocator.cc",
-    "src/buffer.cc",
     "src/compat.cc",
     "src/config.cc",
     "src/fixed_queue.cc",
