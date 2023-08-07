@@ -62,7 +62,7 @@ class Pan(private val context: Context) : PANImplBase(), Closeable {
         }
 
     init {
-        mTetheringManager = context.getSystemService(TetheringManager::class.java)
+        mTetheringManager = context.getSystemService(TetheringManager::class.java)!!
     }
 
     override fun close() {
