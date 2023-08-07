@@ -45,10 +45,8 @@ cc_test {
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
-        "fluoride_test_defaults",
         "mts_defaults",
     ],
-    host_supported: false,
     local_include_dirs: [
         "include",
     ],
@@ -67,11 +65,19 @@ cc_test {
         "android.hardware.bluetooth.audio@2.1",
         "libbase",
         "libdl",
+        "liblog",
     ],
     static_libs: [
         "libbluetooth-for-tests",
         "libbt-hci",
         "libbtcore",
         "libchrome",
+        "libosi",
+        "libosi-AllocationTestHarness",
     ],
+    sanitize: {
+        address: true,
+        cfi: true,
+        misc_undefined: ["bounds"],
+    },
 }
