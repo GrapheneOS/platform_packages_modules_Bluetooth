@@ -232,7 +232,7 @@ public class AdapterServiceRestartTest {
 
         mLooper.dispatchAll();
 
-        mAdapterService.registerRemoteCallback(mIBluetoothCallback);
+        mAdapterService.registerCallback(mIBluetoothCallback);
 
         mAdapterConfig = TestUtils.readAdapterConfig();
         assertThat(mAdapterConfig).isNotNull();
@@ -245,7 +245,7 @@ public class AdapterServiceRestartTest {
         // Restores the foregroundUserId to the ID prior to the test setup
         Utils.setForegroundUserId(mForegroundUserId);
 
-        mAdapterService.unregisterRemoteCallback(mIBluetoothCallback);
+        mAdapterService.unregisterCallback(mIBluetoothCallback);
         mAdapterService.cleanup();
     }
 
