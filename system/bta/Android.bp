@@ -293,6 +293,7 @@ cc_test {
         "libbtcore",
         "libchrome",
         "libosi",
+        "libstatslog_bt",
     ],
 }
 
