@@ -59,29 +59,6 @@ cc_defaults {
 }
 
 cc_defaults {
-    name: "fluoride_test_defaults",
-    defaults: ["fluoride_defaults"],
-    host_supported: true,
-    shared_libs: [
-        "libcrypto",
-        "liblog",
-    ],
-    static_libs: [
-        "libbt-common",
-        "libcutils",
-        "libgmock",
-        "libosi",
-        "libosi-AlarmTestHarness",
-        "libosi-AllocationTestHarness",
-    ],
-    sanitize: {
-        address: true,
-        cfi: true,
-        misc_undefined: ["bounds"],
-    },
-}
-
-cc_defaults {
     name: "fluoride_defaults",
     defaults: [
         "fluoride_defaults_fuzzable",

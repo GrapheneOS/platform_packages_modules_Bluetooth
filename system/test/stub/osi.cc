@@ -28,7 +28,6 @@
 
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
-#include "osi/include/array.h"
 #include "osi/include/buffer.h"
 #include "osi/include/config.h"
 #include "osi/include/fixed_queue.h"
@@ -159,28 +158,6 @@ void config_set_uint64(config_t* config, const std::string& section,
 }
 void section_t::Set(std::string key, std::string value) {
   inc_func_call_count(__func__);
-}
-
-bool array_append_ptr(array_t* array, void* data) {
-  inc_func_call_count(__func__);
-  return false;
-}
-bool array_append_value(array_t* array, uint32_t value) {
-  inc_func_call_count(__func__);
-  return false;
-}
-size_t array_length(const array_t* array) {
-  inc_func_call_count(__func__);
-  return 0;
-}
-void array_free(array_t* array) { inc_func_call_count(__func__); }
-void* array_at(const array_t* array, size_t index) {
-  inc_func_call_count(__func__);
-  return nullptr;
-}
-void* array_ptr(const array_t* array) {
-  inc_func_call_count(__func__);
-  return nullptr;
 }
 
 size_t allocation_tracker_expect_no_allocations(void) {
