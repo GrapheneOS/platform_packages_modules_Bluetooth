@@ -1655,7 +1655,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       conf.target_latency = ase->target_latency;
       conf.target_phy = group->GetTargetPhy(ase->direction);
       conf.codec_id = ase->codec_id;
-      conf.codec_config = ase->codec_config;
+      // FIXME: Use LtvMap in ASE
+      conf.codec_config = ase->codec_config.GetAsLtvMap();
       confs.push_back(conf);
 
       msg_stream << "ASE_ID " << +conf.ase_id << ",";

@@ -544,8 +544,33 @@ class LeAudioLtvMap {
       : values(std::move(values)) {}
 
   std::optional<std::vector<uint8_t>> Find(uint8_t type) const;
-  void Add(uint8_t type, std::vector<uint8_t> value) {
+  LeAudioLtvMap& Add(uint8_t type, std::vector<uint8_t> value) {
     values.insert_or_assign(type, std::move(value));
+    return *this;
+  }
+  LeAudioLtvMap& Add(uint8_t type, uint8_t value) {
+    std::vector<uint8_t> v(sizeof(value));
+    auto ptr = v.data();
+
+    UINT8_TO_STREAM(ptr, value);
+    values.insert_or_assign(type, v);
+    return *this;
+  }
+  LeAudioLtvMap& Add(uint8_t type, uint16_t value) {
+    std::vector<uint8_t> v(sizeof(value));
+    auto ptr = v.data();
+
+    UINT16_TO_STREAM(ptr, value);
+    values.insert_or_assign(type, std::move(v));
+    return *this;
+  }
+  LeAudioLtvMap& Add(uint8_t type, uint32_t value) {
+    std::vector<uint8_t> v(sizeof(value));
+    auto ptr = v.data();
+
+    UINT32_TO_STREAM(ptr, value);
+    values.insert_or_assign(type, std::move(v));
+    return *this;
   }
   void Remove(uint8_t type) { values.erase(type); }
   bool IsEmpty() const { return values.empty(); }
