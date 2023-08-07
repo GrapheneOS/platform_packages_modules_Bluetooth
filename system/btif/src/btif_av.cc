@@ -1537,6 +1537,17 @@ bool BtifAvSink::AllowedToConnect(const RawAddress& peer_address) const {
         }
         connected++;
         break;
+      case BtifAvStateMachine::kStateClosing:
+      case BtifAvStateMachine::kStateIdle:
+        if ((btif_a2dp_sink_get_audio_track() != nullptr) &&
+          (peer->PeerAddress() != peer_address)) {
+          LOG_INFO("%s: there is another peer with audio track(%p), another=%s, peer=%s",
+            __PRETTY_FUNCTION__, btif_a2dp_sink_get_audio_track(),
+            ADDRESS_TO_LOGGABLE_CSTR(peer->PeerAddress()),
+            ADDRESS_TO_LOGGABLE_CSTR(peer_address));
+          connected++;
+        }
+        break;
       default:
         break;
     }
