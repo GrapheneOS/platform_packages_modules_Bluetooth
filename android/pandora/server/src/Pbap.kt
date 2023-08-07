@@ -59,6 +59,8 @@ class Pbap(val context: Context) : PBAPImplBase(), Closeable {
                 .getContentResolver()
                 .query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null)
 
+        if (cursor == null) return
+
         if (cursor.getCount() >= CONTACT_LIST_SIZE) return // return if contacts are present
 
         for (item in cursor.getCount() + 1..CONTACT_LIST_SIZE) {

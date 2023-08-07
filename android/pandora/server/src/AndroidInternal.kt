@@ -66,7 +66,7 @@ class AndroidInternal(val context: Context) : AndroidImplBase(), Closeable {
 
     private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
     private val bluetoothAdapter = bluetoothManager.adapter
-    private var telephonyManager = context.getSystemService(TelephonyManager::class.java)
+    private var telephonyManager = context.getSystemService(TelephonyManager::class.java)!!
     private val DEFAULT_MESSAGE_LEN = 130
     private var device: UiDevice =
         UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
