@@ -26,6 +26,10 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHearingAid;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSinkAudioPolicy;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioDeviceCallback;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
@@ -97,7 +101,7 @@ import java.util.Set;
  *      will have no impact. E.g., music will continue streaming over the
  *      active Bluetooth device.
  */
-public class ActiveDeviceManager implements AdapterService.BluetoothStateCallback {
+public class ActiveDeviceManager {
     private static final String TAG = "ActiveDeviceManager";
     private static final boolean DBG = true;
     @VisibleForTesting
@@ -140,10 +144,25 @@ public class ActiveDeviceManager implements AdapterService.BluetoothStateCallbac
     private BluetoothDevice mClassicDeviceToBeActivated = null;
     private BluetoothDevice mClassicDeviceNotToBeActivated = null;
 
-    @Override
-    public void onBluetoothStateChange(int prevState, int newState) {
-        mHandler.post(() -> handleAdapterStateChanged(newState));
-    }
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (DBG) {
+                Log.d(TAG, "Received intent: action=" + intent.getAction() + ", extras="
+                        + intent.getExtras());
+            }
+            String action = intent.getAction();
+            if (action == null) {
+                Log.e(TAG, "Received intent with null action");
+                return;
+            }
+
+            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                int currentState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
+                mHandler.post(() -> handleAdapterStateChanged(currentState));
+            }
+        }
+    };
 
     /**
      * Called when A2DP connection state changed by A2dpService
@@ -816,8 +835,12 @@ public class ActiveDeviceManager implements AdapterService.BluetoothStateCallbac
         mHandlerThread.start();
         mHandler = new Handler(mHandlerThread.getLooper());
 
+        IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        mAdapterService.registerReceiver(mReceiver, filter, Context.RECEIVER_EXPORTED);
+
         mAudioManager.registerAudioDeviceCallback(mAudioManagerAudioDeviceCallback, mHandler);
-        mAdapterService.registerBluetoothStateCallback((command) -> mHandler.post(command), this);
     }
 
     void cleanup() {
@@ -826,7 +849,7 @@ public class ActiveDeviceManager implements AdapterService.BluetoothStateCallbac
         }
 
         mAudioManager.unregisterAudioDeviceCallback(mAudioManagerAudioDeviceCallback);
-        mAdapterService.unregisterBluetoothStateCallback(this);
+        mAdapterService.unregisterReceiver(mReceiver);
         if (mHandlerThread != null) {
             mHandlerThread.quit();
             mHandlerThread = null;
@@ -1166,6 +1189,11 @@ public class ActiveDeviceManager implements AdapterService.BluetoothStateCallbac
             mLeHearingAidActiveDevice = null;
             mPendingLeHearingAidActiveDevice.clear();
         }
+    }
+
+    @VisibleForTesting
+    BroadcastReceiver getBroadcastReceiver() {
+        return mReceiver;
     }
 
     @VisibleForTesting
