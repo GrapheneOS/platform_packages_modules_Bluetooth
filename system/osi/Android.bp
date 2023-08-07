@@ -75,7 +75,6 @@ cc_library_static {
         "src/alarm.cc",
         "src/allocation_tracker.cc",
         "src/allocator.cc",
-        "src/buffer.cc",
         "src/config.cc",
         "src/fixed_queue.cc",
         "src/future.cc",
