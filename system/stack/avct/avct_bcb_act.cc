@@ -696,7 +696,8 @@ tAVCT_BCB* avct_bcb_by_lcid(uint16_t lcid) {
   int idx;
 
   for (idx = 0; idx < AVCT_NUM_LINKS; idx++, p_bcb++) {
-    if (p_bcb->allocated && (p_bcb->ch_lcid == lcid)) {
+    if (p_bcb->allocated &&
+        ((p_bcb->ch_lcid == lcid) || (p_bcb->conflict_lcid == lcid))) {
       return p_bcb;
     }
   }
