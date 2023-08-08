@@ -92,6 +92,7 @@ typedef struct {
   uint8_t allocated;  /* 0, not allocated. index+1, otherwise. */
   uint8_t state;      /* The state machine state */
   uint8_t ch_state;   /* L2CAP channel state */
+  uint16_t conflict_lcid; /* L2CAP channel LCID */
   BT_HDR* p_tx_msg; /* Message to be sent - in case the browsing channel is not
                        open when MsgReg is called */
   uint8_t ch_close; /* CCB index+1, if CCB initiated channel close */
