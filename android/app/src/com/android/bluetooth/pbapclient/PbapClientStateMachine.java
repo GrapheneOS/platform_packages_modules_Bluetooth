@@ -164,10 +164,10 @@ class PbapClientStateMachine extends StateMachine {
 
             // Create a separate handler instance and thread for performing
             // connect/download/disconnect operations as they may be time consuming and error prone.
-            mHandlerThread =
+            HandlerThread handlerThread =
                     new HandlerThread("PBAP PCE handler", Process.THREAD_PRIORITY_BACKGROUND);
-            mHandlerThread.start();
-            Looper looper = mHandlerThread.getLooper();
+            handlerThread.start();
+            Looper looper = handlerThread.getLooper();
 
             // Keeps mock handler from being overwritten in tests
             if (mConnectionHandler == null && looper != null) {
@@ -179,6 +179,7 @@ class PbapClientStateMachine extends StateMachine {
                                 .setRemoteDevice(mCurrentDevice)
                                 .build();
             }
+            mHandlerThread = handlerThread;
             sendMessageDelayed(MSG_CONNECT_TIMEOUT, CONNECT_TIMEOUT);
         }
 
@@ -225,8 +226,9 @@ class PbapClientStateMachine extends StateMachine {
 
         @Override
         public void exit() {
-            if (mSdpReceiver != null) {
-                mSdpReceiver.unregister();
+            SDPBroadcastReceiver sdpReceiver = mSdpReceiver;
+            if (sdpReceiver != null) {
+                sdpReceiver.unregister();
                 mSdpReceiver = null;
             }
         }
@@ -291,10 +293,15 @@ class PbapClientStateMachine extends StateMachine {
             if (DBG) {
                 Log.d(TAG, "Processing MSG " + message.what + " from " + this.getName());
             }
+            PbapClientConnectionHandler connectionHandler = mConnectionHandler;
+            HandlerThread handlerThread = mHandlerThread;
+
             switch (message.what) {
                 case MSG_CONNECTION_CLOSED:
                     removeMessages(MSG_DISCONNECT_TIMEOUT);
-                    mHandlerThread.quitSafely();
+                    if (handlerThread != null) {
+                        handlerThread.quitSafely();
+                    }
                     transitionTo(mDisconnected);
                     break;
 
@@ -304,11 +311,12 @@ class PbapClientStateMachine extends StateMachine {
 
                 case MSG_DISCONNECT_TIMEOUT:
                     Log.w(TAG, "Disconnect Timeout, Forcing");
-                    PbapClientConnectionHandler connectionHandler = mConnectionHandler;
                     if (connectionHandler != null) {
                         connectionHandler.abort();
                     }
-                    mHandlerThread.quitSafely();
+                    if (handlerThread != null) {
+                        handlerThread.quitSafely();
+                    }
                     transitionTo(mDisconnected);
                     break;
 
@@ -413,8 +421,9 @@ class PbapClientStateMachine extends StateMachine {
             mConnectionHandler = null;
         }
 
-        if (mHandlerThread != null) {
-            mHandlerThread.quitSafely();
+        HandlerThread handlerThread = mHandlerThread;
+        if (handlerThread != null) {
+            handlerThread.quitSafely();
             mHandlerThread = null;
         }
         quitNow();
