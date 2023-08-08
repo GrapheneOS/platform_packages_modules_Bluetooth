@@ -243,7 +243,7 @@ impl ClientDBusProxy {
 
 /// Implements `DBusArg` for an enum.
 ///
-/// A Rust enum is converted to D-Bus INT32 type.
+/// A Rust enum is converted to D-Bus UINT32 type.
 #[macro_export]
 macro_rules! impl_dbus_arg_enum {
     ($enum_type:ty) => {
