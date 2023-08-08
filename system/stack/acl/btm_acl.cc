@@ -2387,11 +2387,6 @@ bool acl_peer_supports_ble_connection_subrating_host(
 void BTM_ReadConnectionAddr(const RawAddress& remote_bda,
                             RawAddress& local_conn_addr,
                             tBLE_ADDR_TYPE* p_addr_type) {
-  if (bluetooth::shim::is_gd_shim_enabled()) {
-    return bluetooth::shim::BTM_ReadConnectionAddr(remote_bda, local_conn_addr,
-                                                   p_addr_type);
-  }
-
   if (bluetooth::shim::is_gd_l2cap_enabled()) {
     bluetooth::shim::L2CA_ReadConnectionAddr(remote_bda, local_conn_addr,
                                              p_addr_type);
@@ -2495,11 +2490,6 @@ bool acl_is_switch_role_idle(const RawAddress& bd_addr,
 bool BTM_ReadRemoteConnectionAddr(const RawAddress& pseudo_addr,
                                   RawAddress& conn_addr,
                                   tBLE_ADDR_TYPE* p_addr_type) {
-  if (bluetooth::shim::is_gd_shim_enabled()) {
-    return bluetooth::shim::BTM_ReadRemoteConnectionAddr(pseudo_addr, conn_addr,
-                                                         p_addr_type);
-  }
-
   if (bluetooth::shim::is_gd_l2cap_enabled()) {
     return bluetooth::shim::L2CA_ReadRemoteConnectionAddr(
         pseudo_addr, conn_addr, p_addr_type);
