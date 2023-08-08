@@ -66,6 +66,36 @@ const tL2CAP_APPL_INFO avct_l2c_br_appl = {avct_l2c_br_connect_ind_cback,
 
 /*******************************************************************************
  *
+ * Function         avct_l2c_br_is_passive
+ *
+ * Description      check is the CCB associated with the given BCB was created
+ *                  as passive
+ *
+ * Returns          true, if the given CCB is created as AVCT_PASSIVE
+ *
+ ******************************************************************************/
+static bool avct_l2c_br_is_passive(tAVCT_BCB* p_bcb) {
+  bool is_passive = false;
+  tAVCT_LCB* p_lcb;
+  tAVCT_CCB* p_ccb = &avct_cb.ccb[0];
+  p_lcb = avct_lcb_by_bcb(p_bcb);
+  int i;
+
+  for (i = 0; i < AVCT_NUM_CONN; i++, p_ccb++) {
+    if (p_ccb->allocated && (p_ccb->p_lcb == p_lcb)) {
+      AVCT_TRACE_DEBUG("Is bcb associated ccb control passive :0x%x",
+                       p_ccb->cc.control);
+      if (p_ccb->cc.control & AVCT_PASSIVE) {
+        is_passive = true;
+        break;
+      }
+    }
+  }
+  return is_passive;
+}
+
+/*******************************************************************************
+ *
  * Function         avct_l2c_br_connect_ind_cback
  *
  * Description      This is the L2CAP connect indication callback function.
@@ -94,6 +124,16 @@ void avct_l2c_br_connect_ind_cback(const RawAddress& bd_addr, uint16_t lcid,
       p_bcb->allocated = p_lcb->allocated; /* copy the index from lcb */
 
       result = L2CAP_CONN_OK;
+    } else {
+      if (!avct_l2c_br_is_passive(p_bcb) || (p_bcb->ch_state == AVCT_CH_OPEN)) {
+        /* this BCB included CT role - reject */
+        result = L2CAP_CONN_NO_RESOURCES;
+      } else {
+        /* add channel ID to conflict ID */
+        p_bcb->conflict_lcid = p_bcb->ch_lcid;
+        result = L2CAP_CONN_OK;
+        AVCT_TRACE_DEBUG("Detected conflict_lcid:0x%x", p_bcb->conflict_lcid);
+      }
     }
   }
   /* else no control channel yet, reject */
@@ -103,6 +143,7 @@ void avct_l2c_br_connect_ind_cback(const RawAddress& bd_addr, uint16_t lcid,
 
   /* If we reject the connection, send DisconnectReq */
   if (result != L2CAP_CONN_OK) {
+    AVCT_TRACE_DEBUG("Connection rejected to lcid:0x%x", lcid);
     L2CA_DisconnectReq(lcid);
   }
 
@@ -117,11 +158,16 @@ void avct_l2c_br_connect_ind_cback(const RawAddress& bd_addr, uint16_t lcid,
 }
 
 void avct_br_on_l2cap_error(uint16_t lcid, uint16_t result) {
-  tAVCT_BCB* p_lcb = avct_bcb_by_lcid(lcid);
-  if (p_lcb == nullptr) return;
+  tAVCT_BCB* p_bcb = avct_bcb_by_lcid(lcid);
+  if (p_bcb == nullptr) return;
 
+  if (p_bcb->ch_state == AVCT_CH_CONN && p_bcb->conflict_lcid == lcid) {
+    AVCT_TRACE_DEBUG("Reset conflict_lcid:0x%x", p_bcb->conflict_lcid);
+    p_bcb->conflict_lcid = 0;
+    return;
+  }
   /* store result value */
-  p_lcb->ch_result = result;
+  p_bcb->ch_result = result;
 
   /* Send L2CAP disconnect req */
   avct_l2c_br_disconnect(lcid, 0);
@@ -138,20 +184,35 @@ void avct_br_on_l2cap_error(uint16_t lcid, uint16_t result) {
  *
  ******************************************************************************/
 void avct_l2c_br_connect_cfm_cback(uint16_t lcid, uint16_t result) {
-  tAVCT_BCB* p_lcb;
+  tAVCT_BCB* p_bcb;
 
-  /* look up lcb for this channel */
-  p_lcb = avct_bcb_by_lcid(lcid);
-  if ((p_lcb == NULL) || (p_lcb->ch_state != AVCT_CH_CONN)) return;
+  /* look up bcb for this channel */
+  p_bcb = avct_bcb_by_lcid(lcid);
 
-  if (result != L2CAP_CONN_OK) {
-    LOG(ERROR) << __func__ << ": invoked with non OK status";
+  if (p_bcb == NULL) {
     return;
   }
-
-  /* result is successful */
-  /* set channel state */
-  p_lcb->ch_state = AVCT_CH_CFG;
+  /* if in correct state */
+  if (p_bcb->ch_state == AVCT_CH_CONN) {
+    /* if result successful */
+    if (result == L2CAP_CONN_OK) {
+      /* set channel state */
+      p_bcb->ch_state = AVCT_CH_CFG;
+    }
+    /* else failure */
+    else {
+      AVCT_TRACE_ERROR("Invoked with non OK status");
+    }
+  } else if (p_bcb->conflict_lcid == lcid) {
+    /* we must be in AVCT_CH_CFG state for the ch_lcid channel */
+    if (result == L2CAP_CONN_OK) {
+      /* just in case the peer also accepts our connection - Send L2CAP
+       * disconnect req */
+      AVCT_TRACE_DEBUG("Disconnect conflict_lcid:0x%x", p_bcb->conflict_lcid);
+      L2CA_DisconnectReq(lcid);
+    }
+    p_bcb->conflict_lcid = 0;
+  }
 }
 
 /*******************************************************************************
