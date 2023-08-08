@@ -2665,7 +2665,12 @@ bool l2cu_initialize_fixed_ccb(tL2C_LCB* p_lcb, uint16_t fixed_cid) {
   p_ccb = l2cu_allocate_ccb(NULL, 0);
   if (p_ccb == NULL) return (false);
 
-  alarm_cancel(p_lcb->l2c_lcb_timer);
+  if (p_lcb->link_state == LST_DISCONNECTED) {
+    alarm_cancel(p_lcb->l2c_lcb_timer);
+  } else {
+    LOG_WARN("Unable to cancel link control block for link connection to device %s",
+                 ADDRESS_TO_LOGGABLE_CSTR(p_lcb->remote_bd_addr));
+  }
 
   /* Set CID for the connection */
   p_ccb->local_cid = fixed_cid;
