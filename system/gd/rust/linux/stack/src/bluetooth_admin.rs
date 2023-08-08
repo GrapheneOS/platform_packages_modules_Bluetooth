@@ -112,7 +112,7 @@ impl BluetoothAdmin {
         let mut file = File::open(&self.path)?;
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
-        let json = serde_json::from_str::<Value>(contents.as_str()).unwrap();
+        let json = serde_json::from_str::<Value>(contents.as_str())?;
         if let Some(_res) = self.load_config_from_json(&json) {
             info!("Load settings from {} successfully", &self.path);
         }
