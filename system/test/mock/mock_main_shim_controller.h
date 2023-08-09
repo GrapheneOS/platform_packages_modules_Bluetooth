@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,38 +14,13 @@
  * limitations under the License.
  */
 
-/*
- * Generated mock file from original source file
- *   Functions generated:9
- */
-
-#include <map>
-#include <string>
-
 #include "device/include/controller.h"
 #include "main/shim/controller.h"
-#include "test/common/mock_functions.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 namespace bluetooth {
 namespace testing {
-const controller_t* controller{nullptr};
+
+extern const controller_t* controller;
+
 }
 }  // namespace bluetooth
-
-const controller_t* bluetooth::shim::controller_get_interface() {
-  inc_func_call_count(__func__);
-  return bluetooth::testing::controller;
-}
-
-void bluetooth::shim::controller_clear_event_mask() {
-  inc_func_call_count(__func__);
-}
-
-bool bluetooth::shim::controller_is_write_link_supervision_timeout_supported() {
-  inc_func_call_count(__func__);
-  return false;
-}

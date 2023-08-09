@@ -2794,6 +2794,9 @@ void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport,
     LOG_WARN("Unable to allocate device resources for new connection");
     return;
   }
+  LOG_INFO("Acl connected peer:%s transport:%s handle:%hu",
+           ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
+           bt_transport_text(transport).c_str(), acl_handle);
   device->conn_state = BTA_DM_CONNECTED;
   device->pref_role = BTA_ANY_ROLE;
   device->info = BTA_DM_DI_NONE;
