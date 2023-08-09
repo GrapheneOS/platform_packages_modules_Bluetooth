@@ -83,8 +83,27 @@ void BqrVseSubEvt::ParseBqrLinkQualityEvt(uint8_t length,
   STREAM_TO_UINT32(bqr_link_quality_event_.last_flow_on_timestamp, p_param_buf);
   STREAM_TO_UINT32(bqr_link_quality_event_.buffer_overflow_bytes, p_param_buf);
   STREAM_TO_UINT32(bqr_link_quality_event_.buffer_underflow_bytes, p_param_buf);
-  STREAM_TO_BDADDR(bqr_link_quality_event_.bdaddr, p_param_buf);
-  STREAM_TO_UINT8(bqr_link_quality_event_.cal_failed_item_count, p_param_buf);
+
+  if (vendor_cap_supported_version >= kBqrVersion5_0) {
+    if (length < kLinkQualityParamTotalLen + kISOLinkQualityParamTotalLen +
+                     kVersion5_0ParamsTotalLen) {
+      LOG(WARNING) << __func__
+                   << ": Parameter total length: " << std::to_string(length)
+                   << " is abnormal. "
+                   << "vendor_cap_supported_version: "
+                   << vendor_cap_supported_version << " "
+                   << " (>= "
+                   << "kBqrVersion5_0=" << kBqrVersion5_0 << "), "
+                   << "It should not be shorter than: "
+                   << std::to_string(kLinkQualityParamTotalLen +
+                                     kISOLinkQualityParamTotalLen +
+                                     kVersion5_0ParamsTotalLen);
+    } else {
+      STREAM_TO_BDADDR(bqr_link_quality_event_.bdaddr, p_param_buf);
+      STREAM_TO_UINT8(bqr_link_quality_event_.cal_failed_item_count,
+                      p_param_buf);
+    }
+  }
 
   if (vendor_cap_supported_version >= kBqrIsoVersion) {
     if (length < kLinkQualityParamTotalLen + kISOLinkQualityParamTotalLen) {
@@ -180,12 +199,13 @@ std::string BqrVseSubEvt::ToString() const {
      << ", OverFlow: "
      << std::to_string(bqr_link_quality_event_.buffer_overflow_bytes)
      << ", UndFlow: "
-     << std::to_string(bqr_link_quality_event_.buffer_underflow_bytes)
-     << ", RemoteDevAddr: "
-     << bqr_link_quality_event_.bdaddr.ToColonSepHexString()
-     << ", CalFailedItems: "
-     << std::to_string(bqr_link_quality_event_.cal_failed_item_count);
-
+     << std::to_string(bqr_link_quality_event_.buffer_underflow_bytes);
+  if (vendor_cap_supported_version >= kBqrVersion5_0) {
+    ss << ", RemoteDevAddr: "
+       << bqr_link_quality_event_.bdaddr.ToColonSepHexString()
+       << ", CalFailedItems: "
+       << std::to_string(bqr_link_quality_event_.cal_failed_item_count);
+  }
   if (vendor_cap_supported_version >= kBqrIsoVersion) {
     ss << ", TxTotal: "
        << std::to_string(bqr_link_quality_event_.tx_total_packets)
@@ -587,13 +607,20 @@ void AddLinkQualityEventToQueue(uint8_t length,
 
     if (bqrItf != NULL) {
       bd_addr = p_bqr_event->bqr_link_quality_event_.bdaddr;
+      if (bd_addr.IsEmpty()) {
+        tBTM_SEC_DEV_REC* dev = btm_find_dev_by_handle(
+            p_bqr_event->bqr_link_quality_event_.connection_handle);
+        if (dev != NULL) {
+          bd_addr = dev->RemoteAddress();
+        }
+      }
 
       if (!bd_addr.IsEmpty()) {
         bqrItf->bqr_delivery_event(bd_addr, (uint8_t*)p_link_quality_event,
                                    length);
       } else {
         LOG(WARNING) << __func__ << ": failed to deliver BQR, "
-                     << "bdaddr is empty, no address in packet";
+                     << "bdaddr is empty";
       }
     } else {
       LOG(WARNING) << __func__ << ": failed to deliver BQR, bqrItf is NULL";
@@ -751,6 +778,18 @@ class BluetoothQualityReportInterfaceImpl
     std::vector<uint8_t> raw_data;
     raw_data.insert(raw_data.begin(), bqr_raw_data,
                     bqr_raw_data + bqr_raw_data_len);
+
+    if (vendor_cap_supported_version < kBqrVersion5_0 &&
+        bqr_raw_data_len <
+            kLinkQualityParamTotalLen + kVersion5_0ParamsTotalLen) {
+      std::vector<uint8_t>::iterator it =
+          raw_data.begin() + kLinkQualityParamTotalLen;
+      /**
+       * Insert zeros as remote address and calibration count
+       * for BQR 5.0 incompatible devices
+       */
+      raw_data.insert(it, kVersion5_0ParamsTotalLen, 0);
+    }
 
     uint8_t lmp_ver = 0;
     uint16_t lmp_subver = 0;
