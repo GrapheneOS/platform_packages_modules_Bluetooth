@@ -272,7 +272,7 @@ void btif_dm_remove_bond(const RawAddress bd_addr);
  * Returns          0 if not connected
  *
  ******************************************************************************/
-uint16_t btif_dm_get_connection_state(const RawAddress* bd_addr);
+uint16_t btif_dm_get_connection_state(const RawAddress& bd_addr);
 
 /*******************************************************************************
  *
