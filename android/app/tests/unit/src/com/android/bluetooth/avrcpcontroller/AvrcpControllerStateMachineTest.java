@@ -43,6 +43,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
+import com.android.bluetooth.a2dpsink.A2dpSinkNativeInterface;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
@@ -81,6 +82,7 @@ public class AvrcpControllerStateMachineTest {
     @Mock private Resources mMockResources;
     private ArgumentCaptor<Intent> mIntentArgument = ArgumentCaptor.forClass(Intent.class);
     @Mock private AvrcpControllerService mAvrcpControllerService;
+    @Mock private A2dpSinkNativeInterface mA2dpSinkNativeInterface;
     @Mock private AvrcpCoverArtManager mCoverArtManager;
 
     private byte[] mTestAddress = new byte[]{01, 01, 01, 01, 01, 01};
@@ -100,6 +102,7 @@ public class AvrcpControllerStateMachineTest {
         doReturn(mDatabaseManager).when(mA2dpAdapterService).getDatabase();
         doReturn(true).when(mA2dpAdapterService).isStartedProfile(anyString());
         TestUtils.setAdapterService(mA2dpAdapterService);
+        A2dpSinkNativeInterface.setInstance(mA2dpSinkNativeInterface);
         TestUtils.startService(mA2dpServiceRule, A2dpSinkService.class);
         A2dpSinkService.setA2dpSinkService(mA2dpSinkService);
         TestUtils.clearAdapterService(mA2dpAdapterService);
@@ -140,6 +143,7 @@ public class AvrcpControllerStateMachineTest {
     public void tearDown() throws Exception {
         destroyStateMachine(mAvrcpStateMachine);
         TestUtils.clearAdapterService(mAvrcpAdapterService);
+        A2dpSinkNativeInterface.setInstance(null);
     }
 
     /**
