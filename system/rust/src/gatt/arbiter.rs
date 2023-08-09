@@ -3,7 +3,7 @@
 
 use std::sync::{Arc, Mutex};
 
-use log::{error, trace};
+use log::{error, trace, warn};
 use std::sync::RwLock;
 
 use crate::{
@@ -94,10 +94,11 @@ fn on_le_connect(tcb_idx: u8, advertiser: u8) {
 }
 
 fn on_le_disconnect(tcb_idx: u8) {
-    // Disconnection events may be received after a FactoryReset
+    // Events may be received after a FactoryReset
     // is initiated for Bluetooth and the rust arbiter is taken
     // down.
     if !has_arbiter() {
+        warn!("arbiter is not yet initialized");
         return;
     }
 
@@ -113,6 +114,14 @@ fn on_le_disconnect(tcb_idx: u8) {
 }
 
 fn intercept_packet(tcb_idx: u8, packet: Vec<u8>) -> InterceptAction {
+    // Events may be received after a FactoryReset
+    // is initiated for Bluetooth and the rust arbiter is taken
+    // down.
+    if !has_arbiter() {
+        warn!("arbiter is not yet initialized");
+        return InterceptAction::Drop;
+    }
+
     let tcb_idx = TransportIndex(tcb_idx);
     if let Some(att) = with_arbiter(|arbiter| {
         try_parse_att_server_packet(arbiter, tcb_idx, packet.into_boxed_slice())
