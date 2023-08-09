@@ -302,6 +302,64 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     state_machine_callbacks_->StatusReportCb(group->group_id_, status);
   }
 
+  void ProcessGattCtpNotification(LeAudioDeviceGroup* group, uint8_t* value,
+                                  uint16_t len) {
+    auto ntf =
+        std::make_unique<struct le_audio::client_parser::ascs::ctp_ntf>();
+
+    bool valid_notification = ParseAseCtpNotification(*ntf, len, value);
+    if (group == nullptr) {
+      LOG_WARN("Notification received to invalid group");
+      return;
+    }
+
+    /* State machine looks on ASE state and base on it take decisions.
+     * If ASE state is not achieve on time, timeout is reported and upper
+     * layer mostlikely drops ACL considers that remote is in bad state.
+     * However, it might happen that remote device rejects ASE configuration for
+     * some reason and ASCS specification defines tones of different reasons.
+     * Maybe in the future we will be able to handle all of them but for now it
+     * seems to be important to allow remote device to reject ASE configuration
+     * when stream is creating. e.g. Allow remote to reject Enable on unwanted
+     * context type.
+     */
+
+    auto target_state = group->GetTargetState();
+    auto in_transition = group->IsInTransition();
+    if (!in_transition ||
+        target_state != AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+      LOG_DEBUG(
+          "Not interested in ctp result for group %d inTransistion: %d , "
+          "targetState: %s",
+          group->group_id_, in_transition, ToString(target_state).c_str());
+      return;
+    }
+
+    if (!valid_notification) {
+      /* Do nothing, just allow guard timer to fire */
+      LOG_ERROR("Invalid CTP notification for group %d", group->group_id_);
+      return;
+    }
+
+    for (auto& entry : ntf->entries) {
+      if (entry.response_code !=
+          le_audio::client_parser::ascs::kCtpResponseCodeSuccess) {
+        /* Gracefully stop the stream */
+        LOG_ERROR(
+            "Stoping stream due to control point error for ase: %d, error: "
+            "0x%02x, reason: 0x%02x",
+            entry.ase_id, entry.response_code, entry.reason);
+        StopStream(group);
+        return;
+      }
+    }
+
+    LOG_DEBUG(
+        "Ctp result OK for group %d inTransistion: %d , "
+        "targetState: %s",
+        group->group_id_, in_transition, ToString(target_state).c_str());
+  }
+
   void ProcessGattNotifEvent(uint8_t* value, uint16_t len, struct ase* ase,
                              LeAudioDevice* leAudioDevice,
                              LeAudioDeviceGroup* group) override {

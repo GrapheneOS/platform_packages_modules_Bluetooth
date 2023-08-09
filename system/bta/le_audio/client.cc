@@ -101,12 +101,6 @@ using le_audio::types::LeAudioContextType;
 using le_audio::utils::GetAudioContextsFromSinkMetadata;
 using le_audio::utils::GetAudioContextsFromSourceMetadata;
 
-using le_audio::client_parser::ascs::
-    kCtpResponseCodeInvalidConfigurationParameterValue;
-using le_audio::client_parser::ascs::kCtpResponseCodeSuccess;
-using le_audio::client_parser::ascs::kCtpResponseInvalidAseCisMapping;
-using le_audio::client_parser::ascs::kCtpResponseNoReason;
-
 /* Enums */
 enum class AudioReconfigurationResult {
   RECONFIGURATION_NEEDED = 0x00,
@@ -636,28 +630,6 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (audio_receiver_state_ >= AudioState::READY_TO_START) {
       CancelLocalAudioSinkStreamingRequest();
-    }
-  }
-
-  void ControlPointNotificationHandler(
-      struct le_audio::client_parser::ascs::ctp_ntf& ntf) {
-    for (auto& entry : ntf.entries) {
-      switch (entry.response_code) {
-        case kCtpResponseCodeInvalidConfigurationParameterValue:
-          switch (entry.reason) {
-            case kCtpResponseInvalidAseCisMapping:
-              CancelStreamingRequest();
-              break;
-            case kCtpResponseNoReason:
-            default:
-              break;
-          }
-          break;
-        case kCtpResponseCodeSuccess:
-          FALLTHROUGH;
-        default:
-          break;
-      }
     }
   }
 
@@ -1849,11 +1821,7 @@ class LeAudioClientImpl : public LeAudioClient {
             supp_audio_contexts.source.value());
       }
     } else if (hdl == leAudioDevice->ctp_hdls_.val_hdl) {
-      auto ntf =
-          std::make_unique<struct le_audio::client_parser::ascs::ctp_ntf>();
-
-      if (ParseAseCtpNotification(*ntf, len, value))
-        ControlPointNotificationHandler(*ntf);
+      groupStateMachine_->ProcessGattCtpNotification(group, value, len);
     } else if (hdl == leAudioDevice->tmap_role_hdl_) {
       le_audio::client_parser::tmap::ParseTmapRole(leAudioDevice->tmap_role_,
                                                    len, value);
