@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.pan;
 
+import static java.util.Objects.requireNonNull;
+
 import android.bluetooth.BluetoothPan;
 import android.bluetooth.BluetoothProfile;
 import android.util.Log;
@@ -72,11 +74,13 @@ public class PanNativeInterface {
     }
 
     boolean connect(byte[] identityAddress) {
+        requireNonNull(identityAddress, "Identity address can not be null");
         return connectPanNative(
                 identityAddress, BluetoothPan.LOCAL_PANU_ROLE, BluetoothPan.REMOTE_NAP_ROLE);
     }
 
     boolean disconnect(byte[] identityAddress) {
+        requireNonNull(identityAddress, "Identity address can not be null");
         return disconnectPanNative(identityAddress);
     }
 
