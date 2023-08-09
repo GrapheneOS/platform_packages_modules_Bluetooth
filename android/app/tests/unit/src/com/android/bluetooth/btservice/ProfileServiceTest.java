@@ -37,6 +37,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.gatt.GattService;
+import com.android.bluetooth.pan.PanNativeInterface;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -76,11 +77,13 @@ public class ProfileServiceTest {
             mStartedProfileMap.put(profile.getSimpleName(), false);
         }
         Intent startIntent = new Intent(InstrumentationRegistry.getTargetContext(), profile);
-        startIntent.putExtra(AdapterService.EXTRA_ACTION,
-                AdapterService.ACTION_SERVICE_STATE_CHANGED);
+        startIntent.putExtra(
+                AdapterService.EXTRA_ACTION, AdapterService.ACTION_SERVICE_STATE_CHANGED);
         startIntent.putExtra(BluetoothAdapter.EXTRA_STATE, state);
         mServiceTestRule.startService(startIntent);
     }
+
+    @Mock private PanNativeInterface mPanNativeInterface;
 
     private void setAllProfilesState(int state, int invocationNumber) throws TimeoutException {
         int profileCount = mProfiles.length;
@@ -160,6 +163,7 @@ public class ProfileServiceTest {
                 false /* is_common_criteria_mode */, 0 /* config_compare_result */,
                 new String[0], false, "");
         mMockAdapterService.enableNative();
+        PanNativeInterface.setInstance(mPanNativeInterface);
     }
 
     @After
@@ -171,6 +175,7 @@ public class ProfileServiceTest {
         TestUtils.clearAdapterService(mMockAdapterService);
         mMockAdapterService = null;
         mProfiles = null;
+        PanNativeInterface.setInstance(null);
     }
 
     /**
