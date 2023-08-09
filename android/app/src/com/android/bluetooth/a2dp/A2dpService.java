@@ -23,6 +23,8 @@ import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 import static com.android.bluetooth.Utils.enforceCdmAssociation;
 import static com.android.bluetooth.Utils.hasBluetoothPrivilegedPermission;
 
+import static java.util.Objects.requireNonNull;
+
 import android.annotation.NonNull;
 import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothA2dp;
@@ -72,11 +74,10 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * Provides Bluetooth A2DP profile, as a service in the Bluetooth application.
- * @hide
  */
 public class A2dpService extends ProfileService {
+    private static final String TAG = A2dpService.class.getSimpleName();
     private static final boolean DBG = true;
-    private static final String TAG = "A2dpService";
 
     // TODO(b/240635097): remove in U
     private static final int SOURCE_CODEC_TYPE_OPUS = 6;
@@ -87,8 +88,7 @@ public class A2dpService extends ProfileService {
     private DatabaseManager mDatabaseManager;
     private HandlerThread mStateMachinesThread;
 
-    @VisibleForTesting
-    A2dpNativeInterface mA2dpNativeInterface;
+    private final A2dpNativeInterface mNativeInterface;
     @VisibleForTesting
     ServiceFactory mFactory = new ServiceFactory();
     @VisibleForTesting
@@ -116,6 +116,17 @@ public class A2dpService extends ProfileService {
 
     private BroadcastReceiver mBondStateChangedReceiver;
 
+    A2dpService() {
+        mNativeInterface = requireNonNull(A2dpNativeInterface.getInstance());
+    }
+
+    @VisibleForTesting
+    A2dpService(Context ctx, A2dpNativeInterface nativeInterface) {
+        attachBaseContext(ctx);
+        mNativeInterface = requireNonNull(nativeInterface);
+        onCreate();
+    }
+
     public static boolean isEnabled() {
         return BluetoothProperties.isProfileA2dpSourceEnabled().orElse(false);
     }
@@ -139,16 +150,17 @@ public class A2dpService extends ProfileService {
 
         // Step 1: Get AdapterService, A2dpNativeInterface, DatabaseManager, AudioManager.
         // None of them can be null.
-        mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
-                "AdapterService cannot be null when A2dpService starts");
-        mA2dpNativeInterface = Objects.requireNonNull(A2dpNativeInterface.getInstance(),
-                "A2dpNativeInterface cannot be null when A2dpService starts");
-        mDatabaseManager = Objects.requireNonNull(mAdapterService.getDatabase(),
-                "DatabaseManager cannot be null when A2dpService starts");
+        mAdapterService =
+                requireNonNull(
+                        AdapterService.getAdapterService(),
+                        "AdapterService cannot be null when A2dpService starts");
+        mDatabaseManager =
+                requireNonNull(
+                        mAdapterService.getDatabase(),
+                        "DatabaseManager cannot be null when A2dpService starts");
         mAudioManager = getSystemService(AudioManager.class);
         mCompanionDeviceManager = getSystemService(CompanionDeviceManager.class);
-        Objects.requireNonNull(mAudioManager,
-                               "AudioManager cannot be null when A2dpService starts");
+        requireNonNull(mAudioManager, "AudioManager cannot be null when A2dpService starts");
 
         // Step 2: Get maximum number of connected audio devices
         mMaxConnectedAudioDevices = mAdapterService.getMaxConnectedAudioDevices();
@@ -160,12 +172,13 @@ public class A2dpService extends ProfileService {
         mStateMachinesThread.start();
 
         // Step 4: Setup codec config
-        mA2dpCodecConfig = new A2dpCodecConfig(this, mA2dpNativeInterface);
+        mA2dpCodecConfig = new A2dpCodecConfig(this, mNativeInterface);
 
         // Step 5: Initialize native interface
-        mA2dpNativeInterface.init(mMaxConnectedAudioDevices,
-                                  mA2dpCodecConfig.codecConfigPriorities(),
-                                  mA2dpCodecConfig.codecConfigOffloading());
+        mNativeInterface.init(
+                mMaxConnectedAudioDevices,
+                mA2dpCodecConfig.codecConfigPriorities(),
+                mA2dpCodecConfig.codecConfigOffloading());
 
         // Step 6: Check if A2DP is in offload mode
         mA2dpOffloadEnabled = mAdapterService.isA2dpOffloadEnabled();
@@ -218,8 +231,7 @@ public class A2dpService extends ProfileService {
         mBondStateChangedReceiver = null;
 
         // Step 6: Cleanup native interface
-        mA2dpNativeInterface.cleanup();
-        mA2dpNativeInterface = null;
+        mNativeInterface.cleanup();
 
         // Step 5: Clear codec config
         mA2dpCodecConfig = null;
@@ -245,9 +257,8 @@ public class A2dpService extends ProfileService {
         // Step 2: Reset maximum number of connected audio devices
         mMaxConnectedAudioDevices = 1;
 
-        // Step 1: Clear AdapterService, A2dpNativeInterface, AudioManager
+        // Step 1: Clear AdapterService, AudioManager
         mAudioManager = null;
-        mA2dpNativeInterface = null;
         mAdapterService = null;
 
         return true;
@@ -514,7 +525,7 @@ public class A2dpService extends ProfileService {
 
             synchronized (mStateMachines) {
                 // Make sure the Active device in native layer is set to null and audio is off
-                if (!mA2dpNativeInterface.setActiveDevice(null)) {
+                if (!mNativeInterface.setActiveDevice(null)) {
                     Log.w(TAG, "setActiveDevice(null): Cannot remove active device in native "
                             + "layer");
                     return false;
@@ -542,7 +553,7 @@ public class A2dpService extends ProfileService {
             // Set the device as the active device if currently no active device.
             setActiveDevice(device);
         }
-        if (!mA2dpNativeInterface.setSilenceDevice(device, silence)) {
+        if (!mNativeInterface.setSilenceDevice(device, silence)) {
             Log.e(TAG, "Cannot set " + device + " silence mode " + silence + " in native layer");
             return false;
         }
@@ -599,7 +610,7 @@ public class A2dpService extends ProfileService {
 
             BluetoothDevice newActiveDevice = null;
             synchronized (mStateMachines) {
-                if (!mA2dpNativeInterface.setActiveDevice(device)) {
+                if (!mNativeInterface.setActiveDevice(device)) {
                     Log.e(TAG, "setActiveDevice(" + device + "): Cannot set as active in native "
                             + "layer");
                     // Remove active device and stop playing audio.
@@ -945,8 +956,7 @@ public class A2dpService extends ProfileService {
 
     // Handle messages from native (JNI) to Java
     void messageFromNative(A2dpStackEvent stackEvent) {
-        Objects.requireNonNull(stackEvent.device,
-                               "Device should never be null, event: " + stackEvent);
+        requireNonNull(stackEvent.device, "Device should never be null, event: " + stackEvent);
         synchronized (mStateMachines) {
             BluetoothDevice device = stackEvent.device;
             A2dpStateMachine sm = mStateMachines.get(device);
@@ -1041,8 +1051,9 @@ public class A2dpService extends ProfileService {
             if (DBG) {
                 Log.d(TAG, "Creating a new state machine for " + device);
             }
-            sm = A2dpStateMachine.make(device, this, mA2dpNativeInterface,
-                                       mStateMachinesThread.getLooper());
+            sm =
+                    A2dpStateMachine.make(
+                            device, this, mNativeInterface, mStateMachinesThread.getLooper());
             mStateMachines.put(device, sm);
             return sm;
         }
@@ -1098,7 +1109,7 @@ public class A2dpService extends ProfileService {
             int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE,
                                            BluetoothDevice.ERROR);
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            Objects.requireNonNull(device, "ACTION_BOND_STATE_CHANGED with no EXTRA_DEVICE");
+            requireNonNull(device, "ACTION_BOND_STATE_CHANGED with no EXTRA_DEVICE");
             bondStateChanged(device, state);
         }
     }
