@@ -662,7 +662,9 @@ static int remove_bond(const RawAddress* bd_addr) {
 static int get_connection_state(const RawAddress* bd_addr) {
   if (!interface_ready()) return 0;
 
-  return btif_dm_get_connection_state(bd_addr);
+  if (bd_addr == nullptr) return 0;
+
+  return btif_dm_get_connection_state(*bd_addr);
 }
 
 static int pin_reply(const RawAddress* bd_addr, uint8_t accept, uint8_t pin_len,

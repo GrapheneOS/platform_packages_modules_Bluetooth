@@ -873,18 +873,27 @@ static void btif_dm_cb_create_bond_le(const RawAddress bd_addr,
  *                  encrypted
  *
  ******************************************************************************/
-uint16_t btif_dm_get_connection_state(const RawAddress* bd_addr) {
-  uint16_t rc = BTA_DmGetConnectionState(*bd_addr);
-
-  if (rc != 0) {
-    if (BTM_IsEncrypted(*bd_addr, BT_TRANSPORT_BR_EDR)) {
+uint16_t btif_dm_get_connection_state(const RawAddress& bd_addr) {
+  uint16_t rc = 0;
+  if (BTA_DmGetConnectionState(bd_addr)) {
+    rc = (uint16_t) true;
+    if (BTM_IsEncrypted(bd_addr, BT_TRANSPORT_BR_EDR)) {
       rc |= ENCRYPTED_BREDR;
     }
-    if (BTM_IsEncrypted(*bd_addr, BT_TRANSPORT_LE)) {
+    if (BTM_IsEncrypted(bd_addr, BT_TRANSPORT_LE)) {
       rc |= ENCRYPTED_LE;
     }
+  } else {
+    LOG_INFO("Acl is not connected to peer:%s",
+             ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
   }
 
+  BTM_LogHistory(
+      kBtmLogTag, bd_addr, "Get connection state",
+      base::StringPrintf("connected:%c classic_encrypted:%c le_encrypted:%c",
+                         (rc & (int)true) ? 'T' : 'F',
+                         (rc & ENCRYPTED_BREDR) ? 'T' : 'F',
+                         (rc & ENCRYPTED_LE) ? 'T' : 'F'));
   return rc;
 }
 
