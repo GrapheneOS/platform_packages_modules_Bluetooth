@@ -23,6 +23,7 @@
 #include <memory>      // for shared_ptr
 #include <string>      // for string
 #include <vector>      // for vector
+#include <optional>
 
 #include "hci/address.h"                       // for Address
 #include "model/devices/hci_device.h"          // for HciDevice
@@ -84,8 +85,8 @@ class TestModel {
   // Handle incoming remote connections
   void AddLinkLayerConnection(std::shared_ptr<Device> dev, Phy::Type phy_type);
   // Add an HCI device, return its index
-  PhyDevice::Identifier AddHciConnection(std::shared_ptr<HciDevice> dev);
-
+  PhyDevice::Identifier AddHciConnection(std::shared_ptr<HciDevice> dev,
+                                         std::optional<Address> address = {});
   // Handle closed remote connections (both hci & link layer)
   void OnConnectionClosed(PhyDevice::Identifier device_id, AsyncUserId user_id);
 
