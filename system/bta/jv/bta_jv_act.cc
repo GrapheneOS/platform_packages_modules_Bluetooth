@@ -1811,9 +1811,9 @@ static void bta_jv_pm_conn_busy(tBTA_JV_PM_CB* p_cb) {
 
 /*******************************************************************************
  *
- * Function    bta_jv_pm_conn_busy
+ * Function    bta_jv_pm_conn_idle
  *
- * Description set pm connection busy state (input param safe)
+ * Description set pm connection idle state (input param safe)
  *
  * Params      p_cb: pm control block of jv connection
  *
