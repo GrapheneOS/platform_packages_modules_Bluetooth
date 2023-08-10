@@ -18,6 +18,7 @@ package com.android.bluetooth.btservice.bluetoothkeystore;
 
 import android.util.Log;
 
+import com.android.bluetooth.Utils;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -29,7 +30,11 @@ public class BluetoothKeystoreNativeInterface {
     private BluetoothKeystoreService mBluetoothKeystoreService = null;
 
     static {
-        classInitNative();
+        if (Utils.isInstrumentationTestMode()) {
+            Log.w(TAG, "App is instrumented. Skip loading the native");
+        } else {
+            classInitNative();
+        }
     }
 
     /**
