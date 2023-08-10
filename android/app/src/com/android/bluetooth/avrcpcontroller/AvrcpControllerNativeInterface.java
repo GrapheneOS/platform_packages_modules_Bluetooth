@@ -255,7 +255,7 @@ public class AvrcpControllerNativeInterface {
     }
 
     // JNI Helper functions to convert native objects to java.
-    AvrcpItem createFromNativeMediaItem(
+    static AvrcpItem createFromNativeMediaItem(
             byte[] address, long uid, int type, String name, int[] attrIds, String[] attrVals) {
         BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         if (VDBG) {
@@ -281,7 +281,7 @@ public class AvrcpControllerNativeInterface {
                 .build();
     }
 
-    AvrcpItem createFromNativeFolderItem(
+    static AvrcpItem createFromNativeFolderItem(
             byte[] address, long uid, int type, String name, int playable) {
         BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         if (VDBG) {
@@ -307,7 +307,7 @@ public class AvrcpControllerNativeInterface {
                 .build();
     }
 
-    AvrcpPlayer createFromNativePlayerItem(
+    static AvrcpPlayer createFromNativePlayerItem(
             byte[] address,
             int id,
             String name,
@@ -397,7 +397,7 @@ public class AvrcpControllerNativeInterface {
     private static final byte JNI_PLAY_STATUS_FWD_SEEK = 0x03;
     private static final byte JNI_PLAY_STATUS_REV_SEEK = 0x04;
 
-    private int toPlaybackStateFromJni(int fromJni) {
+    private static int toPlaybackStateFromJni(int fromJni) {
         switch (fromJni) {
             case JNI_PLAY_STATUS_STOPPED:
                 return PlaybackStateCompat.STATE_STOPPED;

@@ -268,66 +268,6 @@ public class AvrcpControllerServiceTest {
     }
 
     @Test
-    public void createFromNativeMediaItem() {
-        // TODO This is only nativeInterfaceTest
-        // long uid = 1;
-        // int type = 2;
-        // int[] attrIds = new int[] { 0x01 }; // MEDIA_ATTRIBUTE_TITLE}
-        // String[] attrVals = new String[] {"test_title"};
-
-        // AvrcpItem item = mService.createFromNativeMediaItem(
-        //         REMOTE_DEVICE_ADDRESS_AS_ARRAY, uid, type, "unused_name", attrIds, attrVals);
-
-        // assertThat(item.getDevice().getAddress()).isEqualTo(REMOTE_DEVICE_ADDRESS);
-        // assertThat(item.getItemType()).isEqualTo(AvrcpItem.TYPE_MEDIA);
-        // assertThat(item.getType()).isEqualTo(type);
-        // assertThat(item.getUid()).isEqualTo(uid);
-        // assertThat(item.getUuid()).isNotNull(); // Random uuid
-        // assertThat(item.getTitle()).isEqualTo(attrVals[0]);
-        // assertThat(item.isPlayable()).isTrue();
-    }
-
-    @Test
-    public void createFromNativeFolderItem() {
-        // TODO This is only nativeInterfaceTest
-        // long uid = 1;
-        // int type = 2;
-        // String folderName = "test_folder_name";
-        // int playable = 0x01; // Playable folder
-
-        // AvrcpItem item = mService.createFromNativeFolderItem(
-        //         REMOTE_DEVICE_ADDRESS_AS_ARRAY, uid, type, folderName, playable);
-
-        // assertThat(item.getDevice().getAddress()).isEqualTo(REMOTE_DEVICE_ADDRESS);
-        // assertThat(item.getItemType()).isEqualTo(AvrcpItem.TYPE_FOLDER);
-        // assertThat(item.getType()).isEqualTo(type);
-        // assertThat(item.getUid()).isEqualTo(uid);
-        // assertThat(item.getUuid()).isNotNull(); // Random uuid
-        // assertThat(item.getDisplayableName()).isEqualTo(folderName);
-        // assertThat(item.isPlayable()).isTrue();
-    }
-
-    @Test
-    public void createFromNativePlayerItem() {
-        // TODO This is only nativeInterfaceTest
-        // int playerId = 1;
-        // String name = "test_name";
-        // byte[] transportFlags = new byte[] {1, 0, 0, 0, 0, 0, 0, 0};
-        // int playStatus = AvrcpControllerService.JNI_PLAY_STATUS_REV_SEEK;
-        // int playerType = AvrcpPlayer.TYPE_AUDIO; // No getter exists
-
-        // AvrcpPlayer player = mService.createFromNativePlayerItem(
-        //         REMOTE_DEVICE_ADDRESS_AS_ARRAY, playerId, name, transportFlags,
-        //         playStatus, playerType);
-
-        // assertThat(player.getDevice().getAddress()).isEqualTo(REMOTE_DEVICE_ADDRESS);
-        // assertThat(player.getId()).isEqualTo(playerId);
-        // assertThat(player.supportsFeature(0)).isTrue();
-        // assertThat(player.getName()).isEqualTo(name);
-        // assertThat(player.getPlayStatus()).isEqualTo(PlaybackStateCompat.STATE_REWINDING);
-    }
-
-    @Test
     public void handleChangeFolderRsp() {
         int count = 1;
 

@@ -753,18 +753,18 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       clazz, "handleGetPlayerItemsRsp",
       "([B[Lcom/android/bluetooth/avrcpcontroller/AvrcpPlayer;)V");
 
-  method_createFromNativeMediaItem =
-      env->GetMethodID(clazz, "createFromNativeMediaItem",
-                       "([BJILjava/lang/String;[I[Ljava/lang/String;)Lcom/"
-                       "android/bluetooth/avrcpcontroller/AvrcpItem;");
-  method_createFromNativeFolderItem = env->GetMethodID(
+  method_createFromNativeMediaItem = env->GetStaticMethodID(
+      clazz, "createFromNativeMediaItem",
+      "([BJILjava/lang/String;[I[Ljava/lang/String;)Lcom/"
+      "android/bluetooth/avrcpcontroller/AvrcpItem;");
+  method_createFromNativeFolderItem = env->GetStaticMethodID(
       clazz, "createFromNativeFolderItem",
       "([BJILjava/lang/String;I)Lcom/android/bluetooth/avrcpcontroller/"
       "AvrcpItem;");
-  method_createFromNativePlayerItem =
-      env->GetMethodID(clazz, "createFromNativePlayerItem",
-                       "([BILjava/lang/String;[BII)Lcom/android/bluetooth/"
-                       "avrcpcontroller/AvrcpPlayer;");
+  method_createFromNativePlayerItem = env->GetStaticMethodID(
+      clazz, "createFromNativePlayerItem",
+      "([BILjava/lang/String;[BII)Lcom/android/bluetooth/"
+      "avrcpcontroller/AvrcpPlayer;");
   method_handleChangeFolderRsp =
       env->GetMethodID(clazz, "handleChangeFolderRsp", "([BI)V");
   method_handleSetBrowsedPlayerRsp =
