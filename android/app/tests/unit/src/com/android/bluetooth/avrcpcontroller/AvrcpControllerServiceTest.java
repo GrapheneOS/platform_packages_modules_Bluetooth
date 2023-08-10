@@ -380,15 +380,6 @@ public class AvrcpControllerServiceTest {
     }
 
     @Test
-    public void JniApisWithNoBehaviors_doNotCrash() {
-        // TODO Delete this
-        // mService.handlePassthroughRsp(1, 2, new byte[0]);
-        // mService.handleGroupNavigationRsp(1, 2);
-        // mService.getRcFeatures(new byte[0], 1);
-        // mService.setPlayerAppSettingRsp(new byte[0], (byte) 0);
-    }
-
-    @Test
     public void onConnectionStateChanged_connectCase() {
         boolean remoteControlConnected = true;
         boolean browsingConnected = true; // Calls connect when any of them is true.

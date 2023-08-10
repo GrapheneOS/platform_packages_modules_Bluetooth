@@ -128,28 +128,6 @@ public class AvrcpControllerNativeInterface {
     /*********************************** callbacks from native ************************************/
     /**********************************************************************************************/
 
-    // Called by JNI when a passthrough key was received.
-    void handlePassthroughRsp(int id, int keyState, byte[] address) {
-        if (DBG) {
-            Log.d(
-                    TAG,
-                    "handlePassthroughRsp: passthrough response received as:"
-                            + (" key=" + id)
-                            + (" state=" + keyState)
-                            + (" address=" + Arrays.toString(address)));
-        }
-    }
-
-    void handleGroupNavigationRsp(int id, int keyState) {
-        if (DBG) {
-            Log.d(
-                    TAG,
-                    "handleGroupNavigationRsp: group navigation response received as:"
-                            + (" key=" + id)
-                            + (" state=" + keyState));
-        }
-    }
-
     // Called by JNI when a device has connected or disconnected.
     void onConnectionStateChanged(
             boolean remoteControlConnected, boolean browsingConnected, byte[] address) {
@@ -167,12 +145,6 @@ public class AvrcpControllerNativeInterface {
                 remoteControlConnected, browsingConnected, device);
     }
 
-    // Called by JNI to notify Avrcp of features supported by the Remote device.
-    void getRcFeatures(byte[] address, int features) {
-        /* Do Nothing. */
-        // TODO DELETE
-    }
-
     // Called by JNI to notify Avrcp of a remote device's Cover Art PSM
     @VisibleForTesting
     void getRcPsm(byte[] address, int psm) {
@@ -182,13 +154,6 @@ public class AvrcpControllerNativeInterface {
         }
 
         mAvrcpController.getRcPsm(device, psm);
-    }
-
-    // Called by JNI
-    @VisibleForTesting
-    void setPlayerAppSettingRsp(byte[] address, byte accepted) {
-        /* Do Nothing. */
-        // TODO DELETE
     }
 
     // Called by JNI to report remote Player's capabilities
