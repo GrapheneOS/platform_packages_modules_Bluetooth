@@ -73,7 +73,184 @@ import java.util.concurrent.Executor;
 public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, AutoCloseable {
     private static final String TAG = "BluetoothLeBroadcastAssistant";
     private static final boolean DBG = true;
-    private final Map<Callback, Executor> mCallbackMap = new HashMap<>();
+    private final Map<Callback, Executor> mCallbackExecutorMap = new HashMap<>();
+
+    private final IBluetoothLeBroadcastAssistantCallback mCallback =
+            new IBluetoothLeBroadcastAssistantCallback.Stub() {
+                @Override
+                public void onSearchStarted(int reason) {
+                    for (Map.Entry<BluetoothLeBroadcastAssistant.Callback, Executor>
+                            callbackExecutorEntry : mCallbackExecutorMap.entrySet()) {
+                        BluetoothLeBroadcastAssistant.Callback callback =
+                                callbackExecutorEntry.getKey();
+                        Executor executor = callbackExecutorEntry.getValue();
+                        executor.execute(() -> callback.onSearchStarted(reason));
+                    }
+                }
+
+                @Override
+                public void onSearchStartFailed(int reason) {
+                    for (Map.Entry<BluetoothLeBroadcastAssistant.Callback, Executor>
+                            callbackExecutorEntry : mCallbackExecutorMap.entrySet()) {
+                        BluetoothLeBroadcastAssistant.Callback callback =
+                                callbackExecutorEntry.getKey();
+                        Executor executor = callbackExecutorEntry.getValue();
+                        executor.execute(() -> callback.onSearchStartFailed(reason));
+                    }
+                }
+
+                @Override
+                public void onSearchStopped(int reason) {
+                    for (Map.Entry<BluetoothLeBroadcastAssistant.Callback, Executor>
+                            callbackExecutorEntry : mCallbackExecutorMap.entrySet()) {
+                        BluetoothLeBroadcastAssistant.Callback callback =
+                                callbackExecutorEntry.getKey();
+                        Executor executor = callbackExecutorEntry.getValue();
+                        executor.execute(() -> callback.onSearchStopped(reason));
+                    }
+                }
+
+                @Override
+                public void onSearchStopFailed(int reason) {
+                    for (Map.Entry<BluetoothLeBroadcastAssistant.Callback, Executor>
+                            callbackExecutorEntry : mCallbackExecutorMap.entrySet()) {
+                        BluetoothLeBroadcastAssistant.Callback callback =
+                                callbackExecutorEntry.getKey();
+                        Executor executor = callbackExecutorEntry.getValue();
+                        executor.execute(() -> callback.onSearchStopFailed(reason));
+                    }
+                }
+
+                @Override
+                public void onSourceFound(BluetoothLeBroadcastMetadata source) {
+                    for (Map.Entry<BluetoothLeBroadcastAssistant.Callback, Executor>
+                            callbackExecutorEntry : mCallbackExecutorMap.entrySet()) {
+                        BluetoothLeBroadcastAssistant.Callback callback =
+                                callbackExecutorEntry.getKey();
+                        Executor executor = callbackExecutorEntry.getValue();
+                        executor.execute(() -> callback.onSourceFound(source));
+                    }
+                }
+
+                @Override
+                public void onSourceAdded(BluetoothDevice sink, int sourceId, int reason) {
+                    for (Map.Entry<BluetoothLeBroadcastAssistant.Callback, Executor>
+                            callbackExecutorEntry : mCallbackExecutorMap.entrySet()) {
+                        BluetoothLeBroadcastAssistant.Callback callback =
+                                callbackExecutorEntry.getKey();
+                        Executor executor = callbackExecutorEntry.getValue();
+                        executor.execute(() -> callback.onSourceAdded(sink, sourceId, reason));
+                    }
+                }
+
+                @Override
+                public void onSourceAddFailed(
+                        BluetoothDevice sink, BluetoothLeBroadcastMetadata source, int reason) {
+                    for (Map.Entry<BluetoothLeBroadcastAssistant.Callback, Executor>
+                            callbackExecutorEntry : mCallbackExecutorMap.entrySet()) {
+                        BluetoothLeBroadcastAssistant.Callback callback =
+                                callbackExecutorEntry.getKey();
+                        Executor executor = callbackExecutorEntry.getValue();
+                        executor.execute(() -> callback.onSourceAddFailed(sink, source, reason));
+                    }
+                }
+
+                @Override
+                public void onSourceModified(BluetoothDevice sink, int sourceId, int reason) {
+                    for (Map.Entry<BluetoothLeBroadcastAssistant.Callback, Executor>
+                            callbackExecutorEntry : mCallbackExecutorMap.entrySet()) {
+                        BluetoothLeBroadcastAssistant.Callback callback =
+                                callbackExecutorEntry.getKey();
+                        Executor executor = callbackExecutorEntry.getValue();
+                        executor.execute(() -> callback.onSourceModified(sink, sourceId, reason));
+                    }
+                }
+
+                @Override
+                public void onSourceModifyFailed(BluetoothDevice sink, int sourceId, int reason) {
+                    for (Map.Entry<BluetoothLeBroadcastAssistant.Callback, Executor>
+                            callbackExecutorEntry : mCallbackExecutorMap.entrySet()) {
+                        BluetoothLeBroadcastAssistant.Callback callback =
+                                callbackExecutorEntry.getKey();
+                        Executor executor = callbackExecutorEntry.getValue();
+                        executor.execute(
+                                () -> callback.onSourceModifyFailed(sink, sourceId, reason));
+                    }
+                }
+
+                @Override
+                public void onSourceRemoved(BluetoothDevice sink, int sourceId, int reason) {
+                    for (Map.Entry<BluetoothLeBroadcastAssistant.Callback, Executor>
+                            callbackExecutorEntry : mCallbackExecutorMap.entrySet()) {
+                        BluetoothLeBroadcastAssistant.Callback callback =
+                                callbackExecutorEntry.getKey();
+                        Executor executor = callbackExecutorEntry.getValue();
+                        executor.execute(() -> callback.onSourceRemoved(sink, sourceId, reason));
+                    }
+                }
+
+                @Override
+                public void onSourceRemoveFailed(BluetoothDevice sink, int sourceId, int reason) {
+                    for (Map.Entry<BluetoothLeBroadcastAssistant.Callback, Executor>
+                            callbackExecutorEntry : mCallbackExecutorMap.entrySet()) {
+                        BluetoothLeBroadcastAssistant.Callback callback =
+                                callbackExecutorEntry.getKey();
+                        Executor executor = callbackExecutorEntry.getValue();
+                        executor.execute(
+                                () -> callback.onSourceRemoveFailed(sink, sourceId, reason));
+                    }
+                }
+
+                @Override
+                public void onReceiveStateChanged(
+                        BluetoothDevice sink,
+                        int sourceId,
+                        BluetoothLeBroadcastReceiveState state) {
+                    for (Map.Entry<BluetoothLeBroadcastAssistant.Callback, Executor>
+                            callbackExecutorEntry : mCallbackExecutorMap.entrySet()) {
+                        BluetoothLeBroadcastAssistant.Callback callback =
+                                callbackExecutorEntry.getKey();
+                        Executor executor = callbackExecutorEntry.getValue();
+                        executor.execute(
+                                () -> callback.onReceiveStateChanged(sink, sourceId, state));
+                    }
+                }
+            };
+
+    private final class BroadcastLeAssistantServiceListener extends ForwardingServiceListener {
+        BroadcastLeAssistantServiceListener(ServiceListener listener) {
+            super(listener);
+        }
+
+        @Override
+        public void onServiceConnected(int profile, BluetoothProfile proxy) {
+            try {
+                if (profile == LE_AUDIO_BROADCAST_ASSISTANT) {
+                    // re-register the service-to-app callback
+                    log("onServiceConnected");
+                    synchronized (mCallbackExecutorMap) {
+                        if (mCallbackExecutorMap.isEmpty()) {
+                            return;
+                        }
+                        try {
+                            final IBluetoothLeBroadcastAssistant service = getService();
+                            if (service != null) {
+                                service.registerCallback(mCallback);
+                            }
+                        } catch (RemoteException e) {
+                            Log.e(
+                                    TAG,
+                                    "onServiceConnected: Failed to register "
+                                            + "Le Broadcaster Assistant callback",
+                                    e);
+                        }
+                    }
+                }
+            } finally {
+                super.onServiceConnected(profile, proxy);
+            }
+        }
+    }
 
     /**
      * This class provides a set of callbacks that are invoked when scanning for Broadcast Sources
@@ -305,7 +482,6 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     private Context mContext;
     private BluetoothAdapter mBluetoothAdapter;
     private final AttributionSource mAttributionSource;
-    private BluetoothLeBroadcastAssistantCallback mCallback;
 
     private final BluetoothProfileConnector<IBluetoothLeBroadcastAssistant> mProfileConnector =
             new BluetoothProfileConnector(this, BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT,
@@ -326,7 +502,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
         mContext = context;
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         mAttributionSource = mBluetoothAdapter.getAttributionSource();
-        mProfileConnector.connect(context, listener);
+        mProfileConnector.connect(context, new BroadcastLeAssistantServiceListener(listener));
         mCloseGuard = new CloseGuard();
         mCloseGuard.open("close");
     }
@@ -539,15 +715,32 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
         Objects.requireNonNull(executor, "executor cannot be null");
         Objects.requireNonNull(callback, "callback cannot be null");
         log("registerCallback");
-        final IBluetoothLeBroadcastAssistant service = getService();
-        if (service == null) {
-            Log.w(TAG, "Proxy not attached to service");
-            if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else if (mBluetoothAdapter.isEnabled()) {
-            if (mCallback == null) {
-                mCallback = new BluetoothLeBroadcastAssistantCallback(service);
+
+        synchronized (mCallbackExecutorMap) {
+            // If the callback map is empty, we register the service-to-app callback
+            if (mCallbackExecutorMap.isEmpty()) {
+                if (!mBluetoothAdapter.isEnabled()) {
+                    /* If Bluetooth is off, just store callback and it will be registered
+                     * when Bluetooth is on
+                     */
+                    mCallbackExecutorMap.put(callback, executor);
+                    return;
+                }
+                try {
+                    final IBluetoothLeBroadcastAssistant service = getService();
+                    if (service != null) {
+                        service.registerCallback(mCallback);
+                    }
+                } catch (RemoteException e) {
+                    throw e.rethrowFromSystemServer();
+                }
             }
-            mCallback.register(executor, callback);
+
+            // Adds the passed in callback to our map of callbacks to executors
+            if (mCallbackExecutorMap.containsKey(callback)) {
+                throw new IllegalArgumentException("This callback has already been registered");
+            }
+            mCallbackExecutorMap.put(callback, executor);
         }
     }
 
@@ -573,16 +766,23 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     public void unregisterCallback(@NonNull Callback callback) {
         Objects.requireNonNull(callback, "callback cannot be null");
         log("unregisterCallback");
-        final IBluetoothLeBroadcastAssistant service = getService();
-        if (service == null) {
-            Log.w(TAG, "Proxy not attached to service");
-            if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else if (mBluetoothAdapter.isEnabled()) {
-            if (mCallback == null) {
-                throw new IllegalArgumentException("no callback was ever registered");
+
+        synchronized (mCallbackExecutorMap) {
+            if (mCallbackExecutorMap.remove(callback) == null) {
+                throw new IllegalArgumentException("This callback has not been registered");
             }
-            mCallback.unregister(callback);
-            mCallback = null;
+
+            // If the callback map is empty, we unregister the service-to-app callback
+            if (mCallbackExecutorMap.isEmpty()) {
+                try {
+                    final IBluetoothLeBroadcastAssistant service = getService();
+                    if (service != null) {
+                        service.unregisterCallback(mCallback);
+                    }
+                } catch (RemoteException e) {
+                    throw e.rethrowFromSystemServer();
+                }
+            }
         }
     }
 
@@ -630,9 +830,13 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
         if (mCallback == null) {
             throw new IllegalStateException("No callback was ever registered");
         }
-        if (!mCallback.isAtLeastOneCallbackRegistered()) {
-            throw new IllegalStateException("All callbacks are unregistered");
+
+        synchronized (mCallbackExecutorMap) {
+            if (mCallbackExecutorMap.isEmpty()) {
+                throw new IllegalStateException("All callbacks are unregistered");
+            }
         }
+
         final IBluetoothLeBroadcastAssistant service = getService();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
@@ -667,9 +871,13 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
         if (mCallback == null) {
             throw new IllegalStateException("No callback was ever registered");
         }
-        if (!mCallback.isAtLeastOneCallbackRegistered()) {
-            throw new IllegalStateException("All callbacks are unregistered");
+
+        synchronized (mCallbackExecutorMap) {
+            if (mCallbackExecutorMap.isEmpty()) {
+                throw new IllegalStateException("All callbacks are unregistered");
+            }
         }
+
         final IBluetoothLeBroadcastAssistant service = getService();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
@@ -787,9 +995,13 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
         if (mCallback == null) {
             throw new IllegalStateException("No callback was ever registered");
         }
-        if (!mCallback.isAtLeastOneCallbackRegistered()) {
-            throw new IllegalStateException("All callbacks are unregistered");
+
+        synchronized (mCallbackExecutorMap) {
+            if (mCallbackExecutorMap.isEmpty()) {
+                throw new IllegalStateException("All callbacks are unregistered");
+            }
         }
+
         final IBluetoothLeBroadcastAssistant service = getService();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
@@ -861,9 +1073,13 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
         if (mCallback == null) {
             throw new IllegalStateException("No callback was ever registered");
         }
-        if (!mCallback.isAtLeastOneCallbackRegistered()) {
-            throw new IllegalStateException("All callbacks are unregistered");
+
+        synchronized (mCallbackExecutorMap) {
+            if (mCallbackExecutorMap.isEmpty()) {
+                throw new IllegalStateException("All callbacks are unregistered");
+            }
         }
+
         final IBluetoothLeBroadcastAssistant service = getService();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
@@ -913,9 +1129,13 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
         if (mCallback == null) {
             throw new IllegalStateException("No callback was ever registered");
         }
-        if (!mCallback.isAtLeastOneCallbackRegistered()) {
-            throw new IllegalStateException("All callbacks are unregistered");
+
+        synchronized (mCallbackExecutorMap) {
+            if (mCallbackExecutorMap.isEmpty()) {
+                throw new IllegalStateException("All callbacks are unregistered");
+            }
         }
+
         final IBluetoothLeBroadcastAssistant service = getService();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
