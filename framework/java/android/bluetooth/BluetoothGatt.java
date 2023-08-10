@@ -1844,7 +1844,11 @@ public final class BluetoothGatt implements BluetoothProfile {
     }
 
     /**
-     * Request an MTU size used for a given connection.
+     * Request an MTU size used for a given connection. Please note that starting from Android 14,
+     * the Android Bluetooth stack requests the BLE ATT MTU to 517 bytes when the first GATT client
+     * requests an MTU, and disregards all subsequent MTU requests. Check out
+     * <a href="{@docRoot}about/versions/14/behavior-changes-all#mtu-set-to-517">MTU is set to 517
+     * for the first GATT client requesting an MTU</a> for more information.
      *
      * <p>When performing a write request operation (write without response),
      * the data sent is truncated to the MTU size. This function may be used
