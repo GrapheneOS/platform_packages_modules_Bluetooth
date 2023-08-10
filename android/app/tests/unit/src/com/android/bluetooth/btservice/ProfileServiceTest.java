@@ -39,6 +39,7 @@ import com.android.bluetooth.a2dp.A2dpNativeInterface;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.gatt.GattService;
 import com.android.bluetooth.hearingaid.HearingAidNativeInterface;
+import com.android.bluetooth.hfp.HeadsetNativeInterface;
 import com.android.bluetooth.pan.PanNativeInterface;
 
 import org.junit.After;
@@ -86,6 +87,7 @@ public class ProfileServiceTest {
     }
 
     @Mock private A2dpNativeInterface mA2dpNativeInterface;
+    @Mock private HeadsetNativeInterface mHeadsetNativeInterface;
     @Mock private HearingAidNativeInterface mHearingAidNativeInterface;
     @Mock private PanNativeInterface mPanNativeInterface;
 
@@ -168,6 +170,7 @@ public class ProfileServiceTest {
                 new String[0], false, "");
         mMockAdapterService.enableNative();
         A2dpNativeInterface.setInstance(mA2dpNativeInterface);
+        HeadsetNativeInterface.setInstance(mHeadsetNativeInterface);
         HearingAidNativeInterface.setInstance(mHearingAidNativeInterface);
         PanNativeInterface.setInstance(mPanNativeInterface);
     }
@@ -182,13 +185,13 @@ public class ProfileServiceTest {
         mMockAdapterService = null;
         mProfiles = null;
         A2dpNativeInterface.setInstance(null);
+        HeadsetNativeInterface.setInstance(null);
         HearingAidNativeInterface.setInstance(null);
         PanNativeInterface.setInstance(null);
     }
 
     /**
-     * Test: Start the Bluetooth services that are configured.
-     * Verify that the same services start.
+     * Test: Start the Bluetooth services that are configured. Verify that the same services start.
      */
     @Test
     public void testEnableDisable() throws TimeoutException {
