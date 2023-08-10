@@ -37,17 +37,15 @@ class StackBTMRegressionTests : public ::testing::Test {
 // regression test for b/260078907
 TEST_F(StackBTMRegressionTests,
        OOB_in_btm_ble_add_resolving_list_entry_complete) {
-  BT_HDR* pevent = (BT_HDR*)osi_calloc(sizeof(BT_HDR));
-  btm_ble_add_resolving_list_entry_complete(pevent->data, 0);
-  osi_free(pevent);
+  BT_HDR event{};
+  btm_ble_add_resolving_list_entry_complete(event.data, 0);
 }
 
 // regression test for b/255304475
 TEST_F(StackBTMRegressionTests,
        OOB_in_btm_ble_clear_resolving_list_complete) {
-  BT_HDR* pevent = (BT_HDR*)osi_calloc(sizeof(BT_HDR));
-  btm_ble_clear_resolving_list_complete(pevent->data, 0);
-  osi_free(pevent);
+  BT_HDR event{};
+  btm_ble_clear_resolving_list_complete(event.data, 0);
 }
 
 }  // namespace
