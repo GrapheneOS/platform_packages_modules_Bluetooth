@@ -96,9 +96,9 @@ std::shared_ptr<PhyDevice> TestModel::CreatePhyDevice(
   return std::make_shared<PhyDevice>(std::move(type), std::move(device));
 }
 
-Address TestModel::GenerateBluetoothAddress() const {
+Address TestModel::GenerateBluetoothAddress(uint32_t device_id) const {
   Address address({
-      0xff,
+      static_cast<uint8_t>(device_id),
       bluetooth_address_prefix_[4],
       bluetooth_address_prefix_[3],
       bluetooth_address_prefix_[2],
@@ -206,7 +206,7 @@ void TestModel::AddRemote(const std::string& server, int port, Phy::Type type) {
 PhyDevice::Identifier TestModel::AddHciConnection(
     std::shared_ptr<HciDevice> device, std::optional<Address> address) {
   // clients can specify BD_ADDR or have it set based on device_id.
-  device->SetAddress(address.value_or(GenerateBluetoothAddress()));
+  device->SetAddress(address.value_or(GenerateBluetoothAddress(device->id_)));
   AddDevice(std::static_pointer_cast<Device>(device));
 
   INFO(device->id_, "Initialized device with address {}", device->GetAddress());
