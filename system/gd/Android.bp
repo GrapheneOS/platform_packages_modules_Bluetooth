@@ -370,6 +370,7 @@ cc_test {
     generated_headers: [
         "BluetoothGeneratedBundlerSchema_h_bfbs",
         "BluetoothGeneratedDumpsysDataSchema_h",
+        "BluetoothGeneratedDumpsysInternalTestData_h",
         "BluetoothGeneratedDumpsysTestData_h",
         "BluetoothGeneratedPackets_h",
     ],
