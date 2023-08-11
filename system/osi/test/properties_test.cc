@@ -16,13 +16,11 @@
  *
  ******************************************************************************/
 
-#include <gtest/gtest.h>
-
-#include "AllocationTestHarness.h"
-
 #include "osi/include/properties.h"
 
-class PropertiesTest : public AllocationTestHarness {};
+#include <gtest/gtest.h>
+
+class PropertiesTest : public ::testing::Test {};
 
 TEST_F(PropertiesTest, test_default_value) {
   char value[PROPERTY_VALUE_MAX] = {0};

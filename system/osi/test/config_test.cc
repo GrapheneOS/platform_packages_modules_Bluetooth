@@ -21,8 +21,6 @@
 
 #include <filesystem>
 
-#include "AllocationTestHarness.h"
-
 static const std::filesystem::path kConfigFile =
     std::filesystem::temp_directory_path() / "config_test.conf";
 static const char* CONFIG_FILE = kConfigFile.c_str();
@@ -70,10 +68,9 @@ HiSyncId = 18446744073709551615                                                 
 HiSyncId2 = 15001900                                                                 \n\
 ";
 
-class ConfigTest : public AllocationTestHarness {
+class ConfigTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    AllocationTestHarness::SetUp();
     FILE* fp = fopen(CONFIG_FILE, "wt");
     ASSERT_NE(fp, nullptr);
     ASSERT_EQ(fwrite(CONFIG_FILE_CONTENT, 1, sizeof(CONFIG_FILE_CONTENT), fp),
@@ -83,7 +80,6 @@ class ConfigTest : public AllocationTestHarness {
 
   void TearDown() override {
     EXPECT_TRUE(std::filesystem::remove(kConfigFile));
-    AllocationTestHarness::TearDown();
   }
 };
 
