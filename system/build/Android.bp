@@ -29,7 +29,7 @@ cc_defaults {
 }
 
 cc_defaults {
-    name: "fluoride_defaults_fuzzable",
+    name: "fluoride_defaults",
     target: {
         android: {
             test_config_template: ":BluetoothTestConfigTemplate",
@@ -55,22 +55,4 @@ cc_defaults {
         "libbt_shim_bridge",
         "libbt_shim_ffi",
     ],
-}
-
-cc_defaults {
-    name: "fluoride_defaults",
-    defaults: [
-        "fluoride_defaults_fuzzable",
-    ],
-    target: {
-        darwin: {
-            // libstatslog_bt -> libbinder doesn't build on mac
-            enabled: false,
-        },
-        android: {
-            sanitize: {
-                misc_undefined: ["bounds"],
-            },
-        },
-    },
 }
