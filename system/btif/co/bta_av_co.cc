@@ -792,7 +792,10 @@ bool BtaAvCo::IsSupportedCodec(btav_a2dp_codec_index_t codec_index) {
   // All peer state is initialized with the same local codec config,
   // hence we check only the first peer.
   A2dpCodecs* codecs = peers_[0].GetCodecs();
-  CHECK(codecs != nullptr);
+  if (codecs == nullptr) {
+    LOG_ERROR("Peer codecs is set to null");
+    return false;
+  }
   return codecs->isSupportedCodec(codec_index);
 }
 
@@ -1701,7 +1704,10 @@ bool BtaAvCo::ReportSourceCodecState(BtaAvCoPeer* p_peer) {
   VLOG(1) << __func__ << ": peer_address="
           << ADDRESS_TO_LOGGABLE_STR(p_peer->addr);
   A2dpCodecs* codecs = p_peer->GetCodecs();
-  CHECK(codecs != nullptr);
+  if (codecs == nullptr) {
+    LOG_ERROR("Peer codecs is set to null");
+    return false;
+  }
   if (!codecs->getCodecConfigAndCapabilities(&codec_config,
                                              &codecs_local_capabilities,
                                              &codecs_selectable_capabilities)) {
