@@ -35,6 +35,7 @@
 #include "bta/sys/bta_sys.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "osi/include/properties.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/avct_api.h"  // AVCT_PSM
 #include "stack/include/avdt_api.h"  // AVDT_PSM
@@ -1260,6 +1261,11 @@ static int bta_jv_port_data_co_cback(uint16_t port_handle, uint8_t* buf,
   if (p_pcb != NULL) {
     switch (type) {
       case DATA_CO_CALLBACK_TYPE_INCOMING:
+        // Exit sniff mode when receiving data by sysproxy
+        if (osi_property_get_bool("bluetooth.rfcomm.sysproxy.rx.exit_sniff",
+                                  false)) {
+          bta_jv_pm_conn_busy(p_pcb->p_pm_cb);
+        }
         return bta_co_rfc_data_incoming(p_pcb->rfcomm_slot_id, (BT_HDR*)buf);
       case DATA_CO_CALLBACK_TYPE_OUTGOING_SIZE:
         return bta_co_rfc_data_outgoing_size(p_pcb->rfcomm_slot_id, (int*)buf);
