@@ -54,7 +54,7 @@ std::unique_ptr<BluetoothQualityReportInterface> bluetoothQualityReportInstance;
 void BqrVseSubEvt::ParseBqrLinkQualityEvt(uint8_t length,
                                           const uint8_t* p_param_buf) {
   if (length < kLinkQualityParamTotalLen) {
-    LOG(FATAL) << __func__
+    LOG(ERROR) << __func__
                << ": Parameter total length: " << std::to_string(length)
                << " is abnormal. It shall be not shorter than: "
                << std::to_string(kLinkQualityParamTotalLen);
@@ -505,7 +505,7 @@ void CategorizeBqrEvent(uint8_t length, const uint8_t* p_bqr_event) {
     case QUALITY_REPORT_ID_LE_AUDIO_CHOPPY:
     case QUALITY_REPORT_ID_CONNECT_FAIL:
       if (length < kLinkQualityParamTotalLen) {
-        LOG(FATAL) << __func__
+        LOG(ERROR) << __func__
                    << ": Parameter total length: " << std::to_string(length)
                    << " is abnormal. It shall be not shorter than: "
                    << std::to_string(kLinkQualityParamTotalLen);
