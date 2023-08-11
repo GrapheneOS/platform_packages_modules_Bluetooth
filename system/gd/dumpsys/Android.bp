@@ -131,6 +131,26 @@ genrule {
     ],
 }
 
+genrule {
+    name: "BluetoothGeneratedDumpsysInternalTestData_h",
+    tools: [
+        "flatc",
+    ],
+    cmd: "$(location flatc) --cpp -o $(genDir)/dumpsys/internal/test_data $(in)",
+    srcs: [
+        "internal/test_data/float.fbs",
+        "internal/test_data/integer.fbs",
+        "internal/test_data/string.fbs",
+        "internal/test_data/struct.fbs",
+    ],
+    out: [
+        "dumpsys/internal/test_data/float_generated.h",
+        "dumpsys/internal/test_data/integer_generated.h",
+        "dumpsys/internal/test_data/string_generated.h",
+        "dumpsys/internal/test_data/struct_generated.h",
+    ],
+}
+
 cc_library {
     name: "libbluetooth-dumpsys",
     host_supported: true,
@@ -175,8 +195,8 @@ cc_test {
     name: "bluetooth_flatbuffer_tests",
     test_suites: ["device-tests"],
     defaults: [
-        "bluetooth_gtest_x86_asan_workaround",
         "bluetooth_cflags",
+        "bluetooth_gtest_x86_asan_workaround",
         "mts_defaults",
     ],
     host_supported: true,
