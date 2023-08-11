@@ -477,6 +477,12 @@ public class LeAudioBroadcastServiceTest {
         BluetoothLeAudioContentMetadata meta = meta_builder.build();
         mService.createBroadcast(buildBroadcastSettingsFromMetadata(meta, code, 1));
 
+        LeAudioStackEvent create_event =
+                new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_BROADCAST_CREATED);
+        create_event.valueInt1 = broadcastId;
+        create_event.valueBool1 = true;
+        mService.messageFromNative(create_event);
+
         // Inject metadata stack event and verify if getter API works as expected
         LeAudioStackEvent state_event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_BROADCAST_METADATA_CHANGED);
