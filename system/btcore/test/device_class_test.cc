@@ -16,11 +16,10 @@
  *
  ******************************************************************************/
 
+#include "btcore/include/device_class.h"
+
 #include <arpa/inet.h>
 #include <gtest/gtest.h>
-#include "osi/test/AllocationTestHarness.h"
-
-#include "btcore/include/device_class.h"
 
 ::testing::AssertionResult check_bitfield(const char* m_expr,
                                           const char* n_expr, int m, int n) {
@@ -41,7 +40,7 @@
                                        << " )";
 }
 
-class DeviceClassTest : public AllocationTestHarness {};
+class DeviceClassTest : public ::testing::Test {};
 
 TEST_F(DeviceClassTest, cod_sizeof) {
   uint8_t dc_stream[] = {0x00, 0x00, 0x00, 0x00};

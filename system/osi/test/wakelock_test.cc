@@ -26,8 +26,6 @@
 
 #include "osi/include/wakelock.h"
 
-#include "AllocationTestHarness.h"
-
 static bool is_wake_lock_acquired = false;
 
 static int acquire_wake_lock_cb(const char* lock_name) {
@@ -43,11 +41,9 @@ static int release_wake_lock_cb(const char* lock_name) {
 static bt_os_callouts_t bt_wakelock_callouts = {
     sizeof(bt_os_callouts_t), NULL, acquire_wake_lock_cb, release_wake_lock_cb};
 
-class WakelockTest : public AllocationTestHarness {
+class WakelockTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    AllocationTestHarness::SetUp();
-
 // TODO (jamuraa): maybe use base::CreateNewTempDirectory instead?
 #ifdef __ANDROID__
     tmp_dir_ = "/data/local/tmp/btwlXXXXXX";
@@ -84,8 +80,6 @@ class WakelockTest : public AllocationTestHarness {
 
     close(lock_path_fd);
     close(unlock_path_fd);
-
-    AllocationTestHarness::TearDown();
   }
 
   //

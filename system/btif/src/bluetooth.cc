@@ -94,7 +94,6 @@
 #include "main/shim/dumpsys.h"
 #include "main/shim/shim.h"
 #include "osi/include/alarm.h"
-#include "osi/include/allocation_tracker.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
@@ -414,10 +413,6 @@ static int init(bt_callbacks_t* callbacks, bool start_restricted,
   bluetooth::common::InitFlags::Load(init_flags);
 
   if (interface_ready()) return BT_STATUS_DONE;
-
-#ifdef BLUEDROID_DEBUG
-  allocation_tracker_init();
-#endif
 
   set_hal_cbacks(callbacks);
 
@@ -811,7 +806,6 @@ static void dump(int fd, const char** arguments) {
   device_debug_iot_config_dump(fd);
   BTA_HfClientDumpStatistics(fd);
   wakelock_debug_dump(fd);
-  osi_allocator_debug_dump(fd);
   alarm_debug_dump(fd);
   bluetooth::csis::CsisClient::DebugDump(fd);
 #ifndef TARGET_FLOSS

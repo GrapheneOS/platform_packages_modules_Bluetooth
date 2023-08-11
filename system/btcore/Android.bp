@@ -103,10 +103,12 @@ cc_test {
         "libbtcore",
         "libchrome",
         "libosi",
-        "libosi-AllocationTestHarness",
     ],
     host_supported: true,
     test_options: {
         unit_test: true,
+    },
+    sanitize: {
+        address: true,
     },
 }
