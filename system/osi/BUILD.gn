@@ -68,7 +68,6 @@ static_library("osi") {
 if (use.test) {
   executable("net_test_osi") {
     sources = [
-      "test/AlarmTestHarness.cc",
       "test/AllocationTestHarness.cc",
       "test/alarm_test.cc",
       "test/allocation_tracker_test.cc",
