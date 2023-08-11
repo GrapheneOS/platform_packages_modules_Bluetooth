@@ -58,7 +58,6 @@ cc_test {
         "libbtdevice",
         "libchrome",
         "libosi",
-        "libosi-AllocationTestHarness",
     ],
 }
 
@@ -92,6 +91,5 @@ cc_test {
         "libbtdevice",
         "libchrome",
         "libgmock",
-        "libosi-AllocationTestHarness",
     ],
 }

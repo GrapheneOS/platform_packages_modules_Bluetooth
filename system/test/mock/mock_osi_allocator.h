@@ -37,7 +37,6 @@
 #include <string.h>
 
 #include "check.h"
-#include "osi/include/allocation_tracker.h"
 #include "osi/include/allocator.h"
 #include "test/common/mock_functions.h"
 

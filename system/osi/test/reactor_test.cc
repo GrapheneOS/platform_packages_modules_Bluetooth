@@ -1,14 +1,12 @@
+#include "osi/include/reactor.h"
+
 #include <gtest/gtest.h>
 #include <pthread.h>
 #include <sys/eventfd.h>
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "AllocationTestHarness.h"
-
-#include "osi/include/reactor.h"
-
-class ReactorTest : public AllocationTestHarness {};
+class ReactorTest : public ::testing::Test {};
 
 static pthread_t thread;
 static volatile bool thread_running;
