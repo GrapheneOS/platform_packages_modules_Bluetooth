@@ -1,15 +1,13 @@
-#include <gtest/gtest.h>
-
-#include "AllocationTestHarness.h"
+#include "osi/semaphore.h"
 
 #include <base/logging.h>
+#include <gtest/gtest.h>
 #include <sys/select.h>
 #include <unistd.h>
 
 #include "common/message_loop_thread.h"
 #include "osi/include/osi.h"
 #include "osi/include/reactor.h"
-#include "osi/semaphore.h"
 
 using bluetooth::common::MessageLoopThread;
 
@@ -30,7 +28,7 @@ void sleep_then_increment_counter(void* context) {
 }
 }  // namespace
 
-class SemaphoreTest : public AllocationTestHarness {};
+class SemaphoreTest : public ::testing::Test {};
 
 TEST_F(SemaphoreTest, test_new_simple) {
   semaphore_t* semaphore = semaphore_new(0);

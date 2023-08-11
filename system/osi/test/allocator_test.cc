@@ -15,15 +15,13 @@
  *  limitations under the License
  *
  ******************************************************************************/
-#include <cstring>
+#include "osi/include/allocator.h"
 
 #include <gtest/gtest.h>
 
-#include "AllocationTestHarness.h"
+#include <cstring>
 
-#include "osi/include/allocator.h"
-
-class AllocatorTest : public AllocationTestHarness {};
+class AllocatorTest : public ::testing::Test {};
 
 TEST_F(AllocatorTest, test_osi_strndup) {
   char str[] = "IloveBluetooth";

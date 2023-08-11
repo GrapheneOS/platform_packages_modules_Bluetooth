@@ -16,12 +16,11 @@
  *
  ******************************************************************************/
 
+#include "osi/include/future.h"
+
 #include <gtest/gtest.h>
 
-#include "AllocationTestHarness.h"
-
 #include "common/message_loop_thread.h"
-#include "osi/include/future.h"
 #include "osi/include/osi.h"
 
 using bluetooth::common::MessageLoopThread;
@@ -30,7 +29,7 @@ static const char* pass_back_data0 = "fancy a sandwich? it's a fancy sandwich";
 static const char* pass_back_data1 =
     "what kind of ice cream truck plays the worst christmas song of all time?";
 
-class FutureTest : public AllocationTestHarness {};
+class FutureTest : public ::testing::Test {};
 
 static void post_to_future(void* context) {
   future_ready((future_t*)context, (void*)pass_back_data0);

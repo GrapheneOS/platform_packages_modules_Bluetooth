@@ -21,13 +21,12 @@
 #include <arpa/inet.h>
 #include <gtest/gtest.h>
 
-#include "osi/test/AllocationTestHarness.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 using bluetooth::Uuid;
 
-class PropertyTest : public AllocationTestHarness {};
+class PropertyTest : public ::testing::Test {};
 
 TEST_F(PropertyTest, addr) {
   RawAddress addr0 = {{0x1, 0x2, 0x3, 0x4, 0x5, 0x6}};

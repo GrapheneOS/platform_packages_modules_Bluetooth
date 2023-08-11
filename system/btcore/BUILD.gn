@@ -39,7 +39,6 @@ static_library("btcore") {
 if (use.test) {
   executable("net_test_btcore") {
     sources = [
-      "//bt/system/osi/test/AllocationTestHarness.cc",
       "test/device_class_test.cc",
       "test/property_test.cc",
     ]
