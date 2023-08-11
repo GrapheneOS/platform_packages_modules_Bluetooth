@@ -110,7 +110,7 @@ class TestModel {
   void Reset();
 
  private:
-  Address GenerateBluetoothAddress() const;
+  Address GenerateBluetoothAddress(uint32_t device_id) const;
 
   std::map<PhyLayer::Identifier, std::shared_ptr<PhyLayer>> phy_layers_;
   std::map<PhyDevice::Identifier, std::shared_ptr<PhyDevice>> phy_devices_;
