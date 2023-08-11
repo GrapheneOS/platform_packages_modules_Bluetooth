@@ -27,6 +27,7 @@
 
 #include "bt_target.h"
 #include "osi/include/log.h"
+#include <thread>
 
 using namespace android;
 
@@ -49,6 +50,50 @@ constexpr float kMaxTrackGain = 1.0f;
 // Minimum track gain that can be set.
 constexpr float kMinTrackGain = 0.0f;
 
+struct AudioEngine {
+  int trackFreq = 0;
+  int channelCount = 0;
+  std::thread *thread = nullptr;
+  void* trackHandle = nullptr;
+} s_AudioEngine;
+
+void ErrorCallback(AAudioStream* stream, void* userdata, aaudio_result_t error);
+
+void BtifAvrcpAudioErrorHandle() {
+  AAudioStreamBuilder* builder;
+  AAudioStream* stream;
+
+  aaudio_result_t result = AAudio_createStreamBuilder(&builder);
+  AAudioStreamBuilder_setSampleRate(builder, s_AudioEngine.trackFreq);
+  AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_FLOAT);
+  AAudioStreamBuilder_setChannelCount(builder, s_AudioEngine.channelCount);
+  AAudioStreamBuilder_setSessionId(builder, AAUDIO_SESSION_ID_ALLOCATE);
+  AAudioStreamBuilder_setPerformanceMode(builder,
+                                         AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+  AAudioStreamBuilder_setErrorCallback(builder, ErrorCallback, nullptr);
+  result = AAudioStreamBuilder_openStream(builder, &stream);
+  CHECK(result == AAUDIO_OK);
+  AAudioStreamBuilder_delete(builder);
+
+  BtifAvrcpAudioTrack* trackHolder = static_cast<BtifAvrcpAudioTrack*>(s_AudioEngine.trackHandle);
+
+  trackHolder->stream = stream;
+
+  if (trackHolder != NULL && trackHolder->stream != NULL) {
+      LOG_DEBUG("%s AAudio Error handle: restart A2dp Sink AudioTrack", __func__);
+      AAudioStream_requestStart(trackHolder->stream);
+  }
+  s_AudioEngine.thread = nullptr;
+}
+
+void ErrorCallback(AAudioStream* stream,
+                      void* userdata,
+                      aaudio_result_t error) {
+  if (error == AAUDIO_ERROR_DISCONNECTED)
+    if (s_AudioEngine.thread == nullptr)
+      s_AudioEngine.thread = new std::thread(BtifAvrcpAudioErrorHandle);
+}
+
 void* BtifAvrcpAudioTrackCreate(int trackFreq, int bitsPerSample,
                                 int channelCount) {
   LOG_INFO("%s Track.cpp: btCreateTrack freq %d bps %d channel %d ", __func__,
@@ -63,6 +108,7 @@ void* BtifAvrcpAudioTrackCreate(int trackFreq, int bitsPerSample,
   AAudioStreamBuilder_setSessionId(builder, AAUDIO_SESSION_ID_ALLOCATE);
   AAudioStreamBuilder_setPerformanceMode(builder,
                                          AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+  AAudioStreamBuilder_setErrorCallback(builder, ErrorCallback, nullptr);
   result = AAudioStreamBuilder_openStream(builder, &stream);
   CHECK(result == AAUDIO_OK);
   AAudioStreamBuilder_delete(builder);
@@ -80,6 +126,10 @@ void* BtifAvrcpAudioTrackCreate(int trackFreq, int bitsPerSample,
 #if (DUMP_PCM_DATA == TRUE)
   outputPcmSampleFile = fopen(outputFilename, "ab");
 #endif
+  s_AudioEngine.trackFreq = trackFreq;
+  s_AudioEngine.channelCount = channelCount;
+  s_AudioEngine.trackHandle = (void*)trackHolder;
+
   return (void*)trackHolder;
 }
 
@@ -102,7 +152,7 @@ void BtifAvrcpAudioTrackStop(void* handle) {
   }
   BtifAvrcpAudioTrack* trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);
   if (trackHolder != NULL && trackHolder->stream != NULL) {
-    LOG_VERBOSE("%s Track.cpp: btStartTrack", __func__);
+    LOG_VERBOSE("%s Track.cpp: btStopTrack", __func__);
     AAudioStream_requestStop(trackHolder->stream);
   }
 }
