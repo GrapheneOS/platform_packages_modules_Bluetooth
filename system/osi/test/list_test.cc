@@ -1,13 +1,11 @@
-#include <gtest/gtest.h>
+#include "osi/include/list.h"
 
 #include <base/logging.h>
+#include <gtest/gtest.h>
 
-#include "AllocationTestHarness.h"
-
-#include "osi/include/list.h"
 #include "osi/include/osi.h"
 
-class ListTest : public AllocationTestHarness {};
+class ListTest : public ::testing::Test {};
 
 TEST_F(ListTest, test_new_free_simple) {
   list_t* list = list_new(NULL);

@@ -41,10 +41,6 @@ static_library("device") {
 
 if (use.test) {
   executable("net_test_device") {
-    sources = [
-      "//bt/system/osi/test/AllocationTestHarness.cc",
-    ]
-
     include_dirs = [ "//bt/system" ]
 
     deps = [
@@ -65,10 +61,6 @@ if (use.test) {
     ]
   }
   executable("net_test_device_iot_config") {
-    sources = [
-      "//bt/system/osi/test/AllocationTestHarness.cc",
-    ]
-
     include_dirs = [
       "//bt/system",
       "//bt/system/stack/include",

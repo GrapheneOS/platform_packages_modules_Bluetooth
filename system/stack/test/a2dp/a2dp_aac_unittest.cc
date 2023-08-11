@@ -32,15 +32,13 @@
 #include "common/time_util.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/test/AllocationTestHarness.h"
-#include "stack/include/bt_hdr.h"
 #include "stack/include/a2dp_aac_decoder.h"
 #include "stack/include/a2dp_aac_encoder.h"
 #include "stack/include/avdt_api.h"
+#include "stack/include/bt_hdr.h"
 #include "test_util.h"
 #include "wav_reader.h"
 
-void allocation_tracker_uninit(void);
 namespace {
 constexpr uint32_t kAacReadSize = 1024 * 2 * 2;
 constexpr uint32_t kA2dpTickUs = 23 * 1000;
@@ -75,13 +73,10 @@ namespace testing {
 static BT_HDR* packet = nullptr;
 static WavReader wav_reader = WavReader(GetWavFilePath(kWavFile).c_str());
 
-class A2dpAacTest : public AllocationTestHarness {
+class A2dpAacTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    AllocationTestHarness::SetUp();
     common::InitFlags::SetAllForTesting();
-    // Disable our allocation tracker to allow ASAN full range
-    allocation_tracker_uninit();
     SetCodecConfig();
     encoder_iface_ = const_cast<tA2DP_ENCODER_INTERFACE*>(
         A2DP_GetEncoderInterfaceAac(kCodecInfoAacCapability));
@@ -103,7 +98,6 @@ class A2dpAacTest : public AllocationTestHarness {
       decoder_iface_->decoder_cleanup();
     }
     A2DP_UnloadDecoderAac();
-    AllocationTestHarness::TearDown();
   }
 
   void SetCodecConfig() {
