@@ -54,6 +54,10 @@ class MockLeAudioGroupStateMachine : public le_audio::LeAudioGroupStateMachine {
                le_audio::LeAudioDeviceGroup* group),
               (override));
 
+  MOCK_METHOD((void), ProcessGattCtpNotification,
+              (le_audio::LeAudioDeviceGroup * group, uint8_t* value,
+               uint16_t len),
+              (override));
   MOCK_METHOD((void), ProcessHciNotifOnCigCreate,
               (le_audio::LeAudioDeviceGroup * group, uint8_t status,
                uint8_t cig_id, std::vector<uint16_t> conn_handles),

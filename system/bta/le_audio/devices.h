@@ -37,6 +37,7 @@
 #include "le_audio_log_history.h"
 #include "le_audio_types.h"
 #include "osi/include/alarm.h"
+#include "osi/include/log.h"
 #include "osi/include/properties.h"
 #include "raw_address.h"
 
@@ -199,7 +200,7 @@ class LeAudioDevice {
                        types::kLeAudioDirectionSource)) const {
     return avail_contexts_.get(direction);
   }
-  types::AudioContexts SetAvailableContexts(
+  void SetAvailableContexts(
       types::BidirectionalPair<types::AudioContexts> cont_val);
 
   void DeactivateAllAses(void);
@@ -466,11 +467,23 @@ class LeAudioDeviceGroup {
   inline void SetAvailableContexts(
       types::BidirectionalPair<types::AudioContexts> new_contexts) {
     group_available_contexts_ = new_contexts;
+    LOG_DEBUG(
+        " group id: %d, available contexts sink: %s, available contexts "
+        "source: "
+        "%s",
+        group_id_, group_available_contexts_.sink.to_string().c_str(),
+        group_available_contexts_.source.to_string().c_str());
   }
 
   inline types::AudioContexts GetAvailableContexts(
       int direction = (types::kLeAudioDirectionSink |
                        types::kLeAudioDirectionSource)) const {
+    LOG_DEBUG(
+        " group id: %d, available contexts sink: %s, available contexts "
+        "source: "
+        "%s",
+        group_id_, group_available_contexts_.sink.to_string().c_str(),
+        group_available_contexts_.source.to_string().c_str());
     return group_available_contexts_.get(direction);
   }
 
