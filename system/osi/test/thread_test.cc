@@ -1,14 +1,12 @@
+#include "osi/include/thread.h"
+
 #include <gtest/gtest.h>
-
-#include "AllocationTestHarness.h"
-
 #include <sys/select.h>
 
 #include "osi/include/osi.h"
 #include "osi/include/reactor.h"
-#include "osi/include/thread.h"
 
-class ThreadTest : public AllocationTestHarness {};
+class ThreadTest : public ::testing::Test {};
 
 TEST_F(ThreadTest, test_new_simple) {
   thread_t* thread = thread_new("test_thread");

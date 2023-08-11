@@ -17,7 +17,6 @@
 static_library("osi") {
   sources = [
     "src/alarm.cc",
-    "src/allocation_tracker.cc",
     "src/allocator.cc",
     "src/compat.cc",
     "src/config.cc",
@@ -68,9 +67,7 @@ static_library("osi") {
 if (use.test) {
   executable("net_test_osi") {
     sources = [
-      "test/AllocationTestHarness.cc",
       "test/alarm_test.cc",
-      "test/allocation_tracker_test.cc",
       "test/allocator_test.cc",
       "test/config_test.cc",
       "test/future_test.cc",

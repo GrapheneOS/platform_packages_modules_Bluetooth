@@ -22,7 +22,6 @@
 #include <gtest/gtest.h>
 #include <hardware/bluetooth.h>
 
-#include "AllocationTestHarness.h"
 #include "common/message_loop_thread.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/osi.h"
@@ -62,11 +61,9 @@ static int release_wake_lock_cb(const char* lock_name) {
 static bt_os_callouts_t bt_wakelock_callouts = {
     sizeof(bt_os_callouts_t), NULL, acquire_wake_lock_cb, release_wake_lock_cb};
 
-class AlarmTest : public AllocationTestHarness {
+class AlarmTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    AllocationTestHarness::SetUp();
-
     TIMER_INTERVAL_FOR_WAKELOCK_IN_MS = 500;
 
     wakelock_set_os_callouts(&bt_wakelock_callouts);
@@ -82,8 +79,6 @@ class AlarmTest : public AllocationTestHarness {
     alarm_cleanup();
     wakelock_cleanup();
     wakelock_set_os_callouts(NULL);
-
-    AllocationTestHarness::TearDown();
   }
 };
 

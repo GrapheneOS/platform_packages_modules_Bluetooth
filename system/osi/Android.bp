@@ -19,19 +19,6 @@ cc_defaults {
     ],
 }
 
-// Static libraries required by other modules
-cc_test_library {
-    name: "libosi-AllocationTestHarness",
-    defaults: ["fluoride_osi_defaults"],
-    srcs: [
-        "test/AllocationTestHarness.cc",
-    ],
-    host_supported: true,
-    shared: {
-        enabled: false,
-    },
-}
-
 filegroup {
     name: "OsiCompatSources",
     srcs: [
@@ -61,7 +48,6 @@ cc_library_static {
     srcs: [
         ":OsiCompatSources",
         "src/alarm.cc",
-        "src/allocation_tracker.cc",
         "src/allocator.cc",
         "src/config.cc",
         "src/fixed_queue.cc",
@@ -114,9 +100,7 @@ cc_test {
     ],
     host_supported: true,
     srcs: [
-        "test/AllocationTestHarness.cc",
         "test/alarm_test.cc",
-        "test/allocation_tracker_test.cc",
         "test/allocator_test.cc",
         "test/config_test.cc",
         "test/fixed_queue_test.cc",
@@ -164,6 +148,7 @@ cc_test {
         "-DLIB_OSI_INTERNAL",
     ],
     sanitize: {
+        address: true,
         cfi: false,
     },
 }

@@ -159,28 +159,6 @@ void section_t::Set(std::string key, std::string value) {
   inc_func_call_count(__func__);
 }
 
-size_t allocation_tracker_expect_no_allocations(void) {
-  inc_func_call_count(__func__);
-  return 0;
-}
-size_t allocation_tracker_resize_for_canary(size_t size) {
-  inc_func_call_count(__func__);
-  return 0;
-}
-void allocation_tracker_reset(void) { inc_func_call_count(__func__); }
-void allocation_tracker_uninit(void) { inc_func_call_count(__func__); }
-void osi_allocator_debug_dump(int fd) { inc_func_call_count(__func__); }
-void* allocation_tracker_notify_alloc(uint8_t allocator_id, void* ptr,
-                                      size_t requested_size) {
-  inc_func_call_count(__func__);
-  return nullptr;
-}
-void* allocation_tracker_notify_free(UNUSED_ATTR uint8_t allocator_id,
-                                     void* ptr) {
-  inc_func_call_count(__func__);
-  return nullptr;
-}
-
 bool reactor_change_registration(reactor_object_t* object,
                                  void (*read_ready)(void* context),
                                  void (*write_ready)(void* context)) {

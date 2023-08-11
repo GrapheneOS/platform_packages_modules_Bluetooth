@@ -73,7 +73,6 @@ cc_test {
         "libbtcore",
         "libchrome",
         "libosi",
-        "libosi-AllocationTestHarness",
     ],
     sanitize: {
         address: true,

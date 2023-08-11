@@ -1,11 +1,10 @@
+#include "osi/include/fixed_queue.h"
+
 #include <gtest/gtest.h>
 
 #include <climits>
 
-#include "AllocationTestHarness.h"
-
 #include "osi/include/allocator.h"
-#include "osi/include/fixed_queue.h"
 #include "osi/include/future.h"
 #include "osi/include/osi.h"
 #include "osi/include/thread.h"
@@ -49,7 +48,7 @@ static void test_queue_entry_free_cb(void* data) {
   test_queue_entry_free_counter++;
 }
 
-class FixedQueueTest : public AllocationTestHarness {};
+class FixedQueueTest : public ::testing::Test {};
 
 TEST_F(FixedQueueTest, test_fixed_queue_new_free) {
   fixed_queue_t* queue;

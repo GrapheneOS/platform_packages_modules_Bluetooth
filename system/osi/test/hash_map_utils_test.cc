@@ -15,23 +15,17 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-#include <cstring>
+#include "osi/include/hash_map_utils.h"
 
 #include <gtest/gtest.h>
 
-#include "AllocationTestHarness.h"
-
-#include "osi/include/hash_map_utils.h"
+#include <cstring>
 
 #include "osi/include/allocator.h"
 
-class HashMapUtilsTest : public AllocationTestHarness {
+class HashMapUtilsTest : public ::testing::Test {
  protected:
-  void SetUp() override { AllocationTestHarness::SetUp(); }
-  void TearDown() override {
-    map.clear();
-    AllocationTestHarness::TearDown();
-  }
+  void TearDown() override { map.clear(); }
 
   std::unordered_map<std::string, std::string> map;
 };
