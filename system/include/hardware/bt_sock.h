@@ -101,6 +101,12 @@ typedef struct {
                              uint8_t discard_buffers, uint8_t break_signal_seq,
                              bool fc);
 
+  /**
+   * Disconnect all RFCOMM and L2CAP socket connections with the associated
+   * device address.
+   */
+  bt_status_t (*disconnect_all)(const RawAddress* bd_addr);
+
 } btsock_interface_t;
 
 __END_DECLS
