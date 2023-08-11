@@ -72,6 +72,10 @@ using le_audio::LeAudioHealthStatus;
 using le_audio::LeAudioSinkAudioHalClient;
 using le_audio::LeAudioSourceAudioHalClient;
 
+using le_audio::types::AudioContexts;
+using le_audio::types::BidirectionalPair;
+using le_audio::types::LeAudioContextType;
+
 extern struct fake_osi_alarm_set_on_mloop fake_osi_alarm_set_on_mloop_;
 
 constexpr int max_num_of_ases = 5;
@@ -489,6 +493,30 @@ class UnicastTestNoInit : public Test {
               gatt_callback(BTA_GATTC_NOTIF_EVT, (tBTA_GATTC*)&event_data);
             },
             base::Unretained(this->gatt_callback), event_data));
+  }
+
+  void InjectContextTypes(const RawAddress& test_address, uint16_t conn_id,
+                          uint16_t handle, AudioContexts sink_ctxs,
+                          AudioContexts source_ctxs) {
+    std::vector<uint8_t> contexts = {
+        (uint8_t)(sink_ctxs.value()), (uint8_t)(sink_ctxs.value() >> 8),
+        (uint8_t)(source_ctxs.value()), (uint8_t)(source_ctxs.value() >> 8)};
+
+    InjectNotificationEvent(test_address, conn_id, handle, contexts);
+  }
+
+  void InjectSupportedContextTypes(const RawAddress& test_address,
+                                   uint16_t conn_id, AudioContexts sink_ctxs,
+                                   AudioContexts source_ctxs) {
+    /* 0x0077 pacs->supp_contexts_char + 1 */
+    InjectContextTypes(test_address, conn_id, 0x0077, sink_ctxs, source_ctxs);
+  }
+
+  void InjectAvailableContextTypes(const RawAddress& test_address,
+                                   uint16_t conn_id, AudioContexts sink_ctxs,
+                                   AudioContexts source_ctxs) {
+    /* 0x0074 is pacs->avail_contexts_char + 1 */
+    InjectContextTypes(test_address, conn_id, 0x0074, sink_ctxs, source_ctxs);
   }
 
   void SetUpMockGatt() {
@@ -1650,16 +1678,9 @@ class UnicastTestNoInit : public Test {
     ConnectLeAudio(addr);
   }
 
-  void UpdateLocalSourceMetadata(audio_usage_t usage,
-                                 audio_content_type_t content_type,
-                                 bool reconfigure_existing_stream = false) {
-    std::vector<struct playback_track_metadata> source_metadata = {
-        {{AUDIO_USAGE_UNKNOWN, AUDIO_CONTENT_TYPE_UNKNOWN, 0},
-         {AUDIO_USAGE_UNKNOWN, AUDIO_CONTENT_TYPE_UNKNOWN, 0}}};
-
-    source_metadata[0].usage = usage;
-    source_metadata[0].content_type = content_type;
-
+  void UpdateLocalSourceMetadata(
+      std::vector<struct playback_track_metadata> tracks,
+      bool reconfigure_existing_stream = false) {
     ASSERT_NE(nullptr, mock_le_audio_source_hal_client_);
     /* Local Source may reconfigure once the metadata is updated */
     if (reconfigure_existing_stream) {
@@ -1680,7 +1701,19 @@ class UnicastTestNoInit : public Test {
     }
 
     ASSERT_NE(unicast_source_hal_cb_, nullptr);
-    unicast_source_hal_cb_->OnAudioMetadataUpdate(source_metadata);
+    unicast_source_hal_cb_->OnAudioMetadataUpdate(tracks);
+  }
+
+  void UpdateLocalSourceMetadata(audio_usage_t usage,
+                                 audio_content_type_t content_type,
+                                 bool reconfigure_existing_stream = false) {
+    std::vector<struct playback_track_metadata> tracks = {
+        {{AUDIO_USAGE_UNKNOWN, AUDIO_CONTENT_TYPE_UNKNOWN, 0},
+         {AUDIO_USAGE_UNKNOWN, AUDIO_CONTENT_TYPE_UNKNOWN, 0}}};
+
+    tracks[0].usage = usage;
+    tracks[0].content_type = content_type;
+    UpdateLocalSourceMetadata(tracks, reconfigure_existing_stream);
   }
 
   void UpdateLocalSinkMetadata(audio_source_t audio_source) {
@@ -1737,7 +1770,8 @@ class UnicastTestNoInit : public Test {
   void StartStreaming(audio_usage_t usage, audio_content_type_t content_type,
                       int group_id,
                       audio_source_t audio_source = AUDIO_SOURCE_INVALID,
-                      bool reconfigure_existing_stream = false) {
+                      bool reconfigure_existing_stream = false,
+                      bool expected_resume_confirmation = true) {
     ASSERT_NE(unicast_source_hal_cb_, nullptr);
 
     UpdateLocalSourceMetadata(usage, content_type, reconfigure_existing_stream);
@@ -1748,7 +1782,7 @@ class UnicastTestNoInit : public Test {
     /* Stream has been automatically restarted on UpdateLocalSourceMetadata */
     if (reconfigure_existing_stream) return;
 
-    LocalAudioSourceResume();
+    LocalAudioSourceResume(expected_resume_confirmation);
     SyncOnMainLoop();
     Mock::VerifyAndClearExpectations(&mock_state_machine_);
 
@@ -4397,12 +4431,20 @@ TEST_F(UnicastTest, SpeakerStreamingNonDefault) {
   const RawAddress test_address0 = GetTestAddress(0);
   int group_id = bluetooth::groups::kGroupUnknown;
 
+  /**
+   * Scenario test steps
+   * 1. Set group active and stream VOICEASSISTANT
+   * 2. Suspend group and resume with VOICEASSISTANT
+   * 3. Stop Stream and make group inactive
+   * 4. Start stream without setting metadata.
+   * 5. Verify that UNSPECIFIED context type is used.
+   */
+
   available_snk_context_types_ = (types::LeAudioContextType::VOICEASSISTANTS |
-                                  types::LeAudioContextType::MEDIA)
+                                  types::LeAudioContextType::MEDIA |
+                                  types::LeAudioContextType::UNSPECIFIED)
                                      .value();
-  supported_snk_context_types_ =
-      (available_snk_context_types_ | types::LeAudioContextType::UNSPECIFIED)
-          .value();
+  supported_snk_context_types_ = available_snk_context_types_;
 
   SetSampleDatabaseEarbudsValid(
       1, test_address0, codec_spec_conf::kLeAudioLocationStereo,
@@ -4910,11 +4952,9 @@ TEST_F(UnicastTest, TwoEarbuds2ndReleaseAseRemoveAvailableContextAndBack) {
   ASSERT_NE(group, nullptr);
   auto device = group->GetFirstDevice();
 
-  /* Simulate available context type being cleared. 0x0074 is
-   * pacs->avail_contexts_char + 1 */
-  std::vector<uint8_t> cleared_avail_ctx = {0x00, 0x00, 0x00, 0x00};
-  InjectNotificationEvent(device->address_, device->conn_id_, 0x0074,
-                          cleared_avail_ctx);
+  /* Simulate available context type being cleared */
+  InjectAvailableContextTypes(device->address_, device->conn_id_,
+                              types::AudioContexts(0), types::AudioContexts(0));
   SyncOnMainLoop();
 
   /* Simulate ASE releasing and CIS Disconnection */
@@ -4939,15 +4979,480 @@ TEST_F(UnicastTest, TwoEarbuds2ndReleaseAseRemoveAvailableContextAndBack) {
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
 
   /* Bring back available context types */
-  std::vector<uint8_t> avail_ctx = {0xff, 0x00, 0xff, 0x00};
-  InjectNotificationEvent(device->address_, device->conn_id_, 0x0074,
-                          avail_ctx);
+  InjectAvailableContextTypes(device->address_, device->conn_id_,
+                              types::kLeAudioContextAllTypes,
+                              types::kLeAudioContextAllTypes);
   SyncOnMainLoop();
 
   /* Check both devices are streaming */
   cis_count_out = 2;
   cis_count_in = 0;
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
+}
+
+TEST_F(UnicastTest, StartStream_AvailableContextTypeNotifiedLater) {
+  uint8_t group_size = 2;
+  int group_id = 2;
+
+  available_snk_context_types_ = 0;
+
+  /* Scenario (Devices A and B called "Remote")
+   * 1. Remote  does supports all the context types, but has NO available
+   * contexts at the beginning
+   * 2. After connection Remote add Available context types
+   * 3. Android start stream with MEDIA
+   * 4. Make sure stream will be started
+   */
+
+  // Report working CSIS
+  ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+      .WillByDefault(Return(true));
+
+  const RawAddress test_address0 = GetTestAddress(0);
+  const RawAddress test_address1 = GetTestAddress(1);
+
+  // First earbud connects
+  ConnectCsisDevice(test_address0, 1 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontLeft,
+                    codec_spec_conf::kLeAudioLocationFrontLeft, group_size,
+                    group_id, 1 /* rank*/);
+
+  // Second earbud connects
+  ConnectCsisDevice(test_address1, 2 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontRight,
+                    codec_spec_conf::kLeAudioLocationFrontRight, group_size,
+                    group_id, 2 /* rank*/, true /*connect_through_csis*/);
+
+  // Inject Supported and available context types
+  auto sink_available_contexts = types::kLeAudioContextAllRemoteSinkOnly;
+  auto source_available_contexts = types::kLeAudioContextAllRemoteSource;
+
+  InjectAvailableContextTypes(test_address0, 1, sink_available_contexts,
+                              source_available_contexts);
+  InjectAvailableContextTypes(test_address1, 2, sink_available_contexts,
+                              source_available_contexts);
+  // Start streaming
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
+  EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+
+  ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
+      .WillByDefault(Invoke([&](int group_id) { return 2; }));
+
+  BidirectionalPair<AudioContexts> contexts = {
+      .sink = types::AudioContexts(types::LeAudioContextType::MEDIA),
+      .source = types::AudioContexts()};
+
+  EXPECT_CALL(
+      mock_state_machine_,
+      StartStream(_, le_audio::types::LeAudioContextType::MEDIA, contexts, _))
+      .Times(1);
+
+  StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
+
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+  SyncOnMainLoop();
+
+  // Expect two iso channel to be fed with data
+  uint8_t cis_count_out = 2;
+  uint8_t cis_count_in = 0;
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
+}
+
+TEST_F(UnicastTest, ModifyContextTypeOnDeviceA_WhileDeviceB_IsDisconnected) {
+  uint8_t group_size = 2;
+  int group_id = 2;
+
+  /* Scenario (Device A and B called Remote)
+   * 1. Remote set does supports all the context types and make them available
+   * 2. Android start stream with MEDIA, verify it works.
+   * 3. Android stops the stream
+   * 4. Device B disconnects
+   * 5. Device A removes Media from Available Contexts
+   * 6. Android start stream with MEDIA, verify it will not be started
+   */
+
+  // Report working CSIS
+  ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+      .WillByDefault(Return(true));
+
+  const RawAddress test_address0 = GetTestAddress(0);
+  const RawAddress test_address1 = GetTestAddress(1);
+
+  // First earbud connects
+  ConnectCsisDevice(test_address0, 1 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontLeft,
+                    codec_spec_conf::kLeAudioLocationFrontLeft, group_size,
+                    group_id, 1 /* rank*/);
+
+  // Second earbud connects
+  ConnectCsisDevice(test_address1, 2 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontRight,
+                    codec_spec_conf::kLeAudioLocationFrontRight, group_size,
+                    group_id, 2 /* rank*/, true /*connect_through_csis*/);
+
+  // Start streaming
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
+  EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+
+  ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
+      .WillByDefault(Invoke([&](int group_id) { return 2; }));
+
+  BidirectionalPair<AudioContexts> contexts = {
+      .sink = types::AudioContexts(types::LeAudioContextType::MEDIA),
+      .source = types::AudioContexts()};
+
+  EXPECT_CALL(
+      mock_state_machine_,
+      StartStream(_, le_audio::types::LeAudioContextType::MEDIA, contexts, _))
+      .Times(1);
+
+  StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+
+  // Expect two iso channel to be fed with data
+  uint8_t cis_count_out = 2;
+  uint8_t cis_count_in = 0;
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
+
+  // Stop
+  StopStreaming(group_id);
+  // simulate suspend timeout passed, alarm executing
+  fake_osi_alarm_set_on_mloop_.cb(fake_osi_alarm_set_on_mloop_.data);
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+
+  // Device B got disconnected
+  InjectDisconnectedEvent(2, GATT_CONN_TERMINATE_PEER_USER);
+  SyncOnMainLoop();
+
+  // Device A changes available context type
+  // Inject Supported and available context types
+  auto sink_supported_context = types::kLeAudioContextAllRemoteSinkOnly;
+  sink_supported_context.unset(LeAudioContextType::MEDIA);
+  sink_supported_context.set(LeAudioContextType::UNSPECIFIED);
+
+  auto source_supported_context = types::kLeAudioContextAllRemoteSource;
+  source_supported_context.set(LeAudioContextType::UNSPECIFIED);
+
+  InjectSupportedContextTypes(test_address0, 1, sink_supported_context,
+                              source_supported_context);
+  InjectAvailableContextTypes(test_address0, 1, sink_supported_context,
+                              source_supported_context);
+  SyncOnMainLoop();
+
+  /* Android starts stream. */
+  EXPECT_CALL(mock_state_machine_, StartStream(_, _, _, _)).Times(0);
+
+  StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id,
+                 AUDIO_SOURCE_INVALID, false, false);
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
+}
+
+TEST_F(UnicastTest, StartStreamToUnsupportedContextTypeUsingUnspecified) {
+  uint8_t group_size = 2;
+  int group_id = 2;
+
+  /* Scenario (Devices A and B called "Remote")
+   * 1. Remote  does supports all the context types and make them available
+   * 2. Remote removes SoundEffect from the supported and available context
+   * types
+   * 3. Android start stream with SoundEffects
+   * 4. Make sure stream will be started with Unspecified context type
+   */
+
+  // Report working CSIS
+  ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+      .WillByDefault(Return(true));
+
+  const RawAddress test_address0 = GetTestAddress(0);
+  const RawAddress test_address1 = GetTestAddress(1);
+
+  // First earbud connects
+  ConnectCsisDevice(test_address0, 1 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontLeft,
+                    codec_spec_conf::kLeAudioLocationFrontLeft, group_size,
+                    group_id, 1 /* rank*/);
+
+  // Second earbud connects
+  ConnectCsisDevice(test_address1, 2 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontRight,
+                    codec_spec_conf::kLeAudioLocationFrontRight, group_size,
+                    group_id, 2 /* rank*/, true /*connect_through_csis*/);
+
+  // Inject Supported and available context types
+  auto sink_supported_context = types::kLeAudioContextAllRemoteSinkOnly;
+  sink_supported_context.unset(LeAudioContextType::SOUNDEFFECTS);
+  sink_supported_context.set(LeAudioContextType::UNSPECIFIED);
+
+  auto source_supported_context = types::kLeAudioContextAllRemoteSource;
+  source_supported_context.set(LeAudioContextType::UNSPECIFIED);
+
+  InjectSupportedContextTypes(test_address0, 1, sink_supported_context,
+                              source_supported_context);
+  InjectAvailableContextTypes(test_address0, 1, sink_supported_context,
+                              source_supported_context);
+  InjectSupportedContextTypes(test_address1, 2, sink_supported_context,
+                              source_supported_context);
+  InjectAvailableContextTypes(test_address1, 2, sink_supported_context,
+                              source_supported_context);
+  // Start streaming
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
+  EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+
+  ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
+      .WillByDefault(Invoke([&](int group_id) { return 2; }));
+
+  BidirectionalPair<AudioContexts> contexts = {
+      .sink = types::AudioContexts(types::LeAudioContextType::UNSPECIFIED),
+      .source = types::AudioContexts(0)};
+
+  EXPECT_CALL(mock_state_machine_,
+              StartStream(_, le_audio::types::LeAudioContextType::SOUNDEFFECTS,
+                          contexts, _))
+      .Times(1);
+
+  StartStreaming(AUDIO_USAGE_ASSISTANCE_SONIFICATION,
+                 AUDIO_CONTENT_TYPE_SONIFICATION, group_id);
+
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+  SyncOnMainLoop();
+
+  // Expect two iso channel to be fed with data
+  uint8_t cis_count_out = 2;
+  uint8_t cis_count_in = 0;
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
+}
+
+TEST_F(UnicastTest,
+       StartStreamToUnsupportedContextTypeUnspecifiedNotSupported) {
+  uint8_t group_size = 2;
+  int group_id = 2;
+
+  /* Scenario (Device A and B called Remote)
+   * 1. Remote does supports all the context types and make them available
+   * 2. Remote removes SoundEffect from the Available Context Types
+   * 3. Remote also removes UNSPECIFIED from the Available Context Types.
+   * 4. Android start stream with SoundEffects
+   * 5. Make sure stream will be NOT be started
+   */
+
+  // Report working CSIS
+  ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+      .WillByDefault(Return(true));
+
+  const RawAddress test_address0 = GetTestAddress(0);
+  const RawAddress test_address1 = GetTestAddress(1);
+
+  // First earbud connects
+  ConnectCsisDevice(test_address0, 1 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontLeft,
+                    codec_spec_conf::kLeAudioLocationFrontLeft, group_size,
+                    group_id, 1 /* rank*/);
+
+  // Second earbud connects
+  ConnectCsisDevice(test_address1, 2 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontRight,
+                    codec_spec_conf::kLeAudioLocationFrontRight, group_size,
+                    group_id, 2 /* rank*/, true /*connect_through_csis*/);
+
+  // Inject Supported and available context types
+  auto sink_supported_context = types::kLeAudioContextAllRemoteSinkOnly;
+  sink_supported_context.unset(LeAudioContextType::SOUNDEFFECTS);
+  sink_supported_context.set(LeAudioContextType::UNSPECIFIED);
+
+  auto source_supported_context = types::kLeAudioContextAllRemoteSource;
+  source_supported_context.set(LeAudioContextType::UNSPECIFIED);
+
+  InjectSupportedContextTypes(test_address0, 1, sink_supported_context,
+                              source_supported_context);
+  InjectSupportedContextTypes(test_address1, 2, sink_supported_context,
+                              source_supported_context);
+
+  auto sink_available_context = sink_supported_context;
+  sink_available_context.unset(LeAudioContextType::UNSPECIFIED);
+
+  auto source_available_context = source_supported_context;
+  source_available_context.unset(LeAudioContextType::UNSPECIFIED);
+
+  InjectAvailableContextTypes(test_address0, 1, sink_available_context,
+                              source_available_context);
+  InjectAvailableContextTypes(test_address1, 2, sink_available_context,
+                              source_available_context);
+  // Start streaming
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
+  EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+
+  ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
+      .WillByDefault(Invoke([&](int group_id) { return 2; }));
+
+  BidirectionalPair<AudioContexts> contexts = {
+      .sink = types::AudioContexts(types::LeAudioContextType::UNSPECIFIED),
+      .source = types::AudioContexts()};
+
+  EXPECT_CALL(mock_state_machine_,
+              StartStream(_, le_audio::types::LeAudioContextType::SOUNDEFFECTS,
+                          contexts, _))
+      .Times(0);
+
+  StartStreaming(AUDIO_USAGE_ASSISTANCE_SONIFICATION,
+                 AUDIO_CONTENT_TYPE_SONIFICATION, group_id,
+                 AUDIO_SOURCE_INVALID, false, false);
+
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+  SyncOnMainLoop();
+}
+
+TEST_F(UnicastTest, StartStreamToSupportedContextTypeThenMixUnavailable) {
+  uint8_t group_size = 2;
+  int group_id = 2;
+
+  /* Scenario (Device A and B called Remote)
+   * 1. Remote set does supports all the context types and make them available
+   * 2. Abdriud start stream with MEDIA, verify it works.
+   * 3. Stream becomes to be mixed with Soundeffect and Media - verify metadata
+   *    update
+   * 4. Android Stop stream.
+   * 5. Remote removes SoundEffect from the supported and available context
+   * types
+   * 6. Android start stream with MEDIA, verify it works.
+   * 7. Stream becomes to be mixed with Soundeffect and Media
+   * 8. Make sure metadata updated does not contain unavailable context
+   *    note: eventually, Audio framework should not give us unwanted context
+   * types
+   */
+
+  // Report working CSIS
+  ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+      .WillByDefault(Return(true));
+
+  const RawAddress test_address0 = GetTestAddress(0);
+  const RawAddress test_address1 = GetTestAddress(1);
+
+  // First earbud connects
+  ConnectCsisDevice(test_address0, 1 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontLeft,
+                    codec_spec_conf::kLeAudioLocationFrontLeft, group_size,
+                    group_id, 1 /* rank*/);
+
+  // Second earbud connects
+  ConnectCsisDevice(test_address1, 2 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontRight,
+                    codec_spec_conf::kLeAudioLocationFrontRight, group_size,
+                    group_id, 2 /* rank*/, true /*connect_through_csis*/);
+
+  // Start streaming
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
+  EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+
+  ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
+      .WillByDefault(Invoke([&](int group_id) { return 2; }));
+
+  BidirectionalPair<AudioContexts> contexts = {
+      .sink = types::AudioContexts(types::LeAudioContextType::MEDIA),
+      .source = types::AudioContexts()};
+
+  EXPECT_CALL(
+      mock_state_machine_,
+      StartStream(_, le_audio::types::LeAudioContextType::MEDIA, contexts, _))
+      .Times(1);
+
+  StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+
+  // Expect two iso channel to be fed with data
+  uint8_t cis_count_out = 2;
+  uint8_t cis_count_in = 0;
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
+
+  contexts.sink = types::AudioContexts(types::LeAudioContextType::MEDIA |
+                                       types::LeAudioContextType::SOUNDEFFECTS);
+  EXPECT_CALL(
+      mock_state_machine_,
+      StartStream(_, le_audio::types::LeAudioContextType::MEDIA, contexts, _))
+      .Times(1);
+
+  /* Simulate metadata update, expect upadate , metadata */
+  std::vector<struct playback_track_metadata> tracks = {
+      {{AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, 0},
+       {AUDIO_USAGE_ASSISTANCE_SONIFICATION, AUDIO_CONTENT_TYPE_SONIFICATION,
+        0}}};
+  UpdateLocalSourceMetadata(tracks);
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
+
+  /* Stop stream */
+  StopStreaming(group_id);
+  // simulate suspend timeout passed, alarm executing
+  fake_osi_alarm_set_on_mloop_.cb(fake_osi_alarm_set_on_mloop_.data);
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+
+  // Inject Supported and available context types
+  auto sink_supported_context = types::kLeAudioContextAllRemoteSinkOnly;
+  sink_supported_context.unset(LeAudioContextType::SOUNDEFFECTS);
+  sink_supported_context.set(LeAudioContextType::UNSPECIFIED);
+
+  auto source_supported_context = types::kLeAudioContextAllRemoteSource;
+  source_supported_context.set(LeAudioContextType::UNSPECIFIED);
+
+  InjectSupportedContextTypes(test_address0, 1, sink_supported_context,
+                              source_supported_context);
+  InjectAvailableContextTypes(test_address0, 1, sink_supported_context,
+                              source_supported_context);
+  InjectSupportedContextTypes(test_address1, 2, sink_supported_context,
+                              source_supported_context);
+  InjectAvailableContextTypes(test_address1, 2, sink_supported_context,
+                              source_supported_context);
+
+  SyncOnMainLoop();
+
+  /* Start Media again */
+  contexts.sink = types::AudioContexts(types::LeAudioContextType::MEDIA);
+  EXPECT_CALL(
+      mock_state_machine_,
+      StartStream(_, le_audio::types::LeAudioContextType::MEDIA, contexts, _))
+      .Times(1);
+
+  StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
+
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+
+  // Expect two iso channel to be fed with data
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
+
+  /* Update metadata, and do not expect new context type*/
+  EXPECT_CALL(
+      mock_state_machine_,
+      StartStream(_, le_audio::types::LeAudioContextType::MEDIA, contexts, _))
+      .Times(1);
+
+  /* Simulate metadata update */
+  UpdateLocalSourceMetadata(tracks);
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
 }
 
 TEST_F(UnicastTest, TwoEarbuds2ndDisconnected) {
@@ -5762,27 +6267,20 @@ TEST_F(UnicastTest, StartNotAvailableSupportedContextType) {
   EXPECT_CALL(
       mock_state_machine_,
       StartStream(_, types::LeAudioContextType::EMERGENCYALARM, metadata, _))
-      .Times(1);
+      .Times(0);
 
   LeAudioClient::Get()->GroupSetActive(group_id);
-  StartStreaming(AUDIO_USAGE_EMERGENCY, AUDIO_CONTENT_TYPE_UNKNOWN, group_id);
+  StartStreaming(AUDIO_USAGE_EMERGENCY, AUDIO_CONTENT_TYPE_UNKNOWN, group_id,
+                 AUDIO_SOURCE_INVALID, false, false);
 
   SyncOnMainLoop();
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
-
-  // Verify Data transfer on one audio source cis
-  uint8_t cis_count_out = 1;
-  uint8_t cis_count_in = 0;
-  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
 }
 
 /* When a certain context is unavailable and not supported and the UNSPECIFIED
- * is not available we should stop the stream, but that means IOP issues.
- * Since UNSPECIFIED is not available, do not put the UNSPECIFIED nor the
- * original unsupported context into the metadata.
- * What we can do now is to keep streaming (and reconfigure if needed for the
- * use case).
+ * is not available we should stop the stream.
+ * For now, stream will not be started in such a case.
  * In future we should be able to eliminate this context from the track mix.
  */
 TEST_F(UnicastTest, StartNotAvailableUnsupportedContextTypeUnspecifiedUnavail) {
@@ -5827,19 +6325,15 @@ TEST_F(UnicastTest, StartNotAvailableUnsupportedContextTypeUnspecifiedUnavail) {
   EXPECT_CALL(
       mock_state_machine_,
       StartStream(_, types::LeAudioContextType::EMERGENCYALARM, metadata, _))
-      .Times(1);
+      .Times(0);
 
   LeAudioClient::Get()->GroupSetActive(group_id);
-  StartStreaming(AUDIO_USAGE_EMERGENCY, AUDIO_CONTENT_TYPE_UNKNOWN, group_id);
+  StartStreaming(AUDIO_USAGE_EMERGENCY, AUDIO_CONTENT_TYPE_UNKNOWN, group_id,
+                 AUDIO_SOURCE_INVALID, false, false);
 
   SyncOnMainLoop();
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
-
-  // Verify Data transfer on one audio source cis
-  uint8_t cis_count_out = 1;
-  uint8_t cis_count_in = 0;
-  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
 }
 
 /* This test verifies if we use UNSPCIFIED context when another context is

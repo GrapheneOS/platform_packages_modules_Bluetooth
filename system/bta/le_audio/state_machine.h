@@ -62,6 +62,8 @@ class LeAudioGroupStateMachine {
       types::BidirectionalPair<std::vector<uint8_t>> ccid_lists = {
           .sink = {}, .source = {}}) = 0;
   virtual void StopStream(LeAudioDeviceGroup* group) = 0;
+  virtual void ProcessGattCtpNotification(LeAudioDeviceGroup* group,
+                                          uint8_t* value, uint16_t len) = 0;
   virtual void ProcessGattNotifEvent(uint8_t* value, uint16_t len,
                                      struct types::ase* ase,
                                      LeAudioDevice* leAudioDevice,
