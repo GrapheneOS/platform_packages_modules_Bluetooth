@@ -20,7 +20,6 @@
 
 #include <cstdint>
 
-#include "osi/test/AllocationTestHarness.h"
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/test/common/mock_eatt.h"
@@ -144,17 +143,13 @@ void gatt_sr_update_cl_status(tGATT_TCB& p_tcb, bool chg_aware) {
 /**
  * Test class to test selected functionality in stack/gatt/gatt_sr.cc
  */
-void allocation_tracker_uninit(void);
 namespace {
 uint16_t kHandle = 1;
 bt_gatt_db_attribute_type_t kGattCharacteristicType = BTGATT_DB_CHARACTERISTIC;
 }  // namespace
-class GattSrTest : public AllocationTestHarness {
+class GattSrTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    AllocationTestHarness::SetUp();
-    // Disable our allocation tracker to allow ASAN full range
-    allocation_tracker_uninit();
     memset(&tcb_, 0, sizeof(tcb_));
     memset(&el_, 0, sizeof(el_));
 
@@ -168,17 +163,14 @@ class GattSrTest : public AllocationTestHarness {
     test_state_ = TestMutables();
   }
 
-  void TearDown() override { AllocationTestHarness::TearDown(); }
-
   tGATT_TCB tcb_;
   tGATT_SRV_LIST_ELEM el_;
 };
 
 /* Server Robust Caching Test */
-class GattSrRobustCachingTest : public AllocationTestHarness {
+class GattSrRobustCachingTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    AllocationTestHarness::SetUp();
     memset(&tcb_, 0, sizeof(tcb_));
 
     default_length_ = 2;
@@ -186,8 +178,6 @@ class GattSrRobustCachingTest : public AllocationTestHarness {
 
     gatt_cb.handle_of_database_hash = 0x0010;
   }
-
-  void TearDown() override { AllocationTestHarness::TearDown(); }
 
   tGATT_TCB tcb_;
   uint16_t default_length_;

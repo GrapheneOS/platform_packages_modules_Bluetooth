@@ -21,7 +21,6 @@
 #include <gtest/gtest.h>
 #include <stdint.h>
 
-#include "AllocationTestHarness.h"
 #include "device/include/controller.h"
 #include "hci/include/hci_layer.h"
 #include "osi/include/allocator.h"
@@ -425,10 +424,9 @@ static void reset_for(TEST_MODES_T next) {
   CURRENT_TEST_MODE = next;
 }
 
-class PacketFragmenterTest : public AllocationTestHarness {
+class PacketFragmenterTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    AllocationTestHarness::SetUp();
     fragmenter =
         packet_fragmenter_get_test_interface(&controller, &allocator_malloc);
 
@@ -445,10 +443,7 @@ class PacketFragmenterTest : public AllocationTestHarness {
     fragmenter->init(&callbacks);
   }
 
-  void TearDown() override {
-    fragmenter->cleanup();
-    AllocationTestHarness::TearDown();
-  }
+  void TearDown() override { fragmenter->cleanup(); }
 
   controller_t controller;
   packet_fragmenter_callbacks_t callbacks;

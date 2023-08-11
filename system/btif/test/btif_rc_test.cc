@@ -25,7 +25,6 @@
 #include "common/message_loop_thread.h"
 #include "device/include/interop.h"
 #include "include/hardware/bt_rc.h"
-#include "osi/test/AllocationTestHarness.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api_types.h"
 #include "test/common/mock_functions.h"
@@ -36,8 +35,6 @@
 #undef LOG_TAG
 #include "avrcp_service.h"
 #include "btif/src/btif_rc.cc"
-
-void allocation_tracker_uninit(void);
 
 namespace bluetooth {
 namespace avrcp {
@@ -175,16 +172,7 @@ bool interop_match_addr(const interop_feature_t feature,
 /**
  * Test class to test selected functionality in hci/src/hci_layer.cc
  */
-class BtifRcTest : public AllocationTestHarness {
- protected:
-  void SetUp() override {
-    AllocationTestHarness::SetUp();
-    // Disable our allocation tracker to allow ASAN full range
-    allocation_tracker_uninit();
-  }
-
-  void TearDown() override { AllocationTestHarness::TearDown(); }
-};
+class BtifRcTest : public ::testing::Test {};
 
 TEST_F(BtifRcTest, get_element_attr_rsp) {
   RawAddress bd_addr;

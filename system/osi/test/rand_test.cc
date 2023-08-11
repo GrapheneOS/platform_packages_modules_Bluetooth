@@ -1,10 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "AllocationTestHarness.h"
-
 #include "osi/include/osi.h"
 
-class RandTest : public AllocationTestHarness {};
+class RandTest : public ::testing::Test {};
 
 TEST_F(RandTest, test_rand) {
   // We can't guarantee any distribution

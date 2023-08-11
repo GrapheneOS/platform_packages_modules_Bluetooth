@@ -40,8 +40,6 @@ static_library("hci") {
 if (use.test) {
   executable("net_test_hci") {
     sources = [
-      "//bt/system/osi/test/AllocationTestHarness.cc",
-      "//bt/system/osi/test/AlarmTestHarness.cc",
       "test/packet_fragmenter_test.cc",
     ]
 

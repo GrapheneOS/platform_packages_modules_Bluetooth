@@ -16,15 +16,16 @@
  *
  ******************************************************************************/
 
+#include "osi/include/alarm.h"
+
 #include <base/run_loop.h>
 #include <gtest/gtest.h>
-
-#include "AlarmTestHarness.h"
+#include <hardware/bluetooth.h>
 
 #include "common/message_loop_thread.h"
-#include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/osi.h"
+#include "osi/include/wakelock.h"
 #include "osi/semaphore.h"
 
 using base::Closure;
@@ -43,10 +44,30 @@ static MessageLoopThread* thread_;
 
 bluetooth::common::MessageLoopThread* get_main_thread() { return thread_; }
 
-class AlarmTest : public AlarmTestHarness {
+extern int64_t TIMER_INTERVAL_FOR_WAKELOCK_IN_MS;
+
+static bool is_wake_lock_acquired = false;
+
+static int acquire_wake_lock_cb(const char* lock_name) {
+  is_wake_lock_acquired = true;
+  return BT_STATUS_SUCCESS;
+}
+
+static int release_wake_lock_cb(const char* lock_name) {
+  is_wake_lock_acquired = false;
+  return BT_STATUS_SUCCESS;
+}
+
+static bt_os_callouts_t bt_wakelock_callouts = {
+    sizeof(bt_os_callouts_t), NULL, acquire_wake_lock_cb, release_wake_lock_cb};
+
+class AlarmTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    AlarmTestHarness::SetUp();
+    TIMER_INTERVAL_FOR_WAKELOCK_IN_MS = 500;
+
+    wakelock_set_os_callouts(&bt_wakelock_callouts);
+
     cb_counter = 0;
     cb_misordered_counter = 0;
 
@@ -55,7 +76,9 @@ class AlarmTest : public AlarmTestHarness {
 
   void TearDown() override {
     semaphore_free(semaphore);
-    AlarmTestHarness::TearDown();
+    alarm_cleanup();
+    wakelock_cleanup();
+    wakelock_set_os_callouts(NULL);
   }
 };
 
@@ -93,7 +116,7 @@ TEST_F(AlarmTest, test_cancel) {
   msleep(10 + EPSILON_MS);
 
   EXPECT_EQ(cb_counter, 0);
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
   alarm_free(alarm);
 }
 
@@ -112,12 +135,12 @@ TEST_F(AlarmTest, test_set_short) {
   alarm_set(alarm, 10, cb, NULL);
 
   EXPECT_EQ(cb_counter, 0);
-  EXPECT_TRUE(WakeLockHeld());
+  EXPECT_TRUE(is_wake_lock_acquired);
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 1);
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
 
   alarm_free(alarm);
 }
@@ -128,16 +151,16 @@ TEST_F(AlarmTest, test_set_short_periodic) {
   alarm_set(alarm, 10, cb, NULL);
 
   EXPECT_EQ(cb_counter, 0);
-  EXPECT_TRUE(WakeLockHeld());
+  EXPECT_TRUE(is_wake_lock_acquired);
 
   for (int i = 1; i <= 10; i++) {
     semaphore_wait(semaphore);
 
     EXPECT_GE(cb_counter, i);
-    EXPECT_TRUE(WakeLockHeld());
+    EXPECT_TRUE(is_wake_lock_acquired);
   }
   alarm_cancel(alarm);
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
 
   alarm_free(alarm);
 }
@@ -147,16 +170,16 @@ TEST_F(AlarmTest, test_set_zero_periodic) {
 
   alarm_set(alarm, 0, cb, NULL);
 
-  EXPECT_TRUE(WakeLockHeld());
+  EXPECT_TRUE(is_wake_lock_acquired);
 
   for (int i = 1; i <= 10; i++) {
     semaphore_wait(semaphore);
 
     EXPECT_GE(cb_counter, i);
-    EXPECT_TRUE(WakeLockHeld());
+    EXPECT_TRUE(is_wake_lock_acquired);
   }
   alarm_cancel(alarm);
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
 
   alarm_free(alarm);
 }
@@ -166,12 +189,12 @@ TEST_F(AlarmTest, test_set_long) {
   alarm_set(alarm, TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS, cb, NULL);
 
   EXPECT_EQ(cb_counter, 0);
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 1);
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
 
   alarm_free(alarm);
 }
@@ -184,17 +207,17 @@ TEST_F(AlarmTest, test_set_short_short) {
   alarm_set(alarm[1], 20, cb, NULL);
 
   EXPECT_EQ(cb_counter, 0);
-  EXPECT_TRUE(WakeLockHeld());
+  EXPECT_TRUE(is_wake_lock_acquired);
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 1);
-  EXPECT_TRUE(WakeLockHeld());
+  EXPECT_TRUE(is_wake_lock_acquired);
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 2);
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
 
   alarm_free(alarm[0]);
   alarm_free(alarm[1]);
@@ -209,17 +232,17 @@ TEST_F(AlarmTest, test_set_short_long) {
             NULL);
 
   EXPECT_EQ(cb_counter, 0);
-  EXPECT_TRUE(WakeLockHeld());
+  EXPECT_TRUE(is_wake_lock_acquired);
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 1);
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 2);
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
 
   alarm_free(alarm[0]);
   alarm_free(alarm[1]);
@@ -234,17 +257,17 @@ TEST_F(AlarmTest, test_set_long_long) {
             NULL);
 
   EXPECT_EQ(cb_counter, 0);
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 1);
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 2);
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
 
   alarm_free(alarm[0]);
   alarm_free(alarm[1]);
@@ -259,13 +282,13 @@ TEST_F(AlarmTest, test_is_scheduled) {
   EXPECT_TRUE(alarm_is_scheduled(alarm));
 
   EXPECT_EQ(cb_counter, 0);
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
 
   semaphore_wait(semaphore);
 
   EXPECT_FALSE(alarm_is_scheduled(alarm));
   EXPECT_EQ(cb_counter, 1);
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
 
   alarm_free(alarm);
 }
@@ -293,7 +316,7 @@ TEST_F(AlarmTest, test_callback_ordering) {
 
   for (int i = 0; i < 100; i++) alarm_free(alarms[i]);
 
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
 }
 
 // Test whether the callbacks are involed in the expected order on a
@@ -329,7 +352,7 @@ TEST_F(AlarmTest, test_callback_ordering_on_mloop) {
   for (int i = 0; i < 100; i++) alarm_free(alarms[i]);
 
   message_loop_thread.ShutDown();
-  EXPECT_FALSE(WakeLockHeld());
+  EXPECT_FALSE(is_wake_lock_acquired);
 }
 
 // Try to catch any race conditions between the timer callback and |alarm_free|.
