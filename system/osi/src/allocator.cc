@@ -15,24 +15,19 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+#include "osi/include/allocator.h"
+
 #include <base/logging.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "check.h"
-#include "osi/include/allocation_tracker.h"
-#include "osi/include/allocator.h"
-
-static const allocator_id_t alloc_allocator_id = 42;
 
 char* osi_strdup(const char* str) {
   size_t size = strlen(str) + 1;  // + 1 for the null terminator
-  size_t real_size = allocation_tracker_resize_for_canary(size);
-  void* ptr = malloc(real_size);
-  CHECK(ptr);
+  char* new_string = (char*)malloc(size);
+  CHECK(new_string);
 
-  char* new_string = static_cast<char*>(
-      allocation_tracker_notify_alloc(alloc_allocator_id, ptr, size));
   if (!new_string) return NULL;
 
   memcpy(new_string, str, size);
@@ -43,12 +38,9 @@ char* osi_strndup(const char* str, size_t len) {
   size_t size = strlen(str);
   if (len < size) size = len;
 
-  size_t real_size = allocation_tracker_resize_for_canary(size + 1);
-  void* ptr = malloc(real_size);
-  CHECK(ptr);
+  char* new_string = (char*)malloc(size + 1);
+  CHECK(new_string);
 
-  char* new_string = static_cast<char*>(
-      allocation_tracker_notify_alloc(alloc_allocator_id, ptr, size + 1));
   if (!new_string) return NULL;
 
   memcpy(new_string, str, size);
@@ -58,23 +50,19 @@ char* osi_strndup(const char* str, size_t len) {
 
 void* osi_malloc(size_t size) {
   CHECK(static_cast<ssize_t>(size) >= 0);
-  size_t real_size = allocation_tracker_resize_for_canary(size);
-  void* ptr = malloc(real_size);
+  void* ptr = malloc(size);
   CHECK(ptr);
-  return allocation_tracker_notify_alloc(alloc_allocator_id, ptr, size);
+  return ptr;
 }
 
 void* osi_calloc(size_t size) {
   CHECK(static_cast<ssize_t>(size) >= 0);
-  size_t real_size = allocation_tracker_resize_for_canary(size);
-  void* ptr = calloc(1, real_size);
+  void* ptr = calloc(1, size);
   CHECK(ptr);
-  return allocation_tracker_notify_alloc(alloc_allocator_id, ptr, size);
+  return ptr;
 }
 
-void osi_free(void* ptr) {
-  free(allocation_tracker_notify_free(alloc_allocator_id, ptr));
-}
+void osi_free(void* ptr) { free(ptr); }
 
 void osi_free_and_reset(void** p_ptr) {
   CHECK(p_ptr != NULL);

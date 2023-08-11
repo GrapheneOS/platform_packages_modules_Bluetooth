@@ -23,14 +23,12 @@
 #include "common/testing/log_capture.h"
 #include "common/time_util.h"
 #include "osi/include/allocator.h"
-#include "osi/test/AllocationTestHarness.h"
 #include "stack/include/a2dp_vendor_ldac_constants.h"
 #include "stack/include/avdt_api.h"
 #include "stack/include/bt_hdr.h"
 #include "test_util.h"
 #include "wav_reader.h"
 
-void allocation_tracker_uninit(void);
 namespace {
 constexpr uint32_t kA2dpTickUs = 23 * 1000;
 constexpr char kWavFile[] = "test/a2dp/raw_data/pcm1644s.wav";
@@ -55,13 +53,10 @@ namespace testing {
 // static BT_HDR* packet = nullptr;
 static WavReader wav_reader = WavReader(GetWavFilePath(kWavFile).c_str());
 
-class A2dpLdacTest : public AllocationTestHarness {
+class A2dpLdacTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    AllocationTestHarness::SetUp();
     common::InitFlags::SetAllForTesting();
-    // Disable our allocation tracker to allow ASAN full range
-    allocation_tracker_uninit();
     SetCodecConfig();
     encoder_iface_ = const_cast<tA2DP_ENCODER_INTERFACE*>(
         A2DP_VendorGetEncoderInterfaceLdac(kCodecInfoLdacCapability));
@@ -81,7 +76,6 @@ class A2dpLdacTest : public AllocationTestHarness {
     if (decoder_iface_ != nullptr) {
       decoder_iface_->decoder_cleanup();
     }
-    AllocationTestHarness::TearDown();
   }
 
 // NOTE: Make a super func for all codecs
