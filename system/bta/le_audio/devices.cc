@@ -798,11 +798,7 @@ uint16_t LeAudioDeviceGroup::GetRemoteDelay(uint8_t direction) const {
 }
 
 bool LeAudioDeviceGroup::UpdateAudioContextAvailability(void) {
-  LOG_DEBUG(
-      " group id: %d, available contexts sink: %s, available contexts source: "
-      "%s",
-      group_id_, group_available_contexts_.sink.to_string().c_str(),
-      group_available_contexts_.source.to_string().c_str());
+  LOG_DEBUG("%d", group_id_);
   auto old_contexts = GetAvailableContexts();
   SetAvailableContexts(GetLatestAvailableContexts());
   return old_contexts != GetAvailableContexts();
@@ -842,7 +838,8 @@ LeAudioDeviceGroup::GetLatestAvailableContexts() const {
   types::BidirectionalPair<types::AudioContexts> contexts;
   for (const auto& device : leAudioDevices_) {
     auto shared_ptr = device.lock();
-    if (shared_ptr) {
+    if (shared_ptr &&
+        shared_ptr->GetConnectionState() == DeviceConnectState::CONNECTED) {
       contexts.sink |=
           shared_ptr->GetAvailableContexts(types::kLeAudioDirectionSink);
       contexts.source |=
@@ -2969,26 +2966,18 @@ void LeAudioDevice::DisconnectAcl(void) {
   }
 }
 
-/* Returns XOR of updated sink and source bitset context types */
-AudioContexts LeAudioDevice::SetAvailableContexts(
+void LeAudioDevice::SetAvailableContexts(
     types::BidirectionalPair<types::AudioContexts> contexts) {
-  AudioContexts updated_contexts;
-
-  updated_contexts = contexts.sink ^ avail_contexts_.sink;
-  updated_contexts |= contexts.source ^ avail_contexts_.source;
-
   LOG_DEBUG(
-      "\n\t avail_contexts_.sink: %s \n\t avail_contexts_.source: %s  \n\t "
-      "contexts.sink: %s \n\t contexts.source: %s \n\t updated_contexts: %s",
+      "\n\t previous_contexts_.sink: %s \n\t previous_contexts_.source: %s  "
+      "\n\t "
+      "new_contexts.sink: %s \n\t new_contexts.source: %s \n\t ",
       avail_contexts_.sink.to_string().c_str(),
       avail_contexts_.source.to_string().c_str(),
-      contexts.sink.to_string().c_str(), contexts.source.to_string().c_str(),
-      updated_contexts.to_string().c_str());
+      contexts.sink.to_string().c_str(), contexts.source.to_string().c_str());
 
   avail_contexts_.sink = contexts.sink;
   avail_contexts_.source = contexts.source;
-
-  return updated_contexts;
 }
 
 bool LeAudioDevice::ActivateConfiguredAses(LeAudioContextType context_type) {
