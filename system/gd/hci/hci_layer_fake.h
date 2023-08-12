@@ -61,6 +61,8 @@ class TestHciLayer : public HciLayer {
 
   void IncomingAclData(uint16_t handle);
 
+  void IncomingAclData(uint16_t handle, std::unique_ptr<AclBuilder> acl_builder);
+
   void AssertNoOutgoingAclData();
 
   packet::PacketView<packet::kLittleEndian> OutgoingAclData();

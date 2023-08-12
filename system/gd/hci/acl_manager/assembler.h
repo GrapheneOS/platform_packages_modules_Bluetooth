@@ -34,23 +34,35 @@ constexpr size_t kMaxQueuedPacketsPerConnection = 10;
 constexpr size_t kL2capBasicFrameHeaderSize = 4;
 
 namespace {
+// This is a helper class to keep the state of the assembler and expose PacketView<>::Append.
 class PacketViewForRecombination : public packet::PacketView<packet::kLittleEndian> {
  public:
-  PacketViewForRecombination(const PacketView& packetView) : PacketView(packetView) {}
+  PacketViewForRecombination(const PacketView& packetView)
+      : PacketView(packetView), received_first_(true) {}
+
+  PacketViewForRecombination()
+      : PacketView(PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>())) {}
+
   void AppendPacketView(packet::PacketView<packet::kLittleEndian> to_append) {
     Append(to_append);
   }
+
+  bool ReceivedFirstPacket() {
+    return received_first_;
+  }
+
+ private:
+  bool received_first_{};
 };
 
-// Per spec 5.1 Vol 2 Part B 5.3, ACL link shall carry L2CAP data. Therefore, an ACL packet shall contain L2CAP PDU.
-// This function returns the PDU size of the L2CAP data if it's a starting packet. Returns 0 if it's invalid.
-uint16_t GetL2capPduSize(AclView packet) {
-  auto l2cap_payload = packet.GetPayload();
-  if (l2cap_payload.size() < kL2capBasicFrameHeaderSize) {
-    LOG_ERROR("Controller sent an invalid L2CAP starting packet!");
-    return 0;
+// Per spec 5.1 Vol 2 Part B 5.3, ACL link shall carry L2CAP data. Therefore, an ACL packet shall
+// contain L2CAP PDU. This function returns the PDU size of the L2CAP starting packet, or
+// kL2capBasicFrameHeaderSize if it's invalid.
+size_t GetL2capPduSize(packet::PacketView<packet::kLittleEndian> pdu) {
+  if (pdu.size() < 2) {
+    return kL2capBasicFrameHeaderSize;  // We need at least 4 bytes to send it to L2CAP
   }
-  return (l2cap_payload.at(1) << 8u) + l2cap_payload.at(0);
+  return (static_cast<size_t>(pdu[1]) << 8u) + pdu[0];
 }
 
 }  // namespace
@@ -61,9 +73,7 @@ struct assembler {
   AddressWithType address_with_type_;
   AclConnection::QueueDownEnd* down_end_;
   os::Handler* handler_;
-  PacketViewForRecombination recombination_stage_{
-      PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>())};
-  size_t remaining_sdu_continuation_packet_size_ = 0;
+  PacketViewForRecombination recombination_stage_{};
   std::shared_ptr<std::atomic_bool> enqueue_registered_ = std::make_shared<std::atomic_bool>(false);
   std::queue<packet::PacketView<packet::kLittleEndian>> incoming_queue_;
 
@@ -74,7 +84,7 @@ struct assembler {
   }
 
   // Invoked from some external Queue Reactable context
-  std::unique_ptr<packet::PacketView<packet::kLittleEndian>> on_le_incoming_data_ready() {
+  std::unique_ptr<packet::PacketView<packet::kLittleEndian>> on_data_ready() {
     auto packet = incoming_queue_.front();
     incoming_queue_.pop();
     if (incoming_queue_.empty() && enqueue_registered_->exchange(false)) {
@@ -85,7 +95,6 @@ struct assembler {
 
   void on_incoming_packet(AclView packet) {
     PacketView<packet::kLittleEndian> payload = packet.GetPayload();
-    size_t payload_size = payload.size();
     auto broadcast_flag = packet.GetBroadcastFlag();
     if (broadcast_flag == BroadcastFlag::ACTIVE_PERIPHERAL_BROADCAST) {
       LOG_WARN("Dropping broadcast from remote");
@@ -97,58 +106,39 @@ struct assembler {
       return;
     }
     if (packet_boundary_flag == PacketBoundaryFlag::CONTINUING_FRAGMENT) {
-      if (remaining_sdu_continuation_packet_size_ < payload_size) {
-        LOG_WARN("Remote sent unexpected L2CAP PDU. Drop the entire L2CAP PDU");
-        recombination_stage_ =
-            PacketViewForRecombination(PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>()));
-        remaining_sdu_continuation_packet_size_ = 0;
+      if (!recombination_stage_.ReceivedFirstPacket()) {
+        LOG_ERROR("Continuing fragment received without previous first, dropping it.");
         return;
       }
-      remaining_sdu_continuation_packet_size_ -= payload_size;
       recombination_stage_.AppendPacketView(payload);
-      if (remaining_sdu_continuation_packet_size_ != 0) {
-        return;
-      } else {
-        payload = recombination_stage_;
-        recombination_stage_ =
-            PacketViewForRecombination(PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>()));
-      }
     } else if (packet_boundary_flag == PacketBoundaryFlag::FIRST_AUTOMATICALLY_FLUSHABLE) {
-      if (recombination_stage_.size() > 0) {
+      if (recombination_stage_.ReceivedFirstPacket()) {
         LOG_ERROR("Controller sent a starting packet without finishing previous packet. Drop previous one.");
       }
-      size_t l2cap_pdu_size = GetL2capPduSize(packet);
-      if (l2cap_pdu_size == 0) {
-        LOG_WARN("dropping an invalid L2CAP packet");
-        return;
-      }
-
-      remaining_sdu_continuation_packet_size_ = l2cap_pdu_size - (payload_size - kL2capBasicFrameHeaderSize);
-      if ((payload_size - kL2capBasicFrameHeaderSize) > l2cap_pdu_size) {
-        LOG_WARN(
-            "Remote presented mismatched packet sizes payload_size:%zu l2cap_pdu_size:%zu",
-            payload_size - kL2capBasicFrameHeaderSize,
-            l2cap_pdu_size);
-        remaining_sdu_continuation_packet_size_ = 0;
-      } else {
-        remaining_sdu_continuation_packet_size_ =
-            l2cap_pdu_size - (payload_size - kL2capBasicFrameHeaderSize);
-      }
-      if (remaining_sdu_continuation_packet_size_ > 0) {
-        recombination_stage_ = payload;
-        return;
-      }
+      recombination_stage_ = payload;
+    }
+    // Check the size of the packet
+    size_t expected_size = GetL2capPduSize(recombination_stage_) + kL2capBasicFrameHeaderSize;
+    if (expected_size < recombination_stage_.size()) {
+      LOG_INFO("Packet size doesn't match L2CAP header, dropping it.");
+      recombination_stage_ = PacketViewForRecombination();
+      return;
+    } else if (expected_size > recombination_stage_.size()) {
+      // Wait for the next fragment before sending
+      return;
     }
     if (incoming_queue_.size() > kMaxQueuedPacketsPerConnection) {
       LOG_ERROR("Dropping packet from %s due to congestion",
                  ADDRESS_TO_LOGGABLE_CSTR(address_with_type_));
+      recombination_stage_ = PacketViewForRecombination();
       return;
     }
 
-    incoming_queue_.push(payload);
+    incoming_queue_.push(recombination_stage_);
+    recombination_stage_ = PacketViewForRecombination();
     if (!enqueue_registered_->exchange(true)) {
-      down_end_->RegisterEnqueue(handler_,
-                                 common::Bind(&assembler::on_le_incoming_data_ready, common::Unretained(this)));
+      down_end_->RegisterEnqueue(
+          handler_, common::Bind(&assembler::on_data_ready, common::Unretained(this)));
     }
   }
 };
