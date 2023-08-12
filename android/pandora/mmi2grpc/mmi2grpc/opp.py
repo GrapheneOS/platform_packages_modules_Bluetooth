@@ -52,7 +52,7 @@ class OPPProxy(ProfileProxy):
     def TSC_OPP_mmi_user_action_remove_object(self, **kwargs):
         """
         If necessary take action to remove any file(s) named 'BC_BV01.bmp' from
-        the IUT.  
+        the IUT.
 
         Press 'OK' to confirm that the file is not present on the
         IUT.
