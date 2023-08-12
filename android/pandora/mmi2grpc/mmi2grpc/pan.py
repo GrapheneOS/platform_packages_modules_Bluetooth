@@ -110,11 +110,11 @@ class PANProxy(ProfileProxy):
     def TSC_PAN_mmi_iut_send_arp_probe_request(self, **kwargs):
         """
         Take action to send ARP probe request for the process of choosing a
-        valid LINKLOCAL IP address. 
+        valid LINKLOCAL IP address.
 
-        Notes: 
+        Notes:
         (1) It may be necessary to clear
-        the assigned IP on the IUT first in order to trigger ARP request. 
+        the assigned IP on the IUT first in order to trigger ARP request.
         (2)
         PTS anticipates an ARP request which has the destination protocol
         address field matching the value set in TSPX_iut_ip_address.
