@@ -28,7 +28,6 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Looper;
 
-import android.os.ParcelUuid;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
@@ -70,8 +69,8 @@ public class LeAudioBroadcastServiceTest {
     private DatabaseManager mDatabaseManager;
     @Mock
     private AudioManager mAudioManager;
-    @Mock
-    private LeAudioBroadcasterNativeInterface mNativeInterface;
+    @Mock private LeAudioBroadcasterNativeInterface mLeAudioBroadcasterNativeInterface;
+    @Mock private LeAudioNativeInterface mLeAudioNativeInterface;
     @Mock private LeAudioTmapGattServer mTmapGattServer;
     @Spy private LeAudioObjectsFactory mObjectsFactory = LeAudioObjectsFactory.getInstance();
 
@@ -179,9 +178,10 @@ public class LeAudioBroadcastServiceTest {
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
+        LeAudioBroadcasterNativeInterface.setInstance(mLeAudioBroadcasterNativeInterface);
+        LeAudioNativeInterface.setInstance(mLeAudioNativeInterface);
         startService();
         mService.mAudioManager = mAudioManager;
-        mService.mLeAudioBroadcasterNativeInterface = mNativeInterface;
 
         // Set up the State Changed receiver
         IntentFilter filter = new IntentFilter();
@@ -191,7 +191,7 @@ public class LeAudioBroadcastServiceTest {
         mTargetContext.registerReceiver(mLeAudioIntentReceiver, filter);
 
         mDevice = TestUtils.getTestDevice(mAdapter, 0);
-        when(mNativeInterface.getDevice(any(byte[].class))).thenReturn(mDevice);
+        when(mLeAudioBroadcasterNativeInterface.getDevice(any(byte[].class))).thenReturn(mDevice);
 
         mIntentQueue = new LinkedBlockingQueue<Intent>();
     }
@@ -203,6 +203,8 @@ public class LeAudioBroadcastServiceTest {
         }
 
         stopService();
+        LeAudioBroadcasterNativeInterface.setInstance(null);
+        LeAudioNativeInterface.setInstance(null);
         mTargetContext.unregisterReceiver(mLeAudioIntentReceiver);
         TestUtils.clearAdapterService(mAdapterService);
         reset(mAudioManager);
@@ -258,11 +260,14 @@ public class LeAudioBroadcastServiceTest {
                         .map(setting -> setting.getContentMetadata().getRawMetadata())
                         .toArray(byte[][]::new);
 
-        verify(mNativeInterface, times(1)).createBroadcast(eq(true), eq(TEST_BROADCAST_NAME),
-                eq(settings.getBroadcastCode()),
-                eq(settings.getPublicBroadcastMetadata().getRawMetadata()),
-                eq(expectedQualityArray),
-                eq(expectedDataArray));
+        verify(mLeAudioBroadcasterNativeInterface, times(1))
+                .createBroadcast(
+                        eq(true),
+                        eq(TEST_BROADCAST_NAME),
+                        eq(settings.getBroadcastCode()),
+                        eq(settings.getPublicBroadcastMetadata().getRawMetadata()),
+                        eq(expectedQualityArray),
+                        eq(expectedDataArray));
 
         // Check if broadcast is started automatically when created
         LeAudioStackEvent create_event =
@@ -272,7 +277,7 @@ public class LeAudioBroadcastServiceTest {
         mService.messageFromNative(create_event);
 
         // Verify if broadcast is auto-started on start
-        verify(mNativeInterface, times(1)).startBroadcast(eq(broadcastId));
+        verify(mLeAudioBroadcasterNativeInterface, times(1)).startBroadcast(eq(broadcastId));
 
         // Notify initial paused state
         LeAudioStackEvent state_event =
@@ -288,14 +293,14 @@ public class LeAudioBroadcastServiceTest {
         mService.messageFromNative(state_event);
 
         // Check if metadata is requested when the broadcast starts to stream
-        verify(mNativeInterface, times(1)).getBroadcastMetadata(eq(broadcastId));
+        verify(mLeAudioBroadcasterNativeInterface, times(1)).getBroadcastMetadata(eq(broadcastId));
         Assert.assertFalse(mOnBroadcastStartFailedCalled);
         Assert.assertTrue(mOnBroadcastStartedCalled);
     }
 
     void verifyBroadcastStopped(int broadcastId) {
         mService.stopBroadcast(broadcastId);
-        verify(mNativeInterface, times(1)).stopBroadcast(eq(broadcastId));
+        verify(mLeAudioBroadcasterNativeInterface, times(1)).stopBroadcast(eq(broadcastId));
 
         LeAudioStackEvent state_event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_BROADCAST_STATE);
@@ -304,7 +309,7 @@ public class LeAudioBroadcastServiceTest {
         mService.messageFromNative(state_event);
 
         // Verify if broadcast is auto-destroyed on stop
-        verify(mNativeInterface, times(1)).destroyBroadcast(eq(broadcastId));
+        verify(mLeAudioBroadcasterNativeInterface, times(1)).destroyBroadcast(eq(broadcastId));
 
         state_event = new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_BROADCAST_DESTROYED);
         state_event.valueInt1 = broadcastId;
@@ -367,10 +372,14 @@ public class LeAudioBroadcastServiceTest {
         byte[][] expectedDataArray =
                 {settings.getSubgroupSettings().get(0).getContentMetadata().getRawMetadata()};
 
-        verify(mNativeInterface, times(1)).createBroadcast(eq(true), eq(TEST_BROADCAST_NAME),
-                eq(code), eq(settings.getPublicBroadcastMetadata().getRawMetadata()),
-                eq(expectedQualityArray),
-                eq(expectedDataArray));
+        verify(mLeAudioBroadcasterNativeInterface, times(1))
+                .createBroadcast(
+                        eq(true),
+                        eq(TEST_BROADCAST_NAME),
+                        eq(code),
+                        eq(settings.getPublicBroadcastMetadata().getRawMetadata()),
+                        eq(expectedQualityArray),
+                        eq(expectedDataArray));
 
         LeAudioStackEvent create_event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_BROADCAST_CREATED);
