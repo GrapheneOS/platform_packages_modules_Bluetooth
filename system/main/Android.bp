@@ -43,7 +43,6 @@ cc_library_static {
         "packages/modules/Bluetooth/system/stack/include",
         "packages/modules/Bluetooth/system/stack/l2cap",
         "packages/modules/Bluetooth/system/udrv/include",
-        "packages/modules/Bluetooth/system/vnd/include",
         "system/security/keystore/include",
     ],
     generated_headers: [
@@ -86,7 +85,6 @@ cc_library {
         "packages/modules/Bluetooth/system/stack/include",
         "packages/modules/Bluetooth/system/stack/l2cap",
         "packages/modules/Bluetooth/system/udrv/include",
-        "packages/modules/Bluetooth/system/vnd/include",
         "system/security/keystore/include",
     ],
     shared_libs: [
