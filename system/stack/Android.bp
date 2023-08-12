@@ -377,7 +377,7 @@ cc_fuzz {
     name: "sdp-fuzzer",
     defaults: [
         "btstack_fuzzer_default",
-        "fluoride_defaults_fuzzable",
+        "fluoride_defaults",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system/stack/btm",
@@ -401,7 +401,7 @@ cc_fuzz {
     name: "gatt-fuzzer",
     defaults: [
         "btstack_fuzzer_default",
-        "fluoride_defaults_fuzzable",
+        "fluoride_defaults",
     ],
     include_dirs: [
         "external/flatbuffers/include",
@@ -443,7 +443,7 @@ cc_fuzz {
     name: "smp-fuzzer",
     defaults: [
         "btstack_fuzzer_default",
-        "fluoride_defaults_fuzzable",
+        "fluoride_defaults",
     ],
     include_dirs: [
         "external/flatbuffers/include",
@@ -480,7 +480,7 @@ cc_fuzz {
     name: "bnep-fuzzer",
     defaults: [
         "btstack_fuzzer_default",
-        "fluoride_defaults_fuzzable",
+        "fluoride_defaults",
     ],
     include_dirs: [
         "external/flatbuffers/include",
@@ -517,7 +517,7 @@ cc_fuzz {
     name: "avrc-fuzzer",
     defaults: [
         "btstack_fuzzer_default",
-        "fluoride_defaults_fuzzable",
+        "fluoride_defaults",
     ],
     include_dirs: [
         "external/flatbuffers/include",
@@ -563,7 +563,7 @@ cc_fuzz {
     name: "l2cap-fuzzer",
     defaults: [
         "btstack_fuzzer_default",
-        "fluoride_defaults_fuzzable",
+        "fluoride_defaults",
     ],
     include_dirs: [
         "external/flatbuffers/include",
