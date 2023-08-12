@@ -30,11 +30,6 @@ cc_defaults {
                 misc_undefined: ["bounds"],
             },
         },
-        host: {
-            static_libs: [
-                "libcutils",
-            ],
-        },
     },
     defaults: ["fluoride_types_defaults_fuzzable"],
     header_libs: ["libbluetooth_headers"],
