@@ -173,7 +173,7 @@ class SMProxy(ProfileProxy):
         """
         Please initiate a connection over BR/EDR to the PTS, and initiate
         pairing process.
-    
+
         Description: Verify that the Implementation Under Test
         (IUT) can initiate a connect request over BR/EDR to PTS, and initiate
         pairing process.

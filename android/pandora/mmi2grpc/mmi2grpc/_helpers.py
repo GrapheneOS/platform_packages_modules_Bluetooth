@@ -41,17 +41,17 @@ def assert_description(f):
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
         description = textwrap.fill(kwargs['description'], DOCSTRING_WIDTH, replace_whitespace=False)
-        docstring = textwrap.dedent(f.__doc__ or '')
+        description = ('\n'.join(map(lambda line: line.rstrip(), description.split('\n')))).strip()
+        docstring = textwrap.dedent(f.__doc__ or '').strip()
 
-        if docstring.strip() != description.strip():
+        if docstring != description:
             print(f'Expected description of {f.__name__}:')
             print(description)
 
             # Generate AssertionError.
             test = unittest.TestCase()
             test.maxDiff = None
-            test.assertMultiLineEqual(docstring.strip(), description.strip(),
-                                      f'description does not match with function docstring of'
+            test.assertMultiLineEqual(docstring, description, f'description does not match with function docstring of'
                                       f' {f.__name__}')
 
         return f(*args, **kwargs)
@@ -94,6 +94,7 @@ def match_description(f):
 def format_function(mmi_name, mmi_description):
     """Returns the base format of a function implementing a PTS MMI."""
     wrapped_description = textwrap.fill(mmi_description, DOCSTRING_WIDTH, replace_whitespace=False)
+    wrapped_description = '\n'.join(map(lambda line: line.rstrip(), wrapped_description.split('\n')))
     return (f'@assert_description\n'
             f'def {mmi_name}(self, **kwargs):\n'
             f'    """\n'
