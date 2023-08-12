@@ -89,7 +89,7 @@ cc_fuzz {
     name: "avrcp_device_fuzz",
     host_supported: true,
     defaults: [
-        "fluoride_defaults_fuzzable",
+        "fluoride_defaults",
     ],
     srcs: [
         "tests/avrcp_device_fuzz/avrcp_device_fuzz.cc",
