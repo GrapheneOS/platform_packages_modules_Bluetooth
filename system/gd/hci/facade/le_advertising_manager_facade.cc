@@ -25,6 +25,7 @@
 #include "common/bidi_queue.h"
 #include "common/bind.h"
 #include "grpc/grpc_event_queue.h"
+#include "hardware/ble_advertiser.h"
 #include "hci/address.h"
 #include "hci/address_with_type.h"
 #include "hci/le_advertising_manager.h"
@@ -234,6 +235,7 @@ class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Ser
     pending_advertiser_id_ = std::promise<AdvertiserId>();
     auto future = pending_advertiser_id_->get_future();
     le_advertising_manager_->ExtendedCreateAdvertiser(
+        kAdvertiserClientIdJni,
         0,
         config,
         common::Bind(&LeAdvertiser::ScanCallback, common::Unretained(&le_advertiser)),
@@ -266,6 +268,7 @@ class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Ser
     pending_advertiser_id_ = std::promise<AdvertiserId>();
     auto future = pending_advertiser_id_->get_future();
     le_advertising_manager_->ExtendedCreateAdvertiser(
+        kAdvertiserClientIdJni,
         0,
         config,
         common::Bind(&LeAdvertiser::ScanCallback, common::Unretained(&le_advertiser)),
