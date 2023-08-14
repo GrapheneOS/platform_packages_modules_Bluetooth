@@ -25,6 +25,7 @@
 #include <map>
 
 #include "common/bind.h"
+#include "hardware/ble_advertiser.h"
 #include "hci/acl_manager.h"
 #include "hci/address.h"
 #include "hci/controller.h"
@@ -270,7 +271,14 @@ class LeAdvertisingAPITest : public LeAdvertisingManagerTest {
         .WillOnce(SaveArg<1>(&advertiser_id_));
 
     le_advertising_manager_->ExtendedCreateAdvertiser(
-        0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
+        kAdvertiserClientIdJni,
+        0x00,
+        advertising_config,
+        scan_callback,
+        set_terminated_callback,
+        0,
+        0,
+        client_handler_);
 
     std::vector<OpCode> adv_opcodes = {
         OpCode::LE_READ_ADVERTISING_PHYSICAL_CHANNEL_TX_POWER,
@@ -334,7 +342,14 @@ class LeAndroidHciAdvertisingAPITest : public LeAndroidHciAdvertisingManagerTest
         .WillOnce(SaveArg<1>(&advertiser_id_));
 
     le_advertising_manager_->ExtendedCreateAdvertiser(
-        0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
+        kAdvertiserClientIdJni,
+        0x00,
+        advertising_config,
+        scan_callback,
+        set_terminated_callback,
+        0,
+        0,
+        client_handler_);
 
     std::vector<SubOcf> sub_ocf = {
         SubOcf::SET_PARAM,
@@ -385,7 +400,14 @@ class LeAndroidHciAdvertisingAPIPublicAddressTest : public LeAndroidHciAdvertisi
         .WillOnce(SaveArg<1>(&advertiser_id_));
 
     le_advertising_manager_->ExtendedCreateAdvertiser(
-        0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
+        kAdvertiserClientIdJni,
+        0x00,
+        advertising_config,
+        scan_callback,
+        set_terminated_callback,
+        0,
+        0,
+        client_handler_);
 
     std::vector<SubOcf> sub_ocf = {
         SubOcf::SET_PARAM,
@@ -445,7 +467,14 @@ class LeExtendedAdvertisingAPITest : public LeExtendedAdvertisingManagerTest {
         .WillOnce(SaveArg<1>(&advertiser_id_));
 
     le_advertising_manager_->ExtendedCreateAdvertiser(
-        0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
+        kAdvertiserClientIdJni,
+        0x00,
+        advertising_config,
+        scan_callback,
+        set_terminated_callback,
+        0,
+        0,
+        client_handler_);
 
     std::vector<OpCode> adv_opcodes = {
         OpCode::LE_SET_EXTENDED_ADVERTISING_PARAMETERS,
@@ -495,7 +524,14 @@ TEST_F(LeAdvertisingManagerTest, create_advertiser_test) {
   advertising_config.channel_map = 1;
 
   le_advertising_manager_->ExtendedCreateAdvertiser(
-      0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
+      kAdvertiserClientIdJni,
+      0x00,
+      advertising_config,
+      scan_callback,
+      set_terminated_callback,
+      0,
+      0,
+      client_handler_);
   std::vector<OpCode> adv_opcodes = {
       OpCode::LE_READ_ADVERTISING_PHYSICAL_CHANNEL_TX_POWER,
       OpCode::LE_SET_ADVERTISING_PARAMETERS,
@@ -552,7 +588,14 @@ TEST_F(LeAndroidHciAdvertisingManagerTest, create_advertiser_test) {
       .WillOnce(SaveArg<1>(&id));
 
   le_advertising_manager_->ExtendedCreateAdvertiser(
-      0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
+      kAdvertiserClientIdJni,
+      0x00,
+      advertising_config,
+      scan_callback,
+      set_terminated_callback,
+      0,
+      0,
+      client_handler_);
 
   std::vector<SubOcf> sub_ocf = {
       SubOcf::SET_PARAM,
@@ -589,7 +632,14 @@ TEST_F(LeAndroidHciAdvertisingManagerTest, create_advertiser_with_rpa_test) {
       .WillOnce(SaveArg<1>(&id));
 
   le_advertising_manager_->ExtendedCreateAdvertiser(
-      0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
+      kAdvertiserClientIdJni,
+      0x00,
+      advertising_config,
+      scan_callback,
+      set_terminated_callback,
+      0,
+      0,
+      client_handler_);
   std::vector<SubOcf> sub_ocf = {
       SubOcf::SET_PARAM,
       SubOcf::SET_SCAN_RESP,
@@ -635,7 +685,14 @@ TEST_F(LeExtendedAdvertisingManagerTest, create_advertiser_test) {
       .WillOnce(SaveArg<1>(&id));
 
   le_advertising_manager_->ExtendedCreateAdvertiser(
-      0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
+      kAdvertiserClientIdJni,
+      0x00,
+      advertising_config,
+      scan_callback,
+      set_terminated_callback,
+      0,
+      0,
+      client_handler_);
 
   std::vector<OpCode> adv_opcodes = {
       OpCode::LE_SET_EXTENDED_ADVERTISING_PARAMETERS,
@@ -692,7 +749,14 @@ TEST_F(LeExtendedAdvertisingManagerTest, ignore_on_pause_on_resume_after_unregis
       .WillOnce(SaveArg<1>(&id));
 
   le_advertising_manager_->ExtendedCreateAdvertiser(
-      0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
+      kAdvertiserClientIdJni,
+      0x00,
+      advertising_config,
+      scan_callback,
+      set_terminated_callback,
+      0,
+      0,
+      client_handler_);
 
   std::vector<OpCode> adv_opcodes = {
       OpCode::LE_SET_EXTENDED_ADVERTISING_PARAMETERS,
@@ -1332,6 +1396,7 @@ TEST_F(LeExtendedAdvertisingManagerTest, use_rpa) {
 
   // act: start advertising set with RPA
   le_advertising_manager_->ExtendedCreateAdvertiser(
+      kAdvertiserClientIdJni,
       0x00,
       AdvertisingConfig{
           .requested_advertiser_address_type = AdvertiserAddressType::RESOLVABLE_RANDOM,
@@ -1359,6 +1424,7 @@ TEST_F(LeExtendedAdvertisingManagerTest, use_non_resolvable_address) {
 
   // start advertising set with NRPA
   le_advertising_manager_->ExtendedCreateAdvertiser(
+      kAdvertiserClientIdJni,
       0x00,
       AdvertisingConfig{
           .requested_advertiser_address_type = AdvertiserAddressType::NONRESOLVABLE_RANDOM,
@@ -1395,6 +1461,7 @@ TEST_F(LeExtendedAdvertisingManagerTest, use_public_address_type_if_public_addre
 
   // act: start advertising set with RPA
   le_advertising_manager_->ExtendedCreateAdvertiser(
+      kAdvertiserClientIdJni,
       0x00,
       AdvertisingConfig{
           .requested_advertiser_address_type = AdvertiserAddressType::RESOLVABLE_RANDOM,
