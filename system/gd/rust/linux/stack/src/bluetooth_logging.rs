@@ -2,6 +2,8 @@ use bt_common::init_flags;
 use log::LevelFilter;
 use syslog::{BasicLogger, Facility, Formatter3164};
 
+use log_panics;
+
 /// API to modify log levels.
 pub trait IBluetoothLogging {
     /// Check whether debug logging is enabled.
@@ -33,6 +35,7 @@ impl BluetoothLogging {
             let logger = syslog::unix(formatter).expect("could not connect to syslog");
             let _ = log::set_boxed_logger(Box::new(BasicLogger::new(logger)))
                 .map(|()| log::set_max_level(level));
+            log_panics::init();
         }
 
         Self { is_debug }
