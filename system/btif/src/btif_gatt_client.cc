@@ -54,7 +54,6 @@
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
-#include "vendor_api.h"
 
 using base::Bind;
 using base::Owned;
