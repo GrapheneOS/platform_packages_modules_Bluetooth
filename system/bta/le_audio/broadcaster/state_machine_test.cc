@@ -1003,7 +1003,8 @@ TEST_F(StateMachineTest, AnnouncementTest) {
   ASSERT_EQ(p_data[3], ((kBasicAudioAnnouncementServiceUuid >> 8) & 0x00FF));
 
   // Check advertising parameters
-  ASSERT_EQ(adv_params.own_address_type, BLE_ADDR_RANDOM);
+  ASSERT_EQ(adv_params.own_address_type,
+            BroadcastStateMachine::kBroadcastAdvertisingType);
 }
 
 }  // namespace
