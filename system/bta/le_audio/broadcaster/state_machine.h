@@ -116,6 +116,9 @@ class BroadcastStateMachine : public StateMachine<5> {
   // le_advertising_manager will maintain the reg_id together with client_id
   // and java/jni is using negative number
   static constexpr uint8_t kLeAudioBroadcastRegId = 0x1;
+  // Matching the ADDRESS_TYPE_* enums from Java
+  // ADDRESS_TYPE_RANDOM_NON_RESOLVABLE = 2
+  static constexpr int8_t kBroadcastAdvertisingType = 0x2;
 
   static void Initialize(IBroadcastStateMachineCallbacks*,
                          AdvertisingCallbacks* adv_callbacks);
