@@ -31,11 +31,12 @@
 #include "stack/btm/btm_dev.h"
 #include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
-#include "vendor_hcidefs.h"
 
 extern tBTM_CB btm_cb;
 
 /* RPA offload VSC specifics */
+#define HCI_VENDOR_BLE_RPA_VSC (0x0155 | HCI_GRP_VENDOR_SPECIFIC)
+
 #define BTM_BLE_META_IRK_ENABLE 0x01
 #define BTM_BLE_META_ADD_IRK_ENTRY 0x02
 #define BTM_BLE_META_REMOVE_IRK_ENTRY 0x03

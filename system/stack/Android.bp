@@ -70,8 +70,6 @@ cc_library_static {
         "packages/modules/Bluetooth/system/gd/hal",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/udrv/include",
-        "packages/modules/Bluetooth/system/vnd/ble",
-        "packages/modules/Bluetooth/system/vnd/include",
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
@@ -198,8 +196,6 @@ cc_library_static {
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/udrv/include",
-        "packages/modules/Bluetooth/system/vnd/ble",
-        "packages/modules/Bluetooth/system/vnd/include",
     ],
     srcs: crypto_toolbox_srcs + [
         ":LegacyStackSdp",
@@ -1357,7 +1353,6 @@ cc_test {
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/device/include",
         "packages/modules/Bluetooth/system/gd",
-        "packages/modules/Bluetooth/system/vnd/ble",
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
@@ -1477,7 +1472,6 @@ cc_test {
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
-        "packages/modules/Bluetooth/system/vnd/ble",
     ],
     srcs: crypto_toolbox_srcs + [
         ":TestCommonMockFunctions",
