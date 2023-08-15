@@ -240,13 +240,6 @@ bt_callbacks_t bt_callbacks{
 // HAL HARDWARE CALLBACKS
 
 // OS CALLOUTS
-bool set_wake_alarm_co([[maybe_unused]] uint64_t delay_millis,
-                       [[maybe_unused]] bool should_wake,
-                       [[maybe_unused]] alarm_cb cb,
-                       [[maybe_unused]] void* data) {
-  LOG_INFO("%s", __func__);
-  return true;
-}
 int acquire_wake_lock_co([[maybe_unused]] const char* lock_name) {
   LOG_INFO("%s", __func__);
   return 1;
@@ -259,7 +252,6 @@ int release_wake_lock_co([[maybe_unused]] const char* lock_name) {
 
 bt_os_callouts_t bt_os_callouts{
     .size = sizeof(bt_os_callouts_t),
-    .set_wake_alarm = set_wake_alarm_co,
     .acquire_wake_lock = acquire_wake_lock_co,
     .release_wake_lock = release_wake_lock_co,
 };
