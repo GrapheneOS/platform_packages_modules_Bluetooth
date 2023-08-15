@@ -114,6 +114,7 @@ class LeAdvertisingManager : public bluetooth::Module {
   int GetAdvertiserRegId(AdvertiserId advertiser_id);
 
   void ExtendedCreateAdvertiser(
+      uint8_t client_id,
       int reg_id,
       const AdvertisingConfig config,
       common::Callback<void(Address, AddressType)> scan_callback,
