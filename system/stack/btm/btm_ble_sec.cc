@@ -26,6 +26,8 @@
 #include "btif/include/btif_storage.h"
 #include "crypto_toolbox/crypto_toolbox.h"
 #include "device/include/controller.h"
+#include "device/include/interop.h"
+#include "device/include/interop_config.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/properties.h"
@@ -39,6 +41,7 @@
 #include "stack/btm/security_device_record.h"
 #include "stack/eatt/eatt.h"
 #include "stack/include/acl_api.h"
+#include "stack/include/bt_name.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_api.h"
@@ -1254,6 +1257,40 @@ tBTM_STATUS btm_ble_start_encrypt(const RawAddress& bda, bool use_stk,
 
 /*******************************************************************************
  *
+ * Function         btm_ble_notify_enc_cmpl
+ *
+ * Description      This function is called to connect EATT and notify GATT to
+ *                  send data if any request is pending. This either happens on
+ *                  encryption complete event, or if bond is pending, after SMP
+ *                  notifies that bonding is complete.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+static void btm_ble_notify_enc_cmpl(const RawAddress& bd_addr,
+                                    bool encr_enable) {
+  if (encr_enable) {
+    uint8_t remote_lmp_version = 0;
+    if (!BTM_ReadRemoteVersion(bd_addr, &remote_lmp_version, nullptr,
+                               nullptr) ||
+        remote_lmp_version == 0) {
+      LOG_WARN("BLE Unable to determine remote version");
+    }
+
+    if (remote_lmp_version == 0 ||
+        remote_lmp_version >= HCI_PROTO_VERSION_5_0) {
+      /* Link is encrypted, start EATT if remote LMP version is unknown, or 5.2
+       * or greater */
+      bluetooth::eatt::EattExtension::GetInstance()->Connect(bd_addr);
+    }
+  }
+
+  /* to notify GATT to send data if any request is pending */
+  gatt_notify_enc_cmpl(bd_addr);
+}
+
+/*******************************************************************************
+ *
  * Function         btm_ble_link_encrypted
  *
  * Description      This function is called when LE link encrption status is
@@ -1296,24 +1333,20 @@ void btm_ble_link_encrypted(const RawAddress& bd_addr, uint8_t encr_enable) {
       btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_PROCESSING, true);
   }
 
-  if (encr_enable) {
-    uint8_t remote_ll_version = 0;
-    if (!BTM_ReadRemoteVersion(p_dev_rec->ble.pseudo_addr, &remote_ll_version,
-                               nullptr, nullptr) ||
-        remote_ll_version == 0) {
-      LOG_WARN("BLE Unable to determine remote version");
-    }
-
-    if (remote_ll_version == 0 || remote_ll_version >= HCI_PROTO_VERSION_5_0) {
-      /* Link is encrypted, start EATT if remote LMP version is unknown, or 5.0
-       * or greater */
-      bluetooth::eatt::EattExtension::GetInstance()->Connect(
-          p_dev_rec->ble.pseudo_addr);
-    }
+  tBTM_BD_NAME remote_name = {};
+  /* to notify GATT to send data if any request is pending,
+  or if IOP matched, delay notifying until SMP_CMPLT_EVT */
+  if (BTM_GetRemoteDeviceName(p_dev_rec->ble.pseudo_addr, remote_name) &&
+      interop_match_name(INTEROP_SUSPEND_ATT_TRAFFIC_DURING_PAIRING,
+                         (const char*)remote_name) &&
+      (btm_sec_cb.pairing_flags & BTM_PAIR_FLAGS_LE_ACTIVE) &&
+      btm_sec_cb.pairing_bda == p_dev_rec->ble.pseudo_addr) {
+    LOG_INFO(
+        "INTEROP_DELAY_ATT_TRAFFIC_DURING_PAIRING: Waiting for bonding to "
+        "complete to notify enc complete");
+  } else {
+    btm_ble_notify_enc_cmpl(p_dev_rec->ble.pseudo_addr, encr_enable);
   }
-
-  /* to notify GATT to send data if any request is pending */
-  gatt_notify_enc_cmpl(p_dev_rec->ble.pseudo_addr);
 }
 
 /*******************************************************************************
@@ -1631,6 +1664,14 @@ tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
               p_dev_rec->sec_flags &= ~(BTM_SEC_LE_LINK_KEY_KNOWN);
               p_dev_rec->ble_keys.key_type = BTM_LE_KEY_NONE;
             }
+          }
+          tBTM_BD_NAME remote_name = {};
+          if (BTM_GetRemoteDeviceName(p_dev_rec->ble.pseudo_addr,
+                                      remote_name) &&
+              interop_match_name(INTEROP_SUSPEND_ATT_TRAFFIC_DURING_PAIRING,
+                                 (const char*)remote_name)) {
+            LOG_DEBUG("Notifying encryption cmpl delayed due to IOP match");
+            btm_ble_notify_enc_cmpl(p_dev_rec->ble.pseudo_addr, true);
           }
 
           btm_sec_dev_rec_cback_event(p_dev_rec, res, true);
