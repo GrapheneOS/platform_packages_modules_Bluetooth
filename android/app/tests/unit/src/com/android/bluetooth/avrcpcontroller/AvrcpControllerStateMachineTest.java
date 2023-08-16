@@ -159,13 +159,13 @@ public class AvrcpControllerStateMachineTest {
         if (sm == null || sm.getState() == BluetoothProfile.STATE_DISCONNECTED) return;
 
         sm.disconnect();
-        TestUtils.waitForLooperToFinishScheduledTask(sm.getHandler().getLooper());
+        TestUtils.waitForLooperToBeIdle(sm.getHandler().getLooper());
 
         // is disconnected
         Assert.assertEquals(sm.getState(), BluetoothProfile.STATE_DISCONNECTED);
 
         // told mAvrcpControllerService to remove it
-        // verify(mAvrcpControllerService).removeStateMachine(eq(sm));
+        verify(mAvrcpControllerService).removeStateMachine(eq(sm));
     }
 
     /**
