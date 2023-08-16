@@ -33,7 +33,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
-import com.android.bluetooth.sdp.SdpManager;
+import com.android.bluetooth.sdp.SdpManagerNativeInterface;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.SynchronousResultReceiver;
 
@@ -131,11 +131,12 @@ public class SapService extends ProfileService implements AdapterService.Bluetoo
     }
 
     private void removeSdpRecord() {
-        if (mAdapterService != null && mSdpHandle >= 0 && SdpManager.getDefaultManager() != null) {
+        SdpManagerNativeInterface nativeInterface = SdpManagerNativeInterface.getInstance();
+        if (mAdapterService != null && mSdpHandle >= 0 && nativeInterface.isAvailable()) {
             if (VERBOSE) {
                 Log.d(TAG, "Removing SDP record handle: " + mSdpHandle);
             }
-            boolean status = SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
+            nativeInterface.removeSdpRecord(mSdpHandle);
             mSdpHandle = -1;
         }
     }
@@ -171,9 +172,12 @@ public class SapService extends ProfileService implements AdapterService.Bluetoo
                 mServerSocket = BluetoothAdapter.getDefaultAdapter().listenUsingRfcommOn(
                         BluetoothAdapter.SOCKET_CHANNEL_AUTO_STATIC_NO_SDP, true, true);
                 removeSdpRecord();
-                mSdpHandle = SdpManager.getDefaultManager()
-                        .createSapsRecord(SDP_SAP_SERVICE_NAME, mServerSocket.getChannel(),
-                                SDP_SAP_VERSION);
+                mSdpHandle =
+                        SdpManagerNativeInterface.getInstance()
+                                .createSapsRecord(
+                                        SDP_SAP_SERVICE_NAME,
+                                        mServerSocket.getChannel(),
+                                        SDP_SAP_VERSION);
             } catch (IOException e) {
                 Log.e(TAG, "Error create RfcommServerSocket ", e);
                 initSocketOK = false;
