@@ -275,10 +275,6 @@ public class AvrcpControllerService extends ProfileService {
         return playbackState;
     }
 
-    protected AvrcpControllerStateMachine newStateMachine(BluetoothDevice device) {
-        return new AvrcpControllerStateMachine(device, this);
-    }
-
     protected void getCurrentMetadataIfNoCoverArt(BluetoothDevice device) {
         if (device == null) return;
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
@@ -943,11 +939,15 @@ public class AvrcpControllerService extends ProfileService {
      * Remove state machine from device map once it is no longer needed.
      */
     public void removeStateMachine(AvrcpControllerStateMachine stateMachine) {
+        if (stateMachine == null) {
+            return;
+        }
         BluetoothDevice device = stateMachine.getDevice();
         if (device.equals(getActiveDevice())) {
             setActiveDevice(null);
         }
         mDeviceStateMap.remove(stateMachine.getDevice());
+        stateMachine.quitNow();
     }
 
     public List<BluetoothDevice> getConnectedDevices() {
@@ -962,13 +962,23 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     protected AvrcpControllerStateMachine getOrCreateStateMachine(BluetoothDevice device) {
-        AvrcpControllerStateMachine stateMachine = mDeviceStateMap.get(device);
-        if (stateMachine == null) {
-            stateMachine = newStateMachine(device);
-            mDeviceStateMap.put(device, stateMachine);
-            stateMachine.start();
+        AvrcpControllerStateMachine newStateMachine =
+                new AvrcpControllerStateMachine(device, this);
+        AvrcpControllerStateMachine existingStateMachine =
+                mDeviceStateMap.putIfAbsent(device, newStateMachine);
+        // Given null is not a valid value in our map, ConcurrentHashMap will return null if the
+        // key was absent and our new value was added. We should then start and return it. Else
+        // we quit the new one so we don't leak a thread
+        if (existingStateMachine == null) {
+            newStateMachine.start();
+            return newStateMachine;
+        } else {
+            // If you try to quit a StateMachine that hasn't been constructed yet, the StateMachine
+            // spits out an NPE trying to read a state stack array that only gets made on start().
+            // We can just quit the thread made explicitly
+            newStateMachine.getHandler().getLooper().quit();
         }
-        return stateMachine;
+        return existingStateMachine;
     }
 
     protected AvrcpCoverArtManager getCoverArtManager() {
