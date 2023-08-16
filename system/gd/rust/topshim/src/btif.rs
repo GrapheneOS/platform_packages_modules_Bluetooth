@@ -1124,7 +1124,6 @@ impl BluetoothInterface {
             // gd/rust/linux/stack.
             let mut callouts = Box::new(bindings::bt_os_callouts_t {
                 size: std::mem::size_of::<bindings::bt_os_callouts_t>(),
-                set_wake_alarm: None, // Not used
                 acquire_wake_lock: Some(wake_lock_noop),
                 release_wake_lock: Some(wake_lock_noop),
             });

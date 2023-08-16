@@ -999,7 +999,6 @@ static int release_wake_lock_cb(const char* lock_name) {
 
 static bt_os_callouts_t wakelock_os_callouts_jni = {
     sizeof(wakelock_os_callouts_jni),
-    nullptr /* not used */,
     acquire_wake_lock_cb,
     release_wake_lock_cb,
 };
