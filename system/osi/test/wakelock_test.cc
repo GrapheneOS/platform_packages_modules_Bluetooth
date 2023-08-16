@@ -39,7 +39,7 @@ static int release_wake_lock_cb(const char* lock_name) {
 }
 
 static bt_os_callouts_t bt_wakelock_callouts = {
-    sizeof(bt_os_callouts_t), NULL, acquire_wake_lock_cb, release_wake_lock_cb};
+    sizeof(bt_os_callouts_t), acquire_wake_lock_cb, release_wake_lock_cb};
 
 class WakelockTest : public ::testing::Test {
  protected:
