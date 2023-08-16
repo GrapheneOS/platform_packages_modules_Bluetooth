@@ -179,6 +179,7 @@ public class PbapClientService extends ProfileService {
             PbapClientStateMachine pbapClientStateMachine = mPbapClientStateMachineMap.get(device);
             if (pbapClientStateMachine != null) {
                 mPbapClientStateMachineMap.remove(device);
+                pbapClientStateMachine.doQuit();
             }
         }
     }
