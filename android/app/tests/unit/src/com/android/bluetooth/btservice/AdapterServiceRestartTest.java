@@ -59,11 +59,12 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.bluetoothkeystore.BluetoothKeystoreNativeInterface;
+import com.android.bluetooth.sdp.SdpManagerNativeInterface;
 import com.android.internal.app.IBatteryStats;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -85,6 +86,10 @@ public class AdapterServiceRestartTest {
     private @Mock Binder mBinder;
     private @Mock android.app.Application mApplication;
     private @Mock MetricsLogger mMockMetricsLogger;
+    private @Mock AdapterNativeInterface mNativeInterface;
+    private @Mock BluetoothKeystoreNativeInterface mKeystoreNativeInterface;
+    private @Mock BluetoothQualityReportNativeInterface mQualityNativeInterface;
+    private @Mock SdpManagerNativeInterface mSdpNativeInterface;
 
     // Mocked SystemService
     private @Mock AlarmManager mMockAlarmManager;
@@ -110,11 +115,6 @@ public class AdapterServiceRestartTest {
     private int mForegroundUserId;
     private TestLooper mLooper;
 
-    @BeforeClass
-    public static void setupClass() {
-        AdapterServiceTest.setupClass();
-    }
-
     <T> void mockGetSystemService(String serviceName, Class<T> serviceClass, T mockService) {
         when(mMockContext.getSystemService(eq(serviceName))).thenReturn(mockService);
         when(mMockContext.getSystemServiceName(eq(serviceClass))).thenReturn(serviceName);
@@ -127,6 +127,10 @@ public class AdapterServiceRestartTest {
 
         mLooper = new TestLooper();
         Handler handler = new Handler(mLooper.getLooper());
+        AdapterNativeInterface.setInstance(mNativeInterface);
+        BluetoothKeystoreNativeInterface.setInstance(mKeystoreNativeInterface);
+        BluetoothQualityReportNativeInterface.setInstance(mQualityNativeInterface);
+        SdpManagerNativeInterface.setInstance(mSdpNativeInterface);
 
         // Post the creation of AdapterService since it rely on Looper.myLooper()
         handler.post(() -> mAdapterService = new AdapterService(mLooper.getLooper()));
@@ -243,8 +247,12 @@ public class AdapterServiceRestartTest {
         // Restores the foregroundUserId to the ID prior to the test setup
         Utils.setForegroundUserId(mForegroundUserId);
 
-        mAdapterService.unregisterRemoteCallback(mIBluetoothCallback);
         mAdapterService.cleanup();
+        mAdapterService.unregisterRemoteCallback(mIBluetoothCallback);
+        AdapterNativeInterface.setInstance(null);
+        BluetoothKeystoreNativeInterface.setInstance(null);
+        BluetoothQualityReportNativeInterface.setInstance(null);
+        SdpManagerNativeInterface.setInstance(null);
     }
 
     /**

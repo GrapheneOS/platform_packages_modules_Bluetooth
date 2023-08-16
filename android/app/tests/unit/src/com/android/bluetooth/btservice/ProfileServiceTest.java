@@ -17,7 +17,6 @@
 package com.android.bluetooth.btservice;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -155,26 +154,11 @@ public class ProfileServiceTest {
         when(mMockAdapterService.getSystemServiceName(LocationManager.class))
                 .thenReturn(Context.LOCATION_SERVICE);
 
-        // Despite calling on the Mock of adapterService, mockito cannot handle native method and
-        // will call the real method instead, allowing to initialize the native library
-        // when(mMockAdapterService.initNative(anyBoolean(), anyBoolean(), anyInt(), any(),
-        // anyBoolean(), anyString())).thenCallRealMethod();
-        doCallRealMethod()
-                .when(mMockAdapterService)
-                .initNative(anyBoolean(), anyBoolean(), anyInt(), any(), anyBoolean(), anyString());
-        doCallRealMethod().when(mMockAdapterService).enableNative();
-        doCallRealMethod().when(mMockAdapterService).disableNative();
-        doCallRealMethod().when(mMockAdapterService).cleanupNative();
-
         mProfiles = Config.getSupportedProfiles();
         TestUtils.setAdapterService(mMockAdapterService);
 
         Assert.assertNotNull(AdapterService.getAdapterService());
 
-        mMockAdapterService.initNative(false /* is_restricted */,
-                false /* is_common_criteria_mode */, 0 /* config_compare_result */,
-                new String[0], false, "");
-        mMockAdapterService.enableNative();
         A2dpNativeInterface.setInstance(mA2dpNativeInterface);
         AvrcpNativeInterface.setInstance(mAvrcpNativeInterface);
         HeadsetNativeInterface.setInstance(mHeadsetNativeInterface);
@@ -187,9 +171,6 @@ public class ProfileServiceTest {
     @After
     public void tearDown()
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        mMockAdapterService.disableNative();
-        mMockAdapterService.cleanupNative();
-
         TestUtils.clearAdapterService(mMockAdapterService);
         mMockAdapterService = null;
         mProfiles = null;
