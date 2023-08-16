@@ -4095,12 +4095,6 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
             status
         );
 
-        if status != GattStatus::Success {
-            log::error!("Error registering scanner UUID {}", uuid);
-            self.scanners.lock().unwrap().remove(&uuid);
-            return;
-        }
-
         let mut scanners_lock = self.scanners.lock().unwrap();
         let scanner_info = scanners_lock.get_mut(&uuid);
 
@@ -4116,6 +4110,11 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
                 "Scanner registered callback for non-existent scanner info, UUID = {}",
                 uuid
             );
+        }
+
+        if status != GattStatus::Success {
+            log::error!("Error registering scanner UUID {}", uuid);
+            scanners_lock.remove(&uuid);
         }
     }
 
