@@ -2772,8 +2772,8 @@ void DualModeController::LeRemoteConnectionParameterRequestNegativeReply(
 }
 
 void DualModeController::LeGetVendorCapabilities(CommandView command) {
-  auto command_view = bluetooth::hci::LeGetVendorCapabilitiesView::Create(
-      bluetooth::hci::VendorCommandView::Create(command));
+  auto command_view =
+      bluetooth::hci::LeGetVendorCapabilitiesView::Create(command);
   ASSERT(command_view.IsValid());
 
   if (!properties_.supports_le_get_vendor_capabilities_command) {
@@ -2796,23 +2796,43 @@ void DualModeController::LeGetVendorCapabilities(CommandView command) {
       std::move(return_parameters)));
 }
 
-void DualModeController::LeMultiAdv(CommandView command) {
-  auto command_view = bluetooth::hci::LeMultiAdvtView::Create(command);
+void DualModeController::LeBatchScan(CommandView command) {
+  auto command_view = bluetooth::hci::LeBatchScanView::Create(command);
   ASSERT(command_view.IsValid());
-  SendCommandCompleteUnknownOpCodeEvent(OpCode::LE_MULTI_ADVT);
+  SendCommandCompleteUnknownOpCodeEvent(OpCode::LE_BATCH_SCAN);
 }
 
-void DualModeController::LeAdvertisingFilter(CommandView command) {
-  auto command_view = bluetooth::hci::LeAdvFilterView::Create(command);
+void DualModeController::LeApcf(CommandView command) {
+  auto command_view = bluetooth::hci::LeApcfView::Create(command);
   ASSERT(command_view.IsValid());
-  SendCommandCompleteUnknownOpCodeEvent(OpCode::LE_ADV_FILTER);
+  SendCommandCompleteUnknownOpCodeEvent(OpCode::LE_APCF);
 }
 
-void DualModeController::LeEnergyInfo(CommandView command) {
-  auto command_view = bluetooth::hci::LeEnergyInfoView::Create(
-      bluetooth::hci::VendorCommandView::Create(command));
+void DualModeController::LeGetControllerActivityEnergyInfo(
+    CommandView command) {
+  auto command_view =
+      bluetooth::hci::LeGetControllerActivityEnergyInfoView::Create(command);
   ASSERT(command_view.IsValid());
-  SendCommandCompleteUnknownOpCodeEvent(OpCode::LE_ENERGY_INFO);
+  SendCommandCompleteUnknownOpCodeEvent(
+      OpCode::LE_GET_CONTROLLER_ACTIVITY_ENERGY_INFO);
+}
+
+void DualModeController::LeExSetScanParameters(CommandView command) {
+  auto command_view =
+      bluetooth::hci::LeExSetScanParametersView::Create(command);
+  ASSERT(command_view.IsValid());
+  SendCommandCompleteUnknownOpCodeEvent(OpCode::LE_EX_SET_SCAN_PARAMETERS);
+}
+
+void DualModeController::GetControllerDebugInfo(CommandView command) {
+  auto command_view =
+      bluetooth::hci::GetControllerDebugInfoView::Create(command);
+  ASSERT(command_view.IsValid());
+
+  DEBUG(id_, "<< Get Controller Debug Info");
+
+  send_event_(bluetooth::hci::GetControllerDebugInfoCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 // CSR vendor command.
@@ -3133,12 +3153,6 @@ void DualModeController::LeClearAdvertisingSets(CommandView command) {
   auto status = link_layer_controller_.LeClearAdvertisingSets();
   send_event_(bluetooth::hci::LeClearAdvertisingSetsCompleteBuilder::Create(
       kNumCommandPackets, status));
-}
-
-void DualModeController::LeExtendedScanParams(CommandView command) {
-  auto command_view = bluetooth::hci::LeExtendedScanParamsView::Create(command);
-  ASSERT(command_view.IsValid());
-  SendCommandCompleteUnknownOpCodeEvent(OpCode::LE_EXTENDED_SCAN_PARAMS);
 }
 
 void DualModeController::LeStartEncryption(CommandView command) {
@@ -4282,12 +4296,15 @@ const std::unordered_map<OpCode, DualModeController::CommandHandler>
 
         // VENDOR
         {OpCode(CSR_VENDOR), &DualModeController::CsrVendorCommand},
-        {OpCode::LE_MULTI_ADVT, &DualModeController::LeMultiAdv},
-        {OpCode::LE_ADV_FILTER, &DualModeController::LeAdvertisingFilter},
-        {OpCode::LE_EXTENDED_SCAN_PARAMS,
-         &DualModeController::LeExtendedScanParams},
-        {OpCode::LE_ENERGY_INFO, &DualModeController::LeEnergyInfo},
         {OpCode::LE_GET_VENDOR_CAPABILITIES,
-         &DualModeController::LeGetVendorCapabilities}};
+         &DualModeController::LeGetVendorCapabilities},
+        {OpCode::LE_BATCH_SCAN, &DualModeController::LeBatchScan},
+        {OpCode::LE_APCF, &DualModeController::LeApcf},
+        {OpCode::LE_GET_CONTROLLER_ACTIVITY_ENERGY_INFO,
+         &DualModeController::LeGetControllerActivityEnergyInfo},
+        {OpCode::LE_EX_SET_SCAN_PARAMETERS,
+         &DualModeController::LeExSetScanParameters},
+        {OpCode::GET_CONTROLLER_DEBUG_INFO,
+         &DualModeController::GetControllerDebugInfo}};
 
 }  // namespace rootcanal
