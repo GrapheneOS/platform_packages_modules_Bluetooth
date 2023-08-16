@@ -1920,6 +1920,12 @@ class HasClientImpl : public HasClient {
 
     DLOG(INFO) << __func__;
 
+    /* verify link is encrypted */
+    if (!BTM_IsEncrypted(device->addr, BT_TRANSPORT_LE)) {
+      LOG_WARN("Device not yet bonded - waiting for encryption");
+      return;
+    }
+
     /* Ignore if our service data is valid (service discovery initiated by
      * someone else?)
      */
