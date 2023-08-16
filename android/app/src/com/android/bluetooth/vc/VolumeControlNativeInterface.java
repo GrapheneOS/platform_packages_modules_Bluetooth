@@ -32,10 +32,15 @@ public class VolumeControlNativeInterface {
 
     @GuardedBy("INSTANCE_LOCK")
     private static VolumeControlNativeInterface sInstance;
+
     private static final Object INSTANCE_LOCK = new Object();
 
     static {
-        classInitNative();
+        if (Utils.isInstrumentationTestMode()) {
+            Log.w(TAG, "App is instrumented. Skip loading the native");
+        } else {
+            classInitNative();
+        }
     }
 
     private VolumeControlNativeInterface() {
@@ -54,6 +59,14 @@ public class VolumeControlNativeInterface {
                 sInstance = new VolumeControlNativeInterface();
             }
             return sInstance;
+        }
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(VolumeControlNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
         }
     }
 

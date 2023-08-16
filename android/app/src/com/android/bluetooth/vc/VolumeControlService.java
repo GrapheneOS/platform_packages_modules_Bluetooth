@@ -182,7 +182,6 @@ public class VolumeControlService extends ProfileService {
         }
     }
 
-    @VisibleForTesting
     VolumeControlNativeInterface mVolumeControlNativeInterface;
     @VisibleForTesting
     AudioManager mAudioManager;
