@@ -41,7 +41,6 @@ import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
-import android.app.AlarmManager;
 import android.app.AppOpsManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -80,10 +79,8 @@ import android.bluetooth.OobData;
 import android.bluetooth.UidTraffic;
 import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
@@ -207,9 +204,6 @@ public class AdapterService extends Service {
             "com.android.bluetooth.btservice.action.STATE_CHANGED";
     public static final String EXTRA_ACTION = "action";
     public static final int PROFILE_CONN_REJECTED = 2;
-
-    private static final String ACTION_ALARM_WAKEUP =
-            "com.android.bluetooth.btservice.action.ALARM_WAKEUP";
 
     private static BluetoothProperties.snoop_log_mode_values sSnoopLogSettingAtEnable =
             BluetoothProperties.snoop_log_mode_values.EMPTY;
@@ -343,8 +337,6 @@ public class AdapterService extends Service {
     private final Map<UUID, RfcommListenerData> mBluetoothServerSockets = new ConcurrentHashMap<>();
     private final Executor mSocketServersExecutor = r -> new Thread(r).start();
 
-    private AlarmManager mAlarmManager;
-    private PendingIntent mPendingAlarm;
     private BatteryStatsManager mBatteryStatsManager;
     private PowerManager mPowerManager;
     private PowerManager.WakeLock mWakeLock;
@@ -613,7 +605,6 @@ public class AdapterService extends Service {
 
         mUserManager = getNonNullSystemService(UserManager.class);
         mAppOps = getNonNullSystemService(AppOpsManager.class);
-        mAlarmManager = getNonNullSystemService(AlarmManager.class);
         mPowerManager = getNonNullSystemService(PowerManager.class);
         mBatteryStatsManager = getNonNullSystemService(BatteryStatsManager.class);
         mCompanionDeviceManager = getNonNullSystemService(CompanionDeviceManager.class);
@@ -667,9 +658,6 @@ public class AdapterService extends Service {
         mBluetoothQualityReportNativeInterface.init();
 
         mSdpManager = SdpManager.init(this);
-        IntentFilter filter = new IntentFilter(ACTION_ALARM_WAKEUP);
-        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
-        registerReceiver(mAlarmBroadcastReceiver, filter);
         loadLeAudioAllowDevices();
 
         mDatabaseManager = new DatabaseManager(this);
@@ -1266,14 +1254,7 @@ public class AdapterService extends Service {
         mCleaningUp = true;
         invalidateBluetoothCaches();
 
-        unregisterReceiver(mAlarmBroadcastReceiver);
-
         stopRfcommServerSockets();
-
-        if (mPendingAlarm != null) {
-            mAlarmManager.cancel(mPendingAlarm);
-            mPendingAlarm = null;
-        }
 
         // This wake lock release may also be called concurrently by
         // {@link #releaseWakeLock(String lockName)}, so a synchronization is needed here.
@@ -6891,34 +6872,6 @@ public class AdapterService extends Service {
         return -1;
     }
 
-    // This function is called from JNI. It allows native code to set a single wake
-    // alarm. If an alarm is already pending and a new request comes in, the alarm
-    // will be rescheduled (i.e. the previously set alarm will be cancelled).
-    @RequiresPermission(android.Manifest.permission.SCHEDULE_EXACT_ALARM)
-    private boolean setWakeAlarm(long delayMillis, boolean shouldWake) {
-        synchronized (this) {
-            if (mPendingAlarm != null) {
-                mAlarmManager.cancel(mPendingAlarm);
-            }
-
-            long wakeupTime = SystemClock.elapsedRealtime() + delayMillis;
-            int type =
-                    shouldWake
-                            ? AlarmManager.ELAPSED_REALTIME_WAKEUP
-                            : AlarmManager.ELAPSED_REALTIME;
-
-            Intent intent = new Intent(ACTION_ALARM_WAKEUP);
-            mPendingAlarm =
-                    PendingIntent.getBroadcast(
-                            this,
-                            0,
-                            intent,
-                            PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
-            mAlarmManager.setExact(type, wakeupTime, mPendingAlarm);
-            return true;
-        }
-    }
-
     // This function is called from JNI. It allows native code to acquire a single wake lock.
     // If the wake lock is already held, this function returns success. Although this function
     // only supports acquiring a single wake lock at a time right now, it will eventually be
@@ -7178,17 +7131,6 @@ public class AdapterService extends Service {
     private void errorLog(String msg) {
         Log.e(TAG, msg);
     }
-
-    private final BroadcastReceiver mAlarmBroadcastReceiver =
-            new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    synchronized (AdapterService.this) {
-                        mPendingAlarm = null;
-                        alarmFiredNative();
-                    }
-                }
-            };
 
     private boolean isCommonCriteriaMode() {
         return getNonNullSystemService(DevicePolicyManager.class).isCommonCriteriaModeEnabled(null);
@@ -7817,8 +7759,6 @@ public class AdapterService extends Service {
 
     /*package*/
     native boolean factoryResetNative();
-
-    private native void alarmFiredNative();
 
     private native void dumpNative(FileDescriptor fd, String[] arguments);
 
