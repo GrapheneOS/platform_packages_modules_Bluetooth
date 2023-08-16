@@ -36,7 +36,7 @@ import com.android.internal.util.StateMachine;
 
 
 public class A2dpSinkStateMachine extends StateMachine {
-    static final String TAG = "A2DPSinkStateMachine";
+    static final String TAG = "A2dpSinkStateMachine";
     static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
 
     //0->99 Events from Outside
