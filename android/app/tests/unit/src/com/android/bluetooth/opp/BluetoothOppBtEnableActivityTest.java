@@ -31,6 +31,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import androidx.test.core.app.ActivityScenario;
+import androidx.test.espresso.action.ViewActions;
 import androidx.test.espresso.intent.Intents;
 import androidx.test.platform.app.InstrumentationRegistry;
 
@@ -77,6 +78,9 @@ public class BluetoothOppBtEnableActivityTest {
                 mIntent);
         activityScenario.onActivity(
                 activity -> activity.mOppManager = mock(BluetoothOppManager.class));
+        onView(withText(mTargetContext.getText(R.string.bt_enable_ok).toString()))
+                .inRoot(isDialog())
+                .perform(ViewActions.scrollTo());
         onView(withText(mTargetContext.getText(R.string.bt_enable_ok).toString())).inRoot(
                 isDialog()).check(matches(isDisplayed())).perform(click());
         intended(hasComponent(BluetoothOppBtEnablingActivity.class.getName()));
