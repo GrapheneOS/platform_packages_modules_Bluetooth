@@ -26,6 +26,8 @@ import com.android.bluetooth.audio_util.PlayStatus;
 import com.android.bluetooth.audio_util.PlayerInfo;
 import com.android.bluetooth.audio_util.PlayerSettingsManager.PlayerSettingsValues;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.internal.annotations.GuardedBy;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.List;
 import java.util.Objects;
@@ -38,12 +40,20 @@ public class AvrcpNativeInterface {
     private static final String TAG = "AvrcpNativeInterface";
     private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
 
+    @GuardedBy("INSTANCE_LOCK")
     private static AvrcpNativeInterface sInstance;
+
+    private static final Object INSTANCE_LOCK = new Object();
+
     private AvrcpTargetService mAvrcpService;
     private AdapterService mAdapterService;
 
     static {
-        classInitNative();
+        if (Utils.isInstrumentationTestMode()) {
+            Log.w(TAG, "App is instrumented. Skip loading the native");
+        } else {
+            classInitNative();
+        }
     }
 
     private AvrcpNativeInterface() {
@@ -51,12 +61,22 @@ public class AvrcpNativeInterface {
                 "AdapterService cannot be null when AvrcpNativeInterface init");
     }
 
-    static AvrcpNativeInterface getInterface() {
-        if (sInstance == null) {
-            sInstance = new AvrcpNativeInterface();
+    static AvrcpNativeInterface getInstance() {
+        synchronized (INSTANCE_LOCK) {
+            if (sInstance == null) {
+                sInstance = new AvrcpNativeInterface();
+            }
         }
 
         return sInstance;
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(AvrcpNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
+        }
     }
 
     void init(AvrcpTargetService service) {

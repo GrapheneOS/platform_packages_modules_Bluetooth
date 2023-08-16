@@ -36,6 +36,7 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.a2dp.A2dpNativeInterface;
+import com.android.bluetooth.avrcp.AvrcpNativeInterface;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.gatt.GattService;
 import com.android.bluetooth.hearingaid.HearingAidNativeInterface;
@@ -88,6 +89,7 @@ public class ProfileServiceTest {
     }
 
     @Mock private A2dpNativeInterface mA2dpNativeInterface;
+    @Mock private AvrcpNativeInterface mAvrcpNativeInterface;
     @Mock private HeadsetNativeInterface mHeadsetNativeInterface;
     @Mock private HearingAidNativeInterface mHearingAidNativeInterface;
     @Mock private HidHostNativeInterface mHidHostNativeInterface;
@@ -172,6 +174,7 @@ public class ProfileServiceTest {
                 new String[0], false, "");
         mMockAdapterService.enableNative();
         A2dpNativeInterface.setInstance(mA2dpNativeInterface);
+        AvrcpNativeInterface.setInstance(mAvrcpNativeInterface);
         HeadsetNativeInterface.setInstance(mHeadsetNativeInterface);
         HearingAidNativeInterface.setInstance(mHearingAidNativeInterface);
         HidHostNativeInterface.setInstance(mHidHostNativeInterface);
@@ -188,6 +191,7 @@ public class ProfileServiceTest {
         mMockAdapterService = null;
         mProfiles = null;
         A2dpNativeInterface.setInstance(null);
+        AvrcpNativeInterface.setInstance(null);
         HeadsetNativeInterface.setInstance(null);
         HearingAidNativeInterface.setInstance(null);
         HidHostNativeInterface.setInstance(null);
