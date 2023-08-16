@@ -57,18 +57,17 @@ static void notifyActivityAttributionInfoNative(JNIEnv* env, jobject object,
   env->ReleaseStringUTFChars(deviceAddress, nativeAddress);
 }
 
-static JNINativeMethod sMethods[] = {
-    {"notifyActivityAttributionInfoNative",
-     "(ILjava/lang/String;Ljava/lang/String;)V",
-     (void*)notifyActivityAttributionInfoNative},
-};
-
 int register_com_android_bluetooth_btservice_activity_attribution(JNIEnv* env) {
-  return jniRegisterNativeMethods(
+  const JNINativeMethod methods[] = {
+      {"notifyActivityAttributionInfoNative",
+       "(ILjava/lang/String;Ljava/lang/String;)V",
+       (void*)notifyActivityAttributionInfoNative},
+  };
+  return REGISTER_NATIVE_METHODS(
       env,
       "com/android/bluetooth/btservice/activityattribution/"
       "ActivityAttributionNativeInterface",
-      sMethods, NELEM(sMethods));
+      methods);
 }
 
 }  // namespace android

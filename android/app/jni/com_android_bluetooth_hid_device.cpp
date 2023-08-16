@@ -150,21 +150,6 @@ static bthd_callbacks_t sHiddCb = {
     vc_unplug_callback,
 };
 
-static void classInitNative(JNIEnv* env, jclass clazz) {
-  ALOGV("%s: done", __FUNCTION__);
-
-  method_onApplicationStateChanged =
-      env->GetMethodID(clazz, "onApplicationStateChanged", "([BZ)V");
-  method_onConnectStateChanged =
-      env->GetMethodID(clazz, "onConnectStateChanged", "([BI)V");
-  method_onGetReport = env->GetMethodID(clazz, "onGetReport", "(BBS)V");
-  method_onSetReport = env->GetMethodID(clazz, "onSetReport", "(BB[B)V");
-  method_onSetProtocol = env->GetMethodID(clazz, "onSetProtocol", "(B)V");
-  method_onInterruptData = env->GetMethodID(clazz, "onInterruptData", "(B[B)V");
-  method_onVirtualCableUnplug =
-      env->GetMethodID(clazz, "onVirtualCableUnplug", "()V");
-}
-
 static void initNative(JNIEnv* env, jobject object) {
   const bt_interface_t* btif;
   bt_status_t status;
@@ -495,25 +480,40 @@ static jboolean disconnectNative(JNIEnv* env, jobject thiz) {
   return result;
 }
 
-static JNINativeMethod sMethods[] = {
-    {"classInitNative", "()V", (void*)classInitNative},
-    {"initNative", "()V", (void*)initNative},
-    {"cleanupNative", "()V", (void*)cleanupNative},
-    {"registerAppNative",
-     "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;B[B[I[I)Z",
-     (void*)registerAppNative},
-    {"unregisterAppNative", "()Z", (void*)unregisterAppNative},
-    {"sendReportNative", "(I[B)Z", (void*)sendReportNative},
-    {"replyReportNative", "(BB[B)Z", (void*)replyReportNative},
-    {"reportErrorNative", "(B)Z", (void*)reportErrorNative},
-    {"unplugNative", "()Z", (void*)unplugNative},
-    {"connectNative", "([B)Z", (void*)connectNative},
-    {"disconnectNative", "()Z", (void*)disconnectNative},
-};
-
 int register_com_android_bluetooth_hid_device(JNIEnv* env) {
-  return jniRegisterNativeMethods(
-      env, "com/android/bluetooth/hid/HidDeviceNativeInterface", sMethods,
-      NELEM(sMethods));
+  const JNINativeMethod methods[] = {
+      {"initNative", "()V", (void*)initNative},
+      {"cleanupNative", "()V", (void*)cleanupNative},
+      {"registerAppNative",
+       "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;B[B[I[I)Z",
+       (void*)registerAppNative},
+      {"unregisterAppNative", "()Z", (void*)unregisterAppNative},
+      {"sendReportNative", "(I[B)Z", (void*)sendReportNative},
+      {"replyReportNative", "(BB[B)Z", (void*)replyReportNative},
+      {"reportErrorNative", "(B)Z", (void*)reportErrorNative},
+      {"unplugNative", "()Z", (void*)unplugNative},
+      {"connectNative", "([B)Z", (void*)connectNative},
+      {"disconnectNative", "()Z", (void*)disconnectNative},
+  };
+  const int result = REGISTER_NATIVE_METHODS(
+      env, "com/android/bluetooth/hid/HidDeviceNativeInterface", methods);
+  if (result != 0) {
+    return result;
+  }
+
+  const JNIJavaMethod javaMethods[] = {
+      {"onApplicationStateChanged", "([BZ)V",
+       &method_onApplicationStateChanged},
+      {"onConnectStateChanged", "([BI)V", &method_onConnectStateChanged},
+      {"onGetReport", "(BBS)V", &method_onGetReport},
+      {"onSetReport", "(BB[B)V", &method_onSetReport},
+      {"onSetProtocol", "(B)V", &method_onSetProtocol},
+      {"onInterruptData", "(B[B)V", &method_onInterruptData},
+      {"onVirtualCableUnplug", "()V", &method_onVirtualCableUnplug},
+  };
+  GET_JAVA_METHODS(env, "com/android/bluetooth/hid/HidDeviceNativeInterface",
+                   javaMethods);
+
+  return 0;
 }
 }  // namespace android

@@ -39,14 +39,6 @@ public class A2dpSinkNativeInterface {
 
     private static final Object INSTANCE_LOCK = new Object();
 
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
-
     private A2dpSinkNativeInterface() {
         mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
                 "AdapterService cannot be null when A2dpSinkNativeInterface init");
@@ -204,7 +196,6 @@ public class A2dpSinkNativeInterface {
     }
 
     // Native methods that call into the JNI interface
-    private static native void classInitNative();
     private native void initNative(int maxConnectedAudioDevices);
     private native void cleanupNative();
     private native boolean connectA2dpNative(byte[] address);
