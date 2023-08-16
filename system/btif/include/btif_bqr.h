@@ -108,7 +108,7 @@ static constexpr uint16_t kMinReportIntervalMaxMs = 0xFFFF;
 static constexpr uint16_t kLogDumpEventPerFile = 0x00FF;
 // Total length of all parameters of the link Quality related event except
 // Vendor Specific Parameters.
-static constexpr uint8_t kLinkQualityParamTotalLen = 55;
+static constexpr uint8_t kLinkQualityParamTotalLen = 48;
 // 7.8.116 LE Read ISO Link Quality command
 static constexpr uint8_t kISOLinkQualityParamTotalLen = 24;
 // Total length of all parameters of the ROOT_INFLAMMATION event except Vendor
@@ -117,6 +117,9 @@ static constexpr uint8_t kRootInflammationParamTotalLen = 3;
 // Total length of all parameters of the Log Dump related event except Vendor
 // Specific Parameters.
 static constexpr uint8_t kLogDumpParamTotalLen = 3;
+// Remote address and calibration failure count parameters len
+// Added in BQR V5.0
+static constexpr uint8_t kVersion5_0ParamsTotalLen = 7;
 // Warning criteria of the RSSI value.
 static constexpr int8_t kCriWarnRssi = -80;
 // Warning criteria of the unused AFH channel count.
@@ -166,6 +169,9 @@ static uint16_t BtSchedulingTraceCounter = 0;
 static constexpr uint16_t kBqrIsoVersion = 0x101;
 // The version supports vendor quality and trace log starting v1.02(258)
 static constexpr uint16_t kBqrVndLogVersion = 0x102;
+// The version supports remote address info and calibration failure count
+// start from v1.03(259)
+static constexpr uint16_t kBqrVersion5_0 = 0x103;
 
 // Action definition
 //
