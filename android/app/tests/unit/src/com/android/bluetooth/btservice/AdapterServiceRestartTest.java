@@ -65,6 +65,7 @@ import com.android.internal.app.IBatteryStats;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -256,12 +257,13 @@ public class AdapterServiceRestartTest {
     }
 
     /**
-     * Test: Check if obfuscated Bluetooth address stays the same after re-initializing
-     *       {@link AdapterService}
+     * Test: Check if obfuscated Bluetooth address stays the same after re-initializing {@link
+     * AdapterService}
      */
     @Test
-    public void testObfuscateBluetoothAddress_PersistentBetweenAdapterServiceInitialization() throws
-            PackageManager.NameNotFoundException {
+    @Ignore("b/296127545: This is a native test")
+    public void testObfuscateBluetoothAddress_PersistentBetweenAdapterServiceInitialization()
+            throws PackageManager.NameNotFoundException {
         // Sleep needed to ensure the metrics are valid in both native and java (b/267528843)
         try {
             Thread.sleep(1_000);
@@ -291,13 +293,11 @@ public class AdapterServiceRestartTest {
         assertThat(obfuscatedAddress2).isEqualTo(obfuscatedAddress1);
     }
 
-    /**
-     * Test: Check if id gotten stays the same after re-initializing
-     *       {@link AdapterService}
-     */
+    /** Test: Check if id gotten stays the same after re-initializing {@link AdapterService} */
     @Test
-    public void testgetMetricId_PersistentBetweenAdapterServiceInitialization() throws
-            PackageManager.NameNotFoundException {
+    @Ignore("b/296127545: This is a native test")
+    public void testgetMetricId_PersistentBetweenAdapterServiceInitialization()
+            throws PackageManager.NameNotFoundException {
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
         int initialMetricId = mAdapterService.getMetricId(device);
