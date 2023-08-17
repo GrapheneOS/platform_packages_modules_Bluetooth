@@ -751,7 +751,7 @@ inline bool is_legal_power_mode(tBTM_PM_MODE mode) {
 }
 
 inline std::string power_mode_text(tBTM_PM_MODE mode) {
-  std::string s = base::StringPrintf((mode & BTM_PM_MD_FORCE) ? "" : "forced:");
+  std::string s = base::StringPrintf((mode & BTM_PM_MD_FORCE) ? "forced:" : "");
   switch (mode & ~BTM_PM_MD_FORCE) {
     case BTM_PM_MD_ACTIVE:
       return s + std::string("active");
@@ -779,13 +779,19 @@ typedef enum : uint8_t {
 /************************
  *  Power Manager Types
  ************************/
-typedef struct {
+struct tBTM_PM_PWR_MD {
   uint16_t max = 0;
   uint16_t min = 0;
   uint16_t attempt = 0;
   uint16_t timeout = 0;
   tBTM_PM_MODE mode = BTM_PM_MD_ACTIVE;  // 0
-} tBTM_PM_PWR_MD;
+
+  std::string ToString() const {
+    return base::StringPrintf(
+        "mode:%s[max:%hu min:%hu attempt:%hu timeout:%hu]",
+        power_mode_text(mode).c_str(), max, min, attempt, timeout);
+  }
+};
 
 /*************************************
  *  Power Manager Callback Functions
