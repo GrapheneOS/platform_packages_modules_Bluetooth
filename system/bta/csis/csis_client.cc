@@ -1935,6 +1935,12 @@ class CsisClientImpl : public CsisClient {
       return;
     }
 
+    /* verify encryption enabled */
+    if (!BTM_IsEncrypted(device->addr, BT_TRANSPORT_LE)) {
+      LOG_WARN("Device not yet bonded - waiting for encryption");
+      return;
+    }
+
     /* Ignore if our service data is valid (discovery initiated by someone
      * else?) */
     if (!device->is_gatt_service_valid) {
