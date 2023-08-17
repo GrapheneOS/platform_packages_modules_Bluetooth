@@ -156,6 +156,27 @@ TEST_F(HciLayerDeathTest, abort_after_hci_restart_timeout) {
       "");
 }
 
+TEST_F(HciLayerDeathTest, discard_event_after_hci_timeout) {
+  FailIfResetNotSent();
+  FakeTimerAdvance(HciLayer::kHciTimeoutMs.count());
+
+  auto sent_command = hal_->GetSentCommand();
+  ASSERT_TRUE(sent_command.has_value());
+  auto debug_info_view = ControllerDebugInfoView::Create(VendorCommandView::Create(*sent_command));
+  ASSERT_TRUE(debug_info_view.IsValid());
+
+  // This event should be discarded, not cause an abort.
+  hal_->InjectEvent(ResetCompleteBuilder::Create(1, ErrorCode::SUCCESS));
+  sync_handler();
+
+  ASSERT_DEATH(
+      {
+        FakeTimerAdvance(HciLayer::kHciTimeoutRestartMs.count());
+        sync_handler();
+      },
+      "");
+}
+
 TEST_F(HciLayerDeathTest, abort_on_root_inflammation_event) {
   FailIfResetNotSent();
 
