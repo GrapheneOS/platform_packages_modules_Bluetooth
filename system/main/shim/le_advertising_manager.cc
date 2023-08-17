@@ -200,11 +200,6 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
     while (offset < advertise_data.size()) {
       GapData gap_data;
       uint8_t len = advertise_data[offset];
-
-      if (offset + len + 1 >= advertise_data.size()) {
-        break;
-      }
-
       auto begin = advertise_data.begin() + offset;
       auto end = begin + len + 1;  // 1 byte for len
       auto data_copy = std::make_shared<std::vector<uint8_t>>(begin, end);
@@ -219,11 +214,6 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
     while (offset < scan_response_data.size()) {
       GapData gap_data;
       uint8_t len = scan_response_data[offset];
-
-      if (offset + len + 1 >= scan_response_data.size()) {
-        break;
-      }
-
       auto begin = scan_response_data.begin() + offset;
       auto end = begin + len + 1;  // 1 byte for len
       auto data_copy = std::make_shared<std::vector<uint8_t>>(begin, end);
@@ -238,11 +228,6 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
     while (offset < periodic_data.size()) {
       GapData gap_data;
       uint8_t len = periodic_data[offset];
-
-      if (offset + len + 1 >= periodic_data.size()) {
-        break;
-      }
-
       auto begin = periodic_data.begin() + offset;
       auto end = begin + len + 1;  // 1 byte for len
       auto data_copy = std::make_shared<std::vector<uint8_t>>(begin, end);
