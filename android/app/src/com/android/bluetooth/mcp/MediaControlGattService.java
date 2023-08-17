@@ -393,11 +393,12 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
 
     private void onUnauthorizedCharRead(BluetoothDevice device, GattOpContext op) {
         UUID charUuid = op.mCharacteristic.getUuid();
-        boolean allowToReadRealValue = false;
         byte[] buffer = null;
 
         if (charUuid.equals(UUID_PLAYER_NAME)) {
-            allowToReadRealValue = true;
+            ByteBuffer bb = ByteBuffer.allocate(0).order(ByteOrder.LITTLE_ENDIAN);
+            bb.put("".getBytes());
+            buffer = bb.array();
 
         } else if (charUuid.equals(UUID_PLAYER_ICON_OBJ_ID)) {
             buffer = objId2ByteArray(-1);
@@ -461,13 +462,17 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
             buffer = bb.array();
 
         } else if (charUuid.equals(UUID_MEDIA_STATE)) {
-            allowToReadRealValue = true;
+            ByteBuffer bb = ByteBuffer.allocate(1).order(ByteOrder.LITTLE_ENDIAN);
+            bb.put((byte) MediaState.INACTIVE.getValue());
+            buffer = bb.array();
 
         } else if (charUuid.equals(UUID_MEDIA_CONTROL_POINT)) {
             // No read is available on this characteristic
 
         } else if (charUuid.equals(UUID_MEDIA_CONTROL_POINT_OPCODES_SUPPORTED)) {
-            allowToReadRealValue = true;
+            ByteBuffer bb = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
+            bb.putInt((int) Request.SupportedOpcodes.NONE);
+            buffer = bb.array();
 
         } else if (charUuid.equals(UUID_SEARCH_RESULT_OBJ_ID)) {
             buffer = objId2ByteArray(-1);
@@ -476,10 +481,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
             // No read is available on this characteristic
 
         } else if (charUuid.equals(UUID_CONTENT_CONTROL_ID)) {
-            allowToReadRealValue = true;
-        }
-
-        if (allowToReadRealValue) {
+            // It is ok, to send the real value for CCID
             if (op.mCharacteristic.getValue() != null) {
                 buffer =
                         Arrays.copyOfRange(
