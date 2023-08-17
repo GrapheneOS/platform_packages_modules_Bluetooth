@@ -342,6 +342,9 @@ class CsisClientTest : public ::testing::Test {
     SetMockCsisLockCallback(&csis_lock_cb);
     callbacks.reset(new MockCsisCallbacks());
 
+    ON_CALL(btm_interface, BTM_IsEncrypted(_, _))
+        .WillByDefault(DoAll(Return(true)));
+
     ON_CALL(gatt_interface, GetCharacteristic(_, _))
         .WillByDefault(
             Invoke([&](uint16_t conn_id,
@@ -427,11 +430,11 @@ class CsisClientTest : public ::testing::Test {
     gatt_callback = nullptr;
   }
 
-  void TestConnect(const RawAddress& address) {
+  void TestConnect(const RawAddress& address, bool encrypted = true) {
     // by default indicate link as encrypted
     ON_CALL(btm_interface, GetSecurityFlagsByTransport(address, NotNull(), _))
         .WillByDefault(
-            DoAll(SetArgPointee<1>(BTM_SEC_FLAG_ENCRYPTED), Return(true)));
+            DoAll(SetArgPointee<1>(BTM_SEC_FLAG_ENCRYPTED), Return(encrypted)));
 
     EXPECT_CALL(gatt_interface,
                 Open(gatt_if, address, BTM_BLE_DIRECT_CONNECTION, _));
@@ -541,21 +544,6 @@ class CsisClientTest : public ::testing::Test {
     };
 
     gatt_callback(BTA_GATTC_CLOSE_EVT, (tBTA_GATTC*)&event_data);
-  }
-
-  void SetEncryptionResult(const RawAddress& address, uint16_t conn_id,
-                           bool success) {
-    ON_CALL(btm_interface, BTM_IsEncrypted(address, _))
-        .WillByDefault(DoAll(Return(success)));
-
-    ON_CALL(btm_interface, SetEncryption(address, _, _, _, _))
-        .WillByDefault(
-            Invoke([&](const RawAddress& bd_addr, tBT_TRANSPORT transport,
-                       tBTM_SEC_CALLBACK* p_callback, void* p_ref_data,
-                       tBTM_BLE_SEC_ACT sec_act) -> tBTM_STATUS {
-              InjectEncryptionEvent(bd_addr, conn_id);
-              return BTM_SUCCESS;
-            }));
   }
 
   void SetSampleDatabaseCsis(uint16_t conn_id, uint8_t rank,
@@ -756,6 +744,41 @@ TEST_F(CsisClientTest, test_get_group_id) {
   GetSearchCompleteEvent(1);
   int group_id = CsisClient::Get()->GetGroupId(test_address);
   ASSERT_TRUE(group_id == 1);
+  TestAppUnregister();
+}
+
+TEST_F(CsisClientTest, test_search_complete_before_encryption) {
+  SetSampleDatabaseCsis(1, 1);
+  TestAppRegister();
+  TestConnect(test_address, false);
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(test_address, ConnectionState::CONNECTED))
+      .Times(0);
+  EXPECT_CALL(*callbacks, OnDeviceAvailable(test_address, _, _, _, _)).Times(0);
+
+  ON_CALL(btm_interface, BTM_IsEncrypted(test_address, _))
+      .WillByDefault(DoAll(Return(false)));
+
+  InjectConnectedEvent(test_address, 1);
+  GetSearchCompleteEvent(1);
+  Mock::VerifyAndClearExpectations(callbacks.get());
+
+  /* Incject encryption and expect device connection */
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(test_address, ConnectionState::CONNECTED))
+      .Times(1);
+  EXPECT_CALL(*callbacks, OnDeviceAvailable(test_address, _, _, _, _)).Times(1);
+
+  ON_CALL(btm_interface, BTM_IsEncrypted(test_address, _))
+      .WillByDefault(DoAll(Return(true)));
+  EXPECT_CALL(gatt_interface, ServiceSearchRequest(_, _)).Times(1);
+
+  InjectEncryptionEvent(test_address, 1);
+  GetSearchCompleteEvent(1);
+
+  Mock::VerifyAndClearExpectations(&gatt_interface);
+  Mock::VerifyAndClearExpectations(callbacks.get());
+
   TestAppUnregister();
 }
 
