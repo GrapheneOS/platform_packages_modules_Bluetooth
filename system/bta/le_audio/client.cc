@@ -2483,6 +2483,11 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    if (!leAudioDevice->encrypted_) {
+      LOG_WARN("Device not yet bonded - waiting for encryption");
+      return;
+    }
+
     const std::list<gatt::Service>* services = BTA_GATTC_GetServices(conn_id);
 
     const gatt::Service* pac_svc = nullptr;

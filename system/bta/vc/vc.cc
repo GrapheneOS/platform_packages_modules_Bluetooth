@@ -276,6 +276,11 @@ class VolumeControlImpl : public VolumeControl {
       return;
     }
 
+    if (!device->IsEncryptionEnabled()) {
+      LOG_WARN("Device not yet bonded - waiting for encryption");
+      return;
+    }
+
     bool success = device->UpdateHandles();
     if (!success) {
       LOG(ERROR) << "Incomplete service database";

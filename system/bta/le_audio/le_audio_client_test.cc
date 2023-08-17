@@ -433,6 +433,22 @@ class UnicastTestNoInit : public Test {
             base::Unretained(this->gatt_callback), event_data));
   }
 
+  void InjectEncryptionChangedEvent(const RawAddress& address) {
+    tBTA_GATTC_ENC_CMPL_CB event_data = {
+        .client_if = gatt_if,
+        .remote_bda = address,
+    };
+
+    do_in_main_thread(FROM_HERE,
+                      base::BindOnce(
+                          [](tBTA_GATTC_CBACK* gatt_callback,
+                             tBTA_GATTC_ENC_CMPL_CB event_data) {
+                            gatt_callback(BTA_GATTC_ENC_CMPL_CB_EVT,
+                                          (tBTA_GATTC*)&event_data);
+                          },
+                          base::Unretained(this->gatt_callback), event_data));
+  }
+
   void InjectDisconnectedEvent(
       uint16_t conn_id,
       tGATT_DISCONN_REASON reason = GATT_CONN_TERMINATE_LOCAL_HOST) {
@@ -2946,6 +2962,31 @@ TEST_F(UnicastTest, ConnectDisconnectOneEarbud) {
       .Times(1);
   ConnectLeAudio(test_address0);
   DisconnectLeAudioWithAclClose(test_address0, 1);
+}
+
+TEST_F(UnicastTest, ConnectRemoteServiceDiscoveryCompleteBeforeEncryption) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  uint16_t conn_id = 1;
+  SetSampleDatabaseEarbudsValid(conn_id, test_address0,
+                                codec_spec_conf::kLeAudioLocationStereo,
+                                codec_spec_conf::kLeAudioLocationStereo);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(0);
+  ConnectLeAudio(test_address0, false);
+  InjectSearchCompleteEvent(conn_id);
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(1);
+  ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address0, _))
+      .WillByDefault(DoAll(Return(true)));
+  InjectEncryptionChangedEvent(test_address0);
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
 }
 
 /* same as above case except the disconnect is initiated by remote */
