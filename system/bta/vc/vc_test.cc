@@ -747,6 +747,43 @@ TEST_F(VolumeControlTest, test_reconnect_after_encryption_failed) {
   TestAppUnregister();
 }
 
+TEST_F(VolumeControlTest, test_service_discovery_completed_before_encryption) {
+  const RawAddress test_address = GetTestAddress(0);
+  SetSampleDatabaseVCS(1);
+  TestAppRegister();
+  TestConnect(test_address);
+
+  ON_CALL(btm_interface, BTM_IsEncrypted(test_address, _))
+      .WillByDefault(DoAll(Return(false)));
+  ON_CALL(btm_interface, SetEncryption(test_address, _, _, _, _))
+      .WillByDefault(Return(BTM_SUCCESS));
+
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::CONNECTED, test_address))
+      .Times(0);
+  uint16_t conn_id = 1;
+  GetConnectedEvent(test_address, conn_id);
+  GetSearchCompleteEvent(conn_id);
+  Mock::VerifyAndClearExpectations(&btm_interface);
+  Mock::VerifyAndClearExpectations(callbacks.get());
+
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::CONNECTED, test_address))
+      .Times(1);
+
+  ON_CALL(btm_interface, BTM_IsEncrypted(test_address, _))
+      .WillByDefault(DoAll(Return(true)));
+  EXPECT_CALL(gatt_interface, ServiceSearchRequest(_, _));
+
+  GetEncryptionCompleteEvt(test_address);
+  GetSearchCompleteEvent(conn_id);
+
+  Mock::VerifyAndClearExpectations(callbacks.get());
+  Mock::VerifyAndClearExpectations(&gatt_interface);
+
+  TestAppUnregister();
+}
+
 TEST_F(VolumeControlTest, test_discovery_vcs_found) {
   const RawAddress test_address = GetTestAddress(0);
   SetSampleDatabaseVCS(1);
