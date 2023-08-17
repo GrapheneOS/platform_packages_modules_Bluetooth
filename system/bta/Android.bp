@@ -232,7 +232,6 @@ cc_test {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",
@@ -244,6 +243,7 @@ cc_test {
         "crypto_toolbox_for_tests",
         "libbluetooth-types",
         "libbluetooth_gd",
+        "libbluetooth_hci_pdl",
         "libbt-audio-hal-interface",
         "libbt-bta",
         "libbt-bta-core",
@@ -320,7 +320,6 @@ cc_test {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     srcs: [
         ":BtaDmSources",
@@ -413,6 +412,7 @@ cc_test {
     static_libs: [
         "libbluetooth-types",
         "libbluetooth_gd",
+        "libbluetooth_hci_pdl",
         "libbt-common",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
@@ -1210,6 +1210,7 @@ cc_test {
         "crypto_toolbox_for_tests",
         "libbluetooth-types",
         "libbluetooth_gd",
+        "libbluetooth_hci_pdl",
         "libbt-common",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
@@ -1221,7 +1222,6 @@ cc_test {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     sanitize: {
         cfi: true,
