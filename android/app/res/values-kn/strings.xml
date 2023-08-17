@@ -91,7 +91,7 @@
     <string name="status_pending" msgid="4781040740237733479">"ಫೈಲ್‌‌ ವರ್ಗಾವಣೆ ಇನ್ನೂ ಪ್ರಾರಂಭಿಸಿಲ್ಲ."</string>
     <string name="status_running" msgid="7419075903776657351">"ಫೈಲ್‌‌ ವರ್ಗಾವಣೆಯು ಚಾಲ್ತಿಯಲ್ಲಿದೆ."</string>
     <string name="status_success" msgid="7963589000098719541">"ಫೈಲ್‌ ವರ್ಗಾವಣೆಯು ಸಂಪೂರ್ಣವಾಗಿ ಯಶಸ್ವಿಯಾಗಿದೆ."</string>
-    <string name="status_not_accept" msgid="1165798802740579658">"ವಿಷಯ ಬೆಂಬಲಿತವಾಗಿಲ್ಲ."</string>
+    <string name="status_not_accept" msgid="1165798802740579658">"ಕಂಟೆಂಟ್ ಬೆಂಬಲಿತವಾಗಿಲ್ಲ."</string>
     <string name="status_forbidden" msgid="4017060451358837245">"ಉದ್ದೇಶಿತ ಸಾಧನದಿಂದ ವರ್ಗಾವಣೆಯನ್ನು ನಿಷೇಧಿಸಲಾಗಿದೆ."</string>
     <string name="status_canceled" msgid="8441679418717978515">"ಬಳಕೆದಾರರ ಮೂಲಕ ವರ್ಗಾವಣೆಯನ್ನು ರದ್ದುಪಡಿಸಲಾಗಿದೆ."</string>
     <string name="status_file_error" msgid="5379018888714679311">"ಸಂಗ್ರಹಣೆಯ ಸಮಸ್ಯೆ."</string>
