@@ -908,7 +908,8 @@ bool LeAudioDeviceGroup::IsReleasingOrIdle(void) const {
 bool LeAudioDeviceGroup::IsGroupStreamReady(void) const {
   auto iter =
       std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(), [](auto& d) {
-        if (d.expired())
+        if (d.expired() || (d.lock().get()->GetConnectionState() !=
+                            DeviceConnectState::CONNECTED))
           return false;
         else
           return !(((d.lock()).get())->HaveAllActiveAsesCisEst());
@@ -2709,7 +2710,10 @@ bool LeAudioDevice::IsReadyToSuspendStream(void) {
 bool LeAudioDevice::HaveAllActiveAsesCisEst(void) {
   if (ases_.empty()) {
     LOG_WARN("No ases for device %s", ADDRESS_TO_LOGGABLE_CSTR(address_));
-    return false;
+    /* If there is no ASEs at all, it means we are good here - meaning, it is
+     * not waiting for any CIS to be established.
+     */
+    return true;
   }
 
   auto iter = std::find_if(ases_.begin(), ases_.end(), [](const auto& ase) {
