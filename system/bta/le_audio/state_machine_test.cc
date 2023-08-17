@@ -727,7 +727,8 @@ class StateMachineTest : public Test {
                                  LeAudioContextType context_type,
                                  uint16_t device_cnt,
                                  types::AudioContexts update_contexts,
-                                 bool insert_default_pac_records = true) {
+                                 bool insert_default_pac_records = true,
+                                 bool second_device_0_ases = false) {
     // Prepare fake connected device group
     DeviceConnectState initial_connect_state =
         DeviceConnectState::CONNECTING_BY_USER;
@@ -762,8 +763,15 @@ class StateMachineTest : public Test {
     }
 
     while (device_cnt) {
-      auto leAudioDevice = PrepareConnectedDevice(
-          device_cnt--, initial_connect_state, num_ase_snk, num_ase_src);
+      std::shared_ptr<LeAudioDevice> leAudioDevice;
+
+      if (device_cnt == 2 && second_device_0_ases == true) {
+        leAudioDevice =
+            PrepareConnectedDevice(device_cnt--, initial_connect_state, 0, 0);
+      } else {
+        leAudioDevice = PrepareConnectedDevice(
+            device_cnt--, initial_connect_state, num_ase_snk, num_ase_src);
+      }
 
       if (insert_default_pac_records) {
         uint16_t attr_handle = ATTR_HANDLE_PACS_POOL_START;
@@ -847,9 +855,10 @@ class StateMachineTest : public Test {
   LeAudioDeviceGroup* PrepareSingleTestDeviceGroup(
       int leaudio_group_id, LeAudioContextType context_type,
       uint16_t device_cnt = 1,
-      types::AudioContexts update_contexts = types::AudioContexts()) {
+      types::AudioContexts update_contexts = types::AudioContexts(),
+      bool second_device_0_ases = false) {
     MultipleTestDevicePrepare(leaudio_group_id, context_type, device_cnt,
-                              update_contexts);
+                              update_contexts, true, second_device_0_ases);
     return le_audio_device_groups_.count(leaudio_group_id)
                ? le_audio_device_groups_[leaudio_group_id].get()
                : nullptr;
@@ -1724,6 +1733,160 @@ TEST_F(StateMachineTest, testStreamSkipEnablingSinkSource) {
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
 
   InjectInitialIdleNotification(group);
+
+  // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+
+  // Start the configuration and stream Media content
+  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
+      group, context_type,
+      {.sink = types::AudioContexts(context_type),
+       .source = types::AudioContexts(context_type)}));
+
+  // Check if group has transitioned to a proper state
+  ASSERT_EQ(group->GetState(),
+            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+  ASSERT_EQ(1, get_func_call_count("alarm_cancel"));
+}
+
+TEST_F(StateMachineTest, testStreamMultipleMedia_OneMemberHasNoAses) {
+  const auto context_type = kContextTypeMedia;
+  const auto leaudio_group_id = 4;
+  const auto num_devices = 2;
+
+  // Prepare multiple fake connected devices in a group. This time one device
+  // has 0 Ases
+  auto* group =
+      PrepareSingleTestDeviceGroup(leaudio_group_id, context_type, num_devices,
+                                   types::AudioContexts(), true);
+  ASSERT_EQ(group->Size(), num_devices);
+
+  PrepareConfigureCodecHandler(group);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group);
+  PrepareReceiverStartReady(group);
+
+  EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(AtLeast(1));
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
+
+  InjectInitialIdleNotification(group);
+
+  /* Check there are two devices*/
+  auto* leAudioDevice = group->GetFirstDevice();
+  LeAudioDevice* lastDevice = nullptr;
+  /*
+   * First set member has no ASEs, no operations on control point are expected
+   * 0
+   */
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(leAudioDevice->conn_id_,
+                                              leAudioDevice->ctp_hdls_.val_hdl,
+                                              _, GATT_WRITE_NO_RSP, _, _))
+      .Times(0);
+
+  auto expected_devices_written = 0;
+  while (leAudioDevice) {
+    expected_devices_written++;
+    lastDevice = leAudioDevice;
+    leAudioDevice = group->GetNextDevice(leAudioDevice);
+  }
+  ASSERT_EQ(expected_devices_written, num_devices);
+
+  /*
+   * Second device will be configured for Streaming. Expecting 3 operations:
+   * 1. Codec Config
+   * 2. QoS Config
+   * 3. Enable
+   */
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(lastDevice->conn_id_,
+                                              lastDevice->ctp_hdls_.val_hdl, _,
+                                              GATT_WRITE_NO_RSP, _, _))
+      .Times(3);
+
+  // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+
+  // Start the configuration and stream Media content
+  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
+      group, context_type,
+      {.sink = types::AudioContexts(context_type),
+       .source = types::AudioContexts(context_type)}));
+
+  // Check if group has transitioned to a proper state
+  ASSERT_EQ(group->GetState(),
+            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+  ASSERT_EQ(1, get_func_call_count("alarm_cancel"));
+}
+
+TEST_F(StateMachineTest,
+       testStreamMultipleMedia_OneMemberHasNoAsesAndNotConnected) {
+  const auto context_type = kContextTypeMedia;
+  const auto leaudio_group_id = 4;
+  const auto num_devices = 2;
+
+  // Prepare multiple fake connected devices in a group. This time one device
+  // has 0 Ases
+  auto* group =
+      PrepareSingleTestDeviceGroup(leaudio_group_id, context_type, num_devices,
+                                   types::AudioContexts(), true);
+  ASSERT_EQ(group->Size(), num_devices);
+
+  PrepareConfigureCodecHandler(group);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group);
+  PrepareReceiverStartReady(group);
+
+  EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(AtLeast(1));
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
+
+  InjectInitialIdleNotification(group);
+
+  /* Check there are two devices*/
+  auto* leAudioDevice = group->GetFirstDevice();
+  LeAudioDevice* lastDevice = nullptr;
+  /*
+   * First set member has no ASEs, no operations on control point are expected
+   * 0
+   */
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(leAudioDevice->conn_id_,
+                                              leAudioDevice->ctp_hdls_.val_hdl,
+                                              _, GATT_WRITE_NO_RSP, _, _))
+      .Times(0);
+
+  /* Device with 0 Ases is disconnected */
+  InjectAclDisconnected(group, leAudioDevice);
+
+  auto expected_devices_written = 0;
+  while (leAudioDevice) {
+    expected_devices_written++;
+    lastDevice = leAudioDevice;
+    leAudioDevice = group->GetNextDevice(leAudioDevice);
+  }
+  ASSERT_EQ(expected_devices_written, num_devices);
+
+  /*
+   * Second device will be configured for Streaming. Expecting 3 operations:
+   * 1. Codec Config
+   * 2. QoS Config
+   * 3. Enable
+   */
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(lastDevice->conn_id_,
+                                              lastDevice->ctp_hdls_.val_hdl, _,
+                                              GATT_WRITE_NO_RSP, _, _))
+      .Times(3);
 
   // Validate GroupStreamStatus
   EXPECT_CALL(
