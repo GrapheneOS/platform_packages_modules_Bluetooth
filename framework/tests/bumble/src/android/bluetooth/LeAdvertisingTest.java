@@ -1,8 +1,5 @@
 package android.bluetooth;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothManager;
-import android.bluetooth.Utils;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertisingSet;
 import android.bluetooth.le.AdvertisingSetCallback;
@@ -12,7 +9,6 @@ import android.util.Log;
 
 import androidx.core.util.Pair;
 import androidx.test.core.app.ApplicationProvider;
-import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
@@ -45,7 +41,7 @@ import pandora.HostProto.ScanningResponse;
 @RunWith(AndroidJUnit4.class)
 public class LeAdvertisingTest {
 
-    private static final String LOG_TAG = "LeAdvertisingTest";
+    private static final String TAG = "LeAdvertisingTest";
 
     private static final int TIMEOUT_ADVERTISING_MS = 1000;
 
@@ -100,7 +96,7 @@ public class LeAdvertisingTest {
                                       .thenCompose(advAddressPair -> scanWithBumble(advAddressPair))
                                       .join();
 
-        Log.i(LOG_TAG, "scan response: " + response);
+        Log.i(TAG, "scan response: " + response);
         assertThat(response).isNotNull();
     }
 
@@ -118,29 +114,47 @@ public class LeAdvertisingTest {
              setOwnAddressType(AdvertisingSetParameters.ADDRESS_TYPE_RANDOM).build();
         AdvertiseData advertiseData = new AdvertiseData.Builder().build();
         AdvertiseData scanResponse = new AdvertiseData.Builder().build();
-        AdvertisingSetCallback advertisingSetCallback = new AdvertisingSetCallback() {
-            @Override
-            public void onAdvertisingSetStarted(AdvertisingSet advertisingSet, int txPower,
-                    int status) {
-                Log.i(LOG_TAG, "onAdvertisingSetStarted " + " txPower:" + txPower
-                    + " status:" + status);
-                advertisingSet.enableAdvertising(true, TIMEOUT_ADVERTISING_MS, 0);
-            }
-            @Override
-            public void onOwnAddressRead(AdvertisingSet advertisingSet, int addressType,
-                    String address) {
-                Log.i(LOG_TAG, "onOwnAddressRead " + " addressType:" + addressType
-                    + " address:" + address);
-                future.complete(new Pair<String, Integer>(address, addressType));
-            }
-            @Override
-            public void onAdvertisingEnabled(AdvertisingSet advertisingSet, boolean enabled,
-                    int status) {
-                Log.i(LOG_TAG, "onAdvertisingEnabled " + " enabled:" + enabled
-                        + " status:" + status);
-                advertisingSet.getOwnAddress();
-            }
-        };
+        AdvertisingSetCallback advertisingSetCallback =
+                new AdvertisingSetCallback() {
+                    @Override
+                    public void onAdvertisingSetStarted(
+                            AdvertisingSet advertisingSet, int txPower, int status) {
+                        Log.i(
+                                TAG,
+                                "onAdvertisingSetStarted "
+                                        + " txPower:"
+                                        + txPower
+                                        + " status:"
+                                        + status);
+                        advertisingSet.enableAdvertising(true, TIMEOUT_ADVERTISING_MS, 0);
+                    }
+
+                    @Override
+                    public void onOwnAddressRead(
+                            AdvertisingSet advertisingSet, int addressType, String address) {
+                        Log.i(
+                                TAG,
+                                "onOwnAddressRead "
+                                        + " addressType:"
+                                        + addressType
+                                        + " address:"
+                                        + address);
+                        future.complete(new Pair<String, Integer>(address, addressType));
+                    }
+
+                    @Override
+                    public void onAdvertisingEnabled(
+                            AdvertisingSet advertisingSet, boolean enabled, int status) {
+                        Log.i(
+                                TAG,
+                                "onAdvertisingEnabled "
+                                        + " enabled:"
+                                        + enabled
+                                        + " status:"
+                                        + status);
+                        advertisingSet.getOwnAddress();
+                    }
+                };
         leAdvertiser.startAdvertisingSet(parameters, advertiseData, scanResponse,
           null, null, 0, 0, advertisingSetCallback);
 
@@ -156,34 +170,34 @@ public class LeAdvertisingTest {
         int addressType = addressPair.second;
 
         ScanRequest request = ScanRequest.newBuilder().build();
-        StreamObserver<ScanningResponse> responseObserver = new StreamObserver<ScanningResponse>(){
-            public void onNext(ScanningResponse response) {
-                String addr = "";
-                if (addressType == AdvertisingSetParameters.ADDRESS_TYPE_PUBLIC) {
-                    addr = Utils.addressStringFromByteString(response.getPublic());
-                }
-                else {
-                    addr = Utils.addressStringFromByteString(response.getRandom());
-                }
-                Log.i(LOG_TAG,"scan observer: scan response address: " + addr);
+        StreamObserver<ScanningResponse> responseObserver =
+                new StreamObserver<ScanningResponse>() {
+                    public void onNext(ScanningResponse response) {
+                        String addr = "";
+                        if (addressType == AdvertisingSetParameters.ADDRESS_TYPE_PUBLIC) {
+                            addr = Utils.addressStringFromByteString(response.getPublic());
+                        } else {
+                            addr = Utils.addressStringFromByteString(response.getRandom());
+                        }
+                        Log.i(TAG, "scan observer: scan response address: " + addr);
 
-                if (addr.equals(address)) {
-                    future.complete(response);
-                }
-            }
+                        if (addr.equals(address)) {
+                            future.complete(response);
+                        }
+                    }
 
-            @Override
-            public void onError(Throwable e) {
-                Log.e(LOG_TAG,"scan observer: on error " + e);
-                future.completeExceptionally(e);
-            }
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e(TAG, "scan observer: on error " + e);
+                        future.completeExceptionally(e);
+                    }
 
-            @Override
-            public void onCompleted() {
-                Log.i(LOG_TAG,"scan observer: on completed");
-                future.complete(null);
-            }
-        };
+                    @Override
+                    public void onCompleted() {
+                        Log.i(TAG, "scan observer: on completed");
+                        future.complete(null);
+                    }
+                };
 
         Deadline initialDeadline = Deadline.after(TIMEOUT_ADVERTISING_MS, TimeUnit.MILLISECONDS);
         withCancellation.run(() -> mHostStub.withDeadline(initialDeadline)
