@@ -831,12 +831,12 @@ impl IBluetooth for BluetoothDBus {
     }
 
     #[dbus_method("CancelBondProcess")]
-    fn cancel_bond_process(&self, device: BluetoothDevice) -> bool {
+    fn cancel_bond_process(&mut self, device: BluetoothDevice) -> bool {
         dbus_generated!()
     }
 
     #[dbus_method("RemoveBond")]
-    fn remove_bond(&self, device: BluetoothDevice) -> bool {
+    fn remove_bond(&mut self, device: BluetoothDevice) -> bool {
         dbus_generated!()
     }
 
