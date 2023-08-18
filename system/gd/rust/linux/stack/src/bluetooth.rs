@@ -26,7 +26,7 @@ use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 use log::{debug, warn};
 use num_traits::cast::ToPrimitive;
 use num_traits::pow;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::fs::File;
 use std::hash::Hash;
@@ -145,10 +145,10 @@ pub trait IBluetooth {
     fn create_bond(&mut self, device: BluetoothDevice, transport: BtTransport) -> bool;
 
     /// Cancels any pending bond attempt on given device.
-    fn cancel_bond_process(&self, device: BluetoothDevice) -> bool;
+    fn cancel_bond_process(&mut self, device: BluetoothDevice) -> bool;
 
     /// Removes pairing for given device.
-    fn remove_bond(&self, device: BluetoothDevice) -> bool;
+    fn remove_bond(&mut self, device: BluetoothDevice) -> bool;
 
     /// Returns a list of known bonded devices.
     fn get_bonded_devices(&self) -> Vec<BluetoothDevice>;
@@ -507,6 +507,7 @@ pub struct Bluetooth {
     tx: Sender<Message>,
     // Internal API members
     discoverable_timeout: Option<JoinHandle<()>>,
+    cancelling_devices: HashSet<RawAddress>,
 
     /// Used to notify signal handler that we have turned off the stack.
     sig_notifier: Arc<SigData>,
@@ -557,6 +558,7 @@ impl Bluetooth {
             tx,
             // Internal API members
             discoverable_timeout: None,
+            cancelling_devices: HashSet::new(),
             sig_notifier,
         }
     }
@@ -1555,7 +1557,13 @@ impl BtifBluetoothCallbacks for Bluetooth {
             );
         });
 
-        metrics::bond_state_changed(addr, device_type, status, bond_state, fail_reason);
+        // Don't emit the metrics event if we were cancelling the bond.
+        // It is ok to not send the pairing complete event as the server should ignore the dangling
+        // pairing attempt event.
+        // This behavior aligns with BlueZ.
+        if !self.cancelling_devices.remove(&addr) {
+            metrics::bond_state_changed(addr, device_type, status, bond_state, fail_reason);
+        }
     }
 
     fn remote_device_properties_changed(
@@ -2062,6 +2070,12 @@ impl IBluetooth for Bluetooth {
             _ => self.get_remote_type(device.clone()),
         };
 
+        // There could be a race between bond complete and bond cancel, which makes
+        // |cancelling_devices| in a wrong state. Remove the device just in case.
+        if self.cancelling_devices.remove(&address) {
+            warn!("Device {} is also cancelling the bond.", DisplayAddress(&address));
+        }
+
         // We explicitly log the attempt to start the bonding separate from logging the bond state.
         // The start of the attempt is critical to help identify a bonding/pairing session.
         metrics::bond_create_attempt(address, device_type.clone());
@@ -2093,7 +2107,7 @@ impl IBluetooth for Bluetooth {
         return true;
     }
 
-    fn cancel_bond_process(&self, device: BluetoothDevice) -> bool {
+    fn cancel_bond_process(&mut self, device: BluetoothDevice) -> bool {
         let addr = RawAddress::from_string(device.address.clone());
 
         if addr.is_none() {
@@ -2102,10 +2116,14 @@ impl IBluetooth for Bluetooth {
         }
 
         let address = addr.unwrap();
+        if !self.cancelling_devices.insert(address.clone()) {
+            warn!("Device {} has been added to cancelling_device.", DisplayAddress(&address));
+        }
+
         self.intf.lock().unwrap().cancel_bond(&address) == 0
     }
 
-    fn remove_bond(&self, device: BluetoothDevice) -> bool {
+    fn remove_bond(&mut self, device: BluetoothDevice) -> bool {
         let addr = RawAddress::from_string(device.address.clone());
 
         if addr.is_none() {
@@ -2115,6 +2133,13 @@ impl IBluetooth for Bluetooth {
 
         let address = addr.unwrap();
         debug!("Removing bond for {}", DisplayAddress(&address));
+
+        // There could be a race between bond complete and bond cancel, which makes
+        // |cancelling_devices| in a wrong state. Remove the device just in case.
+        if self.cancelling_devices.remove(&address) {
+            warn!("Device {} is also cancelling the bond.", DisplayAddress(&address));
+        }
+
         let status = self.intf.lock().unwrap().remove_bond(&address);
 
         if status != 0 {
