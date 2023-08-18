@@ -681,7 +681,7 @@ impl CommandHandler {
                     name: String::from("Classic Device"),
                 };
 
-                self.lock_context().adapter_dbus.as_ref().unwrap().remove_bond(device);
+                self.lock_context().adapter_dbus.as_mut().unwrap().remove_bond(device);
             }
             "cancel" => {
                 let device = BluetoothDevice {
@@ -689,7 +689,7 @@ impl CommandHandler {
                     name: String::from("Classic Device"),
                 };
 
-                self.lock_context().adapter_dbus.as_ref().unwrap().cancel_bond_process(device);
+                self.lock_context().adapter_dbus.as_mut().unwrap().cancel_bond_process(device);
             }
             other => {
                 println!("Invalid argument '{}'", other);
