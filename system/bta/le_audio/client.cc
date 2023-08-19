@@ -3657,9 +3657,9 @@ class LeAudioClientImpl : public LeAudioClient {
             bluetooth::common::ToString(configuration_context_type_).c_str(),
             configuration_context_type_);
     dprintf(fd, "  local source metadata context type mask: %s\n",
-            local_metadata_context_types_.sink.to_string().c_str());
-    dprintf(fd, "  local sink metadata context type mask: %s\n",
             local_metadata_context_types_.source.to_string().c_str());
+    dprintf(fd, "  local sink metadata context type mask: %s\n",
+            local_metadata_context_types_.sink.to_string().c_str());
     dprintf(fd, "  TBS state: %s\n", in_call_ ? " In call" : "No calls");
     dprintf(fd, "  Start time: ");
     for (auto t : stream_start_history_queue_) {
