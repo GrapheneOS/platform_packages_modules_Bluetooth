@@ -2819,6 +2819,13 @@ void DualModeController::LeEnergyInfo(CommandView command) {
 // Implement the command specific to the CSR controller
 // used specifically by the PTS tool to pass certification tests.
 void DualModeController::CsrVendorCommand(CommandView command) {
+  if (!properties_.vendor_csr) {
+    SendCommandCompleteUnknownOpCodeEvent(OpCode(CSR_VENDOR));
+    return;
+  }
+
+  DEBUG(id_, "<< CSR");
+
   // The byte order is little endian.
   // The command parameters are formatted as
   //
