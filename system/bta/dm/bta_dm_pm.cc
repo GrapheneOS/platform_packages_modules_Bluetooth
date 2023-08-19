@@ -810,7 +810,7 @@ void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index) {
   status = BTM_SetPowerMode(bta_dm_cb.pm_id, p_peer_dev->peer_bdaddr, &pwr_md);
   if (status == BTM_CMD_STORED || status == BTM_CMD_STARTED) {
     p_peer_dev->reset_sniff_flags();
-    p_peer_dev->info |= BTA_DM_DI_SET_SNIFF;
+    p_peer_dev->set_sniff_command_sent();
   } else if (status == BTM_SUCCESS) {
     APPL_TRACE_DEBUG("bta_dm_pm_sniff BTM_SetPowerMode() returns BTM_SUCCESS");
     p_peer_dev->reset_sniff_flags();
@@ -1065,9 +1065,9 @@ void bta_dm_pm_btm_status(const RawAddress& bd_addr, tBTM_PM_STATUS status,
          */
         bta_dm_pm_stop_timer(bd_addr);
       } else {
-        tBTA_DM_DEV_INFO info = p_dev->Info();
+        bool is_sniff_command_sent = p_dev->is_sniff_command_sent();
         p_dev->reset_sniff_flags();
-        if (info & BTA_DM_DI_SET_SNIFF)
+        if (is_sniff_command_sent)
           p_dev->set_local_init_sniff();
         else
           p_dev->set_remote_init_sniff();
@@ -1075,7 +1075,7 @@ void bta_dm_pm_btm_status(const RawAddress& bd_addr, tBTM_PM_STATUS status,
       break;
 
     case BTM_PM_STS_ERROR:
-      p_dev->info &= ~BTA_DM_DI_SET_SNIFF;
+      p_dev->reset_sniff_command_sent();
       break;
 
     default:
