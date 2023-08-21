@@ -51,7 +51,7 @@ function(pdl_gen)
   get_filename_component(pdl_INPUT_ABSOLUTE ${pdl_INPUT} ABSOLUTE)
   get_filename_component(pdl_OUTPUT_ABSOLUTE ${pdl_OUTPUT} ABSOLUTE)
   get_filename_component(pdl_OUTPUT_DIR ${pdl_OUTPUT_ABSOLUTE} DIRECTORY)
-  set(${pdl_NAME} "${pdl_OUTPUT_ABSOLUTE}" PARENT_SCOPE)
+  set(${pdl_NAME} "${pdl_OUTPUT_ABSOLUTE}" CACHE STRING "PDL output filepath for ${pdl_NAME}" FORCE)
 
   file(MAKE_DIRECTORY ${pdl_OUTPUT_DIR})
 
@@ -105,6 +105,8 @@ function(pdl_gen)
         VERBATIM
         DEPENDS pdlc ${pdl_OUTPUT_ABSOLUTE}.json)
   endif()
+
+  add_custom_target("pdl_gen-${pdl_NAME}" DEPENDS ${pdl_OUTPUT_ABSOLUTE})
 endfunction()
 
 pdl_gen(
@@ -123,6 +125,12 @@ pdl_gen(
   NAMESPACE model::packets
   INCLUDE "hci/address.h"
   USING "bluetooth::hci")
+
+pdl_gen(
+  NAME RootCanalGeneratedPackets_rs
+  INPUT ${ROOTCANAL_ROOT}/packets/link_layer_packets.pdl
+  OUTPUT link_layer_packets.rs
+  LANG rust)
 
 android_add_library(
   TARGET libscriptedbeaconpayload-protos-lite LICENSE Apache-2.0

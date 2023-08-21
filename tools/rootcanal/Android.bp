@@ -449,6 +449,13 @@ genrule {
 }
 
 genrule {
+    name: "rootcanal_link_layer_packets_rust_gen",
+    defaults: ["pdl_rust_generator_defaults"],
+    srcs: ["packets/link_layer_packets.pdl"],
+    out: ["link_layer_packets.rs"],
+}
+
+genrule {
     name: "rootcanal_bredr_bb_packets_cxx_gen",
     tools: [
         ":pdl_cxx_generator",
