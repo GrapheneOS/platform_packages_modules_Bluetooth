@@ -1069,7 +1069,7 @@ public class A2dpService extends ProfileService {
 
         // Make sure volume has been store before device been remove from active.
         if (mFactory.getAvrcpTargetService() != null) {
-            mFactory.getAvrcpTargetService().volumeDeviceSwitched(device);
+            mFactory.getAvrcpTargetService().handleA2dpActiveDeviceChanged(device);
         }
         synchronized (mStateMachines) {
             mActiveDevice = device;
