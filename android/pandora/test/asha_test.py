@@ -865,9 +865,6 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
         Verify that DUT sends a correct AudioControlPoint `Stop` command.
         """
 
-        # TODO(b/290204194) Re-activate this test ASAP
-        raise signals.TestSkip('TODO(b/290204194) Re-activate this test ASAP')
-
         async def ref_device_connect(ref_device: BumblePandoraDevice, ear: Ear) -> Tuple[Connection, Connection]:
             advertisement = await self.ref_advertise_asha(ref_device=ref_device, ref_address_type=RANDOM, ear=ear)
             ref = await self.dut_scan_for_asha(dut_address_type=RANDOM, ear=ear)
@@ -899,6 +896,9 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
 
         logging.info(f"stop_result:{stop_result}")
         assert_is_not_none(stop_result)
+
+        # Sleep 0.5 second to mitigate flaky test first.
+        await asyncio.sleep(0.5)
 
         audio_data = await self.get_audio_data(
             ref_asha=AioAsha(self.ref_left.aio.channel), connection=ref_dut, timeout=10
@@ -1064,9 +1064,6 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
         Verify Refs cannot recevice audio data after DUT stops media streaming.
         """
 
-        # TODO(b/290204194) Re-activate this test ASAP
-        raise signals.TestSkip('TODO(b/290204194) Re-activate this test ASAP')
-
         async def ref_device_connect(ref_device: BumblePandoraDevice, ear: Ear) -> Tuple[Connection, Connection]:
             advertisement = await self.ref_advertise_asha(ref_device=ref_device, ref_address_type=RANDOM, ear=ear)
             ref = await self.dut_scan_for_asha(dut_address_type=RANDOM, ear=ear)
@@ -1118,6 +1115,9 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
         logging.info(f"stop_result_right:{stop_result_right}")
         assert_is_not_none(stop_result_left)
         assert_is_not_none(stop_result_right)
+
+        # Sleep 0.5 second to mitigate flaky test first.
+        await asyncio.sleep(0.5)
 
         (audio_data_left, audio_data_right) = await asyncio.gather(
             self.get_audio_data(ref_asha=ref_left_asha, connection=ref_left_dut, timeout=10),
