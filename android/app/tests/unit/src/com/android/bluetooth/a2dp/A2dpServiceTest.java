@@ -58,7 +58,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeoutException;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
@@ -78,7 +77,7 @@ public class A2dpServiceTest {
 
     @Mock private AdapterService mAdapterService;
     @Mock private ActiveDeviceManager mActiveDeviceManager;
-    @Mock private A2dpNativeInterface mA2dpNativeInterface;
+    @Mock private A2dpNativeInterface mMockNativeInterface;
     @Mock private DatabaseManager mDatabaseManager;
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
@@ -103,8 +102,8 @@ public class A2dpServiceTest {
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        startService();
-        mA2dpService.mA2dpNativeInterface = mA2dpNativeInterface;
+        mA2dpService = new A2dpService(mTargetContext, mMockNativeInterface);
+        mA2dpService.doStart();
 
         // Override the timeout value to speed up the test
         A2dpStateMachine.sConnectTimeoutMs = TIMEOUT_MS;    // 1s
@@ -128,25 +127,12 @@ public class A2dpServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        stopService();
+        mA2dpService.doStop();
         mTargetContext.unregisterReceiver(mA2dpIntentReceiver);
         mConnectionStateChangedQueue.clear();
         mAudioStateChangedQueue.clear();
         mCodecConfigChangedQueue.clear();
         TestUtils.clearAdapterService(mAdapterService);
-    }
-
-    private void startService() throws TimeoutException {
-        TestUtils.startService(mServiceRule, A2dpService.class);
-        mA2dpService = A2dpService.getA2dpService();
-        Assert.assertNotNull(mA2dpService);
-        verify(mAdapterService).notifyActivityAttributionInfo(any(), any());
-    }
-
-    private void stopService() throws TimeoutException {
-        TestUtils.stopService(mServiceRule, A2dpService.class);
-        mA2dpService = A2dpService.getA2dpService();
-        Assert.assertNull(mA2dpService);
     }
 
     private class A2dpIntentReceiver extends BroadcastReceiver {
@@ -225,38 +211,24 @@ public class A2dpServiceTest {
         Assert.assertNull(intent);
     }
 
-    /**
-     * Test getting A2DP Service: getA2dpService()
-     */
     @Test
     public void testGetA2dpService() {
         Assert.assertEquals(mA2dpService, A2dpService.getA2dpService());
     }
 
-    /**
-     * Test stop A2DP Service
-     */
     @Test
     public void testStopA2dpService() {
         // Prepare: connect and set active device
-        doReturn(true).when(mA2dpNativeInterface).setActiveDevice(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).setActiveDevice(any(BluetoothDevice.class));
         connectDevice(mTestDevice);
         Assert.assertTrue(mA2dpService.setActiveDevice(mTestDevice));
-        verify(mA2dpNativeInterface).setActiveDevice(mTestDevice);
-        // A2DP Service is already running: test stop(). Note: must be done on the main thread.
-        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
-            public void run() {
-                Assert.assertTrue(mA2dpService.stop());
-            }
-        });
+        verify(mMockNativeInterface).setActiveDevice(mTestDevice);
+
+        Assert.assertTrue(mA2dpService.stop());
+
         // Verify that setActiveDevice(null) was called during shutdown
-        verify(mA2dpNativeInterface).setActiveDevice(null);
-        // Try to restart the service. Note: must be done on the main thread.
-        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
-            public void run() {
-                Assert.assertTrue(mA2dpService.start());
-            }
-        });
+        verify(mMockNativeInterface).setActiveDevice(null);
+        Assert.assertTrue(mA2dpService.start());
     }
 
     /**
@@ -333,8 +305,8 @@ public class A2dpServiceTest {
         // Update the device priority so okToConnect() returns true
         when(mDatabaseManager.getProfileConnectionPolicy(mTestDevice, BluetoothProfile.A2DP))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-        doReturn(true).when(mA2dpNativeInterface).connectA2dp(any(BluetoothDevice.class));
-        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).connectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
 
         // Return AudioSource UUID instead of AudioSink
         doReturn(new ParcelUuid[]{BluetoothUuid.A2DP_SOURCE}).when(mAdapterService)
@@ -349,8 +321,8 @@ public class A2dpServiceTest {
      */
     @Test
     public void testOutgoingConnectPriorityOff() {
-        doReturn(true).when(mA2dpNativeInterface).connectA2dp(any(BluetoothDevice.class));
-        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).connectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
 
         // Set the device priority to PRIORITY_OFF so connect() should fail
         when(mDatabaseManager.getProfileConnectionPolicy(mTestDevice, BluetoothProfile.A2DP))
@@ -368,8 +340,8 @@ public class A2dpServiceTest {
         // Update the device priority so okToConnect() returns true
         when(mDatabaseManager.getProfileConnectionPolicy(mTestDevice, BluetoothProfile.A2DP))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-        doReturn(true).when(mA2dpNativeInterface).connectA2dp(any(BluetoothDevice.class));
-        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).connectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
 
         // Send a connect request
         Assert.assertTrue("Connect failed", mA2dpService.connect(mTestDevice));
@@ -398,8 +370,8 @@ public class A2dpServiceTest {
         // Update the device priority so okToConnect() returns true
         when(mDatabaseManager.getProfileConnectionPolicy(mTestDevice, BluetoothProfile.A2DP))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-        doReturn(true).when(mA2dpNativeInterface).connectA2dp(any(BluetoothDevice.class));
-        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).connectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
 
         // Send a connect request
         Assert.assertTrue("Connect failed", mA2dpService.connect(mTestDevice));
@@ -459,8 +431,8 @@ public class A2dpServiceTest {
         BluetoothDevice[] testDevices = new BluetoothDevice[MAX_CONNECTED_AUDIO_DEVICES];
         BluetoothDevice extraTestDevice;
 
-        doReturn(true).when(mA2dpNativeInterface).connectA2dp(any(BluetoothDevice.class));
-        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).connectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
 
         // Prepare and connect all test devices
         for (int i = 0; i < MAX_CONNECTED_AUDIO_DEVICES; i++) {
@@ -510,8 +482,8 @@ public class A2dpServiceTest {
         // Update the device priority so okToConnect() returns true
         when(mDatabaseManager.getProfileConnectionPolicy(mTestDevice, BluetoothProfile.A2DP))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-        doReturn(true).when(mA2dpNativeInterface).connectA2dp(any(BluetoothDevice.class));
-        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).connectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
 
         // A2DP stack event: CONNECTION_STATE_CONNECTING - state machine should be created
         generateConnectionMessageFromNative(mTestDevice, BluetoothProfile.STATE_CONNECTING,
@@ -589,8 +561,8 @@ public class A2dpServiceTest {
         // Update the device priority so okToConnect() returns true
         when(mDatabaseManager.getProfileConnectionPolicy(mTestDevice, BluetoothProfile.A2DP))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-        doReturn(true).when(mA2dpNativeInterface).connectA2dp(any(BluetoothDevice.class));
-        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).connectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
 
         // A2DP stack event: EVENT_TYPE_AUDIO_STATE_CHANGED - state machine should not be created
         generateUnexpectedAudioMessageFromNative(mTestDevice, A2dpStackEvent.AUDIO_STATE_STARTED,
@@ -653,8 +625,8 @@ public class A2dpServiceTest {
         // Update the device priority so okToConnect() returns true
         when(mDatabaseManager.getProfileConnectionPolicy(mTestDevice, BluetoothProfile.A2DP))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-        doReturn(true).when(mA2dpNativeInterface).connectA2dp(any(BluetoothDevice.class));
-        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).connectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
 
         // A2DP stack event: CONNECTION_STATE_CONNECTING - state machine should be created
         generateConnectionMessageFromNative(mTestDevice, BluetoothProfile.STATE_CONNECTING,
@@ -711,8 +683,8 @@ public class A2dpServiceTest {
         // Update the device priority so okToConnect() returns true
         when(mDatabaseManager.getProfileConnectionPolicy(mTestDevice, BluetoothProfile.A2DP))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-        doReturn(true).when(mA2dpNativeInterface).connectA2dp(any(BluetoothDevice.class));
-        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).connectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
 
         // A2DP stack event: CONNECTION_STATE_CONNECTING - state machine should be created
         generateConnectionMessageFromNative(mTestDevice, BluetoothProfile.STATE_CONNECTING,
@@ -756,32 +728,33 @@ public class A2dpServiceTest {
         BluetoothDevice otherDevice = mAdapter.getRemoteDevice("05:04:03:02:01:00");
         connectDevice(mTestDevice);
         connectDevice(otherDevice);
-        doReturn(true).when(mA2dpNativeInterface).setActiveDevice(any(BluetoothDevice.class));
-        doReturn(true).when(mA2dpNativeInterface).setSilenceDevice(any(BluetoothDevice.class),
-                anyBoolean());
+        doReturn(true).when(mMockNativeInterface).setActiveDevice(any(BluetoothDevice.class));
+        doReturn(true)
+                .when(mMockNativeInterface)
+                .setSilenceDevice(any(BluetoothDevice.class), anyBoolean());
 
         // Test whether active device been removed after enable silence mode.
         Assert.assertTrue(mA2dpService.setActiveDevice(mTestDevice));
         Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
         Assert.assertTrue(mA2dpService.setSilenceMode(mTestDevice, true));
-        verify(mA2dpNativeInterface).setSilenceDevice(mTestDevice, true);
+        verify(mMockNativeInterface).setSilenceDevice(mTestDevice, true);
         Assert.assertNull(mA2dpService.getActiveDevice());
 
         // Test whether active device been resumeed after disable silence mode.
         Assert.assertTrue(mA2dpService.setSilenceMode(mTestDevice, false));
-        verify(mA2dpNativeInterface).setSilenceDevice(mTestDevice, false);
+        verify(mMockNativeInterface).setSilenceDevice(mTestDevice, false);
         Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
 
         // Test that active device should not be changed when silence a non-active device
         Assert.assertTrue(mA2dpService.setActiveDevice(mTestDevice));
         Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
         Assert.assertTrue(mA2dpService.setSilenceMode(otherDevice, true));
-        verify(mA2dpNativeInterface).setSilenceDevice(otherDevice, true);
+        verify(mMockNativeInterface).setSilenceDevice(otherDevice, true);
         Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
 
         // Test that active device should not be changed when another device exits silence mode
         Assert.assertTrue(mA2dpService.setSilenceMode(otherDevice, false));
-        verify(mA2dpNativeInterface).setSilenceDevice(otherDevice, false);
+        verify(mMockNativeInterface).setSilenceDevice(otherDevice, false);
         Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
     }
 
@@ -799,7 +772,7 @@ public class A2dpServiceTest {
     @Test
     public void testRemoveActiveDevice_whenStopAudioIsFalse_suppressNoisyIntent() {
         connectDevice(mTestDevice);
-        doReturn(true).when(mA2dpNativeInterface).setActiveDevice(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).setActiveDevice(any(BluetoothDevice.class));
         Assert.assertTrue(mA2dpService.setActiveDevice(mTestDevice));
         Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
         AudioManager audioManager = mock(AudioManager.class);
@@ -828,7 +801,7 @@ public class A2dpServiceTest {
     @Test
     public void testRemoveActiveDevice_whenStopAudioIsFalse_doesNotSuppressNoisyIntent() {
         connectDevice(mTestDevice);
-        doReturn(true).when(mA2dpNativeInterface).setActiveDevice(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).setActiveDevice(any(BluetoothDevice.class));
         Assert.assertTrue(mA2dpService.setActiveDevice(mTestDevice));
         Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
         AudioManager audioManager = mock(AudioManager.class);
@@ -941,7 +914,7 @@ public class A2dpServiceTest {
      */
     @Test
     public void testSendPreferredAudioProfileChangeToAudioFramework() {
-        doReturn(true).when(mA2dpNativeInterface).setActiveDevice(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).setActiveDevice(any(BluetoothDevice.class));
         Assert.assertTrue(mA2dpService.removeActiveDevice(true));
         Assert.assertNull(mA2dpService.getActiveDevice());
 
@@ -973,10 +946,12 @@ public class A2dpServiceTest {
         // Update the device priority so okToConnect() returns true
         when(mDatabaseManager.getProfileConnectionPolicy(device, BluetoothProfile.A2DP))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-        doReturn(true).when(mA2dpNativeInterface).connectA2dp(device);
-        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(device);
-        doReturn(true).when(mA2dpNativeInterface).setCodecConfigPreference(
-                any(BluetoothDevice.class), any(BluetoothCodecConfig[].class));
+        doReturn(true).when(mMockNativeInterface).connectA2dp(device);
+        doReturn(true).when(mMockNativeInterface).disconnectA2dp(device);
+        doReturn(true)
+                .when(mMockNativeInterface)
+                .setCodecConfigPreference(
+                        any(BluetoothDevice.class), any(BluetoothCodecConfig[].class));
 
         // Send a connect request
         Assert.assertTrue("Connect failed", mA2dpService.connect(device));
@@ -1119,7 +1094,7 @@ public class A2dpServiceTest {
     private void testUpdateOptionalCodecsSupportCase(int previousSupport, boolean support,
             int previousEnabled, int verifySupportTime, int verifyNotSupportTime,
             int verifyEnabledTime) {
-        doReturn(true).when(mA2dpNativeInterface).setActiveDevice(any(BluetoothDevice.class));
+        doReturn(true).when(mMockNativeInterface).setActiveDevice(any(BluetoothDevice.class));
 
         BluetoothCodecConfig codecConfigSbc =
                 buildBluetoothCodecConfig(

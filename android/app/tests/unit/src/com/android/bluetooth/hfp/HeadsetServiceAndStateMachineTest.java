@@ -41,7 +41,6 @@ import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.telecom.PhoneAccount;
-import android.util.Log;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.espresso.intent.Intents;
@@ -98,7 +97,6 @@ public class HeadsetServiceAndStateMachineTest {
     private Context mTargetContext;
     private HeadsetService mHeadsetService;
     private BluetoothAdapter mAdapter;
-    private HeadsetNativeInterface mNativeInterface;
     private ArgumentCaptor<HeadsetStateMachine> mStateMachineArgument =
             ArgumentCaptor.forClass(HeadsetStateMachine.class);
     private HashSet<BluetoothDevice> mBondedDevices = new HashSet<>();
@@ -108,6 +106,8 @@ public class HeadsetServiceAndStateMachineTest {
     private HeadsetIntentReceiver mHeadsetIntentReceiver;
     private int mOriginalVrTimeoutMs = 5000;
     private PowerManager.WakeLock mVoiceRecognitionWakeLock;
+
+    @Mock private HeadsetNativeInterface mNativeInterface;
 
     private class HeadsetIntentReceiver extends BroadcastReceiver {
         @Override
@@ -196,9 +196,6 @@ public class HeadsetServiceAndStateMachineTest {
         doReturn(mVoiceRecognitionWakeLock).when(mSystemInterface).getVoiceRecognitionWakeLock();
         doReturn(true).when(mSystemInterface).isCallIdle();
         // Mock methods in HeadsetNativeInterface
-        mNativeInterface = spy(HeadsetNativeInterface.getInstance());
-        doNothing().when(mNativeInterface).init(anyInt(), anyBoolean());
-        doNothing().when(mNativeInterface).cleanup();
         doReturn(true).when(mNativeInterface).connectHfp(any(BluetoothDevice.class));
         doReturn(true).when(mNativeInterface).disconnectHfp(any(BluetoothDevice.class));
         doReturn(true).when(mNativeInterface).connectAudio(any(BluetoothDevice.class));

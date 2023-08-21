@@ -18,6 +18,8 @@ package com.android.bluetooth.avrcpcontroller;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
+import static java.util.Objects.requireNonNull;
+
 import android.bluetooth.BluetoothAvrcpController;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
@@ -117,6 +119,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     protected final BluetoothDevice mDevice;
     protected final byte[] mDeviceAddress;
     protected final AvrcpControllerService mService;
+    protected final AvrcpControllerNativeInterface mNativeInterface;
     protected int mCoverArtPsm;
     protected final AvrcpCoverArtManager mCoverArtManager;
     protected final Disconnected mDisconnected;
@@ -144,11 +147,15 @@ class AvrcpControllerStateMachine extends StateMachine {
     static final int CMD_TIMEOUT_MILLIS = 10000;
     static final int ABS_VOL_TIMEOUT_MILLIS = 1000; //1s
 
-    AvrcpControllerStateMachine(BluetoothDevice device, AvrcpControllerService service) {
+    AvrcpControllerStateMachine(
+            BluetoothDevice device,
+            AvrcpControllerService service,
+            AvrcpControllerNativeInterface nativeInterface) {
         super(TAG);
         mDevice = device;
         mDeviceAddress = Utils.getByteAddress(mDevice);
         mService = service;
+        mNativeInterface = requireNonNull(nativeInterface);
         mCoverArtPsm = 0;
         mCoverArtManager = service.getCoverArtManager();
         logD(device.toString());
@@ -548,9 +555,11 @@ class AvrcpControllerStateMachine extends StateMachine {
 
                 case MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION:
                     mVolumeNotificationLabel = msg.arg1;
-                    mService.sendRegisterAbsVolRspNative(mDeviceAddress,
+                    mNativeInterface.sendRegisterAbsVolRsp(
+                            mDeviceAddress,
                             NOTIFICATION_RSP_TYPE_INTERIM,
-                            getAbsVolume(), mVolumeNotificationLabel);
+                            getAbsVolume(),
+                            mVolumeNotificationLabel);
                     return true;
 
                 case MESSAGE_GET_FOLDER_ITEMS:
@@ -669,8 +678,8 @@ class AvrcpControllerStateMachine extends StateMachine {
                     // playing list. However, now playing is mandatory if browsing is supported,
                     // even if the player doesn't support it. A list of one item can be returned
                     // instead.
-                    mService.getCurrentMetadataNative(Utils.getByteAddress(mDevice));
-                    mService.getPlaybackStateNative(Utils.getByteAddress(mDevice));
+                    mNativeInterface.getCurrentMetadata(mDeviceAddress);
+                    mNativeInterface.getPlaybackState(mDeviceAddress);
                     requestContents(mBrowseTree.mNowPlayingNode);
                     logD("AddressedPlayer = " + mAddressedPlayer);
                     return true;
@@ -739,19 +748,18 @@ class AvrcpControllerStateMachine extends StateMachine {
         private void processPlayItem(BrowseTree.BrowseNode node) {
             if (node == null) {
                 Log.w(TAG, "Invalid item to play");
-            } else {
-                mService.playItemNative(
-                        mDeviceAddress, node.getScope(),
-                        node.getBluetoothID(), 0);
+                return;
             }
+            mNativeInterface.playItem(mDeviceAddress, node.getScope(), node.getBluetoothID(), 0);
         }
 
         private synchronized void passThru(int cmd) {
             logD("msgPassThru " + cmd);
             // Some keys should be held until the next event.
             if (mCurrentlyHeldKey != 0) {
-                mService.sendPassThroughCommandNative(
-                        mDeviceAddress, mCurrentlyHeldKey,
+                mNativeInterface.sendPassThroughCommand(
+                        mDeviceAddress,
+                        mCurrentlyHeldKey,
                         AvrcpControllerService.KEY_STATE_RELEASED);
 
                 if (mCurrentlyHeldKey == cmd) {
@@ -767,15 +775,15 @@ class AvrcpControllerStateMachine extends StateMachine {
             }
 
             // Send the pass through.
-            mService.sendPassThroughCommandNative(mDeviceAddress, cmd,
-                    AvrcpControllerService.KEY_STATE_PRESSED);
+            mNativeInterface.sendPassThroughCommand(
+                    mDeviceAddress, cmd, AvrcpControllerService.KEY_STATE_PRESSED);
 
             if (isHoldableKey(cmd)) {
                 // Release cmd next time a command is sent.
                 mCurrentlyHeldKey = cmd;
             } else {
-                mService.sendPassThroughCommandNative(mDeviceAddress,
-                        cmd, AvrcpControllerService.KEY_STATE_RELEASED);
+                mNativeInterface.sendPassThroughCommand(
+                        mDeviceAddress, cmd, AvrcpControllerService.KEY_STATE_RELEASED);
             }
         }
 
@@ -785,17 +793,25 @@ class AvrcpControllerStateMachine extends StateMachine {
         }
 
         private void setRepeat(int repeatMode) {
-            mService.setPlayerApplicationSettingValuesNative(mDeviceAddress, (byte) 1,
-                    new byte[]{PlayerApplicationSettings.REPEAT_STATUS}, new byte[]{
-                            PlayerApplicationSettings.mapAvrcpPlayerSettingstoBTattribVal(
-                                    PlayerApplicationSettings.REPEAT_STATUS, repeatMode)});
+            mNativeInterface.setPlayerApplicationSettingValues(
+                    mDeviceAddress,
+                    (byte) 1,
+                    new byte[] {PlayerApplicationSettings.REPEAT_STATUS},
+                    new byte[] {
+                        PlayerApplicationSettings.mapAvrcpPlayerSettingstoBTattribVal(
+                                PlayerApplicationSettings.REPEAT_STATUS, repeatMode)
+                    });
         }
 
         private void setShuffle(int shuffleMode) {
-            mService.setPlayerApplicationSettingValuesNative(mDeviceAddress, (byte) 1,
-                    new byte[]{PlayerApplicationSettings.SHUFFLE_STATUS}, new byte[]{
-                            PlayerApplicationSettings.mapAvrcpPlayerSettingstoBTattribVal(
-                                    PlayerApplicationSettings.SHUFFLE_STATUS, shuffleMode)});
+            mNativeInterface.setPlayerApplicationSettingValues(
+                    mDeviceAddress,
+                    (byte) 1,
+                    new byte[] {PlayerApplicationSettings.SHUFFLE_STATUS},
+                    new byte[] {
+                        PlayerApplicationSettings.mapAvrcpPlayerSettingstoBTattribVal(
+                                PlayerApplicationSettings.SHUFFLE_STATUS, shuffleMode)
+                    });
         }
 
         private void processAvailablePlayerChanged() {
@@ -949,8 +965,8 @@ class AvrcpControllerStateMachine extends StateMachine {
                         } else {
                             logD("Update addressed player with new available player metadata");
                             mAddressedPlayer = mAvailablePlayerList.get(mAddressedPlayerId);
-                            mService.getCurrentMetadataNative(Utils.getByteAddress(mDevice));
-                            mService.getPlaybackStateNative(Utils.getByteAddress(mDevice));
+                            mNativeInterface.getCurrentMetadata(mDeviceAddress);
+                            mNativeInterface.getPlaybackState(mDeviceAddress);
                             requestContents(mBrowseTree.mNowPlayingNode);
                         }
                         logD("AddressedPlayer = " + mAddressedPlayer);
@@ -1033,16 +1049,13 @@ class AvrcpControllerStateMachine extends StateMachine {
                     + target.getExpectedChildren() + ")");
             switch (target.getScope()) {
                 case AvrcpControllerService.BROWSE_SCOPE_PLAYER_LIST:
-                    mService.getPlayerListNative(mDeviceAddress,
-                            start, end);
+                    mNativeInterface.getPlayerList(mDeviceAddress, start, end);
                     break;
                 case AvrcpControllerService.BROWSE_SCOPE_NOW_PLAYING:
-                    mService.getNowPlayingListNative(
-                            mDeviceAddress, start, end);
+                    mNativeInterface.getNowPlayingList(mDeviceAddress, start, end);
                     break;
                 case AvrcpControllerService.BROWSE_SCOPE_VFS:
-                    mService.getFolderListNative(mDeviceAddress,
-                            start, end);
+                    mNativeInterface.getFolderList(mDeviceAddress, start, end);
                     break;
                 default:
                     Log.e(TAG, STATE_TAG + " Scope " + target.getScope()
@@ -1075,7 +1088,7 @@ class AvrcpControllerStateMachine extends StateMachine {
             } else if (mNextStep.isPlayer()) {
                 logD("NAVIGATING Player " + mNextStep.toString());
                 if (mNextStep.isBrowsable()) {
-                    mService.setBrowsedPlayerNative(
+                    mNativeInterface.setBrowsedPlayer(
                             mDeviceAddress, (int) mNextStep.getBluetoothID());
                 } else {
                     logD("Player doesn't support browsing");
@@ -1087,14 +1100,12 @@ class AvrcpControllerStateMachine extends StateMachine {
                 mNextStep = mBrowseTree.getCurrentBrowsedFolder().getParent();
                 mBrowseTree.getCurrentBrowsedFolder().setCached(false);
                 removeUnusedArtworkFromBrowseTree();
-                mService.changeFolderPathNative(
-                        mDeviceAddress,
-                        AvrcpControllerService.FOLDER_NAVIGATION_DIRECTION_UP,
-                        0);
+                mNativeInterface.changeFolderPath(
+                        mDeviceAddress, AvrcpControllerService.FOLDER_NAVIGATION_DIRECTION_UP, 0);
 
             } else {
                 logD("NAVIGATING DOWN " + mNextStep.toString());
-                mService.changeFolderPathNative(
+                mNativeInterface.changeFolderPath(
                         mDeviceAddress,
                         AvrcpControllerService.FOLDER_NAVIGATION_DIRECTION_DOWN,
                         mNextStep.getBluetoothID());
@@ -1151,7 +1162,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                     ABS_VOL_TIMEOUT_MILLIS);
             setAbsVolume(absVol);
         }
-        mService.sendAbsVolRspNative(mDeviceAddress, absVol, label);
+        mNativeInterface.sendAbsVolRsp(mDeviceAddress, absVol, label);
     }
 
     /**

@@ -22,6 +22,7 @@ import android.util.Log;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.Objects;
@@ -37,11 +38,18 @@ public class HeadsetNativeInterface {
     private final BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
 
     static {
-        classInitNative();
+        if (Utils.isInstrumentationTestMode()) {
+            Log.w(TAG, "App is instrumented. Skip loading the native");
+        } else {
+            classInitNative();
+        }
     }
 
-    private static HeadsetNativeInterface sInterface;
+    @GuardedBy("INSTANCE_LOCK")
+    private static HeadsetNativeInterface sInstance;
+
     private static final Object INSTANCE_LOCK = new Object();
+
     private AdapterService mAdapterService;
 
     private HeadsetNativeInterface() {
@@ -56,11 +64,19 @@ public class HeadsetNativeInterface {
      */
     public static HeadsetNativeInterface getInstance() {
         synchronized (INSTANCE_LOCK) {
-            if (sInterface == null) {
-                sInterface = new HeadsetNativeInterface();
+            if (sInstance == null) {
+                sInstance = new HeadsetNativeInterface();
             }
+            return sInstance;
         }
-        return sInterface;
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(HeadsetNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
+        }
     }
 
     private void sendMessageToService(HeadsetStackEvent event) {

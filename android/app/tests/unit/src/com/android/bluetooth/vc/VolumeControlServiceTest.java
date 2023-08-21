@@ -44,13 +44,11 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.x.com.android.modules.utils.SynchronousResultReceiver;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -121,8 +119,8 @@ public class VolumeControlServiceTest {
         doReturn(CALL_MAX_VOL).when(mAudioManager)
                 .getStreamMaxVolume(eq(AudioManager.STREAM_VOICE_CALL));
 
+        VolumeControlNativeInterface.setInstance(mNativeInterface);
         startService();
-        mService.mVolumeControlNativeInterface = mNativeInterface;
         mService.mAudioManager = mAudioManager;
         mService.mFactory = mServiceFactory;
         mServiceBinder = (VolumeControlService.BluetoothVolumeControlBinder) mService.initBinder();
@@ -160,6 +158,7 @@ public class VolumeControlServiceTest {
         }
 
         stopService();
+        VolumeControlNativeInterface.setInstance(null);
         mTargetContext.unregisterReceiver(mVolumeControlIntentReceiver);
         mDeviceQueueMap.clear();
         TestUtils.clearAdapterService(mAdapterService);

@@ -805,7 +805,7 @@ static void energy_info_recv_callback(bt_activity_energy_info* p_energy_info,
   }
 
   sCallbackEnv->CallVoidMethod(
-      sJniAdapterServiceObj, method_energyInfo, p_energy_info->status,
+      sJniCallbacksObj, method_energyInfo, p_energy_info->status,
       p_energy_info->ctrl_state, p_energy_info->tx_time, p_energy_info->rx_time,
       p_energy_info->idle_time, p_energy_info->energy_used, array.get());
 }
@@ -898,7 +898,7 @@ static int acquire_wake_lock_callout(const char* lock_name) {
     ScopedLocalRef<jstring> lock_name_jni(env, env->NewStringUTF(lock_name));
     if (lock_name_jni.get()) {
       bool acquired = env->CallBooleanMethod(
-          sJniAdapterServiceObj, method_acquireWakeLock, lock_name_jni.get());
+          sJniCallbacksObj, method_acquireWakeLock, lock_name_jni.get());
       if (!acquired) ret = BT_STATUS_WAKELOCK_ERROR;
     } else {
       ALOGE("%s unable to allocate string: %s", __func__, lock_name);
@@ -929,7 +929,7 @@ static int release_wake_lock_callout(const char* lock_name) {
     ScopedLocalRef<jstring> lock_name_jni(env, env->NewStringUTF(lock_name));
     if (lock_name_jni.get()) {
       bool released = env->CallBooleanMethod(
-          sJniAdapterServiceObj, method_releaseWakeLock, lock_name_jni.get());
+          sJniCallbacksObj, method_releaseWakeLock, lock_name_jni.get());
       if (!released) ret = BT_STATUS_WAKELOCK_ERROR;
     } else {
       ALOGE("%s unable to allocate string: %s", __func__, lock_name);
@@ -1002,15 +1002,19 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
   method_adapterPropertyChangedCallback = env->GetMethodID(
       jniCallbackClass, "adapterPropertyChangedCallback", "([I[[B)V");
+
   method_discoveryStateChangeCallback = env->GetMethodID(
       jniCallbackClass, "discoveryStateChangeCallback", "(I)V");
 
   method_devicePropertyChangedCallback = env->GetMethodID(
       jniCallbackClass, "devicePropertyChangedCallback", "([B[I[[B)V");
+
   method_deviceFoundCallback =
       env->GetMethodID(jniCallbackClass, "deviceFoundCallback", "([B)V");
+
   method_pinRequestCallback =
       env->GetMethodID(jniCallbackClass, "pinRequestCallback", "([B[BIZ)V");
+
   method_sspRequestCallback =
       env->GetMethodID(jniCallbackClass, "sspRequestCallback", "([B[BIII)V");
 
@@ -1035,12 +1039,15 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_switchCodecCallback =
       env->GetMethodID(jniCallbackClass, "switchCodecCallback", "(Z)V");
 
-  method_acquireWakeLock =
-      env->GetMethodID(clazz, "acquireWakeLock", "(Ljava/lang/String;)Z");
-  method_releaseWakeLock =
-      env->GetMethodID(clazz, "releaseWakeLock", "(Ljava/lang/String;)Z");
-  method_energyInfo = env->GetMethodID(
-      clazz, "energyInfoCallback", "(IIJJJJ[Landroid/bluetooth/UidTraffic;)V");
+  method_acquireWakeLock = env->GetMethodID(jniCallbackClass, "acquireWakeLock",
+                                            "(Ljava/lang/String;)Z");
+
+  method_releaseWakeLock = env->GetMethodID(jniCallbackClass, "releaseWakeLock",
+                                            "(Ljava/lang/String;)Z");
+
+  method_energyInfo =
+      env->GetMethodID(jniCallbackClass, "energyInfoCallback",
+                       "(IIJJJJ[Landroid/bluetooth/UidTraffic;)V");
 
   if (env->GetJavaVM(&vm) != JNI_OK) {
     ALOGE("Could not get JavaVM");
@@ -1693,7 +1700,7 @@ static jboolean getRemoteServicesNative(JNIEnv* env, jobject obj,
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static int readEnergyInfo() {
+static int readEnergyInfoNative() {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1922,7 +1929,7 @@ static void metadataChangedNative(JNIEnv* env, jobject obj, jbyteArray address,
   return;
 }
 
-static jboolean isLogRedactionEnabled(JNIEnv* env, jobject obj) {
+static jboolean isLogRedactionEnabledNative(JNIEnv* env, jobject obj) {
   ALOGV("%s", __func__);
   return bluetooth::os::should_log_be_redacted();
 }
@@ -2169,7 +2176,7 @@ static JNINativeMethod sMethods[] = {
     {"pinReplyNative", "([BZI[B)Z", (void*)pinReplyNative},
     {"sspReplyNative", "([BIZI)Z", (void*)sspReplyNative},
     {"getRemoteServicesNative", "([BI)Z", (void*)getRemoteServicesNative},
-    {"readEnergyInfo", "()I", (void*)readEnergyInfo},
+    {"readEnergyInfoNative", "()I", (void*)readEnergyInfoNative},
     {"dumpNative", "(Ljava/io/FileDescriptor;[Ljava/lang/String;)V",
      (void*)dumpNative},
     {"dumpMetricsNative", "()[B", (void*)dumpMetricsNative},
@@ -2185,7 +2192,7 @@ static JNINativeMethod sMethods[] = {
      (void*)requestMaximumTxDataLengthNative},
     {"allowLowLatencyAudioNative", "(Z[B)Z", (void*)allowLowLatencyAudioNative},
     {"metadataChangedNative", "([BI[B)V", (void*)metadataChangedNative},
-    {"isLogRedactionEnabled", "()Z", (void*)isLogRedactionEnabled},
+    {"isLogRedactionEnabledNative", "()Z", (void*)isLogRedactionEnabledNative},
     {"interopMatchAddrNative", "(Ljava/lang/String;Ljava/lang/String;)Z",
      (void*)interopMatchAddrNative},
     {"interopMatchNameNative", "(Ljava/lang/String;Ljava/lang/String;)Z",
@@ -2206,7 +2213,7 @@ static JNINativeMethod sMethods[] = {
 
 int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env) {
   return jniRegisterNativeMethods(
-      env, "com/android/bluetooth/btservice/AdapterService", sMethods,
+      env, "com/android/bluetooth/btservice/AdapterNativeInterface", sMethods,
       NELEM(sMethods));
 }
 
