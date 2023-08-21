@@ -2851,7 +2851,7 @@ int register_com_android_bluetooth_gatt(JNIEnv* env) {
       env, "com/android/bluetooth/gatt/AdvertiseManagerNativeInterface",
       sAdvertiseMethods, NELEM(sAdvertiseMethods));
   register_success &= jniRegisterNativeMethods(
-      env, "com/android/bluetooth/gatt/PeriodicScanManager",
+      env, "com/android/bluetooth/gatt/PeriodicScanNativeInterface",
       sPeriodicScanMethods, NELEM(sPeriodicScanMethods));
   register_success &= jniRegisterNativeMethods(
       env, "com/android/bluetooth/gatt/DistanceMeasurementNativeInterface",

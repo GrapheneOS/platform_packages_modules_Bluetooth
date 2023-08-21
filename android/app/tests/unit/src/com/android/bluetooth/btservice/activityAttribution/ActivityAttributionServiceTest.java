@@ -41,9 +41,4 @@ public final class ActivityAttributionServiceTest {
 
     @Test
     public void testSetUpAndTearDown() {}
-
-    @Test
-    public void testNotifyActivityAttributionInfo() {
-        mActivityAttributionService.notifyActivityAttributionInfo(1, "myApp", "address1");
-    }
 }
