@@ -493,3 +493,23 @@ TEST_F(StackBtmWithInitFreeTest, wipe_secrets_and_remove) {
 
   wipe_secrets_and_remove(device_record);
 }
+
+bool is_disconnect_reason_valid(const tHCI_REASON& reason);
+TEST_F(StackBtmWithInitFreeTest, is_disconnect_reason_valid) {
+  std::set<tHCI_REASON> valid_reason_set{
+      HCI_ERR_AUTH_FAILURE,
+      HCI_ERR_PEER_USER,
+      HCI_ERR_REMOTE_LOW_RESOURCE,
+      HCI_ERR_REMOTE_POWER_OFF,
+      HCI_ERR_UNSUPPORTED_REM_FEATURE,
+      HCI_ERR_PAIRING_WITH_UNIT_KEY_NOT_SUPPORTED,
+      HCI_ERR_UNACCEPT_CONN_INTERVAL,
+  };
+  for (unsigned u = 0; u < 256; u++) {
+    const tHCI_REASON reason = static_cast<tHCI_REASON>(u);
+    if (valid_reason_set.count(reason))
+      ASSERT_TRUE(is_disconnect_reason_valid(reason));
+    else
+      ASSERT_FALSE(is_disconnect_reason_valid(reason));
+  }
+}
