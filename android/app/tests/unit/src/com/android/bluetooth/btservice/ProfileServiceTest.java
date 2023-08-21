@@ -70,6 +70,7 @@ public class ProfileServiceTest {
     @Rule public final ServiceTestRule mServiceTestRule = new ServiceTestRule();
     @Mock private AdapterService mMockAdapterService;
     @Mock private DatabaseManager mDatabaseManager;
+    @Mock private ActiveDeviceManager mActiveDeviceManager;
     @Mock private LocationManager mLocationManager;
 
     private Class[] mProfiles;
@@ -148,6 +149,7 @@ public class ProfileServiceTest {
             }
         });
         doReturn(mDatabaseManager).when(mMockAdapterService).getDatabase();
+        doReturn(mActiveDeviceManager).when(mMockAdapterService).getActiveDeviceManager();
 
         when(mMockAdapterService.getSystemService(Context.LOCATION_SERVICE))
                 .thenReturn(mLocationManager);
