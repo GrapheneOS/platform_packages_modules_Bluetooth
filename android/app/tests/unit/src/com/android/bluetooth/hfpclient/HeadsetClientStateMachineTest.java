@@ -97,7 +97,7 @@ public class HeadsetClientStateMachineTest {
     @Mock
     private AudioManager mAudioManager;
 
-    private NativeInterface mNativeInterface;
+    @Mock private NativeInterface mNativeInterface;
 
     private static final int STANDARD_WAIT_MILLIS = 1000;
     private static final int QUERY_CURRENT_CALLS_WAIT_MILLIS = 2000;
@@ -122,7 +122,6 @@ public class HeadsetClientStateMachineTest {
                 .thenReturn(2000);
 
         TestUtils.setAdapterService(mAdapterService);
-        mNativeInterface = spy(NativeInterface.getInstance());
         doReturn(true).when(mNativeInterface).sendAndroidAt(anyObject(), anyString());
 
         // This line must be called to make sure relevant objects are initialized properly

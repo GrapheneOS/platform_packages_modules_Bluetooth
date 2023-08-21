@@ -60,11 +60,16 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.bluetoothkeystore.BluetoothKeystoreNativeInterface;
+import com.android.bluetooth.gatt.AdvertiseManagerNativeInterface;
+import com.android.bluetooth.gatt.DistanceMeasurementNativeInterface;
+import com.android.bluetooth.gatt.GattNativeInterface;
+import com.android.bluetooth.gatt.PeriodicScanNativeInterface;
+import com.android.bluetooth.sdp.SdpManagerNativeInterface;
 import com.android.internal.app.IBatteryStats;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -91,6 +96,14 @@ public class AdapterServiceFactoryResetTest {
     private @Mock Binder mBinder;
     private @Mock android.app.Application mApplication;
     private @Mock MetricsLogger mMockMetricsLogger;
+    private @Mock AdapterNativeInterface mNativeInterface;
+    private @Mock BluetoothKeystoreNativeInterface mKeystoreNativeInterface;
+    private @Mock BluetoothQualityReportNativeInterface mQualityNativeInterface;
+    private @Mock SdpManagerNativeInterface mSdpNativeInterface;
+    private @Mock AdvertiseManagerNativeInterface mAdvertiseNativeInterface;
+    private @Mock DistanceMeasurementNativeInterface mDistanceNativeInterface;
+    private @Mock GattNativeInterface mGattNativeInterface;
+    private @Mock PeriodicScanNativeInterface mPeriodicNativeInterface;
 
     // SystemService that are not mocked
     private BluetoothManager mBluetoothManager;
@@ -116,11 +129,6 @@ public class AdapterServiceFactoryResetTest {
     private int mForegroundUserId;
     private TestLooper mLooper;
 
-    @BeforeClass
-    public static void setupClass() {
-        AdapterServiceTest.setupClass();
-    }
-
     <T> void mockGetSystemService(String serviceName, Class<T> serviceClass, T mockService) {
         when(mMockContext.getSystemService(eq(serviceName))).thenReturn(mockService);
         when(mMockContext.getSystemServiceName(eq(serviceClass))).thenReturn(serviceName);
@@ -139,6 +147,14 @@ public class AdapterServiceFactoryResetTest {
 
         mLooper = new TestLooper();
         Handler handler = new Handler(mLooper.getLooper());
+        AdapterNativeInterface.setInstance(mNativeInterface);
+        BluetoothKeystoreNativeInterface.setInstance(mKeystoreNativeInterface);
+        BluetoothQualityReportNativeInterface.setInstance(mQualityNativeInterface);
+        SdpManagerNativeInterface.setInstance(mSdpNativeInterface);
+        AdvertiseManagerNativeInterface.setInstance(mAdvertiseNativeInterface);
+        DistanceMeasurementNativeInterface.setInstance(mDistanceNativeInterface);
+        GattNativeInterface.setInstance(mGattNativeInterface);
+        PeriodicScanNativeInterface.setInstance(mPeriodicNativeInterface);
 
         // Post the creation of AdapterService since it rely on Looper.myLooper()
         handler.post(() -> mAdapterService = new AdapterService(mLooper.getLooper()));
@@ -259,6 +275,14 @@ public class AdapterServiceFactoryResetTest {
         Utils.setForegroundUserId(mForegroundUserId);
 
         mAdapterService.cleanup();
+        AdapterNativeInterface.setInstance(null);
+        BluetoothKeystoreNativeInterface.setInstance(null);
+        BluetoothQualityReportNativeInterface.setInstance(null);
+        SdpManagerNativeInterface.setInstance(null);
+        AdvertiseManagerNativeInterface.setInstance(null);
+        DistanceMeasurementNativeInterface.setInstance(null);
+        GattNativeInterface.setInstance(null);
+        PeriodicScanNativeInterface.setInstance(null);
     }
 
     void doEnable() {
@@ -268,7 +292,8 @@ public class AdapterServiceFactoryResetTest {
                 mAdapterService,
                 mMockContext,
                 false,
-                List.of(mMockService, mMockService2));
+                List.of(mMockService, mMockService2),
+                mNativeInterface);
     }
 
     /**
@@ -317,6 +342,7 @@ public class AdapterServiceFactoryResetTest {
      * native layer
      */
     @Test
+    @Ignore("b/296127545: BluetoothInstrumentationTests should not call native")
     public void testObfuscateBluetoothAddress_FactoryResetAndReloadNativeLayer()
             throws PackageManager.NameNotFoundException {
         byte[] metricsSalt1 = AdapterServiceTest.getMetricsSalt(mAdapterConfig);

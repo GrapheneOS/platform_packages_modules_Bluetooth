@@ -61,7 +61,7 @@ import com.android.bluetooth.IObexConnectionHandler;
 import com.android.bluetooth.ObexServerSockets;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
-import com.android.bluetooth.sdp.SdpManager;
+import com.android.bluetooth.sdp.SdpManagerNativeInterface;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.obex.ObexTransport;
 
@@ -514,15 +514,22 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         stopListeners();
         mServerSocket = ObexServerSockets.createInsecure(this);
         acceptNewConnections();
-        SdpManager sdpManager = SdpManager.getDefaultManager();
-        if (sdpManager == null || mServerSocket == null) {
-            Log.e(TAG, "ERROR:serversocket object is NULL  sdp manager :" + sdpManager
-                    + " mServerSocket:" + mServerSocket);
+        SdpManagerNativeInterface nativeInterface = SdpManagerNativeInterface.getInstance();
+        if (!nativeInterface.isAvailable()) {
+            Log.e(TAG, "ERROR:serversocket: SdpManagerNativeInterface is not available");
+            return;
+        }
+        if (mServerSocket == null) {
+            Log.e(TAG, "ERROR:serversocket: mServerSocket is null");
             return;
         }
         mOppSdpHandle =
-                sdpManager.createOppOpsRecord("OBEX Object Push", mServerSocket.getRfcommChannel(),
-                        mServerSocket.getL2capPsm(), 0x0102, SUPPORTED_OPP_FORMAT);
+                nativeInterface.createOppOpsRecord(
+                        "OBEX Object Push",
+                        mServerSocket.getRfcommChannel(),
+                        mServerSocket.getL2capPsm(),
+                        0x0102,
+                        SUPPORTED_OPP_FORMAT);
         if (D) {
             Log.d(TAG, "mOppSdpHandle :" + mOppSdpHandle);
         }
@@ -1238,12 +1245,12 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
     }
 
     private void stopListeners() {
-        if (mAdapterService != null && mOppSdpHandle >= 0
-                && SdpManager.getDefaultManager() != null) {
+        SdpManagerNativeInterface nativeInterface = SdpManagerNativeInterface.getInstance();
+        if (mAdapterService != null && mOppSdpHandle >= 0 && nativeInterface.isAvailable()) {
             if (D) {
                 Log.d(TAG, "Removing SDP record mOppSdpHandle :" + mOppSdpHandle);
             }
-            boolean status = SdpManager.getDefaultManager().removeSdpRecord(mOppSdpHandle);
+            boolean status = nativeInterface.removeSdpRecord(mOppSdpHandle);
             Log.d(TAG, "RemoveSDPrecord returns " + status);
             mOppSdpHandle = -1;
         }

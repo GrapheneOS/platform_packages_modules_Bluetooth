@@ -26,9 +26,7 @@ import static org.mockito.Mockito.verify;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothSinkAudioPolicy;
-import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.BatteryManager;
@@ -38,14 +36,12 @@ import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -67,16 +63,18 @@ public class HeadsetClientServiceTest {
 
     @Mock private AdapterService mAdapterService;
     @Mock private HeadsetClientStateMachine mStateMachine;
-
+    @Mock private NativeInterface mNativeInterface;
     @Mock private DatabaseManager mDatabaseManager;
 
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         MockitoAnnotations.initMocks(this);
+
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
+        NativeInterface.setInstance(mNativeInterface);
         TestUtils.startService(mServiceRule, HeadsetClientService.class);
         // At this point the service should have started so check NOT null
         mService = HeadsetClientService.getHeadsetClientService();
@@ -89,6 +87,7 @@ public class HeadsetClientServiceTest {
     @After
     public void tearDown() throws Exception {
         TestUtils.stopService(mServiceRule, HeadsetClientService.class);
+        NativeInterface.setInstance(null);
         mService = HeadsetClientService.getHeadsetClientService();
         Assert.assertNull(mService);
         TestUtils.clearAdapterService(mAdapterService);
