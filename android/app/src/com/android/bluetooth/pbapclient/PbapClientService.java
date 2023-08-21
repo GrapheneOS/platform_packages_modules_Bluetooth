@@ -41,7 +41,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.hfpclient.HfpClientConnectionService;
-import com.android.bluetooth.sdp.SdpManager;
+import com.android.bluetooth.sdp.SdpManagerNativeInterface;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.SynchronousResultReceiver;
 
@@ -258,13 +258,14 @@ public class PbapClientService extends ProfileService {
     }
 
     private void registerSdpRecord() {
-        SdpManager sdpManager = SdpManager.getDefaultManager();
-        if (sdpManager == null) {
-            Log.e(TAG, "SdpManager is null");
+        SdpManagerNativeInterface nativeInterface = SdpManagerNativeInterface.getInstance();
+        if (!nativeInterface.isAvailable()) {
+            Log.e(TAG, "SdpManagerNativeInterface is not available");
             return;
         }
-        mSdpHandle = sdpManager.createPbapPceRecord(SERVICE_NAME,
-                PbapClientConnectionHandler.PBAP_V1_2);
+        mSdpHandle =
+                nativeInterface.createPbapPceRecord(
+                        SERVICE_NAME, PbapClientConnectionHandler.PBAP_V1_2);
     }
 
     private void cleanUpSdpRecord() {
@@ -274,13 +275,17 @@ public class PbapClientService extends ProfileService {
         }
         int sdpHandle = mSdpHandle;
         mSdpHandle = -1;
-        SdpManager sdpManager = SdpManager.getDefaultManager();
-        if (sdpManager == null) {
-            Log.e(TAG, "cleanUpSdpRecord failed, sdpManager is null, sdpHandle=" + sdpHandle);
+        SdpManagerNativeInterface nativeInterface = SdpManagerNativeInterface.getInstance();
+        if (!nativeInterface.isAvailable()) {
+            Log.e(
+                    TAG,
+                    "cleanUpSdpRecord failed, SdpManagerNativeInterface is not available,"
+                            + " sdpHandle="
+                            + sdpHandle);
             return;
         }
         Log.i(TAG, "cleanUpSdpRecord, mSdpHandle=" + sdpHandle);
-        if (!sdpManager.removeSdpRecord(sdpHandle)) {
+        if (!nativeInterface.removeSdpRecord(sdpHandle)) {
             Log.e(TAG, "cleanUpSdpRecord, removeSdpRecord failed, sdpHandle=" + sdpHandle);
         }
     }

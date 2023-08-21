@@ -37,16 +37,21 @@ import java.util.Arrays;
  * LeAudio Native Interface to/from JNI.
  */
 public class LeAudioNativeInterface {
-    private static final String TAG = "LeAudioNativeInterface";
+    private static final String TAG = LeAudioNativeInterface.class.getSimpleName();
     private static final boolean DBG = true;
     private BluetoothAdapter mAdapter;
 
     @GuardedBy("INSTANCE_LOCK")
     private static LeAudioNativeInterface sInstance;
+
     private static final Object INSTANCE_LOCK = new Object();
 
     static {
-        classInitNative();
+        if (Utils.isInstrumentationTestMode()) {
+            Log.w(TAG, "App is instrumented. Skip loading the native");
+        } else {
+            classInitNative();
+        }
     }
 
     private LeAudioNativeInterface() {

@@ -41,10 +41,15 @@ public class LeAudioBroadcasterNativeInterface {
 
     @GuardedBy("INSTANCE_LOCK")
     private static LeAudioBroadcasterNativeInterface sInstance;
+
     private static final Object INSTANCE_LOCK = new Object();
 
     static {
-        classInitNative();
+        if (Utils.isInstrumentationTestMode()) {
+            Log.w(TAG, "App is instrumented. Skip loading the native");
+        } else {
+            classInitNative();
+        }
     }
 
     private LeAudioBroadcasterNativeInterface() {
@@ -63,6 +68,14 @@ public class LeAudioBroadcasterNativeInterface {
                 sInstance = new LeAudioBroadcasterNativeInterface();
             }
             return sInstance;
+        }
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    static void setInstance(LeAudioBroadcasterNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
         }
     }
 

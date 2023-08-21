@@ -32,13 +32,11 @@ import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -97,18 +95,19 @@ public class A2dpSinkServiceTest {
         when(mDatabaseManager.setProfileConnectionPolicy(any(), anyInt(),
                 anyInt())).thenReturn(true);
         setMaxConnectedAudioDevices(1);
+        A2dpSinkNativeInterface.setInstance(mNativeInterface);
         TestUtils.startService(mServiceRule, A2dpSinkService.class);
         mService = A2dpSinkService.getA2dpSinkService();
         assertThat(mService).isNotNull();
         verify(mAdapterService).notifyActivityAttributionInfo(any(), any());
 
-        mService.mNativeInterface = mNativeInterface;
         doReturn(true).when(mNativeInterface).setActiveDevice(any());
     }
 
     @After
     public void tearDown() throws Exception {
         TestUtils.stopService(mServiceRule, A2dpSinkService.class);
+        A2dpSinkNativeInterface.setInstance(null);
         mService = A2dpSinkService.getA2dpSinkService();
         assertThat(mService).isNull();
         TestUtils.clearAdapterService(mAdapterService);

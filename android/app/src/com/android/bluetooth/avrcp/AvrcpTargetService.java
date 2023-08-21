@@ -224,7 +224,7 @@ public class AvrcpTargetService extends ProfileService {
 
         mPlayerSettingsManager = new PlayerSettingsManager(mMediaPlayerList, this);
 
-        mNativeInterface = AvrcpNativeInterface.getInterface();
+        mNativeInterface = AvrcpNativeInterface.getInstance();
         mNativeInterface.init(AvrcpTargetService.this);
 
         mAvrcpVersion = AvrcpVersion.getCurrentSystemPropertiesValue();

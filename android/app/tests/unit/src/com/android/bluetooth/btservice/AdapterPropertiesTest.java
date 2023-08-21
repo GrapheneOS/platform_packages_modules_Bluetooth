@@ -53,12 +53,14 @@ public class AdapterPropertiesTest {
     private Context mTargetContext;
 
     @Mock private AdapterService mAdapterService;
+    @Mock private AdapterNativeInterface mNativeInterface;
 
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
 
         MockitoAnnotations.initMocks(this);
+        doReturn(mNativeInterface).when(mAdapterService).getNative();
         mHandlerThread = new HandlerThread("RemoteDevicesTestHandlerThread");
         mHandlerThread.start();
 
@@ -73,7 +75,7 @@ public class AdapterPropertiesTest {
         when(mAdapterService.getIdentityAddress(
                         Utils.getAddressStringFromByte(TEST_BT_ADDR_BYTES_2)))
                 .thenReturn(Utils.getAddressStringFromByte(TEST_BT_ADDR_BYTES));
-        when(mAdapterService.removeBondNative(any(byte[].class))).thenReturn(true);
+        when(mNativeInterface.removeBond(any(byte[].class))).thenReturn(true);
 
         mRemoteDevices = new RemoteDevices(mAdapterService, mHandlerThread.getLooper());
         verify(mAdapterService, times(1)).getSystemService(Context.BLUETOOTH_SERVICE);

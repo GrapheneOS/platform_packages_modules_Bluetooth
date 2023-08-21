@@ -18,17 +18,16 @@ package com.android.bluetooth.gatt;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertisingSetParameters;
 import android.bluetooth.le.PeriodicAdvertisingParameters;
-import android.content.Context;
-import android.location.LocationManager;
+import android.content.pm.PackageManager;
 import android.os.Binder;
 
-import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
@@ -54,17 +53,15 @@ import java.util.UUID;
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class ContextMapTest {
-
-    private GattService mService;
+    private static final String APP_NAME = "com.android.what.a.name";
 
     @Rule
     public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
-    @Mock
-    private AdapterService mAdapterService;
-
-    @Mock
-    private AppAdvertiseStats appAdvertiseStats;
+    @Mock private AdapterService mAdapterService;
+    @Mock private AppAdvertiseStats appAdvertiseStats;
+    @Mock private GattService mMockGatt;
+    @Mock private PackageManager mMockPackageManager;
 
     @Spy
     private BluetoothMethodProxy mMapMethodProxy = BluetoothMethodProxy.getInstance();
@@ -76,19 +73,13 @@ public class ContextMapTest {
 
         TestUtils.setAdapterService(mAdapterService);
 
-        TestUtils.mockGetSystemService(
-                mAdapterService, Context.LOCATION_SERVICE, LocationManager.class);
-
-        mService = new GattService(InstrumentationRegistry.getTargetContext());
-        mService.start();
+        doReturn(mMockPackageManager).when(mMockGatt).getPackageManager();
+        doReturn(APP_NAME).when(mMockPackageManager).getNameForUid(anyInt());
     }
 
     @After
     public void tearDown() throws Exception {
         BluetoothMethodProxy.setInstanceForTesting(null);
-
-        mService.stop();
-        mService = null;
 
         TestUtils.clearAdapterService(mAdapterService);
     }
@@ -98,18 +89,17 @@ public class ContextMapTest {
         ContextMap contextMap = new ContextMap<>();
 
         int id = 12345;
-        contextMap.add(id, null, mService);
+        contextMap.add(id, null, mMockGatt);
 
-        contextMap.add(UUID.randomUUID(), null, null, null, mService);
+        contextMap.add(UUID.randomUUID(), null, null, null, mMockGatt);
 
         int appUid = Binder.getCallingUid();
-        String appName = mService.getPackageManager().getNameForUid(appUid);
 
         ContextMap.App contextMapById = contextMap.getById(appUid);
-        assertThat(contextMapById.name).isEqualTo(appName);
+        assertThat(contextMapById.name).isEqualTo(APP_NAME);
 
-        ContextMap.App contextMapByName = contextMap.getByName(appName);
-        assertThat(contextMapByName.name).isEqualTo(appName);
+        ContextMap.App contextMapByName = contextMap.getByName(APP_NAME);
+        assertThat(contextMapByName.name).isEqualTo(APP_NAME);
     }
 
     @Test
@@ -118,11 +108,11 @@ public class ContextMapTest {
 
         int appUid = Binder.getCallingUid();
         int id = 12345;
-        String appName = mService.getPackageManager().getNameForUid(appUid);
-        doReturn(appAdvertiseStats).when(mMapMethodProxy)
-                .createAppAdvertiseStats(appUid, id, appName, contextMap, mService);
+        doReturn(appAdvertiseStats)
+                .when(mMapMethodProxy)
+                .createAppAdvertiseStats(appUid, id, APP_NAME, contextMap, mMockGatt);
 
-        contextMap.add(id, null, mService);
+        contextMap.add(id, null, mMockGatt);
 
         int duration = 60;
         int maxExtAdvEvents = 100;
@@ -177,14 +167,14 @@ public class ContextMapTest {
         ContextMap contextMap = new ContextMap<>();
 
         int id = 12345;
-        contextMap.add(id, null, mService);
+        contextMap.add(id, null, mMockGatt);
 
-        contextMap.add(UUID.randomUUID(), null, null, null, mService);
+        contextMap.add(UUID.randomUUID(), null, null, null, mMockGatt);
 
         contextMap.recordAdvertiseStop(id);
 
         int idSecond = 54321;
-        contextMap.add(idSecond, null, mService);
+        contextMap.add(idSecond, null, mMockGatt);
 
         contextMap.dump(sb);
 
