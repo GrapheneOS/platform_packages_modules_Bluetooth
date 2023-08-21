@@ -547,8 +547,12 @@ final class RemoteDevices {
         void setAlias(BluetoothDevice device, String mAlias) {
             synchronized (mObject) {
                 this.mAlias = mAlias;
-                mAdapterService.setDevicePropertyNative(mAddress,
-                        AbstractionLayer.BT_PROPERTY_REMOTE_FRIENDLY_NAME, mAlias.getBytes());
+                mAdapterService
+                        .getNative()
+                        .setDeviceProperty(
+                                mAddress,
+                                AbstractionLayer.BT_PROPERTY_REMOTE_FRIENDLY_NAME,
+                                mAlias.getBytes());
                 Intent intent = new Intent(BluetoothDevice.ACTION_ALIAS_CHANGED);
                 intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
                 intent.putExtra(BluetoothDevice.EXTRA_NAME, mAlias);
@@ -1275,8 +1279,9 @@ final class RemoteDevices {
         // Uses cached UUIDs if we are bonding. If not, we fetch the UUIDs with SDP.
         if (deviceProperties == null || !deviceProperties.isBonding()) {
             // SDP Invoked native code to spin up SDP cycle
-            mAdapterService.getRemoteServicesNative(Utils.getBytesFromAddress(device.getAddress()),
-                    transport);
+            mAdapterService
+                    .getNative()
+                    .getRemoteServices(Utils.getBytesFromAddress(device.getAddress()), transport);
             MetricsLogger.getInstance().cacheCount(
                     BluetoothProtoEnums.SDP_INVOKE_SDP_CYCLE, 1);
         }

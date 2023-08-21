@@ -33,16 +33,23 @@ import java.util.Arrays;
  * Hearing Access Profile Client Native Interface to/from JNI.
  */
 public class HapClientNativeInterface {
-    private static final String TAG = "HapClientNativeInterface";
-    private static final boolean DBG = true;
+    private static final String TAG =
+            HapClientNativeInterface.class.getSimpleName().substring(0, 23);
+    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
+
     private final BluetoothAdapter mAdapter;
 
     @GuardedBy("INSTANCE_LOCK")
     private static HapClientNativeInterface sInstance;
+
     private static final Object INSTANCE_LOCK = new Object();
 
     static {
-        classInitNative();
+        if (Utils.isInstrumentationTestMode()) {
+            Log.w(TAG, "App is instrumented. Skip loading the native");
+        } else {
+            classInitNative();
+        }
     }
 
     private HapClientNativeInterface() {
@@ -61,6 +68,14 @@ public class HapClientNativeInterface {
                 sInstance = new HapClientNativeInterface();
             }
             return sInstance;
+        }
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(HapClientNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
         }
     }
 
@@ -346,7 +361,7 @@ public class HapClientNativeInterface {
         event.valueList = new ArrayList<>(Arrays.asList(presets));
 
         if (DBG) {
-            Log.d(TAG, "onPresetInfo: " + event);
+            Log.d(TAG, "onGroupPresetInfo: " + event);
         }
         sendMessageToService(event);
     }
@@ -360,7 +375,7 @@ public class HapClientNativeInterface {
         event.valueInt2 = presetIndex;
 
         if (DBG) {
-            Log.d(TAG, "OnPresetNameSetError: " + event);
+            Log.d(TAG, "onPresetNameSetError: " + event);
         }
         sendMessageToService(event);
     }
@@ -374,7 +389,7 @@ public class HapClientNativeInterface {
         event.valueInt3 = groupId;
 
         if (DBG) {
-            Log.d(TAG, "OnPresetNameSetError: " + event);
+            Log.d(TAG, "onGroupPresetNameSetError: " + event);
         }
         sendMessageToService(event);
     }
@@ -402,7 +417,7 @@ public class HapClientNativeInterface {
         event.valueInt3 = groupId;
 
         if (DBG) {
-            Log.d(TAG, "onPresetInfoError: " + event);
+            Log.d(TAG, "onGroupPresetInfoError: " + event);
         }
         sendMessageToService(event);
     }

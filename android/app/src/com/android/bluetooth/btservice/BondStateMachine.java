@@ -320,7 +320,7 @@ final class BondStateMachine extends StateMachine {
     private boolean cancelBond(BluetoothDevice dev) {
         if (dev.getBondState() == BluetoothDevice.BOND_BONDING) {
             byte[] addr = Utils.getBytesFromAddress(dev.getAddress());
-            if (!mAdapterService.cancelBondNative(addr)) {
+            if (!mAdapterService.getNative().cancelBond(addr)) {
                 Log.e(TAG, "Unexpected error while cancelling bond:");
             } else {
                 return true;
@@ -333,7 +333,7 @@ final class BondStateMachine extends StateMachine {
         DeviceProperties devProp = mRemoteDevices.getDeviceProperties(dev);
         if (devProp != null && devProp.getBondState() == BluetoothDevice.BOND_BONDED) {
             byte[] addr = Utils.getBytesFromAddress(dev.getAddress());
-            if (!mAdapterService.removeBondNative(addr)) {
+            if (!mAdapterService.getNative().removeBond(addr)) {
                 Log.e(TAG, "Unexpected error while removing bond:");
             } else {
                 if (transition) {
@@ -363,15 +363,18 @@ final class BondStateMachine extends StateMachine {
                       BluetoothDevice.BOND_BONDING,
                       BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_START_PAIRING_OOB,
                       BluetoothProtoEnums.UNBOND_REASON_UNKNOWN, mAdapterService.getMetricId(dev));
-                result = mAdapterService.createBondOutOfBandNative(addr, transport,
-                    remoteP192Data, remoteP256Data);
+                result =
+                        mAdapterService
+                                .getNative()
+                                .createBondOutOfBand(
+                                        addr, transport, remoteP192Data, remoteP256Data);
             } else {
                 BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
                       mAdapterService.obfuscateAddress(dev), transport, dev.getType(),
                       BluetoothDevice.BOND_BONDING,
                       BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_START_PAIRING,
                       BluetoothProtoEnums.UNBOND_REASON_UNKNOWN, mAdapterService.getMetricId(dev));
-                result = mAdapterService.createBondNative(addr, addrType, transport);
+                result = mAdapterService.getNative().createBond(addr, addrType, transport);
             }
             BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_DEVICE_NAME_REPORTED,
                     mAdapterService.getMetricId(dev), dev.getName());

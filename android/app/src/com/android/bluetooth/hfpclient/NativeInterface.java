@@ -23,7 +23,9 @@ package com.android.bluetooth.hfpclient;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.Objects;
@@ -36,18 +38,26 @@ import java.util.Objects;
 public class NativeInterface {
     private static final String TAG = "NativeInterface";
     private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
+
     private AdapterService mAdapterService;
 
+    @GuardedBy("INSTANCE_LOCK")
+    private static NativeInterface sInstance;
+
+    private static final Object INSTANCE_LOCK = new Object();
+
     static {
-        classInitNative();
+        if (Utils.isInstrumentationTestMode()) {
+            Log.w(TAG, "App is instrumented. Skip loading the native");
+        } else {
+            classInitNative();
+        }
     }
 
     private NativeInterface() {
         mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
                 "AdapterService cannot be null when NativeInterface init");
     }
-    private static NativeInterface sInterface;
-    private static final Object INSTANCE_LOCK = new Object();
 
     /**
      * This class is a singleton because native library should only be loaded once
@@ -56,11 +66,19 @@ public class NativeInterface {
      */
     public static NativeInterface getInstance() {
         synchronized (INSTANCE_LOCK) {
-            if (sInterface == null) {
-                sInterface = new NativeInterface();
+            if (sInstance == null) {
+                sInstance = new NativeInterface();
             }
+            return sInstance;
         }
-        return sInterface;
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(NativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
+        }
     }
 
     // Native wrappers to help unit testing

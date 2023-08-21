@@ -94,7 +94,7 @@ public class HeadsetStateMachineTest {
     @Mock private HeadsetPhoneState mPhoneState;
     @Mock private Intent mIntent;
     private MockContentResolver mMockContentResolver;
-    private HeadsetNativeInterface mNativeInterface;
+    @Mock private HeadsetNativeInterface mNativeInterface;
 
     @Before
     public void setUp() throws Exception {
@@ -114,9 +114,6 @@ public class HeadsetStateMachineTest {
         doReturn(true).when(mDatabaseManager).setAudioPolicyMetadata(anyObject(), anyObject());
         // Get an active device manager
         doReturn(mActiveDeviceManager).when(mAdapterService).getActiveDeviceManager();
-        // Spy on native interface
-        mNativeInterface = spy(HeadsetNativeInterface.getInstance());
-        doNothing().when(mNativeInterface).init(anyInt(), anyBoolean());
         doReturn(true).when(mNativeInterface).connectHfp(mTestDevice);
         doReturn(true).when(mNativeInterface).disconnectHfp(mTestDevice);
         doReturn(true).when(mNativeInterface).connectAudio(mTestDevice);

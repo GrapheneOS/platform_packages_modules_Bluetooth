@@ -317,15 +317,18 @@ class AdapterProperties {
      */
     boolean setName(String name) {
         synchronized (mObject) {
-            return mService.setAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDNAME,
-                    name.getBytes());
+            return mService.getNative()
+                    .setAdapterProperty(AbstractionLayer.BT_PROPERTY_BDNAME, name.getBytes());
         }
     }
 
     boolean setIoCapability(int capability) {
         synchronized (mObject) {
-            boolean result = mService.setAdapterPropertyNative(
-                    AbstractionLayer.BT_PROPERTY_LOCAL_IO_CAPS, Utils.intToByteArray(capability));
+            boolean result =
+                    mService.getNative()
+                            .setAdapterProperty(
+                                    AbstractionLayer.BT_PROPERTY_LOCAL_IO_CAPS,
+                                    Utils.intToByteArray(capability));
 
             if (result) {
                 mLocalIOCapability = capability;
@@ -360,8 +363,10 @@ class AdapterProperties {
     boolean setScanMode(int scanMode) {
         addScanChangeLog(scanMode);
         synchronized (mObject) {
-            return mService.setAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_ADAPTER_SCAN_MODE,
-                    Utils.intToByteArray(AdapterService.convertScanModeToHal(scanMode)));
+            return mService.getNative()
+                    .setAdapterProperty(
+                            AbstractionLayer.BT_PROPERTY_ADAPTER_SCAN_MODE,
+                            Utils.intToByteArray(AdapterService.convertScanModeToHal(scanMode)));
         }
     }
 
@@ -586,7 +591,7 @@ class AdapterProperties {
      * @param size the size to set
      */
     boolean setBufferLengthMillis(int codec, int size) {
-        return mService.setBufferLengthMillisNative(codec, size);
+        return mService.getNative().setBufferLengthMillis(codec, size);
     }
 
     /**
@@ -653,7 +658,8 @@ class AdapterProperties {
             String address = device.getAddress();
             String identityAddress = mService.getIdentityAddress(address);
             if (currentIdentityAddress.equals(identityAddress) && !currentAddress.equals(address)) {
-                if (mService.removeBondNative(Utils.getBytesFromAddress(device.getAddress()))) {
+                if (mService.getNative()
+                        .removeBond(Utils.getBytesFromAddress(device.getAddress()))) {
                     mBondedDevices.remove(device);
                     infoLog("Removing old bond record: "
                                     + device
@@ -676,9 +682,10 @@ class AdapterProperties {
 
     boolean setDiscoverableTimeout(int timeout) {
         synchronized (mObject) {
-            return mService.setAdapterPropertyNative(
-                    AbstractionLayer.BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT,
-                    Utils.intToByteArray(timeout));
+            return mService.getNative()
+                    .setAdapterProperty(
+                            AbstractionLayer.BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT,
+                            Utils.intToByteArray(timeout));
         }
     }
 

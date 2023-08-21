@@ -47,10 +47,15 @@ public class A2dpNativeInterface {
 
     @GuardedBy("INSTANCE_LOCK")
     private static A2dpNativeInterface sInstance;
+
     private static final Object INSTANCE_LOCK = new Object();
 
     static {
-        classInitNative();
+        if (Utils.isInstrumentationTestMode()) {
+            Log.w(TAG, "App is instrumented. Skip loading the native");
+        } else {
+            classInitNative();
+        }
     }
 
     @VisibleForTesting
@@ -75,22 +80,29 @@ public class A2dpNativeInterface {
         }
     }
 
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(A2dpNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
+        }
+    }
+
     /**
      * Initializes the native interface.
      *
      * @param maxConnectedAudioDevices maximum number of A2DP Sink devices that can be connected
-     * simultaneously
-     * @param codecConfigPriorities an array with the codec configuration
-     * priorities to configure.
+     *     simultaneously
+     * @param codecConfigPriorities an array with the codec configuration priorities to configure.
      */
-    public void init(int maxConnectedAudioDevices, BluetoothCodecConfig[] codecConfigPriorities,
+    public void init(
+            int maxConnectedAudioDevices,
+            BluetoothCodecConfig[] codecConfigPriorities,
             BluetoothCodecConfig[] codecConfigOffloading) {
         initNative(maxConnectedAudioDevices, codecConfigPriorities, codecConfigOffloading);
     }
 
-    /**
-     * Cleanup the native interface.
-     */
+    /** Cleanup the native interface. */
     public void cleanup() {
         cleanupNative();
     }

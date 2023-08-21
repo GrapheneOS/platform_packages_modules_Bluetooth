@@ -95,6 +95,7 @@ public class GattServiceTest {
     @Mock private Set<String> mReliableQueue;
     @Mock private GattService.ServerMap mServerMap;
     @Mock private DistanceMeasurementManager mDistanceMeasurementManager;
+    @Mock private AdvertiseManagerNativeInterface mAdvertiseManagerNativeInterface;
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
@@ -139,6 +140,7 @@ public class GattServiceTest {
         mBtCompanionManager = new CompanionManager(mAdapterService, null);
         doReturn(mBtCompanionManager).when(mAdapterService).getCompanionManager();
 
+        AdvertiseManagerNativeInterface.setInstance(mAdvertiseManagerNativeInterface);
         mService = new GattService(InstrumentationRegistry.getTargetContext());
         mService.start();
 
@@ -152,6 +154,7 @@ public class GattServiceTest {
     public void tearDown() throws Exception {
         mService.stop();
         mService = null;
+        AdvertiseManagerNativeInterface.setInstance(null);
 
         TestUtils.clearAdapterService(mAdapterService);
         GattObjectsFactory.setInstanceForTesting(null);
