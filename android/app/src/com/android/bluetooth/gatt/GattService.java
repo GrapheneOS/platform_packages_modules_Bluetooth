@@ -317,8 +317,6 @@ public class GattService extends ProfileService {
         return false;
     };
 
-    private static GattService sGattService;
-
     /**
      * Reliable write queue
      */
@@ -350,7 +348,7 @@ public class GattService extends ProfileService {
         mAdvertiseManager =
                 new AdvertiseManager(
                         this,
-                        new AdvertiseManagerNativeInterface(),
+                        AdvertiseManagerNativeInterface.getInstance(),
                         mAdapterService,
                         mAdvertiserMap);
         mAdvertiseManager.start();
@@ -367,7 +365,6 @@ public class GattService extends ProfileService {
                 .createDistanceMeasurementManager(mAdapterService);
         mDistanceMeasurementManager.start();
 
-        setGattService(this);
         return true;
     }
 
@@ -376,7 +373,6 @@ public class GattService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "stop()");
         }
-        setGattService(null);
         mScannerMap.clear();
         mAdvertiserMap.clear();
         mClientMap.clear();
@@ -445,24 +441,6 @@ public class GattService extends ProfileService {
         }
     }
 
-    /**
-     * Get the current instance of {@link GattService}
-     *
-     * @return current instance of {@link GattService}
-     */
-    @VisibleForTesting
-    public static synchronized GattService getGattService() {
-        if (sGattService == null) {
-            Log.w(TAG, "getGattService(): service is null");
-            return null;
-        }
-        if (!sGattService.isAvailable()) {
-            Log.w(TAG, "getGattService(): service is not available");
-            return null;
-        }
-        return sGattService;
-    }
-
     @VisibleForTesting
     ScanManager getScanManager() {
         if (mScanManager == null) {
@@ -470,13 +448,6 @@ public class GattService extends ProfileService {
             return null;
         }
         return mScanManager;
-    }
-
-    private static synchronized void setGattService(GattService instance) {
-        if (DBG) {
-            Log.d(TAG, "setGattService(): set to: " + instance);
-        }
-        sGattService = instance;
     }
 
     // Suppressed because we are conditionally enforcing

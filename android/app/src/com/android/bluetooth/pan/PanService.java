@@ -94,27 +94,24 @@ public class PanService extends ProfileService {
 
     private AdapterService mAdapterService;
 
+    @VisibleForTesting PanNativeInterface mNativeInterface;
+
     TetheringManager.TetheringEventCallback mTetheringCallback =
             new TetheringManager.TetheringEventCallback() {
                 @Override
                 public void onError(TetheringInterface iface, int error) {
-                    if (mIsTethering
-                            && iface.getType() == TetheringManager.TETHERING_BLUETOOTH) {
+                    if (mIsTethering && iface.getType() == TetheringManager.TETHERING_BLUETOOTH) {
                         // tethering is fail because of @TetheringIfaceError error.
                         Log.e(TAG, "Error setting up tether interface: " + error);
                         for (Map.Entry device : mPanDevices.entrySet()) {
-                            disconnectPanNative(Utils.getByteAddress(
-                                    (BluetoothDevice) device.getKey()));
+                            mNativeInterface.disconnect(
+                                    Utils.getByteAddress((BluetoothDevice) device.getKey()));
                         }
                         mPanDevices.clear();
                         mIsTethering = false;
                     }
                 }
             };
-
-    static {
-        classInitNative();
-    }
 
     public static boolean isEnabled() {
         return BluetoothProperties.isProfilePanNapEnabled().orElse(false)
@@ -151,6 +148,10 @@ public class PanService extends ProfileService {
                 "AdapterService cannot be null when PanService starts");
         mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
                 "DatabaseManager cannot be null when PanService starts");
+        mNativeInterface =
+                Objects.requireNonNull(
+                        PanNativeInterface.getInstance(),
+                        "PanNativeInterface cannot be null when PanService starts");
 
         mBluetoothTetheringCallbacks = new HashMap<>();
         mPanDevices = new HashMap<BluetoothDevice, BluetoothPanDevice>();
@@ -160,8 +161,7 @@ public class PanService extends ProfileService {
         } catch (NotFoundException e) {
             mMaxPanDevices = BLUETOOTH_MAX_PAN_CONNECTIONS;
         }
-        initializeNative();
-        mNativeAvailable = true;
+        mNativeInterface.init(this);
 
         mUserManager = getSystemService(UserManager.class);
 
@@ -184,6 +184,7 @@ public class PanService extends ProfileService {
             mTetheringManager.unregisterTetheringEventCallback(mTetheringCallback);
             mTetheringManager = null;
         }
+        mNativeInterface.cleanup();
         mHandler.removeCallbacksAndMessages(null);
         return true;
     }
@@ -192,10 +193,6 @@ public class PanService extends ProfileService {
     protected void cleanup() {
         // TODO(b/72948646): this should be moved to stop()
         setPanService(null);
-        if (mNativeAvailable) {
-            cleanupNative();
-            mNativeAvailable = false;
-        }
 
         mUserManager = null;
 
@@ -217,56 +214,75 @@ public class PanService extends ProfileService {
         }
     }
 
-    private final Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case MESSAGE_CONNECT: {
-                    BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    if (!connectPanNative(mAdapterService.getByteIdentityAddress(device),
-                            BluetoothPan.LOCAL_PANU_ROLE, BluetoothPan.REMOTE_NAP_ROLE)) {
-                        handlePanDeviceStateChange(device, null, BluetoothProfile.STATE_CONNECTING,
-                                BluetoothPan.LOCAL_PANU_ROLE, BluetoothPan.REMOTE_NAP_ROLE);
-                        handlePanDeviceStateChange(device, null,
-                                BluetoothProfile.STATE_DISCONNECTED, BluetoothPan.LOCAL_PANU_ROLE,
-                                BluetoothPan.REMOTE_NAP_ROLE);
-                        break;
+    private final Handler mHandler =
+            new Handler() {
+                @Override
+                public void handleMessage(Message msg) {
+                    switch (msg.what) {
+                        case MESSAGE_CONNECT:
+                            BluetoothDevice connectDevice = (BluetoothDevice) msg.obj;
+                            if (!mNativeInterface.connect(
+                                    mAdapterService.getByteIdentityAddress(connectDevice))) {
+                                handlePanDeviceStateChange(
+                                        connectDevice,
+                                        null,
+                                        BluetoothProfile.STATE_CONNECTING,
+                                        BluetoothPan.LOCAL_PANU_ROLE,
+                                        BluetoothPan.REMOTE_NAP_ROLE);
+                                handlePanDeviceStateChange(
+                                        connectDevice,
+                                        null,
+                                        BluetoothProfile.STATE_DISCONNECTED,
+                                        BluetoothPan.LOCAL_PANU_ROLE,
+                                        BluetoothPan.REMOTE_NAP_ROLE);
+                            }
+                            break;
+                        case MESSAGE_DISCONNECT:
+                            BluetoothDevice disconnectDevice = (BluetoothDevice) msg.obj;
+                            if (!mNativeInterface.disconnect(
+                                    mAdapterService.getByteIdentityAddress(disconnectDevice))) {
+                                handlePanDeviceStateChange(
+                                        disconnectDevice,
+                                        mPanIfName,
+                                        BluetoothProfile.STATE_DISCONNECTING,
+                                        BluetoothPan.LOCAL_PANU_ROLE,
+                                        BluetoothPan.REMOTE_NAP_ROLE);
+                                handlePanDeviceStateChange(
+                                        disconnectDevice,
+                                        mPanIfName,
+                                        BluetoothProfile.STATE_DISCONNECTED,
+                                        BluetoothPan.LOCAL_PANU_ROLE,
+                                        BluetoothPan.REMOTE_NAP_ROLE);
+                            }
+                            break;
+                        case MESSAGE_CONNECT_STATE_CHANGED:
+                            ConnectState cs = (ConnectState) msg.obj;
+                            final BluetoothDevice device =
+                                    mAdapterService.getDeviceFromByte(cs.addr);
+                            // TBD get iface from the msg
+                            if (DBG) {
+                                Log.d(
+                                        TAG,
+                                        "MESSAGE_CONNECT_STATE_CHANGED: "
+                                                + device
+                                                + " state: "
+                                                + cs.state);
+                            }
+                            // It could be null if the connection up is coming when the
+                            // Bluetooth is turning off.
+                            if (device == null) {
+                                break;
+                            }
+                            handlePanDeviceStateChange(
+                                    device,
+                                    mPanIfName /* iface */,
+                                    cs.state,
+                                    cs.local_role,
+                                    cs.remote_role);
+                            break;
                     }
                 }
-                break;
-                case MESSAGE_DISCONNECT: {
-                    BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    if (!disconnectPanNative(mAdapterService.getByteIdentityAddress(device))) {
-                        handlePanDeviceStateChange(device, mPanIfName,
-                                BluetoothProfile.STATE_DISCONNECTING, BluetoothPan.LOCAL_PANU_ROLE,
-                                BluetoothPan.REMOTE_NAP_ROLE);
-                        handlePanDeviceStateChange(device, mPanIfName,
-                                BluetoothProfile.STATE_DISCONNECTED, BluetoothPan.LOCAL_PANU_ROLE,
-                                BluetoothPan.REMOTE_NAP_ROLE);
-                        break;
-                    }
-                }
-                break;
-                case MESSAGE_CONNECT_STATE_CHANGED: {
-                    ConnectState cs = (ConnectState) msg.obj;
-                    final BluetoothDevice device = mAdapterService.getDeviceFromByte(cs.addr);
-                    // TBD get iface from the msg
-                    if (DBG) {
-                        Log.d(TAG,
-                                "MESSAGE_CONNECT_STATE_CHANGED: " + device + " state: " + cs.state);
-                    }
-                    // It could be null if the connection up is coming when the Bluetooth is turning
-                    // off.
-                    if (device == null) {
-                        break;
-                    }
-                    handlePanDeviceStateChange(device, mPanIfName /* iface */,
-                            convertHalState(cs.state), cs.local_role, cs.remote_role);
-                }
-                break;
-            }
-        }
-    };
+            };
 
     /**
      * Handlers for incoming service calls
@@ -603,7 +619,6 @@ public class PanService extends ProfileService {
         public int remote_role;
     }
 
-    @VisibleForTesting
     void onConnectStateChanged(byte[] address, int state, int error, int localRole,
             int remoteRole) {
         if (DBG) {
@@ -626,22 +641,6 @@ public class PanService extends ProfileService {
         }
     }
 
-    @VisibleForTesting
-    static int convertHalState(int halState) {
-        switch (halState) {
-            case CONN_STATE_CONNECTED:
-                return BluetoothProfile.STATE_CONNECTED;
-            case CONN_STATE_CONNECTING:
-                return BluetoothProfile.STATE_CONNECTING;
-            case CONN_STATE_DISCONNECTED:
-                return BluetoothProfile.STATE_DISCONNECTED;
-            case CONN_STATE_DISCONNECTING:
-                return BluetoothProfile.STATE_DISCONNECTING;
-            default:
-                Log.e(TAG, "bad pan connection state: " + halState);
-                return BluetoothProfile.STATE_DISCONNECTED;
-        }
-    }
 
     void handlePanDeviceStateChange(BluetoothDevice device, String iface, int state,
             @LocalPanRole int localRole, @RemotePanRole int remoteRole) {
@@ -688,7 +687,7 @@ public class PanService extends ProfileService {
                     Log.d(TAG, "handlePanDeviceStateChange BT tethering is off/Local role"
                             + " is PANU drop the connection");
                     mPanDevices.remove(device);
-                    disconnectPanNative(Utils.getByteAddress(device));
+                    mNativeInterface.disconnect(Utils.getByteAddress(device));
                     return;
                 }
                 Log.d(TAG, "handlePanDeviceStateChange LOCAL_NAP_ROLE:REMOTE_PANU_ROLE");
@@ -776,26 +775,4 @@ public class PanService extends ProfileService {
             mRemoteRole = remoteRole;
         }
     }
-
-    // Constants matching Hal header file bt_hh.h
-    // bthh_connection_state_t
-    @VisibleForTesting
-    static final int CONN_STATE_CONNECTED = 0;
-    @VisibleForTesting
-    static final int CONN_STATE_CONNECTING = 1;
-    @VisibleForTesting
-    static final int CONN_STATE_DISCONNECTED = 2;
-    @VisibleForTesting
-    static final int CONN_STATE_DISCONNECTING = 3;
-
-    private static native void classInitNative();
-
-    private native void initializeNative();
-
-    private native void cleanupNative();
-
-    private native boolean connectPanNative(byte[] btAddress, int localRole, int remoteRole);
-
-    private native boolean disconnectPanNative(byte[] btAddress);
-
 }
