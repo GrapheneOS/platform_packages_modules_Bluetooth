@@ -501,10 +501,11 @@ class DualModeController : public Device {
 
   // Vendor-specific Commands
   void LeGetVendorCapabilities(CommandView command);
-  void LeEnergyInfo(CommandView command);
-  void LeMultiAdv(CommandView command);
-  void LeAdvertisingFilter(CommandView command);
-  void LeExtendedScanParams(CommandView command);
+  void LeBatchScan(CommandView command);
+  void LeApcf(CommandView command);
+  void LeGetControllerActivityEnergyInfo(CommandView command);
+  void LeExSetScanParameters(CommandView command);
+  void GetControllerDebugInfo(CommandView command);
 
   // CSR vendor command.
   // Implement the command specific to the CSR controller
