@@ -17,7 +17,6 @@
 package com.android.bluetooth.btservice;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -35,8 +34,15 @@ import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
+import com.android.bluetooth.a2dp.A2dpNativeInterface;
+import com.android.bluetooth.avrcp.AvrcpNativeInterface;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.gatt.GattService;
+import com.android.bluetooth.hearingaid.HearingAidNativeInterface;
+import com.android.bluetooth.hfp.HeadsetNativeInterface;
+import com.android.bluetooth.hid.HidDeviceNativeInterface;
+import com.android.bluetooth.hid.HidHostNativeInterface;
+import com.android.bluetooth.pan.PanNativeInterface;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -76,11 +82,19 @@ public class ProfileServiceTest {
             mStartedProfileMap.put(profile.getSimpleName(), false);
         }
         Intent startIntent = new Intent(InstrumentationRegistry.getTargetContext(), profile);
-        startIntent.putExtra(AdapterService.EXTRA_ACTION,
-                AdapterService.ACTION_SERVICE_STATE_CHANGED);
+        startIntent.putExtra(
+                AdapterService.EXTRA_ACTION, AdapterService.ACTION_SERVICE_STATE_CHANGED);
         startIntent.putExtra(BluetoothAdapter.EXTRA_STATE, state);
         mServiceTestRule.startService(startIntent);
     }
+
+    @Mock private A2dpNativeInterface mA2dpNativeInterface;
+    @Mock private AvrcpNativeInterface mAvrcpNativeInterface;
+    @Mock private HeadsetNativeInterface mHeadsetNativeInterface;
+    @Mock private HearingAidNativeInterface mHearingAidNativeInterface;
+    @Mock private HidDeviceNativeInterface mHidDeviceNativeInterface;
+    @Mock private HidHostNativeInterface mHidHostNativeInterface;
+    @Mock private PanNativeInterface mPanNativeInterface;
 
     private void setAllProfilesState(int state, int invocationNumber) throws TimeoutException {
         int profileCount = mProfiles.length;
@@ -140,42 +154,37 @@ public class ProfileServiceTest {
         when(mMockAdapterService.getSystemServiceName(LocationManager.class))
                 .thenReturn(Context.LOCATION_SERVICE);
 
-        // Despite calling on the Mock of adapterService, mockito cannot handle native method and
-        // will call the real method instead, allowing to initialize the native library
-        // when(mMockAdapterService.initNative(anyBoolean(), anyBoolean(), anyInt(), any(),
-        // anyBoolean(), anyString())).thenCallRealMethod();
-        doCallRealMethod()
-                .when(mMockAdapterService)
-                .initNative(anyBoolean(), anyBoolean(), anyInt(), any(), anyBoolean(), anyString());
-        doCallRealMethod().when(mMockAdapterService).enableNative();
-        doCallRealMethod().when(mMockAdapterService).disableNative();
-        doCallRealMethod().when(mMockAdapterService).cleanupNative();
-
         mProfiles = Config.getSupportedProfiles();
         TestUtils.setAdapterService(mMockAdapterService);
 
         Assert.assertNotNull(AdapterService.getAdapterService());
 
-        mMockAdapterService.initNative(false /* is_restricted */,
-                false /* is_common_criteria_mode */, 0 /* config_compare_result */,
-                new String[0], false, "");
-        mMockAdapterService.enableNative();
+        A2dpNativeInterface.setInstance(mA2dpNativeInterface);
+        AvrcpNativeInterface.setInstance(mAvrcpNativeInterface);
+        HeadsetNativeInterface.setInstance(mHeadsetNativeInterface);
+        HearingAidNativeInterface.setInstance(mHearingAidNativeInterface);
+        HidDeviceNativeInterface.setInstance(mHidDeviceNativeInterface);
+        HidHostNativeInterface.setInstance(mHidHostNativeInterface);
+        PanNativeInterface.setInstance(mPanNativeInterface);
     }
 
     @After
     public void tearDown()
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        mMockAdapterService.disableNative();
-        mMockAdapterService.cleanupNative();
-
         TestUtils.clearAdapterService(mMockAdapterService);
         mMockAdapterService = null;
         mProfiles = null;
+        A2dpNativeInterface.setInstance(null);
+        AvrcpNativeInterface.setInstance(null);
+        HeadsetNativeInterface.setInstance(null);
+        HearingAidNativeInterface.setInstance(null);
+        HidDeviceNativeInterface.setInstance(null);
+        HidHostNativeInterface.setInstance(null);
+        PanNativeInterface.setInstance(null);
     }
 
     /**
-     * Test: Start the Bluetooth services that are configured.
-     * Verify that the same services start.
+     * Test: Start the Bluetooth services that are configured. Verify that the same services start.
      */
     @Test
     public void testEnableDisable() throws TimeoutException {
@@ -184,8 +193,7 @@ public class ProfileServiceTest {
     }
 
     /**
-     * Test: Start the Bluetooth services that are configured twice.
-     * Verify that the services start.
+     * Test: Start the Bluetooth services that are configured twice. Verify that the services start.
      */
     @Test
     public void testEnableDisableTwice() throws TimeoutException {

@@ -33,20 +33,28 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.app.ActivityManager;
+import android.app.AlarmManager;
 import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.hardware.display.DisplayManager;
 import android.location.LocationManager;
+import android.os.BatteryStatsManager;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
+import android.test.mock.MockContentProvider;
+import android.test.mock.MockContentResolver;
 import android.util.Log;
 import android.util.SparseIntArray;
 
@@ -59,6 +67,7 @@ import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.BluetoothAdapterProxy;
 import com.android.bluetooth.btservice.MetricsLogger;
+import com.android.internal.app.IBatteryStats;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,14 +103,19 @@ public class ScanManagerTest {
     private static final int DELAY_SCAN_DOWNGRADE_DURATION_MS = 100;
 
     private Context mTargetContext;
-    private GattService mService;
     private ScanManager mScanManager;
     private Handler mHandler;
     private CountDownLatch mLatch;
     private long mScanReportDelay;
 
+    // BatteryStatsManager is final and cannot be mocked with regular mockito, so just mock the
+    // underlying binder calls.
+    final BatteryStatsManager mBatteryStatsManager =
+            new BatteryStatsManager(mock(IBatteryStats.class));
+
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
     @Mock private AdapterService mAdapterService;
+    @Mock private GattService mMockGattService;
     @Mock private BluetoothAdapterProxy mBluetoothAdapterProxy;
     @Mock private LocationManager mLocationManager;
     @Spy private GattObjectsFactory mFactory = GattObjectsFactory.getInstance();
@@ -109,6 +123,7 @@ public class ScanManagerTest {
     @Mock private ScanNativeInterface mScanNativeInterface;
     @Mock private MetricsLogger  mMetricsLogger;
 
+    private MockContentResolver mMockContentResolver;
     @Captor ArgumentCaptor<Long> mScanDurationCaptor;
 
     @Before
@@ -117,8 +132,8 @@ public class ScanManagerTest {
         MockitoAnnotations.initMocks(this);
 
         TestUtils.setAdapterService(mAdapterService);
-        when(mAdapterService.getScanTimeoutMillis()).
-                thenReturn((long) DELAY_DEFAULT_SCAN_TIMEOUT_MS);
+        when(mAdapterService.getScanTimeoutMillis())
+                .thenReturn((long) DELAY_DEFAULT_SCAN_TIMEOUT_MS);
         when(mAdapterService.getNumOfOffloadedScanFilterSupported())
                 .thenReturn(DEFAULT_NUM_OFFLOAD_SCAN_FILTER);
         when(mAdapterService.getOffloadedScanResultStorage())
@@ -128,6 +143,28 @@ public class ScanManagerTest {
                 mAdapterService, Context.LOCATION_SERVICE, LocationManager.class, mLocationManager);
         doReturn(true).when(mLocationManager).isLocationEnabled();
 
+        TestUtils.mockGetSystemService(
+                mMockGattService,
+                Context.DISPLAY_SERVICE,
+                DisplayManager.class,
+                mTargetContext.getSystemService(DisplayManager.class));
+        TestUtils.mockGetSystemService(
+                mMockGattService,
+                Context.BATTERY_STATS_SERVICE,
+                BatteryStatsManager.class,
+                mBatteryStatsManager);
+        TestUtils.mockGetSystemService(mMockGattService, Context.ALARM_SERVICE, AlarmManager.class);
+
+        mMockContentResolver = new MockContentResolver(mTargetContext);
+        mMockContentResolver.addProvider(
+                Settings.AUTHORITY,
+                new MockContentProvider() {
+                    @Override
+                    public Bundle call(String method, String request, Bundle args) {
+                        return Bundle.EMPTY;
+                    }
+                });
+        doReturn(mMockContentResolver).when(mMockGattService).getContentResolver();
         BluetoothAdapterProxy.setInstanceForTesting(mBluetoothAdapterProxy);
         // Needed to mock Native call/callback when hw offload scan filter is enabled
         when(mBluetoothAdapterProxy.isOffloadedScanFilteringSupported()).thenReturn(true);
@@ -140,11 +177,11 @@ public class ScanManagerTest {
 
         MetricsLogger.setInstanceForTesting(mMetricsLogger);
 
-        mService = new GattService(InstrumentationRegistry.getTargetContext());
-        mService.start();
+        doReturn(mTargetContext.getUser()).when(mMockGattService).getUser();
+        doReturn(mTargetContext.getPackageName()).when(mMockGattService).getPackageName();
 
-        mScanManager = mService.getScanManager();
-        assertThat(mScanManager).isNotNull();
+        mScanManager = new ScanManager(mMockGattService, mAdapterService, mBluetoothAdapterProxy);
+        mScanManager.start();
 
         mHandler = mScanManager.getClientHandler();
         assertThat(mHandler).isNotNull();
@@ -157,9 +194,6 @@ public class ScanManagerTest {
 
     @After
     public void tearDown() throws Exception {
-        mService.stop();
-        mService = null;
-
         TestUtils.clearAdapterService(mAdapterService);
         BluetoothAdapterProxy.setInstanceForTesting(null);
         GattObjectsFactory.setInstanceForTesting(null);
@@ -196,7 +230,7 @@ public class ScanManagerTest {
         ScanSettings scanSettings = createScanSettings(scanMode, isBatch, isAutoBatch);
 
         ScanClient client = new ScanClient(id, scanSettings, scanFilterList);
-        client.stats = new AppScanStats("Test", null, null, mService);
+        client.stats = new AppScanStats("Test", null, null, mMockGattService);
         client.stats.recordScanStart(scanSettings, scanFilterList, isFiltered, false, id);
         return client;
     }

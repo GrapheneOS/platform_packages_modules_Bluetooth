@@ -17,8 +17,9 @@
 package com.android.bluetooth.btservice;
 
 import android.bluetooth.OobData;
+import android.bluetooth.UidTraffic;
 
-final class JniCallbacks {
+class JniCallbacks {
 
     private RemoteDevices mRemoteDevices;
     private AdapterProperties mAdapterProperties;
@@ -118,4 +119,23 @@ final class JniCallbacks {
         mAdapterService.switchCodecCallback(is_low_latency_buffer_size);
     }
 
+    boolean acquireWakeLock(String lockName) {
+        return mAdapterService.acquireWakeLock(lockName);
+    }
+
+    boolean releaseWakeLock(String lockName) {
+        return mAdapterService.releaseWakeLock(lockName);
+    }
+
+    void energyInfoCallback(
+            int status,
+            int ctrlState,
+            long txTime,
+            long rxTime,
+            long idleTime,
+            long energyUsed,
+            UidTraffic[] data) {
+        mAdapterService.energyInfoCallback(
+                status, ctrlState, txTime, rxTime, idleTime, energyUsed, data);
+    }
 }

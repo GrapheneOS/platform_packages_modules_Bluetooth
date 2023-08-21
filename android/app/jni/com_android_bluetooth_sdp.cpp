@@ -529,7 +529,8 @@ static JNINativeMethod sMethods[] = {
     {"sdpRemoveSdpRecordNative", "(I)Z", (void*)sdpRemoveSdpRecordNative}};
 
 int register_com_android_bluetooth_sdp(JNIEnv* env) {
-  return jniRegisterNativeMethods(env, "com/android/bluetooth/sdp/SdpManager",
-                                  sMethods, NELEM(sMethods));
+  return jniRegisterNativeMethods(
+      env, "com/android/bluetooth/sdp/SdpManagerNativeInterface", sMethods,
+      NELEM(sMethods));
 }
 }

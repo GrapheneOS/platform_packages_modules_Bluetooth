@@ -39,10 +39,15 @@ public class HearingAidNativeInterface {
 
     @GuardedBy("INSTANCE_LOCK")
     private static HearingAidNativeInterface sInstance;
+
     private static final Object INSTANCE_LOCK = new Object();
 
     static {
-        classInitNative();
+        if (Utils.isInstrumentationTestMode()) {
+            Log.w(TAG, "App is instrumented. Skip loading the native");
+        } else {
+            classInitNative();
+        }
     }
 
     private HearingAidNativeInterface() {
@@ -61,6 +66,14 @@ public class HearingAidNativeInterface {
                 sInstance = new HearingAidNativeInterface();
             }
             return sInstance;
+        }
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(HearingAidNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
         }
     }
 

@@ -41,7 +41,6 @@ import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.pan.PanService.BluetoothPanDevice;
 
 import org.junit.After;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -63,6 +62,7 @@ public class PanServiceTest {
 
     @Mock private AdapterService mAdapterService;
     @Mock private DatabaseManager mDatabaseManager;
+    @Mock private PanNativeInterface mNativeInterface;
     @Mock private UserManager mMockUserManager;
 
     @Before
@@ -71,8 +71,10 @@ public class PanServiceTest {
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
+        PanNativeInterface.setInstance(mNativeInterface);
         TestUtils.startService(mServiceRule, PanService.class);
         mService = PanService.getPanService();
+
         assertThat(mService).isNotNull();
         // Try getting the Bluetooth adapter
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -84,6 +86,7 @@ public class PanServiceTest {
     @After
     public void tearDown() throws Exception {
         TestUtils.stopService(mServiceRule, PanService.class);
+        PanNativeInterface.setInstance(null);
         mService = PanService.getPanService();
         assertThat(mService).isNull();
         TestUtils.clearAdapterService(mAdapterService);
@@ -125,15 +128,15 @@ public class PanServiceTest {
 
     @Test
     public void convertHalState() {
-        assertThat(PanService.convertHalState(PanService.CONN_STATE_CONNECTED))
+        assertThat(PanNativeInterface.convertHalState(PanNativeInterface.CONN_STATE_CONNECTED))
                 .isEqualTo(BluetoothProfile.STATE_CONNECTED);
-        assertThat(PanService.convertHalState(PanService.CONN_STATE_CONNECTING))
+        assertThat(PanNativeInterface.convertHalState(PanNativeInterface.CONN_STATE_CONNECTING))
                 .isEqualTo(BluetoothProfile.STATE_CONNECTING);
-        assertThat(PanService.convertHalState(PanService.CONN_STATE_DISCONNECTED))
+        assertThat(PanNativeInterface.convertHalState(PanNativeInterface.CONN_STATE_DISCONNECTED))
                 .isEqualTo(BluetoothProfile.STATE_DISCONNECTED);
-        assertThat(PanService.convertHalState(PanService.CONN_STATE_DISCONNECTING))
+        assertThat(PanNativeInterface.convertHalState(PanNativeInterface.CONN_STATE_DISCONNECTING))
                 .isEqualTo(BluetoothProfile.STATE_DISCONNECTING);
-        assertThat(PanService.convertHalState(-24664)) // illegal value
+        assertThat(PanNativeInterface.convertHalState(-24664)) // illegal value
                 .isEqualTo(BluetoothProfile.STATE_DISCONNECTED);
     }
 
