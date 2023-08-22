@@ -2134,7 +2134,7 @@ ErrorCode LinkLayerController::SendCommandToRemoteByAddress(
               own_address, peer_address));
       break;
     case (OpCode::READ_REMOTE_EXTENDED_FEATURES): {
-      pdl::packet::slice page_number_slice = args.subrange(5, 2);
+      pdl::packet::slice page_number_slice = args.subrange(5, 1);
       uint8_t page_number = page_number_slice.read_le<uint8_t>();
       SendLinkLayerPacket(
           model::packets::ReadRemoteExtendedFeaturesBuilder::Create(
