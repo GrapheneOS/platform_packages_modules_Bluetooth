@@ -24,7 +24,6 @@ import static com.android.modules.utils.build.SdkLevel.isAtLeastU;
 
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
-import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
@@ -54,6 +53,7 @@ import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
+import com.android.bluetooth.btservice.ActiveDeviceManager;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
@@ -125,6 +125,7 @@ public class HeadsetService extends ProfileService {
     private int mMaxHeadsetConnections = 1;
     private BluetoothDevice mActiveDevice;
     private AdapterService mAdapterService;
+    private ActiveDeviceManager mActiveDeviceManager;
     private DatabaseManager mDatabaseManager;
     private HandlerThread mStateMachinesThread;
     private Handler mStateMachinesThreadHandler;
@@ -183,6 +184,7 @@ public class HeadsetService extends ProfileService {
                 "AdapterService cannot be null when HeadsetService starts");
         mDatabaseManager = Objects.requireNonNull(mAdapterService.getDatabase(),
                 "DatabaseManager cannot be null when HeadsetService starts");
+        mActiveDeviceManager = Objects.requireNonNull(mAdapterService.getActiveDeviceManager());
         // Step 2: Start handler thread for state machines
         mStateMachinesThread = new HandlerThread("HeadsetService.StateMachines");
         mStateMachinesThread.start();
@@ -1351,7 +1353,7 @@ public class HeadsetService extends ProfileService {
             // we need to check if another device is connected and set it active instead.
             // Calling this before any other active related calls has the same effect as
             // a classic active device switch.
-            BluetoothDevice fallbackDevice = getFallbackDevice();
+            BluetoothDevice fallbackDevice = mActiveDeviceManager.getHfpFallbackDevice();
             if (fallbackDevice != null && mActiveDevice != null
                     && getConnectionState(mActiveDevice) != BluetoothProfile.STATE_CONNECTED) {
                 setActiveDevice(fallbackDevice);
@@ -2005,9 +2007,7 @@ public class HeadsetService extends ProfileService {
                 setActiveDevice(null);
             }
         }
-        mAdapterService
-                .getActiveDeviceManager()
-                .hfpConnectionStateChanged(device, fromState, toState);
+        mActiveDeviceManager.hfpConnectionStateChanged(device, fromState, toState);
     }
 
     /**
@@ -2253,38 +2253,6 @@ public class HeadsetService extends ProfileService {
         final Looper myLooper = Looper.myLooper();
         return myLooper != null && (mStateMachinesThread != null) && (myLooper.getThread().getId()
                 == mStateMachinesThread.getId());
-    }
-
-    /**
-     * Retrieves the most recently connected device in the A2DP connected devices list.
-     */
-    public BluetoothDevice getFallbackDevice() {
-        DatabaseManager dbManager = mAdapterService.getDatabase();
-        return dbManager != null ? dbManager
-            .getMostRecentlyConnectedDevicesInList(getFallbackCandidates(dbManager))
-            : null;
-    }
-
-    @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
-    List<BluetoothDevice> getFallbackCandidates(DatabaseManager dbManager) {
-        List<BluetoothDevice> fallbackCandidates = getConnectedDevices();
-        List<BluetoothDevice> uninterestedCandidates = new ArrayList<>();
-        for (BluetoothDevice device : fallbackCandidates) {
-            byte[] deviceType = dbManager.getCustomMeta(device,
-                    BluetoothDevice.METADATA_DEVICE_TYPE);
-            BluetoothClass deviceClass = device.getBluetoothClass();
-            if ((deviceClass != null
-                    && deviceClass.getMajorDeviceClass()
-                    == BluetoothClass.Device.WEARABLE_WRIST_WATCH)
-                    || (deviceType != null
-                    && BluetoothDevice.DEVICE_TYPE_WATCH.equals(new String(deviceType)))) {
-                uninterestedCandidates.add(device);
-            }
-        }
-        for (BluetoothDevice device : uninterestedCandidates) {
-            fallbackCandidates.remove(device);
-        }
-        return fallbackCandidates;
     }
 
     @Override
