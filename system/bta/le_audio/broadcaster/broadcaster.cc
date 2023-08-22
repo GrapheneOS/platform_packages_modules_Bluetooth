@@ -371,6 +371,18 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     LeAudioLtvMap public_ltv;
     std::vector<LeAudioLtvMap> subgroup_ltvs;
 
+    if (queued_broadcast_.IsQueuedBroadcast()) {
+      LOG_ERROR("Not processed yet queued broadcast");
+      return;
+    }
+
+    if (!queued_broadcast_.CanCreateBroadcast()) {
+      queued_broadcast_.SetQueuedBroadcast(is_public, broadcast_name,
+                                           broadcast_code, public_metadata,
+                                           subgroup_quality, subgroup_metadata);
+      return;
+    }
+
     if (is_public) {
       // Prepare public broadcast announcement format
       bool is_metadata_valid;
@@ -726,6 +738,18 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
       } break;
       default:
         LOG_ERROR("Invalid event=%d", event);
+    }
+  }
+
+  void IsoTrafficEventCb(bool is_active) {
+    if (is_active) {
+      queued_broadcast_.SetIsoTrafficFlag();
+    } else {
+      queued_broadcast_.ResetIsoTrafficFlag();
+
+      if (!queued_broadcast_.IsQueuedBroadcast()) return;
+
+      queued_broadcast_.CreateAudioBroadcast();
     }
   }
 
@@ -1101,6 +1125,81 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     std::vector<std::vector<uint8_t>> enc_audio_buffers_;
   } audio_receiver_;
 
+  static class QueuedBroadcast {
+   public:
+    bool IsQueuedBroadcast() {
+      LOG_INFO("");
+
+      return is_queued_;
+    }
+
+    void SetQueuedBroadcast(
+        bool is_public, const std::string& broadcast_name,
+        const std::optional<bluetooth::le_audio::BroadcastCode>& broadcast_code,
+        const std::vector<uint8_t>& public_metadata,
+        const std::vector<uint8_t>& subgroup_quality,
+        const std::vector<std::vector<uint8_t>>& subgroup_metadata) {
+      LOG_INFO();
+
+      is_public_ = is_public;
+      broadcast_name_ = broadcast_name;
+      broadcast_code_ = broadcast_code;
+      public_metadata_ = public_metadata;
+      subgroup_quality_ = subgroup_quality;
+      subgroup_metadata_ = subgroup_metadata;
+
+      is_queued_ = true;
+    }
+
+    void CreateAudioBroadcast() {
+      if (!instance || !CanCreateBroadcast()) return;
+
+      LOG_INFO("Create queued broadcast");
+
+      is_queued_ = false;
+
+      instance->CreateAudioBroadcast(is_public_, broadcast_name_,
+                                     broadcast_code_, public_metadata_,
+                                     subgroup_quality_, subgroup_metadata_);
+    }
+
+    void ClearQueuedBroadcast() {
+      LOG_INFO();
+
+      is_queued_ = false;
+    }
+
+    void SetIsoTrafficFlag() {
+      LOG_INFO();
+
+      is_iso_running_ = true;
+    }
+
+    void ResetIsoTrafficFlag() {
+      LOG_INFO();
+
+      is_iso_running_ = false;
+    }
+
+    bool CanCreateBroadcast() {
+      LOG_INFO("%d", is_iso_running_ == false);
+
+      return is_iso_running_ == false;
+    }
+
+   private:
+    /* Queued broadcast data */
+    bool is_public_;
+    std::string broadcast_name_;
+    std::optional<bluetooth::le_audio::BroadcastCode> broadcast_code_;
+    std::vector<uint8_t> public_metadata_;
+    std::vector<uint8_t> subgroup_quality_;
+    std::vector<std::vector<uint8_t>> subgroup_metadata_;
+
+    bool is_iso_running_;
+    bool is_queued_;
+  } queued_broadcast_;
+
   bluetooth::le_audio::LeAudioBroadcasterCallbacks* callbacks_;
   std::map<uint32_t, std::unique_ptr<BroadcastStateMachine>> broadcasts_;
   std::vector<std::unique_ptr<BroadcastStateMachine>> pending_broadcasts_;
@@ -1119,6 +1218,8 @@ LeAudioBroadcasterImpl::LeAudioSourceCallbacksImpl
     LeAudioBroadcasterImpl::audio_receiver_;
 LeAudioBroadcasterImpl::BroadcastAdvertisingCallbacks
     LeAudioBroadcasterImpl::state_machine_adv_callbacks_;
+LeAudioBroadcasterImpl::QueuedBroadcast
+    LeAudioBroadcasterImpl::queued_broadcast_;
 } /* namespace */
 
 void LeAudioBroadcaster::Initialize(
@@ -1146,6 +1247,14 @@ void LeAudioBroadcaster::Initialize(
   instance = new LeAudioBroadcasterImpl(callbacks);
   /* Register HCI event handlers */
   IsoManager::GetInstance()->RegisterBigCallbacks(instance);
+  /* Register for active traffic */
+  IsoManager::GetInstance()->RegisterOnIsoTrafficActiveCallback(
+      [](bool is_active) {
+        if (!instance) {
+          return;
+        }
+        instance->IsoTrafficEventCb(is_active);
+      });
 }
 
 bool LeAudioBroadcaster::IsLeAudioBroadcasterRunning() { return instance; }
