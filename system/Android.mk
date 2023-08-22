@@ -21,6 +21,9 @@ LOCAL_host_executables := \
 LOCAL_host_python_hci_packets_library := \
 	$(SOONG_OUT_DIR)/.intermediates/packages/modules/Bluetooth/system/gd/gd_hci_packets_python3_gen/gen/hci_packets.py
 
+LOCAL_host_python_smp_packets_library := \
+	$(SOONG_OUT_DIR)/.intermediates/packages/modules/Bluetooth/system/gd/gd_smp_packets_python3_gen/gen/smp_packets.py
+
 LOCAL_host_python_extension_libraries := \
 	$(HOST_OUT_SHARED_LIBRARIES)/bluetooth_packets_python3.so
 
@@ -94,16 +97,19 @@ $(bluetooth_cert_src_and_bin_zip): PRIVATE_host_executables := $(LOCAL_host_exec
 $(bluetooth_cert_src_and_bin_zip): PRIVATE_host_libraries := $(LOCAL_host_libraries)
 $(bluetooth_cert_src_and_bin_zip): PRIVATE_host_python_extension_libraries := $(LOCAL_host_python_extension_libraries)
 $(bluetooth_cert_src_and_bin_zip): PRIVATE_host_python_hci_packets_library := $(LOCAL_host_python_hci_packets_library)
+$(bluetooth_cert_src_and_bin_zip): PRIVATE_host_python_smp_packets_library := $(LOCAL_host_python_smp_packets_library)
 $(bluetooth_cert_src_and_bin_zip): PRIVATE_target_executables := $(LOCAL_target_executables)
 $(bluetooth_cert_src_and_bin_zip): PRIVATE_target_libraries := $(LOCAL_target_libraries)
 $(bluetooth_cert_src_and_bin_zip): $(SOONG_ZIP) $(LOCAL_cert_test_sources) \
 		$(LOCAL_host_executables) $(LOCAL_host_libraries) $(LOCAL_host_python_libraries) \
 		$(LOCAL_host_python_extension_libraries) \
 		$(LOCAL_host_python_hci_packets_library) \
+		$(LOCAL_host_python_smp_packets_library) \
 		$(LOCAL_target_executables) $(LOCAL_target_libraries)
 	$(hide) $(SOONG_ZIP) -d -o $@ \
 		-C $(PRIVATE_bluetooth_project_dir) $(addprefix -f ,$(PRIVATE_cert_test_sources)) \
 		-C $(dir $(PRIVATE_host_python_hci_packets_library)) -f $(PRIVATE_host_python_hci_packets_library) \
+		-C $(dir $(PRIVATE_host_python_smp_packets_library)) -f $(PRIVATE_host_python_smp_packets_library) \
 		-C $(HOST_OUT_EXECUTABLES) $(addprefix -f ,$(PRIVATE_host_executables)) \
 		-C $(HOST_OUT_SHARED_LIBRARIES) $(addprefix -f ,$(PRIVATE_host_python_extension_libraries)) \
 		-P lib64 \
