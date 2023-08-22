@@ -1185,6 +1185,11 @@ public class HeadsetServiceAndStateMachineTest {
                         device,
                         BluetoothProfile.STATE_DISCONNECTED,
                         BluetoothProfile.STATE_CONNECTING);
+        verify(mSilenceDeviceManager, timeout(STATE_CHANGE_TIMEOUT_MILLIS))
+                .hfpConnectionStateChanged(
+                        device,
+                        BluetoothProfile.STATE_DISCONNECTED,
+                        BluetoothProfile.STATE_CONNECTING);
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
                 mHeadsetService.getConnectionState(device));
         Assert.assertEquals(Collections.singletonList(device),
@@ -1196,6 +1201,11 @@ public class HeadsetServiceAndStateMachineTest {
                         HeadsetHalConstants.CONNECTION_STATE_SLC_CONNECTED, device);
         mHeadsetService.messageFromNative(slcConnectedEvent);
         verify(mActiveDeviceManager, timeout(STATE_CHANGE_TIMEOUT_MILLIS))
+                .hfpConnectionStateChanged(
+                        device,
+                        BluetoothProfile.STATE_CONNECTING,
+                        BluetoothProfile.STATE_CONNECTED);
+        verify(mSilenceDeviceManager, timeout(STATE_CHANGE_TIMEOUT_MILLIS))
                 .hfpConnectionStateChanged(
                         device,
                         BluetoothProfile.STATE_CONNECTING,

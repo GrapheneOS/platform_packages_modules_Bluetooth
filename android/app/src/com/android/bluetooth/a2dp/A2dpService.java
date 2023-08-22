@@ -1279,6 +1279,9 @@ public class A2dpService extends ProfileService {
         mAdapterService
                 .getActiveDeviceManager()
                 .a2dpConnectionStateChanged(device, fromState, toState);
+        mAdapterService
+                .getSilenceDeviceManager()
+                .a2dpConnectionStateChanged(device, fromState, toState);
     }
 
     /**
