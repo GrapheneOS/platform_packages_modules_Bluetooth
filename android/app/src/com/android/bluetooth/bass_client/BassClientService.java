@@ -22,7 +22,6 @@ import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothLeBroadcastAssistant;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.bluetooth.BluetoothLeBroadcastReceiveState;
 import android.bluetooth.BluetoothProfile;
@@ -95,6 +94,7 @@ public class BassClientService extends ProfileService {
 
     private HandlerThread mStateMachinesThread;
     private HandlerThread mCallbackHandlerThread;
+    private Handler mHandler = null;
     private AdapterService mAdapterService;
     private DatabaseManager mDatabaseManager;
     private BluetoothAdapter mBluetoothAdapter = null;
@@ -309,10 +309,12 @@ public class BassClientService extends ProfileService {
         mCallbackHandlerThread.start();
         mCallbacks = new Callbacks(mCallbackHandlerThread.getLooper());
 
+        // Setup Handler to handle local broadcast use cases.
+        mHandler = new Handler(Looper.getMainLooper());
+
         IntentFilter filter = new IntentFilter();
         filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        filter.addAction(BluetoothLeBroadcastAssistant.ACTION_CONNECTION_STATE_CHANGED);
         mIntentReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -327,13 +329,6 @@ public class BassClientService extends ProfileService {
                             "ACTION_BOND_STATE_CHANGED with no EXTRA_DEVICE");
                     bondStateChanged(device, state);
 
-                } else if (action.equals(
-                            BluetoothLeBroadcastAssistant.ACTION_CONNECTION_STATE_CHANGED)) {
-                    BluetoothDevice device =
-                            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    int toState = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
-                    int fromState = intent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, -1);
-                    connectionStateChanged(device, fromState, toState);
                 }
             }
         };
@@ -674,6 +669,10 @@ public class BassClientService extends ProfileService {
         mActiveSourceMap.remove(device);
         mDeviceToSyncHandleMap.remove(device);
         mPeriodicAdvertisementResultMap.remove(device);
+    }
+
+    void handleConnectionStateChanged(BluetoothDevice device, int fromState, int toState) {
+        mHandler.post(() -> connectionStateChanged(device, fromState, toState));
     }
 
     synchronized void connectionStateChanged(BluetoothDevice device, int fromState,
