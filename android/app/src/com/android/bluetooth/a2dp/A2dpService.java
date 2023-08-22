@@ -49,7 +49,9 @@ import android.media.BluetoothProfileConnectionInfo;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
@@ -87,6 +89,7 @@ public class A2dpService extends ProfileService {
     private AdapterService mAdapterService;
     private DatabaseManager mDatabaseManager;
     private HandlerThread mStateMachinesThread;
+    private Handler mHandler = null;
 
     private final A2dpNativeInterface mNativeInterface;
     @VisibleForTesting
@@ -167,6 +170,8 @@ public class A2dpService extends ProfileService {
         Log.i(TAG, "Max connected audio devices set to " + mMaxConnectedAudioDevices);
 
         // Step 3: Start handler thread for state machines
+        // Setup Handler.
+        mHandler = new Handler(Looper.getMainLooper());
         mStateMachines.clear();
         mStateMachinesThread = new HandlerThread("A2dpService.StateMachines");
         mStateMachinesThread.start();
@@ -1246,6 +1251,10 @@ public class A2dpService extends ProfileService {
             }
             mAdapterService.allowLowLatencyAudio(lowLatencyAudioAllow, device);
         }
+    }
+
+    void handleConnectionStateChanged(BluetoothDevice device, int fromState, int toState) {
+        mHandler.post(() -> connectionStateChanged(device, fromState, toState));
     }
 
     void connectionStateChanged(BluetoothDevice device, int fromState, int toState) {
