@@ -1075,14 +1075,17 @@ public class A2dpService extends ProfileService {
             mActiveDevice = device;
         }
 
+        mAdapterService.getActiveDeviceManager().a2dpActiveStateChanged(device);
+        mAdapterService.getSilenceDeviceManager().a2dpActiveDeviceChanged(device);
+
         BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_ACTIVE_DEVICE_CHANGED,
                 BluetoothProfile.A2DP, mAdapterService.obfuscateAddress(device),
                 mAdapterService.getMetricId(device));
+
         Intent intent = new Intent(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
                         | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-        mAdapterService.getActiveDeviceManager().a2dpActiveStateChanged(device);
         Utils.sendBroadcast(this, intent, BLUETOOTH_CONNECT,
                 Utils.getTempAllowlistBroadcastOptions());
     }
