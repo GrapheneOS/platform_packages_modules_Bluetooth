@@ -18,7 +18,6 @@ package com.android.bluetooth.hfp;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.MODIFY_PHONE_STATE;
-
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 import static com.android.modules.utils.build.SdkLevel.isAtLeastU;
 
@@ -2006,6 +2005,8 @@ public class HeadsetService extends ProfileService {
         mAdapterService
                 .getRemoteDevices()
                 .handleHeadsetConnectionStateChanged(device, fromState, toState);
+        mAdapterService.notifyProfileConnectionStateChangeToGatt(
+                BluetoothProfile.HEADSET, fromState, toState);
     }
 
     /**
