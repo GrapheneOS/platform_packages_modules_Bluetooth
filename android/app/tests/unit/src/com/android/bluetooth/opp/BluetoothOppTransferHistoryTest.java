@@ -32,6 +32,7 @@ import static org.mockito.Mockito.verify;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.view.MenuItem;
@@ -47,6 +48,7 @@ import com.android.bluetooth.TestUtils;
 import com.google.common.base.Objects;
 
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -135,7 +137,11 @@ public class BluetoothOppTransferHistoryTest {
     }
 
     @Test
-    public void onCreate_withDirectionInbound_withExtraShowAllFileIsTrue_displayLiveFolder() {
+    public void onCreate_withDirectionInbound_withExtraShowAllFileIsTrue_displayLiveFolder()
+            throws Exception {
+        Assume.assumeFalse(
+                mTargetContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_WATCH));
+
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
         mIntent.putExtra(Constants.EXTRA_SHOW_ALL_FILES, true);
         mIntent.putExtra("direction", BluetoothShare.DIRECTION_INBOUND);
@@ -148,6 +154,9 @@ public class BluetoothOppTransferHistoryTest {
 
     @Test
     public void onCreate_withDirectionInbound_withExtraShowAllFileIsFalse_displayInboundHistory() {
+        Assume.assumeFalse(
+                mTargetContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_WATCH));
+
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
         mIntent.putExtra(Constants.EXTRA_SHOW_ALL_FILES, false);
         mIntent.putExtra("direction", BluetoothShare.DIRECTION_INBOUND);
@@ -161,6 +170,9 @@ public class BluetoothOppTransferHistoryTest {
 
     @Test
     public void onCreate_withDirectionOutbound_displayOutboundHistory() {
+        Assume.assumeFalse(
+                mTargetContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_WATCH));
+
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
         mCursorMockDataList.set(1,
                 new BluetoothOppTestUtils.CursorMockData(BluetoothShare.DIRECTION, 2,
@@ -175,6 +187,7 @@ public class BluetoothOppTransferHistoryTest {
                 matches(isDisplayed()));
     }
 
+    // TODO: Check whether watch devices can pass this test
     @Ignore("b/268424815")
     @Test
     public void onOptionsItemSelected_clearAllSelected_promptWarning() {
