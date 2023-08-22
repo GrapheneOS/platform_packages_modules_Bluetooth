@@ -52,7 +52,6 @@ BT_PACKETS_BASE_SRCS = [
 BT_PACKETS_PY3_SRCs = \
   [os.path.join(GD_DIR, "packet/python3_module.cc")] \
   + glob.glob(os.path.join(BT_PACKETS_PY3_GEN_DIR, "l2cap", "*.cc")) \
-  + glob.glob(os.path.join(BT_PACKETS_PY3_GEN_DIR, "security", "*.cc"))
 
 bluetooth_packets_python3_module = Extension(
     'bluetooth_packets_python3',
