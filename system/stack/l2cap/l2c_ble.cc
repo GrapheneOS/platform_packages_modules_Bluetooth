@@ -262,6 +262,7 @@ bool l2cble_conn_comp(uint16_t handle, uint8_t role, const RawAddress& bda,
         return false;
       }
     }
+    p_lcb->link_state = LST_CONNECTING;
   } else if (role == HCI_ROLE_CENTRAL && p_lcb->link_state != LST_CONNECTING) {
     LOG_ERROR(
         "Received le acl connection as role central but not in connecting "
