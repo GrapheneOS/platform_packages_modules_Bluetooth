@@ -17,7 +17,6 @@
 package com.android.bluetooth.avrcp;
 
 import android.annotation.NonNull;
-import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUtils;
@@ -140,20 +139,7 @@ public class AvrcpTargetService extends ProfileService {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)) {
-                if (mNativeInterface == null) return;
-
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (device == null) return;
-
-                int state = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
-                if (state == BluetoothProfile.STATE_DISCONNECTED) {
-                    // If there is no connection, disconnectDevice() will do nothing
-                    if (mNativeInterface.disconnectDevice(device.getAddress())) {
-                        Log.d(TAG, "request to disconnect device " + device);
-                    }
-                }
-            } else if (action.equals(AudioManager.ACTION_VOLUME_CHANGED)) {
+            if (action.equals(AudioManager.ACTION_VOLUME_CHANGED)) {
                 int streamType = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1);
                 if (streamType == AudioManager.STREAM_MUSIC) {
                     int volume = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, 0);
@@ -247,7 +233,6 @@ public class AvrcpTargetService extends ProfileService {
         mReceiver = new AvrcpBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
         filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
-        filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(AudioManager.ACTION_VOLUME_CHANGED);
         registerReceiver(mReceiver, filter);
 
@@ -350,6 +335,20 @@ public class AvrcpTargetService extends ProfileService {
         return mVolumeManager.getVolume(device, mVolumeManager.getNewDeviceVolume());
     }
 
+    /**
+     * Handle when A2DP connection state changes.
+     *
+     * <p>If the A2DP connection disconnects, we request AVRCP to disconnect device as well.
+     */
+    public void handleA2dpConnectionStateChanged(BluetoothDevice device, int newState) {
+        if (device == null || mNativeInterface == null) return;
+        if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+            // If there is no connection, disconnectDevice() will do nothing
+            if (mNativeInterface.disconnectDevice(device.getAddress())) {
+                Log.d(TAG, "request to disconnect device " + device);
+            }
+        }
+    }
     /**
      * Handle when Active Device changes in A2DP.
      *

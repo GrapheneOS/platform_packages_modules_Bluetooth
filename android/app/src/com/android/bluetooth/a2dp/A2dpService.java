@@ -1270,6 +1270,9 @@ public class A2dpService extends ProfileService {
                 removeStateMachine(device);
             }
         }
+        if (mFactory.getAvrcpTargetService() != null) {
+            mFactory.getAvrcpTargetService().handleA2dpConnectionStateChanged(device, toState);
+        }
         mAdapterService
                 .getActiveDeviceManager()
                 .a2dpConnectionStateChanged(device, fromState, toState);
