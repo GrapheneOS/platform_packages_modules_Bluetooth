@@ -18,6 +18,7 @@ import logging
 
 from avatar import BumblePandoraDevice, PandoraDevice, PandoraDevices
 from avatar.pandora_server import AndroidPandoraServer
+from bumble.colors import color
 from bumble.core import (
     BT_GENERIC_AUDIO_SERVICE,
     BT_HANDSFREE_AUDIO_GATEWAY_SERVICE,
@@ -61,6 +62,7 @@ HFP_VERSION_1_7 = 0x0107
 
 # Stub for Audio Gateway implementation
 # TODO: b/296471045
+logger = logging.getLogger(__name__)
 class HfpProtocol:
     dlc: rfcomm.DLC
     buffer: str
@@ -150,6 +152,7 @@ class HfpClientTest(base_test.BaseTestClass):  # type: ignore[misc]
 
     @avatar.asynchronous
     async def setup_test(self) -> None:
+        self.ref._bumble.config.update({'server': {'identity_address_type': 'public'}})
         await asyncio.gather(self.dut.reset(), self.ref.reset())
 
     # TODO(b/286338264): Moving connecting and bonding methods to a shared util scripts
