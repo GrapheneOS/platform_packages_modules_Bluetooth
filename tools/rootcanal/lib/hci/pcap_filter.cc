@@ -74,19 +74,6 @@ std::vector<uint8_t> PcapFilter::FilterHciCommand(
       return FilterLeSetExtendedScanResponseData(command);
     case OpCode::LE_SET_PERIODIC_ADVERTISING_DATA:
       return FilterLeSetPeriodicAdvertisingData(command);
-    case OpCode::LE_MULTI_ADVT: {
-      auto le_multi_advt_command = LeMultiAdvtView::Create(command);
-      ASSERT(le_multi_advt_command.IsValid());
-      switch (le_multi_advt_command.GetSubCmd()) {
-        case SubOcf::SET_DATA:
-          return FilterLeMultiAdvtSetData(le_multi_advt_command);
-        case SubOcf::SET_SCAN_RESP:
-          return FilterLeMultiAdvtSetScanResp(le_multi_advt_command);
-        default:
-          break;
-      }
-      break;
-    }
     default:
       break;
   }
@@ -298,32 +285,6 @@ std::vector<uint8_t> PcapFilter::FilterLeSetPeriodicAdvertisingData(
   return LeSetPeriodicAdvertisingDataBuilder::Create(
              parameters.GetAdvertisingHandle(), parameters.GetOperation(),
              advertising_data)
-      ->SerializeToBytes();
-}
-
-// Replace the device names in the GAP entries of the advertising data.
-std::vector<uint8_t> PcapFilter::FilterLeMultiAdvtSetData(
-    bluetooth::hci::LeMultiAdvtView& command) {
-  auto parameters = LeMultiAdvtSetDataView::Create(command);
-  ASSERT(parameters.IsValid());
-
-  std::vector<uint8_t> advertising_data = parameters.GetAdvertisingData();
-  FilterGapData(advertising_data);
-  return LeMultiAdvtSetDataBuilder::Create(advertising_data,
-                                           parameters.GetAdvertisingInstance())
-      ->SerializeToBytes();
-}
-
-// Replace the device names in the GAP entries of the scan response data.
-std::vector<uint8_t> PcapFilter::FilterLeMultiAdvtSetScanResp(
-    bluetooth::hci::LeMultiAdvtView& command) {
-  auto parameters = LeMultiAdvtSetScanRespView::Create(command);
-  ASSERT(parameters.IsValid());
-
-  std::vector<uint8_t> advertising_data = parameters.GetAdvertisingData();
-  FilterGapData(advertising_data);
-  return LeMultiAdvtSetScanRespBuilder::Create(
-             advertising_data, parameters.GetAdvertisingInstance())
       ->SerializeToBytes();
 }
 
