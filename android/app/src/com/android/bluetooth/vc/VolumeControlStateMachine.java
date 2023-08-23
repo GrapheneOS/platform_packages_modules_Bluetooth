@@ -506,6 +506,7 @@ public class VolumeControlStateMachine extends StateMachine {
         log("Connection state " + mDevice + ": " + profileStateToString(prevState)
                 + "->" + profileStateToString(newState));
 
+        mService.handleConnectionStateChanged(mDevice, prevState, newState);
         Intent intent = new Intent(BluetoothVolumeControl.ACTION_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
