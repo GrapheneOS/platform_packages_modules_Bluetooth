@@ -47,6 +47,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 /**
@@ -248,5 +249,74 @@ public class UtilsTest {
         Mockito.clearInvocations(os);
         doThrow(new IOException()).when(os).close();
         Utils.safeCloseStream(os);
+    }
+
+    @Test
+    public void truncateUtf8_toZeroLength_isEmpty() {
+        assertThat(Utils.truncateStringForUtf8Storage("abc", 0)).isEmpty();
+    }
+
+    @Test
+    public void truncateUtf8_longCase_isExpectedResult() {
+        StringBuilder builder = new StringBuilder();
+
+        int n = 50;
+        for (int i = 0; i < 2 * n; i++) {
+            builder.append("哈");
+        }
+        String initial = builder.toString();
+        String result = Utils.truncateStringForUtf8Storage(initial, n);
+
+        // Result should be the beginning of initial
+        assertThat(initial.startsWith(result)).isTrue();
+
+        // Result should take less than n bytes in UTF-8
+        assertThat(result.getBytes(StandardCharsets.UTF_8).length).isAtMost(n);
+
+        // result + the next codePoint should take strictly more than
+        // n bytes in UTF-8
+        assertThat(
+                        initial.substring(0, initial.offsetByCodePoints(result.length(), 1))
+                                .getBytes(StandardCharsets.UTF_8)
+                                .length)
+                .isGreaterThan(n);
+    }
+
+    @Test
+    public void truncateUtf8_untruncatedString_isEqual() {
+        String s = "sf\u20ACgk\u00E9ls\u00E9fg";
+        assertThat(Utils.truncateStringForUtf8Storage(s, 100)).isEqualTo(s);
+    }
+
+    @Test
+    public void truncateUtf8_inMiddleOfSurrogate_isStillUtf8() {
+        StringBuilder builder = new StringBuilder();
+        String beginning = "a";
+        builder.append(beginning);
+        builder.append(Character.toChars(0x1D11E));
+
+        // \u1D11E is a surrogate and needs 4 bytes in UTF-8. beginning == "a" uses
+        // only 1 bytes in UTF8
+        // As we allow only 3 bytes for the whole string, so just 2 for this
+        // codePoint, there is not enough place and the string will be truncated
+        // just before it
+        assertThat(Utils.truncateStringForUtf8Storage(builder.toString(), 3)).isEqualTo(beginning);
+    }
+
+    @Test
+    public void truncateUtf8_inMiddleOfChar_isStillUtf8() {
+        StringBuilder builder = new StringBuilder();
+        String beginning = "a";
+        builder.append(beginning);
+        builder.append(Character.toChars(0x20AC));
+
+        // Like above, \u20AC uses 3 bytes in UTF-8, with "beginning", that makes
+        // 4 bytes so it is too big and should be truncated
+        assertThat(Utils.truncateStringForUtf8Storage(builder.toString(), 3)).isEqualTo(beginning);
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void truncateUtf8_toNegativeSize_ThrowsException() {
+        Utils.truncateStringForUtf8Storage("abc", -1);
     }
 }
