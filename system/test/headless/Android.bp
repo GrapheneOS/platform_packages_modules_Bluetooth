@@ -24,22 +24,6 @@ genrule {
     ],
 }
 
-filegroup {
-    name: "TestHeadlessModules",
-    srcs: [
-        "connect/connect.cc",
-        "discovery/discovery.cc",
-        "dumpsys/dumpsys.cc",
-        "nop/nop.cc",
-        "pairing/pairing.cc",
-        "read/name.cc",
-        "read/read.cc",
-        "scan/scan.cc",
-        "sdp/sdp.cc",
-        "sdp/sdp_db.cc",
-    ],
-}
-
 cc_binary {
     name: "bt_headless",
     defaults: [
@@ -55,15 +39,24 @@ cc_binary {
         "HeadlessBuildTimestamp",
     ],
     srcs: [
-        ":TestHeadlessModules",
         "bt_property.cc",
+        "connect/connect.cc",
+        "discovery/discovery.cc",
+        "dumpsys/dumpsys.cc",
         "get_options.cc",
         "handler.cc",
         "headless.cc",
         "log.cc",
         "main.cc",
         "messenger.cc",
+        "nop/nop.cc",
+        "pairing/pairing.cc",
         "property.cc",
+        "read/name.cc",
+        "read/read.cc",
+        "scan/scan.cc",
+        "sdp/sdp.cc",
+        "sdp/sdp_db.cc",
         "util.cc",
     ],
     include_dirs: [
