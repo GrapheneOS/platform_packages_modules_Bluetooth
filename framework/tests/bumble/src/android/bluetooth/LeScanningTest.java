@@ -16,6 +16,8 @@
 
 package android.bluetooth;
 
+import static android.bluetooth.Utils.factoryResetAndCreateNewChannel;
+
 import static com.google.common.truth.Truth.assertThat;
 
 import android.bluetooth.le.BluetoothLeScanner;
@@ -45,7 +47,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import io.grpc.ManagedChannel;
-import io.grpc.okhttp.OkHttpChannelBuilder;
 import io.grpc.stub.StreamObserver;
 
 import pandora.HostGrpc;
@@ -56,7 +57,7 @@ import pandora.HostProto.AdvertiseResponse;
 @RunWith(AndroidJUnit4.class)
 public class LeScanningTest {
     private static final String TAG = "LeScanningTest";
-    private static final int TIMEOUT_SCANNING_MS = 1000;
+    private static final int TIMEOUT_SCANNING_MS = 2000;
 
     private static ManagedChannel mChannel;
 
@@ -75,20 +76,8 @@ public class LeScanningTest {
 
     @Before
     public void setUp() throws Exception {
-        // FactorReset is killing the server and restart
-        // all channel created before the server restarted
-        // cannot be reused
-        ManagedChannel channel =
-                OkHttpChannelBuilder.forAddress("localhost", 7999).usePlaintext().build();
-
-        HostGrpc.HostBlockingStub stub = HostGrpc.newBlockingStub(channel);
-        stub.factoryReset(Empty.getDefaultInstance());
-
-        // terminate the channel
-        channel.shutdown().awaitTermination(1, TimeUnit.SECONDS);
-
-        // Create a new channel for all successive grpc calls
-        mChannel = OkHttpChannelBuilder.forAddress("localhost", 7999).usePlaintext().build();
+        // Cleanup previous channels and create a new channel for all successive grpc calls
+        mChannel = factoryResetAndCreateNewChannel();
 
         mHostBlockingStub = HostGrpc.newBlockingStub(mChannel);
         mHostStub = HostGrpc.newStub(mChannel);
