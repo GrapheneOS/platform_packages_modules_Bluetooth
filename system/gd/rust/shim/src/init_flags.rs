@@ -43,7 +43,6 @@ mod ffi {
         fn pbap_pse_dynamic_version_upgrade_is_enabled() -> bool;
         fn periodic_advertising_adi_is_enabled() -> bool;
         fn private_gatt_is_enabled() -> bool;
-        fn queue_l2cap_coc_while_encrypting_is_enabled() -> bool;
         fn redact_log_is_enabled() -> bool;
         fn rust_event_loop_is_enabled() -> bool;
         fn sco_codec_select_lc3_is_enabled() -> bool;
