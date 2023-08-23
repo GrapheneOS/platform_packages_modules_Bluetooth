@@ -1517,6 +1517,7 @@ public class ScanManager {
                         if (!manageAllocationOfTrackingAdvertisement(trackEntries, true)) {
                             Log.e(TAG, "No hardware resources for onfound/onlost filter "
                                     + trackEntries);
+                            client.stats.recordTrackingHwFilterNotAvailableCountMetrics();
                             try {
                                 mService.onScanManagerErrorCallback(scannerId,
                                         ScanCallback.SCAN_FAILED_INTERNAL_ERROR);
@@ -1614,7 +1615,11 @@ public class ScanManager {
             if (client.filters == null || client.filters.isEmpty()) {
                 return true;
             }
-            return client.filters.size() > mFilterIndexStack.size();
+            if (client.filters.size() > mFilterIndexStack.size()) {
+                client.stats.recordHwFilterNotAvailableCountMetrics();
+                return true;
+            }
+            return false;
         }
 
         private void initFilterIndexStack() {
