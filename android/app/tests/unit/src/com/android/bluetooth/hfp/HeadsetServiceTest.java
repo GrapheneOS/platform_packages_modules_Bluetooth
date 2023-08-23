@@ -53,6 +53,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.ActiveDeviceManager;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.SilenceDeviceManager;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.hamcrest.Matchers;
@@ -94,6 +95,7 @@ public class HeadsetServiceTest {
     @Spy private HeadsetObjectsFactory mObjectsFactory = HeadsetObjectsFactory.getInstance();
     @Mock private AdapterService mAdapterService;
     @Mock private ActiveDeviceManager mActiveDeviceManager;
+    @Mock private SilenceDeviceManager mSilenceDeviceManager;
     @Mock private DatabaseManager mDatabaseManager;
     @Mock private HeadsetSystemInterface mSystemInterface;
     @Mock private HeadsetNativeInterface mNativeInterface;
@@ -123,6 +125,7 @@ public class HeadsetServiceTest {
         doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService)
                 .getBondState(any(BluetoothDevice.class));
         doReturn(mActiveDeviceManager).when(mAdapterService).getActiveDeviceManager();
+        doReturn(mSilenceDeviceManager).when(mAdapterService).getSilenceDeviceManager();
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         doAnswer(invocation -> {
