@@ -387,7 +387,6 @@ init_flags!(
         pbap_pse_dynamic_version_upgrade = false,
         periodic_advertising_adi = true,
         private_gatt = true,
-        queue_l2cap_coc_while_encrypting = true,
         redact_log = true,
         rust_event_loop = true,
         sco_codec_select_lc3,
