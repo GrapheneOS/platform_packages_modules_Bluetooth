@@ -379,6 +379,18 @@ import java.util.Objects;
                 .cacheCount(BluetoothProtoEnums.LE_SCAN_ABUSE_COUNT_SCAN_TIMEOUT, 1);
     }
 
+    synchronized void recordHwFilterNotAvailableCountMetrics() {
+        MetricsLogger.getInstance()
+                .cacheCount(BluetoothProtoEnums.LE_SCAN_ABUSE_COUNT_HW_FILTER_NOT_AVAILABLE, 1);
+    }
+
+    synchronized void recordTrackingHwFilterNotAvailableCountMetrics() {
+        MetricsLogger.getInstance()
+                .cacheCount(
+                        BluetoothProtoEnums.LE_SCAN_ABUSE_COUNT_TRACKING_HW_FILTER_NOT_AVAILABLE,
+                        1);
+    }
+
     static void initScanRadioState() {
         synchronized (sLock) {
             sIsRadioStarted = false;
