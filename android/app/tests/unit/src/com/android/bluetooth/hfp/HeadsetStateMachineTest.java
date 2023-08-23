@@ -51,6 +51,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.ActiveDeviceManager;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.RemoteDevices;
 import com.android.bluetooth.btservice.SilenceDeviceManager;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
@@ -97,6 +98,7 @@ public class HeadsetStateMachineTest {
     @Mock private Intent mIntent;
     private MockContentResolver mMockContentResolver;
     @Mock private HeadsetNativeInterface mNativeInterface;
+    @Mock private RemoteDevices mRemoteDevices;
 
     @Before
     public void setUp() throws Exception {
@@ -118,6 +120,7 @@ public class HeadsetStateMachineTest {
         doReturn(mActiveDeviceManager).when(mAdapterService).getActiveDeviceManager();
         // Get a silence device manager
         doReturn(mSilenceDeviceManager).when(mAdapterService).getSilenceDeviceManager();
+        doReturn(mRemoteDevices).when(mAdapterService).getRemoteDevices();
         doReturn(true).when(mNativeInterface).connectHfp(mTestDevice);
         doReturn(true).when(mNativeInterface).disconnectHfp(mTestDevice);
         doReturn(true).when(mNativeInterface).connectAudio(mTestDevice);

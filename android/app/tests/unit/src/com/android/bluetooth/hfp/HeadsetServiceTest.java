@@ -53,6 +53,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.ActiveDeviceManager;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.RemoteDevices;
 import com.android.bluetooth.btservice.SilenceDeviceManager;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
@@ -101,6 +102,7 @@ public class HeadsetServiceTest {
     @Mock private HeadsetNativeInterface mNativeInterface;
     @Mock private AudioManager mAudioManager;
     @Mock private HeadsetPhoneState mPhoneState;
+    @Mock private RemoteDevices mRemoteDevices;
 
     @Before
     public void setUp() throws Exception {
@@ -128,6 +130,7 @@ public class HeadsetServiceTest {
         doReturn(mSilenceDeviceManager).when(mAdapterService).getSilenceDeviceManager();
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
+        doReturn(mRemoteDevices).when(mAdapterService).getRemoteDevices();
         doAnswer(invocation -> {
             Set<BluetoothDevice> keys = mStateMachines.keySet();
             return keys.toArray(new BluetoothDevice[keys.size()]);

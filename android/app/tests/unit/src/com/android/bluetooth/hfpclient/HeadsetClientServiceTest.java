@@ -38,6 +38,7 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.RemoteDevices;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
@@ -65,6 +66,7 @@ public class HeadsetClientServiceTest {
     @Mock private HeadsetClientStateMachine mStateMachine;
     @Mock private NativeInterface mNativeInterface;
     @Mock private DatabaseManager mDatabaseManager;
+    @Mock private RemoteDevices mRemoteDevices;
 
     @Before
     public void setUp() throws Exception {
@@ -73,6 +75,7 @@ public class HeadsetClientServiceTest {
 
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
+        doReturn(mRemoteDevices).when(mAdapterService).getRemoteDevices();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         NativeInterface.setInstance(mNativeInterface);
         TestUtils.startService(mServiceRule, HeadsetClientService.class);

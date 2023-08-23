@@ -1593,6 +1593,7 @@ public class HeadsetClientStateMachine extends StateMachine {
                             break;
                         case StackEvent.EVENT_TYPE_BATTERY_LEVEL:
                             mIndicatorBatteryLevel = event.valueInt;
+                            mService.handleBatteryLevelChanged(event.device, event.valueInt);
 
                             intent = new Intent(BluetoothHeadsetClient.ACTION_AG_EVENT);
                             intent.putExtra(BluetoothHeadsetClient.EXTRA_BATTERY_LEVEL,

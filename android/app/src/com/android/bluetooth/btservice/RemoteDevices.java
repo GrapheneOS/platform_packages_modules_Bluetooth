@@ -26,16 +26,13 @@ import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
-import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.BluetoothSinkAudioPolicy;
 import android.bluetooth.IBluetoothConnectionCallback;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.MacAddress;
 import android.os.Handler;
 import android.os.Looper;
@@ -60,7 +57,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
-final class RemoteDevices {
+/** Remote device manager. This class is currently mostly used for HF and AG remote devices. */
+public class RemoteDevices {
     private static final boolean DBG = false;
     private static final String TAG = "BluetoothRemoteDevices";
 
@@ -99,6 +97,8 @@ final class RemoteDevices {
     private static final int HFP_BATTERY_CHARGE_INDICATOR_5 = 100;
 
     private final Handler mHandler;
+    private final Handler mMainHandler;
+
     private class RemoteDevicesHandler extends Handler {
 
         /**
@@ -130,33 +130,6 @@ final class RemoteDevices {
         }
     }
 
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            switch (action) {
-                case BluetoothHeadset.ACTION_HF_INDICATORS_VALUE_CHANGED:
-                    onHfIndicatorValueChanged(intent);
-                    break;
-                case BluetoothHeadset.ACTION_VENDOR_SPECIFIC_HEADSET_EVENT:
-                    onVendorSpecificHeadsetEvent(intent);
-                    break;
-                case BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED:
-                    onHeadsetConnectionStateChanged(intent);
-                    break;
-                case BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED:
-                    onHeadsetClientConnectionStateChanged(intent);
-                    break;
-                case BluetoothHeadsetClient.ACTION_AG_EVENT:
-                    onAgIndicatorValueChanged(intent);
-                    break;
-                default:
-                    Log.w(TAG, "Unhandled intent: " + intent);
-                    break;
-            }
-        }
-    };
-
     /**
      * Predicate that tests if the given {@link BluetoothDevice} is well-known
      * to be used for physical location.
@@ -183,33 +156,17 @@ final class RemoteDevices {
         mDualDevicesMap = new HashMap<String, String>();
         mDeviceQueue = new ArrayDeque<>();
         mHandler = new RemoteDevicesHandler(looper);
+        mMainHandler = new Handler(Looper.getMainLooper());
     }
 
-    /**
-     * Init should be called before using this RemoteDevices object
-     */
-    void init() {
-        IntentFilter filter = new IntentFilter();
-        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
-        filter.addAction(BluetoothHeadset.ACTION_HF_INDICATORS_VALUE_CHANGED);
-        filter.addAction(BluetoothHeadset.ACTION_VENDOR_SPECIFIC_HEADSET_EVENT);
-        filter.addCategory(BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_COMPANY_ID_CATEGORY + "."
-                + BluetoothAssignedNumbers.PLANTRONICS);
-        filter.addCategory(BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_COMPANY_ID_CATEGORY + "."
-                + BluetoothAssignedNumbers.APPLE);
-        filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothHeadsetClient.ACTION_AG_EVENT);
-        mAdapterService.registerReceiver(mReceiver, filter);
-    }
+    /** Init should be called before using this RemoteDevices object */
+    void init() {}
 
     /**
      * Clean up should be called when this object is no longer needed, must be called after init()
      */
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     void cleanup() {
-        // Unregister receiver first, mAdapterService is never null
-        mAdapterService.unregisterReceiver(mReceiver);
         reset();
     }
 
@@ -1293,65 +1250,71 @@ final class RemoteDevices {
         mHandler.sendMessage(message);
     }
 
-    /**
-     * Handles headset connection state change event
-     * @param intent must be {@link BluetoothHeadset#ACTION_CONNECTION_STATE_CHANGED} intent
-     */
+    /** Handles headset connection state change event */
+    public void handleHeadsetConnectionStateChanged(
+            BluetoothDevice device, int fromState, int toState) {
+        mMainHandler.post(() -> onHeadsetConnectionStateChanged(device, fromState, toState));
+    }
+
     @VisibleForTesting
-    void onHeadsetConnectionStateChanged(Intent intent) {
-        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+    void onHeadsetConnectionStateChanged(BluetoothDevice device, int fromState, int toState) {
         if (device == null) {
             Log.e(TAG, "onHeadsetConnectionStateChanged() remote device is null");
             return;
         }
-        if (intent.getIntExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED)
-                == BluetoothProfile.STATE_DISCONNECTED
-                && !hasBatteryService(device)) {
+        if (toState == BluetoothProfile.STATE_DISCONNECTED && !hasBatteryService(device)) {
             resetBatteryLevel(device, /*isBas=*/ false);
         }
     }
 
+    /** Handle indication events from Hands-free. */
+    public void handleHfIndicatorValueChanged(
+            BluetoothDevice device, int indicatorId, int indicatorValue) {
+        mMainHandler.post(() -> onHfIndicatorValueChanged(device, indicatorId, indicatorValue));
+    }
+
     @VisibleForTesting
-    void onHfIndicatorValueChanged(Intent intent) {
-        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+    void onHfIndicatorValueChanged(BluetoothDevice device, int indicatorId, int indicatorValue) {
         if (device == null) {
             Log.e(TAG, "onHfIndicatorValueChanged() remote device is null");
             return;
         }
-        int indicatorId = intent.getIntExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_ID, -1);
-        int indicatorValue = intent.getIntExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_VALUE, -1);
         if (indicatorId == HeadsetHalConstants.HF_INDICATOR_BATTERY_LEVEL_STATUS) {
             updateBatteryLevel(device, indicatorValue, /*isBas=*/ false);
         }
     }
 
-    /**
-     * Handle {@link BluetoothHeadset#ACTION_VENDOR_SPECIFIC_HEADSET_EVENT} intent
-     * @param intent must be {@link BluetoothHeadset#ACTION_VENDOR_SPECIFIC_HEADSET_EVENT} intent
-     */
+    /** Handles Headset specific Bluetooth events */
+    public void handleVendorSpecificHeadsetEvent(
+            BluetoothDevice device, String cmd, int companyId, int cmdType, Object[] args) {
+        mMainHandler.post(
+                () -> onVendorSpecificHeadsetEvent(device, cmd, companyId, cmdType, args));
+    }
+
     @VisibleForTesting
-    void onVendorSpecificHeadsetEvent(Intent intent) {
-        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+    void onVendorSpecificHeadsetEvent(
+            BluetoothDevice device, String cmd, int companyId, int cmdType, Object[] args) {
         if (device == null) {
             Log.e(TAG, "onVendorSpecificHeadsetEvent() remote device is null");
             return;
         }
-        String cmd =
-                intent.getStringExtra(BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_CMD);
+        if (companyId != BluetoothAssignedNumbers.PLANTRONICS
+                && companyId != BluetoothAssignedNumbers.APPLE) {
+            Log.i(
+                    TAG,
+                    "onVendorSpecificHeadsetEvent() filtered out non-PLANTRONICS and non-APPLE "
+                            + "vendor commands");
+            return;
+        }
         if (cmd == null) {
             Log.e(TAG, "onVendorSpecificHeadsetEvent() command is null");
             return;
         }
-        int cmdType =
-                intent.getIntExtra(BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_CMD_TYPE,
-                        -1);
         // Only process set command
         if (cmdType != BluetoothHeadset.AT_CMD_TYPE_SET) {
             debugLog("onVendorSpecificHeadsetEvent() only SET command is processed");
             return;
         }
-        Object[] args = (Object[]) intent.getExtras()
-                .get(BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_ARGS);
         if (args == null) {
             Log.e(TAG, "onVendorSpecificHeadsetEvent() arguments are null");
             return;
@@ -1476,37 +1439,36 @@ final class RemoteDevices {
                 && batteryService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED;
     }
 
-    /**
-     * Handles headset client connection state change event
-     * @param intent must be {@link BluetoothHeadsetClient#ACTION_CONNECTION_STATE_CHANGED} intent
-     */
+    /** Handles headset client connection state change event. */
+    public void handleHeadsetClientConnectionStateChanged(
+            BluetoothDevice device, int fromState, int toState) {
+        mMainHandler.post(() -> onHeadsetClientConnectionStateChanged(device, fromState, toState));
+    }
+
     @VisibleForTesting
-    void onHeadsetClientConnectionStateChanged(Intent intent) {
-        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+    void onHeadsetClientConnectionStateChanged(BluetoothDevice device, int fromState, int toState) {
         if (device == null) {
             Log.e(TAG, "onHeadsetClientConnectionStateChanged() remote device is null");
             return;
         }
-        if (intent.getIntExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED)
-                == BluetoothProfile.STATE_DISCONNECTED
-                && !hasBatteryService(device)) {
+        if (toState == BluetoothProfile.STATE_DISCONNECTED && !hasBatteryService(device)) {
             resetBatteryLevel(device, /*isBas=*/ false);
         }
     }
 
+    /** Handle battery level changes indication events from Audio Gateway. */
+    public void handleAgBatteryLevelChanged(BluetoothDevice device, int batteryLevel) {
+        mMainHandler.post(() -> onAgBatteryLevelChanged(device, batteryLevel));
+    }
+
     @VisibleForTesting
-    void onAgIndicatorValueChanged(Intent intent) {
-        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+    void onAgBatteryLevelChanged(BluetoothDevice device, int batteryLevel) {
         if (device == null) {
-            Log.e(TAG, "onAgIndicatorValueChanged() remote device is null");
+            Log.e(TAG, "onAgBatteryLevelChanged() remote device is null");
             return;
         }
-
-        if (intent.hasExtra(BluetoothHeadsetClient.EXTRA_BATTERY_LEVEL)) {
-            int batteryLevel = intent.getIntExtra(BluetoothHeadsetClient.EXTRA_BATTERY_LEVEL, -1);
-            updateBatteryLevel(
-                    device, batteryChargeIndicatorToPercentge(batteryLevel), /*isBas=*/ false);
-        }
+        updateBatteryLevel(
+                device, batteryChargeIndicatorToPercentge(batteryLevel), /*isBas=*/ false);
     }
 
     private static void errorLog(String msg) {
