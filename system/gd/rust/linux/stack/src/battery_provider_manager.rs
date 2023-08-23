@@ -1,6 +1,7 @@
 use crate::battery_manager::{Batteries, BatterySet};
 use crate::callbacks::Callbacks;
 use crate::{Message, RPCProxy};
+use log::debug;
 use std::collections::HashMap;
 use tokio::sync::mpsc::Sender;
 
@@ -75,6 +76,12 @@ impl IBatteryProviderManager for BatteryProviderManager {
     }
 
     fn set_battery_info(&mut self, _battery_provider_id: u32, battery_set: BatterySet) {
+        debug!(
+            "BatteryProviderManager received BatterySet for [{}] from \"{}\": {:?}",
+            battery_set.address.clone(),
+            battery_set.source_info.clone(),
+            battery_set.clone()
+        );
         let batteries = self
             .battery_info
             .entry(battery_set.address.clone())
