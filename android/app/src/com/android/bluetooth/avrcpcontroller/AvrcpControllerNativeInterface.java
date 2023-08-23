@@ -21,7 +21,6 @@ import android.bluetooth.BluetoothDevice;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
-import com.android.bluetooth.Utils;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -40,14 +39,6 @@ public class AvrcpControllerNativeInterface {
     private static AvrcpControllerNativeInterface sInstance;
 
     private static final Object INSTANCE_LOCK = new Object();
-
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
 
     static AvrcpControllerNativeInterface getInstance() {
         synchronized (INSTANCE_LOCK) {
@@ -417,8 +408,6 @@ public class AvrcpControllerNativeInterface {
     /**********************************************************************************************/
     /******************************************* native *******************************************/
     /**********************************************************************************************/
-
-    private static native void classInitNative();
 
     private native void initNative();
 

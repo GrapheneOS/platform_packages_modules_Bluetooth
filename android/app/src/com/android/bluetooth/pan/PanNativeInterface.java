@@ -22,7 +22,6 @@ import android.bluetooth.BluetoothPan;
 import android.bluetooth.BluetoothProfile;
 import android.util.Log;
 
-import com.android.bluetooth.Utils;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -35,14 +34,6 @@ public class PanNativeInterface {
     private static PanNativeInterface sInstance;
 
     private static final Object INSTANCE_LOCK = new Object();
-
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
 
     private PanNativeInterface() {}
 
@@ -128,8 +119,6 @@ public class PanNativeInterface {
     @VisibleForTesting static final int CONN_STATE_DISCONNECTED = 2;
 
     @VisibleForTesting static final int CONN_STATE_DISCONNECTING = 3;
-
-    private static native void classInitNative();
 
     private native void initializeNative();
 

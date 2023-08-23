@@ -716,70 +716,8 @@ static btrc_ctrl_callbacks_t sBluetoothAvrcpCallbacks = {
     btavrcp_addressed_player_changed_callback,
     btavrcp_now_playing_content_changed_callback,
     btavrcp_available_player_changed_callback,
-    btavrcp_get_rcpsm_callback};
-
-static void classInitNative(JNIEnv* env, jclass clazz) {
-  method_onConnectionStateChanged =
-      env->GetMethodID(clazz, "onConnectionStateChanged", "(ZZ[B)V");
-
-  method_getRcPsm = env->GetMethodID(clazz, "getRcPsm", "([BI)V");
-
-  method_handleplayerappsetting =
-      env->GetMethodID(clazz, "handlePlayerAppSetting", "([B[BI)V");
-
-  method_handleplayerappsettingchanged =
-      env->GetMethodID(clazz, "onPlayerAppSettingChanged", "([B[BI)V");
-
-  method_handleSetAbsVolume =
-      env->GetMethodID(clazz, "handleSetAbsVolume", "([BBB)V");
-
-  method_handleRegisterNotificationAbsVol =
-      env->GetMethodID(clazz, "handleRegisterNotificationAbsVol", "([BB)V");
-
-  method_handletrackchanged =
-      env->GetMethodID(clazz, "onTrackChanged", "([BB[I[Ljava/lang/String;)V");
-
-  method_handleplaypositionchanged =
-      env->GetMethodID(clazz, "onPlayPositionChanged", "([BII)V");
-
-  method_handleplaystatuschanged =
-      env->GetMethodID(clazz, "onPlayStatusChanged", "([BB)V");
-
-  method_handleGetFolderItemsRsp =
-      env->GetMethodID(clazz, "handleGetFolderItemsRsp",
-                       "([BI[Lcom/android/bluetooth/avrcpcontroller/"
-                       "AvrcpItem;)V");
-  method_handleGetPlayerItemsRsp = env->GetMethodID(
-      clazz, "handleGetPlayerItemsRsp",
-      "([B[Lcom/android/bluetooth/avrcpcontroller/AvrcpPlayer;)V");
-
-  method_createFromNativeMediaItem = env->GetStaticMethodID(
-      clazz, "createFromNativeMediaItem",
-      "([BJILjava/lang/String;[I[Ljava/lang/String;)Lcom/"
-      "android/bluetooth/avrcpcontroller/AvrcpItem;");
-  method_createFromNativeFolderItem = env->GetStaticMethodID(
-      clazz, "createFromNativeFolderItem",
-      "([BJILjava/lang/String;I)Lcom/android/bluetooth/avrcpcontroller/"
-      "AvrcpItem;");
-  method_createFromNativePlayerItem = env->GetStaticMethodID(
-      clazz, "createFromNativePlayerItem",
-      "([BILjava/lang/String;[BII)Lcom/android/bluetooth/"
-      "avrcpcontroller/AvrcpPlayer;");
-  method_handleChangeFolderRsp =
-      env->GetMethodID(clazz, "handleChangeFolderRsp", "([BI)V");
-  method_handleSetBrowsedPlayerRsp =
-      env->GetMethodID(clazz, "handleSetBrowsedPlayerRsp", "([BII)V");
-  method_handleSetAddressedPlayerRsp =
-      env->GetMethodID(clazz, "handleSetAddressedPlayerRsp", "([BI)V");
-  method_handleAddressedPlayerChanged =
-      env->GetMethodID(clazz, "handleAddressedPlayerChanged", "([BI)V");
-  method_handleNowPlayingContentChanged =
-      env->GetMethodID(clazz, "handleNowPlayingContentChanged", "([B)V");
-  method_onAvailablePlayerChanged =
-      env->GetMethodID(clazz, "onAvailablePlayerChanged", "([B)V");
-
-  ALOGI("%s: succeeds", __func__);
-}
+    btavrcp_get_rcpsm_callback,
+};
 
 static void initNative(JNIEnv* env, jobject object) {
   std::unique_lock<std::shared_timed_mutex> lock(sCallbacks_mutex);
@@ -1199,34 +1137,84 @@ static void playItemNative(JNIEnv* env, jobject object, jbyteArray address,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static JNINativeMethod sMethods[] = {
-    {"classInitNative", "()V", (void*)classInitNative},
-    {"initNative", "()V", (void*)initNative},
-    {"cleanupNative", "()V", (void*)cleanupNative},
-    {"sendPassThroughCommandNative", "([BII)Z",
-     (void*)sendPassThroughCommandNative},
-    {"sendGroupNavigationCommandNative", "([BII)Z",
-     (void*)sendGroupNavigationCommandNative},
-    {"setPlayerApplicationSettingValuesNative", "([BB[B[B)V",
-     (void*)setPlayerApplicationSettingValuesNative},
-    {"sendAbsVolRspNative", "([BII)V", (void*)sendAbsVolRspNative},
-    {"sendRegisterAbsVolRspNative", "([BBII)V",
-     (void*)sendRegisterAbsVolRspNative},
-    {"getCurrentMetadataNative", "([B)V", (void*)getCurrentMetadataNative},
-    {"getPlaybackStateNative", "([B)V", (void*)getPlaybackStateNative},
-    {"getNowPlayingListNative", "([BII)V", (void*)getNowPlayingListNative},
-    {"getFolderListNative", "([BII)V", (void*)getFolderListNative},
-    {"getPlayerListNative", "([BII)V", (void*)getPlayerListNative},
-    {"changeFolderPathNative", "([BBJ)V", (void*)changeFolderPathNative},
-    {"playItemNative", "([BBJI)V", (void*)playItemNative},
-    {"setBrowsedPlayerNative", "([BI)V", (void*)setBrowsedPlayerNative},
-    {"setAddressedPlayerNative", "([BI)V", (void*)setAddressedPlayerNative},
-};
-
 int register_com_android_bluetooth_avrcp_controller(JNIEnv* env) {
-  return jniRegisterNativeMethods(
+  const JNINativeMethod methods[] = {
+      {"initNative", "()V", (void*)initNative},
+      {"cleanupNative", "()V", (void*)cleanupNative},
+      {"sendPassThroughCommandNative", "([BII)Z",
+       (void*)sendPassThroughCommandNative},
+      {"sendGroupNavigationCommandNative", "([BII)Z",
+       (void*)sendGroupNavigationCommandNative},
+      {"setPlayerApplicationSettingValuesNative", "([BB[B[B)V",
+       (void*)setPlayerApplicationSettingValuesNative},
+      {"sendAbsVolRspNative", "([BII)V", (void*)sendAbsVolRspNative},
+      {"sendRegisterAbsVolRspNative", "([BBII)V",
+       (void*)sendRegisterAbsVolRspNative},
+      {"getCurrentMetadataNative", "([B)V", (void*)getCurrentMetadataNative},
+      {"getPlaybackStateNative", "([B)V", (void*)getPlaybackStateNative},
+      {"getNowPlayingListNative", "([BII)V", (void*)getNowPlayingListNative},
+      {"getFolderListNative", "([BII)V", (void*)getFolderListNative},
+      {"getPlayerListNative", "([BII)V", (void*)getPlayerListNative},
+      {"changeFolderPathNative", "([BBJ)V", (void*)changeFolderPathNative},
+      {"playItemNative", "([BBJI)V", (void*)playItemNative},
+      {"setBrowsedPlayerNative", "([BI)V", (void*)setBrowsedPlayerNative},
+      {"setAddressedPlayerNative", "([BI)V", (void*)setAddressedPlayerNative},
+  };
+  const int result = REGISTER_NATIVE_METHODS(
       env,
       "com/android/bluetooth/avrcpcontroller/AvrcpControllerNativeInterface",
-      sMethods, NELEM(sMethods));
+      methods);
+  if (result != 0) {
+    return result;
+  }
+
+  const JNIJavaMethod javaMethods[] = {
+      {"onConnectionStateChanged", "(ZZ[B)V", &method_onConnectionStateChanged},
+      {"getRcPsm", "([BI)V", &method_getRcPsm},
+      {"handlePlayerAppSetting", "([B[BI)V", &method_handleplayerappsetting},
+      {"onPlayerAppSettingChanged", "([B[BI)V",
+       &method_handleplayerappsettingchanged},
+      {"handleSetAbsVolume", "([BBB)V", &method_handleSetAbsVolume},
+      {"handleRegisterNotificationAbsVol", "([BB)V",
+       &method_handleRegisterNotificationAbsVol},
+      {"onTrackChanged", "([BB[I[Ljava/lang/String;)V",
+       &method_handletrackchanged},
+      {"onPlayPositionChanged", "([BII)V", &method_handleplaypositionchanged},
+      {"onPlayStatusChanged", "([BB)V", &method_handleplaystatuschanged},
+      {"handleGetFolderItemsRsp",
+       "([BI[Lcom/android/bluetooth/avrcpcontroller/AvrcpItem;)V",
+       &method_handleGetFolderItemsRsp},
+      {"handleGetPlayerItemsRsp",
+       "([B[Lcom/android/bluetooth/avrcpcontroller/AvrcpPlayer;)V",
+       &method_handleGetPlayerItemsRsp},
+      {"handleChangeFolderRsp", "([BI)V", &method_handleChangeFolderRsp},
+      {"handleSetBrowsedPlayerRsp", "([BII)V",
+       &method_handleSetBrowsedPlayerRsp},
+      {"handleSetAddressedPlayerRsp", "([BI)V",
+       &method_handleSetAddressedPlayerRsp},
+      {"handleAddressedPlayerChanged", "([BI)V",
+       &method_handleAddressedPlayerChanged},
+      {"handleNowPlayingContentChanged", "([B)V",
+       &method_handleNowPlayingContentChanged},
+      {"onAvailablePlayerChanged", "([B)V", &method_onAvailablePlayerChanged},
+      // Fetch static method
+      {"createFromNativeMediaItem",
+       "([BJILjava/lang/String;[I[Ljava/lang/String;)"
+       "Lcom/android/bluetooth/avrcpcontroller/AvrcpItem;",
+       &method_createFromNativeMediaItem, true},
+      {"createFromNativeFolderItem",
+       "([BJILjava/lang/String;I)"
+       "Lcom/android/bluetooth/avrcpcontroller/AvrcpItem;",
+       &method_createFromNativeFolderItem, true},
+      {"createFromNativePlayerItem",
+       "([BILjava/lang/String;[BII)"
+       "Lcom/android/bluetooth/avrcpcontroller/AvrcpPlayer;",
+       &method_createFromNativePlayerItem, true},
+  };
+  GET_JAVA_METHODS(
+      env,
+      "com/android/bluetooth/avrcpcontroller/AvrcpControllerNativeInterface",
+      javaMethods);
+  return 0;
 }
 }  // namespace android
