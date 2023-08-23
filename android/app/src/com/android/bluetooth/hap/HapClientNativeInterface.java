@@ -29,12 +29,9 @@ import com.android.internal.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-/**
- * Hearing Access Profile Client Native Interface to/from JNI.
- */
+/** Hearing Access Profile Client Native Interface to/from JNI. */
 public class HapClientNativeInterface {
-    private static final String TAG =
-            HapClientNativeInterface.class.getSimpleName().substring(0, 23);
+    private static final String TAG = HapClientNativeInterface.class.getSimpleName();
     private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
 
     private final BluetoothAdapter mAdapter;
