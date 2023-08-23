@@ -251,7 +251,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
                 String::from(
                     "socket connect <address> <l2cap|rfcomm> <psm|uuid> <auth-required> <Bredr|LE>",
                 ),
-                String::from("socket disconnect <socket_id>"),
+                String::from("socket close <socket_id>"),
                 String::from("socket set-on-connect-schedule <send|resend|dump>"),
             ],
             description: String::from("Socket manager utilities."),
@@ -1624,6 +1624,26 @@ impl CommandHandler {
                 } else {
                     print_info!("Called create socket with result ({:?}, {}) against {}, type {}, with psm/uuid {}",
                     status, id, addr, sock_type, psm_or_uuid);
+                }
+            }
+            "close" => {
+                let sockid = String::from(get_arg(args, 1)?)
+                    .parse::<u64>()
+                    .or(Err("Failed parsing socket ID"))?;
+                let status = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .socket_manager_dbus
+                    .as_mut()
+                    .unwrap()
+                    .close(callback_id, sockid);
+                if status != BtStatus::Success {
+                    return Err(format!(
+                        "Failed to close the listening socket, status = {:?}",
+                        status,
+                    )
+                    .into());
                 }
             }
 
