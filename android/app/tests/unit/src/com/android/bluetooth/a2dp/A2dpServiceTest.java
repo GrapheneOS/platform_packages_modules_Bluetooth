@@ -42,6 +42,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.ActiveDeviceManager;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.SilenceDeviceManager;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
@@ -79,6 +80,7 @@ public class A2dpServiceTest {
     @Mock private ActiveDeviceManager mActiveDeviceManager;
     @Mock private A2dpNativeInterface mMockNativeInterface;
     @Mock private DatabaseManager mDatabaseManager;
+    @Mock private SilenceDeviceManager mSilenceDeviceManager;
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
@@ -99,6 +101,7 @@ public class A2dpServiceTest {
         doReturn(false).when(mAdapterService).isQuietModeEnabled();
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(mActiveDeviceManager).when(mAdapterService).getActiveDeviceManager();
+        doReturn(mSilenceDeviceManager).when(mAdapterService).getSilenceDeviceManager();
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
