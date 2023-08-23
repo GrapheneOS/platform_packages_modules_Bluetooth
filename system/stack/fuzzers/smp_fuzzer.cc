@@ -64,13 +64,13 @@ class FakeBtStack {
   FakeBtStack() {
     test::mock::stack_acl::BTM_ReadConnectionAddr.body =
         [](const RawAddress& remote_bda, RawAddress& local_conn_addr,
-           tBLE_ADDR_TYPE* p_addr_type) {
+           tBLE_ADDR_TYPE* p_addr_type, bool ota_address) {
           local_conn_addr = kDummyAddr;
           *p_addr_type = BLE_ADDR_PUBLIC;
         };
     test::mock::stack_acl::BTM_ReadRemoteConnectionAddr.body =
         [](const RawAddress& pseudo_addr, RawAddress& conn_addr,
-           tBLE_ADDR_TYPE* p_addr_type) {
+           tBLE_ADDR_TYPE* p_addr_type, bool ota_address) {
           conn_addr = kDummyRemoteAddr;
           *p_addr_type = BLE_ADDR_PUBLIC;
           return true;
