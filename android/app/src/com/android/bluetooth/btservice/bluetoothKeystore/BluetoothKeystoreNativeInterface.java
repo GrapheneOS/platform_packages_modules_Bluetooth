@@ -18,7 +18,6 @@ package com.android.bluetooth.btservice.bluetoothkeystore;
 
 import android.util.Log;
 
-import com.android.bluetooth.Utils;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -35,14 +34,6 @@ public class BluetoothKeystoreNativeInterface {
     private static BluetoothKeystoreNativeInterface sInstance;
 
     private static final Object INSTANCE_LOCK = new Object();
-
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
 
     private BluetoothKeystoreNativeInterface() {}
 
@@ -120,7 +111,6 @@ public class BluetoothKeystoreNativeInterface {
     }
 
     // Native methods that call into the JNI interface
-    private static native void classInitNative();
     private native void initNative();
     private native void cleanupNative();
 }

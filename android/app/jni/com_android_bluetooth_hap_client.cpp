@@ -301,59 +301,6 @@ class HasClientCallbacksImpl : public HasClientCallbacks {
 
 static HasClientCallbacksImpl sHasClientCallbacks;
 
-static void classInitNative(JNIEnv* env, jclass clazz) {
-  jclass jniBluetoothBluetoothHapPresetInfoClass =
-      env->FindClass("android/bluetooth/BluetoothHapPresetInfo");
-  CHECK(jniBluetoothBluetoothHapPresetInfoClass != NULL);
-
-  android_bluetooth_BluetoothHapPresetInfo.constructor =
-      env->GetMethodID(jniBluetoothBluetoothHapPresetInfoClass, "<init>",
-                       "(ILjava/lang/String;ZZ)V");
-
-  method_onConnectionStateChanged =
-      env->GetMethodID(clazz, "onConnectionStateChanged", "(I[B)V");
-
-  method_onDeviceAvailable =
-      env->GetMethodID(clazz, "onDeviceAvailable", "([BI)V");
-
-  method_onFeaturesUpdate =
-      env->GetMethodID(clazz, "onFeaturesUpdate", "([BI)V");
-
-  method_onActivePresetSelected =
-      env->GetMethodID(clazz, "onActivePresetSelected", "([BI)V");
-
-  method_onGroupActivePresetSelected =
-      env->GetMethodID(clazz, "onActivePresetGroupSelected", "(II)V");
-
-  method_onActivePresetSelectError =
-      env->GetMethodID(clazz, "onActivePresetSelectError", "([BI)V");
-
-  method_onGroupActivePresetSelectError =
-      env->GetMethodID(clazz, "onActivePresetGroupSelectError", "(II)V");
-
-  method_onPresetInfo =
-      env->GetMethodID(clazz, "onPresetInfo",
-                       "([BI[Landroid/bluetooth/BluetoothHapPresetInfo;)V");
-
-  method_onGroupPresetInfo =
-      env->GetMethodID(clazz, "onGroupPresetInfo",
-                       "(II[Landroid/bluetooth/BluetoothHapPresetInfo;)V");
-
-  method_onPresetNameSetError =
-      env->GetMethodID(clazz, "onPresetNameSetError", "([BII)V");
-
-  method_onGroupPresetNameSetError =
-      env->GetMethodID(clazz, "onGroupPresetNameSetError", "(III)V");
-
-  method_onPresetInfoError =
-      env->GetMethodID(clazz, "onPresetInfoError", "([BII)V");
-
-  method_onGroupPresetInfoError =
-      env->GetMethodID(clazz, "onGroupPresetInfoError", "(III)V");
-
-  LOG(INFO) << __func__ << ": succeeds";
-}
-
 static void initNative(JNIEnv* env, jobject object) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
@@ -616,30 +563,65 @@ static void groupSetPresetNameNative(JNIEnv* env, jobject object, jint group_id,
                                      std::move(name_str));
 }
 
-static JNINativeMethod sMethods[] = {
-    {"classInitNative", "()V", (void*)classInitNative},
-    {"initNative", "()V", (void*)initNative},
-    {"cleanupNative", "()V", (void*)cleanupNative},
-    {"connectHapClientNative", "([B)Z", (void*)connectHapClientNative},
-    {"disconnectHapClientNative", "([B)Z", (void*)disconnectHapClientNative},
-    {"selectActivePresetNative", "([BI)V", (void*)selectActivePresetNative},
-    {"groupSelectActivePresetNative", "(II)V",
-     (void*)groupSelectActivePresetNative},
-    {"nextActivePresetNative", "([B)V", (void*)nextActivePresetNative},
-    {"groupNextActivePresetNative", "(I)V", (void*)groupNextActivePresetNative},
-    {"previousActivePresetNative", "([B)V", (void*)previousActivePresetNative},
-    {"groupPreviousActivePresetNative", "(I)V",
-     (void*)groupPreviousActivePresetNative},
-    {"getPresetInfoNative", "([BI)V", (void*)getPresetInfoNative},
-    {"setPresetNameNative", "([BILjava/lang/String;)V",
-     (void*)setPresetNameNative},
-    {"groupSetPresetNameNative", "(IILjava/lang/String;)V",
-     (void*)groupSetPresetNameNative},
-};
-
 int register_com_android_bluetooth_hap_client(JNIEnv* env) {
-  return jniRegisterNativeMethods(
-      env, "com/android/bluetooth/hap/HapClientNativeInterface", sMethods,
-      NELEM(sMethods));
+  const JNINativeMethod methods[] = {
+      {"initNative", "()V", (void*)initNative},
+      {"cleanupNative", "()V", (void*)cleanupNative},
+      {"connectHapClientNative", "([B)Z", (void*)connectHapClientNative},
+      {"disconnectHapClientNative", "([B)Z", (void*)disconnectHapClientNative},
+      {"selectActivePresetNative", "([BI)V", (void*)selectActivePresetNative},
+      {"groupSelectActivePresetNative", "(II)V",
+       (void*)groupSelectActivePresetNative},
+      {"nextActivePresetNative", "([B)V", (void*)nextActivePresetNative},
+      {"groupNextActivePresetNative", "(I)V",
+       (void*)groupNextActivePresetNative},
+      {"previousActivePresetNative", "([B)V",
+       (void*)previousActivePresetNative},
+      {"groupPreviousActivePresetNative", "(I)V",
+       (void*)groupPreviousActivePresetNative},
+      {"getPresetInfoNative", "([BI)V", (void*)getPresetInfoNative},
+      {"setPresetNameNative", "([BILjava/lang/String;)V",
+       (void*)setPresetNameNative},
+      {"groupSetPresetNameNative", "(IILjava/lang/String;)V",
+       (void*)groupSetPresetNameNative},
+  };
+  const int result = REGISTER_NATIVE_METHODS(
+      env, "com/android/bluetooth/hap/HapClientNativeInterface", methods);
+  if (result != 0) {
+    return result;
+  }
+
+  const JNIJavaMethod javaMethods[] = {
+      {"onConnectionStateChanged", "(I[B)V", &method_onConnectionStateChanged},
+      {"onDeviceAvailable", "([BI)V", &method_onDeviceAvailable},
+      {"onFeaturesUpdate", "([BI)V", &method_onFeaturesUpdate},
+      {"onActivePresetSelected", "([BI)V", &method_onActivePresetSelected},
+      {"onActivePresetGroupSelected", "(II)V",
+       &method_onGroupActivePresetSelected},
+      {"onActivePresetSelectError", "([BI)V",
+       &method_onActivePresetSelectError},
+      {"onActivePresetGroupSelectError", "(II)V",
+       &method_onGroupActivePresetSelectError},
+      {"onPresetInfo", "([BI[Landroid/bluetooth/BluetoothHapPresetInfo;)V",
+       &method_onPresetInfo},
+      {"onGroupPresetInfo", "(II[Landroid/bluetooth/BluetoothHapPresetInfo;)V",
+       &method_onGroupPresetInfo},
+      {"onPresetNameSetError", "([BII)V", &method_onPresetNameSetError},
+      {"onGroupPresetNameSetError", "(III)V",
+       &method_onGroupPresetNameSetError},
+      {"onPresetInfoError", "([BII)V", &method_onPresetInfoError},
+      {"onGroupPresetInfoError", "(III)V", &method_onGroupPresetInfoError},
+  };
+  GET_JAVA_METHODS(env, "com/android/bluetooth/hap/HapClientNativeInterface",
+                   javaMethods);
+
+  const JNIJavaMethod javaHapPresetMethods[] = {
+      {"<init>", "(ILjava/lang/String;ZZ)V",
+       &android_bluetooth_BluetoothHapPresetInfo.constructor},
+  };
+  GET_JAVA_METHODS(env, "android/bluetooth/BluetoothHapPresetInfo",
+                   javaHapPresetMethods);
+
+  return 0;
 }
 }  // namespace android
