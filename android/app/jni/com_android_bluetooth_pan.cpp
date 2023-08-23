@@ -98,15 +98,6 @@ static btpan_callbacks_t sBluetoothPanCallbacks = {
     connection_state_callback};
 
 // Define native functions
-
-static void classInitNative(JNIEnv* env, jclass clazz) {
-  method_onConnectStateChanged =
-      env->GetMethodID(clazz, "onConnectStateChanged", "([BIIII)V");
-  method_onControlStateChanged = env->GetMethodID(
-      clazz, "onControlStateChanged", "(IIILjava/lang/String;)V");
-
-  info("succeeds");
-}
 static const bt_interface_t* btIf;
 
 static void initializeNative(JNIEnv* env, jobject object) {
@@ -215,17 +206,27 @@ static jboolean disconnectPanNative(JNIEnv* env, jobject object,
   return ret;
 }
 
-static JNINativeMethod sMethods[] = {
-    {"classInitNative", "()V", (void*)classInitNative},
-    {"initializeNative", "()V", (void*)initializeNative},
-    {"cleanupNative", "()V", (void*)cleanupNative},
-    {"connectPanNative", "([BII)Z", (void*)connectPanNative},
-    {"disconnectPanNative", "([B)Z", (void*)disconnectPanNative},
-};
-
 int register_com_android_bluetooth_pan(JNIEnv* env) {
-  return jniRegisterNativeMethods(
-      env, "com/android/bluetooth/pan/PanNativeInterface", sMethods,
-      NELEM(sMethods));
+  const JNINativeMethod methods[] = {
+      {"initializeNative", "()V", (void*)initializeNative},
+      {"cleanupNative", "()V", (void*)cleanupNative},
+      {"connectPanNative", "([BII)Z", (void*)connectPanNative},
+      {"disconnectPanNative", "([B)Z", (void*)disconnectPanNative},
+  };
+  const int result = REGISTER_NATIVE_METHODS(
+      env, "com/android/bluetooth/pan/PanNativeInterface", methods);
+  if (result != 0) {
+    return result;
+  }
+
+  const JNIJavaMethod javaMethods[]{
+      {"onConnectStateChanged", "([BIIII)V", &method_onConnectStateChanged},
+      {"onControlStateChanged", "(IIILjava/lang/String;)V",
+       &method_onControlStateChanged},
+  };
+  GET_JAVA_METHODS(env, "com/android/bluetooth/pan/PanNativeInterface",
+                   javaMethods);
+
+  return 0;
 }
 }

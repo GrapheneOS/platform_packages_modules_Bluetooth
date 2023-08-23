@@ -232,63 +232,6 @@ static jmethodID method_listPlayerSettingValues;
 static jmethodID method_getPlayerSettings;
 static jmethodID method_setPlayerSettings;
 
-static void classInitNative(JNIEnv* env, jclass clazz) {
-  method_getCurrentSongInfo = env->GetMethodID(
-      clazz, "getCurrentSongInfo", "()Lcom/android/bluetooth/audio_util/Metadata;");
-
-  method_getPlaybackStatus = env->GetMethodID(
-      clazz, "getPlayStatus", "()Lcom/android/bluetooth/audio_util/PlayStatus;");
-
-  method_sendMediaKeyEvent =
-      env->GetMethodID(clazz, "sendMediaKeyEvent", "(IZ)V");
-
-  method_getCurrentMediaId =
-      env->GetMethodID(clazz, "getCurrentMediaId", "()Ljava/lang/String;");
-
-  method_getNowPlayingList =
-      env->GetMethodID(clazz, "getNowPlayingList", "()Ljava/util/List;");
-
-  method_getCurrentPlayerId =
-      env->GetMethodID(clazz, "getCurrentPlayerId", "()I");
-
-  method_getMediaPlayerList =
-      env->GetMethodID(clazz, "getMediaPlayerList", "()Ljava/util/List;");
-
-  method_setBrowsedPlayer = env->GetMethodID(clazz, "setBrowsedPlayer", "(I)V");
-
-  method_getFolderItemsRequest = env->GetMethodID(
-      clazz, "getFolderItemsRequest", "(ILjava/lang/String;)V");
-
-  method_playItem =
-      env->GetMethodID(clazz, "playItem", "(IZLjava/lang/String;)V");
-
-  method_setActiveDevice =
-      env->GetMethodID(clazz, "setActiveDevice", "(Ljava/lang/String;)V");
-
-  // Volume Management functions
-  method_volumeDeviceConnected =
-      env->GetMethodID(clazz, "deviceConnected", "(Ljava/lang/String;Z)V");
-
-  method_volumeDeviceDisconnected =
-      env->GetMethodID(clazz, "deviceDisconnected", "(Ljava/lang/String;)V");
-
-  method_setVolume = env->GetMethodID(clazz, "setVolume", "(I)V");
-
-  method_listPlayerSettings =
-      env->GetMethodID(clazz, "listPlayerSettingsRequest", "()V");
-
-  method_listPlayerSettingValues =
-      env->GetMethodID(clazz, "listPlayerSettingValuesRequest", "(B)V");
-
-  method_getPlayerSettings =
-      env->GetMethodID(clazz, "getCurrentPlayerSettingValuesRequest", "([B)V");
-
-  method_setPlayerSettings =
-      env->GetMethodID(clazz, "setPlayerSettingsRequest", "([B[B)V");
-
-  ALOGI("%s: AvrcpTargetJni initialized!", __func__);
-}
-
 static void initNative(JNIEnv* env, jobject object) {
   ALOGD("%s", __func__);
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
@@ -1096,41 +1039,73 @@ static void sendPlayerSettingsNative(JNIEnv* env, jobject object,
                                                values_vector);
 }
 
-static JNINativeMethod sMethods[] = {
-    {"classInitNative", "()V", (void*)classInitNative},
-    {"initNative", "()V", (void*)initNative},
-    {"registerBipServerNative", "(I)V", (void*)registerBipServerNative},
-    {"unregisterBipServerNative", "()V", (void*)unregisterBipServerNative},
-    {"sendMediaUpdateNative", "(ZZZ)V", (void*)sendMediaUpdateNative},
-    {"sendFolderUpdateNative", "(ZZZ)V", (void*)sendFolderUpdateNative},
-    {"setBrowsedPlayerResponseNative", "(IZLjava/lang/String;I)V",
-     (void*)setBrowsedPlayerResponseNative},
-    {"getFolderItemsResponseNative", "(Ljava/lang/String;Ljava/util/List;)V",
-     (void*)getFolderItemsResponseNative},
-    {"cleanupNative", "()V", (void*)cleanupNative},
-    {"connectDeviceNative", "(Ljava/lang/String;)Z",
-     (void*)connectDeviceNative},
-    {"disconnectDeviceNative", "(Ljava/lang/String;)Z",
-     (void*)disconnectDeviceNative},
-    {"sendVolumeChangedNative", "(Ljava/lang/String;I)V",
-     (void*)sendVolumeChangedNative},
-    {"setBipClientStatusNative", "(Ljava/lang/String;Z)V",
-     (void*)setBipClientStatusNative},
-    {"listPlayerSettingsResponseNative", "([B)V",
-     (void*)listPlayerSettingsResponseNative},
-    {"listPlayerSettingValuesResponseNative", "(B[B)V",
-     (void*)listPlayerSettingValuesResponseNative},
-    {"getPlayerSettingsResponseNative", "([B[B)V",
-     (void*)getPlayerSettingsResponseNative},
-    {"setPlayerSettingsResponseNative", "(Z)V",
-     (void*)setPlayerSettingsResponseNative},
-    {"sendPlayerSettingsNative", "([B[B)V", (void*)sendPlayerSettingsNative},
-};
-
 int register_com_android_bluetooth_avrcp_target(JNIEnv* env) {
-  return jniRegisterNativeMethods(
-      env, "com/android/bluetooth/avrcp/AvrcpNativeInterface", sMethods,
-      NELEM(sMethods));
+  const JNINativeMethod methods[] = {
+      {"initNative", "()V", (void*)initNative},
+      {"registerBipServerNative", "(I)V", (void*)registerBipServerNative},
+      {"unregisterBipServerNative", "()V", (void*)unregisterBipServerNative},
+      {"sendMediaUpdateNative", "(ZZZ)V", (void*)sendMediaUpdateNative},
+      {"sendFolderUpdateNative", "(ZZZ)V", (void*)sendFolderUpdateNative},
+      {"setBrowsedPlayerResponseNative", "(IZLjava/lang/String;I)V",
+       (void*)setBrowsedPlayerResponseNative},
+      {"getFolderItemsResponseNative", "(Ljava/lang/String;Ljava/util/List;)V",
+       (void*)getFolderItemsResponseNative},
+      {"cleanupNative", "()V", (void*)cleanupNative},
+      {"connectDeviceNative", "(Ljava/lang/String;)Z",
+       (void*)connectDeviceNative},
+      {"disconnectDeviceNative", "(Ljava/lang/String;)Z",
+       (void*)disconnectDeviceNative},
+      {"sendVolumeChangedNative", "(Ljava/lang/String;I)V",
+       (void*)sendVolumeChangedNative},
+      {"setBipClientStatusNative", "(Ljava/lang/String;Z)V",
+       (void*)setBipClientStatusNative},
+      {"listPlayerSettingsResponseNative", "([B)V",
+       (void*)listPlayerSettingsResponseNative},
+      {"listPlayerSettingValuesResponseNative", "(B[B)V",
+       (void*)listPlayerSettingValuesResponseNative},
+      {"getPlayerSettingsResponseNative", "([B[B)V",
+       (void*)getPlayerSettingsResponseNative},
+      {"setPlayerSettingsResponseNative", "(Z)V",
+       (void*)setPlayerSettingsResponseNative},
+      {"sendPlayerSettingsNative", "([B[B)V", (void*)sendPlayerSettingsNative},
+  };
+  const int result = REGISTER_NATIVE_METHODS(
+      env, "com/android/bluetooth/avrcp/AvrcpNativeInterface", methods);
+  if (result != 0) {
+    return result;
+  }
+
+  const JNIJavaMethod javaMethods[] = {
+      {"getCurrentSongInfo", "()Lcom/android/bluetooth/audio_util/Metadata;",
+       &method_getCurrentSongInfo},
+      {"getPlayStatus", "()Lcom/android/bluetooth/audio_util/PlayStatus;",
+       &method_getPlaybackStatus},
+      {"sendMediaKeyEvent", "(IZ)V", &method_sendMediaKeyEvent},
+      {"getCurrentMediaId", "()Ljava/lang/String;", &method_getCurrentMediaId},
+      {"getNowPlayingList", "()Ljava/util/List;", &method_getNowPlayingList},
+      {"getCurrentPlayerId", "()I", &method_getCurrentPlayerId},
+      {"getMediaPlayerList", "()Ljava/util/List;", &method_getMediaPlayerList},
+      {"setBrowsedPlayer", "(I)V", &method_setBrowsedPlayer},
+      {"getFolderItemsRequest", "(ILjava/lang/String;)V",
+       &method_getFolderItemsRequest},
+      {"playItem", "(IZLjava/lang/String;)V", &method_playItem},
+      {"setActiveDevice", "(Ljava/lang/String;)V", &method_setActiveDevice},
+      {"deviceConnected", "(Ljava/lang/String;Z)V",
+       &method_volumeDeviceConnected},
+      {"deviceDisconnected", "(Ljava/lang/String;)V",
+       &method_volumeDeviceDisconnected},
+      {"setVolume", "(I)V", &method_setVolume},
+      {"listPlayerSettingsRequest", "()V", &method_listPlayerSettings},
+      {"listPlayerSettingValuesRequest", "(B)V",
+       &method_listPlayerSettingValues},
+      {"getCurrentPlayerSettingValuesRequest", "([B)V",
+       &method_getPlayerSettings},
+      {"setPlayerSettingsRequest", "([B[B)V", &method_setPlayerSettings},
+  };
+  GET_JAVA_METHODS(env, "com/android/bluetooth/avrcp/AvrcpNativeInterface",
+                   javaMethods);
+
+  return 0;
 }
 
 }  // namespace android

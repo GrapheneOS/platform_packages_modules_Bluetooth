@@ -19,7 +19,6 @@ package com.android.bluetooth.hid;
 import android.bluetooth.BluetoothProfile;
 import android.util.Log;
 
-import com.android.bluetooth.Utils;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -34,14 +33,6 @@ public class HidHostNativeInterface {
     private static HidHostNativeInterface sInstance;
 
     private static final Object INSTANCE_LOCK = new Object();
-
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
 
     static HidHostNativeInterface getInstance() {
         synchronized (INSTANCE_LOCK) {
@@ -170,8 +161,6 @@ public class HidHostNativeInterface {
     private static final int CONN_STATE_CONNECTING = 1;
     private static final int CONN_STATE_DISCONNECTED = 2;
     private static final int CONN_STATE_DISCONNECTING = 3;
-
-    private static native void classInitNative();
 
     private native void initializeNative();
 

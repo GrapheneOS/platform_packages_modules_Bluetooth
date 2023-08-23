@@ -18,9 +18,7 @@ package com.android.bluetooth.gatt;
 
 import android.bluetooth.le.AdvertisingSetParameters;
 import android.bluetooth.le.PeriodicAdvertisingParameters;
-import android.util.Log;
 
-import com.android.bluetooth.Utils;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -35,14 +33,6 @@ public class AdvertiseManagerNativeInterface {
     private static final Object INSTANCE_LOCK = new Object();
 
     private AdvertiseManager mManager;
-
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
 
     /** Get singleton instance. */
     public static AdvertiseManagerNativeInterface getInstance() {
@@ -169,8 +159,6 @@ public class AdvertiseManagerNativeInterface {
             throws Exception {
         mManager.onPeriodicAdvertisingEnabled(advertiserId, enable, status);
     }
-
-    private static native void classInitNative();
 
     private native void initializeNative();
 

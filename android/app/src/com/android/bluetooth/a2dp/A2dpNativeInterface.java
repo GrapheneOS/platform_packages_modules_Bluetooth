@@ -50,14 +50,6 @@ public class A2dpNativeInterface {
 
     private static final Object INSTANCE_LOCK = new Object();
 
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
-
     @VisibleForTesting
     private A2dpNativeInterface() {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -239,7 +231,6 @@ public class A2dpNativeInterface {
     }
 
     // Native methods that call into the JNI interface
-    private static native void classInitNative();
     private native void initNative(int maxConnectedAudioDevices,
                                    BluetoothCodecConfig[] codecConfigPriorities,
                                    BluetoothCodecConfig[] codecConfigOffloading);

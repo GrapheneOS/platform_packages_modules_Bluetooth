@@ -48,14 +48,6 @@ public class AvrcpNativeInterface {
     private AvrcpTargetService mAvrcpService;
     private AdapterService mAdapterService;
 
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
-
     private AvrcpNativeInterface() {
         mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
                 "AdapterService cannot be null when AvrcpNativeInterface init");
@@ -364,8 +356,6 @@ public class AvrcpNativeInterface {
         valuesArray[1] = (byte) shuffleMode;
         sendPlayerSettingsNative(settingsArray, valuesArray);
     }
-
-    private static native void classInitNative();
 
     private native void initNative();
 
