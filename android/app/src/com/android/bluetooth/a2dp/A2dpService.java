@@ -148,7 +148,7 @@ public class A2dpService extends ProfileService {
             throw new IllegalStateException("start() called twice");
         }
 
-        // Step 1: Get AdapterService, A2dpNativeInterface, DatabaseManager, AudioManager.
+        // Step 1: Get AdapterService, DatabaseManager, AudioManager.
         // None of them can be null.
         mAdapterService =
                 requireNonNull(
