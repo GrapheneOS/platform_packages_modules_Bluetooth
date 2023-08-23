@@ -14,7 +14,6 @@ mod ffi {
 
         fn always_send_services_if_gatt_disc_done_is_enabled() -> bool;
         fn always_use_private_gatt_for_debugging_is_enabled() -> bool;
-        fn asynchronously_start_l2cap_coc_is_enabled() -> bool;
         fn btaa_hci_is_enabled() -> bool;
         fn bta_dm_clear_conn_id_on_client_close_is_enabled() -> bool;
         fn delay_hidh_cleanup_until_hidh_ready_start_is_enabled() -> bool;
