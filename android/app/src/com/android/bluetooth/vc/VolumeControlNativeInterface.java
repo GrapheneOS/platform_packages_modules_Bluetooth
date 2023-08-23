@@ -35,14 +35,6 @@ public class VolumeControlNativeInterface {
 
     private static final Object INSTANCE_LOCK = new Object();
 
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
-
     private VolumeControlNativeInterface() {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mAdapter == null) {
@@ -387,7 +379,6 @@ public class VolumeControlNativeInterface {
     }
 
     // Native methods that call into the JNI interface
-    private static native void classInitNative();
     private native void initNative();
     private native void cleanupNative();
     private native boolean connectVolumeControlNative(byte[] address);

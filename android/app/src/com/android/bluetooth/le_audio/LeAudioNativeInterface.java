@@ -39,20 +39,13 @@ import java.util.Arrays;
 public class LeAudioNativeInterface {
     private static final String TAG = LeAudioNativeInterface.class.getSimpleName();
     private static final boolean DBG = true;
+
     private BluetoothAdapter mAdapter;
 
     @GuardedBy("INSTANCE_LOCK")
     private static LeAudioNativeInterface sInstance;
 
     private static final Object INSTANCE_LOCK = new Object();
-
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
 
     private LeAudioNativeInterface() {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -73,11 +66,9 @@ public class LeAudioNativeInterface {
         }
     }
 
-    /**
-     * Set singleton instance.
-     */
+    /** Set singleton instance. */
     @VisibleForTesting
-    static void setInstance(LeAudioNativeInterface instance) {
+    public static void setInstance(LeAudioNativeInterface instance) {
         synchronized (INSTANCE_LOCK) {
             sInstance = instance;
         }
@@ -377,7 +368,6 @@ public class LeAudioNativeInterface {
     }
 
     // Native methods that call into the JNI interface
-    private static native void classInitNative();
     private native void initNative(BluetoothLeAudioCodecConfig[] codecConfigOffloading);
     private native void cleanupNative();
     private native boolean connectLeAudioNative(byte[] address);

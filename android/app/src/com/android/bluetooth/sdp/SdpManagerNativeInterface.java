@@ -15,9 +15,6 @@
  */
 package com.android.bluetooth.sdp;
 
-import android.util.Log;
-
-import com.android.bluetooth.Utils;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -32,14 +29,6 @@ public class SdpManagerNativeInterface {
 
     private SdpManager mSdpManager;
     private boolean mNativeAvailable = false;
-
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
 
     /** This class is a singleton because native library should only be loaded once */
     public static SdpManagerNativeInterface getInstance() {
@@ -395,8 +384,6 @@ public class SdpManagerNativeInterface {
     /**********************************************************************************************/
     /******************************************* native *******************************************/
     /**********************************************************************************************/
-
-    private static native void classInitNative();
 
     private native void initializeNative();
 
