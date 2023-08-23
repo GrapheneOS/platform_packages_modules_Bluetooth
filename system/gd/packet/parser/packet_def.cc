@@ -592,9 +592,7 @@ void PacketDef::GenBuilderCreatePybind11(std::ostream& s) const {
   s << ".def(py::init([](";
   auto params = GetParamList();
   std::vector<std::string> constructor_args;
-  int i = 1;
   for (const auto& param : params) {
-    i++;
     std::stringstream ss;
     auto param_type = param->GetBuilderParameterType();
     if (param_type.empty()) {
