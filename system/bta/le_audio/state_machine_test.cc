@@ -2097,9 +2097,12 @@ TEST_F(StateMachineTest, testUpdateMetadataMultiple) {
   const auto leaudio_group_id = 4;
   const auto num_devices = 2;
 
+  auto supported_contexts =
+      types::AudioContexts(kContextTypeMedia | kContextTypeSoundEffects);
+
   // Prepare multiple fake connected devices in a group
-  auto* group =
-      PrepareSingleTestDeviceGroup(leaudio_group_id, context_type, num_devices);
+  auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type,
+                                             num_devices, supported_contexts);
   ASSERT_EQ(group->Size(), num_devices);
 
   PrepareConfigureCodecHandler(group);
@@ -2158,6 +2161,90 @@ TEST_F(StateMachineTest, testUpdateMetadataMultiple) {
                                     leAudioDevice->ctp_hdls_.val_hdl, _,
                                     GATT_WRITE_NO_RSP, _, _))
         .Times(1);
+    expected_devices_written++;
+    leAudioDevice = group->GetNextDevice(leAudioDevice);
+  }
+  ASSERT_EQ(expected_devices_written, num_devices);
+
+  const auto metadata_context_type =
+      kContextTypeMedia | kContextTypeSoundEffects;
+  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
+      group, context_type,
+      {.sink = metadata_context_type, .source = metadata_context_type}));
+
+  /* This is just update metadata - watchdog is not used */
+  ASSERT_EQ(0, get_func_call_count("alarm_cancel"));
+}
+
+TEST_F(StateMachineTest, testUpdateMetadataMultiple_NoUpdatesOnKeyTouch) {
+  const auto context_type = kContextTypeMedia;
+  const auto leaudio_group_id = 4;
+  const auto num_devices = 2;
+
+  /* Only Media is supported and available, */
+  auto supported_contexts = types::AudioContexts(kContextTypeMedia);
+
+  // Prepare multiple fake connected devices in a group
+  auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type,
+                                             num_devices, supported_contexts);
+  ASSERT_EQ(group->Size(), num_devices);
+
+  PrepareConfigureCodecHandler(group);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group);
+
+  EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(AtLeast(1));
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
+  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
+
+  InjectInitialIdleNotification(group);
+
+  auto* leAudioDevice = group->GetFirstDevice();
+  auto expected_devices_written = 0;
+  while (leAudioDevice) {
+    EXPECT_CALL(gatt_queue,
+                WriteCharacteristic(leAudioDevice->conn_id_,
+                                    leAudioDevice->ctp_hdls_.val_hdl, _,
+                                    GATT_WRITE_NO_RSP, _, _))
+        .Times(AtLeast(3));
+    expected_devices_written++;
+    leAudioDevice = group->GetNextDevice(leAudioDevice);
+  }
+  ASSERT_EQ(expected_devices_written, num_devices);
+
+  // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+
+  // Start the configuration and stream Media content
+  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
+      group, context_type,
+      {.sink = types::AudioContexts(context_type),
+       .source = types::AudioContexts(context_type)}));
+
+  testing::Mock::VerifyAndClearExpectations(&gatt_queue);
+
+  // Check if group has transitioned to a proper state
+  ASSERT_EQ(group->GetState(),
+            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+
+  ASSERT_EQ(1, get_func_call_count("alarm_cancel"));
+  reset_mock_function_count_map();
+
+  // Make sure all devices get the metadata update
+  leAudioDevice = group->GetFirstDevice();
+  expected_devices_written = 0;
+  while (leAudioDevice) {
+    EXPECT_CALL(gatt_queue,
+                WriteCharacteristic(leAudioDevice->conn_id_,
+                                    leAudioDevice->ctp_hdls_.val_hdl, _,
+                                    GATT_WRITE_NO_RSP, _, _))
+        .Times(0);
     expected_devices_written++;
     leAudioDevice = group->GetNextDevice(leAudioDevice);
   }
