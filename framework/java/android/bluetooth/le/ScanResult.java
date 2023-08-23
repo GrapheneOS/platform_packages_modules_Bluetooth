@@ -204,7 +204,10 @@ public final class ScanResult implements Parcelable, Attributable {
     }
 
     /**
-     * Returns the remote Bluetooth device identified by the Bluetooth device address.
+     * Returns the remote Bluetooth device identified by the Bluetooth device address. If the device
+     * is bonded, calling {@link BluetoothDevice#getAddress} on the object returned by this method
+     * will return the address that was originally bonded with (either identity address or random
+     * address).
      */
     public BluetoothDevice getDevice() {
         return mDevice;
