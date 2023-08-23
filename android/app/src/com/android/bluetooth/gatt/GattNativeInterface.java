@@ -17,9 +17,7 @@
 package com.android.bluetooth.gatt;
 
 import android.os.RemoteException;
-import android.util.Log;
 
-import com.android.bluetooth.Utils;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -38,14 +36,6 @@ public class GattNativeInterface {
     private static GattNativeInterface sInstance;
 
     private static final Object INSTANCE_LOCK = new Object();
-
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
 
     private GattNativeInterface() {}
 
@@ -321,9 +311,12 @@ public class GattNativeInterface {
         getGattService().onMtuChanged(connId, mtu);
     }
 
-    /* Native methods */
-    private static native void classInitNative();
+    /**********************************************************************************************/
+    /******************************************* native *******************************************/
+    /**********************************************************************************************/
+
     private native void initializeNative();
+
     private native void cleanupNative();
     private native int gattClientGetDeviceTypeNative(String address);
     private native void gattClientRegisterAppNative(long appUuidLsb, long appUuidMsb,

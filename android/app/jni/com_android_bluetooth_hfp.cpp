@@ -419,40 +419,6 @@ class JniHeadsetCallbacks : bluetooth::headset::Callbacks {
   }
 };
 
-static void classInitNative(JNIEnv* env, jclass clazz) {
-  method_onConnectionStateChanged =
-      env->GetMethodID(clazz, "onConnectionStateChanged", "(I[B)V");
-  method_onAudioStateChanged =
-      env->GetMethodID(clazz, "onAudioStateChanged", "(I[B)V");
-  method_onVrStateChanged =
-      env->GetMethodID(clazz, "onVrStateChanged", "(I[B)V");
-  method_onAnswerCall = env->GetMethodID(clazz, "onAnswerCall", "([B)V");
-  method_onHangupCall = env->GetMethodID(clazz, "onHangupCall", "([B)V");
-  method_onVolumeChanged =
-      env->GetMethodID(clazz, "onVolumeChanged", "(II[B)V");
-  method_onDialCall =
-      env->GetMethodID(clazz, "onDialCall", "(Ljava/lang/String;[B)V");
-  method_onSendDtmf = env->GetMethodID(clazz, "onSendDtmf", "(I[B)V");
-  method_onNoiseReductionEnable =
-      env->GetMethodID(clazz, "onNoiseReductionEnable", "(Z[B)V");
-  method_onWBS = env->GetMethodID(clazz, "onWBS", "(I[B)V");
-  method_onSWB = env->GetMethodID(clazz, "onSWB", "(I[B)V");
-  method_onAtChld = env->GetMethodID(clazz, "onAtChld", "(I[B)V");
-  method_onAtCnum = env->GetMethodID(clazz, "onAtCnum", "([B)V");
-  method_onAtCind = env->GetMethodID(clazz, "onAtCind", "([B)V");
-  method_onAtCops = env->GetMethodID(clazz, "onAtCops", "([B)V");
-  method_onAtClcc = env->GetMethodID(clazz, "onAtClcc", "([B)V");
-  method_onUnknownAt =
-      env->GetMethodID(clazz, "onUnknownAt", "(Ljava/lang/String;[B)V");
-  method_onKeyPressed = env->GetMethodID(clazz, "onKeyPressed", "([B)V");
-  method_onAtBind =
-      env->GetMethodID(clazz, "onATBind", "(Ljava/lang/String;[B)V");
-  method_onAtBiev = env->GetMethodID(clazz, "onATBiev", "(II[B)V");
-  method_onAtBia = env->GetMethodID(clazz, "onAtBia", "(ZZZZ[B)V");
-
-  ALOGI("%s: succeeds", __func__);
-}
-
 static void initializeNative(JNIEnv* env, jobject object, jint max_hf_clients,
                              jboolean inband_ringing_enabled) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
@@ -977,42 +943,73 @@ static jboolean setActiveDeviceNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static JNINativeMethod sMethods[] = {
-    {"classInitNative", "()V", (void*)classInitNative},
-    {"initializeNative", "(IZ)V", (void*)initializeNative},
-    {"cleanupNative", "()V", (void*)cleanupNative},
-    {"connectHfpNative", "([B)Z", (void*)connectHfpNative},
-    {"disconnectHfpNative", "([B)Z", (void*)disconnectHfpNative},
-    {"connectAudioNative", "([B)Z", (void*)connectAudioNative},
-    {"disconnectAudioNative", "([B)Z", (void*)disconnectAudioNative},
-    {"isNoiseReductionSupportedNative", "([B)Z",
-     (void*)isNoiseReductionSupportedNative},
-    {"isVoiceRecognitionSupportedNative", "([B)Z",
-     (void*)isVoiceRecognitionSupportedNative},
-    {"startVoiceRecognitionNative", "([B)Z",
-     (void*)startVoiceRecognitionNative},
-    {"stopVoiceRecognitionNative", "([B)Z", (void*)stopVoiceRecognitionNative},
-    {"setVolumeNative", "(II[B)Z", (void*)setVolumeNative},
-    {"notifyDeviceStatusNative", "(IIII[B)Z", (void*)notifyDeviceStatusNative},
-    {"copsResponseNative", "(Ljava/lang/String;[B)Z",
-     (void*)copsResponseNative},
-    {"cindResponseNative", "(IIIIIII[B)Z", (void*)cindResponseNative},
-    {"atResponseStringNative", "(Ljava/lang/String;[B)Z",
-     (void*)atResponseStringNative},
-    {"atResponseCodeNative", "(II[B)Z", (void*)atResponseCodeNative},
-    {"clccResponseNative", "(IIIIZLjava/lang/String;I[B)Z",
-     (void*)clccResponseNative},
-    {"phoneStateChangeNative", "(IIILjava/lang/String;ILjava/lang/String;[B)Z",
-     (void*)phoneStateChangeNative},
-    {"setScoAllowedNative", "(Z)Z", (void*)setScoAllowedNative},
-    {"sendBsirNative", "(Z[B)Z", (void*)sendBsirNative},
-    {"setActiveDeviceNative", "([B)Z", (void*)setActiveDeviceNative},
-};
-
 int register_com_android_bluetooth_hfp(JNIEnv* env) {
-  return jniRegisterNativeMethods(
-      env, "com/android/bluetooth/hfp/HeadsetNativeInterface", sMethods,
-      NELEM(sMethods));
+  const JNINativeMethod methods[] = {
+      {"initializeNative", "(IZ)V", (void*)initializeNative},
+      {"cleanupNative", "()V", (void*)cleanupNative},
+      {"connectHfpNative", "([B)Z", (void*)connectHfpNative},
+      {"disconnectHfpNative", "([B)Z", (void*)disconnectHfpNative},
+      {"connectAudioNative", "([B)Z", (void*)connectAudioNative},
+      {"disconnectAudioNative", "([B)Z", (void*)disconnectAudioNative},
+      {"isNoiseReductionSupportedNative", "([B)Z",
+       (void*)isNoiseReductionSupportedNative},
+      {"isVoiceRecognitionSupportedNative", "([B)Z",
+       (void*)isVoiceRecognitionSupportedNative},
+      {"startVoiceRecognitionNative", "([B)Z",
+       (void*)startVoiceRecognitionNative},
+      {"stopVoiceRecognitionNative", "([B)Z",
+       (void*)stopVoiceRecognitionNative},
+      {"setVolumeNative", "(II[B)Z", (void*)setVolumeNative},
+      {"notifyDeviceStatusNative", "(IIII[B)Z",
+       (void*)notifyDeviceStatusNative},
+      {"copsResponseNative", "(Ljava/lang/String;[B)Z",
+       (void*)copsResponseNative},
+      {"cindResponseNative", "(IIIIIII[B)Z", (void*)cindResponseNative},
+      {"atResponseStringNative", "(Ljava/lang/String;[B)Z",
+       (void*)atResponseStringNative},
+      {"atResponseCodeNative", "(II[B)Z", (void*)atResponseCodeNative},
+      {"clccResponseNative", "(IIIIZLjava/lang/String;I[B)Z",
+       (void*)clccResponseNative},
+      {"phoneStateChangeNative",
+       "(IIILjava/lang/String;ILjava/lang/String;[B)Z",
+       (void*)phoneStateChangeNative},
+      {"setScoAllowedNative", "(Z)Z", (void*)setScoAllowedNative},
+      {"sendBsirNative", "(Z[B)Z", (void*)sendBsirNative},
+      {"setActiveDeviceNative", "([B)Z", (void*)setActiveDeviceNative},
+  };
+  const int result = REGISTER_NATIVE_METHODS(
+      env, "com/android/bluetooth/hfp/HeadsetNativeInterface", methods);
+  if (result != 0) {
+    return result;
+  }
+
+  const JNIJavaMethod javaMethods[] = {
+      {"onConnectionStateChanged", "(I[B)V", &method_onConnectionStateChanged},
+      {"onAudioStateChanged", "(I[B)V", &method_onAudioStateChanged},
+      {"onVrStateChanged", "(I[B)V", &method_onVrStateChanged},
+      {"onAnswerCall", "([B)V", &method_onAnswerCall},
+      {"onHangupCall", "([B)V", &method_onHangupCall},
+      {"onVolumeChanged", "(II[B)V", &method_onVolumeChanged},
+      {"onDialCall", "(Ljava/lang/String;[B)V", &method_onDialCall},
+      {"onSendDtmf", "(I[B)V", &method_onSendDtmf},
+      {"onNoiseReductionEnable", "(Z[B)V", &method_onNoiseReductionEnable},
+      {"onWBS", "(I[B)V", &method_onWBS},
+      {"onSWB", "(I[B)V", &method_onSWB},
+      {"onAtChld", "(I[B)V", &method_onAtChld},
+      {"onAtCnum", "([B)V", &method_onAtCnum},
+      {"onAtCind", "([B)V", &method_onAtCind},
+      {"onAtCops", "([B)V", &method_onAtCops},
+      {"onAtClcc", "([B)V", &method_onAtClcc},
+      {"onUnknownAt", "(Ljava/lang/String;[B)V", &method_onUnknownAt},
+      {"onKeyPressed", "([B)V", &method_onKeyPressed},
+      {"onATBind", "(Ljava/lang/String;[B)V", &method_onAtBind},
+      {"onATBiev", "(II[B)V", &method_onAtBiev},
+      {"onAtBia", "(ZZZZ[B)V", &method_onAtBia},
+  };
+  GET_JAVA_METHODS(env, "com/android/bluetooth/hfp/HeadsetNativeInterface",
+                   javaMethods);
+
+  return 0;
 }
 
 } /* namespace android */
