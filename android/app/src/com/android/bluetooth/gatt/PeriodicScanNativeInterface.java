@@ -19,7 +19,6 @@ package com.android.bluetooth.gatt;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
-import com.android.bluetooth.Utils;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -54,14 +53,6 @@ public class PeriodicScanNativeInterface {
     public static void setInstance(PeriodicScanNativeInterface instance) {
         synchronized (INSTANCE_LOCK) {
             sInstance = instance;
-        }
-    }
-
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
         }
     }
 
@@ -155,8 +146,6 @@ public class PeriodicScanNativeInterface {
     /**********************************************************************************************/
     /******************************************* native *******************************************/
     /**********************************************************************************************/
-
-    private static native void classInitNative();
 
     private native void initializeNative();
 

@@ -37,14 +37,6 @@ public class HeadsetNativeInterface {
 
     private final BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
 
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
-
     @GuardedBy("INSTANCE_LOCK")
     private static HeadsetNativeInterface sInstance;
 
@@ -515,8 +507,6 @@ public class HeadsetNativeInterface {
     }
 
     /* Native methods */
-    private static native void classInitNative();
-
     private native boolean atResponseCodeNative(int responseCode, int errorCode, byte[] address);
 
     private native boolean atResponseStringNative(String responseString, byte[] address);

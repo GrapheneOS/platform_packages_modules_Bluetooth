@@ -23,7 +23,6 @@ package com.android.bluetooth.hfpclient;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
-import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
@@ -45,14 +44,6 @@ public class NativeInterface {
     private static NativeInterface sInstance;
 
     private static final Object INSTANCE_LOCK = new Object();
-
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
 
     private NativeInterface() {
         mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
@@ -300,8 +291,9 @@ public class NativeInterface {
         return sendAndroidAtNative(getByteAddress(device), cmd);
     }
 
-    // Native methods that call into the JNI interface
-    private static native void classInitNative();
+    /**********************************************************************************************/
+    /******************************************* native *******************************************/
+    /**********************************************************************************************/
 
     private native void initializeNative();
 
