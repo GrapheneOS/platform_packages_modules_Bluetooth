@@ -1883,6 +1883,7 @@ public class BassClientStateMachine extends StateMachine {
             return;
         }
 
+        mService.handleConnectionStateChanged(device, fromState, toState);
         Intent intent = new Intent(BluetoothLeBroadcastAssistant.ACTION_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, fromState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, toState);
