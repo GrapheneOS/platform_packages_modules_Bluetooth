@@ -29,7 +29,7 @@ import java.util.UUID;
 
 /** Provides Bluetooth AVRCP Controller native interface for the AVRCP Controller service */
 public class AvrcpControllerNativeInterface {
-    static final String TAG = AvrcpControllerNativeInterface.class.getSimpleName().substring(0, 23);
+    static final String TAG = AvrcpControllerNativeInterface.class.getSimpleName();
     static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
     static final boolean VDBG = Log.isLoggable(TAG, Log.VERBOSE);
 
