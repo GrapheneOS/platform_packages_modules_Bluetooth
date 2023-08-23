@@ -17,9 +17,7 @@
 package com.android.bluetooth.btservice;
 
 import android.bluetooth.OobData;
-import android.util.Log;
 
-import com.android.bluetooth.Utils;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -35,14 +33,6 @@ public class AdapterNativeInterface {
     private static AdapterNativeInterface sInstance;
 
     private static final Object INSTANCE_LOCK = new Object();
-
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
 
     private AdapterNativeInterface() {}
 
@@ -265,8 +255,6 @@ public class AdapterNativeInterface {
     /**********************************************************************************************/
     /******************************************* native *******************************************/
     /**********************************************************************************************/
-
-    private static native void classInitNative();
 
     private native boolean initNative(
             boolean startRestricted,

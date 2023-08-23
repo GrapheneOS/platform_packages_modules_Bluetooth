@@ -17,9 +17,7 @@
 package com.android.bluetooth.gatt;
 
 import android.bluetooth.BluetoothStatusCodes;
-import android.util.Log;
 
-import com.android.bluetooth.Utils;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -137,15 +135,9 @@ public class DistanceMeasurementNativeInterface {
         }
     }
 
-    static {
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            classInitNative();
-        }
-    }
-
-    private static native void classInitNative();
+    /**********************************************************************************************/
+    /******************************************* native *******************************************/
+    /**********************************************************************************************/
 
     private native void initializeNative();
 
