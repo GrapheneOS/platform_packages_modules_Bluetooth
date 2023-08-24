@@ -461,8 +461,11 @@ public class MediaPlayerWrapper {
         @Override
         public void onMetadataChanged(@Nullable MediaMetadata mediaMetadata) {
             if (!isMetadataReady()) {
-                Log.v(TAG, "onMetadataChanged(): " + mPackageName
-                        + " tried to update with no queue");
+                Log.v(
+                        TAG,
+                        "onMetadataChanged(): "
+                                + mPackageName
+                                + " tried to update with no metadata");
                 return;
             }
 
@@ -495,13 +498,16 @@ public class MediaPlayerWrapper {
         @Override
         public void onPlaybackStateChanged(@Nullable PlaybackState state) {
             if (!isPlaybackStateReady()) {
-                Log.v(TAG, "onPlaybackStateChanged(): " + mPackageName
-                        + " tried to update with no queue");
+                Log.v(
+                        TAG,
+                        "onPlaybackStateChanged(): "
+                                + mPackageName
+                                + " tried to update with no state");
                 return;
             }
 
-            mPlaybackStateChangeEventLogger.logv(TAG, "onPlaybackStateChanged(): "
-                    + mPackageName + " : " + state.toString());
+            mPlaybackStateChangeEventLogger.logv(
+                    TAG, "onPlaybackStateChanged(): " + mPackageName + " : " + state);
 
             if (!playstateEquals(state, getPlaybackState())) {
                 e("The callback playback state doesn't match the current state");
@@ -513,8 +519,8 @@ public class MediaPlayerWrapper {
                 return;
             }
 
-            // If there is no playstate, ignore the update.
-            if (state.getState() == PlaybackState.STATE_NONE) {
+            // If state isn't null and there is no playstate, ignore the update.
+            if (state != null && state.getState() == PlaybackState.STATE_NONE) {
                 Log.v(TAG, "Waiting to send update as controller has no playback state");
                 return;
             }
