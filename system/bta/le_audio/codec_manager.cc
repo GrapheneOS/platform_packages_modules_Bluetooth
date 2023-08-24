@@ -39,9 +39,24 @@ using le_audio::set_configurations::AudioSetConfiguration;
 using le_audio::set_configurations::AudioSetConfigurations;
 using le_audio::set_configurations::SetConfiguration;
 
+typedef struct offloader_stream_maps {
+  std::vector<le_audio::stream_map_info> streams_map_target;
+  std::vector<le_audio::stream_map_info> streams_map_current;
+  bool has_changed;
+  bool is_initial;
+} offloader_stream_maps_t;
 }  // namespace
 
 namespace le_audio {
+template <>
+offloader_stream_maps_t& types::BidirectionalPair<offloader_stream_maps_t>::get(
+    uint8_t direction) {
+  ASSERT_LOG(direction < types::kLeAudioDirectionBoth,
+             "Unsupported complex direction. Reference to a single complex"
+             " direction value is not supported.");
+  return (direction == types::kLeAudioDirectionSink) ? sink : source;
+}
+
 // The mapping for sampling rate, frame duration, and the QoS config
 static std::unordered_map<
     int, std::unordered_map<int, le_audio::broadcaster::BroadcastQosConfig>>
@@ -69,8 +84,7 @@ static std::unordered_map<
 
 struct codec_manager_impl {
  public:
-  codec_manager_impl(
-      const std::vector<btle_audio_codec_config_t>& offloading_preference) {
+  codec_manager_impl() {
     offload_enable_ = osi_property_get_bool(
                           "ro.bluetooth.leaudio_offload.supported", false) &&
                       !osi_property_get_bool(
@@ -95,8 +109,12 @@ struct codec_manager_impl {
                             kIsoDataPathPlatformDefault, {});
     btm_configure_data_path(btm_data_direction::CONTROLLER_TO_HOST,
                             kIsoDataPathPlatformDefault, {});
-    UpdateOffloadCapability(offloading_preference);
     SetCodecLocation(CodecLocation::ADSP);
+  }
+  void start(
+      const std::vector<btle_audio_codec_config_t>& offloading_preference) {
+    le_audio::AudioSetConfigurationProvider::Initialize(GetCodecLocation());
+    UpdateOffloadCapability(offloading_preference);
   }
   ~codec_manager_impl() {
     if (GetCodecLocation() != CodecLocation::HOST) {
@@ -105,58 +123,47 @@ struct codec_manager_impl {
       btm_configure_data_path(btm_data_direction::CONTROLLER_TO_HOST,
                               kIsoDataPathHci, {});
     }
+    le_audio::AudioSetConfigurationProvider::Cleanup();
   }
   CodecLocation GetCodecLocation(void) const { return codec_location_; }
 
-  void UpdateActiveSourceAudioConfig(
-      const le_audio::stream_configuration& stream_conf, uint16_t delay_ms,
-      std::function<void(const ::le_audio::offload_config& config)>
-          update_receiver) {
-    if (stream_conf.sink_streams.empty()) return;
-
-    if (stream_conf.sink_is_initial ||
-        LeAudioHalVerifier::SupportsStreamActiveApi()) {
-      sink_config.stream_map =
-          stream_conf.sink_offloader_streams_target_allocation;
-    } else {
-      sink_config.stream_map =
-          stream_conf.sink_offloader_streams_current_allocation;
+  void UpdateActiveAudioConfig(
+      const types::BidirectionalPair<stream_parameters>& stream_params,
+      types::BidirectionalPair<uint16_t> delays_ms,
+      std::function<void(const offload_config& config)> update_receiver) {
+    if (GetCodecLocation() != le_audio::types::CodecLocation::ADSP) {
+      return;
     }
-    // TODO: set the default value 16 for now, would change it if we support
-    // mode bits_per_sample
-    sink_config.bits_per_sample = 16;
-    sink_config.sampling_rate = stream_conf.sink_sample_frequency_hz;
-    sink_config.frame_duration = stream_conf.sink_frame_duration_us;
-    sink_config.octets_per_frame = stream_conf.sink_octets_per_codec_frame;
-    sink_config.blocks_per_sdu = stream_conf.sink_codec_frames_blocks_per_sdu;
-    sink_config.peer_delay_ms = delay_ms;
-    update_receiver(sink_config);
-  }
 
-  void UpdateActiveSinkAudioConfig(
-      const le_audio::stream_configuration& stream_conf, uint16_t delay_ms,
-      std::function<void(const ::le_audio::offload_config& config)>
-          update_receiver) {
-    if (stream_conf.source_streams.empty()) return;
+    for (auto direction : {le_audio::types::kLeAudioDirectionSink,
+                           le_audio::types::kLeAudioDirectionSource}) {
+      auto& stream_map = offloader_stream_maps.get(direction);
+      if (!stream_map.has_changed && !stream_map.is_initial) {
+        continue;
+      }
+      if (stream_params.get(direction).stream_locations.empty()) {
+        continue;
+      }
 
-    if (stream_conf.source_is_initial ||
-        LeAudioHalVerifier::SupportsStreamActiveApi()) {
-      source_config.stream_map =
-          stream_conf.source_offloader_streams_target_allocation;
-    } else {
-      source_config.stream_map =
-          stream_conf.source_offloader_streams_current_allocation;
+      le_audio::offload_config unicast_cfg = {
+          .stream_map = (stream_map.is_initial ||
+                         LeAudioHalVerifier::SupportsStreamActiveApi())
+                            ? stream_map.streams_map_target
+                            : stream_map.streams_map_current,
+          // TODO: set the default value 16 for now, would change it if we
+          // support mode bits_per_sample
+          .bits_per_sample = 16,
+          .sampling_rate = stream_params.get(direction).sample_frequency_hz,
+          .frame_duration = stream_params.get(direction).frame_duration_us,
+          .octets_per_frame =
+              stream_params.get(direction).octets_per_codec_frame,
+          .blocks_per_sdu =
+              stream_params.get(direction).codec_frames_blocks_per_sdu,
+          .peer_delay_ms = delays_ms.get(direction),
+      };
+      update_receiver(unicast_cfg);
+      stream_map.is_initial = false;
     }
-    // TODO: set the default value 16 for now, would change it if we support
-    // mode bits_per_sample
-    source_config.bits_per_sample = 16;
-    source_config.sampling_rate = stream_conf.source_sample_frequency_hz;
-    source_config.frame_duration = stream_conf.source_frame_duration_us;
-    source_config.octets_per_frame = stream_conf.source_octets_per_codec_frame;
-    source_config.blocks_per_sdu =
-        stream_conf.source_codec_frames_blocks_per_sdu;
-    source_config.peer_delay_ms = delay_ms;
-    update_receiver(source_config);
   }
 
   const AudioSetConfigurations* GetOffloadCodecConfig(
@@ -257,6 +264,119 @@ struct codec_manager_impl {
     update_receiver(broadcast_config);
   }
 
+  void ClearCisConfiguration(uint8_t direction) {
+    if (GetCodecLocation() != le_audio::types::CodecLocation::ADSP) {
+      return;
+    }
+
+    auto& stream_map = offloader_stream_maps.get(direction);
+    stream_map.streams_map_target.clear();
+    stream_map.streams_map_current.clear();
+  }
+
+  static uint32_t AdjustAllocationForOffloader(uint32_t allocation) {
+    if ((allocation & codec_spec_conf::kLeAudioLocationAnyLeft) &&
+        (allocation & codec_spec_conf::kLeAudioLocationAnyRight)) {
+      return codec_spec_conf::kLeAudioLocationStereo;
+    }
+    if (allocation & codec_spec_conf::kLeAudioLocationAnyLeft) {
+      return codec_spec_conf::kLeAudioLocationFrontLeft;
+    }
+    if (allocation & codec_spec_conf::kLeAudioLocationAnyRight) {
+      return codec_spec_conf::kLeAudioLocationFrontRight;
+    }
+    return 0;
+  }
+
+  void UpdateCisConfiguration(const std::vector<struct types::cis>& cises,
+                              const stream_parameters& stream_params,
+                              uint8_t direction) {
+    if (GetCodecLocation() != le_audio::types::CodecLocation::ADSP) {
+      return;
+    }
+
+    auto available_allocations =
+        AdjustAllocationForOffloader(stream_params.audio_channel_allocation);
+    if (available_allocations == 0) {
+      LOG_ERROR("There is no CIS connected");
+      return;
+    }
+
+    auto& stream_map = offloader_stream_maps.get(direction);
+    if (stream_map.streams_map_target.empty()) {
+      stream_map.is_initial = true;
+    } else if (stream_map.is_initial ||
+               LeAudioHalVerifier::SupportsStreamActiveApi()) {
+      /* As multiple CISes phone call case, the target_allocation already have
+       * the previous data, but the is_initial flag not be cleared. We need to
+       * clear here to avoid make duplicated target allocation stream map. */
+      stream_map.streams_map_target.clear();
+    }
+
+    stream_map.streams_map_current.clear();
+    stream_map.has_changed = true;
+    bool all_cises_connected =
+        (available_allocations == codec_spec_conf::kLeAudioLocationStereo);
+
+    /* If all the cises are connected as stream started, reset changed_flag that
+     * the bt stack wouldn't send another audio configuration for the connection
+     * status. */
+    if (stream_map.is_initial && all_cises_connected) {
+      stream_map.has_changed = false;
+    }
+
+    const std::string tag = types::BidirectionalPair<std::string>(
+                                {.sink = "Sink", .source = "Source"})
+                                .get(direction);
+
+    constexpr types::BidirectionalPair<types::CisType> cis_types = {
+        .sink = types::CisType::CIS_TYPE_UNIDIRECTIONAL_SINK,
+        .source = types::CisType::CIS_TYPE_UNIDIRECTIONAL_SOURCE};
+    auto cis_type = cis_types.get(direction);
+
+    for (auto const& cis_entry : cises) {
+      if ((cis_entry.type == types::CisType::CIS_TYPE_BIDIRECTIONAL ||
+           cis_entry.type == cis_type) &&
+          cis_entry.conn_handle != 0) {
+        uint32_t target_allocation = 0;
+        uint32_t current_allocation = 0;
+        bool is_active = false;
+        for (const auto& s : stream_params.stream_locations) {
+          if (s.first == cis_entry.conn_handle) {
+            is_active = true;
+            target_allocation = AdjustAllocationForOffloader(s.second);
+            current_allocation = target_allocation;
+            if (!all_cises_connected) {
+              /* Tell offloader to mix on this CIS.*/
+              current_allocation = codec_spec_conf::kLeAudioLocationStereo;
+            }
+            break;
+          }
+        }
+
+        if (target_allocation == 0) {
+          /* Take missing allocation for that one .*/
+          target_allocation =
+              codec_spec_conf::kLeAudioLocationStereo & ~available_allocations;
+        }
+
+        LOG_INFO(
+            "%s: Cis handle 0x%04x, target allocation  0x%08x, current "
+            "allocation 0x%08x, active: %d",
+            tag.c_str(), cis_entry.conn_handle, target_allocation,
+            current_allocation, is_active);
+
+        if (stream_map.is_initial ||
+            LeAudioHalVerifier::SupportsStreamActiveApi()) {
+          stream_map.streams_map_target.emplace_back(stream_map_info(
+              cis_entry.conn_handle, target_allocation, is_active));
+        }
+        stream_map.streams_map_current.emplace_back(stream_map_info(
+            cis_entry.conn_handle, current_allocation, is_active));
+      }
+    }
+  }
+
  private:
   void SetCodecLocation(CodecLocation location) {
     if (offload_enable_ == false) return;
@@ -354,7 +474,8 @@ struct codec_manager_impl {
     std::unordered_set<uint8_t> offload_preference_set;
 
     if (AudioSetConfigurationProvider::Get() == nullptr) {
-      LOG(ERROR) << __func__ << " Audio set configuration provider is not available.";
+      LOG(ERROR) << __func__
+                 << " Audio set configuration provider is not available.";
       return;
     }
 
@@ -394,8 +515,7 @@ struct codec_manager_impl {
 
   CodecLocation codec_location_ = CodecLocation::HOST;
   bool offload_enable_ = false;
-  le_audio::offload_config sink_config;
-  le_audio::offload_config source_config;
+  types::BidirectionalPair<offloader_stream_maps_t> offloader_stream_maps;
   std::vector<le_audio::broadcast_offload_config> supported_broadcast_config;
   std::unordered_map<types::LeAudioContextType, AudioSetConfigurations>
       context_type_offload_config_map_;
@@ -411,8 +531,8 @@ struct CodecManager::impl {
   void Start(
       const std::vector<btle_audio_codec_config_t>& offloading_preference) {
     LOG_ASSERT(!codec_manager_impl_);
-    codec_manager_impl_ =
-        std::make_unique<codec_manager_impl>(offloading_preference);
+    codec_manager_impl_ = std::make_unique<codec_manager_impl>();
+    codec_manager_impl_->start(offloading_preference);
   }
 
   void Stop() {
@@ -445,22 +565,13 @@ types::CodecLocation CodecManager::GetCodecLocation(void) const {
   return pimpl_->codec_manager_impl_->GetCodecLocation();
 }
 
-void CodecManager::UpdateActiveSourceAudioConfig(
-    const stream_configuration& stream_conf, uint16_t delay_ms,
-    std::function<void(const ::le_audio::offload_config& config)>
-        update_receiver) {
+void CodecManager::UpdateActiveAudioConfig(
+    const types::BidirectionalPair<stream_parameters>& stream_params,
+    types::BidirectionalPair<uint16_t> delays_ms,
+    std::function<void(const offload_config& config)> update_receiver) {
   if (pimpl_->IsRunning())
-    pimpl_->codec_manager_impl_->UpdateActiveSourceAudioConfig(
-        stream_conf, delay_ms, update_receiver);
-}
-
-void CodecManager::UpdateActiveSinkAudioConfig(
-    const stream_configuration& stream_conf, uint16_t delay_ms,
-    std::function<void(const ::le_audio::offload_config& config)>
-        update_receiver) {
-  if (pimpl_->IsRunning())
-    pimpl_->codec_manager_impl_->UpdateActiveSinkAudioConfig(
-        stream_conf, delay_ms, update_receiver);
+    pimpl_->codec_manager_impl_->UpdateActiveAudioConfig(
+        stream_params, delays_ms, update_receiver);
 }
 
 const AudioSetConfigurations* CodecManager::GetOffloadCodecConfig(
@@ -488,6 +599,21 @@ void CodecManager::UpdateBroadcastConnHandle(
   if (pimpl_->IsRunning()) {
     return pimpl_->codec_manager_impl_->UpdateBroadcastConnHandle(
         conn_handle, update_receiver);
+  }
+}
+
+void CodecManager::UpdateCisConfiguration(
+    const std::vector<struct types::cis>& cises,
+    const stream_parameters& stream_params, uint8_t direction) {
+  if (pimpl_->IsRunning()) {
+    return pimpl_->codec_manager_impl_->UpdateCisConfiguration(
+        cises, stream_params, direction);
+  }
+}
+
+void CodecManager::ClearCisConfiguration(uint8_t direction) {
+  if (pimpl_->IsRunning()) {
+    return pimpl_->codec_manager_impl_->ClearCisConfiguration(direction);
   }
 }
 

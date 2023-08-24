@@ -22,12 +22,12 @@
 #include "bta/include/bta_le_audio_api.h"
 #include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "bta/le_audio/broadcaster/state_machine.h"
+#include "bta/le_audio/codec_interface.h"
 #include "bta/le_audio/content_control_id_keeper.h"
 #include "bta/le_audio/le_audio_types.h"
 #include "bta/le_audio/le_audio_utils.h"
 #include "bta/le_audio/metrics_collector.h"
 #include "device/include/controller.h"
-#include "embdrv/lc3/include/lc3.h"
 #include "gd/common/strings.h"
 #include "internal_include/stack_config.h"
 #include "osi/include/log.h"
@@ -973,31 +973,21 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
     void CheckAndReconfigureEncoders() {
       auto const& codec_id = codec_wrapper_.GetLeAudioCodecId();
-      if (codec_id.coding_format != kLeAudioCodingFormatLC3) {
-        LOG_ERROR("Invalid codec ID: [%d:%d:%d]", codec_id.coding_format,
-                  codec_id.vendor_company_id, codec_id.vendor_codec_id);
-        return;
-      }
-
-      if (enc_audio_buffers_.size() != codec_wrapper_.GetNumChannels()) {
-        enc_audio_buffers_.resize(codec_wrapper_.GetNumChannels());
-      }
-
-      const int dt_us = codec_wrapper_.GetDataIntervalUs();
-      const int sr_hz = codec_wrapper_.GetSampleRate();
-      const auto encoder_bytes = lc3_encoder_size(dt_us, sr_hz);
-      const auto channel_bytes = codec_wrapper_.GetMaxSduSizePerChannel();
-
       /* TODO: We should act smart and reuse current configurations */
-      encoders_.clear();
-      encoders_mem_.clear();
-      while (encoders_.size() < codec_wrapper_.GetNumChannels()) {
-        auto& encoder_buf = enc_audio_buffers_.at(encoders_.size());
-        encoder_buf.resize(channel_bytes);
+      sw_enc_.clear();
+      while (sw_enc_.size() != codec_wrapper_.GetNumChannels()) {
+        auto codec = le_audio::CodecInterface::CreateInstance(codec_id);
 
-        encoders_mem_.emplace_back(malloc(encoder_bytes), &std::free);
-        encoders_.emplace_back(
-            lc3_setup_encoder(dt_us, sr_hz, 0, encoders_mem_.back().get()));
+        auto codec_status =
+            codec->InitEncoder(codec_wrapper_.GetLeAudioCodecConfiguration(),
+                               codec_wrapper_.GetLeAudioCodecConfiguration());
+        if (codec_status != le_audio::CodecInterface::Status::STATUS_OK) {
+          LOG_ERROR("Channel %d codec setup failed with err: %d",
+                    (uint32_t)sw_enc_.size(), codec_status);
+          return;
+        }
+
+        sw_enc_.emplace_back(std::move(codec));
       }
     }
 
@@ -1009,23 +999,9 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
       codec_wrapper_ = config;
     }
 
-    void encodeLc3Channel(lc3_encoder_t encoder,
-                          std::vector<uint8_t>& out_buffer,
-                          const std::vector<uint8_t>& data,
-                          int initial_channel_offset, int pitch_samples,
-                          int num_channels) {
-      auto encoder_status =
-          lc3_encode(encoder, LC3_PCM_FORMAT_S16,
-                     (int16_t*)(data.data() + initial_channel_offset),
-                     pitch_samples, out_buffer.size(), out_buffer.data());
-      if (encoder_status != 0) {
-        LOG_ERROR("Encoding error=%d", encoder_status);
-      }
-    }
-
     static void sendBroadcastData(
         const std::unique_ptr<BroadcastStateMachine>& broadcast,
-        std::vector<std::vector<uint8_t>>& encoded_channels) {
+        std::vector<std::unique_ptr<le_audio::CodecInterface>>& encoders) {
       auto const& config = broadcast->GetBigConfig();
       if (config == std::nullopt) {
         LOG_ERROR(
@@ -1036,15 +1012,16 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
         return;
       }
 
-      if (config->connection_handles.size() < encoded_channels.size()) {
+      if (config->connection_handles.size() < encoders.size()) {
         LOG_ERROR("Not enough BIS'es to broadcast all channels!");
         return;
       }
 
-      for (uint8_t chan = 0; chan < encoded_channels.size(); ++chan) {
-        IsoManager::GetInstance()->SendIsoData(config->connection_handles[chan],
-                                               encoded_channels[chan].data(),
-                                               encoded_channels[chan].size());
+      for (uint8_t chan = 0; chan < encoders.size(); ++chan) {
+        IsoManager::GetInstance()->SendIsoData(
+            config->connection_handles[chan],
+            (const uint8_t*)encoders[chan]->GetDecodedSamples().data(),
+            encoders[chan]->GetDecodedSamples().size() * 2);
       }
     }
 
@@ -1059,9 +1036,9 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
       /* Prepare encoded data for all channels */
       for (uint8_t chan = 0; chan < num_channels; ++chan) {
-        /* TODO: Use encoder agnostic wrapper */
-        encodeLc3Channel(encoders_[chan], enc_audio_buffers_[chan], data,
-                         chan * bytes_per_sample, num_channels, num_channels);
+        auto initial_channel_offset = chan * bytes_per_sample;
+        sw_enc_[chan]->Encode(data.data() + initial_channel_offset,
+                              num_channels, codec_wrapper_.GetFrameLen());
       }
 
       /* Currently there is no way to broadcast multiple distinct streams.
@@ -1073,7 +1050,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
         if ((broadcast->GetState() ==
              BroadcastStateMachine::State::STREAMING) &&
             !broadcast->IsMuted())
-          sendBroadcastData(broadcast, enc_audio_buffers_);
+          sendBroadcastData(broadcast, sw_enc_);
       }
       LOG_VERBOSE("All data sent.");
     }
@@ -1120,9 +1097,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
    private:
     BroadcastCodecWrapper codec_wrapper_;
-    std::vector<lc3_encoder_t> encoders_;
-    std::vector<std::unique_ptr<void, decltype(&std::free)>> encoders_mem_;
-    std::vector<std::vector<uint8_t>> enc_audio_buffers_;
+    std::vector<std::unique_ptr<le_audio::CodecInterface>> sw_enc_;
   } audio_receiver_;
 
   static class QueuedBroadcast {
