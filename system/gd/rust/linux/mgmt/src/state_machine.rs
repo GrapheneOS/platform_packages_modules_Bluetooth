@@ -623,7 +623,7 @@ pub async fn mainloop(
         let m = context.rx.recv().await;
 
         if m.is_none() {
-            info!("Exiting manager mainloop");
+            warn!("Exiting manager mainloop");
             break;
         }
 
@@ -631,13 +631,13 @@ pub async fn mainloop(
 
         match m.unwrap() {
             // Adapter action has changed
-            Message::AdapterStateChange(action) => {
+            Message::AdapterStateChange(adapter_action) => {
                 // Grab previous state from lock and release
                 let hci: VirtualHciIndex;
                 let next_state;
                 let prev_state;
 
-                match &action {
+                match &adapter_action {
                     AdapterStateActions::StartBluetooth(i) => {
                         hci = *i;
                         prev_state = context.state_machine.get_process_state(hci);
@@ -735,9 +735,10 @@ pub async fn mainloop(
                     }
                 };
 
-                debug!(
-                    "[hci{}]: Took action {:?} with prev_state({:?}) and next_state({:?})",
-                    hci, action, prev_state, next_state
+                // All actions and the resulting state changes should be logged for debugging.
+                info!(
+                    "[hci{}]: Action={:?}, Previous State({:?}), Next State({:?})",
+                    hci, adapter_action, prev_state, next_state
                 );
 
                 // Only emit enabled event for certain transitions
@@ -1412,7 +1413,7 @@ impl StateMachineInternal {
             // If Floss is not enabled, just send |Stop| to process manager and end the state
             // machine actions.
             ProcessState::TurningOn if !floss_enabled => {
-                info!("Timed out turning on but floss is disabled: {}", hci);
+                warn!("Timed out turning on but floss is disabled: {}", hci);
                 self.modify_state(hci, |s: &mut AdapterState| s.state = ProcessState::Off);
                 self.process_manager
                     .stop(hci.to_string(), self.get_real_hci_by_virtual_id(hci).to_string());
