@@ -16,9 +16,21 @@
 
 #pragma once
 
+#include "hardware/bt_le_audio.h"
 #include "le_audio_types.h"
 
 namespace le_audio {
+
+struct stream_map_info {
+  stream_map_info(uint16_t stream_handle, uint32_t audio_channel_allocation,
+                  bool is_stream_active)
+      : stream_handle(stream_handle),
+        audio_channel_allocation(audio_channel_allocation),
+        is_stream_active(is_stream_active) {}
+  uint16_t stream_handle;
+  uint32_t audio_channel_allocation;
+  bool is_stream_active;
+};
 
 struct offload_config {
   std::vector<stream_map_info> stream_map;
@@ -44,7 +56,6 @@ struct broadcast_offload_config {
 
 class CodecManager {
  public:
-  CodecManager();
   virtual ~CodecManager() = default;
   static CodecManager* GetInstance(void) {
     static CodecManager* instance = new CodecManager();
@@ -54,14 +65,14 @@ class CodecManager {
                  offloading_preference);
   void Stop(void);
   virtual types::CodecLocation GetCodecLocation(void) const;
-  virtual void UpdateActiveSourceAudioConfig(
-      const stream_configuration& stream_conf, uint16_t delay_ms,
-      std::function<void(const ::le_audio::offload_config& config)>
-          update_receiver);
-  virtual void UpdateActiveSinkAudioConfig(
-      const stream_configuration& stream_conf, uint16_t delay_ms,
-      std::function<void(const ::le_audio::offload_config& config)>
-          update_receiver);
+  virtual void UpdateCisConfiguration(
+      const std::vector<struct types::cis>& cises,
+      const stream_parameters& stream_params, uint8_t direction);
+  virtual void ClearCisConfiguration(uint8_t direction);
+  virtual void UpdateActiveAudioConfig(
+      const types::BidirectionalPair<stream_parameters>& stream_params,
+      types::BidirectionalPair<uint16_t> delays_ms,
+      std::function<void(const offload_config& config)> update_receiver);
   virtual const ::le_audio::set_configurations::AudioSetConfigurations*
   GetOffloadCodecConfig(::le_audio::types::LeAudioContextType ctx_type);
   virtual const ::le_audio::broadcast_offload_config*
@@ -72,6 +83,7 @@ class CodecManager {
           update_receiver);
 
  private:
+  CodecManager();
   struct impl;
   std::unique_ptr<impl> pimpl_;
 };
