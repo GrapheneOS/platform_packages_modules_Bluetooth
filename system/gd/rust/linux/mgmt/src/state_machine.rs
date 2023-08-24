@@ -1262,8 +1262,9 @@ impl StateMachineInternal {
             .next()
     }
 
-    /// Set the desired default adapter. Returns true if the default adapter was changed as result
-    /// (meaning the newly desired adapter is either present or enabled).
+    /// Set the desired default adapter. Returns a NewDefaultAdapter action if the default
+    /// adapter was changed as a result (meaning the newly desired adapter is either present or
+    /// enabled).
     pub fn set_desired_default_adapter(&mut self, adapter: VirtualHciIndex) -> AdapterChangeAction {
         self.desired_adapter = adapter;
 
@@ -1280,7 +1281,7 @@ impl StateMachineInternal {
         return AdapterChangeAction::DoNothing;
     }
 
-    /// Returns true if we are starting bluetooth process.
+    /// Returns an action to reset timer if we are starting bluetooth process.
     pub fn action_start_bluetooth(&mut self, hci: VirtualHciIndex) -> CommandTimeoutAction {
         let state = self.get_process_state(hci);
         let present = self.get_state(hci, move |a: &AdapterState| Some(a.present)).unwrap_or(false);
@@ -1303,7 +1304,7 @@ impl StateMachineInternal {
         }
     }
 
-    /// Returns true if we are stopping bluetooth process.
+    /// Returns an action to reset or cancel timer if we are stopping bluetooth process.
     pub fn action_stop_bluetooth(&mut self, hci: VirtualHciIndex) -> CommandTimeoutAction {
         if !self.is_known(hci) {
             warn!("Attempting to stop unknown hci{}", hci.to_i32());
@@ -1329,7 +1330,7 @@ impl StateMachineInternal {
         }
     }
 
-    /// Returns true if we are restarting bluetooth process
+    /// Returns an action to reset timer if we are restarting bluetooth process
     pub fn action_restart_bluetooth(&mut self, hci: VirtualHciIndex) -> CommandTimeoutAction {
         if !self.is_known(hci) {
             warn!("Attempting to restart unknown hci{}", hci);
@@ -1355,7 +1356,8 @@ impl StateMachineInternal {
         }
     }
 
-    /// Handles a bluetooth started event. Always returns true even with unknown interfaces.
+    /// Handles a bluetooth started event. Always return the acction to cancel timer even with
+    /// unknown interfaces.
     pub fn action_on_bluetooth_started(
         &mut self,
         pid: i32,
@@ -1375,8 +1377,9 @@ impl StateMachineInternal {
         CommandTimeoutAction::CancelTimer
     }
 
-    /// Returns true if the event is expected.
-    /// If unexpected, Bluetooth probably crashed, returning false and starting the timer for restart timeout.
+    /// Returns an action to cancel timer if the event is expected.
+    /// If unexpected, Bluetooth probably crashed, returns an action to reset the timer to restart
+    /// timeout.
     pub fn action_on_bluetooth_stopped(&mut self, hci: VirtualHciIndex) -> CommandTimeoutAction {
         let state = self.get_process_state(hci);
         let (present, config_enabled) = self
