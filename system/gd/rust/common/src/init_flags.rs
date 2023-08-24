@@ -377,7 +377,6 @@ init_flags!(
         gatt_robust_caching_server,
         gd_core,
         gd_l2cap,
-        gd_link_policy,
         hci_adapter: i32,
         hfp_dynamic_version = true,
         irk_rotation,
