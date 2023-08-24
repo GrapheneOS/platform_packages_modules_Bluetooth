@@ -387,7 +387,7 @@ init_flags!(
         private_gatt = true,
         redact_log = true,
         rust_event_loop = true,
-        sco_codec_select_lc3,
+        sco_codec_select_lc3 = true,
         sco_codec_timeout_clear,
         sdp_serialization = true,
         sdp_skip_rnr_if_known = true,
