@@ -94,6 +94,12 @@ const uint8_t
 static void send_sniff_subrating(uint16_t handle, const RawAddress& addr,
                                  uint16_t max_lat, uint16_t min_rmt_to,
                                  uint16_t min_loc_to) {
+  uint16_t new_max_lat = 0;
+  if (interop_match_addr_get_max_lat(INTEROP_UPDATE_HID_SSR_MAX_LAT, &addr,
+                                     &new_max_lat)) {
+    max_lat = new_max_lat;
+  }
+
   btsnd_hcic_sniff_sub_rate(handle, max_lat, min_rmt_to, min_loc_to);
   BTM_LogHistory(kBtmLogTag, addr, "Sniff subrating",
                  base::StringPrintf(
