@@ -34,12 +34,12 @@
 #include "btif_profile_storage.h"
 #include "btm_iso_api.h"
 #include "client_parser.h"
+#include "codec_interface.h"
 #include "codec_manager.h"
 #include "common/time_util.h"
 #include "content_control_id_keeper.h"
 #include "device/include/controller.h"
 #include "devices.h"
-#include "embdrv/lc3/include/lc3.h"
 #include "gatt/bta_gattc_int.h"
 #include "gd/common/strings.h"
 #include "internal_include/stack_config.h"
@@ -166,23 +166,6 @@ static void le_audio_health_status_callback(const RawAddress& addr,
                                             int group_id,
                                             LeAudioHealthBasedAction action);
 
-inline uint8_t bits_to_bytes_per_sample(uint8_t bits_per_sample) {
-  // 24 bit audio stream is sent as unpacked, each sample takes 4 bytes.
-  if (bits_per_sample == 24) return 4;
-
-  return bits_per_sample / 8;
-}
-
-inline lc3_pcm_format bits_to_lc3_bits(uint8_t bits_per_sample) {
-  if (bits_per_sample == 16) return LC3_PCM_FORMAT_S16;
-
-  if (bits_per_sample == 24) return LC3_PCM_FORMAT_S24;
-
-  LOG_ALWAYS_FATAL("Encoder/decoder don't know how to handle %d",
-                   bits_per_sample);
-  return LC3_PCM_FORMAT_S16;
-}
-
 class LeAudioClientImpl;
 LeAudioClientImpl* instance;
 std::mutex instance_mutex;
@@ -248,12 +231,6 @@ class LeAudioClientImpl : public LeAudioClient {
         in_voip_call_(false),
         current_source_codec_config({0, 0, 0, 0}),
         current_sink_codec_config({0, 0, 0, 0}),
-        lc3_encoder_left_mem(nullptr),
-        lc3_encoder_right_mem(nullptr),
-        lc3_decoder_left_mem(nullptr),
-        lc3_decoder_right_mem(nullptr),
-        lc3_decoder_left(nullptr),
-        lc3_decoder_right(nullptr),
         le_audio_source_hal_client_(nullptr),
         le_audio_sink_hal_client_(nullptr),
         close_vbc_timeout_(alarm_new("LeAudioCloseVbcTimeout")),
@@ -3061,27 +3038,12 @@ class LeAudioClientImpl : public LeAudioClient {
   void PrepareAndSendToTwoCises(
       const std::vector<uint8_t>& data,
       struct le_audio::stream_configuration* stream_conf) {
-    uint16_t byte_count = stream_conf->sink_octets_per_codec_frame;
     uint16_t left_cis_handle = 0;
     uint16_t right_cis_handle = 0;
-    uint16_t number_of_required_samples_per_channel;
 
-    int dt_us = current_source_codec_config.data_interval_us;
-    int af_hz = audio_framework_source_config.sample_rate;
-    number_of_required_samples_per_channel = lc3_frame_samples(dt_us, af_hz);
-
-    lc3_pcm_format bits_per_sample =
-        bits_to_lc3_bits(audio_framework_source_config.bits_per_sample);
-    uint8_t bytes_per_sample =
-        bits_to_bytes_per_sample(audio_framework_source_config.bits_per_sample);
-
-    for (auto [cis_handle, audio_location] : stream_conf->sink_streams) {
-      if (audio_location & le_audio::codec_spec_conf::kLeAudioLocationAnyLeft)
-        left_cis_handle = cis_handle;
-      if (audio_location & le_audio::codec_spec_conf::kLeAudioLocationAnyRight)
-        right_cis_handle = cis_handle;
-    }
-
+    uint16_t number_of_required_samples_per_channel =
+        sw_enc_left->GetNumOfSamplesPerChannel();
+    uint8_t bytes_per_sample = sw_enc_left->GetNumOfBytesPerSample();
     if (data.size() < bytes_per_sample * 2 /* channels */ *
                           number_of_required_samples_per_channel) {
       LOG(ERROR) << __func__ << " Missing samples. Data size: " << +data.size()
@@ -3091,29 +3053,30 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    std::vector<uint8_t> chan_left_enc(byte_count, 0);
-    std::vector<uint8_t> chan_right_enc(byte_count, 0);
+    for (auto [cis_handle, audio_location] :
+         stream_conf->stream_params.sink.stream_locations) {
+      if (audio_location & le_audio::codec_spec_conf::kLeAudioLocationAnyLeft)
+        left_cis_handle = cis_handle;
+      if (audio_location & le_audio::codec_spec_conf::kLeAudioLocationAnyRight)
+        right_cis_handle = cis_handle;
+    }
 
-    bool mono = (left_cis_handle == 0) || (right_cis_handle == 0);
-
-    if (!mono) {
-      lc3_encode(lc3_encoder_left, bits_per_sample, data.data(), 2,
-                 chan_left_enc.size(), chan_left_enc.data());
-      lc3_encode(lc3_encoder_right, bits_per_sample,
-                 data.data() + bytes_per_sample, 2, chan_right_enc.size(),
-                 chan_right_enc.data());
-    } else {
+    uint16_t byte_count =
+        stream_conf->stream_params.sink.octets_per_codec_frame;
+    bool mix_to_mono = (left_cis_handle == 0) || (right_cis_handle == 0);
+    if (mix_to_mono) {
       std::vector<uint8_t> mono = mono_blend(
           data, bytes_per_sample, number_of_required_samples_per_channel);
       if (left_cis_handle) {
-        lc3_encode(lc3_encoder_left, bits_per_sample, mono.data(), 1,
-                   chan_left_enc.size(), chan_left_enc.data());
+        sw_enc_left->Encode(mono.data(), 1, byte_count);
       }
 
       if (right_cis_handle) {
-        lc3_encode(lc3_encoder_right, bits_per_sample, mono.data(), 1,
-                   chan_right_enc.size(), chan_right_enc.data());
+        sw_enc_left->Encode(mono.data(), 1, byte_count);
       }
+    } else {
+      sw_enc_left->Encode(data.data(), 2, byte_count);
+      sw_enc_right->Encode(data.data() + bytes_per_sample, 2, byte_count);
     }
 
     DLOG(INFO) << __func__ << " left_cis_handle: " << +left_cis_handle
@@ -3121,59 +3084,52 @@ class LeAudioClientImpl : public LeAudioClient {
     /* Send data to the controller */
     if (left_cis_handle)
       IsoManager::GetInstance()->SendIsoData(
-          left_cis_handle, chan_left_enc.data(), chan_left_enc.size());
+          left_cis_handle,
+          (const uint8_t*)sw_enc_left->GetDecodedSamples().data(),
+          sw_enc_left->GetDecodedSamples().size() * 2);
 
     if (right_cis_handle)
       IsoManager::GetInstance()->SendIsoData(
-          right_cis_handle, chan_right_enc.data(), chan_right_enc.size());
+          right_cis_handle,
+          (const uint8_t*)sw_enc_right->GetDecodedSamples().data(),
+          sw_enc_right->GetDecodedSamples().size() * 2);
   }
 
   void PrepareAndSendToSingleCis(
       const std::vector<uint8_t>& data,
       struct le_audio::stream_configuration* stream_conf) {
-    int num_channels = stream_conf->sink_num_of_channels;
-    uint16_t byte_count = stream_conf->sink_octets_per_codec_frame;
-    auto cis_handle = stream_conf->sink_streams.front().first;
-    uint16_t number_of_required_samples_per_channel;
+    uint16_t num_channels = stream_conf->stream_params.sink.num_of_channels;
+    uint16_t cis_handle =
+        stream_conf->stream_params.sink.stream_locations.front().first;
 
-    int dt_us = current_source_codec_config.data_interval_us;
-    int af_hz = audio_framework_source_config.sample_rate;
-    number_of_required_samples_per_channel = lc3_frame_samples(dt_us, af_hz);
-    lc3_pcm_format bits_per_sample =
-        bits_to_lc3_bits(audio_framework_source_config.bits_per_sample);
-    uint8_t bytes_per_sample =
-        bits_to_bytes_per_sample(audio_framework_source_config.bits_per_sample);
-
-    if ((int)data.size() < (2 /* bytes per sample */ * num_channels *
+    uint16_t number_of_required_samples_per_channel =
+        sw_enc_left->GetNumOfSamplesPerChannel();
+    uint8_t bytes_per_sample = sw_enc_left->GetNumOfBytesPerSample();
+    if ((int)data.size() < (bytes_per_sample * num_channels *
                             number_of_required_samples_per_channel)) {
       LOG(ERROR) << __func__ << "Missing samples";
       return;
     }
-    std::vector<uint8_t> chan_encoded(num_channels * byte_count, 0);
 
-    if (num_channels == 1) {
+    uint16_t byte_count =
+        stream_conf->stream_params.sink.octets_per_codec_frame;
+    bool mix_to_mono = (num_channels == 1);
+    if (mix_to_mono) {
       /* Since we always get two channels from framework, lets make it mono here
        */
       std::vector<uint8_t> mono = mono_blend(
           data, bytes_per_sample, number_of_required_samples_per_channel);
-
-      auto err = lc3_encode(lc3_encoder_left, bits_per_sample, mono.data(), 1,
-                            byte_count, chan_encoded.data());
-
-      if (err < 0) {
-        LOG(ERROR) << " error while encoding, error code: " << +err;
-      }
+      sw_enc_left->Encode(mono.data(), 1, byte_count);
     } else {
-      lc3_encode(lc3_encoder_left, bits_per_sample, (const int16_t*)data.data(),
-                 2, byte_count, chan_encoded.data());
-      lc3_encode(lc3_encoder_right, bits_per_sample,
-                 (const int16_t*)data.data() + 1, 2, byte_count,
-                 chan_encoded.data() + byte_count);
+      sw_enc_left->Encode((const uint8_t*)data.data(), 2, byte_count);
+      // Output to the left channel buffer with `byte_count` offset
+      sw_enc_right->Encode((const uint8_t*)data.data() + 2, 2, byte_count,
+                           &sw_enc_left->GetDecodedSamples(), byte_count);
     }
 
-    /* Send data to the controller */
-    IsoManager::GetInstance()->SendIsoData(cis_handle, chan_encoded.data(),
-                                           chan_encoded.size());
+    IsoManager::GetInstance()->SendIsoData(
+        cis_handle, (const uint8_t*)sw_enc_left->GetDecodedSamples().data(),
+        sw_enc_left->GetDecodedSamples().size() * 2);
   }
 
   const struct le_audio::stream_configuration* GetStreamSinkConfiguration(
@@ -3181,7 +3137,7 @@ class LeAudioClientImpl : public LeAudioClient {
     const struct le_audio::stream_configuration* stream_conf =
         &group->stream_conf;
     LOG_INFO("group_id: %d", group->group_id_);
-    if (stream_conf->sink_streams.size() == 0) {
+    if (stream_conf->stream_params.sink.stream_locations.size() == 0) {
       return nullptr;
     }
 
@@ -3201,27 +3157,26 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     auto stream_conf = group->stream_conf;
-    if ((stream_conf.sink_num_of_devices > 2) ||
-        (stream_conf.sink_num_of_devices == 0) ||
-        stream_conf.sink_streams.empty()) {
+    if ((stream_conf.stream_params.sink.num_of_devices > 2) ||
+        (stream_conf.stream_params.sink.num_of_devices == 0) ||
+        stream_conf.stream_params.sink.stream_locations.empty()) {
       LOG(ERROR) << __func__ << " Stream configufation is not valid.";
       return;
     }
 
-    if (stream_conf.sink_num_of_devices == 2) {
-      PrepareAndSendToTwoCises(data, &stream_conf);
-    } else if (stream_conf.sink_streams.size() == 2) {
-      /* Streaming to one device but 2 CISes */
+    if ((stream_conf.stream_params.sink.num_of_devices == 2) ||
+        (stream_conf.stream_params.sink.stream_locations.size() == 2)) {
+      /* Streaming to two devices or one device with 2 CISes */
       PrepareAndSendToTwoCises(data, &stream_conf);
     } else {
+      /* Streaming to one device and 1 CIS */
       PrepareAndSendToSingleCis(data, &stream_conf);
     }
   }
 
   void CleanCachedMicrophoneData() {
-    cached_channel_data_.clear();
     cached_channel_timestamp_ = 0;
-    cached_channel_is_left_ = false;
+    cached_channel_ = nullptr;
   }
 
   /* Handles audio data packets coming from the controller */
@@ -3239,11 +3194,10 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    auto stream_conf = group->stream_conf;
-
     uint16_t left_cis_handle = 0;
     uint16_t right_cis_handle = 0;
-    for (auto [cis_handle, audio_location] : stream_conf.source_streams) {
+    for (auto [cis_handle, audio_location] :
+         group->stream_conf.stream_params.source.stream_locations) {
       if (audio_location & le_audio::codec_spec_conf::kLeAudioLocationAnyLeft) {
         left_cis_handle = cis_handle;
       }
@@ -3253,97 +3207,43 @@ class LeAudioClientImpl : public LeAudioClient {
       }
     }
 
-    bool is_left = true;
+    auto decoder = sw_dec_left.get();
     if (cis_conn_hdl == left_cis_handle) {
-      is_left = true;
+      decoder = sw_dec_left.get();
     } else if (cis_conn_hdl == right_cis_handle) {
-      is_left = false;
+      decoder = sw_dec_right.get();
     } else {
       LOG_ERROR("Received data for unknown handle: %04x", cis_conn_hdl);
       return;
     }
 
-    uint16_t required_for_channel_byte_count =
-        stream_conf.source_octets_per_codec_frame;
-
-    int dt_us = current_sink_codec_config.data_interval_us;
-    int af_hz = audio_framework_sink_config.sample_rate;
-    lc3_pcm_format bits_per_sample =
-        bits_to_lc3_bits(audio_framework_sink_config.bits_per_sample);
-
-    int pcm_size;
-    if (dt_us == 10000) {
-      if (af_hz == 44100)
-        pcm_size = 480;
-      else
-        pcm_size = af_hz / 100;
-    } else if (dt_us == 7500) {
-      if (af_hz == 44100)
-        pcm_size = 360;
-      else
-        pcm_size = (af_hz * 3) / 400;
-    } else {
-      LOG(ERROR) << "BAD dt_us: " << dt_us;
-      return;
-    }
-
-    std::vector<int16_t> pcm_data_decoded(pcm_size, 0);
-
-    int err = 0;
-
-    if (required_for_channel_byte_count != size) {
-      LOG(INFO) << "Insufficient data for decoding and send, required: "
-                << int(required_for_channel_byte_count)
-                << ", received: " << int(size) << ", will do PLC";
-      size = 0;
-      data = nullptr;
-    }
-
-    lc3_decoder_t decoder_to_use =
-        is_left ? lc3_decoder_left : lc3_decoder_right;
-
-    err = lc3_decode(decoder_to_use, data, size, bits_per_sample,
-                     pcm_data_decoded.data(), 1 /* pitch */);
-
-    if (err < 0) {
-      LOG(ERROR) << " bad decoding parameters: " << static_cast<int>(err);
-      return;
-    }
-
-    /* AF == Audio Framework */
-    bool af_is_stereo = (audio_framework_sink_config.num_channels == 2);
-
     if (!left_cis_handle || !right_cis_handle) {
       /* mono or just one device connected */
-      SendAudioDataToAF(false /* bt_got_stereo */, af_is_stereo,
-                        &pcm_data_decoded, nullptr);
+      decoder->Decode(data, size);
+      SendAudioDataToAF(&decoder->GetDecodedSamples());
       return;
     }
     /* both devices are connected */
 
-    if (cached_channel_timestamp_ == 0 && cached_channel_data_.empty()) {
+    if (cached_channel_ == nullptr ||
+        cached_channel_->GetDecodedSamples().empty()) {
       /* First packet received, cache it. We need both channel data to send it
        * to AF. */
-      cached_channel_data_ = pcm_data_decoded;
+      decoder->Decode(data, size);
       cached_channel_timestamp_ = timestamp;
-      cached_channel_is_left_ = is_left;
+      cached_channel_ = decoder;
       return;
     }
 
     /* We received either data for the other audio channel, or another
      * packet for same channel */
-
-    if (cached_channel_is_left_ != is_left) {
+    if (cached_channel_ != decoder) {
       /* It's data for the 2nd channel */
       if (timestamp == cached_channel_timestamp_) {
         /* Ready to mix data and send out to AF */
-        if (is_left) {
-          SendAudioDataToAF(true /* bt_got_stereo */, af_is_stereo,
-                            &cached_channel_data_, &pcm_data_decoded);
-        } else {
-          SendAudioDataToAF(true /* bt_got_stereo */, af_is_stereo,
-                            &pcm_data_decoded, &cached_channel_data_);
-        }
+        decoder->Decode(data, size);
+        SendAudioDataToAF(&sw_dec_left->GetDecodedSamples(),
+                          &sw_dec_right->GetDecodedSamples());
 
         CleanCachedMicrophoneData();
         return;
@@ -3352,18 +3252,11 @@ class LeAudioClientImpl : public LeAudioClient {
       /* 2nd Channel is in the future compared to the cached data.
        Send the cached data to AF, and keep the new channel data in cache.
        This should happen only during stream setup */
+      SendAudioDataToAF(&decoder->GetDecodedSamples());
 
-      if (cached_channel_is_left_) {
-        SendAudioDataToAF(false /* bt_got_stereo */, af_is_stereo,
-                          &cached_channel_data_, nullptr);
-      } else {
-        SendAudioDataToAF(false /* bt_got_stereo */, af_is_stereo, nullptr,
-                          &cached_channel_data_);
-      }
-
-      cached_channel_data_ = pcm_data_decoded;
+      decoder->Decode(data, size);
       cached_channel_timestamp_ = timestamp;
-      cached_channel_is_left_ = is_left;
+      cached_channel_ = decoder;
       return;
     }
 
@@ -3371,25 +3264,22 @@ class LeAudioClientImpl : public LeAudioClient {
      * data */
 
     /* Send the cached data out */
-    if (cached_channel_is_left_) {
-      SendAudioDataToAF(false /* bt_got_stereo */, af_is_stereo,
-                        &cached_channel_data_, nullptr);
-    } else {
-      SendAudioDataToAF(false /* bt_got_stereo */, af_is_stereo, nullptr,
-                        &cached_channel_data_);
-    }
+    SendAudioDataToAF(&decoder->GetDecodedSamples());
 
     /* Cache the data in case 2nd channel connects */
-    cached_channel_data_ = pcm_data_decoded;
+    decoder->Decode(data, size);
     cached_channel_timestamp_ = timestamp;
-    cached_channel_is_left_ = is_left;
+    cached_channel_ = decoder;
   }
 
-  void SendAudioDataToAF(bool bt_got_stereo, bool af_is_stereo,
-                         std::vector<int16_t>* left,
-                         std::vector<int16_t>* right) {
+  void SendAudioDataToAF(std::vector<int16_t>* left,
+                         std::vector<int16_t>* right = nullptr) {
     uint16_t to_write = 0;
     uint16_t written = 0;
+
+    bool af_is_stereo = (audio_framework_sink_config.num_channels == 2);
+    bool bt_got_stereo = (left != nullptr) & (right != nullptr);
+
     if (!af_is_stereo) {
       if (!bt_got_stereo) {
         std::vector<int16_t>* mono = left ? left : right;
@@ -3464,14 +3354,16 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     LOG_DEBUG("Sink stream config (#%d):\n",
-              static_cast<int>(stream_conf->sink_streams.size()));
-    for (auto stream : stream_conf->sink_streams) {
+              static_cast<int>(
+                  stream_conf->stream_params.sink.stream_locations.size()));
+    for (auto stream : stream_conf->stream_params.sink.stream_locations) {
       LOG_DEBUG("Cis handle: 0x%02x, allocation 0x%04x\n", stream.first,
                 stream.second);
     }
     LOG_DEBUG("Source stream config (#%d):\n",
-              static_cast<int>(stream_conf->source_streams.size()));
-    for (auto stream : stream_conf->source_streams) {
+              static_cast<int>(
+                  stream_conf->stream_params.source.stream_locations.size()));
+    for (auto stream : stream_conf->stream_params.source.stream_locations) {
       LOG_DEBUG("Cis handle: 0x%02x, allocation 0x%04x\n", stream.first,
                 stream.second);
     }
@@ -3480,38 +3372,42 @@ class LeAudioClientImpl : public LeAudioClient {
         group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink);
     if (CodecManager::GetInstance()->GetCodecLocation() ==
         le_audio::types::CodecLocation::HOST) {
-      if (lc3_encoder_left_mem) {
+      if (sw_enc_left || sw_enc_right) {
         LOG(WARNING)
             << " The encoder instance should have been already released.";
-        free(lc3_encoder_left_mem);
-        lc3_encoder_left_mem = nullptr;
-        free(lc3_encoder_right_mem);
-        lc3_encoder_right_mem = nullptr;
       }
-      int dt_us = current_source_codec_config.data_interval_us;
-      int sr_hz = current_source_codec_config.sample_rate;
-      int af_hz = audio_framework_source_config.sample_rate;
-      unsigned enc_size = lc3_encoder_size(dt_us, af_hz);
+      sw_enc_left = le_audio::CodecInterface::CreateInstance(stream_conf->id);
+      auto codec_status = sw_enc_left->InitEncoder(
+          audio_framework_source_config, current_source_codec_config);
+      if (codec_status != le_audio::CodecInterface::Status::STATUS_OK) {
+        LOG_ERROR("Left channel codec setup failed with err: %d", codec_status);
+        return false;
+      }
 
-      lc3_encoder_left_mem = malloc(enc_size);
-      lc3_encoder_right_mem = malloc(enc_size);
-
-      lc3_encoder_left =
-          lc3_setup_encoder(dt_us, sr_hz, af_hz, lc3_encoder_left_mem);
-      lc3_encoder_right =
-          lc3_setup_encoder(dt_us, sr_hz, af_hz, lc3_encoder_right_mem);
+      sw_enc_right = le_audio::CodecInterface::CreateInstance(stream_conf->id);
+      codec_status = sw_enc_right->InitEncoder(audio_framework_source_config,
+                                               current_source_codec_config);
+      if (codec_status != le_audio::CodecInterface::Status::STATUS_OK) {
+        LOG_ERROR("Right channel codec setup failed with err: %d",
+                  codec_status);
+        return false;
+      }
     }
 
     le_audio_source_hal_client_->UpdateRemoteDelay(remote_delay_ms);
     ConfirmLocalAudioSourceStreamingRequest();
 
     if (!LeAudioHalVerifier::SupportsStreamActiveApi()) {
-      /* We update the target audio allocation before streamStarted that the
-       * offloder would know how to configure offloader encoder. We should check
-       * if we need to update the current
-       * allocation here as the target allocation and the current allocation is
-       * different */
-      updateOffloaderIfNeeded(group);
+      /* We update the target audio allocation before streamStarted so that the
+       * CodecManager would know how to configure the encoder. */
+      BidirectionalPair<uint16_t> delays_pair = {
+          .sink = group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink),
+          .source =
+              group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSource)};
+      CodecManager::GetInstance()->UpdateActiveAudioConfig(
+          group->stream_conf.stream_params, delays_pair,
+          std::bind(&LeAudioSourceAudioHalClient::UpdateAudioConfigToHal,
+                    le_audio_source_hal_client_.get(), std::placeholders::_1));
     }
 
     return true;
@@ -3521,7 +3417,7 @@ class LeAudioClientImpl : public LeAudioClient {
       LeAudioDeviceGroup* group) {
     const struct le_audio::stream_configuration* stream_conf =
         &group->stream_conf;
-    if (stream_conf->source_streams.size() == 0) {
+    if (stream_conf->stream_params.source.stream_locations.size() == 0) {
       return nullptr;
     }
     LOG_INFO("configuration: %s", stream_conf->conf->name.c_str());
@@ -3547,56 +3443,52 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (CodecManager::GetInstance()->GetCodecLocation() ==
         le_audio::types::CodecLocation::HOST) {
-      if (lc3_decoder_left_mem) {
+      if (sw_dec_left.get() || sw_dec_right.get()) {
         LOG(WARNING)
             << " The decoder instance should have been already released.";
-        free(lc3_decoder_left_mem);
-        lc3_decoder_left_mem = nullptr;
-        free(lc3_decoder_right_mem);
-        lc3_decoder_right_mem = nullptr;
+      }
+      sw_dec_left = le_audio::CodecInterface::CreateInstance(stream_conf->id);
+      auto codec_status = sw_dec_left->InitDecoder(current_sink_codec_config,
+                                                   audio_framework_sink_config);
+      if (codec_status != le_audio::CodecInterface::Status::STATUS_OK) {
+        LOG_ERROR("Left channel codec setup failed with err: %d", codec_status);
+        return;
       }
 
-      int dt_us = current_sink_codec_config.data_interval_us;
-      int sr_hz = current_sink_codec_config.sample_rate;
-      int af_hz = audio_framework_sink_config.sample_rate;
-      unsigned dec_size = lc3_decoder_size(dt_us, af_hz);
-      lc3_decoder_left_mem = malloc(dec_size);
-      lc3_decoder_right_mem = malloc(dec_size);
-
-      lc3_decoder_left =
-          lc3_setup_decoder(dt_us, sr_hz, af_hz, lc3_decoder_left_mem);
-      lc3_decoder_right =
-          lc3_setup_decoder(dt_us, sr_hz, af_hz, lc3_decoder_right_mem);
+      sw_dec_right = le_audio::CodecInterface::CreateInstance(stream_conf->id);
+      codec_status = sw_dec_right->InitDecoder(current_sink_codec_config,
+                                               audio_framework_sink_config);
+      if (codec_status != le_audio::CodecInterface::Status::STATUS_OK) {
+        LOG_ERROR("Right channel codec setup failed with err: %d",
+                  codec_status);
+        return;
+      }
     }
     le_audio_sink_hal_client_->UpdateRemoteDelay(remote_delay_ms);
     ConfirmLocalAudioSinkStreamingRequest();
 
     if (!LeAudioHalVerifier::SupportsStreamActiveApi()) {
-      /* We update the target audio allocation before streamStarted that the
-       * offloder would know how to configure offloader encoder. We should check
-       * if we need to update the current
-       * allocation here as the target allocation and the current allocation is
-       * different */
-      updateOffloaderIfNeeded(group);
+      /* We update the target audio allocation before streamStarted so that the
+       * CodecManager would know how to configure the encoder. */
+      BidirectionalPair<uint16_t> delays_pair = {
+          .sink = group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink),
+          .source =
+              group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSource)};
+      CodecManager::GetInstance()->UpdateActiveAudioConfig(
+          group->stream_conf.stream_params, delays_pair,
+          std::bind(&LeAudioSourceAudioHalClient::UpdateAudioConfigToHal,
+                    le_audio_source_hal_client_.get(), std::placeholders::_1));
     }
   }
 
   void SuspendAudio(void) {
     CancelStreamingRequest();
 
-    if (lc3_encoder_left_mem) {
-      free(lc3_encoder_left_mem);
-      lc3_encoder_left_mem = nullptr;
-      free(lc3_encoder_right_mem);
-      lc3_encoder_right_mem = nullptr;
-    }
-
-    if (lc3_decoder_left_mem) {
-      free(lc3_decoder_left_mem);
-      lc3_decoder_left_mem = nullptr;
-      free(lc3_decoder_right_mem);
-      lc3_decoder_right_mem = nullptr;
-    }
+    if (sw_enc_left) sw_enc_left.reset();
+    if (sw_enc_right) sw_enc_right.reset();
+    if (sw_dec_left) sw_dec_left.reset();
+    if (sw_dec_right) sw_dec_right.reset();
+    CleanCachedMicrophoneData();
   }
 
   void StopAudio(void) { SuspendAudio(); }
@@ -3678,7 +3570,7 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
-  void Cleanup(base::Callback<void()> cleanupCb) {
+  void Cleanup() {
     StopVbcCloseTimeout();
     if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
 
@@ -3691,8 +3583,6 @@ class LeAudioClientImpl : public LeAudioClient {
     aseGroups_.Cleanup();
     leAudioDevices_.Cleanup(gatt_if_);
     if (gatt_if_) BTA_GATTC_AppDeregister(gatt_if_);
-
-    std::move(cleanupCb).Run();
 
     if (leAudioHealthStatus_) {
       leAudioHealthStatus_->Cleanup();
@@ -4476,7 +4366,7 @@ class LeAudioClientImpl : public LeAudioClient {
           "invalid/unknown %s context metadata, using 'UNSPECIFIED' instead",
           (remote_dir == le_audio::types::kLeAudioDirectionSink) ? "sink"
                                                                  : "source");
-      contexts_pair.get_ref(remote_dir) =
+      contexts_pair.get(remote_dir) =
           AudioContexts(LeAudioContextType::UNSPECIFIED);
     }
 
@@ -4504,13 +4394,13 @@ class LeAudioClientImpl : public LeAudioClient {
       }
 
       LOG_DEBUG("Checking contexts: %s, against the available contexts: %s",
-                ToString(contexts_pair.get_ref(dir)).c_str(),
+                ToString(contexts_pair.get(dir)).c_str(),
                 ToString(group_available_contexts).c_str());
       auto unavail_contexts =
-          contexts_pair.get_ref(dir) & ~group_available_contexts;
+          contexts_pair.get(dir) & ~group_available_contexts;
       if (unavail_contexts.none()) continue;
 
-      contexts_pair.get_ref(dir) &= group_available_contexts;
+      contexts_pair.get(dir) &= group_available_contexts;
       auto unavail_but_supported =
           (unavail_contexts & group->GetSupportedContexts(dir));
       if (unavail_but_supported.none() &&
@@ -4520,7 +4410,7 @@ class LeAudioClientImpl : public LeAudioClient {
         /* All unavailable are also unsupported - replace with UNSPECIFIED if
          * available
          */
-        contexts_pair.get_ref(dir).set(LeAudioContextType::UNSPECIFIED);
+        contexts_pair.get(dir).set(LeAudioContextType::UNSPECIFIED);
       } else {
         LOG_DEBUG("Some contexts are supported but currently unavailable: %s!",
                   ToString(unavail_but_supported).c_str());
@@ -4556,12 +4446,12 @@ class LeAudioClientImpl : public LeAudioClient {
                 "Other direction is streaming. Aligning other direction"
                 " metadata to match the current direciton context: %s",
                 ToString(contexts_pair.get(other_dir)).c_str());
-            contexts_pair.get_ref(dir) = contexts_pair.get(other_dir);
+            contexts_pair.get(dir) = contexts_pair.get(other_dir);
           }
         } else {
           LOG_DEBUG("Removing UNSPECIFIED from the remote sink context: %s",
                     ToString(contexts_pair.get(other_dir)).c_str());
-          contexts_pair.get_ref(dir).unset(LeAudioContextType::UNSPECIFIED);
+          contexts_pair.get(dir).unset(LeAudioContextType::UNSPECIFIED);
         }
       }
     }
@@ -4697,7 +4587,7 @@ class LeAudioClientImpl : public LeAudioClient {
       LOG_DEBUG(
           "The other direction is not streaming bidirectional, ignore that "
           "context.");
-      remote_metadata.get_ref(remote_other_direction).clear();
+      remote_metadata.get(remote_other_direction).clear();
     }
 
     /* Mixed contexts in the voiceback channel scenarios can confuse the remote
@@ -4711,13 +4601,13 @@ class LeAudioClientImpl : public LeAudioClient {
           "context");
       if (!is_streaming_other_direction) {
         // Do not take the obsolete metadata
-        remote_metadata.get_ref(remote_other_direction).clear();
+        remote_metadata.get(remote_other_direction).clear();
       }
-      remote_metadata.get_ref(remote_other_direction)
+      remote_metadata.get(remote_other_direction)
           .unset_all(kLeAudioContextAllBidir);
-      remote_metadata.get_ref(remote_other_direction)
+      remote_metadata.get(remote_other_direction)
           .unset_all(kLeAudioContextAllRemoteSinkOnly);
-      remote_metadata.get_ref(remote_other_direction)
+      remote_metadata.get(remote_other_direction)
           .set_all(remote_metadata.get(remote_direction) &
                    ~kLeAudioContextAllRemoteSinkOnly);
     }
@@ -4742,9 +4632,9 @@ class LeAudioClientImpl : public LeAudioClient {
         /* Turn off bidirectional contexts on this direction to avoid mixing
          * with the other direction bidirectional context
          */
-        remote_metadata.get_ref(remote_direction)
+        remote_metadata.get(remote_direction)
             .unset_all(kLeAudioContextAllBidir);
-        remote_metadata.get_ref(remote_direction)
+        remote_metadata.get(remote_direction)
             .set_all(remote_metadata.get(remote_other_direction));
       }
     }
@@ -4844,7 +4734,7 @@ class LeAudioClientImpl : public LeAudioClient {
               group, le_audio::types::kLeAudioDirectionSource) &&
           (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
       if (has_audio_source_configured) {
-        LOG_DEBUG(
+        LOG_INFO(
             "Audio source is already available in the current configuration "
             "context in %s. Not switching to %s right now.",
             ToString(configuration_context_type_).c_str(),
@@ -4869,9 +4759,9 @@ class LeAudioClientImpl : public LeAudioClient {
       LeAudioDeviceGroup* group, LeAudioContextType new_configuration_context,
       BidirectionalPair<AudioContexts> remote_contexts) {
     if (new_configuration_context != configuration_context_type_) {
-      LOG_DEBUG("Changing configuration context from %s to %s",
-                ToString(configuration_context_type_).c_str(),
-                ToString(new_configuration_context).c_str());
+      LOG_INFO("Checking whether to change configuration context from %s to %s",
+               ToString(configuration_context_type_).c_str(),
+               ToString(new_configuration_context).c_str());
 
       LeAudioLogHistory::Get()->AddLogHistory(
           kLogAfCallBt, active_group_id_, RawAddress::kEmpty,
@@ -4886,7 +4776,7 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-      LOG_DEBUG(
+      LOG_INFO(
           "The %s configuration did not change. Updating the metadata to "
           "sink=%s, source=%s",
           ToString(configuration_context_type_).c_str(),
@@ -5136,40 +5026,6 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
-  void updateOffloaderIfNeeded(LeAudioDeviceGroup* group) {
-    if (CodecManager::GetInstance()->GetCodecLocation() !=
-        le_audio::types::CodecLocation::ADSP) {
-      return;
-    }
-
-    LOG_INFO("Group %p, group_id %d", group, group->group_id_);
-
-    const auto* stream_conf = &group->stream_conf;
-
-    if (stream_conf->sink_offloader_changed || stream_conf->sink_is_initial) {
-      LOG_INFO("Update sink offloader streams");
-      uint16_t remote_delay_ms =
-          group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink);
-      CodecManager::GetInstance()->UpdateActiveSourceAudioConfig(
-          *stream_conf, remote_delay_ms,
-          std::bind(&LeAudioSourceAudioHalClient::UpdateAudioConfigToHal,
-                    le_audio_source_hal_client_.get(), std::placeholders::_1));
-      group->StreamOffloaderUpdated(le_audio::types::kLeAudioDirectionSink);
-    }
-
-    if (stream_conf->source_offloader_changed ||
-        stream_conf->source_is_initial) {
-      LOG_INFO("Update source offloader streams");
-      uint16_t remote_delay_ms =
-          group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSource);
-      CodecManager::GetInstance()->UpdateActiveSinkAudioConfig(
-          *stream_conf, remote_delay_ms,
-          std::bind(&LeAudioSinkAudioHalClient::UpdateAudioConfigToHal,
-                    le_audio_sink_hal_client_.get(), std::placeholders::_1));
-      group->StreamOffloaderUpdated(le_audio::types::kLeAudioDirectionSource);
-    }
-  }
-
   void NotifyUpperLayerGroupTurnedIdleDuringCall(int group_id) {
     if (!osi_property_get_bool(kNotifyUpperLayerAboutGroupBeingInIdleDuringCall,
                                false)) {
@@ -5235,7 +5091,16 @@ class LeAudioClientImpl : public LeAudioClient {
         }
 
         if (group) {
-          updateOffloaderIfNeeded(group);
+          BidirectionalPair<uint16_t> delays_pair = {
+              .sink =
+                  group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink),
+              .source = group->GetRemoteDelay(
+                  le_audio::types::kLeAudioDirectionSource)};
+          CodecManager::GetInstance()->UpdateActiveAudioConfig(
+              group->stream_conf.stream_params, delays_pair,
+              std::bind(&LeAudioSourceAudioHalClient::UpdateAudioConfigToHal,
+                        le_audio_source_hal_client_.get(),
+                        std::placeholders::_1));
           if (reconnection_mode_ ==
               BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS) {
             group->AddToAllowListNotConnectedGroupMembers(gatt_if_);
@@ -5291,6 +5156,12 @@ class LeAudioClientImpl : public LeAudioClient {
          */
         FALLTHROUGH;
       case GroupStreamStatus::IDLE: {
+        if (sw_enc_left) sw_enc_left.reset();
+        if (sw_enc_right) sw_enc_right.reset();
+        if (sw_dec_left) sw_dec_left.reset();
+        if (sw_dec_right) sw_dec_right.reset();
+        CleanCachedMicrophoneData();
+
         if (group) {
           UpdateLocationsAndContextsAvailability(group->group_id_);
           if (group->IsPendingConfiguration()) {
@@ -5337,6 +5208,17 @@ class LeAudioClientImpl : public LeAudioClient {
       default:
         break;
     }
+  }
+
+  void OnUpdatedCisConfiguration(int group_id, uint8_t direction) {
+    LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
+    if (!group) {
+      LOG_ERROR("Invalid group_id: %d", group_id);
+      return;
+    }
+    CodecManager::GetInstance()->UpdateCisConfiguration(
+        group->cises_, group->stream_conf.stream_params.get(direction),
+        direction);
   }
 
  private:
@@ -5398,17 +5280,11 @@ class LeAudioClientImpl : public LeAudioClient {
       .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us,
   };
 
-  void* lc3_encoder_left_mem;
-  void* lc3_encoder_right_mem;
+  std::unique_ptr<le_audio::CodecInterface> sw_enc_left;
+  std::unique_ptr<le_audio::CodecInterface> sw_enc_right;
 
-  lc3_encoder_t lc3_encoder_left;
-  lc3_encoder_t lc3_encoder_right;
-
-  void* lc3_decoder_left_mem;
-  void* lc3_decoder_right_mem;
-
-  lc3_decoder_t lc3_decoder_left;
-  lc3_decoder_t lc3_decoder_right;
+  std::unique_ptr<le_audio::CodecInterface> sw_dec_left;
+  std::unique_ptr<le_audio::CodecInterface> sw_dec_right;
 
   std::vector<uint8_t> encoded_data;
   std::unique_ptr<LeAudioSourceAudioHalClient> le_audio_source_hal_client_;
@@ -5422,9 +5298,8 @@ class LeAudioClientImpl : public LeAudioClient {
   alarm_t* disable_timer_;
   static constexpr uint64_t kDeviceAttachDelayMs = 500;
 
-  std::vector<int16_t> cached_channel_data_;
   uint32_t cached_channel_timestamp_ = 0;
-  uint32_t cached_channel_is_left_;
+  le_audio::CodecInterface* cached_channel_ = nullptr;
 
   base::WeakPtrFactory<LeAudioClientImpl> weak_factory_{this};
 
@@ -5562,6 +5437,10 @@ class CallbacksImpl : public LeAudioGroupStateMachine::Callbacks {
 
   void OnStateTransitionTimeout(int group_id) override {
     if (instance) instance->OnLeAudioDeviceSetStateTimeout(group_id);
+  }
+
+  void OnUpdatedCisConfiguration(int group_id, uint8_t direction) {
+    if (instance) instance->OnUpdatedCisConfiguration(group_id, direction);
   }
 };
 
@@ -5756,7 +5635,7 @@ void LeAudioClient::DebugDump(int fd) {
   dprintf(fd, "\n");
 }
 
-void LeAudioClient::Cleanup(base::Callback<void()> cleanupCb) {
+void LeAudioClient::Cleanup(void) {
   std::scoped_lock<std::mutex> lock(instance_mutex);
   if (!instance) {
     LOG(ERROR) << "Not initialized";
@@ -5765,7 +5644,7 @@ void LeAudioClient::Cleanup(base::Callback<void()> cleanupCb) {
 
   LeAudioClientImpl* ptr = instance;
   instance = nullptr;
-  ptr->Cleanup(cleanupCb);
+  ptr->Cleanup();
   delete ptr;
   ptr = nullptr;
 
