@@ -578,6 +578,14 @@ impl BluetoothSocketManager {
                 log::debug!("service {} is blocked by admin policy", uuid);
                 return SocketResult::new(BtStatus::AuthRejected, INVALID_SOCKET_ID);
             }
+            if self
+                .listening
+                .iter()
+                .any(|(_, v)| v.iter().any(|s| s.uuid.map_or(false, |u| u == uuid)))
+            {
+                log::warn!("Service {} already exists", uuid);
+                return SocketResult::new(BtStatus::Fail, INVALID_SOCKET_ID);
+            }
         }
 
         // Create listener socket pair
