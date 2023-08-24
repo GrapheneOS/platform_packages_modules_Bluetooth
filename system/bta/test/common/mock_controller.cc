@@ -57,6 +57,11 @@ bool supports_ble_connected_isochronous_stream_peripheral(void) {
       ->SupportsBleConnectedIsochronousStreamPeripheral();
 }
 
+bool supports_configure_data_path(void) {
+  LOG_ASSERT(controller_interface) << "Mock controller not set!";
+  return controller_interface->SupportsConfigureDataPath();
+}
+
 const controller_t* controller_get_interface() {
   static controller_t* controller_instance = new controller_t();
 
@@ -69,6 +74,8 @@ const controller_t* controller_get_interface() {
       &supports_ble_connected_isochronous_stream_central;
   controller_instance->supports_ble_connected_isochronous_stream_peripheral =
       &supports_ble_connected_isochronous_stream_peripheral;
+  controller_instance->supports_configure_data_path =
+      &supports_configure_data_path;
 
   return controller_instance;
 }
