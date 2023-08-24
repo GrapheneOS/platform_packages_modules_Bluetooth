@@ -44,6 +44,7 @@ use crate::bluetooth_admin::{BluetoothAdmin, IBluetoothAdmin};
 use crate::bluetooth_gatt::{BluetoothGatt, IBluetoothGatt, IScannerCallback, ScanResult};
 use crate::bluetooth_media::{BluetoothMedia, IBluetoothMedia, MediaActions};
 use crate::callbacks::Callbacks;
+use crate::socket_manager::SocketActions;
 use crate::uuid::{Profile, UuidHelper, HOGP};
 use crate::{Message, RPCProxy, SuspendMode};
 
@@ -2625,6 +2626,16 @@ impl IBluetooth for Bluetooth {
                 }
                 _ => {}
             }
+        }
+
+        // Disconnect all socket connections
+        if let Some(raw_addr) = RawAddress::from_string(device.address.clone()) {
+            let txl = self.tx.clone();
+            topstack::get_runtime().spawn(async move {
+                let _ = txl
+                    .send(Message::SocketManagerActions(SocketActions::DisconnectAll(raw_addr)))
+                    .await;
+            });
         }
 
         return true;
