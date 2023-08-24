@@ -284,14 +284,10 @@ impl BatteryService {
             None => return,
         }
         // Let BatteryProviderManager know that BAS no longer has a battery for this device.
-        self.battery_provider_manager.lock().unwrap().set_battery_info(
+        self.battery_provider_manager.lock().unwrap().remove_battery_info(
             self.battery_provider_id,
-            BatterySet::new(
-                remote_address.clone(),
-                uuid::BAS.to_string(),
-                "BAS".to_string(),
-                vec![],
-            ),
+            remote_address.clone(),
+            uuid::BAS.to_string(),
         );
         self.battery_sets.remove(&remote_address);
     }
