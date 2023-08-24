@@ -287,7 +287,8 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
       break;
     }
 
-    LOG_DEBUG("cmd_code: %d, id:%d, cmd_len:%d", cmd_code, id, cmd_len);
+    LOG_DEBUG("cmd: %s, id:%d, cmd_len:%d",
+              l2cap_command_code_text(cmd_code).c_str(), id, cmd_len);
 
     /* Bad L2CAP packet length, look for cmd to reject */
     if (pkt_size_rej) {
