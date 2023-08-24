@@ -481,8 +481,11 @@ pub enum SocketActions {
     OnIncomingSocketClosed(CallbackId, SocketId, BtStatus),
     OnHandleIncomingConnection(CallbackId, SocketId, BluetoothSocket),
 
-    // Last event is for connecting socket.
+    // This event is for connecting socket.
     OnOutgoingConnectionResult(CallbackId, SocketId, BtStatus, Option<BluetoothSocket>),
+
+    // Request to disconnect all sockets, e.g. when user disconnects the peer device.
+    DisconnectAll(RawAddress),
 }
 
 /// Implementation of the `IBluetoothSocketManager` api.
@@ -1176,6 +1179,10 @@ impl BluetoothSocketManager {
                         .entry(cbid)
                         .and_modify(|v| v.retain(|s| s.socket_id != socket_id));
                 }
+            }
+
+            SocketActions::DisconnectAll(addr) => {
+                self.sock.as_ref().expect("Socket Manager not initialized").disconnect_all(addr);
             }
         }
     }
