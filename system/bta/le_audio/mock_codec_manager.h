@@ -31,14 +31,10 @@ class MockCodecManager {
   virtual ~MockCodecManager() = default;
 
   MOCK_METHOD((le_audio::types::CodecLocation), GetCodecLocation, (), (const));
-  MOCK_METHOD((void), UpdateActiveSourceAudioConfig,
-              (const le_audio::stream_configuration& stream_conf,
-               uint16_t delay,
-               std::function<void(const ::le_audio::offload_config& config)>
-                   update_receiver));
-  MOCK_METHOD((void), UpdateActiveSinkAudioConfig,
-              (const le_audio::stream_configuration& stream_conf,
-               uint16_t delay,
+  MOCK_METHOD((void), UpdateActiveAudioConfig,
+              (const le_audio::types::BidirectionalPair<
+                   le_audio::stream_parameters>& stream_params,
+               le_audio::types::BidirectionalPair<uint16_t> delays_ms,
                std::function<void(const ::le_audio::offload_config& config)>
                    update_receiver));
   MOCK_METHOD((le_audio::set_configurations::AudioSetConfigurations*),
@@ -51,6 +47,12 @@ class MockCodecManager {
       (const std::vector<uint16_t>& conn_handle,
        std::function<void(const ::le_audio::broadcast_offload_config& config)>
            update_receiver));
+  MOCK_METHOD((void), UpdateCisConfiguration,
+              (const std::vector<struct le_audio::types::cis>& cises,
+               const le_audio::stream_parameters& stream_params,
+               uint8_t direction),
+              (const));
+  MOCK_METHOD((void), ClearCisConfiguration, (uint8_t direction));
 
   MOCK_METHOD((void), Start, ());
   MOCK_METHOD((void), Stop, ());

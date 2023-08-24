@@ -165,9 +165,11 @@ class MockLeAudioGroupStateMachineCallbacks
               (int group_id, bluetooth::le_audio::GroupStreamStatus status),
               (override));
   MOCK_METHOD((void), OnStateTransitionTimeout, (int group_id), (override));
+  MOCK_METHOD((void), OnUpdatedCisConfiguration,
+              (int group_id, uint8_t direction), (override));
 };
 
-class StateMachineTest : public Test {
+class StateMachineTestBase : public Test {
  protected:
   uint8_t ase_id_last_assigned = types::ase::kAseIdInvalid;
   uint8_t additional_snk_ases = 0;
@@ -181,7 +183,7 @@ class StateMachineTest : public Test {
   uint8_t overwrite_cis_status_idx_;
   std::vector<uint8_t> cis_status_;
 
-  void SetUp() override {
+  virtual void SetUp() override {
     bluetooth::common::InitFlags::Load(test_flags);
     reset_mock_function_count_map();
     controller::SetMockControllerInterface(&mock_controller_);
@@ -194,7 +196,6 @@ class StateMachineTest : public Test {
     do_not_send_cis_establish_event_ = false;
     cis_status_.clear();
 
-    ::le_audio::AudioSetConfigurationProvider::Initialize();
     LeAudioGroupStateMachine::Initialize(&mock_callbacks_);
 
     ContentControlIdKeeper::GetInstance()->Start();
@@ -243,7 +244,6 @@ class StateMachineTest : public Test {
         }));
 
     ConfigureIsoManagerMock();
-    ConfigCodecManagerMock();
   }
 
   void HandleCtpOperation(LeAudioDevice* device, std::vector<uint8_t> value,
@@ -455,7 +455,7 @@ class StateMachineTest : public Test {
         });
   }
 
-  void ConfigCodecManagerMock() {
+  void ConfigCodecManagerMock(types::CodecLocation location) {
     codec_manager_ = le_audio::CodecManager::GetInstance();
     ASSERT_NE(codec_manager_, nullptr);
     std::vector<bluetooth::le_audio::btle_audio_codec_config_t>
@@ -464,7 +464,7 @@ class StateMachineTest : public Test {
     mock_codec_manager_ = MockCodecManager::GetInstance();
     ASSERT_NE(mock_codec_manager_, nullptr);
     ON_CALL(*mock_codec_manager_, GetCodecLocation())
-        .WillByDefault(Return(types::CodecLocation::HOST));
+        .WillByDefault(Return(location));
   }
 
   void TearDown() override {
@@ -1292,6 +1292,24 @@ class StateMachineTest : public Test {
   std::map<uint8_t, std::unique_ptr<LeAudioDeviceGroup>>
       le_audio_device_groups_;
   bool group_create_command_disallowed_ = false;
+};
+
+class StateMachineTest : public StateMachineTestBase {
+  void SetUp() override {
+    ConfigCodecManagerMock(types::CodecLocation::HOST);
+    ::le_audio::AudioSetConfigurationProvider::Initialize(
+        ::le_audio::types::CodecLocation::HOST);
+    StateMachineTestBase::SetUp();
+  }
+};
+
+class StateMachineTestAdsp : public StateMachineTestBase {
+  void SetUp() override {
+    ConfigCodecManagerMock(types::CodecLocation::ADSP);
+    ::le_audio::AudioSetConfigurationProvider::Initialize(
+        ::le_audio::types::CodecLocation::ADSP);
+    StateMachineTestBase::SetUp();
+  }
 };
 
 TEST_F(StateMachineTest, testInit) {
@@ -3440,9 +3458,7 @@ TEST_F(StateMachineTest, testConfigureDataPathForHost) {
   /* Can be called for every context when fetching the configuration from the
    * AudioSetConfigurationProvider.
    */
-  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation())
-      .Times(AtLeast(1))
-      .WillRepeatedly(Return(types::CodecLocation::HOST));
+  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation()).Times(AtLeast(1));
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
@@ -3468,7 +3484,8 @@ TEST_F(StateMachineTest, testConfigureDataPathForHost) {
       {.sink = types::AudioContexts(context_type),
        .source = types::AudioContexts(context_type)}));
 }
-TEST_F(StateMachineTest, testConfigureDataPathForAdsp) {
+
+TEST_F(StateMachineTestAdsp, testConfigureDataPathForAdsp) {
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
   channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
@@ -3477,9 +3494,7 @@ TEST_F(StateMachineTest, testConfigureDataPathForAdsp) {
   /* Can be called for every context when fetching the configuration from the
    * AudioSetConfigurationProvider.
    */
-  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation())
-      .Times(AtLeast(1))
-      .WillRepeatedly(Return(types::CodecLocation::ADSP));
+  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation()).Times(AtLeast(1));
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
@@ -3507,7 +3522,7 @@ TEST_F(StateMachineTest, testConfigureDataPathForAdsp) {
        .source = types::AudioContexts(context_type)}));
 }
 
-TEST_F(StateMachineTest, testStreamConfigurationAdspDownMix) {
+TEST_F(StateMachineTestAdsp, testStreamConfigurationAdspDownMix) {
   const auto context_type = kContextTypeConversational;
   const int leaudio_group_id = 4;
   const int num_devices = 2;
@@ -3517,12 +3532,19 @@ TEST_F(StateMachineTest, testStreamConfigurationAdspDownMix) {
       leaudio_group_id, context_type, num_devices,
       types::AudioContexts(kContextTypeConversational));
 
-  /* Can be called for every context when fetching the configuration from the
-   * AudioSetConfigurationProvider.
+  EXPECT_CALL(mock_callbacks_,
+              OnUpdatedCisConfiguration(group->group_id_,
+                                        le_audio::types::kLeAudioDirectionSink))
+      .Times(1);
+  EXPECT_CALL(mock_callbacks_,
+              OnUpdatedCisConfiguration(
+                  group->group_id_, le_audio::types::kLeAudioDirectionSource))
+      .Times(1);
+
+  /* Can be called for every context when fetching the configuration from
+   * the AudioSetConfigurationProvider.
    */
-  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation())
-      .Times(AtLeast(1))
-      .WillRepeatedly(Return(types::CodecLocation::ADSP));
+  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation()).Times(AtLeast(1));
 
   PrepareConfigureCodecHandler(group);
   PrepareConfigureQosHandler(group);
@@ -3540,48 +3562,11 @@ TEST_F(StateMachineTest, testStreamConfigurationAdspDownMix) {
       {.sink = types::AudioContexts(context_type),
        .source = types::AudioContexts(context_type)}));
 
-  ASSERT_EQ(
-      static_cast<int>(
-          group->stream_conf.sink_offloader_streams_target_allocation.size()),
-      2);
-  ASSERT_EQ(
-      static_cast<int>(
-          group->stream_conf.source_offloader_streams_target_allocation.size()),
-      2);
-
   // Check if group has transitioned to a proper state
   ASSERT_EQ(group->GetState(),
             types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
 
-  uint32_t allocation = 0;
-  for (const auto& s :
-       group->stream_conf.sink_offloader_streams_target_allocation) {
-    allocation |= s.audio_channel_allocation;
-    ASSERT_FALSE(allocation == 0);
-  }
-  ASSERT_TRUE(allocation == codec_spec_conf::kLeAudioLocationStereo);
-
-  allocation = 0;
-  for (const auto& s :
-       group->stream_conf.source_offloader_streams_target_allocation) {
-    allocation |= s.audio_channel_allocation;
-    ASSERT_FALSE(allocation == 0);
-  }
-  ASSERT_TRUE(allocation == codec_spec_conf::kLeAudioLocationStereo);
-
-  for (const auto& s :
-       group->stream_conf.sink_offloader_streams_target_allocation) {
-    ASSERT_TRUE((s.audio_channel_allocation != 0) &&
-                (s.audio_channel_allocation !=
-                 codec_spec_conf::kLeAudioLocationStereo));
-  }
-
-  for (const auto& s :
-       group->stream_conf.source_offloader_streams_target_allocation) {
-    ASSERT_TRUE((s.audio_channel_allocation != 0) &&
-                (s.audio_channel_allocation !=
-                 codec_spec_conf::kLeAudioLocationStereo));
-  }
+  // Note: The actual channel mixing is verified by the CodecManager unit tests.
 }
 
 static void InjectCisDisconnected(LeAudioDeviceGroup* group,
@@ -5315,8 +5300,8 @@ TEST_F(StateMachineTest, testAclDropWithoutApriorCisDisconnection) {
   testing::Mock::VerifyAndClearExpectations(&mock_iso_manager_);
 
   /* Separate CIS  for dual CIS device is treated as sink device */
-  ASSERT_EQ(group->stream_conf.sink_num_of_devices, 2);
-  ASSERT_EQ(group->stream_conf.sink_num_of_channels, 2);
+  ASSERT_EQ(group->stream_conf.stream_params.sink.num_of_devices, 2);
+  ASSERT_EQ(group->stream_conf.stream_params.sink.num_of_channels, 2);
 
   // Inject CIS and ACL disconnection of first device
   InjectAclDisconnected(group, firstDevice);
@@ -5324,8 +5309,8 @@ TEST_F(StateMachineTest, testAclDropWithoutApriorCisDisconnection) {
   InjectCisDisconnected(group, lastDevice, HCI_ERR_CONN_CAUSE_LOCAL_HOST);
   InjectAclDisconnected(group, lastDevice);
 
-  ASSERT_EQ(group->stream_conf.sink_num_of_devices, 0);
-  ASSERT_EQ(group->stream_conf.sink_num_of_channels, 0);
+  ASSERT_EQ(group->stream_conf.stream_params.sink.num_of_devices, 0);
+  ASSERT_EQ(group->stream_conf.stream_params.sink.num_of_channels, 0);
 }
 
 }  // namespace internal

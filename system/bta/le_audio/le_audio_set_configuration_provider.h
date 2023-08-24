@@ -27,7 +27,7 @@ class AudioSetConfigurationProvider {
   AudioSetConfigurationProvider();
   virtual ~AudioSetConfigurationProvider() = default;
   static AudioSetConfigurationProvider* Get();
-  static void Initialize();
+  static void Initialize(types::CodecLocation location);
   static void DebugDump(int fd);
   static void Cleanup();
   virtual const set_configurations::AudioSetConfigurations* GetConfigurations(
