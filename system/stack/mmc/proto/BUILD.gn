@@ -24,3 +24,13 @@ proto_library("mmc_config_proto") {
   ]
   standalone=true
 }
+
+proto_library("mmc_service_proto") {
+  proto_in_dir = "./"
+  proto_out_dir = "include/mmc/proto"
+  sources = [
+    "${proto_in_dir}/mmc_service.proto",
+  ]
+  deps = [ ":mmc_config_proto" ]
+  standalone=true
+}
