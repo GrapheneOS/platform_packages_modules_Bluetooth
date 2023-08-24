@@ -785,8 +785,10 @@ uint8_t SDP_GetNumDiRecords(const tSDP_DISCOVERY_DB* p_db) {
  *
  ******************************************************************************/
 static void SDP_AttrStringCopy(char* dst, const tSDP_DISC_ATTR* p_attr,
-                               uint16_t dst_size) {
-  if (dst == NULL) return;
+                               uint16_t dst_size,
+                               uint8_t expected_desc_type) {
+  if (dst == NULL || SDP_DISC_ATTR_LEN(p_attr->attr_len_type) != expected_desc_type)
+    return;
   if (p_attr) {
     uint16_t len = SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
     if (len > dst_size - 1) {
@@ -836,55 +838,67 @@ uint16_t SDP_GetDiRecord(uint8_t get_record_index,
     /* ClientExecutableURL is optional */
     p_curr_attr = SDP_FindAttributeInRec(p_curr_record, ATTR_ID_CLIENT_EXE_URL);
     SDP_AttrStringCopy(p_device_info->rec.client_executable_url, p_curr_attr,
-                       SDP_MAX_ATTR_LEN);
+                       SDP_MAX_ATTR_LEN, URL_DESC_TYPE);
 
     /* Service Description is optional */
     p_curr_attr =
         SDP_FindAttributeInRec(p_curr_record, ATTR_ID_SERVICE_DESCRIPTION);
     SDP_AttrStringCopy(p_device_info->rec.service_description, p_curr_attr,
-                       SDP_MAX_ATTR_LEN);
+                       SDP_MAX_ATTR_LEN, TEXT_STR_DESC_TYPE);
 
     /* DocumentationURL is optional */
     p_curr_attr =
         SDP_FindAttributeInRec(p_curr_record, ATTR_ID_DOCUMENTATION_URL);
     SDP_AttrStringCopy(p_device_info->rec.documentation_url, p_curr_attr,
-                       SDP_MAX_ATTR_LEN);
+                       SDP_MAX_ATTR_LEN, URL_DESC_TYPE);
 
     p_curr_attr =
         SDP_FindAttributeInRec(p_curr_record, ATTR_ID_SPECIFICATION_ID);
-    if (p_curr_attr)
+    if (p_curr_attr &&
+        SDP_DISC_ATTR_TYPE(p_curr_attr->attr_len_type) == UINT_DESC_TYPE &&
+        SDP_DISC_ATTR_LEN(p_curr_attr->attr_len_type) >= 2)
       p_device_info->spec_id = p_curr_attr->attr_value.v.u16;
     else
       result = SDP_ERR_ATTR_NOT_PRESENT;
 
     p_curr_attr = SDP_FindAttributeInRec(p_curr_record, ATTR_ID_VENDOR_ID);
-    if (p_curr_attr)
+    if (p_curr_attr &&
+        SDP_DISC_ATTR_TYPE(p_curr_attr->attr_len_type) == UINT_DESC_TYPE &&
+        SDP_DISC_ATTR_LEN(p_curr_attr->attr_len_type) >= 2)
       p_device_info->rec.vendor = p_curr_attr->attr_value.v.u16;
     else
       result = SDP_ERR_ATTR_NOT_PRESENT;
 
     p_curr_attr =
         SDP_FindAttributeInRec(p_curr_record, ATTR_ID_VENDOR_ID_SOURCE);
-    if (p_curr_attr)
+    if (p_curr_attr &&
+        SDP_DISC_ATTR_TYPE(p_curr_attr->attr_len_type) == UINT_DESC_TYPE &&
+        SDP_DISC_ATTR_LEN(p_curr_attr->attr_len_type) >= 2)
       p_device_info->rec.vendor_id_source = p_curr_attr->attr_value.v.u16;
     else
       result = SDP_ERR_ATTR_NOT_PRESENT;
 
     p_curr_attr = SDP_FindAttributeInRec(p_curr_record, ATTR_ID_PRODUCT_ID);
-    if (p_curr_attr)
+    if (p_curr_attr &&
+        SDP_DISC_ATTR_TYPE(p_curr_attr->attr_len_type) == UINT_DESC_TYPE &&
+        SDP_DISC_ATTR_LEN(p_curr_attr->attr_len_type) >= 2)
       p_device_info->rec.product = p_curr_attr->attr_value.v.u16;
     else
       result = SDP_ERR_ATTR_NOT_PRESENT;
 
     p_curr_attr =
         SDP_FindAttributeInRec(p_curr_record, ATTR_ID_PRODUCT_VERSION);
-    if (p_curr_attr)
+    if (p_curr_attr &&
+        SDP_DISC_ATTR_TYPE(p_curr_attr->attr_len_type) == UINT_DESC_TYPE &&
+        SDP_DISC_ATTR_LEN(p_curr_attr->attr_len_type) >= 2)
       p_device_info->rec.version = p_curr_attr->attr_value.v.u16;
     else
       result = SDP_ERR_ATTR_NOT_PRESENT;
 
     p_curr_attr = SDP_FindAttributeInRec(p_curr_record, ATTR_ID_PRIMARY_RECORD);
-    if (p_curr_attr)
+    if (p_curr_attr &&
+        SDP_DISC_ATTR_TYPE(p_curr_attr->attr_len_type) == BOOLEAN_DESC_TYPE &&
+        SDP_DISC_ATTR_LEN(p_curr_attr->attr_len_type) >= 1)
       p_device_info->rec.primary_record = (bool)p_curr_attr->attr_value.v.u8;
     else
       result = SDP_ERR_ATTR_NOT_PRESENT;
