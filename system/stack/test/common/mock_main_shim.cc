@@ -44,10 +44,6 @@ bool bluetooth::shim::is_gd_stack_started_up() {
   inc_func_call_count(__func__);
   return false;
 }
-bool bluetooth::shim::is_gd_link_policy_enabled() {
-  inc_func_call_count(__func__);
-  return false;
-}
 future_t* GeneralShutDown() {
   inc_func_call_count(__func__);
   return nullptr;

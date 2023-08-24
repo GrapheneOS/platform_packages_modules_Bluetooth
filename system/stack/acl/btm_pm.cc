@@ -122,12 +122,6 @@ static tBTM_STATUS btm_pm_snd_md_req(uint16_t handle, uint8_t pm_id,
  ******************************************************************************/
 tBTM_STATUS BTM_PmRegister(uint8_t mask, uint8_t* p_pm_id,
                            tBTM_PM_STATUS_CBACK* p_cb) {
-  if (bluetooth::shim::is_gd_link_policy_enabled()) {
-    ASSERT(p_pm_id != nullptr);
-    ASSERT(p_cb != nullptr);
-    return BTM_NO_RESOURCES;
-  }
-
   /* de-register */
   if (mask & BTM_PM_DEREG) {
     if (*p_pm_id >= BTM_MAX_PM_RECORDS) return BTM_ILLEGAL_VALUE;
