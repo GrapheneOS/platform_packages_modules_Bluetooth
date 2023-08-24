@@ -598,14 +598,9 @@ uint16_t L2CA_ConnectLECocReq(uint16_t psm, const RawAddress& p_bd_addr,
       L2CAP_TRACE_DEBUG("%s LE Link is up", __func__);
       // post this asynchronously to avoid out-of-order callback invocation
       // should this operation fail
-      if (bluetooth::common::init_flags::
-              asynchronously_start_l2cap_coc_is_enabled()) {
-        do_in_main_thread(
-            FROM_HERE, base::BindOnce(&l2c_csm_execute, base::Unretained(p_ccb),
-                                      L2CEVT_L2CA_CONNECT_REQ, nullptr));
-      } else {
-        l2c_csm_execute(p_ccb, L2CEVT_L2CA_CONNECT_REQ, NULL);
-      }
+      do_in_main_thread(
+          FROM_HERE, base::BindOnce(&l2c_csm_execute, base::Unretained(p_ccb),
+                                    L2CEVT_L2CA_CONNECT_REQ, nullptr));
     }
   }
 
@@ -892,7 +887,7 @@ std::vector<uint16_t> L2CA_ConnectCreditBasedReq(uint16_t psm,
  *  Description      Start reconfigure procedure on Connection Oriented Channel.
  *
  *  Parameters:      Vector of channels for which configuration should be
- *changed New local channel configuration
+ *                   changed to new local channel configuration
  *
  *  Return value:    true if peer is connected
  *
