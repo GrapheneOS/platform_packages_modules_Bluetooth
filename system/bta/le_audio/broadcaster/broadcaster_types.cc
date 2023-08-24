@@ -22,7 +22,6 @@
 #include "bt_types.h"
 #include "bta_le_audio_broadcaster_api.h"
 #include "btm_ble_api_types.h"
-#include "embdrv/lc3/include/lc3.h"
 #include "internal_include/stack_config.h"
 #include "osi/include/properties.h"
 
@@ -374,10 +373,8 @@ types::LeAudioLtvMap BroadcastCodecWrapper::GetSubgroupCodecSpecData() const {
   };
 
   if (codec_id.coding_format == kLeAudioCodecIdLc3.coding_format) {
-    uint16_t bc =
-        lc3_frame_bytes(source_codec_config.data_interval_us, codec_bitrate);
     codec_spec_ltvs[codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame] =
-        UINT16_TO_VEC_UINT8(bc);
+        UINT16_TO_VEC_UINT8(codec_frame_len);
   }
 
   if (source_codec_config.num_channels == 1) {
