@@ -2008,6 +2008,9 @@ public class HeadsetService extends ProfileService {
             }
         }
         mActiveDeviceManager.hfpConnectionStateChanged(device, fromState, toState);
+        mAdapterService
+                .getSilenceDeviceManager()
+                .hfpConnectionStateChanged(device, fromState, toState);
     }
 
     /**
@@ -2133,10 +2136,16 @@ public class HeadsetService extends ProfileService {
 
     private void broadcastActiveDevice(BluetoothDevice device) {
         logD("broadcastActiveDevice: " + device);
+
         mAdapterService.getActiveDeviceManager().hfpActiveStateChanged(device);
-        BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_ACTIVE_DEVICE_CHANGED,
-                BluetoothProfile.HEADSET, mAdapterService.obfuscateAddress(device),
+        mAdapterService.getSilenceDeviceManager().hfpActiveDeviceChanged(device);
+
+        BluetoothStatsLog.write(
+                BluetoothStatsLog.BLUETOOTH_ACTIVE_DEVICE_CHANGED,
+                BluetoothProfile.HEADSET,
+                mAdapterService.obfuscateAddress(device),
                 mAdapterService.getMetricId(device));
+
         Intent intent = new Intent(BluetoothHeadset.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
