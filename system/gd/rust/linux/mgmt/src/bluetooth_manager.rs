@@ -60,6 +60,14 @@ impl BluetoothManager {
     pub(crate) fn callback_disconnected(&mut self, id: u32) {
         self.callbacks.remove(&id);
     }
+
+    pub(crate) fn restart_available_adapters(&mut self) {
+        self.get_available_adapters()
+            .into_iter()
+            .filter(|adapter| adapter.enabled)
+            .map(|adapter| VirtualHciIndex(adapter.hci_interface))
+            .for_each(|virt_hci| self.proxy.restart_bluetooth(virt_hci));
+    }
 }
 
 impl IBluetoothManager for BluetoothManager {
@@ -182,10 +190,13 @@ impl IBluetoothExperimental for BluetoothManager {
             return;
         }
 
+        info!("Set floss ll privacy to {}", enabled);
         if let Err(e) = config_util::write_floss_ll_privacy_enabled(enabled) {
             error!("Failed to write ll privacy status: {}", e);
             return;
         }
+
+        self.restart_available_adapters();
     }
 
     fn set_devcoredump(&mut self, enabled: bool) -> bool {
