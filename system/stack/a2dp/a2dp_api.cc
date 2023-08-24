@@ -122,7 +122,7 @@ static void a2dp_sdp_cback(UNUSED_ATTR const RawAddress& bd_addr,
       if ((p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
                p_rec, ATTR_ID_SUPPORTED_FEATURES)) != NULL) {
         if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-            SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 2) {
+            SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
           a2dp_svc.features = p_attr->attr_value.v.u16;
         } else {
           LOG_ERROR("ATTR_ID_SUPPORTED_FEATURES attr type not STR!!");

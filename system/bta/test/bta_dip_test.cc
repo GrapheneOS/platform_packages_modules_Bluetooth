@@ -181,6 +181,7 @@ TEST_F(BtaDipTest, test_invalid_size_checks) {
   g_attr_vendor_product_version.attr_len_type = (UINT_DESC_TYPE<<12)|1;
   g_attr_vendor_product_version.attr_value.v.u16 = 0x0100;
 
+  // size greater than 1 is accepted
   g_attr_vendor_product_primary_record.attr_len_type = (BOOLEAN_DESC_TYPE<<12)|2;
   g_attr_vendor_product_primary_record.attr_value.v.u8 = 1;
 
@@ -191,7 +192,7 @@ TEST_F(BtaDipTest, test_invalid_size_checks) {
   ASSERT_EQ(record.dip.vendor_id_source, 0);
   ASSERT_EQ(record.dip.product, 0);
   ASSERT_EQ(record.dip.version, 0);
-  ASSERT_EQ(record.dip.primary_record, false);
+  ASSERT_EQ(record.dip.primary_record, true);
 }
 
 
