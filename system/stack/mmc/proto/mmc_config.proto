@@ -23,7 +23,7 @@ option optimize_for = LITE_RUNTIME;
 // union of Lc3 config and codec parameters
 message Lc3Param {
   // encoder/decoder config
-  int32 dt_hz = 1;
+  int32 dt_us = 1;
   int32 sr_hz = 2;
   int32 sr_pcm_hz = 3;
 
