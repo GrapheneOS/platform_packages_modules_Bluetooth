@@ -436,13 +436,13 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      */
     @Retention(RetentionPolicy.SOURCE)
     @IntDef(
-            flag = true,
-            value = {
-                    TYPE_BINAURAL,
-                    TYPE_MONAURAL,
-                    TYPE_BANDED,
-                    TYPE_RFU,
-            })
+        flag = true,
+        value = {
+            TYPE_BINAURAL,
+            TYPE_MONAURAL,
+            TYPE_BANDED,
+            TYPE_RFU,
+    })
     @interface HearingAidType {}
 
     /**
@@ -484,14 +484,14 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      */
     @Retention(RetentionPolicy.SOURCE)
     @IntDef(
-            flag = true,
-            value = {
-                    FEATURE_HEARING_AID_TYPE_MASK,
-                    FEATURE_SYNCHRONIZATED_PRESETS_MASK,
-                    FEATURE_INDEPENDENT_PRESETS_MASK,
-                    FEATURE_DYNAMIC_PRESETS_MASK,
-                    FEATURE_WRITABLE_PRESETS_MASK,
-            })
+        flag = true,
+        value = {
+            FEATURE_HEARING_AID_TYPE_MASK,
+            FEATURE_SYNCHRONIZATED_PRESETS_MASK,
+            FEATURE_INDEPENDENT_PRESETS_MASK,
+            FEATURE_DYNAMIC_PRESETS_MASK,
+            FEATURE_WRITABLE_PRESETS_MASK,
+    })
     @interface FeatureMask {}
 
     private final BluetoothAdapter mAdapter;

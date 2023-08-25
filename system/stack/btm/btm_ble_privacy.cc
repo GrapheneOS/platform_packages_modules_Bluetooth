@@ -277,7 +277,7 @@ void btm_ble_add_resolving_list_entry_complete(uint8_t* p, uint16_t evt_len) {
   uint8_t status;
 
   if (evt_len < 1) {
-    BTM_TRACE_ERROR("malformatted event packet: containing zero bytes");
+    BTM_TRACE_ERROR("malformatted event packet: containing zero byte");
     return;
   }
 

@@ -26,6 +26,7 @@ from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.gd_sl4a.lib.bt_constants import ble_address_types
 from blueberry.tests.sl4a_sl4a.lib import sl4a_sl4a_base_test
 from blueberry.tests.sl4a_sl4a.lib.security import Security
+from mobly import test_runner
 
 
 class LeScanningTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
@@ -89,3 +90,7 @@ class LeScanningTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
         # Teardown advertiser and scanner
         self.dut_scanner_.stop_scanning()
         self.cert_advertiser_.stop_advertising()
+
+
+if __name__ == '__main__':
+    test_runner.main()

@@ -132,7 +132,7 @@ bool IsTargetedAnnouncement(const uint8_t* p_eir, uint16_t eir_len) {
     uint8_t announcement_type;
     const uint8_t* p_tmp = p_service_data;
 
-    if (service_data_len < 1) {
+    if (service_data_len < 3) {
       continue;
     }
 

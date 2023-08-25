@@ -50,7 +50,6 @@ cc_defaults {
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "android.system.suspend-V1-ndk",
-        "libPlatformProperties",
         "libbinder",
         "libbinder_ndk",
         "libcrypto",
@@ -59,6 +58,7 @@ cc_defaults {
         "liblog",
         "libstatssocket",
         "libutils",
+        "libPlatformProperties",
     ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
