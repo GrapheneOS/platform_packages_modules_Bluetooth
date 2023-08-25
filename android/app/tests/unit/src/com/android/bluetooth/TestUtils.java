@@ -369,6 +369,7 @@ public class TestUtils {
                 }
                 if (line.startsWith("[")) {
                     if (line.charAt(line.length() - 1) != ']') {
+                        Log.e(TAG, "readAdapterConfig: config line is not correct: " + line);
                         return null;
                     }
                     section = line.substring(1, line.length() - 1);
@@ -380,6 +381,7 @@ public class TestUtils {
                 }
             }
         } catch (IOException e) {
+            Log.e(TAG, "readAdapterConfig: Exception while reading the config" + e);
             return null;
         }
         return adapterConfig;
