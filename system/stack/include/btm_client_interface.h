@@ -125,8 +125,6 @@ struct btm_client_interface_t {
                              uint8_t pin_length);
     bool (*BTM_SecAddRmtNameNotifyCallback)(tBTM_RMT_NAME_CALLBACK* p_callback);
     bool (*BTM_SecDeleteDevice)(const RawAddress& bd_addr);
-    bool (*BTM_SecDeleteRmtNameNotifyCallbac)(
-        tBTM_RMT_NAME_CALLBACK* p_callback);
     bool (*BTM_SecRegister)(const tBTM_APPL_INFO* p_cb_info);
     const char* (*BTM_SecReadDevName)(const RawAddress& bd_addr);
     tBTM_STATUS (*BTM_SecBond)(const RawAddress& bd_addr,
