@@ -396,27 +396,41 @@ const Octet16& BTM_GetDeviceDHK();
  *
  * Function         BTM_ReadConnectionAddr
  *
- * Description      Read the local device random address.
+ * Description      Read the local device address.
  *
+ *                  pseudo_addr - pseudo address used by the stack
+ *                  conn_addr   - returned addresss
+ *                  p_addr_type - returned address type
+ *                  ota_address - if set to true, function will provide RPA address
+ *                                if it was used during connection. e.g. It should
+ *                                be set to true by SMP module.
  * Returns          void
  *
  ******************************************************************************/
-void BTM_ReadConnectionAddr(const RawAddress& remote_bda,
+void BTM_ReadConnectionAddr(const RawAddress& pseudo_addr,
                             RawAddress& local_conn_addr,
-                            tBLE_ADDR_TYPE* p_addr_type);
+                            tBLE_ADDR_TYPE* p_addr_type,
+                            bool ota_address = false);
 
 /*******************************************************************************
  *
  * Function         BTM_ReadRemoteConnectionAddr
  *
- * Description      Read the remote device address currently used.
+ * Description      Read the remote device address.
+ *                  pseudo_addr - pseudo address used by the stack
+ *                  conn_addr   - returned addresss
+ *                  p_addr_type - returned address type
+ *                  ota_address - if set to true, function will provide RPA address
+ *                                if it was used during connection. It should be set
+ *                                to true by SMP module.
  *
- * Returns          void
+ * Returns          true if remote address found, false otherwise.
  *
  ******************************************************************************/
 bool BTM_ReadRemoteConnectionAddr(const RawAddress& pseudo_addr,
                                   RawAddress& conn_addr,
-                                  tBLE_ADDR_TYPE* p_addr_type);
+                                  tBLE_ADDR_TYPE* p_addr_type,
+                                  bool ota_address = false);
 
 /*******************************************************************************
  *
