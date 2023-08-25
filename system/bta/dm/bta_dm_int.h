@@ -267,6 +267,10 @@ struct tBTA_DM_PEER_DEVICE {
   tBTA_DM_DEV_INFO Info() const { return info; }
   void reset_device_info() { info = BTA_DM_DI_NONE; }
 
+  void set_av_active() { info |= BTA_DM_DI_AV_ACTIVE; }
+  void reset_av_active() { info &= ~BTA_DM_DI_AV_ACTIVE; }
+  bool is_av_active() const { return info & BTA_DM_DI_AV_ACTIVE; }
+
   tBTA_DM_ENCRYPT_CBACK* p_encrypt_cback;
   tBTM_PM_STATUS prev_low; /* previous low power mode used */
   tBTA_DM_PM_ACTION pm_mode_attempted;
