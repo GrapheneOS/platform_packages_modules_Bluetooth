@@ -55,7 +55,7 @@ static void bta_create_mns_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_MAP_SUPPORTED_FEATURES);
   if (p_attr != NULL) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 4) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 4) {
       record->mns.supported_features = p_attr->attr_value.v.u32;
     } else {
       LOG_ERROR("ATTR_ID_MAP_SUPPORTED_FEATURES attr type or size wrong!!");
@@ -92,7 +92,7 @@ static void bta_create_mns_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_GOEP_L2CAP_PSM);
   if (p_attr != NULL) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 2) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
       record->mns.hdr.l2cap_psm = p_attr->attr_value.v.u16;
     } else {
       LOG_ERROR("ATTR_ID_GOEP_L2CAP_PSM attr type or len wrong!!");
@@ -122,7 +122,7 @@ static void bta_create_mas_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_MAS_INSTANCE_ID);
   if (p_attr != NULL) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 1) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 1) {
       record->mas.mas_instance_id = p_attr->attr_value.v.u8;
     } else {
       LOG_ERROR("ATTR_ID_MAS_INSTANCE_ID attr type or len wrong!!");
@@ -135,7 +135,7 @@ static void bta_create_mas_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_SUPPORTED_MSG_TYPE);
   if (p_attr != NULL) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 1) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 1) {
       record->mas.supported_message_types = p_attr->attr_value.v.u8;
     } else {
       LOG_ERROR("ATTR_ID_SUPPORTED_MSG_TYPE attr type or len wrong!!");
@@ -148,7 +148,7 @@ static void bta_create_mas_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_MAP_SUPPORTED_FEATURES);
   if (p_attr != NULL) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 4) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 4) {
       record->mas.supported_features = p_attr->attr_value.v.u32;
     } else {
       LOG_ERROR("ATTR_ID_MAP_SUPPORTED_FEATURES attr type or len wrong!!");
@@ -185,7 +185,7 @@ static void bta_create_mas_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_GOEP_L2CAP_PSM);
   if (p_attr != NULL) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 2) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
       record->mas.hdr.l2cap_psm = p_attr->attr_value.v.u16;
     } else {
       LOG_ERROR("ATTR_ID_GOEP_L2CAP_PSM attr type or len wrong!!");
@@ -214,7 +214,7 @@ static void bta_create_pse_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_SUPPORTED_REPOSITORIES);
   if (p_attr != NULL) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 1) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 1) {
       record->pse.supported_repositories = p_attr->attr_value.v.u8;
     } else {
       LOG_ERROR("ATTR_ID_SUPPORTED_REPOSITORIES attr type or len wrong!!");
@@ -226,7 +226,7 @@ static void bta_create_pse_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_PBAP_SUPPORTED_FEATURES);
   if (p_attr != NULL) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 4) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 4) {
       record->pse.supported_features = p_attr->attr_value.v.u32;
     } else {
       LOG_ERROR("ATTR_ID_PBAP_SUPPORTED_FEATURES attr type or len wrong!!");
@@ -264,7 +264,7 @@ static void bta_create_pse_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_GOEP_L2CAP_PSM);
   if (p_attr != NULL) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 2) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
       record->pse.hdr.l2cap_psm = p_attr->attr_value.v.u16;
     } else {
       LOG_ERROR("ATTR_ID_GOEP_L2CAP_PSM attr type or len wrong!!");
@@ -316,7 +316,7 @@ static void bta_create_ops_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_GOEP_L2CAP_PSM);
   if (p_attr != NULL) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 2) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
       record->ops.hdr.l2cap_psm = p_attr->attr_value.v.u16;
     } else {
       LOG_ERROR("ATTR_ID_GOEP_L2CAP_PSM attr type or len wrong!!");
@@ -345,7 +345,7 @@ static void bta_create_ops_sdp_record(bluetooth_sdp_record* record,
       for (p_sattr = p_attr->attr_value.v.p_sub_attr; p_sattr != NULL;
            p_sattr = p_sattr->p_next_attr) {
         if ((SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UINT_DESC_TYPE) &&
-            (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) == 1)) {
+            (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) >= 1)) {
           if (count == sizeof(record->ops.supported_formats_list)) {
             APPL_TRACE_ERROR(
                 "%s() - supported_formats_list - count overflow - "
@@ -433,7 +433,7 @@ static void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_SPECIFICATION_ID);
   if (p_attr != nullptr) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 2) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
       record->dip.spec_id = p_attr->attr_value.v.u16;
     } else {
       LOG_ERROR("ATTR_ID_SPECIFICATION_ID attr type or len wrong!!");
@@ -446,7 +446,7 @@ static void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_VENDOR_ID);
   if (p_attr != nullptr) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 2) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
       record->dip.vendor = p_attr->attr_value.v.u16;
     } else {
       LOG_ERROR("ATTR_ID_VENDOR_ID attr type or len wrong!!");
@@ -459,7 +459,7 @@ static void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_VENDOR_ID_SOURCE);
   if (p_attr != nullptr) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 2) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
       record->dip.vendor_id_source = p_attr->attr_value.v.u16;
     } else {
       LOG_ERROR("ATTR_ID_VENDOR_ID_SOURCE attr type or len wrong!!");
@@ -472,7 +472,7 @@ static void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_PRODUCT_ID);
   if (p_attr != nullptr) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 2) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
       record->dip.product = p_attr->attr_value.v.u16;
     } else {
       LOG_ERROR("ATTR_ID_PRODUCT_ID attr type or len wrong!!");
@@ -485,7 +485,7 @@ static void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_PRODUCT_VERSION);
   if (p_attr != nullptr) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 2) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
       record->dip.version = p_attr->attr_value.v.u16;
     } else {
       LOG_ERROR("ATTR_ID_PRODUCT_VERSION attr type or len wrong!!");
@@ -498,7 +498,7 @@ static void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
       p_rec, ATTR_ID_PRIMARY_RECORD);
   if (p_attr != nullptr) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == BOOLEAN_DESC_TYPE &&
-        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) == 1) {
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 1) {
       record->dip.primary_record = !(!p_attr->attr_value.v.u8);
     } else {
       LOG_ERROR("ATTR_ID_PRIMARY_RECORD attr type or len wrong!!");
