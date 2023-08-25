@@ -86,6 +86,7 @@ pub enum Message {
     // Actions within the stack
     Media(MediaActions),
     MediaCallbackDisconnected(u32),
+    TelephonyCallbackDisconnected(u32),
 
     // Client callback disconnections
     AdapterCallbackDisconnected(u32),
@@ -151,6 +152,7 @@ pub enum Message {
 
     // UHid callbacks
     UHidHfpOutputCallback(String, u8, u8),
+    UHidTelephonyUseCallback(String, bool),
 }
 
 /// Represents suspend mode of a module.
@@ -272,6 +274,10 @@ impl Stack {
 
                 Message::MediaCallbackDisconnected(cb_id) => {
                     bluetooth_media.lock().unwrap().remove_callback(cb_id);
+                }
+
+                Message::TelephonyCallbackDisconnected(cb_id) => {
+                    bluetooth_media.lock().unwrap().remove_telephony_callback(cb_id);
                 }
 
                 Message::AdapterCallbackDisconnected(id) => {
@@ -434,6 +440,13 @@ impl Stack {
                         .lock()
                         .unwrap()
                         .dispatch_uhid_hfp_output_callback(addr, id, data);
+                }
+
+                Message::UHidTelephonyUseCallback(addr, state) => {
+                    bluetooth_media
+                        .lock()
+                        .unwrap()
+                        .dispatch_uhid_telephony_use_callback(addr, state);
                 }
             }
         }

@@ -191,6 +191,12 @@ pub trait IBluetoothMediaCallback: RPCProxy {
 }
 
 pub trait IBluetoothTelephony {
+    ///
+    fn register_telephony_callback(
+        &mut self,
+        callback: Box<dyn IBluetoothTelephonyCallback + Send>,
+    ) -> bool;
+
     /// Sets whether the device is connected to the cellular network.
     fn set_network_available(&mut self, network_available: bool);
     /// Sets whether the device is roaming.
@@ -227,6 +233,10 @@ pub trait IBluetoothTelephony {
     fn audio_connect(&mut self, address: String) -> bool;
     /// Stops the audio connection to <address>.
     fn audio_disconnect(&mut self, address: String);
+}
+
+pub trait IBluetoothTelephonyCallback: RPCProxy {
+    fn on_telephony_use(&mut self, addr: String, state: bool);
 }
 
 /// Serializable device used in.
@@ -278,6 +288,7 @@ pub struct BluetoothMedia {
     battery_provider_id: u32,
     initialized: bool,
     callbacks: Arc<Mutex<Callbacks<dyn IBluetoothMediaCallback + Send>>>,
+    telephony_callbacks: Arc<Mutex<Callbacks<dyn IBluetoothTelephonyCallback + Send>>>,
     tx: Sender<Message>,
     adapter: Option<Arc<Mutex<Box<Bluetooth>>>>,
     a2dp: Option<A2dp>,
@@ -326,6 +337,10 @@ impl BluetoothMedia {
             callbacks: Arc::new(Mutex::new(Callbacks::new(
                 tx.clone(),
                 Message::MediaCallbackDisconnected,
+            ))),
+            telephony_callbacks: Arc::new(Mutex::new(Callbacks::new(
+                tx.clone(),
+                Message::TelephonyCallbackDisconnected,
             ))),
             tx,
             adapter: None,
@@ -1082,6 +1097,10 @@ impl BluetoothMedia {
         self.callbacks.lock().unwrap().remove_callback(id)
     }
 
+    pub fn remove_telephony_callback(&mut self, id: u32) -> bool {
+        self.telephony_callbacks.lock().unwrap().remove_callback(id)
+    }
+
     fn uhid_create(&mut self, addr: RawAddress) {
         debug!(
             "[{}]: UHID create: PhoneOpsEnabled {}",
@@ -1111,8 +1130,20 @@ impl BluetoothMedia {
                     self.adapter_get_remote_name(addr),
                     move |m| {
                         match m {
-                            OutputEvent::Close => debug!("UHID: Close"),
-                            OutputEvent::Open => debug!("UHID: Open"),
+                            OutputEvent::Close => {
+                                txl.blocking_send(Message::UHidTelephonyUseCallback(
+                                    remote_addr.clone(),
+                                    false,
+                                ))
+                                .unwrap();
+                            }
+                            OutputEvent::Open => {
+                                txl.blocking_send(Message::UHidTelephonyUseCallback(
+                                    remote_addr.clone(),
+                                    true,
+                                ))
+                                .unwrap();
+                            }
                             OutputEvent::Output { data } => {
                                 txl.blocking_send(Message::UHidHfpOutputCallback(
                                     remote_addr.clone(),
@@ -1223,6 +1254,21 @@ impl BluetoothMedia {
                 self.uhid_send_input_report(&addr);
             }
         }
+    }
+
+    pub fn dispatch_uhid_telephony_use_callback(&mut self, address: String, state: bool) {
+        let addr = match RawAddress::from_string(address.clone()) {
+            None => {
+                warn!("UHID: Invalid device address for dispatch_uhid_telephony_use_callback");
+                return;
+            }
+            Some(addr) => addr,
+        };
+
+        debug!("[{}]: UHID: Telephony use: {}", DisplayAddress(&addr), state);
+        self.telephony_callbacks.lock().unwrap().for_all_callbacks(|callback| {
+            callback.on_telephony_use(address.to_string(), state);
+        });
     }
 
     fn set_hfp_mic_volume(&mut self, volume: u8, addr: RawAddress) {
@@ -2720,6 +2766,14 @@ impl IBluetoothMedia for BluetoothMedia {
 }
 
 impl IBluetoothTelephony for BluetoothMedia {
+    fn register_telephony_callback(
+        &mut self,
+        callback: Box<dyn IBluetoothTelephonyCallback + Send>,
+    ) -> bool {
+        let _id = self.telephony_callbacks.lock().unwrap().add_callback(callback);
+        true
+    }
+
     fn set_network_available(&mut self, network_available: bool) {
         if self.telephony_device_status.network_available == network_available {
             return;

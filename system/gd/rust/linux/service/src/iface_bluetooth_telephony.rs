@@ -1,10 +1,24 @@
-use btstack::bluetooth_media::IBluetoothTelephony;
+use btstack::bluetooth_media::{IBluetoothTelephony, IBluetoothTelephonyCallback};
+use btstack::RPCProxy;
 
-use dbus_macros::{dbus_method, generate_dbus_exporter};
+use dbus::Path;
+
+use dbus_macros::{dbus_method, dbus_proxy_obj, generate_dbus_exporter};
 
 use dbus_projection::dbus_generated;
 
 use crate::dbus_arg::DBusArg;
+
+#[allow(dead_code)]
+struct BluetoothTelephonyCallbackDBus {}
+
+#[dbus_proxy_obj(BluetoothTelephonyCallback, "org.chromium.bluetooth.BluetoothTelephonyCallback")]
+impl IBluetoothTelephonyCallback for BluetoothTelephonyCallbackDBus {
+    #[dbus_method("OnTelephonyUse")]
+    fn on_telephony_use(&mut self, addr: String, state: bool) {
+        dbus_generated!()
+    }
+}
 
 #[allow(dead_code)]
 struct IBluetoothTelephonyDBus {}
@@ -14,6 +28,14 @@ struct IBluetoothTelephonyDBus {}
     "org.chromium.bluetooth.BluetoothTelephony"
 )]
 impl IBluetoothTelephony for IBluetoothTelephonyDBus {
+    #[dbus_method("RegisterTelephonyCallback")]
+    fn register_telephony_callback(
+        &mut self,
+        callback: Box<dyn IBluetoothTelephonyCallback + Send>,
+    ) -> bool {
+        dbus_generated!()
+    }
+
     #[dbus_method("SetNetworkAvailable")]
     fn set_network_available(&mut self, network_available: bool) {
         dbus_generated!()
