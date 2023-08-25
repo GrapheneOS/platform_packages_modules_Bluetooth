@@ -107,13 +107,29 @@ void bluetooth::shim::ACL_IgnoreAllLeConnections() {
   return Stack::GetInstance()->GetAcl()->ClearFilterAcceptList();
 }
 
-void bluetooth::shim::ACL_ReadConnectionAddress(const RawAddress& pseudo_addr,
+void bluetooth::shim::ACL_ReadConnectionAddress(uint16_t handle,
                                                 RawAddress& conn_addr,
-                                                tBLE_ADDR_TYPE* p_addr_type) {
+                                                tBLE_ADDR_TYPE* p_addr_type,
+                                                bool ota_address) {
   auto local_address =
-      Stack::GetInstance()->GetAcl()->GetConnectionLocalAddress(pseudo_addr);
+      Stack::GetInstance()->GetAcl()->GetConnectionLocalAddress(handle,
+                                                                ota_address);
+
   conn_addr = ToRawAddress(local_address.GetAddress());
   *p_addr_type = static_cast<tBLE_ADDR_TYPE>(local_address.GetAddressType());
+}
+
+void bluetooth::shim::ACL_ReadPeerConnectionAddress(uint16_t handle,
+                                                    RawAddress& conn_addr,
+                                                    tBLE_ADDR_TYPE* p_addr_type,
+                                                    bool ota_address) {
+  auto remote_ota_address =
+      Stack::GetInstance()->GetAcl()->GetConnectionPeerAddress(handle,
+                                                               ota_address);
+
+  conn_addr = ToRawAddress(remote_ota_address.GetAddress());
+  *p_addr_type =
+      static_cast<tBLE_ADDR_TYPE>(remote_ota_address.GetAddressType());
 }
 
 std::optional<uint8_t> bluetooth::shim::ACL_GetAdvertisingSetConnectedTo(
