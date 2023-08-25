@@ -2378,7 +2378,7 @@ bool acl_peer_supports_ble_connection_subrating_host(
  *
  * Function         BTM_ReadConnectionAddr
  *
- * Description      This function is called to get the local device address
+ * Description      This function is called to get the local LE device address
  *                  information.
  *
  * Returns          void
@@ -2386,16 +2386,22 @@ bool acl_peer_supports_ble_connection_subrating_host(
  ******************************************************************************/
 void BTM_ReadConnectionAddr(const RawAddress& remote_bda,
                             RawAddress& local_conn_addr,
-                            tBLE_ADDR_TYPE* p_addr_type) {
+                            tBLE_ADDR_TYPE* p_addr_type, bool ota_address) {
   if (bluetooth::shim::is_gd_l2cap_enabled()) {
     bluetooth::shim::L2CA_ReadConnectionAddr(remote_bda, local_conn_addr,
                                              p_addr_type);
     return;
-  } else {
-    bluetooth::shim::ACL_ReadConnectionAddress(remote_bda, local_conn_addr,
-                                               p_addr_type);
+  }
+
+  tBTM_SEC_DEV_REC* p_sec_rec = btm_find_dev(remote_bda);
+  if (p_sec_rec == nullptr) {
+    LOG_WARN("No matching known device %s in record",
+             ADDRESS_TO_LOGGABLE_CSTR(remote_bda));
     return;
   }
+
+  bluetooth::shim::ACL_ReadConnectionAddress(
+      p_sec_rec->ble_hci_handle, local_conn_addr, p_addr_type, ota_address);
 }
 
 /*******************************************************************************
@@ -2477,35 +2483,38 @@ bool acl_is_switch_role_idle(const RawAddress& bd_addr,
  *
  * Function       BTM_ReadRemoteConnectionAddr
  *
- * Description    This function is read the remote device address currently used
+ * Description    This function is read the LE remote device address used in
+ *                connection establishment
  *
  * Parameters     pseudo_addr: pseudo random address available
  *                conn_addr:connection address used
  *                p_addr_type : BD Address type, Public or Random of the address
  *                              used
+ *                ota_address: When use if remote used RPA in OTA it will be
+ *returned.
  *
  * Returns        bool, true if connection to remote device exists, else false
  *
  ******************************************************************************/
 bool BTM_ReadRemoteConnectionAddr(const RawAddress& pseudo_addr,
                                   RawAddress& conn_addr,
-                                  tBLE_ADDR_TYPE* p_addr_type) {
+                                  tBLE_ADDR_TYPE* p_addr_type,
+                                  bool ota_address) {
   if (bluetooth::shim::is_gd_l2cap_enabled()) {
     return bluetooth::shim::L2CA_ReadRemoteConnectionAddr(
         pseudo_addr, conn_addr, p_addr_type);
   }
 
-  bool st = true;
-  tACL_CONN* p_acl = internal_.btm_bda_to_acl(pseudo_addr, BT_TRANSPORT_LE);
-
-  if (p_acl == NULL) {
-    LOG_WARN("Unable to find active acl");
+  tBTM_SEC_DEV_REC* p_sec_rec = btm_find_dev(pseudo_addr);
+  if (p_sec_rec == nullptr) {
+    LOG_WARN("No matching known device %s in record",
+             ADDRESS_TO_LOGGABLE_CSTR(pseudo_addr));
     return false;
   }
 
-  conn_addr = p_acl->active_remote_addr;
-  *p_addr_type = p_acl->active_remote_addr_type;
-  return st;
+  bluetooth::shim::ACL_ReadPeerConnectionAddress(
+      p_sec_rec->ble_hci_handle, conn_addr, p_addr_type, ota_address);
+  return true;
 }
 
 uint8_t acl_link_role_from_handle(uint16_t handle) {
