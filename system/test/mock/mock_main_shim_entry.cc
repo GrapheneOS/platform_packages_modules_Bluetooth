@@ -52,9 +52,6 @@ class Dumpsys;
 namespace shim {
 
 Dumpsys* GetDumpsys() { return nullptr; }
-activity_attribution::ActivityAttribution* GetActivityAttribution() {
-  return nullptr;
-}
 hci::AclManager* GetAclManager() { return hci::testing::mock_acl_manager_; }
 hci::Controller* GetController() { return hci::testing::mock_controller_; }
 hci::HciLayer* GetHciLayer() { return hci::testing::mock_hci_layer_; }

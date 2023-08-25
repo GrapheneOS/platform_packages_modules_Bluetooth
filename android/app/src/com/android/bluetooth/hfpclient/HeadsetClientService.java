@@ -143,9 +143,6 @@ public class HeadsetClientService extends ProfileService {
             mSmThread.start();
 
             setHeadsetClientService(this);
-            AdapterService.getAdapterService().notifyActivityAttributionInfo(
-                    getAttributionSource(),
-                    AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
             return true;
         }
     }
@@ -160,9 +157,6 @@ public class HeadsetClientService extends ProfileService {
                 }
 
                 // Stop the HfpClientConnectionService.
-                AdapterService.getAdapterService().notifyActivityAttributionInfo(
-                        getAttributionSource(),
-                        AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
                 Intent stopIntent = new Intent(this, HfpClientConnectionService.class);
                 sHeadsetClientService.stopService(stopIntent);
             }

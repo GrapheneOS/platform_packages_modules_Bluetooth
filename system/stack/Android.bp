@@ -1359,7 +1359,6 @@ cc_test {
         "BluetoothGeneratedPackets_h",
     ],
     srcs: crypto_toolbox_srcs + [
-        ":BluetoothBtaaSources_host",
         ":BluetoothHalSources_hci_host",
         ":BluetoothOsSources_host",
         ":OsiCompatSources",

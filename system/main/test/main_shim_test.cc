@@ -25,7 +25,6 @@
 #include <map>
 #include <optional>
 
-#include "btaa/activity_attribution.h"
 #include "btif/include/btif_hh.h"
 #include "device/include/controller.h"
 #include "hal/hci_hal.h"
@@ -44,7 +43,6 @@
 #include "hci/le_advertising_manager_mock.h"
 #include "hci/le_scanning_manager_mock.h"
 #include "include/hardware/ble_scanner.h"
-#include "include/hardware/bt_activity_attribution.h"
 #include "main/shim/acl.h"
 #include "main/shim/acl_legacy_interface.h"
 #include "main/shim/ble_scanner_interface_impl.h"
@@ -350,15 +348,6 @@ extern os::Handler* mock_handler_;
 
 }  // namespace testing
 }  // namespace shim
-
-namespace activity_attribution {
-ActivityAttributionInterface* get_activity_attribution_instance() {
-  return nullptr;
-}
-
-const ModuleFactory ActivityAttribution::Factory =
-    ModuleFactory([]() { return nullptr; });
-}  // namespace activity_attribution
 
 namespace hal {
 const ModuleFactory HciHal::Factory = ModuleFactory([]() { return nullptr; });

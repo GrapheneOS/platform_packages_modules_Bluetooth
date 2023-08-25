@@ -362,7 +362,6 @@ init_flags!(
         asha_phy_update_retry_limit: i32 = 5,
         always_send_services_if_gatt_disc_done = true,
         always_use_private_gatt_for_debugging,
-        btaa_hci = true,
         bta_dm_clear_conn_id_on_client_close = true,
         btm_dm_flush_discovery_queue_on_search_cancel,
         bta_dm_stop_discovery_on_search_cancel,
@@ -467,10 +466,10 @@ mod tests {
     fn simple_flag() {
         let _guard = ASYNC_LOCK.lock().unwrap();
         test_load(vec![
-            "INIT_btaa_hci=false", //override a default flag
+            "INIT_private_gatt=false", //override a default flag
             "INIT_gatt_robust_caching_server=true",
         ]);
-        assert!(!btaa_hci_is_enabled());
+        assert!(!private_gatt_is_enabled());
         assert!(gatt_robust_caching_server_is_enabled());
     }
     #[test]
@@ -479,10 +478,10 @@ mod tests {
         test_load(vec![
             "foo=bar=?",                                // vec length
             "foo=bar",                                  // flag not save
-            "INIT_btaa_hci=not_false",                  // parse error but has default value
+            "INIT_private_gatt=not_false",              // parse error but has default value
             "INIT_gatt_robust_caching_server=not_true", // parse error
         ]);
-        assert!(btaa_hci_is_enabled());
+        assert!(private_gatt_is_enabled());
         assert!(!gatt_robust_caching_server_is_enabled());
     }
     #[test]
@@ -528,8 +527,8 @@ mod tests {
     #[test]
     fn test_runtime_update() {
         let _guard = ASYNC_LOCK.lock().unwrap();
-        test_load(vec!["INIT_btaa_hci=true", "INIT_default_log_level_str=LOG_WARN"]);
-        assert!(btaa_hci_is_enabled());
+        test_load(vec!["INIT_private_gatt=true", "INIT_default_log_level_str=LOG_WARN"]);
+        assert!(private_gatt_is_enabled());
         assert!(get_default_log_level() == LOG_TAG_WARN);
 
         update_default_log_level(LOG_TAG_DEBUG);
