@@ -1009,7 +1009,6 @@ void bta_dm_pm_btm_status(const RawAddress& bd_addr, tBTM_PM_STATUS status,
     return;
   }
 
-  tBTA_DM_DEV_INFO info = p_dev->Info();
   /* check new mode */
   switch (status) {
     case BTM_PM_STS_ACTIVE:
@@ -1071,6 +1070,7 @@ void bta_dm_pm_btm_status(const RawAddress& bd_addr, tBTM_PM_STATUS status,
          */
         bta_dm_pm_stop_timer(bd_addr);
       } else {
+        tBTA_DM_DEV_INFO info = p_dev->Info();
         p_dev->info &=
             ~(BTA_DM_DI_SET_SNIFF | BTA_DM_DI_INT_SNIFF | BTA_DM_DI_ACP_SNIFF);
         if (info & BTA_DM_DI_SET_SNIFF)
