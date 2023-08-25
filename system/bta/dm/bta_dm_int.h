@@ -274,6 +274,10 @@ struct tBTA_DM_PEER_DEVICE {
   // NOTE: Why is this not used as a bitmask
   void set_both_device_ssr_capable() { info = BTA_DM_DI_USE_SSR; }
 
+  void reset_sniff_flags() {
+    info &= ~(BTA_DM_DI_INT_SNIFF | BTA_DM_DI_ACP_SNIFF | BTA_DM_DI_SET_SNIFF);
+  }
+
   tBTA_DM_ENCRYPT_CBACK* p_encrypt_cback;
   tBTM_PM_STATUS prev_low; /* previous low power mode used */
   tBTA_DM_PM_ACTION pm_mode_attempted;
