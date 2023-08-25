@@ -5818,6 +5818,39 @@ TEST_F(UnicastTest, EarbudsWithStereoSinkMonoSourceSupporting32kHz) {
   SyncOnMainLoop();
 }
 
+TEST_F(UnicastTest, TwoEarbudsWithSourceSupporting32kHz) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  int group_id = 0;
+  SetSampleDatabaseEarbudsValid(
+      1, test_address0, codec_spec_conf::kLeAudioLocationStereo,
+      codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
+      default_channel_cnt, 0x0024,
+      /* source sample freq 32/16khz */ true, /*add_csis*/
+      true,                                   /*add_cas*/
+      true,                                   /*add_pacs*/
+      default_ase_cnt /*add_ascs_cnt*/);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(1);
+  ConnectLeAudio(test_address0);
+
+  // LeAudioCodecConfiguration received_af_sink_config;
+  const LeAudioCodecConfiguration expected_af_sink_config = {
+      .num_channels = 2,
+      .sample_rate = bluetooth::audio::le_audio::kSampleRate32000,
+      .bits_per_sample = bluetooth::audio::le_audio::kBitsPerSample16,
+      .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us,
+  };
+
+  // Audio sessions are started only when device gets active
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
+  EXPECT_CALL(*mock_le_audio_sink_hal_client_,
+              Start(expected_af_sink_config, _))
+      .Times(1);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
+}
+
 TEST_F(UnicastTest, MicrophoneAttachToCurrentMediaScenario) {
   const RawAddress test_address0 = GetTestAddress(0);
   int group_id = bluetooth::groups::kGroupUnknown;
