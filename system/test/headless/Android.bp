@@ -64,9 +64,6 @@ cc_binary {
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/stack/include",
     ],
-    whole_static_libs: [
-        "libbtcore",
-    ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
         "android.system.suspend.control-V1-ndk",
@@ -91,6 +88,7 @@ cc_binary {
         "libbt-stack-core",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
+        "libbtcore",
         "libbtdevice",
         "libbte",
         "libbtif",
