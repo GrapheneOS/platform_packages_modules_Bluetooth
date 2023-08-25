@@ -259,10 +259,13 @@ struct tBTA_DM_PEER_DEVICE {
   friend void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
                               uint8_t app_id, const RawAddress& peer_addr);
   friend void handle_remote_features_complete(const RawAddress& bd_addr);
-  tBTA_DM_DEV_INFO info;
+
+  // Dynamic pieces of operational device information
+  tBTA_DM_DEV_INFO info{BTA_DM_DI_NONE};
 
  public:
   tBTA_DM_DEV_INFO Info() const { return info; }
+  void reset_device_info() { info = BTA_DM_DI_NONE; }
 
   tBTA_DM_ENCRYPT_CBACK* p_encrypt_cback;
   tBTM_PM_STATUS prev_low; /* previous low power mode used */
