@@ -566,7 +566,8 @@ static void bta_av_api_register(tBTA_AV_DATA* p_data) {
           if (btif_av_src_sink_coexist_enabled()) {
             bta_ar_reg_avrc_for_src_sink_coexist(
                 UUID_SERVCLASS_AV_REM_CTRL_TARGET, "AV Remote Control Target",
-                NULL, p_bta_av_cfg->avrc_tg_cat, BTA_ID_AV + local_role,
+                NULL, p_bta_av_cfg->avrc_tg_cat,
+                static_cast<tBTA_SYS_ID>(BTA_ID_AV + local_role),
                 (bta_av_cb.features & BTA_AV_FEAT_BROWSE), profile_version);
           } else {
             bta_ar_reg_avrc(
