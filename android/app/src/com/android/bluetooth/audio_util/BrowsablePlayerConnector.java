@@ -157,12 +157,11 @@ public class BrowsablePlayerConnector {
                                 (int status, String mediaId, List<ListItem> results) -> {
                                     // Send the response as a message so that it is properly
                                     // synchronized
-                                    Message cb =
-                                            mHandler.obtainMessage(MSG_GET_FOLDER_ITEMS_CB);
+                                    Message cb = obtainMessage(MSG_GET_FOLDER_ITEMS_CB);
                                     cb.arg1 = status;
                                     cb.arg2 = results.size();
                                     cb.obj = wrapper;
-                                    mHandler.sendMessage(cb);
+                                    sendMessage(cb);
                                 });
                     } break;
 
