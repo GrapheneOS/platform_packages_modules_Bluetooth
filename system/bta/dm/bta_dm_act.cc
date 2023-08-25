@@ -2801,7 +2801,7 @@ void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport,
            bt_transport_text(transport).c_str(), acl_handle);
   device->conn_state = BTA_DM_CONNECTED;
   device->pref_role = BTA_ANY_ROLE;
-  device->info = BTA_DM_DI_NONE;
+  device->reset_device_info();
   device->transport = transport;
 
   if (controller_get_interface()->supports_sniff_subrating() &&
