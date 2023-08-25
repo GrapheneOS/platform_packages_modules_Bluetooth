@@ -57,21 +57,6 @@ struct btm_client_interface_t {
     bool (*BTM_FreeSCN)(uint8_t scn);
   } scn;
 
-  // Neighbor
-  struct {
-    void (*BTM_CancelInquiry)();
-    tBTM_INQ_INFO* (*BTM_InqDbNext)(tBTM_INQ_INFO* p_cur);
-    tBTM_STATUS (*BTM_ClearInqDb)(const RawAddress* p_bda);
-    tBTM_STATUS (*BTM_SetDiscoverability)(uint16_t inq_mode);
-    tBTM_STATUS (*BTM_SetConnectability)(uint16_t page_mode);
-    tBTM_STATUS (*BTM_StartInquiry)(tBTM_INQ_RESULTS_CB* p_results_cb,
-                                    tBTM_CMPL_CB* p_cmpl_cb);
-    uint16_t (*BTM_IsInquiryActive)(void);
-    tBTM_STATUS (*BTM_SetInquiryMode)(uint8_t mode);
-    void (*BTM_EnableInterlacedInquiryScan)();
-    void (*BTM_EnableInterlacedPageScan)();
-  } neighbor;
-
   // Acl peer and lifecycle
   struct {
     struct {

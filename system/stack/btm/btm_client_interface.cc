@@ -51,20 +51,6 @@ struct btm_client_interface_t btm_client_interface = {
             .BTM_FreeSCN = BTM_FreeSCN,
         },
 
-    .neighbor =
-        {
-            .BTM_CancelInquiry = BTM_CancelInquiry,
-            .BTM_ClearInqDb = BTM_ClearInqDb,
-            .BTM_InqDbNext = BTM_InqDbNext,
-            .BTM_SetConnectability = BTM_SetConnectability,
-            .BTM_SetDiscoverability = BTM_SetDiscoverability,
-            .BTM_StartInquiry = BTM_StartInquiry,
-            .BTM_IsInquiryActive = BTM_IsInquiryActive,
-            .BTM_SetInquiryMode = BTM_SetInquiryMode,
-            .BTM_EnableInterlacedInquiryScan = BTM_EnableInterlacedInquiryScan,
-            .BTM_EnableInterlacedPageScan = BTM_EnableInterlacedPageScan,
-        },
-
     // Acl peer and lifecycle
     .peer =
         {
