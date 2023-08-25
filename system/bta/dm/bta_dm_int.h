@@ -271,6 +271,9 @@ struct tBTA_DM_PEER_DEVICE {
   void reset_av_active() { info &= ~BTA_DM_DI_AV_ACTIVE; }
   bool is_av_active() const { return info & BTA_DM_DI_AV_ACTIVE; }
 
+  // NOTE: Why is this not used as a bitmask
+  void set_both_device_ssr_capable() { info = BTA_DM_DI_USE_SSR; }
+
   tBTA_DM_ENCRYPT_CBACK* p_encrypt_cback;
   tBTM_PM_STATUS prev_low; /* previous low power mode used */
   tBTA_DM_PM_ACTION pm_mode_attempted;

@@ -2753,7 +2753,7 @@ void handle_remote_features_complete(const RawAddress& bd_addr) {
       acl_peer_supports_sniff_subrating(bd_addr)) {
     LOG_DEBUG("Device supports sniff subrating peer:%s",
               ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
-    p_dev->info = BTA_DM_DI_USE_SSR;
+    p_dev->set_both_device_ssr_capable();
   } else {
     LOG_DEBUG("Device does NOT support sniff subrating peer:%s",
               ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
@@ -2810,7 +2810,7 @@ void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport,
     // data is when the BTA_dm_notify_remote_features_complete()
     // callback has completed.  The below assignment is kept for
     // transitional informational purposes only.
-    device->info = BTA_DM_DI_USE_SSR;
+    device->set_both_device_ssr_capable();
   }
 
   if (bta_dm_cb.p_sec_cback) {
