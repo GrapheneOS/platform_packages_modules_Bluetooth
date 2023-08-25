@@ -516,6 +516,7 @@ public class CsipSetCoordinatorStateMachine extends StateMachine {
     private void csipConnectionState(int newState, int prevState) {
         log("Connection state " + mDevice + ": " + profileStateToString(prevState) + "->"
                 + profileStateToString(newState));
+        mService.handleConnectionStateChanged(mDevice, prevState, newState);
 
         Intent intent =
                 new Intent(BluetoothCsipSetCoordinator.ACTION_CSIS_CONNECTION_STATE_CHANGED);
