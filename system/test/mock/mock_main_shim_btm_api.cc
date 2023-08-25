@@ -81,7 +81,7 @@ bool bluetooth::shim::BTM_ReadConnectedTransportAddress(
 }
 bool bluetooth::shim::BTM_ReadRemoteConnectionAddr(
     const RawAddress& pseudo_addr, RawAddress& conn_addr,
-    tBLE_ADDR_TYPE* p_addr_type) {
+    tBLE_ADDR_TYPE* p_addr_type, bool ota_address) {
   inc_func_call_count(__func__);
   return false;
 }
@@ -308,7 +308,8 @@ void bluetooth::shim::BTM_PINCodeReply(const RawAddress& bd_addr,
 }
 void bluetooth::shim::BTM_ReadConnectionAddr(const RawAddress& remote_bda,
                                              RawAddress& local_conn_addr,
-                                             tBLE_ADDR_TYPE* p_addr_type) {
+                                             tBLE_ADDR_TYPE* p_addr_type,
+                                             bool ota_address) {
   inc_func_call_count(__func__);
 }
 void bluetooth::shim::BTM_ReadDevInfo(const RawAddress& remote_bda,

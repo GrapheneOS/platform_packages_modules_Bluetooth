@@ -208,19 +208,34 @@ struct ACL_IgnoreLeConnectionFrom {
 extern struct ACL_IgnoreLeConnectionFrom ACL_IgnoreLeConnectionFrom;
 
 // Name: ACL_ReadConnectionAddress
-// Params: const RawAddress& pseudo_addr, RawAddress& conn_addr, tBLE_ADDR_TYPE*
+// Params: uint16_t handle, RawAddress& conn_addr, tBLE_ADDR_TYPE*, bool
 // p_addr_type Return: void
 struct ACL_ReadConnectionAddress {
-  std::function<void(const RawAddress& pseudo_addr, RawAddress& conn_addr,
-                     tBLE_ADDR_TYPE* p_addr_type)>
-      body{[](const RawAddress& pseudo_addr, RawAddress& conn_addr,
-              tBLE_ADDR_TYPE* p_addr_type) {}};
-  void operator()(const RawAddress& pseudo_addr, RawAddress& conn_addr,
-                  tBLE_ADDR_TYPE* p_addr_type) {
-    body(pseudo_addr, conn_addr, p_addr_type);
+  std::function<void(uint16_t handle, RawAddress& conn_addr,
+                     tBLE_ADDR_TYPE* p_addr_type, bool ota_address)>
+      body{[](uint16_t handle, RawAddress& conn_addr,
+              tBLE_ADDR_TYPE* p_addr_type, bool ota_address) {}};
+  void operator()(uint16_t handle, RawAddress& conn_addr,
+                  tBLE_ADDR_TYPE* p_addr_type, bool ota_address) {
+    body(handle, conn_addr, p_addr_type, ota_address);
   };
 };
 extern struct ACL_ReadConnectionAddress ACL_ReadConnectionAddress;
+
+// Name: ACL_ReadPeerConnectionAddress
+// Params: uint16_t handle, RawAddress& conn_addr, tBLE_ADDR_TYPE*, bool
+// p_addr_type Return: void
+struct ACL_ReadPeerConnectionAddress {
+  std::function<void(uint16_t handle, RawAddress& conn_addr,
+                     tBLE_ADDR_TYPE* p_addr_type, bool ota_address)>
+      body{[](uint16_t handle, RawAddress& conn_addr,
+              tBLE_ADDR_TYPE* p_addr_type, bool ota_address) {}};
+  void operator()(uint16_t handle, RawAddress& conn_addr,
+                  tBLE_ADDR_TYPE* p_addr_type, bool ota_address) {
+    body(handle, conn_addr, p_addr_type, ota_address);
+  };
+};
+extern struct ACL_ReadPeerConnectionAddress ACL_ReadPeerConnectionAddress;
 
 // Name: ACL_GetAdvertisingSetConnectedTo
 // Params: const RawAddress& addr
