@@ -118,6 +118,7 @@ namespace le_audio {
 class MockAudioHalClientEndpoint;
 MockAudioHalClientEndpoint* mock_audio_source_;
 bool is_audio_hal_acquired;
+void (*iso_active_callback)(bool);
 
 std::unique_ptr<LeAudioSourceAudioHalClient>
 LeAudioSourceAudioHalClient::AcquireBroadcast() {
@@ -218,6 +219,10 @@ class BroadcasterTest : public Test {
       is_audio_hal_acquired = false;
     });
 
+    EXPECT_CALL(*MockIsoManager::GetInstance(),
+                RegisterOnIsoTrafficActiveCallbacks)
+        .WillOnce(SaveArg<0>(&iso_active_callback));
+
     ASSERT_FALSE(LeAudioBroadcaster::IsLeAudioBroadcasterRunning());
     LeAudioBroadcaster::Initialize(&mock_broadcaster_callbacks_,
                                    base::Bind([]() -> bool { return true; }));
@@ -243,6 +248,9 @@ class BroadcasterTest : public Test {
     LeAudioBroadcaster::Cleanup();
     ASSERT_FALSE(LeAudioBroadcaster::IsLeAudioBroadcasterRunning());
 
+    ContentControlIdKeeper::GetInstance()->Stop();
+
+    iso_active_callback = nullptr;
     iso_manager_->Stop();
 
     controller::SetMockControllerInterface(nullptr);
@@ -251,10 +259,12 @@ class BroadcasterTest : public Test {
   uint32_t InstantiateBroadcast(
       std::vector<uint8_t> metadata = default_metadata,
       BroadcastCode code = default_code,
-      uint8_t num_of_groups = default_num_of_groups) {
+      uint8_t num_of_groups = default_num_of_groups, bool is_queued = false) {
     uint32_t broadcast_id = LeAudioBroadcaster::kInstanceIdUndefined;
-    EXPECT_CALL(mock_broadcaster_callbacks_, OnBroadcastCreated(_, true))
-        .WillOnce(SaveArg<0>(&broadcast_id));
+    if (!is_queued) {
+      EXPECT_CALL(mock_broadcaster_callbacks_, OnBroadcastCreated(_, true))
+          .WillOnce(SaveArg<0>(&broadcast_id));
+    }
 
     std::vector<uint8_t> quality_array;
     std::vector<std::vector<uint8_t>> metadata_array;
@@ -704,6 +714,43 @@ TEST_F(BroadcasterTest, StreamParamsMedia) {
   ASSERT_EQ(1u, ccid_list.size());
   ASSERT_EQ(media_ccid, ccid_list[0]);
   // Note: Num of bises at IsoManager level is verified by state machine tests
+}
+
+TEST_F(BroadcasterTest, QueuedBroadcast) {
+  uint32_t broadcast_id = LeAudioBroadcaster::kInstanceIdUndefined;
+
+  iso_active_callback(true);
+
+  EXPECT_CALL(mock_broadcaster_callbacks_, OnBroadcastCreated(_, true))
+      .WillOnce(SaveArg<0>(&broadcast_id));
+
+  /* Trigger broadcast create but due to active ISO, queue request */
+  InstantiateBroadcast(default_metadata, default_code, default_num_of_groups,
+                       true);
+
+  /* Notify about ISO being free, check if broadcast would be created */
+  iso_active_callback(false);
+  ASSERT_NE(broadcast_id, LeAudioBroadcaster::kInstanceIdUndefined);
+  ASSERT_EQ(broadcast_id,
+            MockBroadcastStateMachine::GetLastInstance()->GetBroadcastId());
+
+  auto& instance_config = MockBroadcastStateMachine::GetLastInstance()->cfg;
+  ASSERT_EQ(instance_config.broadcast_code, default_code);
+  for (auto& subgroup : instance_config.announcement.subgroup_configs) {
+    ASSERT_EQ(types::LeAudioLtvMap(subgroup.metadata).RawPacket(),
+              default_metadata);
+  }
+}
+
+TEST_F(BroadcasterTest, QueuedBroadcastBusyIso) {
+  iso_active_callback(true);
+
+  EXPECT_CALL(mock_broadcaster_callbacks_, OnBroadcastCreated(_, true))
+      .Times(0);
+
+  /* Trigger broadcast create but due to active ISO, queue request */
+  InstantiateBroadcast(default_metadata, default_code, default_num_of_groups,
+                       true);
 }
 
 }  // namespace le_audio
