@@ -43,7 +43,7 @@
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "types/raw_address.h"
 
-static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
+static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, const tBTA_SYS_ID id,
                             uint8_t app_id, const RawAddress& peer_addr);
 static void bta_dm_pm_set_mode(const RawAddress& peer_addr,
                                tBTA_DM_PM_ACTION pm_mode,
@@ -341,13 +341,13 @@ static void bta_dm_pm_stop_timer_by_index(tBTA_PM_TIMER* p_timer,
  * Returns          void
  *
  ******************************************************************************/
-static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
+static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, const tBTA_SYS_ID id,
                             uint8_t app_id, const RawAddress& peer_addr) {
   uint8_t i, j;
   tBTA_DM_PEER_DEVICE* p_dev;
   tBTA_DM_PM_REQ pm_req = BTA_DM_PM_NEW_REQ;
 
-  LOG_DEBUG("Power management callback status:%s[%hhu] id:%s[%d], app:%hhu",
+  LOG_DEBUG("Power management callback status:%s[%hhu] id:%s[%hhu], app:%hhu",
             bta_sys_conn_status_text(status).c_str(), status,
             BtaIdSysText(id).c_str(), id, app_id);
 
@@ -366,9 +366,9 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
     return;
   }
 
-  LOG_DEBUG("Stopped all timers for service to device:%s id:%hhu",
-            ADDRESS_TO_LOGGABLE_CSTR(peer_addr), id);
-  bta_dm_pm_stop_timer_by_srvc_id(peer_addr, id);
+  LOG_DEBUG("Stopped all timers for service to device:%s id:%s[%hhu]",
+            ADDRESS_TO_LOGGABLE_CSTR(peer_addr), BtaIdSysText(id).c_str(), id);
+  bta_dm_pm_stop_timer_by_srvc_id(peer_addr, static_cast<uint8_t>(id));
 
   p_dev = bta_dm_find_peer_device(peer_addr);
   if (p_dev) {

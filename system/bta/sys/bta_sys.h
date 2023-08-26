@@ -163,8 +163,9 @@ inline std::string bta_sys_conn_status_text(tBTA_SYS_CONN_STATUS status) {
 }
 
 /* conn callback for role / low power manager*/
-typedef void(tBTA_SYS_CONN_CBACK)(tBTA_SYS_CONN_STATUS status, uint8_t id,
-                                  uint8_t app_id, const RawAddress& peer_addr);
+typedef void(tBTA_SYS_CONN_CBACK)(tBTA_SYS_CONN_STATUS status,
+                                  const tBTA_SYS_ID id, uint8_t app_id,
+                                  const RawAddress& peer_addr);
 
 /* conn callback for role / low power manager*/
 typedef void(tBTA_SYS_SSR_CFG_CBACK)(uint8_t id, uint8_t app_id,
