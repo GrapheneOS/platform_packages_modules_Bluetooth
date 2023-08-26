@@ -179,7 +179,6 @@ public class AdapterServiceTest {
 
     private PackageManager mMockPackageManager;
     private MockContentResolver mMockContentResolver;
-    private HashMap<String, HashMap<String, String>> mAdapterConfig;
     private int mForegroundUserId;
     private TestLooper mLooper;
 
@@ -345,9 +344,6 @@ public class AdapterServiceTest {
         mLooper.dispatchAll();
 
         mAdapterService.registerRemoteCallback(mIBluetoothCallback);
-
-        mAdapterConfig = TestUtils.readAdapterConfig();
-        assertThat(mAdapterConfig).isNotNull();
     }
 
     @After
@@ -849,8 +845,11 @@ public class AdapterServiceTest {
     @Test
     @Ignore("b/296127545: This is a native test")
     public void testObfuscateBluetoothAddress_BluetoothDisabled() {
+        HashMap<String, HashMap<String, String>> adapterConfig = TestUtils.readAdapterConfig();
+        assertThat(adapterConfig).isNotNull();
+
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
-        byte[] metricsSalt = getMetricsSalt(mAdapterConfig);
+        byte[] metricsSalt = getMetricsSalt(adapterConfig);
         assertThat(metricsSalt).isNotNull();
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
         byte[] obfuscatedAddress = mAdapterService.obfuscateAddress(device);
@@ -866,10 +865,13 @@ public class AdapterServiceTest {
     @Test
     @Ignore("b/296127545: This is a native test")
     public void testObfuscateBluetoothAddress_BluetoothEnabled() {
+        HashMap<String, HashMap<String, String>> adapterConfig = TestUtils.readAdapterConfig();
+        assertThat(adapterConfig).isNotNull();
+
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
         doEnable(false);
         assertThat(mAdapterService.getState()).isEqualTo(STATE_ON);
-        byte[] metricsSalt = getMetricsSalt(mAdapterConfig);
+        byte[] metricsSalt = getMetricsSalt(adapterConfig);
         assertThat(metricsSalt).isNotNull();
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
         byte[] obfuscatedAddress = mAdapterService.obfuscateAddress(device);
@@ -882,8 +884,11 @@ public class AdapterServiceTest {
     @Test
     @Ignore("b/296127545: This is a native test")
     public void testObfuscateBluetoothAddress_PersistentBetweenToggle() {
+        HashMap<String, HashMap<String, String>> adapterConfig = TestUtils.readAdapterConfig();
+        assertThat(adapterConfig).isNotNull();
+
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
-        byte[] metricsSalt = getMetricsSalt(mAdapterConfig);
+        byte[] metricsSalt = getMetricsSalt(adapterConfig);
         assertThat(metricsSalt).isNotNull();
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
         byte[] obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
