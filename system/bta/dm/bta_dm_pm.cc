@@ -793,8 +793,7 @@ void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index) {
      * remote sniff params. This avoid sniff loop issue with
      * some agrresive headsets who use sniff latencies more than
      * DUT supported range of Sniff intervals.*/
-    if ((mode == BTM_PM_MD_SNIFF) &&
-        (p_peer_dev->Info() & BTA_DM_DI_ACP_SNIFF)) {
+    if ((mode == BTM_PM_MD_SNIFF) && (p_peer_dev->is_remote_init_sniff())) {
       LOG_DEBUG("Link already in sniff mode peer:%s",
                 ADDRESS_TO_LOGGABLE_CSTR(p_peer_dev->peer_bdaddr));
       return;
@@ -804,7 +803,7 @@ void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index) {
    * If sniff, but SSR is not used in this link, still issue the command */
   tBTM_PM_PWR_MD sniff_entry = get_sniff_entry(index);
   memcpy(&pwr_md, &sniff_entry, sizeof(tBTM_PM_PWR_MD));
-  if (p_peer_dev->Info() & BTA_DM_DI_INT_SNIFF) {
+  if (p_peer_dev->is_local_init_sniff()) {
     LOG_DEBUG("Trying to force power mode");
     pwr_md.mode |= BTM_PM_MD_FORCE;
   }
@@ -1069,9 +1068,9 @@ void bta_dm_pm_btm_status(const RawAddress& bd_addr, tBTM_PM_STATUS status,
         tBTA_DM_DEV_INFO info = p_dev->Info();
         p_dev->reset_sniff_flags();
         if (info & BTA_DM_DI_SET_SNIFF)
-          p_dev->info |= BTA_DM_DI_INT_SNIFF;
+          p_dev->set_local_init_sniff();
         else
-          p_dev->info |= BTA_DM_DI_ACP_SNIFF;
+          p_dev->set_remote_init_sniff();
       }
       break;
 
