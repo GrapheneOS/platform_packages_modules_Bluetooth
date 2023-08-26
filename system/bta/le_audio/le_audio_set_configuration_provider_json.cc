@@ -265,11 +265,11 @@ struct AudioSetConfigurationProviderJson {
     codec.config = types::LeAudioLc3Config({
         .sampling_frequency = sampling_frequency,
         .frame_duration = frame_duration,
+        .audio_channel_allocation = audio_channel_allocation,
         .octets_per_codec_frame = octets_per_codec_frame,
         .codec_frames_blocks_per_sdu = codec_frames_blocks_per_sdu,
         .channel_count =
             (uint8_t)std::bitset<32>(audio_channel_allocation).count(),
-        .audio_channel_allocation = audio_channel_allocation,
     });
     return codec;
   }

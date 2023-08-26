@@ -116,9 +116,9 @@ void BTA_PanSetRole(tBTA_PAN_ROLE role, const tBTA_PAN_ROLE_INFO user_info,
                     {
                         .event = BTA_PAN_API_SET_ROLE_EVT,
                     },
-                .role = role,
                 .user_name = {},
                 .nap_name = {},
+                .role = role,
             },
     };
     if (role & BTA_PAN_ROLE_PANU) {

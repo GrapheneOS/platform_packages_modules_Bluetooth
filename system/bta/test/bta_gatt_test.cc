@@ -121,9 +121,9 @@ class BtaGattTest : public ::testing::Test {
               .conn_id = 1,
               .handle = 2,
               .offset = 3,
+              .len = 4,  // length of value below
               .auth_req = GATT_AUTH_REQ_NONE,
               .value = {10, 11, 12, 13},
-              .len = 4,  // length of value above
           },
   };
 
@@ -133,10 +133,10 @@ class BtaGattTest : public ::testing::Test {
   tBTA_GATTC_DATA command_queue;
 
   tBTA_GATTC_CLCB client_channel_control_block = {
-      .p_q_cmd = &command_queue,
+      .bta_conn_id = 456,
       .p_rcb = &app_control_block,
       .p_srcb = &service_control_block,
-      .bta_conn_id = 456,
+      .p_q_cmd = &command_queue,
   };
 };
 
