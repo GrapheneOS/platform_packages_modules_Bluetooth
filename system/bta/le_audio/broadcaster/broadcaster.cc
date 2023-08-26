@@ -478,8 +478,8 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
       BroadcastStateMachineConfig msg = {
           .is_public = is_public,
-          .broadcast_name = broadcast_name,
           .broadcast_id = broadcast_id,
+          .broadcast_name = broadcast_name,
           .streaming_phy = GetStreamingPhy(),
           .codec_wrapper = codec_config,
           .qos_config = qos_config,
@@ -496,8 +496,8 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
           le_audio::broadcaster::getStreamConfigForContext(context_type);
       BroadcastStateMachineConfig msg = {
           .is_public = is_public,
-          .broadcast_name = broadcast_name,
           .broadcast_id = broadcast_id,
+          .broadcast_name = broadcast_name,
           .streaming_phy = GetStreamingPhy(),
           .codec_wrapper = codec_qos_pair.first,
           .qos_config = codec_qos_pair.second,

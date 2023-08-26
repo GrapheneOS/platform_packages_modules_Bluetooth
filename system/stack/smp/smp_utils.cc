@@ -1533,9 +1533,9 @@ void smp_save_secure_connections_long_term_key(tSMP_CB* p_cb) {
       .penc_key =
           {
               .ltk = p_cb->ltk,
+              .ediv = 0,
               .sec_level = p_cb->sec_level,
               .key_size = p_cb->loc_enc_size,
-              .ediv = 0,
           },
   };
   memset(ple_key.penc_key.rand, 0, BT_OCTET8_LEN);
