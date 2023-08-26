@@ -456,8 +456,8 @@ class UnicastTestNoInit : public Test {
     ASSERT_NE(peer_devices.count(conn_id), 0u);
 
     tBTA_GATTC_CLOSE event_data = {
-        .status = GATT_SUCCESS,
         .conn_id = conn_id,
+        .status = GATT_SUCCESS,
         .client_if = gatt_if,
         .remote_bda = peer_devices.at(conn_id)->addr,
         .reason = reason,
@@ -476,8 +476,8 @@ class UnicastTestNoInit : public Test {
   void InjectSearchCompleteEvent(uint16_t conn_id) {
     ASSERT_NE(conn_id, GATT_INVALID_CONN_ID);
     tBTA_GATTC_SEARCH_CMPL event_data = {
-        .status = GATT_SUCCESS,
         .conn_id = conn_id,
+        .status = GATT_SUCCESS,
     };
 
     do_in_main_thread(FROM_HERE,
