@@ -1613,8 +1613,8 @@ static uint8_t btm_set_conn_mode_adv_init_addr(
   if (evt_type == BTM_BLE_CONNECT_EVT) {
     CHECK(p_peer_addr_type != nullptr);
     const tBLE_BD_ADDR ble_bd_addr = {
-        .bda = p_peer_addr_ptr,
         .type = *p_peer_addr_type,
+        .bda = p_peer_addr_ptr,
     };
     LOG_DEBUG("Received BLE connect event %s", ADDRESS_TO_LOGGABLE_CSTR(ble_bd_addr));
 

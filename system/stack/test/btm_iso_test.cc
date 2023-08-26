@@ -345,8 +345,8 @@ class IsoManagerTest : public Test {
 
 const bluetooth::hci::iso_manager::cig_create_cmpl_evt
     IsoManagerTest::kDefaultCigParamsEvt = {
-        .cig_id = 128,
         .status = 0x00,
+        .cig_id = 128,
         .conn_handles = std::vector<uint16_t>({0x0EFF, 0x00FF}),
 };
 

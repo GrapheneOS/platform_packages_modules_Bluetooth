@@ -2230,9 +2230,9 @@ void bta_av_rc_disc_done_all(UNUSED_ATTR tBTA_AV_DATA* p_data) {
         tBTA_AV bta_av_data = {
             .rc_open =
                 {
-                    .peer_addr = p_scb->PeerAddress(),
                     .peer_ct_features = peer_ct_features,
                     .peer_tg_features = peer_tg_features,
+                    .peer_addr = p_scb->PeerAddress(),
                     .status = BTA_AV_FAIL_SDP,
                 },
         };
@@ -2260,9 +2260,9 @@ void bta_av_rc_disc_done_all(UNUSED_ATTR tBTA_AV_DATA* p_data) {
     }
 
     tBTA_AV bta_av_feat = {.rc_feat = {
+                               .rc_handle = rc_handle,
                                .peer_ct_features = peer_ct_features,
                                .peer_tg_features = peer_tg_features,
-                               .rc_handle = rc_handle,
                                .peer_addr = peer_addr,
                            }};
     (*p_cb->p_cback)(BTA_AV_RC_FEAT_EVT, &bta_av_feat);

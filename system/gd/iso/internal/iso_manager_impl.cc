@@ -131,9 +131,9 @@ void IsoManagerImpl::SetCigParametersComplete(
     std::vector<uint16_t> handles;
     while (cis_it != cis_configs.end()) {
       iso_connections_.push_back({
+          .connection_handle = *handle_it,
           .cig_id = cig_id,
           .cis_id = cis_it->cis_id_,
-          .connection_handle = *handle_it,
       });
 
       handles.push_back(*handle_it);
@@ -204,9 +204,9 @@ void IsoManagerImpl::SetCigParametersTestComplete(
     std::vector<uint16_t> handles;
     while (cis_it != cis_configs.end()) {
       iso_connections_.push_back({
+          .connection_handle = *handle_it,
           .cig_id = cig_id,
           .cis_id = cis_it->cis_id_,
-          .connection_handle = *handle_it,
       });
 
       handles.push_back(*handle_it);

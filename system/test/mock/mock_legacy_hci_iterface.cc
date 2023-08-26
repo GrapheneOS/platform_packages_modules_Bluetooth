@@ -54,8 +54,8 @@ void btsnd_hcic_switch_role(const RawAddress& bd_addr, uint8_t role) {
 
 bluetooth::legacy::hci::Interface interface_ = {
     .Disconnect = btsnd_hcic_disconnect,
-    .StartRoleSwitch = btsnd_hcic_switch_role,
     .ChangeConnectionPacketType = btsnd_hcic_change_conn_type,
+    .StartRoleSwitch = btsnd_hcic_switch_role,
 };
 
 const bluetooth::legacy::hci::Interface&
