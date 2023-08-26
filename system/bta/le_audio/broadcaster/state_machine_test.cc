@@ -319,8 +319,8 @@ class StateMachineTest : public Test {
     auto broadcast_id = broadcast_id_lsb++;
     pending_broadcasts_.push_back(BroadcastStateMachine::CreateInstance({
         .is_public = true,
-        .broadcast_name = test_broadcast_name,
         .broadcast_id = broadcast_id,
+        .broadcast_name = test_broadcast_name,
         // .streaming_phy = ,
         .codec_wrapper = codec_qos_pair.first,
         .qos_config = codec_qos_pair.second,

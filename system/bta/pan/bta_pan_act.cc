@@ -336,9 +336,9 @@ void bta_pan_set_role(tBTA_PAN_DATA* p_data) {
   tBTA_PAN bta_pan = {
       .set_role =
           {
-              .role = p_data->api_set_role.role,
               .status =
                   (status == PAN_SUCCESS) ? BTA_PAN_SUCCESS : BTA_PAN_FAIL,
+              .role = p_data->api_set_role.role,
           },
   };
 

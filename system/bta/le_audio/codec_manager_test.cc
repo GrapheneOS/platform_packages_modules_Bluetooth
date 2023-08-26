@@ -161,11 +161,11 @@ TEST_F(CodecManagerTestAdsp, testStreamConfigurationAdspDownMix) {
   types::BidirectionalPair<stream_parameters> stream_params{
       .sink =
           {
-              .audio_channel_allocation =
-                  codec_spec_conf::kLeAudioLocationFrontLeft,
               .sample_frequency_hz = 16000,
               .frame_duration_us = 10000,
               .octets_per_codec_frame = 40,
+              .audio_channel_allocation =
+                  codec_spec_conf::kLeAudioLocationFrontLeft,
               .codec_frames_blocks_per_sdu = 1,
               .num_of_channels = 1,
               .num_of_devices = 1,
@@ -178,11 +178,11 @@ TEST_F(CodecManagerTestAdsp, testStreamConfigurationAdspDownMix) {
           },
       .source =
           {
-              .audio_channel_allocation =
-                  codec_spec_conf::kLeAudioLocationFrontLeft,
               .sample_frequency_hz = 16000,
               .frame_duration_us = 10000,
               .octets_per_codec_frame = 40,
+              .audio_channel_allocation =
+                  codec_spec_conf::kLeAudioLocationFrontLeft,
               .codec_frames_blocks_per_sdu = 1,
               .num_of_channels = 1,
               .num_of_devices = 1,
