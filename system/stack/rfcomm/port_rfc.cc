@@ -749,17 +749,17 @@ void PORT_CloseInd(tRFC_MCB* p_mcb) {
 
 /*******************************************************************************
  *
- * Function         Port_TimeOutCloseMux
+ * Function         PORT_TimeOutCloseMux
  *
  * Description      This function is called when RFCOMM timesout on a command
  *                  as a result multiplexer connection is closed.
  *
  ******************************************************************************/
-void Port_TimeOutCloseMux(tRFC_MCB* p_mcb) {
+void PORT_TimeOutCloseMux(tRFC_MCB* p_mcb) {
   tPORT* p_port;
   int i;
 
-  RFCOMM_TRACE_EVENT("Port_TimeOutCloseMux");
+  RFCOMM_TRACE_EVENT("PORT_TimeOutCloseMux");
 
   p_port = &rfc_cb.port.port[0];
   for (i = 0; i < MAX_RFC_PORTS; i++, p_port++) {
