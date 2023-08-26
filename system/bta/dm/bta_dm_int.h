@@ -271,6 +271,11 @@ struct tBTA_DM_PEER_DEVICE {
   void reset_av_active() { info &= ~BTA_DM_DI_AV_ACTIVE; }
   bool is_av_active() const { return info & BTA_DM_DI_AV_ACTIVE; }
 
+  void set_local_init_sniff() { info |= BTA_DM_DI_INT_SNIFF; }
+  bool is_local_init_sniff() const { return info & BTA_DM_DI_INT_SNIFF; }
+  void set_remote_init_sniff() { info |= BTA_DM_DI_ACP_SNIFF; }
+  bool is_remote_init_sniff() const { return info & BTA_DM_DI_ACP_SNIFF; }
+
   // NOTE: Why is this not used as a bitmask
   void set_both_device_ssr_capable() { info = BTA_DM_DI_USE_SSR; }
 
