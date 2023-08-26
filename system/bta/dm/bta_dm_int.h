@@ -278,6 +278,10 @@ struct tBTA_DM_PEER_DEVICE {
     info &= ~(BTA_DM_DI_INT_SNIFF | BTA_DM_DI_ACP_SNIFF | BTA_DM_DI_SET_SNIFF);
   }
 
+  void set_ssr_active() { info |= BTA_DM_DI_USE_SSR; }
+  void reset_ssr_active() { info &= ~BTA_DM_DI_USE_SSR; }
+  bool is_ssr_active() const { return info & BTA_DM_DI_USE_SSR; }
+
   tBTA_DM_ENCRYPT_CBACK* p_encrypt_cback;
   tBTM_PM_STATUS prev_low; /* previous low power mode used */
   tBTA_DM_PM_ACTION pm_mode_attempted;
