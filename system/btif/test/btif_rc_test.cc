@@ -318,8 +318,8 @@ TEST_F(BtifRcBrowseConnectionTest, handle_rc_browse_connect) {
       g_btrc_browse_connection_state_promise.get_future();
 
   tBTA_AV_RC_BROWSE_OPEN browse_data = {
-      .status = BTA_AV_SUCCESS,
       .rc_handle = 0,
+      .status = BTA_AV_SUCCESS,
   };
 
   btif_rc_cb.rc_multi_cb[0].rc_handle = 0;
