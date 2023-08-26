@@ -85,20 +85,19 @@ void BTA_sys_signal_hw_error() {
  *
  ******************************************************************************/
 static void bta_sys_event(BT_HDR_RIGID* p_msg) {
-  uint8_t id;
   bool freebuf = true;
 
   APPL_TRACE_EVENT("%s: Event 0x%x", __func__, p_msg->event);
 
   /* get subsystem id from event */
-  id = (uint8_t)(p_msg->event >> 8);
+  uint8_t id = (uint8_t)(p_msg->event >> 8);
 
   /* verify id and call subsystem event handler */
   if ((id < BTA_ID_MAX) && (bta_sys_cb.reg[id] != NULL)) {
     freebuf = (*bta_sys_cb.reg[id]->evt_hdlr)(p_msg);
   } else {
-    LOG_INFO("Ignoring receipt of unregistered event id:%s",
-             BtaIdSysText(id).c_str());
+    LOG_INFO("Ignoring receipt of unregistered event id:%s[%hhu]",
+             BtaIdSysText(static_cast<tBTA_SYS_ID>(id)).c_str(), id);
   }
 
   if (freebuf) {
