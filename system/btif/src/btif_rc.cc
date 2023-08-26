@@ -5484,8 +5484,8 @@ static void initialize_transaction(btif_rc_device_cb_t* p_dev, uint8_t lbl) {
       clear_cmd_timeout(p_dev, lbl);
     }
     transaction_set->transaction[lbl] = {
-        .label = lbl,
         .in_use = false,
+        .label = lbl,
         .context =
             {
                 .label = MAX_LABEL,

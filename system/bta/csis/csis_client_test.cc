@@ -497,8 +497,8 @@ class CsisClientTest : public ::testing::Test {
       const RawAddress& address, uint16_t conn_id,
       tGATT_DISCONN_REASON reason = GATT_CONN_TERMINATE_PEER_USER) {
     tBTA_GATTC_CLOSE event_data = {
-        .status = GATT_SUCCESS,
         .conn_id = conn_id,
+        .status = GATT_SUCCESS,
         .client_if = gatt_if,
         .remote_bda = address,
         .reason = reason,
@@ -509,8 +509,8 @@ class CsisClientTest : public ::testing::Test {
 
   void GetSearchCompleteEvent(uint16_t conn_id) {
     tBTA_GATTC_SEARCH_CMPL event_data = {
-        .status = GATT_SUCCESS,
         .conn_id = conn_id,
+        .status = GATT_SUCCESS,
     };
 
     gatt_callback(BTA_GATTC_SEARCH_CMPL_EVT, (tBTA_GATTC*)&event_data);
@@ -536,8 +536,8 @@ class CsisClientTest : public ::testing::Test {
 
   void GetDisconnectedEvent(const RawAddress& address, uint16_t conn_id) {
     tBTA_GATTC_CLOSE event_data = {
-        .status = GATT_SUCCESS,
         .conn_id = conn_id,
+        .status = GATT_SUCCESS,
         .client_if = gatt_if,
         .remote_bda = address,
         .reason = GATT_CONN_TERMINATE_PEER_USER,

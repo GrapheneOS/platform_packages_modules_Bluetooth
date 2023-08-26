@@ -841,8 +841,8 @@ class HasClientTestBase : public ::testing::Test {
     if (!allow_fake_conn) ASSERT_NE(connected_devices.count(conn_id), 0u);
 
     tBTA_GATTC_CLOSE event_data = {
-        .status = GATT_SUCCESS,
         .conn_id = conn_id,
+        .status = GATT_SUCCESS,
         .client_if = gatt_if,
         .remote_bda = connected_devices[conn_id],
         .reason = reason,
@@ -854,8 +854,8 @@ class HasClientTestBase : public ::testing::Test {
 
   void InjectSearchCompleteEvent(uint16_t conn_id) {
     tBTA_GATTC_SEARCH_CMPL event_data = {
-        .status = GATT_SUCCESS,
         .conn_id = conn_id,
+        .status = GATT_SUCCESS,
     };
 
     gatt_callback(BTA_GATTC_SEARCH_CMPL_EVT, (tBTA_GATTC*)&event_data);
