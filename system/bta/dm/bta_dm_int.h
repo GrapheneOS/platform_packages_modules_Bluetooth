@@ -249,24 +249,12 @@ struct tBTA_DM_PEER_DEVICE {
   bool in_use;
 
  private:
-  friend void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport,
-                            uint16_t acl_handle);
-  friend void bta_dm_pm_btm_status(const RawAddress& bd_addr,
-                                   tBTM_PM_STATUS status, uint16_t value,
-                                   tHCI_STATUS hci_status);
-  friend void bta_dm_pm_sniff(struct tBTA_DM_PEER_DEVICE* p_peer_dev,
-                              uint8_t index);
-  friend void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
-                              uint8_t app_id, const RawAddress& peer_addr);
-  friend void handle_remote_features_complete(const RawAddress& bd_addr);
-
   // Dynamic pieces of operational device information
   tBTA_DM_DEV_INFO info{BTA_DM_DI_NONE};
 
  public:
   std::string info_text() const { return device_info_text(info); }
 
-  tBTA_DM_DEV_INFO Info() const { return info; }
   void reset_device_info() { info = BTA_DM_DI_NONE; }
 
   void set_av_active() { info |= BTA_DM_DI_AV_ACTIVE; }
