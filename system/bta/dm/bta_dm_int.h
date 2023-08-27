@@ -264,6 +264,8 @@ struct tBTA_DM_PEER_DEVICE {
   tBTA_DM_DEV_INFO info{BTA_DM_DI_NONE};
 
  public:
+  std::string info_text() const { return device_info_text(info); }
+
   tBTA_DM_DEV_INFO Info() const { return info; }
   void reset_device_info() { info = BTA_DM_DI_NONE; }
 
