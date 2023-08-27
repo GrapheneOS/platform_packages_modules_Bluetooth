@@ -2704,10 +2704,11 @@ static void handle_role_change(const RawAddress& bd_addr, tHCI_ROLE new_role,
   }
 
   LOG_INFO(
-      "Role change callback peer:%s info:0x%x new_role:%s dev count:%d "
+      "Role change callback peer:%s info:%s new_role:%s dev count:%d "
       "hci_status:%s",
-      ADDRESS_TO_LOGGABLE_CSTR(bd_addr), p_dev->Info(), RoleText(new_role).c_str(),
-      bta_dm_cb.device_list.count, hci_error_code_text(hci_status).c_str());
+      ADDRESS_TO_LOGGABLE_CSTR(bd_addr), p_dev->info_text().c_str(),
+      RoleText(new_role).c_str(), bta_dm_cb.device_list.count,
+      hci_error_code_text(hci_status).c_str());
 
   if (p_dev->is_av_active()) {
     bool need_policy_change = false;
@@ -2955,8 +2956,8 @@ static void bta_dm_check_av() {
     LOG_INFO("av_count:%d", bta_dm_cb.cur_av_count);
     for (i = 0; i < bta_dm_cb.device_list.count; i++) {
       p_dev = &bta_dm_cb.device_list.peer_device[i];
-      APPL_TRACE_WARNING("[%d]: state:%d, info:x%x", i, p_dev->conn_state,
-                         p_dev->Info());
+      APPL_TRACE_WARNING("[%d]: state:%d, info:%s", i, p_dev->conn_state,
+                         p_dev->info_text().c_str());
       if ((p_dev->conn_state == BTA_DM_CONNECTED) && p_dev->is_av_active()) {
         /* make central and take away the role switch policy */
         BTM_SwitchRoleToCentral(p_dev->peer_bdaddr);

@@ -372,7 +372,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, const tBTA_SYS_ID id,
 
   p_dev = bta_dm_find_peer_device(peer_addr);
   if (p_dev) {
-    LOG_DEBUG("Device info:%s", device_info_text(p_dev->Info()).c_str());
+    LOG_DEBUG("Device info:%s", p_dev->info_text().c_str());
   } else {
     LOG_ERROR("Unable to find peer device...yet soldiering on...");
   }
@@ -778,9 +778,9 @@ void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index) {
              ADDRESS_TO_LOGGABLE_CSTR(p_peer_dev->peer_bdaddr));
   }
   tBTM_PM_STATUS mode_status = static_cast<tBTM_PM_STATUS>(mode);
-  LOG_DEBUG("Current power mode:%s[0x%x] peer_info:%s[0x%02x]",
+  LOG_DEBUG("Current power mode:%s[0x%x] peer_info:%s",
             power_mode_status_text(mode_status).c_str(), mode_status,
-            device_info_text(p_peer_dev->Info()).c_str(), p_peer_dev->Info());
+            p_peer_dev->info_text().c_str());
 
   uint8_t* p_rem_feat = BTM_ReadRemoteFeatures(p_peer_dev->peer_bdaddr);
 
