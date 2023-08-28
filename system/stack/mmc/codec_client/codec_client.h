@@ -22,6 +22,7 @@
 
 #include <memory>
 
+#include "mmc/metrics/mmc_rtt_logger.h"
 #include "mmc/mmc_interface/mmc_interface.h"
 #include "mmc/proto/mmc_service.pb.h"
 
@@ -63,6 +64,7 @@ class CodecClient : public MmcInterface {
   int skt_fd_;
   dbus::ObjectProxy* codec_manager_;  // Owned by the Bus object.
   scoped_refptr<dbus::Bus> bus_;
+  std::unique_ptr<MmcRttLogger> record_logger_;
 };
 
 }  // namespace mmc
