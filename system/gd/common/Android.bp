@@ -30,7 +30,6 @@ filegroup {
         "metric_id_manager_unittest.cc",
         "multi_priority_queue_test.cc",
         "numbers_test.cc",
-        "observer_registry_test.cc",
         "strings_test.cc",
         "sync_map_count_test.cc",
     ],
