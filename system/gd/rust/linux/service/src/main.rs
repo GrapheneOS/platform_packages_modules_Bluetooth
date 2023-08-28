@@ -412,14 +412,21 @@ fn main() -> Result<(), Box<dyn Error>> {
             // Install SIGTERM handler so that we can properly shutdown
             *SIG_DATA.lock().unwrap() = Some((tx.clone(), sig_notifier.clone()));
 
-            let sig_action = signal::SigAction::new(
+            let sig_action_term = signal::SigAction::new(
                 signal::SigHandler::Handler(handle_sigterm),
                 signal::SaFlags::empty(),
                 signal::SigSet::empty(),
             );
 
+            let sig_action_int = signal::SigAction::new(
+                signal::SigHandler::Handler(handle_sigint),
+                signal::SaFlags::empty(),
+                signal::SigSet::empty(),
+            );
+
             unsafe {
-                signal::sigaction(signal::SIGTERM, &sig_action).unwrap();
+                signal::sigaction(signal::SIGTERM, &sig_action_term).unwrap();
+                signal::sigaction(signal::SIGINT, &sig_action_int).unwrap();
             }
         }
 
@@ -465,5 +472,12 @@ extern "C" fn handle_sigterm(_signum: i32) {
     }
 
     log::debug!("Sigterm completed");
+    std::process::exit(0);
+}
+
+extern "C" fn handle_sigint(_signum: i32) {
+    // Assumed this is from HAL Host, which is likely caused by chipset error.
+    // In this case, don't crash the daemon and don't try to power off the adapter.
+    log::debug!("Sigint completed");
     std::process::exit(0);
 }
