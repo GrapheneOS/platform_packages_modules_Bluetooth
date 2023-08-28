@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion = 'android-S'
+    compileSdkVersion = 'android-T'
     defaultConfig {
         applicationId "com.android.bluetooth.leaudio"
-        minSdkVersion "S"
-        targetSdkVersion "S"
+        minSdkVersion "T"
+        targetSdkVersion "T"
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
