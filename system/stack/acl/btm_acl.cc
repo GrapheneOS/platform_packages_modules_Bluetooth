@@ -2415,10 +2415,6 @@ void BTM_ReadConnectionAddr(const RawAddress& remote_bda,
  *
  ******************************************************************************/
 bool BTM_IsBleConnection(uint16_t hci_handle) {
-  if (bluetooth::shim::is_gd_shim_enabled()) {
-    ASSERT_LOG(false, "This should not be invoked from code path");
-  }
-
   if (bluetooth::shim::is_gd_l2cap_enabled()) {
     return bluetooth::shim::L2CA_IsLeLink(hci_handle);
   }
