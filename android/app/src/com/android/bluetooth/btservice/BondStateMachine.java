@@ -352,7 +352,7 @@ final class BondStateMachine extends StateMachine {
     private boolean createBond(BluetoothDevice dev, int transport, OobData remoteP192Data,
             OobData remoteP256Data, boolean transition) {
         if (dev.getBondState() == BluetoothDevice.BOND_NONE) {
-            infoLog("Bond address is:" + dev);
+            infoLog("Bond address is:" + dev + ", transport is: " + transport);
             byte[] addr = Utils.getBytesFromAddress(dev.getAddress());
             int addrType = dev.getAddressType();
             boolean result;
