@@ -65,10 +65,6 @@ bool bluetooth::shim::is_gd_l2cap_enabled() {
   return bluetooth::common::init_flags::gd_l2cap_is_enabled();
 }
 
-bool bluetooth::shim::is_gd_shim_enabled() {
-  return bluetooth::common::init_flags::gd_core_is_enabled();
-}
-
 bool bluetooth::shim::is_gd_stack_started_up() {
   return bluetooth::shim::Stack::GetInstance()->IsRunning();
 }
