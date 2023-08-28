@@ -24,6 +24,7 @@ from blueberry.tests.gd.cert.context import get_current_context
 
 from blueberry.tests.sl4a_sl4a.lib import sl4a_sl4a_base_test
 from blueberry.tests.gd_sl4a.lib.bt_constants import ble_address_types
+from mobly import test_runner
 
 
 class LeAdvertisingTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
@@ -55,3 +56,7 @@ class LeAdvertisingTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
         self.dut_scanner_.scan_for_name(self.cert_advertiser_.get_local_advertising_name())
         self.dut_scanner_.stop_scanning()
         self.cert_advertiser_.stop_advertising()
+
+
+if __name__ == '__main__':
+    test_runner.main()

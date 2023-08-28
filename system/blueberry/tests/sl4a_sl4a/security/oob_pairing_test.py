@@ -26,6 +26,7 @@ from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.gd_sl4a.lib.bt_constants import ble_address_types
 from blueberry.tests.sl4a_sl4a.lib import sl4a_sl4a_base_test
 from blueberry.tests.sl4a_sl4a.lib.security import Security
+from mobly import test_runner
 
 
 class OobPairingTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
@@ -129,3 +130,17 @@ class OobPairingTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
         for i in range(0, 10):
             oob_data = self.dut_security_.generate_oob_data(Security.TRANSPORT_LE, True)
             logging.info("OOB Data came back with code: %d", oob_data[0])
+
+    def test_le_oob_advertiser_not_using_public_address(self):
+        #TODO(optedoblivion): Use sysprop and make another test to handle non privacy case
+        oob_data = self.dut_security_.generate_oob_data(Security.TRANSPORT_LE)
+        assertThat(oob_data).isNotNone()
+        advertiser_address = oob_data.to_sl4a_address()
+        public_address = self.dut_advertiser_.get_local_public_address()
+        logging.info("DUT Advertiser Address: %s " % advertiser_address)
+        logging.info("DUT Public Address: %s " % public_address)
+        assertThat(advertiser_address).isNotEqualTo(public_address)
+
+
+if __name__ == '__main__':
+    test_runner.main()

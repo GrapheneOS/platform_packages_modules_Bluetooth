@@ -1533,7 +1533,7 @@ static void btu_ble_ll_conn_param_upd_evt(uint8_t* p, uint16_t evt_len) {
   uint16_t timeout;
 
   if (evt_len < 9) {
-     LOG_ERROR("Bogus event packet, too short");
+     LOG_ERROR("Malformated event packet, too short");
      return;
   }
 

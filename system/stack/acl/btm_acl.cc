@@ -1998,7 +1998,7 @@ void btm_read_rssi_complete(uint8_t* p, uint16_t evt_len) {
 
   return;
 
-err_out:
+ err_out:
   LOG_ERROR("Bogus event packet, too short");
 }
 

@@ -609,12 +609,17 @@ void gatt_process_prep_write_rsp(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
 
   memcpy(value.value, p, value.len);
 
+  bool subtype_is_write_prepare = (p_clcb->op_subtype == GATT_WRITE_PREPARE);
+
   if (!gatt_check_write_long_terminate(tcb, p_clcb, &value)) {
     gatt_send_prepare_write(tcb, p_clcb);
     return;
   }
 
-  if (p_clcb->op_subtype == GATT_WRITE_PREPARE) {
+  // We now know that we have not terminated, or else we would have returned
+  // early.  We free the buffer only if the subtype is not equal to
+  // GATT_WRITE_PREPARE, so checking here is adequate to prevent UAF.
+  if (subtype_is_write_prepare) {
     /* application should verify handle offset
        and value are matched or not */
     gatt_end_operation(p_clcb, p_clcb->status, &value);
@@ -757,6 +762,10 @@ void gatt_process_notification(tGATT_TCB& tcb, uint16_t cid, uint8_t op_code,
     // Make sure we don't read past the remaining data even if the length says
     // we can Also need to watch comparing the int16_t with the uint16_t
     value.len = std::min((uint16_t)rem_len, value.len);
+    if (value.len > sizeof(value.value)) {
+      LOG(ERROR) << "Unexpected value.len (>GATT_MAX_ATTR_LEN), stop";
+      return ;
+    }
     STREAM_TO_ARRAY(value.value, p, value.len);
     // Accounting
     rem_len -= value.len;

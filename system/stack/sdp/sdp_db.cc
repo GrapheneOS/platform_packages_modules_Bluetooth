@@ -372,10 +372,13 @@ bool SDP_AddAttribute(uint32_t handle, uint16_t attr_id, uint8_t attr_type,
         (attr_type == UUID_DESC_TYPE) ||
         (attr_type == DATA_ELE_SEQ_DESC_TYPE) ||
         (attr_type == DATA_ELE_ALT_DESC_TYPE)) {
-      uint8_t num_array[400];
-      uint32_t len = (attr_len > 200) ? 200 : attr_len;
 
-      num_array[0] = '\0';
+      #define MAX_ARR_LEN 200
+      // one extra byte for storing terminating zero byte
+      uint8_t num_array[2 * MAX_ARR_LEN + 1] = {0};
+      uint32_t len = (attr_len > MAX_ARR_LEN) ? MAX_ARR_LEN : attr_len;
+      #undef MAX_ARR_LEN
+
       for (uint32_t i = 0; i < len; i++) {
         snprintf((char*)&num_array[i * 2], sizeof(num_array) - i * 2, "%02X",
                  (uint8_t)(p_val[i]));
@@ -472,6 +475,14 @@ bool SDP_AddAttributeToRecord(tSDP_RECORD* p_rec, uint16_t attr_id,
   p_attr->len = attr_len;
 
   if (p_rec->free_pad_ptr + attr_len >= SDP_MAX_PAD_LEN) {
+    if (p_rec->free_pad_ptr >= SDP_MAX_PAD_LEN) {
+      SDP_TRACE_ERROR(
+          "SDP_AddAttributeToRecord failed: free pad %d equals or exceeds max "
+          "padding length %d",
+          p_rec->free_pad_ptr, SDP_MAX_PAD_LEN);
+      return (false);
+    }
+
     /* do truncate only for text string type descriptor */
     if (attr_type == TEXT_STR_DESC_TYPE) {
       SDP_TRACE_WARNING(
