@@ -970,10 +970,8 @@ static void gatt_send_conn_cback(tGATT_TCB* p_tcb) {
       GATT_SetIdleTimeout(p_tcb->peer_bda, GATT_LINK_NO_IDLE_TIMEOUT,
                           p_tcb->transport, true /* is_active */);
     } else {
-      if (bluetooth::common::init_flags::finite_att_timeout_is_enabled()) {
-        GATT_SetIdleTimeout(p_tcb->peer_bda, GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP,
-                            p_tcb->transport, false /* is_active */);
-      }
+      GATT_SetIdleTimeout(p_tcb->peer_bda, GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP,
+                          p_tcb->transport, false /* is_active */);
     }
   }
 }
