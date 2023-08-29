@@ -25,9 +25,11 @@
 #include <stddef.h>
 
 #include "bt_trace.h"
+#include "bta/dm/bta_dm_gatt_client.h"
 #include "bta/dm/bta_dm_int.h"
 #include "gd/common/circular_buffer.h"
 #include "gd/common/strings.h"
+#include "main/shim/dumpsys.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
@@ -247,11 +249,6 @@ void DumpsysBtaDm(int fd) {
   }
   LOG_DUMPSYS(fd, " current bta_dm_search_state:%s",
               bta_dm_state_text(bta_dm_search_get_state()).c_str());
-  auto gatt_history = gatt_history_.Pull();
-  LOG_DUMPSYS(fd, " last %zu gatt history entries", gatt_history.size());
-  for (const auto& it : gatt_history) {
-    LOG_DUMPSYS(fd, "   %s %s", EpochMillisToString(it.timestamp).c_str(),
-                it.entry.c_str());
-  }
+  DumpsysBtaDmGattClient(fd);
 }
 #undef DUMPSYS_TAG
