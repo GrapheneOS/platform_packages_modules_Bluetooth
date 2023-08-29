@@ -36,8 +36,6 @@
 namespace bluetooth {
 namespace storage {
 
-using common::ListMap;
-using common::LruCache;
 using os::Alarm;
 using os::Handler;
 
