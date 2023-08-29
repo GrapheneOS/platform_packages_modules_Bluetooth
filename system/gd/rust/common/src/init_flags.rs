@@ -371,7 +371,6 @@ init_flags!(
         delay_hidh_cleanup_until_hidh_ready_start = true,
         device_iot_config_logging,
         dynamic_avrcp_version_enhancement = true,
-        finite_att_timeout = true,
         gatt_robust_caching_client = true,
         gatt_robust_caching_server,
         gd_core,

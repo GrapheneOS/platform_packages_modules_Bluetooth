@@ -2732,8 +2732,7 @@ void l2cu_no_dynamic_ccbs(tL2C_LCB* p_lcb) {
   // be in use even without a GATT client. We only timeout if either a dynamic
   // channel or a GATT client was used, since then we expect the client to
   // manage the lifecycle of the connection.
-  if (bluetooth::common::init_flags::finite_att_timeout_is_enabled() &&
-      !p_lcb->with_active_local_clients) {
+  if (!p_lcb->with_active_local_clients) {
     return;
   }
 
