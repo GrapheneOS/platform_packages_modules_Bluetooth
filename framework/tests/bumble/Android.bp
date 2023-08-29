@@ -50,6 +50,7 @@ java_test_host {
 
     data: [
         ":BumbleBluetoothTestsApp",
+        "bumble_config.json",
     ],
     data_native_bins: [
         "bumble_pandora_server",
