@@ -1,5 +1,7 @@
 package android.bluetooth;
 
+import static android.bluetooth.Utils.factoryResetAndCreateNewChannel;
+
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertisingSet;
 import android.bluetooth.le.AdvertisingSetCallback;
@@ -18,7 +20,6 @@ import com.google.protobuf.Empty;
 import io.grpc.Context.CancellableContext;
 import io.grpc.Deadline;
 import io.grpc.ManagedChannel;
-import io.grpc.okhttp.OkHttpChannelBuilder;
 import io.grpc.stub.StreamObserver;
 
 import java.util.concurrent.CompletableFuture;
@@ -59,25 +60,8 @@ public class LeAdvertisingTest {
 
     @Before
     public void setUp() throws Exception {
-        // FactorReset is killing the server and restart
-        // all channel created before the server restarted
-        // cannot be reused
-        ManagedChannel channel = OkHttpChannelBuilder
-              .forAddress("localhost", 7999)
-              .usePlaintext()
-              .build();
-
-        HostGrpc.HostBlockingStub stub = HostGrpc.newBlockingStub(channel);
-        stub.factoryReset(Empty.getDefaultInstance());
-
-        // terminate the channel
-        channel.shutdown().awaitTermination(1, TimeUnit.SECONDS);
-
-        // Create a new channel for all successive grpc calls
-        mChannel = OkHttpChannelBuilder
-              .forAddress("localhost", 7999)
-              .usePlaintext()
-              .build();
+        // Cleanup previous channels and create a new channel for all successive grpc calls
+        mChannel = factoryResetAndCreateNewChannel();
 
         mHostBlockingStub = HostGrpc.newBlockingStub(mChannel);
         mHostStub = HostGrpc.newStub(mChannel);
