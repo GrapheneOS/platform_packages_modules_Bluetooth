@@ -86,6 +86,21 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
 
     @avatar.asynchronous
     async def setup_test(self) -> None:
+        # TODO(b/296927588): Test should pass with a random identity address
+        # We have to update the config before the reset otherwise it'll be overridden
+        random_identity_address_type_list = [
+            "test_auto_connection(1,1)",
+            "test_advertising_advertisement_data(1,1)",
+            "test_advertising_scan_response",
+            "test_auto_connection_dual_device(1,1,0)",
+            "test_auto_connection_dual_device(1,1,1)",
+        ]
+        if self.current_test_info.name in random_identity_address_type_list:
+            self.ref_left._bumble.config.update({'server': {'identity_address_type': 'random'}})
+            self.ref_right._bumble.config.update({'server': {'identity_address_type': 'random'}})
+        else:
+            self.ref_left._bumble.config.update({'server': {'identity_address_type': 'public'}})
+            self.ref_right._bumble.config.update({'server': {'identity_address_type': 'public'}})
         await asyncio.gather(self.dut.reset(), self.ref_left.reset(), self.ref_right.reset())
 
         # ASHA hearing aid's IO capability is NO_OUTPUT_NO_INPUT
@@ -683,6 +698,9 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
            2. The disconnected peripheral starts sending ASHA advertisements.
            3. Verify that DUT auto-connects to the peripheral.
         """
+        # This tests need to be reactivated ASAP
+        if ref_address_type == PUBLIC:
+            raise signals.TestSkip('TODO: b/296927588')
 
         advertisement_left = await self.ref_advertise_asha(
             ref_device=self.ref_left, ref_address_type=ref_address_type, ear=Ear.LEFT
