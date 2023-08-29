@@ -594,26 +594,6 @@ public final class BluetoothHeadset implements BluetoothProfile {
     }
 
     /**
-     * Get the priority of the profile.
-     *
-     * <p> The priority can be any of:
-     * {@link #PRIORITY_AUTO_CONNECT}, {@link #PRIORITY_OFF},
-     * {@link #PRIORITY_ON}, {@link #PRIORITY_UNDEFINED}
-     *
-     * @param device Bluetooth device
-     * @return priority of the device
-     * @hide
-     */
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
-    @RequiresLegacyBluetoothPermission
-    @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    public int getPriority(BluetoothDevice device) {
-        if (VDBG) log("getPriority(" + device + ")");
-        return BluetoothAdapter.connectionPolicyToPriority(getConnectionPolicy(device));
-    }
-
-    /**
      * Get the connection policy of the profile.
      *
      * <p> The connection policy can be any of:
