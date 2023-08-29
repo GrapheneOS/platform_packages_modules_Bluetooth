@@ -7041,8 +7041,7 @@ public class AdapterService extends Service {
         return BluetoothProperties.getHardwareOperatingVoltageMv().orElse(0) / 1000.0;
     }
 
-    @VisibleForTesting
-    protected RemoteDevices getRemoteDevices() {
+    public RemoteDevices getRemoteDevices() {
         return mRemoteDevices;
     }
 
