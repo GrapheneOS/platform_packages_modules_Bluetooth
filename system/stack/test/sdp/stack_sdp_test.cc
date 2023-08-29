@@ -263,3 +263,134 @@ TEST_F(StackSdpMainTest, sdp_status_text) {
                                    std::numeric_limits<uint16_t>::max()))
                    .c_str());
 }
+
+static tSDP_DISCOVERY_DB db{};
+static tSDP_DISC_REC rec{};
+static tSDP_DISC_ATTR uuid_desc_attr{};
+static tSDP_DISC_ATTR client_exe_url_attr{};
+static tSDP_DISC_ATTR service_desc_attr{};
+static tSDP_DISC_ATTR doc_url_desc_attr{};
+static tSDP_DISC_ATTR spec_id_attr{};
+static tSDP_DISC_ATTR vendor_id_attr{};
+static tSDP_DISC_ATTR vendor_id_src_attr{};
+static tSDP_DISC_ATTR prod_id_attr{};
+static tSDP_DISC_ATTR prod_version_attr{};
+static tSDP_DISC_ATTR primary_rec_attr{};
+
+class SDP_GetDiRecord_Tests : public ::testing::Test {
+protected:
+
+  void SetUp() override {
+    db.p_first_rec = &rec;
+    rec.p_first_attr = &uuid_desc_attr;
+
+    uuid_desc_attr.attr_id = ATTR_ID_SERVICE_ID;
+    uuid_desc_attr.p_next_attr = &client_exe_url_attr;
+
+    client_exe_url_attr.attr_id = ATTR_ID_CLIENT_EXE_URL;
+    client_exe_url_attr.p_next_attr = &service_desc_attr;
+
+    service_desc_attr.attr_id = ATTR_ID_SERVICE_DESCRIPTION;
+    service_desc_attr.p_next_attr = &doc_url_desc_attr;
+
+    doc_url_desc_attr.attr_id = ATTR_ID_DOCUMENTATION_URL;
+    doc_url_desc_attr.p_next_attr = &spec_id_attr;
+
+    spec_id_attr.attr_id = ATTR_ID_SPECIFICATION_ID;
+    spec_id_attr.p_next_attr = &vendor_id_attr;
+
+    vendor_id_attr.attr_id = ATTR_ID_VENDOR_ID;
+    vendor_id_attr.p_next_attr = &vendor_id_src_attr;
+
+    vendor_id_src_attr.attr_id = ATTR_ID_VENDOR_ID_SOURCE;
+    vendor_id_src_attr.p_next_attr = &prod_id_attr;
+
+    prod_id_attr.attr_id = ATTR_ID_PRODUCT_ID;
+    prod_id_attr.p_next_attr = &prod_version_attr;
+
+    prod_version_attr.attr_id = ATTR_ID_PRODUCT_VERSION;
+    prod_version_attr.p_next_attr = &primary_rec_attr;
+
+    primary_rec_attr.attr_id = ATTR_ID_PRIMARY_RECORD;
+    primary_rec_attr.p_next_attr = nullptr;
+  }
+
+  void TearDown() override {
+    db = {};
+    rec = {};
+    uuid_desc_attr = {};
+    client_exe_url_attr = {};
+    service_desc_attr = {};
+    doc_url_desc_attr = {};
+    spec_id_attr = {};
+    vendor_id_attr = {};
+    vendor_id_src_attr = {};
+    prod_id_attr = {};
+    prod_version_attr = {};
+    primary_rec_attr = {};
+  }
+};
+
+// regression test for b/297831980 and others
+TEST_F(SDP_GetDiRecord_Tests, SDP_GetDiRecord_Regression_test0) {
+  // tune the type/len and value of each attribute in
+  // each test
+  uuid_desc_attr.attr_len_type = (UUID_DESC_TYPE<<12) | 2;
+  uuid_desc_attr.attr_value.v.u16 = UUID_SERVCLASS_PNP_INFORMATION;
+
+  // use a 2-byte string so that it can be
+  // saved in tSDP_DISC_ATVAL
+  const char *const text = "AB";
+  int len = strlen(text);
+  client_exe_url_attr.attr_len_type = (URL_DESC_TYPE<<12) | len;
+  memcpy(client_exe_url_attr.attr_value.v.array, text, len);
+
+  // make this attr not found by id
+  service_desc_attr.attr_id = ATTR_ID_SERVICE_DESCRIPTION + 1;
+  service_desc_attr.attr_len_type = (TEXT_STR_DESC_TYPE<<12) | len;
+  memcpy(service_desc_attr.attr_value.v.array, text, len);
+
+  // make a wrong type
+  doc_url_desc_attr.attr_len_type =(TEXT_STR_DESC_TYPE<<12) | len;
+  memcpy(doc_url_desc_attr.attr_value.v.array, text, len);
+
+  // setup unexpected sizes for the following attrs
+  spec_id_attr.attr_len_type = (UINT_DESC_TYPE << 12) | 1;
+  spec_id_attr.attr_value.v.u16 = 0x1111;
+
+  vendor_id_attr.attr_len_type = (UINT_DESC_TYPE << 12) | 1;
+  vendor_id_attr.attr_value.v.u16 = 0x2222;
+
+  vendor_id_src_attr.attr_len_type = (UINT_DESC_TYPE << 12) | 1;
+  vendor_id_src_attr.attr_value.v.u16 = 0x3333;
+
+  prod_id_attr.attr_len_type = (UINT_DESC_TYPE << 12) | 1;
+  prod_id_attr.attr_value.v.u16 = 0x4444;
+
+  prod_version_attr.attr_len_type = (UINT_DESC_TYPE << 12) | 1;
+  prod_version_attr.attr_value.v.u16 = 0x5555;
+
+  // setup wrong size for primary_rec_attr
+  primary_rec_attr.attr_len_type = (BOOLEAN_DESC_TYPE << 12) | 0;
+  primary_rec_attr.attr_value.v.u8 = 0x66;
+
+  tSDP_DI_GET_RECORD device_info{};
+
+  SDP_GetDiRecord(1, &device_info, &db);
+
+  ASSERT_STREQ(text, device_info.rec.client_executable_url);
+
+  // service description could not be found
+  ASSERT_EQ(strlen(device_info.rec.service_description), (size_t) 0);
+
+  // with a wrong attr type, the attr value won't be accepted
+  ASSERT_EQ(strlen(device_info.rec.documentation_url), (size_t) 0);
+
+  // none of the following values got setup
+  ASSERT_EQ(device_info.spec_id, 0);
+  ASSERT_EQ(device_info.rec.vendor, 0);
+  ASSERT_EQ(device_info.rec.vendor_id_source, 0);
+  ASSERT_EQ(device_info.rec.product, 0);
+  ASSERT_EQ(device_info.rec.version, 0);
+  ASSERT_FALSE(device_info.rec.primary_record);
+}
