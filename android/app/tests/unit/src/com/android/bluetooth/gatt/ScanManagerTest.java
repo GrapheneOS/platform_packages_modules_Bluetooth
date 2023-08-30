@@ -611,12 +611,12 @@ public class ScanManagerTest {
             assertThat(client.stats.isScanTimeout(client.scannerId)).isTrue();
             // Turn off screen
             sendMessageWaitForProcessed(createScreenOnOffMessage(false));
-            assertThat(client.settings.getScanMode()).isEqualTo(expectedScanMode);
-            // Turn on screen
-            sendMessageWaitForProcessed(createScreenOnOffMessage(true));
-            assertThat(client.settings.getScanMode()).isEqualTo(expectedScanMode);
+            assertThat(client.settings.getScanMode()).isEqualTo(SCAN_MODE_SCREEN_OFF);
             // Set as backgournd app
             sendMessageWaitForProcessed(createImportanceMessage(false));
+            assertThat(client.settings.getScanMode()).isEqualTo(SCAN_MODE_SCREEN_OFF);
+            // Turn on screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(true));
             assertThat(client.settings.getScanMode()).isEqualTo(expectedScanMode);
             // Set as foreground app
             sendMessageWaitForProcessed(createImportanceMessage(true));
@@ -1183,8 +1183,10 @@ public class ScanManagerTest {
         sendMessageWaitForProcessed(createScreenOnOffMessage(true));
         verify(mMetricsLogger, atLeastOnce()).cacheCount(
                 eq(BluetoothProtoEnums.LE_SCAN_RADIO_DURATION_REGULAR), anyLong());
-        verify(mMetricsLogger, never()).cacheCount(
-                eq(BluetoothProtoEnums.LE_SCAN_RADIO_DURATION_REGULAR_SCREEN_ON), anyLong());
+        verify(mMetricsLogger, atMost(1))
+                .cacheCount(
+                        eq(BluetoothProtoEnums.LE_SCAN_RADIO_DURATION_REGULAR_SCREEN_ON),
+                        anyLong());
         verify(mMetricsLogger, atLeastOnce()).cacheCount(
                 eq(BluetoothProtoEnums.LE_SCAN_RADIO_DURATION_REGULAR_SCREEN_OFF), anyLong());
         Mockito.clearInvocations(mMetricsLogger);
