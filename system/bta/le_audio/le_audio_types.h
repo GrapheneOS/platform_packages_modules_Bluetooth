@@ -706,6 +706,8 @@ struct ase {
         data_path_state(AudioStreamDataPathState::IDLE),
         configured_for_context_type(LeAudioContextType::UNINITIALIZED),
         preferred_phy(0),
+        is_codec_in_controller(false),
+        data_path_id(bluetooth::hci::iso_manager::kIsoDataPathDisabled),
         max_sdu_size(0),
         retrans_nb(0),
         max_transport_latency(0),
