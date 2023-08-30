@@ -1378,6 +1378,12 @@ public class HeadsetClientService extends ProfileService {
         return false;
     }
 
+    void handleBatteryLevelChanged(BluetoothDevice device, int batteryLevel) {
+        AdapterService.getAdapterService()
+                .getRemoteDevices()
+                .handleAgBatteryLevelChanged(device, batteryLevel);
+    }
+
     @Override
     public void dump(StringBuilder sb) {
         super.dump(sb);
