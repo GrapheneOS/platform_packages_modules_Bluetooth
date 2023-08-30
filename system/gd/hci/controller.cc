@@ -205,9 +205,6 @@ struct Controller::impl {
   }
 
   void Stop() {
-    if (bluetooth::common::init_flags::gd_core_is_enabled()) {
-      hci_->UnregisterEventHandler(EventCode::NUMBER_OF_COMPLETED_PACKETS);
-    }
     hci_ = nullptr;
   }
 
