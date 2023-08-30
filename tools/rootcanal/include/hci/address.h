@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <fmt/core.h>
 #include <packet_runtime.h>
 
 #include <array>
@@ -104,3 +105,43 @@ struct hash<bluetooth::hci::Address> {
   }
 };
 }  // namespace std
+
+template <>
+struct fmt::formatter<bluetooth::hci::Address> {
+  // Presentation format: 'x' - lowercase, 'X' - uppercase.
+  char presentation = 'x';
+
+  // Parses format specifications of the form ['x' | 'X'].
+  constexpr auto parse(format_parse_context& ctx)
+      -> format_parse_context::iterator {
+    // Parse the presentation format and store it in the formatter:
+    auto it = ctx.begin();
+    auto end = ctx.end();
+    if (it != end && (*it == 'x' || *it == 'X')) {
+      presentation = *it++;
+    }
+
+    // Check if reached the end of the range:
+    if (it != end && *it != '}') {
+      ctx.on_error("invalid format");
+    }
+
+    // Return an iterator past the end of the parsed range:
+    return it;
+  }
+
+  // Formats the address a using the parsed format specification (presentation)
+  // stored in this formatter.
+  auto format(const bluetooth::hci::Address& a, format_context& ctx) const
+      -> format_context::iterator {
+    return presentation == 'x'
+               ? fmt::format_to(ctx.out(),
+                                "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
+                                a.address[5], a.address[4], a.address[3],
+                                a.address[2], a.address[1], a.address[0])
+               : fmt::format_to(ctx.out(),
+                                "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
+                                a.address[5], a.address[4], a.address[3],
+                                a.address[2], a.address[1], a.address[0]);
+  }
+};
