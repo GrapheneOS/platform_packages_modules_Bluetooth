@@ -172,7 +172,6 @@ cc_library_static {
         "co/bta_dm_co.cc",
         "co/bta_gatts_co.cc",
         // BTIF implementation
-        "src/btif_activity_attribution.cc",
         "src/btif_ble_scanner.cc",
         "src/btif_bqr.cc",
         "src/btif_config.cc",
