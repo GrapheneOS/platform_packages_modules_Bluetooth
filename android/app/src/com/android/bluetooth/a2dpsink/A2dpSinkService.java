@@ -106,21 +106,11 @@ public class A2dpSinkService extends ProfileService {
         }
 
         setA2dpSinkService(this);
-        BluetoothDevice activeDevice = getActiveDevice();
-        String deviceAddress = activeDevice != null ?
-                activeDevice.getAddress() :
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS;
-        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(), deviceAddress);
         return true;
     }
 
     @Override
     protected boolean stop() {
-        BluetoothDevice activeDevice = getActiveDevice();
-        String deviceAddress = activeDevice != null ?
-                activeDevice.getAddress() :
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS;
-        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(), deviceAddress);
         setA2dpSinkService(null);
         mNativeInterface.cleanup();
         for (A2dpSinkStateMachine stateMachine : mDeviceStateMap.values()) {

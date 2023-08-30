@@ -35,9 +35,6 @@ namespace bluetooth {
 namespace os {
 class Handler;
 }
-namespace activity_attribution {
-class ActivityAttribution;
-}
 namespace neighbor {
 class ConnectabilityModule;
 class DiscoverabilityModule;
@@ -104,7 +101,6 @@ hal::SnoopLogger* GetSnoopLogger();
 storage::StorageModule* GetStorage();
 hci::AclManager* GetAclManager();
 hci::VendorSpecificEventManager* GetVendorSpecificEventManager();
-activity_attribution::ActivityAttribution* GetActivityAttribution();
 metrics::CounterMetrics* GetCounterMetrics();
 hci::MsftExtensionManager* GetMsftExtensionManager();
 

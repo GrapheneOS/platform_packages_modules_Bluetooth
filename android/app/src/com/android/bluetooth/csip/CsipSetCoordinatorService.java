@@ -171,9 +171,6 @@ public class CsipSetCoordinatorService extends ProfileService {
 
         // Initialize native interface
         mCsipSetCoordinatorNativeInterface.init();
-        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(),
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
-
         return true;
     }
 
@@ -187,8 +184,6 @@ public class CsipSetCoordinatorService extends ProfileService {
             return true;
         }
 
-        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(),
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
         // Cleanup native interface
         mCsipSetCoordinatorNativeInterface.cleanup();
         mCsipSetCoordinatorNativeInterface = null;
