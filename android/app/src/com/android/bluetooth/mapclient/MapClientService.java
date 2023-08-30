@@ -330,9 +330,6 @@ public class MapClientService extends ProfileService {
         removeUncleanAccounts();
         MapClientContent.clearAllContent(this);
         setMapClientService(this);
-        mAdapterService.notifyActivityAttributionInfo(
-                getAttributionSource(),
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
         return true;
     }
 
@@ -342,11 +339,6 @@ public class MapClientService extends ProfileService {
             Log.d(TAG, "stop()");
         }
 
-        if (mAdapterService != null) {
-            mAdapterService.notifyActivityAttributionInfo(
-                    getAttributionSource(),
-                    AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
-        }
         if (mMapReceiver != null) {
             unregisterReceiver(mMapReceiver);
             mMapReceiver = null;

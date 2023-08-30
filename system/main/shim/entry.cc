@@ -16,7 +16,6 @@
 
 #include "main/shim/entry.h"
 
-#include "gd/btaa/activity_attribution.h"
 #include "gd/hal/snoop_logger.h"
 #include "gd/hci/controller.h"
 #include "gd/hci/distance_measurement_manager.h"
@@ -145,12 +144,6 @@ hci::VendorSpecificEventManager* GetVendorSpecificEventManager() {
   return Stack::GetInstance()
       ->GetStackManager()
       ->GetInstance<hci::VendorSpecificEventManager>();
-}
-
-activity_attribution::ActivityAttribution* GetActivityAttribution() {
-  return Stack::GetInstance()
-      ->GetStackManager()
-      ->GetInstance<activity_attribution::ActivityAttribution>();
 }
 
 metrics::CounterMetrics* GetCounterMetrics() {
