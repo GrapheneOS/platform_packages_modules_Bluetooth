@@ -60,6 +60,7 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
+import com.android.bluetooth.hfpclient.HeadsetClientStateMachine;
 import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.bluetooth.telephony.BluetoothInCallService;
 import com.android.internal.annotations.VisibleForTesting;
@@ -2012,6 +2013,9 @@ public class HeadsetService extends ProfileService {
         mAdapterService
                 .getSilenceDeviceManager()
                 .hfpConnectionStateChanged(device, fromState, toState);
+        mAdapterService
+                .getRemoteDevices()
+                .handleHeadsetConnectionStateChanged(device, fromState, toState);
     }
 
     /**

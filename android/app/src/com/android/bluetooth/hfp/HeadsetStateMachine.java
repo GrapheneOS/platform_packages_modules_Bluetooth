@@ -1604,6 +1604,11 @@ public class HeadsetStateMachine extends StateMachine {
     void broadcastVendorSpecificEventIntent(String command, int companyId, int commandType,
             Object[] arguments, BluetoothDevice device) {
         log("broadcastVendorSpecificEventIntent(" + command + ")");
+        mAdapterService
+                .getRemoteDevices()
+                .handleVendorSpecificHeadsetEvent(
+                        device, command, companyId, commandType, arguments);
+
         Intent intent = new Intent(BluetoothHeadset.ACTION_VENDOR_SPECIFIC_HEADSET_EVENT);
         intent.putExtra(BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_CMD, command);
         intent.putExtra(BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_CMD_TYPE, commandType);
@@ -2233,11 +2238,11 @@ public class HeadsetStateMachine extends StateMachine {
      * @param indValue Indicator Value [0-65535], -1 means invalid but indId is supported
      */
     private void sendIndicatorIntent(BluetoothDevice device, int indId, int indValue) {
+        mAdapterService.getRemoteDevices().handleHfIndicatorValueChanged(device, indId, indValue);
         Intent intent = new Intent(BluetoothHeadset.ACTION_HF_INDICATORS_VALUE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_ID, indId);
         intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_VALUE, indValue);
-
         Utils.sendBroadcast(mHeadsetService, intent, BLUETOOTH_CONNECT,
                 Utils.getTempAllowlistBroadcastOptions());
     }
