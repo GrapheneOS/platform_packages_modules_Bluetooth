@@ -26,7 +26,6 @@
 
 #include "device/include/controller.h"
 #include "gd/att/att_module.h"
-#include "gd/btaa/activity_attribution.h"
 #include "gd/common/init_flags.h"
 #include "gd/common/strings.h"
 #include "gd/hal/hci_hal.h"
@@ -55,7 +54,6 @@
 #include "gd/storage/storage_module.h"
 #include "gd/sysprops/sysprops_module.h"
 #include "main/shim/acl_legacy_interface.h"
-#include "main/shim/activity_attribution.h"
 #include "main/shim/distance_measurement_manager.h"
 #include "main/shim/hci_layer.h"
 #include "main/shim/helpers.h"
@@ -102,9 +100,6 @@ void Stack::StartEverything() {
   modules.add<hci::MsftExtensionManager>();
   modules.add<hci::LeScanningManager>();
   modules.add<hci::DistanceMeasurementManager>();
-  if (common::init_flags::btaa_hci_is_enabled()) {
-    modules.add<activity_attribution::ActivityAttribution>();
-  }
   if (common::init_flags::gd_core_is_enabled()) {
     modules.add<att::AttModule>();
     modules.add<neighbor::ConnectabilityModule>();

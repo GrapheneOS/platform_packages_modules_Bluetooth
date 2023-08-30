@@ -149,7 +149,6 @@ public class HearingAidServiceTest {
         TestUtils.startService(mServiceRule, HearingAidService.class);
         mService = HearingAidService.getHearingAidService();
         Assert.assertNotNull(mService);
-        verify(mAdapterService).notifyActivityAttributionInfo(any(), any());
     }
 
     private void stopService() throws TimeoutException {
