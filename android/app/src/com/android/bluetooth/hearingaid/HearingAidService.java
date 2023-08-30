@@ -161,9 +161,6 @@ public class HearingAidService extends ProfileService {
 
         // Initialize native interface
         mHearingAidNativeInterface.init();
-        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(),
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
-
         return true;
     }
 
@@ -176,9 +173,6 @@ public class HearingAidService extends ProfileService {
             Log.w(TAG, "stop() called before start()");
             return true;
         }
-
-        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(),
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
         // Cleanup native interface
         mHearingAidNativeInterface.cleanup();
         mHearingAidNativeInterface = null;
