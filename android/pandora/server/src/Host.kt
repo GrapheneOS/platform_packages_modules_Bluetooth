@@ -31,8 +31,10 @@ import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.AdvertisingSetParameters
 import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanRecord
 import android.bluetooth.le.ScanResult
+import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -468,7 +470,9 @@ class Host(
                         }
                     }
                 val bluetoothLeScanner = bluetoothAdapter.bluetoothLeScanner
-                bluetoothLeScanner?.startScan(leScanCallback) ?: run { trySendBlocking(null) }
+                val leScanFilters: List<ScanFilter> = listOf()
+                val leScanSettings = ScanSettings.Builder().setLegacy(false).build()
+                bluetoothLeScanner?.startScan(leScanFilters, leScanSettings, leScanCallback) ?: run { trySendBlocking(null) }
                 awaitClose { bluetoothLeScanner?.stopScan(leScanCallback) }
             }
             bluetoothDevice = flow.first()
