@@ -41,9 +41,9 @@ namespace le_audio {
 #define UINT8_TO_VEC_UINT8(u8) \
   std::vector<uint8_t> { u8 }
 #define UINT16_TO_VEC_UINT8(u16) \
-  std::vector<uint8_t>((uint8_t*)&u16, (uint8_t*)&u16 + sizeof(u16))
+  std::vector<uint8_t>((uint8_t*)&u16, (uint8_t*)&u16 + sizeof(uint16_t))
 #define UINT32_TO_VEC_UINT8(u32) \
-  std::vector<uint8_t>((uint8_t*)&u32, (uint8_t*)&u32 + sizeof(u32))
+  std::vector<uint8_t>((uint8_t*)&u32, (uint8_t*)&u32 + sizeof(uint32_t))
 
 #define VEC_UINT8_TO_UINT8(vec) vec.data()[0]
 #define VEC_UINT8_TO_UINT16(vec) ((vec.data()[1] << 8) + vec.data()[0])
