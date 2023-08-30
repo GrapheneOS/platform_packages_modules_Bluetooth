@@ -58,7 +58,7 @@ import java.util.Objects;
  */
 @SystemApi
 public final class BluetoothQualityReport implements Parcelable {
-    private static final String TAG = "BluetoothQualityReport";
+    private static final String TAG = BluetoothQualityReport.class.getSimpleName();
 
     /**
      * Quality report ID: Monitor.
@@ -525,12 +525,12 @@ public final class BluetoothQualityReport implements Parcelable {
      */
     @SystemApi
     public static final class Builder {
-        private String remoteAddr;
+        private String remoteAddr = "00:00:00:00:00:00";
         private int lmpVer;
         private int lmpSubVer;
         private int manufacturerId;
-        private String remoteName;
-        private BluetoothClass bluetoothClass;
+        private String remoteName = "";
+        private BluetoothClass bluetoothClass = new BluetoothClass(0);
         private byte[] rawData;
 
         /**
@@ -555,7 +555,11 @@ public final class BluetoothQualityReport implements Parcelable {
         @NonNull
         @SystemApi
         public Builder setRemoteAddress(@Nullable String remoteAddr) {
-            this.remoteAddr = remoteAddr;
+            if (!BluetoothAdapter.checkBluetoothAddress(remoteAddr)) {
+                Log.d(TAG, "remote address is not a valid bluetooth address: " + remoteAddr);
+            } else {
+                this.remoteAddr = remoteAddr;
+            }
             return this;
         }
 
@@ -611,7 +615,11 @@ public final class BluetoothQualityReport implements Parcelable {
         @NonNull
         @SystemApi
         public Builder setRemoteName(@Nullable String remoteName) {
-            this.remoteName = remoteName;
+            if (remoteName == null) {
+                Log.d(TAG, "remote name is null");
+            } else {
+                this.remoteName = remoteName;
+            }
             return this;
         }
 
@@ -625,7 +633,11 @@ public final class BluetoothQualityReport implements Parcelable {
         @NonNull
         @SystemApi
         public Builder setBluetoothClass(@Nullable BluetoothClass bluetoothClass) {
-            this.bluetoothClass = bluetoothClass;
+            if (bluetoothClass == null) {
+                Log.d(TAG, "remote bluetooth class is null");
+            } else {
+                this.bluetoothClass = bluetoothClass;
+            }
             return this;
         }
 
@@ -639,7 +651,6 @@ public final class BluetoothQualityReport implements Parcelable {
         @NonNull
         @SystemApi
         public BluetoothQualityReport build() {
-            validateBluetoothQualityReport();
             return new BluetoothQualityReport(
                     remoteAddr,
                     lmpVer,
@@ -648,18 +659,6 @@ public final class BluetoothQualityReport implements Parcelable {
                     remoteName,
                     bluetoothClass,
                     rawData);
-        }
-
-        private void validateBluetoothQualityReport() {
-            if (!BluetoothAdapter.checkBluetoothAddress(remoteAddr)) {
-                Log.d(TAG, "remote addr is invalid");
-                remoteAddr = "00:00:00:00:00:00";
-            }
-
-            if (remoteName == null) {
-                Log.d(TAG, "remote name is null");
-                remoteName = "";
-            }
         }
     }
 
