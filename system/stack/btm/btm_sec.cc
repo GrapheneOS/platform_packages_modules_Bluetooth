@@ -2193,18 +2193,16 @@ void btm_sec_check_pending_reqs(void) {
  *
  ******************************************************************************/
 void btm_sec_dev_reset(void) {
-  if (controller_get_interface()->supports_simple_pairing()) {
-    /* set the default IO capabilities */
-    btm_cb.devcb.loc_io_caps = btif_storage_get_local_io_caps();
-    /* add mx service to use no security */
-    BTM_SetSecurityLevel(false, "RFC_MUX", BTM_SEC_SERVICE_RFC_MUX,
-                         BTM_SEC_NONE, BT_PSM_RFCOMM, BTM_SEC_PROTO_RFCOMM, 0);
-    BTM_SetSecurityLevel(true, "RFC_MUX", BTM_SEC_SERVICE_RFC_MUX, BTM_SEC_NONE,
-                         BT_PSM_RFCOMM, BTM_SEC_PROTO_RFCOMM, 0);
-  } else {
-    btm_cb.security_mode = BTM_SEC_MODE_SERVICE;
-  }
+  ASSERT_LOG(controller_get_interface()->supports_simple_pairing(),
+             "only controllers with SSP is supported");
 
+  /* set the default IO capabilities */
+  btm_cb.devcb.loc_io_caps = btif_storage_get_local_io_caps();
+  /* add mx service to use no security */
+  BTM_SetSecurityLevel(false, "RFC_MUX", BTM_SEC_SERVICE_RFC_MUX,
+                       BTM_SEC_NONE, BT_PSM_RFCOMM, BTM_SEC_PROTO_RFCOMM, 0);
+  BTM_SetSecurityLevel(true, "RFC_MUX", BTM_SEC_SERVICE_RFC_MUX, BTM_SEC_NONE,
+                       BT_PSM_RFCOMM, BTM_SEC_PROTO_RFCOMM, 0);
   BTM_TRACE_DEBUG("btm_sec_dev_reset sec mode: %d", btm_cb.security_mode);
 }
 
