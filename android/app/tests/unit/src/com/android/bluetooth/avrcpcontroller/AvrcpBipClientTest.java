@@ -143,11 +143,12 @@ public class AvrcpBipClientTest {
 
     @Test
     public void toString_returnsClientInfo() {
-        AvrcpBipClient client = new AvrcpBipClient(mTestDevice, TEST_PSM,
-                mArtManager.new BipClientCallback(mTestDevice));
-
-        String expected = "<AvrcpBipClient" + " device=" + mTestDevice + " psm="
-                + TEST_PSM + " state=" + client.getStateName() + ">";
-        assertThat(client.toString()).isEqualTo(expected);
+        String expected =
+                "<AvrcpBipClient"
+                        + (" device=" + mTestDevice)
+                        + (" psm=" + TEST_PSM)
+                        + (" state=" + mClient.getStateName())
+                        + ">";
+        assertThat(mClient.toString()).isEqualTo(expected);
     }
 }
