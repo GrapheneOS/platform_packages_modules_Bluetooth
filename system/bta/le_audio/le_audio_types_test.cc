@@ -88,6 +88,22 @@ TEST(LeAudioLtvMapTest, test_serialization) {
   ASSERT_THAT(ltv_map2.RawPacket(), ElementsAreArray(ltv_test_vec2));
 }
 
+TEST(LeAudioLtvMapTest, test_serialization_macros) {
+  uint64_t value = 0x08090A0B0C0D0E0F;
+
+  auto u16vec = UINT16_TO_VEC_UINT8(value);
+  ASSERT_EQ(sizeof(uint16_t), u16vec.size());
+  ASSERT_EQ(0x0F, u16vec[0]);
+  ASSERT_EQ(0x0E, u16vec[1]);
+
+  auto u32vec = UINT32_TO_VEC_UINT8(value);
+  ASSERT_EQ(sizeof(uint32_t), u32vec.size());
+  ASSERT_EQ(0x0F, u32vec[0]);
+  ASSERT_EQ(0x0E, u32vec[1]);
+  ASSERT_EQ(0x0D, u32vec[2]);
+  ASSERT_EQ(0x0C, u32vec[3]);
+}
+
 TEST(LeAudioLtvMapTest, test_serialization_ltv_len_is_zero) {
   // clang-format off
   const std::vector<uint8_t> ltv_test_vec{
