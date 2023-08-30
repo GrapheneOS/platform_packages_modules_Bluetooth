@@ -9,7 +9,6 @@
 // privacy:"Any"
 
 
-include "btaa/activity_attribution.fbs";
 include "common/init_flags.fbs";
 include "hci/hci_acl_manager.fbs";
 include "hci/hci_controller.fbs";
@@ -31,7 +30,6 @@ table DumpsysData {
     hci_acl_manager_dumpsys_data:bluetooth.hci.AclManagerData (privacy:"Any");
     hci_controller_dumpsys_data:bluetooth.hci.ControllerData (privacy:"Any");
     module_unittest_data:bluetooth.ModuleUnitTestData; // private
-    activity_attribution_dumpsys_data:bluetooth.activity_attribution.ActivityAttributionData (privacy:"Any");
 }
 
 root_type DumpsysData;

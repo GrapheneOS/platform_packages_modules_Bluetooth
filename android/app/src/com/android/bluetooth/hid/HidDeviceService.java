@@ -778,9 +778,6 @@ public class HidDeviceService extends ProfileService {
         mActivityManager.addOnUidImportanceListener(mUidImportanceListener,
                 FOREGROUND_IMPORTANCE_CUTOFF);
         setHidDeviceService(this);
-        AdapterService.getAdapterService().notifyActivityAttributionInfo(
-                getAttributionSource(),
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
         return true;
     }
 
@@ -801,9 +798,6 @@ public class HidDeviceService extends ProfileService {
             mNativeAvailable = false;
         }
         mActivityManager.removeOnUidImportanceListener(mUidImportanceListener);
-        AdapterService.getAdapterService().notifyActivityAttributionInfo(
-                getAttributionSource(),
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
         return true;
     }
 
