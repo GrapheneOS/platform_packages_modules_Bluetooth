@@ -4044,14 +4044,21 @@ TEST_F(UnicastTest, RemoveDeviceWhenGettingConnectionReady) {
   EXPECT_CALL(mock_audio_hal_client_callbacks_,
               OnConnectionState(ConnectionState::CONNECTED, test_address0))
       .Times(0);
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
+      .Times(0);
   ConnectLeAudio(test_address0);
 
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
 
   EXPECT_CALL(mock_gatt_queue_, Clean(conn_id)).Times(AtLeast(1));
   EXPECT_CALL(mock_gatt_interface_, Close(conn_id)).Times(1);
+
+  /* First time called when RemoveDevice is called and then second time
+   * OnGattDisconnected. We accept this spare call.
+   */
   EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
-      .Times(1);
+      .Times(2);
 
   /*
    * StopStream will put calls on main_loop so to keep the correct order
@@ -4167,14 +4174,17 @@ TEST_F(UnicastTest, DisconnectDeviceWhenGettingConnectionReady) {
   EXPECT_CALL(mock_audio_hal_client_callbacks_,
               OnConnectionState(ConnectionState::CONNECTED, test_address0))
       .Times(0);
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
+      .Times(0);
   ConnectLeAudio(test_address0);
 
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
 
   EXPECT_CALL(mock_gatt_queue_, Clean(conn_id)).Times(AtLeast(1));
   EXPECT_CALL(mock_gatt_interface_, Close(conn_id)).Times(1);
   EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
-      .Times(0);
+      .Times(1);
 
   LeAudioClient::Get()->Disconnect(test_address0);
   SyncOnMainLoop();
