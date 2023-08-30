@@ -159,6 +159,7 @@ public class AvrcpCoverArtManager {
         debug("Connect " + device + ", psm: " + psm);
         if (mClients.containsKey(device)) return false;
         AvrcpBipClient client = new AvrcpBipClient(device, psm, new BipClientCallback(device));
+        client.connectAsync();
         mClients.put(device, client);
         mBipSessions.put(device, new AvrcpBipSession(device));
         return true;
