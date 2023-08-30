@@ -19,18 +19,21 @@
 #include <unistd.h>
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <random>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "controller_properties.h"
 #include "hci/address.h"
-#include "link_layer_controller.h"
+#include "model/controller/controller_properties.h"
+#include "model/controller/link_layer_controller.h"
 #include "model/controller/vendor_commands/csr.h"
 #include "model/devices/device.h"
 #include "packets/hci_packets.h"
+#include "packets/link_layer_packets.h"
+#include "phy.h"
 
 namespace rootcanal {
 
