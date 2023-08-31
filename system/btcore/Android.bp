@@ -100,6 +100,7 @@ cc_test {
         "liblog",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbtcore",
         "libchrome",
         "libosi",

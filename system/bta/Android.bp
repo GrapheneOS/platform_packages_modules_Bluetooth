@@ -465,6 +465,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libchrome",
@@ -509,6 +510,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libchrome",
@@ -564,6 +566,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libchrome",
@@ -707,6 +710,7 @@ cc_test {
         "liblog", // __android_log_print
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libchrome",
@@ -801,6 +805,7 @@ cc_test {
         "liblog", // __android_log_print
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libchrome",
@@ -874,6 +879,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-audio-hal-interface",
         "libbt-common",
@@ -937,6 +943,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libchrome",
@@ -991,6 +998,7 @@ cc_test {
         "liblog",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libchrome",
@@ -1054,6 +1062,7 @@ cc_test {
         "liblog",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbt-audio-hal-interface",
         "libbt-common",
         "libchrome",
@@ -1114,6 +1123,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libchrome",
@@ -1176,6 +1186,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libchrome",

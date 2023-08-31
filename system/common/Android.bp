@@ -95,6 +95,7 @@ cc_test {
         "liblog",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbt-common",
         "libchrome",
         "libevent",

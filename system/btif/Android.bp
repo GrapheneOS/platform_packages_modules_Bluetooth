@@ -148,6 +148,7 @@ cc_library_static {
         "lib-bt-packets-avrcp",
         "lib-bt-packets-base",
         "libaudio-a2dp-hw-utils",
+        "libbluetooth-types",
         "libbt-audio-hal-interface",
         "libbt-stack",
         "libbt-stack-core",

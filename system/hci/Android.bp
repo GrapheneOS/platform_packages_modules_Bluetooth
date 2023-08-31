@@ -70,6 +70,7 @@ cc_test {
     ],
     static_libs: [
         "libbluetooth-for-tests",
+        "libbluetooth-types",
         "libbt-hci",
         "libbtcore",
         "libchrome",

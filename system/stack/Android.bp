@@ -392,6 +392,7 @@ cc_fuzz {
         ":TestMockStackMetrics",
         "fuzzers/sdp_fuzzer.cc",
     ],
+    static_libs: ["libbluetooth-types"],
 }
 
 cc_fuzz {
@@ -432,6 +433,7 @@ cc_fuzz {
         "gatt/*.cc",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libgmock",
     ],
 }
@@ -469,6 +471,7 @@ cc_fuzz {
         "smp/*.cc", // add other sources files  (p256 related) under smp into this test
     ],
     static_libs: [
+        "libbluetooth-types",
         "libgmock",
     ],
 }
@@ -506,6 +509,7 @@ cc_fuzz {
         "fuzzers/bnep_fuzzer.cc",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libgmock",
     ],
 }
@@ -545,6 +549,7 @@ cc_fuzz {
         "fuzzers/avrc_fuzzer.cc",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libgmock",
         "libosi",
     ],
@@ -589,6 +594,7 @@ cc_fuzz {
         "l2cap/*.cc",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libgmock",
     ],
     target: {
@@ -650,6 +656,7 @@ cc_test {
         "android.system.suspend.control-V1-ndk",
         "libFraunhoferAAC",
         "libbluetooth-dumpsys",
+        "libbluetooth-types",
         "libbluetooth_core_rs",
         "libbt-audio-hal-interface",
         "libbt-bta",
@@ -735,6 +742,7 @@ cc_test {
         "libcutils",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libchrome",
@@ -814,6 +822,7 @@ cc_test {
         "libcutils",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libchrome",
         "libevent",
@@ -932,6 +941,7 @@ cc_test {
         "libcutils",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libchrome",
@@ -998,6 +1008,7 @@ cc_test {
         "libcutils",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libchrome",
@@ -1106,6 +1117,7 @@ cc_test {
     ],
     static_libs: [
         "libFraunhoferAAC",
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libbt-sbc-decoder",
@@ -1213,6 +1225,7 @@ cc_test {
         "libcutils",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libchrome",
@@ -1261,6 +1274,7 @@ cc_test {
         "test/common/mock_hcic_layer.cc",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbt-common",
         "libchrome",
         "libgmock",
@@ -1323,6 +1337,7 @@ cc_test {
         "libcutils",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libchrome",
@@ -1439,6 +1454,7 @@ cc_test {
         "test/stack_include_test.cc",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libbt-sbc-decoder",
@@ -1547,6 +1563,7 @@ cc_test {
         "test/hid/stack_hid_test.cc",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbt-common",
         "libbtdevice",
         "libbte",
@@ -1619,6 +1636,7 @@ cc_test {
         "test/stack_btu_test.cc",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libbtdevice",
@@ -1701,6 +1719,7 @@ cc_test {
         "test/gatt/stack_gatt_test.cc",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libbtdevice",
@@ -1784,6 +1803,7 @@ cc_test {
         "test/stack_l2cap_test.cc",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libbtdevice",
@@ -1871,6 +1891,7 @@ cc_test {
         "test/stack_acl_test.cc",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
         "libbtdevice",
