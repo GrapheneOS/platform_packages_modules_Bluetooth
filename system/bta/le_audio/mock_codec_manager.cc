@@ -40,7 +40,8 @@ types::CodecLocation CodecManager::GetCodecLocation() const {
 void CodecManager::UpdateActiveAudioConfig(
     const types::BidirectionalPair<stream_parameters>& stream_params,
     types::BidirectionalPair<uint16_t> delays_ms,
-    std::function<void(const ::le_audio::offload_config& config)>
+    std::function<void(const ::le_audio::offload_config& config,
+                       uint8_t direction)>
         update_receiver) {
   if (pimpl_)
     return pimpl_->UpdateActiveAudioConfig(stream_params, delays_ms,
