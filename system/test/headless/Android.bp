@@ -127,8 +127,4 @@ cc_binary {
         "libstatssocket",
         "libutils",
     ],
-    ldflags: ["-rdynamic"],
-    sanitize: {
-        cfi: false,
-    },
 }
