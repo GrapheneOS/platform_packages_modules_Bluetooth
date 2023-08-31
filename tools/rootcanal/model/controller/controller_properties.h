@@ -18,11 +18,8 @@
 
 #include <array>
 #include <cstdint>
-#include <optional>
-#include <string>
 #include <vector>
 
-#include "hci/address.h"
 #include "packets/hci_packets.h"
 #include "rootcanal/configuration.pb.h"
 
