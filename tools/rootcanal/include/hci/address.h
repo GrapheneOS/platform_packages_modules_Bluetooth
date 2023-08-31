@@ -20,15 +20,16 @@
 #include <packet_runtime.h>
 
 #include <array>
+#include <cstdint>
 #include <cstring>
+#include <functional>
 #include <initializer_list>
 #include <optional>
 #include <ostream>
 #include <string>
 #include <vector>
 
-namespace bluetooth {
-namespace hci {
+namespace bluetooth::hci {
 
 class Address final : public pdl::packet::Builder {
  public:
@@ -89,8 +90,7 @@ inline std::ostream& operator<<(std::ostream& os, const Address& a) {
   return os;
 }
 
-}  // namespace hci
-}  // namespace bluetooth
+}  // namespace bluetooth::hci
 
 namespace std {
 template <>

@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-#include "acl_connection.h"
+#include "model/controller/acl_connection.h"
+
+#include <chrono>
+#include <cstdint>
+
+#include "packets/hci_packets.h"
+#include "phy.h"
 
 namespace rootcanal {
 AclConnection::AclConnection(AddressWithType address,
@@ -29,15 +35,15 @@ AclConnection::AclConnection(AddressWithType address,
       last_packet_timestamp_(std::chrono::steady_clock::now()),
       timeout_(std::chrono::seconds(1)) {}
 
-void AclConnection::Encrypt() { encrypted_ = true; };
+void AclConnection::Encrypt() { encrypted_ = true; }
 
-bool AclConnection::IsEncrypted() const { return encrypted_; };
+bool AclConnection::IsEncrypted() const { return encrypted_; }
 
 void AclConnection::SetLinkPolicySettings(uint16_t settings) {
   link_policy_settings_ = settings;
 }
 
-bluetooth::hci::Role AclConnection::GetRole() const { return role_; };
+bluetooth::hci::Role AclConnection::GetRole() const { return role_; }
 
 void AclConnection::SetRole(bluetooth::hci::Role role) { role_ = role; }
 
