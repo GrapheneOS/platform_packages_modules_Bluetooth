@@ -3411,8 +3411,9 @@ class LeAudioClientImpl : public LeAudioClient {
               group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSource)};
       CodecManager::GetInstance()->UpdateActiveAudioConfig(
           group->stream_conf.stream_params, delays_pair,
-          std::bind(&LeAudioSourceAudioHalClient::UpdateAudioConfigToHal,
-                    le_audio_source_hal_client_.get(), std::placeholders::_1));
+          std::bind(&LeAudioClientImpl::UpdateAudioConfigToHal,
+                    weak_factory_.GetWeakPtr(), std::placeholders::_1,
+                    std::placeholders::_2));
     }
 
     return true;
@@ -3481,8 +3482,9 @@ class LeAudioClientImpl : public LeAudioClient {
               group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSource)};
       CodecManager::GetInstance()->UpdateActiveAudioConfig(
           group->stream_conf.stream_params, delays_pair,
-          std::bind(&LeAudioSourceAudioHalClient::UpdateAudioConfigToHal,
-                    le_audio_source_hal_client_.get(), std::placeholders::_1));
+          std::bind(&LeAudioClientImpl::UpdateAudioConfigToHal,
+                    weak_factory_.GetWeakPtr(), std::placeholders::_1,
+                    std::placeholders::_2));
     }
   }
 
@@ -5031,6 +5033,18 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
+  void UpdateAudioConfigToHal(const ::le_audio::offload_config& config,
+                              uint8_t remote_direction) {
+    if ((remote_direction & le_audio::types::kLeAudioDirectionSink) &&
+        le_audio_source_hal_client_) {
+      le_audio_source_hal_client_->UpdateAudioConfigToHal(config);
+    }
+    if ((remote_direction & le_audio::types::kLeAudioDirectionSource) &&
+        le_audio_sink_hal_client_) {
+      le_audio_sink_hal_client_->UpdateAudioConfigToHal(config);
+    }
+  }
+
   void NotifyUpperLayerGroupTurnedIdleDuringCall(int group_id) {
     if (!osi_property_get_bool(kNotifyUpperLayerAboutGroupBeingInIdleDuringCall,
                                false)) {
@@ -5103,9 +5117,9 @@ class LeAudioClientImpl : public LeAudioClient {
                   le_audio::types::kLeAudioDirectionSource)};
           CodecManager::GetInstance()->UpdateActiveAudioConfig(
               group->stream_conf.stream_params, delays_pair,
-              std::bind(&LeAudioSourceAudioHalClient::UpdateAudioConfigToHal,
-                        le_audio_source_hal_client_.get(),
-                        std::placeholders::_1));
+              std::bind(&LeAudioClientImpl::UpdateAudioConfigToHal,
+                        weak_factory_.GetWeakPtr(), std::placeholders::_1,
+                        std::placeholders::_2));
           if (reconnection_mode_ ==
               BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS) {
             group->AddToAllowListNotConnectedGroupMembers(gatt_if_);
