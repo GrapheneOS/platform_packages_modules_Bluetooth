@@ -72,7 +72,8 @@ class CodecManager {
   virtual void UpdateActiveAudioConfig(
       const types::BidirectionalPair<stream_parameters>& stream_params,
       types::BidirectionalPair<uint16_t> delays_ms,
-      std::function<void(const offload_config& config)> update_receiver);
+      std::function<void(const offload_config& config, uint8_t direction)>
+          update_receiver);
   virtual const ::le_audio::set_configurations::AudioSetConfigurations*
   GetOffloadCodecConfig(::le_audio::types::LeAudioContextType ctx_type);
   virtual const ::le_audio::broadcast_offload_config*
