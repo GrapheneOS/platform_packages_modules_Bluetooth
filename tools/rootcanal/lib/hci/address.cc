@@ -19,10 +19,18 @@
 #include <packet_runtime.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
+#include <initializer_list>
 #include <iomanip>
+#include <ios>
+#include <iterator>
+#include <optional>
 #include <sstream>
+#include <string>
+#include <utility>
 
 namespace bluetooth::hci {
 
