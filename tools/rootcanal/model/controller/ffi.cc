@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#include "ffi.h"
+#include "model/controller/ffi.h"
 
 #include <android-base/logging.h>
 
 #include <iostream>
 
-#include "dual_mode_controller.h"
+#include "model/controller/dual_mode_controller.h"
 
 using namespace rootcanal;
 using bluetooth::hci::Address;
