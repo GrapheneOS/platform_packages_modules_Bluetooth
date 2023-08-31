@@ -2,9 +2,11 @@ import threading
 import textwrap
 import uuid
 import re
+import sys
 
 from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
+from mmi2grpc._rootcanal import Dongle
 
 from pandora.host_grpc import Host
 from pandora.host_pb2 import RANDOM
@@ -21,14 +23,20 @@ def short_uuid(full: uuid.UUID) -> int:
 
 class HOGPProxy(ProfileProxy):
 
-    def __init__(self, channel):
+    def __init__(self, channel, rootcanal):
         super().__init__(channel)
         self.host = Host(channel)
         self.security = Security(channel)
         self.gatt = GATT(channel)
+        self.rootcanal = rootcanal
         self.connection = None
-        self.pairing_stream = None
+        self.pairing_stream = self.security.OnPairing()
         self.characteristic_reads = {}
+
+    def test_started(self, test: str, **kwargs):
+        self.rootcanal.select_pts_dongle(Dongle.CSR_RCK_PTS_DONGLE)
+
+        return "OK"
 
     @assert_description
     def IUT_INITIATE_CONNECTION(self, pts_addr: bytes, **kwargs):
@@ -41,7 +49,6 @@ class HOGPProxy(ProfileProxy):
         """
 
         self.connection = self.host.ConnectLE(own_address_type=RANDOM, public=pts_addr).connection
-        self.pairing_stream = self.security.OnPairing()
 
         def secure():
             self.security.Secure(connection=self.connection, le=LE_LEVEL3)
@@ -168,7 +175,7 @@ class HOGPProxy(ProfileProxy):
         (?P<body>.*)
         """
 
-        PATTERN = re.compile(r"Start Handle: (?P<start_handle>\S*)     End Handle: (?P<end_handle>\S*)")
+        PATTERN = re.compile(r"Start Handle: (?P<start_handle>\S*) End Handle: (?P<end_handle>\S*)")
 
         SERVICE_UUIDS = {
             "Device Information": 0x180A,
@@ -300,3 +307,16 @@ class HOGPProxy(ProfileProxy):
         assert (body.count("Handle:") == num_checks), "safety check that regex is matching something"
 
         return "OK"
+
+    @assert_description
+    def MMI_VERIFY_SECURE_ID(self, pts_addr: bytes, **kwargs):
+        """
+        Please enter the secure ID.
+        """
+
+        for event in self.pairing_stream:
+            if event.address == pts_addr and event.passkey_entry_notification:
+                print(f"Got passkey entry {event.passkey_entry_notification}", file=sys.stderr)
+                return str(event.passkey_entry_notification)
+
+        assert False

@@ -1015,6 +1015,14 @@ class HFPProxy(ProfileProxy):
 
         return "OK"
 
+    @assert_description
+    def TSC_verify_iut_ignore_wrong_bind(self, **kwargs):
+        """
+        Verify IUT ignores unkown or unexpected indication code. Then click OK.
+        """
+
+        return "OK"
+
     def _auto_confirm_requests(self, times=None):
 
         def task():
