@@ -71,6 +71,7 @@ cc_library_static {
         "com.android.btservices",
     ],
     min_sdk_version: "Tiramisu",
+    header_libs: ["libbluetooth_headers"],
 }
 
 // Bluetooth Audio client interface library unit tests for target and host
@@ -104,4 +105,5 @@ cc_test {
     cflags: [
         "-DBUILDCFG",
     ],
+    header_libs: ["libbluetooth_headers"],
 }

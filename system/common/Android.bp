@@ -52,6 +52,7 @@ cc_library_static {
         "com.android.btservices",
     ],
     min_sdk_version: "Tiramisu",
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -103,6 +104,7 @@ cc_test {
     sanitize: {
         cfi: false,
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -128,6 +130,7 @@ cc_test {
         "libgmock",
         "libosi",
     ],
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_benchmark {
@@ -150,4 +153,5 @@ cc_benchmark {
         "libevent",
         "libosi",
     ],
+    header_libs: ["libbluetooth_headers"],
 }

@@ -127,4 +127,5 @@ cc_binary {
         "libstatssocket",
         "libutils",
     ],
+    header_libs: ["libbluetooth_headers"],
 }

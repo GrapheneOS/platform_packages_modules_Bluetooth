@@ -87,6 +87,7 @@ cc_library_static {
     apex_available: [
         "com.android.btservices",
     ],
+    header_libs: ["libbluetooth_headers"],
 }
 
 // libosi unit tests for target and host
@@ -151,4 +152,5 @@ cc_test {
         address: true,
         cfi: false,
     },
+    header_libs: ["libbluetooth_headers"],
 }

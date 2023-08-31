@@ -111,4 +111,5 @@ cc_test {
     sanitize: {
         address: true,
     },
+    header_libs: ["libbluetooth_headers"],
 }

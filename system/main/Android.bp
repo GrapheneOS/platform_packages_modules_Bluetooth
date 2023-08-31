@@ -56,6 +56,7 @@ cc_library_static {
     host_supported: true,
     min_sdk_version: "Tiramisu",
     static_libs: ["libbluetooth_gd"],
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_library {
@@ -147,6 +148,7 @@ cc_library_static {
     whole_static_libs: [
         "libbluetooth_gd", // Gabeldorsche
     ],
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -231,4 +233,5 @@ cc_test {
         "BluetoothGeneratedPackets_h",
     ],
     min_sdk_version: "Tiramisu",
+    header_libs: ["libbluetooth_headers"],
 }

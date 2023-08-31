@@ -32,6 +32,7 @@ cc_library_static {
         "com.android.btservices",
     ],
     min_sdk_version: "Tiramisu",
+    header_libs: ["libbluetooth_headers"],
 }
 
 // Bluetooth device unit tests for target
@@ -59,6 +60,7 @@ cc_test {
         "libchrome",
         "libosi",
     ],
+    header_libs: ["libbluetooth_headers"],
 }
 
 // Bluetooth device unit tests for target
@@ -92,4 +94,5 @@ cc_test {
         "libchrome",
         "libgmock",
     ],
+    header_libs: ["libbluetooth_headers"],
 }

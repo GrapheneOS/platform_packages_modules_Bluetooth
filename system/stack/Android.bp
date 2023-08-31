@@ -27,6 +27,7 @@ cc_test_library {
         "liblog",
     ],
     srcs: crypto_toolbox_srcs,
+    header_libs: ["libbluetooth_headers"],
 }
 
 // Bluetooth stack static library for target
@@ -675,6 +676,7 @@ cc_test {
     whole_static_libs: [
         "libbluetooth-for-tests",
     ],
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -753,6 +755,7 @@ cc_test {
     sanitize: {
         cfi: false,
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 // Bluetooth stack smp unit tests for target
@@ -818,6 +821,7 @@ cc_test {
         "liblog",
         "libosi",
     ],
+    header_libs: ["libbluetooth_headers"],
 }
 
 // Bluetooth stack advertise data parsing unit tests for target
@@ -888,6 +892,7 @@ cc_test {
     sanitize: {
         cfi: false,
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -948,6 +953,7 @@ cc_test {
         cfi: true,
         misc_undefined: ["bounds"],
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -1011,6 +1017,7 @@ cc_test {
         cfi: true,
         misc_undefined: ["bounds"],
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -1120,6 +1127,7 @@ cc_test {
         cfi: true,
         misc_undefined: ["bounds"],
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -1160,6 +1168,7 @@ cc_test {
         cfi: true,
         misc_undefined: ["bounds"],
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 // gatt sr hash test
@@ -1218,6 +1227,7 @@ cc_test {
             shared_libs: ["libstatssocket"],
         },
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 // Iso manager unit tests
@@ -1267,6 +1277,7 @@ cc_test {
             undefined: true,
         },
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 // EATT unit tests
@@ -1330,6 +1341,7 @@ cc_test {
     sanitize: {
         cfi: false,
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -1453,6 +1465,7 @@ cc_test {
             undefined: true,
         },
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -1499,6 +1512,7 @@ cc_test {
             undefined: true,
         },
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -1561,6 +1575,7 @@ cc_test {
             undefined: true,
         },
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -1627,6 +1642,7 @@ cc_test {
             undefined: true,
         },
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -1716,6 +1732,7 @@ cc_test {
             undefined: true,
         },
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -1801,6 +1818,7 @@ cc_test {
             undefined: true,
         },
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -1882,6 +1900,7 @@ cc_test {
             undefined: true,
         },
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 // Bluetooth stack connection multiplexing
@@ -1928,4 +1947,5 @@ cc_test {
         "libgmock",
         "liblog",
     ],
+    header_libs: ["libbluetooth_headers"],
 }

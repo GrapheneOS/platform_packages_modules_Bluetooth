@@ -718,6 +718,7 @@ cc_test {
     sanitize: {
         cfi: false,
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
@@ -811,6 +812,7 @@ cc_test {
     sanitize: {
         cfi: false,
     },
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
