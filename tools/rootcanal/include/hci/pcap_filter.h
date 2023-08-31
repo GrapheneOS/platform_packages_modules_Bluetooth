@@ -16,9 +16,13 @@
 
 #pragma once
 
-#include <packets/hci_packets.h>
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <utility>
+#include <vector>
 
-#include <unordered_map>
+#include "packets/hci_packets.h"
 
 namespace rootcanal {
 

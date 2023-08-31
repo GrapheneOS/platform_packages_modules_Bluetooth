@@ -14,26 +14,44 @@
  * limitations under the License.
  */
 
-#include "link_layer_controller.h"
+#include "model/controller/link_layer_controller.h"
+
+#include <packet_runtime.h>
 
 #include <algorithm>
+#include <array>
+#include <chrono>
+#include <cstddef>
+#include <cstdint>
+#include <cstdlib>
+#include <functional>
+#include <memory>
+#include <optional>
+#include <utility>
+#include <vector>
 
 #include "crypto/crypto.h"
+#include "hci/address.h"
+#include "hci/address_with_type.h"
 #include "log.h"
+#include "model/controller/acl_connection.h"
+#include "model/controller/acl_connection_handler.h"
+#include "model/controller/controller_properties.h"
+#include "model/controller/le_advertiser.h"
+#include "model/controller/sco_connection.h"
 #include "packets/hci_packets.h"
-#include "rootcanal_rs.h"
+#include "packets/link_layer_packets.h"
+#include "phy.h"
+#include "rust/include/rootcanal_rs.h"
 
 using namespace std::chrono;
 using bluetooth::hci::Address;
 using bluetooth::hci::AddressType;
 using bluetooth::hci::AddressWithType;
-using bluetooth::hci::DirectAdvertisingAddressType;
-using bluetooth::hci::EventCode;
 using bluetooth::hci::LLFeaturesBits;
 using bluetooth::hci::SubeventCode;
 
 using namespace model::packets;
-using model::packets::PacketType;
 using namespace std::literals;
 
 using TaskId = rootcanal::LinkLayerController::TaskId;
