@@ -94,6 +94,8 @@ public final class BluetoothGatt implements BluetoothProfile {
 
     private static final int WRITE_CHARACTERISTIC_MAX_RETRIES = 5;
     private static final int WRITE_CHARACTERISTIC_TIME_TO_WAIT = 10; // milliseconds
+    // Max length of an attribute value, defined in gatt_api.h
+    private static final int GATT_MAX_ATTR_LEN = 512;
 
     private List<BluetoothGattService> mServices;
 
@@ -1437,6 +1439,10 @@ public final class BluetoothGatt implements BluetoothProfile {
         }
         if (value == null) {
             throw new IllegalArgumentException("value must not be null");
+        }
+        if (value.length > GATT_MAX_ATTR_LEN) {
+            throw new IllegalArgumentException(
+                    "notification should not be longer than max length of an attribute value");
         }
         if (VDBG) Log.d(TAG, "writeCharacteristic() - uuid: " + characteristic.getUuid());
         if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE) == 0
