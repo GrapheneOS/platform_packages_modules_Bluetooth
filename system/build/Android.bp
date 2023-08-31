@@ -33,7 +33,6 @@ cc_defaults {
     },
     defaults: ["fluoride_types_defaults_fuzzable"],
     static_libs: [
-        "libbt_shim_bridge",
         "libbt_shim_ffi",
     ],
 }

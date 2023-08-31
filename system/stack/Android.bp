@@ -139,6 +139,7 @@ cc_library_static {
         "libbt-hci",
         "libbt-platform-protos-lite",
         "libbt-stack-core",
+        "libbt_shim_bridge",
     ],
     whole_static_libs: [
         "libaptx_enc",
@@ -291,6 +292,7 @@ cc_library_static {
         "libbluetooth_gd",
         "libbt-hci",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
     ],
     shared_libs: [
         "libPlatformProperties",
@@ -397,6 +399,7 @@ cc_fuzz {
     static_libs: [
         "libbluetooth-types",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
     ],
 }
 
@@ -440,6 +443,7 @@ cc_fuzz {
     static_libs: [
         "libbluetooth-types",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libgmock",
     ],
 }
@@ -479,6 +483,7 @@ cc_fuzz {
     static_libs: [
         "libbluetooth-types",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libgmock",
     ],
 }
@@ -518,6 +523,7 @@ cc_fuzz {
     static_libs: [
         "libbluetooth-types",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libgmock",
     ],
 }
@@ -559,6 +565,7 @@ cc_fuzz {
     static_libs: [
         "libbluetooth-types",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libgmock",
         "libosi",
     ],
@@ -605,6 +612,7 @@ cc_fuzz {
     static_libs: [
         "libbluetooth-types",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libgmock",
     ],
     target: {
@@ -677,6 +685,7 @@ cc_test {
         "libbt-sbc-encoder",
         "libbt-stack",
         "libbt-stack-core",
+        "libbt_shim_bridge",
         "libbtcore",
         "libbtdevice",
         "libbtif",
@@ -756,6 +765,7 @@ cc_test {
         "libbluetooth_gd",
         "libbt-common",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libchrome",
         "libevent",
         "libgmock",
@@ -836,6 +846,7 @@ cc_test {
         "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libchrome",
         "libevent",
         "libgmock",
@@ -905,6 +916,7 @@ cc_test {
         "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
+        "libbt_shim_bridge",
         "libchrome",
         "libevent",
         "libgmock",
@@ -956,6 +968,7 @@ cc_test {
         "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
+        "libbt_shim_bridge",
         "libchrome",
         "libevent",
         "libgmock",
@@ -1023,6 +1036,7 @@ cc_test {
         "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
+        "libbt_shim_bridge",
         "libchrome",
         "libevent",
         "liblog",
@@ -1134,6 +1148,7 @@ cc_test {
         "libbt-common",
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
+        "libbt_shim_bridge",
         "libchrome",
         "libgmock",
         "liblog",
@@ -1183,6 +1198,7 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
+        "libbt_shim_bridge",
         "libchrome",
         "liblog",
         "libosi",
@@ -1241,6 +1257,7 @@ cc_test {
         "libbluetooth_gd",
         "libbt-common",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libchrome",
         "libevent",
         "libgmock",
@@ -1289,6 +1306,7 @@ cc_test {
     static_libs: [
         "libbluetooth-types",
         "libbt-common",
+        "libbt_shim_bridge",
         "libchrome",
         "libgmock",
         "liblog",
@@ -1353,6 +1371,7 @@ cc_test {
         "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
+        "libbt_shim_bridge",
         "libchrome",
         "libevent",
         "libgmock",
@@ -1473,6 +1492,7 @@ cc_test {
         "libbt-platform-protos-lite",
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
+        "libbt_shim_bridge",
         "libbtdevice",
         "libchrome",
         "libevent",
@@ -1522,6 +1542,7 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
+        "libbt_shim_bridge",
         "libbtdevice",
         "libbte",
         "libchrome",
@@ -1580,6 +1601,7 @@ cc_test {
         "libbluetooth-types",
         "libbt-common",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libbtdevice",
         "libbte",
         "libchrome",
@@ -1655,6 +1677,7 @@ cc_test {
         "libbluetooth_gd",
         "libbt-common",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libbtdevice",
         "libchrome",
         "libevent",
@@ -1739,6 +1762,7 @@ cc_test {
         "libbluetooth_gd",
         "libbt-common",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libbtdevice",
         "libchrome",
         "libevent",
@@ -1824,6 +1848,7 @@ cc_test {
         "libbluetooth_gd",
         "libbt-common",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libbtdevice",
         "libchrome",
         "libevent",
@@ -1913,6 +1938,7 @@ cc_test {
         "libbluetooth_gd",
         "libbt-common",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libbtdevice",
         "libchrome",
         "libevent",
@@ -1984,6 +2010,7 @@ cc_test {
         "libbluetooth_gd",
         "libbt-common",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libchrome",
         "libgmock",
         "liblog",

@@ -27,6 +27,7 @@ cc_library_static {
     static_libs: [
         "lib-bt-packets",
         "libbluetooth-types",
+        "libbt_shim_bridge",
         "libosi",
     ],
     whole_static_libs: [
@@ -72,6 +73,7 @@ cc_test {
         "libbase",
         "libbluetooth-types",
         "libbluetooth_gd",
+        "libbt_shim_bridge",
         "libbtdevice",
         "libchrome",
         "libcutils",
@@ -112,6 +114,7 @@ cc_fuzz {
         "libbase",
         "libbluetooth-types",
         "libbluetooth_gd",
+        "libbt_shim_bridge",
         "libchrome",
         "libcutils",
         "libevent",

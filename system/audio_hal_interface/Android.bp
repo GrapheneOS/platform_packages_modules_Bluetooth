@@ -27,6 +27,7 @@ cc_library_static {
     ],
     static_libs: [
         "libbt-common",
+        "libbt_shim_bridge",
         "libosi",
     ],
     target: {
@@ -100,6 +101,7 @@ cc_test {
     static_libs: [
         "libbt-audio-hal-interface",
         "libbt-common",
+        "libbt_shim_bridge",
         "libchrome",
     ],
     cflags: [

@@ -153,6 +153,7 @@ cc_library_static {
         "libbt-platform-protos-lite",
         "libbt-stack",
         "libbt-stack-core",
+        "libbt_shim_bridge",
         "libbtif-core",
     ],
     shared_libs: [
@@ -230,6 +231,7 @@ cc_library_static {
         "libbt-audio-hal-interface",
         "libbt-platform-protos-lite",
         "libbt-stack-core",
+        "libbt_shim_bridge",
         "libstatslog_bt",
     ],
     shared_libs: [
@@ -297,6 +299,7 @@ cc_test {
         "libbt-sbc-encoder",
         "libbt-stack",
         "libbt-stack-core",
+        "libbt_shim_bridge",
         "libbtcore",
         "libbtdevice",
         "libbtif",
@@ -350,6 +353,7 @@ cc_test {
     static_libs: [
         "libbluetooth-types",
         "libbluetooth_gd",
+        "libbt_shim_bridge",
         "libchrome",
         "libosi",
     ],
@@ -382,6 +386,7 @@ cc_test {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbt_shim_bridge",
         "libchrome",
         "libosi",
     ],
@@ -421,6 +426,7 @@ cc_test {
         "libbluetooth_gd",
         "libbt-common",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libchrome",
         "libevent",
     ],
@@ -464,6 +470,7 @@ cc_test {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbt_shim_bridge",
         "libc++fs",
         "libchrome",
         "libgmock",
@@ -500,6 +507,7 @@ cc_test {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbt_shim_bridge",
         "libchrome",
         "libcom.android.sysprop.bluetooth",
         "libosi",
@@ -607,6 +615,7 @@ cc_test {
         "libbt-sbc-encoder",
         "libbt-stack",
         "libbt-stack-core",
+        "libbt_shim_bridge",
         "libbtdevice",
         "libbtif",
         "libbtif-core",
@@ -740,6 +749,7 @@ cc_test {
         "libbt-platform-protos-lite",
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
+        "libbt_shim_bridge",
         "libbtdevice",
         "libbtif",
         "libbtif-core",

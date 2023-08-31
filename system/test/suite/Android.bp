@@ -125,6 +125,7 @@ cc_test {
         "android.media.audio.common.types-V2-ndk",
         "libbluetooth_gd",
         "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libchrome",
         "libevent",
     ],
