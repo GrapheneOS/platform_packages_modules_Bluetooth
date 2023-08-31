@@ -1979,10 +1979,9 @@ void bta_av_str_stopped(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   bool sus_evt = true;
   BT_HDR* p_buf;
 
-  APPL_TRACE_ERROR(
-      "%s: peer %s bta_handle:0x%x audio_open_cnt:%d, p_data %p start:%d",
-      __func__, ADDRESS_TO_LOGGABLE_CSTR(p_scb->PeerAddress()), p_scb->hndl,
-      bta_av_cb.audio_open_cnt, p_data, start);
+  LOG_INFO("peer %s bta_handle:0x%x audio_open_cnt:%d, p_data %p start:%d",
+           ADDRESS_TO_LOGGABLE_CSTR(p_scb->PeerAddress()), p_scb->hndl,
+           bta_av_cb.audio_open_cnt, p_data, start);
 
   bta_sys_idle(BTA_ID_AV, bta_av_cb.audio_open_cnt, p_scb->PeerAddress());
   BTM_unblock_role_switch_and_sniff_mode_for(p_scb->PeerAddress());
