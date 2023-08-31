@@ -20,7 +20,6 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothPbapClient;
 import android.content.AttributionSource;
@@ -140,9 +139,6 @@ public class PbapClientService extends ProfileService {
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         // delay initial download until after the user is unlocked to add an account.
         filter.addAction(Intent.ACTION_USER_UNLOCKED);
-        // To remove call logs when PBAP was never connected while calls were made,
-        // we also listen for HFP to become disconnected.
-        filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
         try {
             registerReceiver(mPbapBroadcastReceiver, filter);
         } catch (Exception e) {
@@ -316,22 +312,24 @@ public class PbapClientService extends ProfileService {
                 for (PbapClientStateMachine stateMachine : mPbapClientStateMachineMap.values()) {
                     stateMachine.tryDownloadIfConnected();
                 }
-            } else if (action.equals(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED)) {
-                // PbapClientConnectionHandler has code to remove calllogs when PBAP disconnects.
-                // However, if PBAP was never connected/enabled in the first place, and calls are
-                // made over HFP, these calllogs will not be removed when the device disconnects.
-                // This code ensures callogs are still removed in this case.
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                int newState = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
-
-                if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                    if (DBG) {
-                        Log.d(TAG, "Received intent to disconnect HFP with " + device);
-                    }
-                    // HFP client stores entries in calllog.db by BD_ADDR and component name
-                    removeHfpCallLog(device.getAddress(), context);
-                }
             }
+        }
+    }
+
+    /**
+     * Ensure that after HFP disconnects, we remove call logs. This addresses the situation when
+     * PBAP was never connected while calls were made. Ideally {@link PbapClientConnectionHandler}
+     * has code to remove calllogs when PBAP disconnects.
+     */
+    public void handleHeadsetClientConnectionStateChanged(
+            BluetoothDevice device, int oldState, int newState) {
+        if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+            if (DBG) {
+                Log.d(TAG, "Received intent to disconnect HFP with " + device);
+            }
+            // HFP client stores entries in calllog.db by BD_ADDR and component name
+            // Using the current Service as the context.
+            removeHfpCallLog(device.getAddress(), this);
         }
     }
 
