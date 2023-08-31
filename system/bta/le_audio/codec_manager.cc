@@ -130,7 +130,8 @@ struct codec_manager_impl {
   void UpdateActiveAudioConfig(
       const types::BidirectionalPair<stream_parameters>& stream_params,
       types::BidirectionalPair<uint16_t> delays_ms,
-      std::function<void(const offload_config& config)> update_receiver) {
+      std::function<void(const offload_config& config, uint8_t direction)>
+          update_receiver) {
     if (GetCodecLocation() != le_audio::types::CodecLocation::ADSP) {
       return;
     }
@@ -161,7 +162,7 @@ struct codec_manager_impl {
               stream_params.get(direction).codec_frames_blocks_per_sdu,
           .peer_delay_ms = delays_ms.get(direction),
       };
-      update_receiver(unicast_cfg);
+      update_receiver(unicast_cfg, direction);
       stream_map.is_initial = false;
     }
   }
@@ -568,7 +569,8 @@ types::CodecLocation CodecManager::GetCodecLocation(void) const {
 void CodecManager::UpdateActiveAudioConfig(
     const types::BidirectionalPair<stream_parameters>& stream_params,
     types::BidirectionalPair<uint16_t> delays_ms,
-    std::function<void(const offload_config& config)> update_receiver) {
+    std::function<void(const offload_config& config, uint8_t direction)>
+        update_receiver) {
   if (pimpl_->IsRunning())
     pimpl_->codec_manager_impl_->UpdateActiveAudioConfig(
         stream_params, delays_ms, update_receiver);
