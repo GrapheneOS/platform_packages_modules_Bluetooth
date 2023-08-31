@@ -218,6 +218,10 @@ public class A2dpSinkStateMachine extends StateMachine {
                 case CONNECT_TIMEOUT:
                     transitionTo(mDisconnected);
                     return true;
+                case DISCONNECT:
+                    Log.d(TAG, "Received disconnect message while connecting. deferred");
+                    deferMessage(message);
+                    return true;
             }
             return false;
         }
