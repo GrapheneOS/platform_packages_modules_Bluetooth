@@ -33,7 +33,6 @@ cc_defaults {
     },
     defaults: ["fluoride_types_defaults_fuzzable"],
     static_libs: [
-        "libbluetooth_rust_interop",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
