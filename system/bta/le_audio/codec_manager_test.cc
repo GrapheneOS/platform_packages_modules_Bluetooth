@@ -40,6 +40,11 @@ using le_audio::types::kLeAudioDirectionSource;
 
 void osi_property_set_bool(const char* key, bool value);
 
+template <typename T>
+T& le_audio::types::BidirectionalPair<T>::get(uint8_t direction) {
+  return (direction == le_audio::types::kLeAudioDirectionSink) ? sink : source;
+}
+
 std::vector<AudioSetConfiguration> offload_capabilities(0);
 
 const char* test_flags[] = {
@@ -200,17 +205,20 @@ TEST_F(CodecManagerTestAdsp, testStreamConfigurationAdspDownMix) {
                                         kLeAudioDirectionSource);
 
   // Verify the offloader config content
-  std::vector<offload_config> out_offload_configs;
+  types::BidirectionalPair<std::optional<offload_config>> out_offload_configs;
   codec_manager->UpdateActiveAudioConfig(
       stream_params, {.sink = 44, .source = 44},
-      [&out_offload_configs](const offload_config& config) {
-        out_offload_configs.push_back(config);
+      [&out_offload_configs](const offload_config& config, uint8_t direction) {
+        out_offload_configs.get(direction) = config;
       });
 
   // Expect the same configuration for sink and source
-  ASSERT_EQ(2lu, out_offload_configs.size());
-  for (const auto& config : out_offload_configs) {
+  ASSERT_TRUE(out_offload_configs.sink.has_value());
+  ASSERT_TRUE(out_offload_configs.source.has_value());
+  for (auto direction : {le_audio::types::kLeAudioDirectionSink,
+                         le_audio::types::kLeAudioDirectionSource}) {
     uint32_t allocation = 0;
+    auto& config = out_offload_configs.get(direction).value();
     ASSERT_EQ(2lu, config.stream_map.size());
     for (const auto& info : config.stream_map) {
       if (info.stream_handle == 96) {
@@ -243,16 +251,20 @@ TEST_F(CodecManagerTestAdsp, testStreamConfigurationAdspDownMix) {
   // Clear the CIS configuration map (no active CISes).
   codec_manager->ClearCisConfiguration(kLeAudioDirectionSink);
   codec_manager->ClearCisConfiguration(kLeAudioDirectionSource);
-  out_offload_configs.clear();
+  out_offload_configs.sink = std::nullopt;
+  out_offload_configs.source = std::nullopt;
   codec_manager->UpdateActiveAudioConfig(
       stream_params, {.sink = 44, .source = 44},
-      [&out_offload_configs](const offload_config& config) {
-        out_offload_configs.push_back(config);
+      [&out_offload_configs](const offload_config& config, uint8_t direction) {
+        out_offload_configs.get(direction) = config;
       });
 
   // Expect sink & source configurations with empty CIS channel allocation map.
-  ASSERT_EQ(2lu, out_offload_configs.size());
-  for (const auto& config : out_offload_configs) {
+  ASSERT_TRUE(out_offload_configs.sink.has_value());
+  ASSERT_TRUE(out_offload_configs.source.has_value());
+  for (auto direction : {le_audio::types::kLeAudioDirectionSink,
+                         le_audio::types::kLeAudioDirectionSource}) {
+    auto& config = out_offload_configs.get(direction).value();
     ASSERT_EQ(0lu, config.stream_map.size());
     ASSERT_EQ(16, config.bits_per_sample);
     ASSERT_EQ(16000u, config.sampling_rate);
