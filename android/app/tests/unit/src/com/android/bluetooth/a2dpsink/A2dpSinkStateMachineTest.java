@@ -269,12 +269,19 @@ public class A2dpSinkStateMachineTest {
     }
 
     @Test
-    public void testDisconnectInConnecting() {
+    public void testDisconnectInConnecting_disconnectDeferredAndProcessed() {
         testConnectInDisconnected();
         assertThat(mStateMachine.getState()).isEqualTo(BluetoothProfile.STATE_CONNECTING);
         mStateMachine.disconnect();
         TestUtils.waitForLooperToFinishScheduledTask(mStateMachine.getHandler().getLooper());
         assertThat(mStateMachine.getState()).isEqualTo(BluetoothProfile.STATE_CONNECTING);
+
+        // send connected, disconnect should get processed
+        sendConnectionEvent(BluetoothProfile.STATE_CONNECTED);
+        TestUtils.waitForLooperToFinishScheduledTask(mStateMachine.getHandler().getLooper());
+        verify(mNativeInterface, times(1)).disconnectA2dpSink(mDevice);
+        verify(mService, timeout(TIMEOUT_MS).times(1)).removeStateMachine(mStateMachine);
+        assertThat(mStateMachine.getState()).isEqualTo(BluetoothProfile.STATE_DISCONNECTED);
     }
 
     /**********************************************************************************************
