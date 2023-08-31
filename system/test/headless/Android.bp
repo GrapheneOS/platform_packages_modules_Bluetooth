@@ -127,8 +127,4 @@ cc_binary {
         "libutils",
         "libPlatformProperties",
     ],
-    ldflags: ["-rdynamic"],
-    sanitize: {
-        cfi: false,
-    },
 }
