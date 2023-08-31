@@ -55,7 +55,10 @@ cc_library_static {
     ],
     host_supported: true,
     min_sdk_version: "Tiramisu",
-    static_libs: ["libbluetooth_gd"],
+    static_libs: [
+        "libbluetooth_gd",
+        "libbt-platform-protos-lite",
+    ],
     header_libs: ["libbluetooth_headers"],
 }
 
@@ -149,6 +152,7 @@ cc_library_static {
         "libbluetooth_gd", // Gabeldorsche
     ],
     header_libs: ["libbluetooth_headers"],
+    static_libs: ["libbt-platform-protos-lite"],
 }
 
 cc_test {
@@ -207,6 +211,7 @@ cc_test {
         "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
+        "libbt-platform-protos-lite",
         "libbtdevice",
         "libchrome",
         "libevent",

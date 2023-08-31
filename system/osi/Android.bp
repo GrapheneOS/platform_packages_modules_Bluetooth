@@ -88,6 +88,7 @@ cc_library_static {
         "com.android.btservices",
     ],
     header_libs: ["libbluetooth_headers"],
+    static_libs: ["libbt-platform-protos-lite"],
 }
 
 // libosi unit tests for target and host
