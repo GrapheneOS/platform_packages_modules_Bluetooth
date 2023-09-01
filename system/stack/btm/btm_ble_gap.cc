@@ -979,6 +979,12 @@ void btm_ble_start_sync_request(uint8_t sid, RawAddress addr, uint16_t skip,
   uint8_t options = 0;
   uint8_t cte_type = 7;
   int index = btm_ble_get_psync_index(sid, addr);
+
+  if (index == MAX_SYNC_TRANSACTION) {
+    LOG_ERROR("Failed to get sync transfer index");
+    return;
+  }
+
   tBTM_BLE_PERIODIC_SYNC* p = &btm_ble_pa_sync_cb.p_sync[index];
   p->sync_state = PERIODIC_SYNC_PENDING;
 
@@ -1051,6 +1057,11 @@ static void btm_ble_start_sync_timeout(void* data) {
   RawAddress address = p_head->address;
 
   int index = btm_ble_get_psync_index(adv_sid, address);
+
+  if (index == MAX_SYNC_TRANSACTION) {
+    LOG_ERROR("Failed to get sync transfer index");
+    return;
+  }
 
   tBTM_BLE_PERIODIC_SYNC* p = &btm_ble_pa_sync_cb.p_sync[index];
 
@@ -1255,11 +1266,14 @@ void BTM_BleStartPeriodicSync(uint8_t adv_sid, RawAddress address,
                               SyncLostCb lostCb, BigInfoReportCb biginfo_reportCb) {
   LOG_DEBUG("%s", "[PSync]");
   int index = btm_ble_get_free_psync_index();
-  tBTM_BLE_PERIODIC_SYNC* p = &btm_ble_pa_sync_cb.p_sync[index];
+
   if (index == MAX_SYNC_TRANSACTION) {
     syncCb.Run(BTM_NO_RESOURCES, 0, adv_sid, BLE_ADDR_RANDOM, address, 0, 0);
     return;
   }
+
+  tBTM_BLE_PERIODIC_SYNC* p = &btm_ble_pa_sync_cb.p_sync[index];
+
   p->in_use = true;
   p->remote_bda = address;
   p->sid = adv_sid;
@@ -1392,6 +1406,12 @@ void BTM_BlePeriodicSyncTransfer(RawAddress addr, uint16_t service_data,
   }
 
   int index = btm_ble_get_free_sync_transfer_index();
+  if (index == MAX_SYNC_TRANSACTION) {
+    BTM_TRACE_ERROR("Failed to get sync transfer index");
+    cb.Run(BTM_ILLEGAL_VALUE, addr);
+    return;
+  }
+
   tBTM_BLE_PERIODIC_SYNC_TRANSFER* p_sync_transfer =
       &btm_ble_pa_sync_cb.sync_transfer[index];
   p_sync_transfer->in_use = true;
@@ -1431,6 +1451,12 @@ void BTM_BlePeriodicSyncSetInfo(RawAddress addr, uint16_t service_data,
   }
 
   int index = btm_ble_get_free_sync_transfer_index();
+  if (index == MAX_SYNC_TRANSACTION) {
+    BTM_TRACE_ERROR("Failed to get sync transfer index");
+    cb.Run(BTM_ILLEGAL_VALUE, addr);
+    return;
+  }
+
   tBTM_BLE_PERIODIC_SYNC_TRANSFER* p_sync_transfer =
       &btm_ble_pa_sync_cb.sync_transfer[index];
   p_sync_transfer->in_use = true;
