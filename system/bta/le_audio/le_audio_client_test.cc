@@ -1806,6 +1806,7 @@ class UnicastTestNoInit : public Test {
   void LocalAudioSourceSuspend(void) {
     ASSERT_NE(unicast_source_hal_cb_, nullptr);
     unicast_source_hal_cb_->OnAudioSuspend();
+    SyncOnMainLoop();
   }
 
   void LocalAudioSourceResume(bool expected_confirmation = true) {
@@ -1828,6 +1829,7 @@ class UnicastTestNoInit : public Test {
   void LocalAudioSinkSuspend(void) {
     ASSERT_NE(unicast_sink_hal_cb_, nullptr);
     unicast_sink_hal_cb_->OnAudioSuspend();
+    SyncOnMainLoop();
   }
 
   void LocalAudioSinkResume(void) {
@@ -1872,6 +1874,7 @@ class UnicastTestNoInit : public Test {
                             },
                             unicast_sink_hal_cb_));
     }
+    SyncOnMainLoop();
   }
 
   void StopStreaming(int group_id, bool suspend_source = false) {
@@ -1894,6 +1897,7 @@ class UnicastTestNoInit : public Test {
       ASSERT_NE(unicast_sink_hal_cb_, nullptr);
       unicast_sink_hal_cb_->OnAudioSuspend();
     }
+    SyncOnMainLoop();
   }
 
   void set_sample_database(uint16_t conn_id, RawAddress addr,
@@ -2979,6 +2983,7 @@ TEST_F(UnicastTestHealthStatus,
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
 
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   auto health_status = LeAudioHealthStatus::Get();
 
@@ -3742,6 +3747,7 @@ TEST_F(UnicastTest, RemoveNodeWhileStreaming) {
   LeAudioClient::Get()->SetCcidInformation(gmcs_ccid, 4 /* Media */);
   LeAudioClient::Get()->SetCcidInformation(gtbs_ccid, 2 /* Phone */);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   types::BidirectionalPair<std::vector<uint8_t>> ccids = {.sink = {gmcs_ccid},
                                                           .source = {}};
@@ -4251,6 +4257,7 @@ TEST_F(UnicastTest, RemoveWhileStreaming) {
   LeAudioClient::Get()->SetCcidInformation(gmcs_ccid, 4 /* Media */);
   LeAudioClient::Get()->SetCcidInformation(gtbs_ccid, 2 /* Phone */);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   types::BidirectionalPair<std::vector<uint8_t>> ccids = {.sink = {gmcs_ccid},
                                                           .source = {}};
@@ -4331,6 +4338,7 @@ TEST_F(UnicastTest, DisconnecteWhileAlmostStreaming) {
   LeAudioClient::Get()->SetCcidInformation(gmcs_ccid, 4 /* Media */);
   LeAudioClient::Get()->SetCcidInformation(gtbs_ccid, 2 /* Phone */);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   types::BidirectionalPair<std::vector<uint8_t>> ccids = {.sink = {gmcs_ccid},
                                                           .source = {}};
@@ -4410,6 +4418,7 @@ TEST_F(UnicastTest, EarbudsTwsStyleStreaming) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
 
@@ -4440,6 +4449,7 @@ TEST_F(UnicastTest, EarbudsTwsStyleStreaming) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, OnDestroyed()).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, OnDestroyed()).Times(1);
   LeAudioClient::Get()->GroupSetActive(bluetooth::groups::kGroupUnknown);
+  SyncOnMainLoop();
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 }
 
@@ -4475,6 +4485,7 @@ TEST_F(UnicastTest, SpeakerFailedConversationalStreaming) {
 
   // Audio sessions are started only when device gets active
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   /* Nothing to do - expect no crash */
 }
@@ -4508,6 +4519,7 @@ TEST_F(UnicastTest, SpeakerStreaming) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
 
@@ -4538,6 +4550,7 @@ TEST_F(UnicastTest, SpeakerStreaming) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, OnDestroyed()).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, OnDestroyed()).Times(1);
   LeAudioClient::Get()->GroupSetActive(bluetooth::groups::kGroupUnknown);
+  SyncOnMainLoop();
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 }
 
@@ -4585,6 +4598,7 @@ TEST_F(UnicastTest, SpeakerStreamingNonDefault) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   StartStreaming(AUDIO_USAGE_ASSISTANT, AUDIO_CONTENT_TYPE_UNKNOWN, group_id);
 
@@ -4615,12 +4629,14 @@ TEST_F(UnicastTest, SpeakerStreamingNonDefault) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, OnDestroyed()).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, OnDestroyed()).Times(1);
   LeAudioClient::Get()->GroupSetActive(bluetooth::groups::kGroupUnknown);
+  SyncOnMainLoop();
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 
   /* When session is closed, the hal client mocks are freed - get new ones */
   SetUpMockAudioHal();
   /* Expect the previous release to clear the old audio session metadata */
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
   EXPECT_CALL(mock_state_machine_,
               StartStream(_, types::LeAudioContextType::VOICEASSISTANTS, _, _))
       .Times(0);
@@ -4655,6 +4671,7 @@ TEST_F(UnicastTest, SpeakerStreamingAutonomousRelease) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
 
@@ -4716,6 +4733,8 @@ TEST_F(UnicastTest, TwoEarbudsStreaming) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
+
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 
   StartStreaming(AUDIO_USAGE_VOICE_COMMUNICATION, AUDIO_CONTENT_TYPE_SPEECH,
@@ -4753,6 +4772,8 @@ TEST_F(UnicastTest, TwoEarbudsStreaming) {
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Stop()).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, OnDestroyed()).Times(1);
   LeAudioClient::Get()->GroupSetActive(bluetooth::groups::kGroupUnknown);
+  SyncOnMainLoop();
+
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 }
 
@@ -5046,6 +5067,7 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchReconfigure) {
   LeAudioClient::Get()->SetCcidInformation(gmcs_ccid, 4 /* Media */);
   LeAudioClient::Get()->SetCcidInformation(gtbs_ccid, 2 /* Phone */);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   types::BidirectionalPair<std::vector<uint8_t>> ccids = {.sink = {gmcs_ccid},
                                                           .source = {}};
@@ -5129,6 +5151,7 @@ TEST_F(UnicastTest, TwoEarbuds2ndLateConnect) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
       .WillByDefault(Invoke([&](int group_id) { return 2; }));
@@ -5195,6 +5218,7 @@ TEST_F(UnicastTest, TwoEarbuds2ndReleaseAseRemoveAvailableContextAndBack) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
       .WillByDefault(Invoke([&](int group_id) { return 2; }));
@@ -5298,6 +5322,7 @@ TEST_F(UnicastTest, StartStream_AvailableContextTypeNotifiedLater) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
       .WillByDefault(Invoke([&](int group_id) { return 2; }));
@@ -5359,6 +5384,7 @@ TEST_F(UnicastTest, ModifyContextTypeOnDeviceA_WhileDeviceB_IsDisconnected) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
       .WillByDefault(Invoke([&](int group_id) { return 2; }));
@@ -5470,6 +5496,7 @@ TEST_F(UnicastTest, StartStreamToUnsupportedContextTypeUsingUnspecified) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
       .WillByDefault(Invoke([&](int group_id) { return 2; }));
@@ -5555,6 +5582,7 @@ TEST_F(UnicastTest,
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
       .WillByDefault(Invoke([&](int group_id) { return 2; }));
@@ -5619,6 +5647,7 @@ TEST_F(UnicastTest, StartStreamToSupportedContextTypeThenMixUnavailable) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
       .WillByDefault(Invoke([&](int group_id) { return 2; }));
@@ -5747,6 +5776,7 @@ TEST_F(UnicastTest, TwoEarbuds2ndDisconnected) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
   auto group = streaming_groups.at(group_id);
@@ -5835,6 +5865,7 @@ TEST_F(UnicastTest, TwoEarbudsStreamingProfileDisconnect) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
 
@@ -5900,6 +5931,7 @@ TEST_F(UnicastTest, TwoEarbudsStreamingProfileDisconnectStreamStopTimeout) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
 
@@ -6058,6 +6090,7 @@ TEST_F(UnicastTest, MicrophoneAttachToCurrentMediaScenario) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   // When the local audio source resumes we have no knowledge of recording
   EXPECT_CALL(mock_state_machine_,
@@ -6129,9 +6162,9 @@ TEST_F(UnicastTest, MicrophoneAttachToCurrentMediaScenario) {
                        client->GroupSetActive(bluetooth::groups::kGroupUnknown);
                      },
                      LeAudioClient::Get()));
-  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
-
   SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 }
 
 /* When a certain context is unavailable and not supported we should stream
@@ -6179,6 +6212,7 @@ TEST_F(UnicastTest, UpdateNotSupportedContextTypeUnspecifiedAvailable) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   StartStreaming(AUDIO_USAGE_NOTIFICATION_TELEPHONY_RINGTONE,
                  AUDIO_CONTENT_TYPE_UNKNOWN, group_id);
@@ -6252,6 +6286,7 @@ TEST_F(UnicastTest, UpdateMultipleBidirContextTypes) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   // When the local audio sink resumes expect only LIVE context
   types::BidirectionalPair<types::AudioContexts> contexts = {
@@ -6399,6 +6434,7 @@ TEST_F(UnicastTest, MusicDuringCallContextTypes) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   // 1) Start with the call first
   // -----------------------------
@@ -6566,6 +6602,8 @@ TEST_F(UnicastTest, StartNotAvailableSupportedContextType) {
       .Times(0);
 
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
+
   StartStreaming(AUDIO_USAGE_EMERGENCY, AUDIO_CONTENT_TYPE_UNKNOWN, group_id,
                  AUDIO_SOURCE_INVALID, false, false);
 
@@ -6624,6 +6662,8 @@ TEST_F(UnicastTest, StartNotAvailableUnsupportedContextTypeUnspecifiedUnavail) {
       .Times(0);
 
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
+
   StartStreaming(AUDIO_USAGE_EMERGENCY, AUDIO_CONTENT_TYPE_UNKNOWN, group_id,
                  AUDIO_SOURCE_INVALID, false, false);
 
@@ -6678,6 +6718,8 @@ TEST_F(UnicastTest, StartNotAvailableUnsupportedContextTypeUnspecifiedAvail) {
       .Times(1);
 
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
+
   StartStreaming(AUDIO_USAGE_EMERGENCY, AUDIO_CONTENT_TYPE_UNKNOWN, group_id);
 
   SyncOnMainLoop();
@@ -6722,6 +6764,7 @@ TEST_F(UnicastTest, NotifyAboutGroupTunrnedIdleEnabled) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   StartStreaming(AUDIO_USAGE_NOTIFICATION_TELEPHONY_RINGTONE,
                  AUDIO_CONTENT_TYPE_UNKNOWN, group_id);
@@ -6791,6 +6834,7 @@ TEST_F(UnicastTest, NotifyAboutGroupTunrnedIdleDisabled) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   StartStreaming(AUDIO_USAGE_NOTIFICATION_TELEPHONY_RINGTONE,
                  AUDIO_CONTENT_TYPE_UNKNOWN, group_id);
@@ -6913,6 +6957,7 @@ TEST_F(UnicastTest, SpeakerStreamingTimeout) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
 
   StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
 
