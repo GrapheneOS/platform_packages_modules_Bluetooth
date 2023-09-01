@@ -49,7 +49,6 @@ source_set("LibBluetoothShimSources") {
 
   deps = [
     "//bt/system/gd:BluetoothGeneratedDumpsysDataSchema_h",
-    "//bt/system/gd:BluetoothGeneratedPackets_h",
     "//bt/system/gd/common:BluetoothCommonSources",
     "//bt/system/gd/dumpsys/bundler:BluetoothGeneratedBundlerSchema_h_bfbs",
     "//bt/system/gd/hci:BluetoothHciSources",
@@ -58,6 +57,7 @@ source_set("LibBluetoothShimSources") {
     "//bt/system/gd/rust/shim:libbluetooth_rust_interop",
     "//bt/system/gd/rust/topshim:libbluetooth_topshim",
     "//bt/system/osi",
+    "//bt/system/pdl:BluetoothGeneratedPackets_h",
     "//bt/system/stack",
     "//bt/system/types",
   ]

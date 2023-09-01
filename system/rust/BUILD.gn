@@ -42,7 +42,7 @@ static_library("core_rs") {
   deps = [
     ":cxxlibheader",
     "//bt/system/gd/rust/shim:init_flags_bridge_header",
-    "//bt/system/gd:BluetoothGeneratedPackets_h",
+    "//bt/system/pdl:BluetoothGeneratedPackets_h",
   ]
 
   defines = [
