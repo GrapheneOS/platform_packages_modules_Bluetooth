@@ -27,6 +27,7 @@ cc_library_static {
     ],
     static_libs: [
         "libbt-common",
+        "libbt_shim_bridge",
         "libosi",
     ],
     target: {
@@ -71,6 +72,7 @@ cc_library_static {
         "com.android.btservices",
     ],
     min_sdk_version: "Tiramisu",
+    header_libs: ["libbluetooth_headers"],
 }
 
 // Bluetooth Audio client interface library unit tests for target and host
@@ -99,9 +101,11 @@ cc_test {
     static_libs: [
         "libbt-audio-hal-interface",
         "libbt-common",
+        "libbt_shim_bridge",
         "libchrome",
     ],
     cflags: [
         "-DBUILDCFG",
     ],
+    header_libs: ["libbluetooth_headers"],
 }

@@ -28,4 +28,5 @@ cc_fuzz {
         "libosi",
     ],
     cflags: ["-Wno-unused-function"],
+    header_libs: ["libbluetooth_headers"],
 }
