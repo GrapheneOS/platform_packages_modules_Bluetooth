@@ -40,13 +40,15 @@ fn main() {
 fn generate_packets() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
-    let gd_root = match env::var("PLATFORM_SUBDIR") {
-        Ok(dir) => PathBuf::from(dir).join("bt/gd"),
+    let pdl_root = match env::var("PLATFORM_SUBDIR") {
+        Ok(dir) => PathBuf::from(dir).join("bt/pdl"),
         // Currently at //platform2/gd/rust/rust/packets
-        Err(_) => PathBuf::from(env::current_dir().unwrap()).join("../..").canonicalize().unwrap(),
+        Err(_) => {
+            PathBuf::from(env::current_dir().unwrap()).join("../../../pdl").canonicalize().unwrap()
+        }
     };
 
-    let in_file = gd_root.join("hci/hci_packets.pdl");
+    let in_file = pdl_root.join("hci/hci_packets.pdl");
     let out_file = File::create(out_dir.join("hci_packets.rs")).unwrap();
 
     // Expect pdlc to be in the PATH
