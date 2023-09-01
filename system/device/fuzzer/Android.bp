@@ -37,6 +37,7 @@ cc_fuzz {
         "libbluetooth-types",
         "libbluetooth_gd",
         "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libbtcore",
         "libbtdevice",
         "libchrome",
