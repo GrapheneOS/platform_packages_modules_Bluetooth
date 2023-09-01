@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "scripted_beacon.h"
+#include "model/devices/scripted_beacon.h"
 
 #include <unistd.h>
 
