@@ -46,6 +46,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class BroadcasterActivity extends AppCompatActivity {
@@ -400,7 +401,8 @@ public class BroadcasterActivity extends AppCompatActivity {
 
         // Get the initial state
         mViewModel = ViewModelProviders.of(this).get(BroadcasterViewModel.class);
-        itemsAdapter.updateBroadcastsMetadata(mViewModel.getAllBroadcastMetadata());
+        final List<BluetoothLeBroadcastMetadata> metadata = mViewModel.getAllBroadcastMetadata();
+        itemsAdapter.updateBroadcastsMetadata(metadata.isEmpty() ? new ArrayList<>() : metadata);
 
         // Put a watch on updates
         mViewModel.getBroadcastUpdateMetadataLive().observe(this, audioBroadcast -> {
