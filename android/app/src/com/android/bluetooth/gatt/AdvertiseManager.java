@@ -23,6 +23,7 @@ import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertisingSetParameters;
 import android.bluetooth.le.IAdvertisingSetCallback;
 import android.bluetooth.le.PeriodicAdvertisingParameters;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -122,15 +123,19 @@ public class AdvertiseManager {
 
     class AdvertisingSetDeathRecipient implements IBinder.DeathRecipient {
         public IAdvertisingSetCallback callback;
+        private String mPackageName;
 
-        AdvertisingSetDeathRecipient(IAdvertisingSetCallback callback) {
+        AdvertisingSetDeathRecipient(IAdvertisingSetCallback callback, String packageName) {
             this.callback = callback;
+            this.mPackageName = packageName;
         }
 
         @Override
         public void binderDied() {
             if (DBG) {
-                Log.d(TAG, "Binder is dead - unregistering advertising set");
+                Log.d(
+                        TAG,
+                        "Binder is dead - unregistering advertising set (" + mPackageName + ")!");
             }
             stopAdvertisingSet(callback);
         }
@@ -228,7 +233,16 @@ public class AdvertiseManager {
             return;
         }
 
-        AdvertisingSetDeathRecipient deathRecipient = new AdvertisingSetDeathRecipient(callback);
+        int appUid = Binder.getCallingUid();
+        String packageName = null;
+        if (mService != null && mService.getPackageManager() != null) {
+            packageName = mService.getPackageManager().getNameForUid(appUid);
+        }
+        if (packageName == null) {
+            packageName = "Unknown package name (UID: " + appUid + ")";
+        }
+        AdvertisingSetDeathRecipient deathRecipient =
+                new AdvertisingSetDeathRecipient(callback, packageName);
         IBinder binder = toBinder(callback);
         try {
             binder.linkToDeath(deathRecipient, 0);
