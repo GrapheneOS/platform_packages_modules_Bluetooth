@@ -153,7 +153,6 @@ cc_defaults {
     generated_headers: [
         "BluetoothGeneratedBundlerSchema_h_bfbs",
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     shared_libs: [
         "libcrypto",
@@ -163,6 +162,9 @@ cc_defaults {
         "libflatbuffers-cpp",
     ],
     whole_static_libs: [
+        "libbluetooth_hci_pdl",
+        "libbluetooth_l2cap_pdl",
+        "libbluetooth_smp_pdl",
         "libc++fs",
     ],
     static_libs: [
@@ -218,7 +220,9 @@ cc_library {
     cflags: [
         "-DUSE_FAKE_TIMERS",
     ],
-    static_libs: ["libchrome"],
+    static_libs: [
+        "libchrome",
+    ],
 }
 
 cc_binary {
@@ -559,32 +563,6 @@ filegroup {
     ],
 }
 
-genrule {
-    name: "BluetoothGeneratedPackets_h",
-    tools: [
-        "bluetooth_packetgen",
-    ],
-    cmd: "$(location bluetooth_packetgen) --fuzzing --testing --include=packages/modules/Bluetooth/system/gd --out=$(genDir) $(in)",
-    srcs: [
-        "hci/hci_packets.pdl",
-        "l2cap/l2cap_packets.pdl",
-        "security/smp_packets.pdl",
-    ],
-    out: [
-        "hci/hci_packets.h",
-        "l2cap/l2cap_packets.h",
-        "security/smp_packets.h",
-    ],
-    visibility: ["//visibility:public"],
-}
-
-genrule {
-    name: "BluetoothGeneratedPackets_rust",
-    defaults: ["pdl_rust_generator_defaults"],
-    srcs: ["hci/hci_packets.pdl"],
-    out: ["hci/hci_packets.rs"],
-}
-
 rust_library {
     name: "libbt_packets",
     defaults: ["gd_rust_defaults"],
@@ -682,30 +660,6 @@ genrule {
         "init_flags_generated.h",
         "l2cap_classic_module_generated.h",
         "wakelock_manager_generated.h",
-    ],
-}
-
-genrule {
-    name: "BluetoothGeneratedPackets_python3_cc",
-    tools: [
-        "bluetooth_packetgen",
-    ],
-    cmd: "$(location bluetooth_packetgen) --include=packages/modules/Bluetooth/system/gd --out=$(genDir) --num_shards=10 $(in)",
-    srcs: [
-        "l2cap/l2cap_packets.pdl",
-    ],
-    out: [
-        "l2cap/l2cap_packets_python3.cc",
-        "l2cap/l2cap_packets_python3_shard_0.cc",
-        "l2cap/l2cap_packets_python3_shard_1.cc",
-        "l2cap/l2cap_packets_python3_shard_2.cc",
-        "l2cap/l2cap_packets_python3_shard_3.cc",
-        "l2cap/l2cap_packets_python3_shard_4.cc",
-        "l2cap/l2cap_packets_python3_shard_5.cc",
-        "l2cap/l2cap_packets_python3_shard_6.cc",
-        "l2cap/l2cap_packets_python3_shard_7.cc",
-        "l2cap/l2cap_packets_python3_shard_8.cc",
-        "l2cap/l2cap_packets_python3_shard_9.cc",
     ],
 }
 
@@ -810,36 +764,4 @@ cc_library_host_shared {
         "-fexceptions",
     ],
     rtti: true,
-}
-
-// Generate the python parser+serializer backend for
-// hci_packets.pdl.
-genrule {
-    name: "gd_hci_packets_python3_gen",
-    defaults: ["pdl_python_generator_defaults"],
-    cmd: "$(location :pdlc) $(in) |" +
-        " $(location :pdl_python_generator)" +
-        " --output $(out) --custom-type-location blueberry.utils.bluetooth",
-    srcs: [
-        ":BluetoothHciPackets",
-    ],
-    out: [
-        "hci_packets.py",
-    ],
-}
-
-// Generate the python parser+serializer backend for
-// smp_packets.pdl.
-genrule {
-    name: "gd_smp_packets_python3_gen",
-    defaults: ["pdl_python_generator_defaults"],
-    cmd: "$(location :pdlc) $(in) |" +
-        " $(location :pdl_python_generator)" +
-        " --output $(out) --custom-type-location blueberry.utils.bluetooth",
-    srcs: [
-        "security/smp_packets.pdl",
-    ],
-    out: [
-        "smp_packets.py",
-    ],
 }
