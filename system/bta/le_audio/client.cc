@@ -2481,19 +2481,23 @@ class LeAudioClientImpl : public LeAudioClient {
 
     for (const gatt::Service& tmp : *services) {
       if (tmp.uuid == le_audio::uuid::kPublishedAudioCapabilityServiceUuid) {
-        LOG(INFO) << "Found Audio Capability service, handle: "
-                  << loghex(tmp.handle);
+        LOG_INFO("Found Audio Capability service, handle: 0x%04x, device: %s",
+                 tmp.handle, ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
         pac_svc = &tmp;
       } else if (tmp.uuid == le_audio::uuid::kAudioStreamControlServiceUuid) {
-        LOG(INFO) << "Found Audio Stream Endpoint service, handle: "
-                  << loghex(tmp.handle);
+        LOG_INFO(
+            "Found Audio Stream Endpoint service, handle: 0x%04x, device: %s",
+            tmp.handle, ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
         ase_svc = &tmp;
       } else if (tmp.uuid == bluetooth::csis::kCsisServiceUuid) {
-        LOG(INFO) << "Found CSIS service, handle: " << loghex(tmp.handle)
-                  << " is primary? " << tmp.is_primary;
+        LOG_INFO(
+            "Found CSIS service, handle: 0x%04x, is primary: %d, device: %s",
+            tmp.handle, tmp.is_primary,
+            ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
         if (tmp.is_primary) csis_primary_handles.push_back(tmp.handle);
       } else if (tmp.uuid == le_audio::uuid::kCapServiceUuid) {
-        LOG(INFO) << "Found CAP Service, handle: " << loghex(tmp.handle);
+        LOG_INFO("Found CAP service, handle: 0x%04x, device: %s", tmp.handle,
+                 ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
 
         /* Try to find context for CSIS instances */
         for (auto& included_srvc : tmp.included_services) {
@@ -2506,8 +2510,10 @@ class LeAudioClientImpl : public LeAudioClient {
           }
         }
       } else if (tmp.uuid == le_audio::uuid::kTelephonyMediaAudioServiceUuid) {
-        LOG_INFO(", Found Telephony and Media Audio service, handle: %04x",
-                 tmp.handle);
+        LOG_INFO(
+            "Found Telephony and Media Audio service, handle: 0x%04x, device: "
+            "%s",
+            tmp.handle, ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
         tmas_svc = &tmp;
       }
     }
@@ -2560,9 +2566,11 @@ class LeAudioClientImpl : public LeAudioClient {
         leAudioDevice->snk_pacs_.push_back(std::make_tuple(
             hdl_pair, std::vector<struct le_audio::types::acs_ac_record>()));
 
-        LOG(INFO) << "Found Sink PAC characteristic, handle: "
-                  << loghex(charac.value_handle)
-                  << ", ccc handle: " << loghex(hdl_pair.ccc_hdl);
+        LOG_INFO(
+            "Found Sink PAC characteristic, handle: 0x%04x, ccc handle: "
+            "0x%04x, addr: %s",
+            charac.value_handle, hdl_pair.ccc_hdl,
+            ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       } else if (charac.uuid ==
                  le_audio::uuid::
                      kSourcePublishedAudioCapabilityCharacteristicUuid) {
@@ -2592,9 +2600,11 @@ class LeAudioClientImpl : public LeAudioClient {
         leAudioDevice->src_pacs_.push_back(std::make_tuple(
             hdl_pair, std::vector<struct le_audio::types::acs_ac_record>()));
 
-        LOG(INFO) << "Found Source PAC characteristic, handle: "
-                  << loghex(charac.value_handle)
-                  << ", ccc handle: " << loghex(hdl_pair.ccc_hdl);
+        LOG_INFO(
+            "Found Source PAC characteristic, handle: 0x%04x, ccc handle: "
+            "0x%04x, addr: %s",
+            charac.value_handle, hdl_pair.ccc_hdl,
+            ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       } else if (charac.uuid ==
                  le_audio::uuid::kSinkAudioLocationCharacteristicUuid) {
         leAudioDevice->snk_audio_locations_hdls_.val_hdl = charac.value_handle;
@@ -2620,9 +2630,12 @@ class LeAudioClientImpl : public LeAudioClient {
             conn_id, leAudioDevice->snk_audio_locations_hdls_.val_hdl,
             OnGattReadRspStatic, NULL);
 
-        LOG(INFO) << "Found Sink audio locations characteristic, handle: "
-                  << loghex(charac.value_handle) << ", ccc handle: "
-                  << loghex(leAudioDevice->snk_audio_locations_hdls_.ccc_hdl);
+        LOG_INFO(
+            "Found Sink audio locations characteristic, handle: 0x%04x, ccc "
+            "handle: 0x%04x, addr: %s",
+            charac.value_handle,
+            leAudioDevice->snk_audio_locations_hdls_.ccc_hdl,
+            ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       } else if (charac.uuid ==
                  le_audio::uuid::kSourceAudioLocationCharacteristicUuid) {
         leAudioDevice->src_audio_locations_hdls_.val_hdl = charac.value_handle;
@@ -2648,9 +2661,12 @@ class LeAudioClientImpl : public LeAudioClient {
             conn_id, leAudioDevice->src_audio_locations_hdls_.val_hdl,
             OnGattReadRspStatic, NULL);
 
-        LOG(INFO) << "Found Source audio locations characteristic, handle: "
-                  << loghex(charac.value_handle) << ", ccc handle: "
-                  << loghex(leAudioDevice->src_audio_locations_hdls_.ccc_hdl);
+        LOG_INFO(
+            "Found Source audio locations characteristic, handle: 0x%04x, ccc "
+            "handle: 0x%04x, addr: %s",
+            charac.value_handle,
+            leAudioDevice->src_audio_locations_hdls_.ccc_hdl,
+            ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       } else if (charac.uuid ==
                  le_audio::uuid::kAudioContextAvailabilityCharacteristicUuid) {
         leAudioDevice->audio_avail_hdls_.val_hdl = charac.value_handle;
@@ -2676,9 +2692,11 @@ class LeAudioClientImpl : public LeAudioClient {
             conn_id, leAudioDevice->audio_avail_hdls_.val_hdl,
             OnGattReadRspStatic, NULL);
 
-        LOG(INFO) << "Found Audio Availability Context characteristic, handle: "
-                  << loghex(charac.value_handle) << ", ccc handle: "
-                  << loghex(leAudioDevice->audio_avail_hdls_.ccc_hdl);
+        LOG_INFO(
+            "Found Audio Availability Context characteristic, handle: 0x%04x, "
+            "ccc handle: 0x%04x, addr: %s",
+            charac.value_handle, leAudioDevice->audio_avail_hdls_.ccc_hdl,
+            ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       } else if (charac.uuid ==
                  le_audio::uuid::kAudioSupportedContextCharacteristicUuid) {
         leAudioDevice->audio_supp_cont_hdls_.val_hdl = charac.value_handle;
@@ -2703,9 +2721,11 @@ class LeAudioClientImpl : public LeAudioClient {
             conn_id, leAudioDevice->audio_supp_cont_hdls_.val_hdl,
             OnGattReadRspStatic, NULL);
 
-        LOG(INFO) << "Found Audio Supported Context characteristic, handle: "
-                  << loghex(charac.value_handle) << ", ccc handle: "
-                  << loghex(leAudioDevice->audio_supp_cont_hdls_.ccc_hdl);
+        LOG_INFO(
+            "Found Audio Supported Context characteristic, handle: 0x%04x, ccc "
+            "handle: 0x%04x, addr: %s",
+            charac.value_handle, leAudioDevice->audio_supp_cont_hdls_.ccc_hdl,
+            ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       }
     }
 
@@ -2739,10 +2759,11 @@ class LeAudioClientImpl : public LeAudioClient {
         leAudioDevice->ases_.emplace_back(charac.value_handle, ccc_handle,
                                           direction);
 
-        LOG(INFO) << "Found ASE characteristic, handle: "
-                  << loghex(charac.value_handle)
-                  << ", ccc handle: " << loghex(ccc_handle)
-                  << ", direction: " << direction;
+        LOG_INFO(
+            "Found ASE characteristic, handle: 0x%04x, ccc handle: 0x%04x, "
+            "direction: %d, addr: %s",
+            charac.value_handle, ccc_handle, direction,
+            ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       } else if (charac.uuid ==
                  le_audio::uuid::
                      kAudioStreamEndpointControlPointCharacteristicUuid) {
@@ -2763,9 +2784,11 @@ class LeAudioClientImpl : public LeAudioClient {
           return;
         }
 
-        LOG(INFO) << "Found ASE Control Point characteristic, handle: "
-                  << loghex(charac.value_handle) << ", ccc handle: "
-                  << loghex(leAudioDevice->ctp_hdls_.ccc_hdl);
+        LOG_INFO(
+            "Found ASE characteristic, handle: 0x%04x, ccc handle: 0x%04x, "
+            "addr: %s",
+            charac.value_handle, leAudioDevice->ctp_hdls_.ccc_hdl,
+            ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       }
     }
 
@@ -2781,9 +2804,11 @@ class LeAudioClientImpl : public LeAudioClient {
                                            OnGattReadRspStatic, NULL);
 
           LOG_INFO(
-              ", Found Telephony and Media Profile characteristic, "
-              "handle: %04x",
-              leAudioDevice->tmap_role_hdl_);
+              "Found Telephony and Media Profile characteristic, handle: "
+              "0x%04x, "
+              "device: %s",
+              leAudioDevice->tmap_role_hdl_,
+              ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
         }
       }
     }
@@ -2848,8 +2873,8 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (status == GATT_SUCCESS) {
-      LOG(INFO) << __func__
-                << ", successfully registered on ccc: " << loghex(hdl);
+      LOG_INFO("Successfully registered on ccc: 0x%04x, device: %s", hdl,
+               ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
 
       if (leAudioDevice->ctp_hdls_.ccc_hdl == hdl &&
           leAudioDevice->known_service_handles_ &&
@@ -2862,9 +2887,10 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    LOG(ERROR) << __func__
-               << ", Failed to register for indications: " << loghex(hdl)
-               << ", status: " << loghex((int)(status));
+    LOG_ERROR(
+        "Failed to register for indications: 0x%04x, device: %s, status: "
+        "0x%02x",
+        hdl, ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), status);
 
     ase_it =
         std::find_if(leAudioDevice->ases_.begin(), leAudioDevice->ases_.end(),
@@ -2873,8 +2899,8 @@ class LeAudioClientImpl : public LeAudioClient {
                      });
 
     if (ase_it == leAudioDevice->ases_.end()) {
-      LOG(ERROR) << __func__
-                 << ", unknown ccc handle: " << static_cast<int>(hdl);
+      LOG_ERROR("Unknown ccc handle: 0x%04x, device: %s", hdl,
+                ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       return;
     }
 
