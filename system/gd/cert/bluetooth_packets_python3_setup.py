@@ -32,7 +32,8 @@ ANDROID_BUILD_TOP = os.getenv("ANDROID_BUILD_TOP")
 PYBIND11_INCLUDE_DIR = os.path.join(ANDROID_BUILD_TOP, "external/python/pybind11/include")
 GD_DIR = os.path.join(ANDROID_BUILD_TOP, "packages/modules/Bluetooth/system/gd")
 BT_PACKETS_GEN_DIR = os.path.join(
-    ANDROID_BUILD_TOP, "out/soong/.intermediates/packages/modules/Bluetooth/system/gd/BluetoothGeneratedPackets_h/gen")
+    ANDROID_BUILD_TOP,
+    "out/soong/.intermediates/packages/modules/Bluetooth/system/gd/BluetoothGeneratedPackets_h/gen")
 BT_PACKETS_PY3_GEN_DIR = os.path.join(
     ANDROID_BUILD_TOP,
     "out/soong/.intermediates/packages/modules/Bluetooth/system/gd/BluetoothGeneratedPackets_python3_cc/gen")

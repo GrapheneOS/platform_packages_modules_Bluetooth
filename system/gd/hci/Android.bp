@@ -8,18 +8,8 @@ package {
 }
 
 filegroup {
-    name: "BluetoothHciPacketSources",
-    srcs: [
-        "address.cc",
-        "class_of_device.cc",
-    ],
-    visibility: ["//visibility:public"],
-}
-
-filegroup {
     name: "BluetoothHciSources",
     srcs: [
-        ":BluetoothHciPacketSources",
         "acl_manager.cc",
         "acl_manager/acl_connection.cc",
         "acl_manager/acl_fragmenter.cc",
@@ -101,12 +91,5 @@ filegroup {
         "fuzz/fuzz_hci_layer.cc",
         "fuzz/hci_layer_fuzz_client.cc",
         "fuzz/status_vs_complete_commands.cc",
-    ],
-}
-
-filegroup {
-    name: "BluetoothHciPackets",
-    srcs: [
-        "hci_packets.pdl",
     ],
 }
