@@ -166,6 +166,10 @@ inline std::string bta_sys_conn_status_text(tBTA_SYS_CONN_STATUS status) {
 typedef void(tBTA_SYS_CONN_CBACK)(tBTA_SYS_CONN_STATUS status,
                                   const tBTA_SYS_ID id, uint8_t app_id,
                                   const RawAddress& peer_addr);
+/* conn callback for sco change */
+typedef void(tBTA_SYS_CONN_SCO_CBACK)(tBTA_SYS_CONN_STATUS status,
+                                      uint8_t num_sco_links, uint8_t app_id,
+                                      const RawAddress& peer_addr);
 /* callback for role switch */
 typedef void(tBTA_SYS_ROLE_SWITCH_CBACK)(tBTA_SYS_CONN_STATUS status,
                                          tHCI_ROLE new_role,
@@ -224,7 +228,7 @@ void bta_sys_disable();
 void bta_sys_rm_register(tBTA_SYS_CONN_CBACK* p_cback);
 void bta_sys_pm_register(tBTA_SYS_CONN_CBACK* p_cback);
 
-void bta_sys_sco_register(tBTA_SYS_CONN_CBACK* p_cback);
+void bta_sys_sco_register(tBTA_SYS_CONN_SCO_CBACK* p_cback);
 
 void bta_sys_conn_open(tBTA_SYS_ID id, uint8_t app_id,
                        const RawAddress& peer_addr);
