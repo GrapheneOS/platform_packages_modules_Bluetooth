@@ -504,15 +504,23 @@ public class GattService extends ProfileService {
 
     class ScannerDeathRecipient implements IBinder.DeathRecipient {
         int mScannerId;
+        private String mPackageName;
 
-        ScannerDeathRecipient(int scannerId) {
+        ScannerDeathRecipient(int scannerId, String packageName) {
             mScannerId = scannerId;
+            mPackageName = packageName;
         }
 
         @Override
         public void binderDied() {
             if (DBG) {
-                Log.d(TAG, "Binder is dead - unregistering scanner (" + mScannerId + ")!");
+                Log.d(
+                        TAG,
+                        "Binder is dead - unregistering scanner ("
+                                + mPackageName
+                                + " "
+                                + mScannerId
+                                + ")!");
             }
 
             ScanClient client = getScanClient(mScannerId);
@@ -539,15 +547,23 @@ public class GattService extends ProfileService {
 
     class ServerDeathRecipient implements IBinder.DeathRecipient {
         int mAppIf;
+        private String mPackageName;
 
-        ServerDeathRecipient(int appIf) {
+        ServerDeathRecipient(int appIf, String packageName) {
             mAppIf = appIf;
+            mPackageName = packageName;
         }
 
         @Override
         public void binderDied() {
             if (DBG) {
-                Log.d(TAG, "Binder is dead - unregistering server (" + mAppIf + ")!");
+                Log.d(
+                        TAG,
+                        "Binder is dead - unregistering server ("
+                                + mPackageName
+                                + " "
+                                + mAppIf
+                                + ")!");
             }
             unregisterServer(mAppIf, getAttributionSource());
         }
@@ -555,15 +571,23 @@ public class GattService extends ProfileService {
 
     class ClientDeathRecipient implements IBinder.DeathRecipient {
         int mAppIf;
+        private String mPackageName;
 
-        ClientDeathRecipient(int appIf) {
+        ClientDeathRecipient(int appIf, String packageName) {
             mAppIf = appIf;
+            mPackageName = packageName;
         }
 
         @Override
         public void binderDied() {
             if (DBG) {
-                Log.d(TAG, "Binder is dead - unregistering client (" + mAppIf + ")!");
+                Log.d(
+                        TAG,
+                        "Binder is dead - unregistering client ("
+                                + mPackageName
+                                + " "
+                                + mAppIf
+                                + ")!");
             }
             unregisterClient(mAppIf, getAttributionSource());
         }
@@ -2061,7 +2085,7 @@ public class GattService extends ProfileService {
                 // If app is callback based, setup a death recipient. App will initiate the start.
                 // Otherwise, if PendingIntent based, start the scan directly.
                 if (cbApp.callback != null) {
-                    cbApp.linkToDeath(new ScannerDeathRecipient(scannerId));
+                    cbApp.linkToDeath(new ScannerDeathRecipient(scannerId, cbApp.name));
                 } else {
                     continuePiStartScan(scannerId, cbApp);
                 }
@@ -2122,7 +2146,7 @@ public class GattService extends ProfileService {
         if (app != null) {
             if (status == 0) {
                 app.id = clientIf;
-                app.linkToDeath(new ClientDeathRecipient(clientIf));
+                app.linkToDeath(new ClientDeathRecipient(clientIf, app.name));
             } else {
                 mClientMap.remove(uuid);
             }
@@ -4198,7 +4222,7 @@ public class GattService extends ProfileService {
         ServerMap.App app = mServerMap.getByUuid(uuid);
         if (app != null) {
             app.id = serverIf;
-            app.linkToDeath(new ServerDeathRecipient(serverIf));
+            app.linkToDeath(new ServerDeathRecipient(serverIf, app.name));
             app.callback.onServerRegistered(status, serverIf);
         }
     }
