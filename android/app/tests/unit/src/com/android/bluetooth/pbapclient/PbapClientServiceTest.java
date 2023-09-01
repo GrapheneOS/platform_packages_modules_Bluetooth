@@ -30,7 +30,6 @@ import static org.mockito.Mockito.when;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
@@ -50,7 +49,6 @@ import com.android.bluetooth.x.com.android.modules.utils.SynchronousResultReceiv
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -366,14 +364,14 @@ public class PbapClientServiceTest {
     }
 
     @Test
-    public void broadcastReceiver_withActionHeadsetClientConnectionStateChanged() {
+    public void headsetClientConnectionStateChanged_hfpCallLogIsRemoved() {
         BluetoothMethodProxy methodProxy = spy(BluetoothMethodProxy.getInstance());
         BluetoothMethodProxy.setInstanceForTesting(methodProxy);
 
-        Intent intent = new Intent(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-        intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED);
-        mService.mPbapBroadcastReceiver.onReceive(mService, intent);
+        mService.handleHeadsetClientConnectionStateChanged(
+                mRemoteDevice,
+                BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_DISCONNECTED);
 
         ArgumentCaptor<Object> selectionArgsCaptor = ArgumentCaptor.forClass(Object.class);
         verify(methodProxy).contentResolverDelete(any(), eq(CallLog.Calls.CONTENT_URI), any(),
