@@ -24,6 +24,7 @@ cc_library_static {
         "lib-bt-packets",
         "libbluetooth-types",
     ],
+    header_libs: ["libbluetooth_headers"],
 }
 
 cc_test {
