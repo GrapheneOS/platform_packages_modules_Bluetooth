@@ -60,7 +60,8 @@ bool connection_manager::direct_connect_add(uint8_t app_id,
   return false;
 }
 bool connection_manager::direct_connect_remove(uint8_t app_id,
-                                               const RawAddress& address) {
+                                               const RawAddress& address,
+                                               bool connection_timeout) {
   inc_func_call_count(__func__);
   return false;
 }
