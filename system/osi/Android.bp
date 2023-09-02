@@ -135,6 +135,7 @@ cc_test {
         "libbluetooth_gd",
         "libbt-common",
         "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libc++fs",
         "libchrome",
         "libevent",
