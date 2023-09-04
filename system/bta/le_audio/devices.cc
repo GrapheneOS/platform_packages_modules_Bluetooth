@@ -2068,6 +2068,20 @@ void LeAudioDeviceGroup::AddToAllowListNotConnectedGroupMembers(int gatt_if) {
   }
 }
 
+void LeAudioDeviceGroup::ApplyReconnectionMode(
+    int gatt_if, tBTM_BLE_CONN_TYPE reconnection_mode) {
+  for (const auto& device_iter : leAudioDevices_) {
+    BTA_GATTC_CancelOpen(gatt_if, device_iter.lock()->address_, false);
+    BTA_GATTC_Open(gatt_if, device_iter.lock()->address_, reconnection_mode,
+                   false);
+    LOG_INFO("Group %d in state %s. Adding %s to default reconnection mode ",
+             group_id_, bluetooth::common::ToString(GetState()).c_str(),
+             ADDRESS_TO_LOGGABLE_CSTR(device_iter.lock()->address_));
+    device_iter.lock()->SetConnectionState(
+        DeviceConnectState::CONNECTING_AUTOCONNECT);
+  }
+}
+
 bool LeAudioDeviceGroup::IsConfiguredForContext(
     types::LeAudioContextType context_type) const {
   /* Check if all connected group members are configured */
