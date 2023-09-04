@@ -2067,8 +2067,15 @@ class LeAudioClientImpl : public LeAudioClient {
      * announcements)
      */
     auto group = aseGroups_.FindById(group_id);
-    if (group == nullptr || !group->IsAnyDeviceConnected()) {
-      LOG_INFO("Group %d is not streaming", group_id);
+    if (group == nullptr) {
+      LOG_INFO("Group %d is destroyed.", group_id);
+      return;
+    }
+
+    if (!group->IsAnyDeviceConnected()) {
+      LOG_INFO("Group %d is not connected", group_id);
+      /* Make sure all devices are in the default reconnection mode */
+      group->ApplyReconnectionMode(gatt_if_, reconnection_mode_);
       return;
     }
 
@@ -2290,16 +2297,14 @@ class LeAudioClientImpl : public LeAudioClient {
 
     /* In other disconnect resons we act based on the autoconnect_flag_ */
     if (leAudioDevice->autoconnect_flag_) {
-      leAudioDevice->SetConnectionState(
-          DeviceConnectState::CONNECTING_AUTOCONNECT);
-
-      BTA_GATTC_Open(gatt_if_, address, reconnection_mode_, false);
       if (group->IsAnyDeviceConnected()) {
         /* If all set is disconnecting, let's give it some time.
          * If not all get disconnected, and there will be group member
          * connected we want to put disconnected devices to allow list
          */
         scheduleGroupConnectedCheck(leAudioDevice->group_id_);
+      } else {
+        group->ApplyReconnectionMode(gatt_if_, reconnection_mode_);
       }
     }
   }
@@ -2996,6 +3001,13 @@ class LeAudioClientImpl : public LeAudioClient {
         UpdateLocationsAndContextsAvailability(group);
       }
       AttachToStreamingGroupIfNeeded(leAudioDevice);
+
+      if (reconnection_mode_ == BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS) {
+        /* Add other devices to allow list if there are any not yet connected
+         * from the group
+         */
+        group->AddToAllowListNotConnectedGroupMembers(gatt_if_);
+      }
     }
   }
 
@@ -5120,10 +5132,6 @@ class LeAudioClientImpl : public LeAudioClient {
               std::bind(&LeAudioClientImpl::UpdateAudioConfigToHal,
                         weak_factory_.GetWeakPtr(), std::placeholders::_1,
                         std::placeholders::_2));
-          if (reconnection_mode_ ==
-              BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS) {
-            group->AddToAllowListNotConnectedGroupMembers(gatt_if_);
-          }
         }
 
         if (audio_sender_state_ == AudioState::READY_TO_START)
