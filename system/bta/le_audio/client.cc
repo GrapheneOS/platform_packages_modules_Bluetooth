@@ -2544,13 +2544,11 @@ class LeAudioClientImpl : public LeAudioClient {
         hdl_pair.ccc_hdl = find_ccc_handle(charac);
 
         if (hdl_pair.ccc_hdl == 0) {
-          disconnectInvalidDevice(leAudioDevice,
-                                  ", snk pac char doesn't have ccc",
-                                  LeAudioHealthDeviceStatType::INVALID_DB);
-          return;
+          LOG_INFO(", Sink PACs ccc not available");
         }
 
-        if (!subscribe_for_notification(conn_id, leAudioDevice->address_,
+        if (hdl_pair.ccc_hdl != 0 &&
+            !subscribe_for_notification(conn_id, leAudioDevice->address_,
                                         hdl_pair)) {
           disconnectInvalidDevice(leAudioDevice,
                                   ", cound not subscribe for snk pac char",
@@ -2576,13 +2574,11 @@ class LeAudioClientImpl : public LeAudioClient {
         hdl_pair.ccc_hdl = find_ccc_handle(charac);
 
         if (hdl_pair.ccc_hdl == 0) {
-          disconnectInvalidDevice(leAudioDevice,
-                                  ", src pac char doesn't have ccc",
-                                  LeAudioHealthDeviceStatType::INVALID_DB);
-          return;
+          LOG_INFO(", Source PACs ccc not available");
         }
 
-        if (!subscribe_for_notification(conn_id, leAudioDevice->address_,
+        if (hdl_pair.ccc_hdl != 0 &&
+            !subscribe_for_notification(conn_id, leAudioDevice->address_,
                                         hdl_pair)) {
           disconnectInvalidDevice(leAudioDevice,
                                   ", could not subscribe for src pac char",
@@ -2690,7 +2686,7 @@ class LeAudioClientImpl : public LeAudioClient {
         leAudioDevice->audio_supp_cont_hdls_.ccc_hdl = find_ccc_handle(charac);
 
         if (leAudioDevice->audio_supp_cont_hdls_.ccc_hdl == 0) {
-          LOG_INFO(", audio avails char doesn't have ccc");
+          LOG_INFO(", audio supported char doesn't have ccc");
         }
 
         if (leAudioDevice->audio_supp_cont_hdls_.ccc_hdl != 0 &&
