@@ -35,6 +35,7 @@ pub type CallbackId = u32;
 pub type SocketType = socket::SocketType;
 
 /// Result type for calls in `IBluetoothSocketManager`.
+#[derive(Debug)]
 pub struct SocketResult {
     pub status: BtStatus,
     pub id: u64,
@@ -56,7 +57,7 @@ pub const DYNAMIC_CHANNEL: i32 = -1;
 pub const INVALID_SOCKET_ID: SocketId = 0;
 
 /// Represents a listening socket.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct BluetoothServerSocket {
     pub id: SocketId,
     pub sock_type: SocketType,
@@ -181,6 +182,7 @@ impl fmt::Display for BluetoothServerSocket {
 }
 
 /// Represents a connected socket.
+#[derive(Debug)]
 pub struct BluetoothSocket {
     pub id: SocketId,
     pub remote_device: BluetoothDevice,
