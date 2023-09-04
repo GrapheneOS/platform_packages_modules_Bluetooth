@@ -620,8 +620,8 @@ class VolumeControlImpl : public VolumeControl {
       return;
     }
 
-    LOG(INFO) << __func__
-              << "Successfully register for indications: " << loghex(handle);
+    LOG_INFO("Successfully registered on ccc: 0x%04x, device: %s", handle,
+             ADDRESS_TO_LOGGABLE_CSTR(device->address));
 
     verify_device_ready(device, handle);
   }
