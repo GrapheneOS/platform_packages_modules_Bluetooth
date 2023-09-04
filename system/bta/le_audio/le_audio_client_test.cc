@@ -5798,11 +5798,9 @@ TEST_F(UnicastTest, TwoEarbuds2ndDisconnected) {
     InjectCisDisconnected(group_id, ase.cis_conn_hdl);
   }
 
-  /* It is called twice. Once with BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS,
-   * and then after delay with BTM_BLE_BKG_CONNECT_ALLOW_LIST
-   */
-  EXPECT_CALL(mock_gatt_interface_, Open(_, device->address_, _, false))
-      .Times(2);
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(_, device->address_, BTM_BLE_BKG_CONNECT_ALLOW_LIST, false))
+      .Times(1);
 
   // Record NumOfConnected when groupStateMachine_ gets notified about the
   // disconnection
@@ -6979,4 +6977,146 @@ TEST_F(UnicastTest, SpeakerStreamingTimeout) {
   auto group = streaming_groups.at(group_id);
   ASSERT_EQ(0, static_cast<int>(group->cises_.size()));
 }
+
+TEST_F(UnicastTest, AddMemberToAllowListWhenOneDeviceConnected) {
+  uint8_t group_size = 2;
+  int group_id = 2;
+  int conn_id_dev_0 = 1;
+  int conn_id_dev_1 = 2;
+
+  /*Scenario to test
+   * 1. Connect Device A and disconnect
+   * 2. Connect Device B
+   * 3. verify Device B is in the allow list.
+   */
+  // Report working CSIS
+  ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+      .WillByDefault(Return(true));
+
+  // First earbud
+  const RawAddress test_address0 = GetTestAddress(0);
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address0, true))
+      .Times(1);
+
+  ConnectCsisDevice(test_address0, conn_id_dev_0,
+                    codec_spec_conf::kLeAudioLocationFrontLeft,
+                    codec_spec_conf::kLeAudioLocationFrontLeft, group_size,
+                    group_id, 1 /* rank*/);
+
+  SyncOnMainLoop();
+
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+      .Times(1);
+
+  InjectDisconnectedEvent(conn_id_dev_0);
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+
+  // Second earbud
+  const RawAddress test_address1 = GetTestAddress(1);
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address1, true))
+      .Times(1);
+
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
+      .Times(1);
+
+  ConnectCsisDevice(test_address1, conn_id_dev_1,
+                    codec_spec_conf::kLeAudioLocationFrontRight,
+                    codec_spec_conf::kLeAudioLocationFrontRight, group_size,
+                    group_id, 2 /* rank*/, true /*connect_through_csis*/);
+
+  ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
+      .WillByDefault(Invoke([&](int group_id) { return 2; }));
+
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+}
+
+TEST_F(UnicastTest, ResetToDefaultReconnectionMode) {
+  uint8_t group_size = 2;
+  int group_id = 2;
+  int conn_id_dev_0 = 1;
+  int conn_id_dev_1 = 2;
+
+  /*Scenario to test
+   * 1. Connect Device A and disconnect
+   * 2. Connect Device B
+   * 3. verify Device B is in the allow list.
+   * 4. Disconnect B device
+   * 5, Verify A and B device are back in targeted announcement reconnection
+   * mode
+   */
+  // Report working CSIS
+  ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+      .WillByDefault(Return(true));
+
+  // First earbud
+  const RawAddress test_address0 = GetTestAddress(0);
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address0, true))
+      .Times(1);
+
+  ConnectCsisDevice(test_address0, conn_id_dev_0,
+                    codec_spec_conf::kLeAudioLocationFrontLeft,
+                    codec_spec_conf::kLeAudioLocationFrontLeft, group_size,
+                    group_id, 1 /* rank*/);
+
+  SyncOnMainLoop();
+
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
+      .Times(1);
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+      .Times(1);
+
+  InjectDisconnectedEvent(conn_id_dev_0);
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+
+  // Second earbud
+  const RawAddress test_address1 = GetTestAddress(1);
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address1, true))
+      .Times(1);
+
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
+      .Times(1);
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
+      .Times(1);
+
+  ConnectCsisDevice(test_address1, conn_id_dev_1,
+                    codec_spec_conf::kLeAudioLocationFrontRight,
+                    codec_spec_conf::kLeAudioLocationFrontRight, group_size,
+                    group_id, 2 /* rank*/, true /*connect_through_csis*/);
+
+  ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
+      .WillByDefault(Invoke([&](int group_id) { return 2; }));
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+
+  // Disconnect Device B, expect default reconnection mode
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
+      .Times(1);
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address1, false))
+      .Times(2);
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+      .Times(1);
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address1,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+      .Times(1);
+
+  InjectDisconnectedEvent(conn_id_dev_1, GATT_CONN_TERMINATE_PEER_USER);
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+}
+
 }  // namespace le_audio
