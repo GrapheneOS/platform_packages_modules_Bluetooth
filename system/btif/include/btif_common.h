@@ -171,7 +171,7 @@ base::Callback<R(Args...)> jni_thread_wrapper(const base::Location& from_here,
       [](const base::Location& from_here, base::Callback<R(Args...)> cb,
          Args... args) {
         do_in_jni_thread(from_here,
-                         base::Bind(cb, std::forward<Args>(args)...));
+                         base::BindOnce(cb, std::forward<Args>(args)...));
       },
       from_here, std::move(cb));
 }
