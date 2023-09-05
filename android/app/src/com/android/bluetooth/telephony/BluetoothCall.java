@@ -48,6 +48,9 @@ public class BluetoothCall {
     private Call mCall;
     private UUID mCallId;
 
+    // An index used to identify calls for CLCC (C* List Current Calls).
+    int mClccIndex = -1;
+
     public Call getCall() {
         return mCall;
     }
