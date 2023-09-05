@@ -220,6 +220,23 @@ class CsisDevice : public GattServiceDevice {
     csis_instances_.clear();
   }
 
+  uint16_t FindValueHandleByCccHandle(uint16_t ccc_handle) {
+    uint16_t val_handle = 0;
+    for (const auto& [_, inst] : csis_instances_) {
+      if (inst->svc_data.sirk_handle.ccc_hdl == ccc_handle) {
+        val_handle = inst->svc_data.sirk_handle.val_hdl;
+      } else if (inst->svc_data.lock_handle.ccc_hdl == ccc_handle) {
+        val_handle = inst->svc_data.lock_handle.val_hdl;
+      } else if (inst->svc_data.size_handle.ccc_hdl == ccc_handle) {
+        val_handle = inst->svc_data.size_handle.val_hdl;
+      }
+      if (val_handle) {
+        break;
+      }
+    }
+    return val_handle;
+  }
+
   std::shared_ptr<CsisInstance> GetCsisInstanceByOwningHandle(uint16_t handle) {
     uint16_t hdl = 0;
     for (const auto& [h, inst] : csis_instances_) {

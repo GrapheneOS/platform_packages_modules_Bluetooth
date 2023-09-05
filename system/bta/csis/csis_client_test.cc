@@ -534,6 +534,42 @@ class CsisClientTest : public ::testing::Test {
     TestAppUnregister();
   }
 
+  void TestGattWriteCCC(uint16_t ccc_handle, GattStatus status,
+                        int deregister_times) {
+    SetSampleDatabaseCsis(1, 1);
+    TestAppRegister();
+    TestConnect(test_address);
+    InjectConnectedEvent(test_address, 1);
+
+    auto WriteDescriptorCbGenerator = [](tGATT_STATUS status,
+                                         uint16_t ccc_handle) {
+      return [status, ccc_handle](uint16_t conn_id, uint16_t handle,
+                                  std::vector<uint8_t> value,
+                                  tGATT_WRITE_TYPE write_type,
+                                  GATT_WRITE_OP_CB cb, void* cb_data) -> void {
+        if (cb) {
+          if (ccc_handle) {
+            handle = ccc_handle;
+          }
+          cb(conn_id, status, handle, value.size(), value.data(), cb_data);
+        }
+      };
+    };
+
+    // sirk, size, lock
+    EXPECT_CALL(gatt_queue, WriteDescriptor(_, _, _, _, _, _))
+        .Times(3)
+        .WillOnce(Invoke(WriteDescriptorCbGenerator(GATT_SUCCESS, 0)))
+        .WillOnce(Invoke(WriteDescriptorCbGenerator(GATT_SUCCESS, 0)))
+        .WillOnce(Invoke(WriteDescriptorCbGenerator(status, ccc_handle)));
+
+    EXPECT_CALL(gatt_interface, DeregisterForNotifications(_, _, _))
+        .Times(deregister_times);
+
+    GetSearchCompleteEvent(1);
+    Mock::VerifyAndClearExpectations(&gatt_interface);
+  }
+
   void GetDisconnectedEvent(const RawAddress& address, uint16_t conn_id) {
     tBTA_GATTC_CLOSE event_data = {
         .conn_id = conn_id,
@@ -680,6 +716,24 @@ TEST_F(CsisClientTest, test_discovery_csis_broken) {
   GetSearchCompleteEvent(1);
   Mock::VerifyAndClearExpectations(callbacks.get());
   TestAppUnregister();
+}
+
+TEST_F(CsisClientTest, test_ccc_reg_fail_handle_not_found) {
+  // service handle range: 0x0001 ~ 0x0030
+  uint16_t not_existed_ccc_handle = 0x0031;
+  TestGattWriteCCC(not_existed_ccc_handle, GATT_INVALID_HANDLE, 0);
+}
+
+TEST_F(CsisClientTest, test_ccc_reg_fail_handle_found) {
+  // kCsisLockUuid ccc handle
+  uint16_t existed_ccc_hande = 0x0028;
+  TestGattWriteCCC(existed_ccc_hande, GATT_INVALID_HANDLE, 1);
+}
+
+TEST_F(CsisClientTest, test_ccc_reg_fail_out_of_sync) {
+  // kCsisLockUuid ccc handle
+  uint16_t ccc_handle = 0x0028;
+  TestGattWriteCCC(ccc_handle, GATT_DATABASE_OUT_OF_SYNC, 0);
 }
 
 class CsisClientCallbackTest : public CsisClientTest {
