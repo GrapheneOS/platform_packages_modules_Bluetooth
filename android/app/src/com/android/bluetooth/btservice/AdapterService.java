@@ -5170,6 +5170,33 @@ public class AdapterService extends Service {
         }
 
         @Override
+        public void isMediaProfileConnected(
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                receiver.send(isMediaProfileConnected(source));
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @RequiresPermission(
+                allOf = {
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                })
+        private boolean isMediaProfileConnected(AttributionSource source) {
+            AdapterService service = getService();
+            if (service == null
+                    || !Utils.checkConnectPermissionForDataDelivery(
+                            service, source, "AdapterService.isMediaProfileConnected")) {
+                return false;
+            }
+            enforceBluetoothPrivilegedPermission(service);
+
+            return service.isMediaProfileConnected();
+        }
+
+        @Override
         public IBluetoothGatt getBluetoothGatt() {
             AdapterService service = getService();
             if (service == null) {
@@ -6842,6 +6869,27 @@ public class AdapterService extends Service {
     void unregAllGattClient(AttributionSource source) {
         if (mGattService != null) {
             mGattService.unregAll(source);
+        }
+    }
+
+    boolean isMediaProfileConnected() {
+        if (mA2dpService != null && mA2dpService.getConnectedDevices().size() > 0) {
+            debugLog("isMediaProfileConnected. A2dp is connected");
+            return true;
+        } else if (mHearingAidService != null
+                && mHearingAidService.getConnectedDevices().size() > 0) {
+            debugLog("isMediaProfileConnected. HearingAid is connected");
+            return true;
+        } else if (mLeAudioService != null && mLeAudioService.getConnectedDevices().size() > 0) {
+            debugLog("isMediaProfileConnected. LeAudio is connected");
+            return true;
+        } else {
+            debugLog(
+                    "isMediaProfileConnected: no Media connected."
+                            + (" A2dp=" + mA2dpService)
+                            + (" HearingAid=" + mHearingAidService)
+                            + (" LeAudio=" + mLeAudioService));
+            return false;
         }
     }
 
