@@ -17,7 +17,7 @@
 package com.android.bluetooth.le_audio;
 
 import static android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT16;
-import static android.bluetooth.BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED;
+import static android.bluetooth.BluetoothGattCharacteristic.PERMISSION_READ;
 import static android.bluetooth.BluetoothGattCharacteristic.PROPERTY_READ;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -86,7 +86,7 @@ public class LeAudioTmapGattServerTest {
                 service.getCharacteristic(LeAudioTmapGattServer.UUID_TMAP_ROLE);
         assertThat(characteristic).isNotNull();
         assertThat(characteristic.getProperties()).isEqualTo(PROPERTY_READ);
-        assertThat(characteristic.getPermissions()).isEqualTo(PERMISSION_READ_ENCRYPTED);
+        assertThat(characteristic.getPermissions()).isEqualTo(PERMISSION_READ);
 
         // verify characteristic value
         int value = characteristic.getIntValue(FORMAT_UINT16, 0);
