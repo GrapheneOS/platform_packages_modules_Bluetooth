@@ -55,7 +55,8 @@ typedef struct {
       ppm_cb; /* low power management callback registered by DM */
   tBTA_SYS_CONN_CBACK*
       p_sco_cb; /* SCO connection change callback registered by AV */
-  tBTA_SYS_CONN_CBACK* p_role_cb; /* role change callback registered by AV */
+  tBTA_SYS_ROLE_SWITCH_CBACK*
+      p_role_cb;                  /* role change callback registered by AV */
   tBTA_SYS_COLLISION colli_reg;   /* collision handling module */
 #if (BTA_EIR_CANNED_UUID_LIST != TRUE)
   tBTA_SYS_EIR_CBACK* eir_cb; /* add/remove UUID into EIR */
