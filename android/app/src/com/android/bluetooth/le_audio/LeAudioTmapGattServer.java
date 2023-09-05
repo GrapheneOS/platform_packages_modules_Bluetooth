@@ -84,10 +84,11 @@ public class LeAudioTmapGattServer {
                 new BluetoothGattService(BluetoothUuid.TMAP.getUuid(),
                 BluetoothGattService.SERVICE_TYPE_PRIMARY);
 
-        BluetoothGattCharacteristic characteristic = new BluetoothGattCharacteristic(
-                UUID_TMAP_ROLE,
-                BluetoothGattCharacteristic.PROPERTY_READ,
-                BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED);
+        BluetoothGattCharacteristic characteristic =
+                new BluetoothGattCharacteristic(
+                        UUID_TMAP_ROLE,
+                        BluetoothGattCharacteristic.PROPERTY_READ,
+                        BluetoothGattCharacteristic.PERMISSION_READ);
 
         characteristic.setValue(roleMask, BluetoothGattCharacteristic.FORMAT_UINT16, 0);
         service.addCharacteristic(characteristic);
