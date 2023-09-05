@@ -163,6 +163,10 @@ public class HfpClientConnectionService extends ConnectionService {
             PbapClientService.getPbapClientService()
                     .handleHeadsetClientConnectionStateChanged(device, oldState, newState);
         }
+        if (adapterService != null) {
+            adapterService.updateProfileConnectionAdapterProperties(
+                    device, BluetoothProfile.HEADSET_CLIENT, newState, oldState);
+        }
     }
 
     private void onCallChangedInternal(BluetoothDevice device, HfpClientCall call) {

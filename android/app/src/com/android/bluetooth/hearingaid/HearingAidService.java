@@ -964,6 +964,8 @@ public class HearingAidService extends ProfileService {
                 .getActiveDeviceManager()
                 .profileConnectionStateChanged(
                         BluetoothProfile.HEARING_AID, device, fromState, toState);
+        mAdapterService.updateProfileConnectionAdapterProperties(
+                device, BluetoothProfile.HEARING_AID, toState, fromState);
     }
 
     /**
