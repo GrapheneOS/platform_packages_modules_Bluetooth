@@ -21,7 +21,7 @@
 #include <gtest/gtest.h>
 
 #include "stack/btm/btm_int_types.h"  // tBTM_CB
-#include "stack/include/rfcdefs.h"    // PORT_MAX_RFC_PORTS
+#include "stack/include/rfcdefs.h"    // RFCOMM_MAX_SCN
 
 extern tBTM_CB btm_cb;
 
@@ -32,7 +32,7 @@ class BtmAllocateSCNTest : public Test {
  protected:
   void SetUp() override {
     btm_cb.btm_available_index = 1;
-    for (int i = 0; i < PORT_MAX_RFC_PORTS; i++) {
+    for (int i = 0; i < RFCOMM_MAX_SCN; i++) {
       btm_cb.btm_scn[i] = false;
     }
   }
@@ -65,24 +65,23 @@ TEST_F(BtmAllocateSCNTest, scn_available_before_available_index) {
 }
 
 TEST_F(BtmAllocateSCNTest, can_allocate_all_scns) {
-  for (uint8_t scn = 2; scn < PORT_MAX_RFC_PORTS; scn++) {
+  for (uint8_t scn = 2; scn <= RFCOMM_MAX_SCN; scn++) {
     EXPECT_EQ(BTM_AllocateSCN(), scn);
   }
 }
 
 TEST_F(BtmAllocateSCNTest, only_last_scn_available) {
-  // Fill all relevants SCN except the last
-  for (uint8_t scn = 2; scn < PORT_MAX_RFC_PORTS - 1; scn++) {
+  // Fill all relevant SCN except the last
+  for (uint8_t scn = 2; scn < RFCOMM_MAX_SCN; scn++) {
     btm_cb.btm_scn[scn - 1] = true;
   }
 
-  EXPECT_EQ(BTM_AllocateSCN(), PORT_MAX_RFC_PORTS - 1);
+  EXPECT_EQ(BTM_AllocateSCN(), RFCOMM_MAX_SCN);
 }
 
 TEST_F(BtmAllocateSCNTest, no_scn_available) {
-  btm_cb.btm_available_index = 2;
-  for (int i = 1; i < PORT_MAX_RFC_PORTS - 1;
-       i++) {  // Fill all relevants SCN indexes (1 to 29)
+  for (int i = 1; i < RFCOMM_MAX_SCN;
+       i++) {  // Fill all relevant SCN indexes (1 to 29)
     btm_cb.btm_scn[i] = true;
   }
 
