@@ -76,6 +76,7 @@ import java.util.concurrent.TimeUnit;
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class BluetoothInCallServiceTest {
+    private static final String TAG = "BluetoothInCallServiceTest";
 
     private static final int TEST_DTMF_TONE = 0;
     private static final String TEST_ACCOUNT_ADDRESS = "//foo.com/";
@@ -554,6 +555,53 @@ public class BluetoothInCallServiceTest {
     }
 
     @Test
+    public void testListCurrentCallsCallHandleChanged() throws Exception {
+        mBluetoothInCallService.mTelephonyManager = mMockTelephonyManager;
+        when(mMockTelephonyManager.getNetworkCountryIso()).thenReturn("");
+
+        ArrayList<BluetoothCall> calls = new ArrayList<>();
+        when(mMockCallInfo.getBluetoothCalls()).thenReturn(calls);
+        BluetoothCall activeCall = createForegroundCall(UUID.randomUUID());
+        calls.add(activeCall);
+        mBluetoothInCallService.onCallAdded(activeCall);
+
+        when(activeCall.getState()).thenReturn(Call.STATE_ACTIVE);
+        when(activeCall.isIncoming()).thenReturn(true);
+        when(activeCall.isConference()).thenReturn(false);
+        when(activeCall.getHandle()).thenReturn(Uri.parse("tel:2135550000"));
+        Log.w(TAG, "call handle" + Uri.parse("tel:2135550000"));
+        when(activeCall.getGatewayInfo())
+                .thenReturn(new GatewayInfo(null, null, Uri.parse("tel:2135550000")));
+
+        clearInvocations(mMockBluetoothHeadset);
+        mBluetoothInCallService.listCurrentCalls();
+        verify(mMockBluetoothHeadset)
+                .clccResponse(
+                        1,
+                        1,
+                        CALL_STATE_ACTIVE,
+                        0,
+                        false,
+                        "2135550000",
+                        PhoneNumberUtils.TOA_Unknown);
+
+        // call handle changed
+        when(activeCall.getHandle()).thenReturn(Uri.parse("tel:213-555-0000"));
+        clearInvocations(mMockBluetoothHeadset);
+        Log.w(TAG, "call handle" + Uri.parse("tel:213-555-0000"));
+        mBluetoothInCallService.listCurrentCalls();
+        verify(mMockBluetoothHeadset)
+                .clccResponse(
+                        1,
+                        1,
+                        CALL_STATE_ACTIVE,
+                        0,
+                        false,
+                        "2135550000",
+                        PhoneNumberUtils.TOA_Unknown);
+    }
+
+    @Test
     public void testRingingCallClccResponse() throws Exception {
         ArrayList<BluetoothCall> calls = new ArrayList<>();
         when(mMockCallInfo.getBluetoothCalls()).thenReturn(calls);
@@ -771,6 +819,8 @@ public class BluetoothInCallServiceTest {
     @Test
     public void testListCurrentCallsConferenceEmptyChildrenInference() throws Exception {
         DeviceConfig.setProperty(DeviceConfig.NAMESPACE_BLUETOOTH, CLCC_INFERENCE, "true", false);
+        mBluetoothInCallService.mTelephonyManager = mMockTelephonyManager;
+        when(mMockTelephonyManager.getNetworkCountryIso()).thenReturn("");
 
         ArrayList<BluetoothCall> calls = new ArrayList<>();
         when(mMockCallInfo.getBluetoothCalls()).thenReturn(calls);
