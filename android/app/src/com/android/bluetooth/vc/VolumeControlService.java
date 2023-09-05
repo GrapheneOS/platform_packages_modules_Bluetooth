@@ -714,6 +714,29 @@ public class VolumeControlService extends ProfileService {
         }
     }
 
+    void updateGroupCacheAndAudioSystem(int groupId, int volume, boolean mute) {
+        Log.d(
+                TAG,
+                " updateGroupCacheAndAudioSystem: groupId: "
+                        + groupId
+                        + ", vol: "
+                        + volume
+                        + ", mute: "
+                        + mute);
+
+        mGroupVolumeCache.put(groupId, volume);
+        mGroupMuteCache.put(groupId, mute);
+
+        int streamType = getBluetoothContextualVolumeStream();
+        int flags = AudioManager.FLAG_SHOW_UI | AudioManager.FLAG_BLUETOOTH_ABS_VOLUME;
+        mAudioManager.setStreamVolume(streamType, getDeviceVolume(streamType, volume), flags);
+
+        if (mAudioManager.isStreamMute(streamType) != mute) {
+            int adjustment = mute ? AudioManager.ADJUST_MUTE : AudioManager.ADJUST_UNMUTE;
+            mAudioManager.adjustStreamVolume(streamType, adjustment, flags);
+        }
+    }
+
     void handleVolumeControlChanged(BluetoothDevice device, int groupId,
                                     int volume, boolean mute, boolean isAutonomous) {
 
@@ -739,6 +762,15 @@ public class VolumeControlService extends ProfileService {
         int groupVolume = getGroupVolume(groupId);
         Boolean groupMute = getGroupMute(groupId);
 
+        if (groupVolume == IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME) {
+            /* We are here, because system was just started and LeAudio device just connected.
+             * In such case, we take Volume stored on remote device and apply it to our cache and
+             * audio system.
+             */
+            updateGroupCacheAndAudioSystem(groupId, volume, mute);
+            return;
+        }
+
         if (!isAutonomous) {
             /* If the change is triggered by Android device, the stream is already changed.
              * However it might be called with isAutonomous, one the first read of after
@@ -762,8 +794,7 @@ public class VolumeControlService extends ProfileService {
                     }
                 }
 
-                if (can_change_volume && (groupVolume != volume) && (groupVolume
-                            != IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME)) {
+                if (can_change_volume && (groupVolume != volume)) {
                     Log.i(TAG, "Setting value:" + groupVolume + " to " + device);
                     mVolumeControlNativeInterface.setVolume(device, groupVolume);
                 }
@@ -781,17 +812,7 @@ public class VolumeControlService extends ProfileService {
             }
         } else {
             /* Received group notification for autonomous change. Update cache and audio system. */
-            mGroupVolumeCache.put(groupId, volume);
-            mGroupMuteCache.put(groupId, mute);
-
-            int streamType = getBluetoothContextualVolumeStream();
-            int flags = AudioManager.FLAG_SHOW_UI | AudioManager.FLAG_BLUETOOTH_ABS_VOLUME;
-            mAudioManager.setStreamVolume(streamType, getDeviceVolume(streamType, volume), flags);
-
-            if (mAudioManager.isStreamMute(streamType) != mute) {
-                int adjustment = mute ? AudioManager.ADJUST_MUTE : AudioManager.ADJUST_UNMUTE;
-                mAudioManager.adjustStreamVolume(streamType, adjustment, flags);
-            }
+            updateGroupCacheAndAudioSystem(groupId, volume, mute);
         }
     }
 
