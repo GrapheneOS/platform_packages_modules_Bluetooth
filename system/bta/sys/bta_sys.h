@@ -162,12 +162,16 @@ inline std::string bta_sys_conn_status_text(tBTA_SYS_CONN_STATUS status) {
   }
 }
 
-/* conn callback for role / low power manager*/
+/* conn callback for power mode manager */
 typedef void(tBTA_SYS_CONN_CBACK)(tBTA_SYS_CONN_STATUS status,
                                   const tBTA_SYS_ID id, uint8_t app_id,
                                   const RawAddress& peer_addr);
-
-/* conn callback for role / low power manager*/
+/* callback for role switch */
+typedef void(tBTA_SYS_ROLE_SWITCH_CBACK)(tBTA_SYS_CONN_STATUS status,
+                                         tHCI_ROLE new_role,
+                                         tHCI_STATUS hci_status,
+                                         const RawAddress& peer_addr);
+/* callback for sniff subrating updates */
 typedef void(tBTA_SYS_SSR_CFG_CBACK)(uint8_t id, uint8_t app_id,
                                      uint16_t latency, uint16_t tout);
 
@@ -238,7 +242,7 @@ void bta_sys_ssr_cfg_register(tBTA_SYS_SSR_CFG_CBACK* p_cback);
 void bta_sys_chg_ssr_config(uint8_t id, uint8_t app_id, uint16_t max_latency,
                             uint16_t min_tout);
 
-void bta_sys_role_chg_register(tBTA_SYS_CONN_CBACK* p_cback);
+void bta_sys_role_chg_register(tBTA_SYS_ROLE_SWITCH_CBACK* p_cback);
 void bta_sys_notify_role_chg(const RawAddress& peer_addr, tHCI_ROLE new_role,
                              tHCI_STATUS hci_status);
 void bta_sys_collision_register(uint8_t bta_id, tBTA_SYS_CONN_CBACK* p_cback);
