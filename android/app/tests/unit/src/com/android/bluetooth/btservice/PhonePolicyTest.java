@@ -468,6 +468,10 @@ public class PhonePolicyTest {
         when(mA2dpService.getConnectionState(bondedDevices[0])).thenReturn(
                 BluetoothProfile.STATE_DISCONNECTED);
 
+        // ACL is connected, lets simulate this.
+        when(mAdapterService.getConnectionState(bondedDevices[0]))
+                .thenReturn(BluetoothProfile.STATE_CONNECTED);
+
         // We send a connection successful for one profile since the re-connect *only* works if we
         // have already connected successfully over one of the profiles
         updateProfileConnectionStateHelper(bondedDevices[0], BluetoothProfile.HEADSET,
@@ -479,6 +483,54 @@ public class PhonePolicyTest {
     }
 
     /**
+     * Test that connectOtherProfile will not trigger any actions when ACL is disconnected. This is
+     * to add robustness to the connection mechanism
+     */
+    @Test
+    public void testConnectOtherProfileWhileDeviceIsDisconnected() {
+        // Return a list of bonded devices (just one)
+        BluetoothDevice[] bondedDevices = new BluetoothDevice[1];
+        bondedDevices[0] = getTestDevice(mAdapter, 0);
+        when(mAdapterService.getBondedDevices()).thenReturn(bondedDevices);
+
+        // Return PRIORITY_AUTO_CONNECT over HFP and A2DP. This would imply that the profiles are
+        // auto-connectable.
+        when(mHeadsetService.getConnectionPolicy(bondedDevices[0]))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        when(mA2dpService.getConnectionPolicy(bondedDevices[0]))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+
+        when(mAdapterService.getState()).thenReturn(BluetoothAdapter.STATE_ON);
+
+        // We want to trigger (in CONNECT_OTHER_PROFILES_TIMEOUT) a call to connect A2DP
+        // To enable that we need to make sure that HeadsetService returns the device as list of
+        // connected devices
+        ArrayList<BluetoothDevice> hsConnectedDevices = new ArrayList<>();
+        hsConnectedDevices.add(bondedDevices[0]);
+        when(mHeadsetService.getConnectedDevices()).thenReturn(hsConnectedDevices);
+        // Also the A2DP should say that it's not connected for same device
+        when(mA2dpService.getConnectionState(bondedDevices[0]))
+                .thenReturn(BluetoothProfile.STATE_DISCONNECTED);
+
+        // ACL is disconnected just after HEADSET profile got connected and connectOtherProfile
+        // was scheduled. Lets simulate this.
+        when(mAdapterService.getConnectionState(bondedDevices[0]))
+                .thenReturn(BluetoothProfile.STATE_DISCONNECTED);
+
+        // We send a connection successful for one profile since the re-connect *only* works if we
+        // have already connected successfully over one of the profiles
+        updateProfileConnectionStateHelper(
+                bondedDevices[0],
+                BluetoothProfile.HEADSET,
+                BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_DISCONNECTED);
+
+        // Check that there will be no A2DP connect
+        verify(mA2dpService, after(CONNECT_OTHER_PROFILES_TIMEOUT_WAIT_MILLIS).never())
+                .connect(eq(bondedDevices[0]));
+    }
+
+    /**
      * Test that we will try to re-connect to a profile on a device next time if a previous attempt
      * failed partially. This will make sure the connection mechanism still works at next try while
      * the previous attempt is some profiles connected on a device but some not.
@@ -486,7 +538,13 @@ public class PhonePolicyTest {
     @Test
     public void testReconnectOnPartialConnect_PreviousPartialFail() {
         List<BluetoothDevice> connectionOrder = new ArrayList<>();
-        connectionOrder.add(getTestDevice(mAdapter, 0));
+        BluetoothDevice testDevice = getTestDevice(mAdapter, 0);
+        connectionOrder.add(testDevice);
+
+        // ACL is connected, lets simulate this.
+        when(mAdapterService.getConnectionState(testDevice))
+                .thenReturn(BluetoothProfile.STATE_CONNECTED);
+
         when(mDatabaseManager.getMostRecentlyConnectedA2dpDevice()).thenReturn(
                 connectionOrder.get(0));
 
@@ -573,6 +631,10 @@ public class PhonePolicyTest {
             BluetoothDevice testDevice = getTestDevice(mAdapter, i);
             testDevices[i] = testDevice;
 
+            // ACL is connected, lets simulate this.
+            when(mAdapterService.getConnectionState(testDevice))
+                    .thenReturn(BluetoothProfile.STATE_CONNECTED);
+
             // Return PRIORITY_AUTO_CONNECT over HFP and A2DP. This would imply that the profiles
             // are auto-connectable.
             when(mHeadsetService.getConnectionPolicy(testDevice)).thenReturn(
@@ -640,6 +702,10 @@ public class PhonePolicyTest {
         for (int i = 0; i < kMaxTestDevices; i++) {
             BluetoothDevice testDevice = getTestDevice(mAdapter, i);
             testDevices[i] = testDevice;
+
+            // ACL is connected, lets simulate this.
+            when(mAdapterService.getConnectionState(testDevices[i]))
+                    .thenReturn(BluetoothProfile.STATE_CONNECTED);
 
             // Connect HFP and A2DP for each device as appropriate.
             // Return PRIORITY_AUTO_CONNECT only for testDevices[0]
@@ -854,6 +920,12 @@ public class PhonePolicyTest {
         when(mHeadsetService.getConnectionState(bondedDevices[1])).thenReturn(
                 BluetoothProfile.STATE_CONNECTED);
 
+        // ACL is connected for both devices.
+        when(mAdapterService.getConnectionState(bondedDevices[0]))
+                .thenReturn(BluetoothProfile.STATE_CONNECTED);
+        when(mAdapterService.getConnectionState(bondedDevices[1]))
+                .thenReturn(BluetoothProfile.STATE_CONNECTED);
+
         // We send a connection successful for one profile since the re-connect *only* works if we
         // have already connected successfully over one of the profiles
         Intent intent = new Intent(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
@@ -906,14 +978,18 @@ public class PhonePolicyTest {
         when(mA2dpService.getConnectionState(bondedDevices[1])).thenReturn(
                 BluetoothProfile.STATE_DISCONNECTED);
 
+        // ACL is connected, lets simulate this.
+        when(mAdapterService.getConnectionState(bondedDevices[1]))
+                .thenReturn(BluetoothProfile.STATE_CONNECTED);
+
         // We send a connection successful for one profile since the re-connect *only* works if we
         // have already connected successfully over one of the profiles
         updateProfileConnectionStateHelper(bondedDevices[1], BluetoothProfile.HEADSET,
                 BluetoothProfile.STATE_CONNECTED, BluetoothProfile.STATE_DISCONNECTED);
 
-        // Check that we don't get any calls to reconnect
-        verify(mA2dpService, timeout(CONNECT_OTHER_PROFILES_TIMEOUT_WAIT_MILLIS)).connect(
-                eq(bondedDevices[1]));
+        // Check that we do get A2DP call to reconnect, because HEADSET just got connected
+        verify(mA2dpService, timeout(CONNECT_OTHER_PROFILES_TIMEOUT_WAIT_MILLIS))
+                .connect(eq(bondedDevices[1]));
     }
 
     /**
