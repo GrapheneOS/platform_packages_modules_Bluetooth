@@ -1069,7 +1069,6 @@ public class A2dpService extends ProfileService {
         }
 
         mAdapterService.handleActiveDeviceChange(BluetoothProfile.A2DP, device);
-        mAdapterService.getSilenceDeviceManager().a2dpActiveDeviceChanged(device);
 
         BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_ACTIVE_DEVICE_CHANGED,
                 BluetoothProfile.A2DP, mAdapterService.obfuscateAddress(device),

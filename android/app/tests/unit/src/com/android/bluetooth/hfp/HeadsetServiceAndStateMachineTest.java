@@ -477,7 +477,6 @@ public class HeadsetServiceAndStateMachineTest {
         Assert.assertTrue(mHeadsetService.setActiveDevice(activeDevice));
         verify(mNativeInterface).setActiveDevice(activeDevice);
         verify(mAdapterService).handleActiveDeviceChange(BluetoothProfile.HEADSET, activeDevice);
-        verify(mSilenceDeviceManager).hfpActiveDeviceChanged(activeDevice);
         Assert.assertEquals(activeDevice, mHeadsetService.getActiveDevice());
         // Start virtual call
         Assert.assertTrue(mHeadsetService.startScoUsingVirtualVoiceCall());
