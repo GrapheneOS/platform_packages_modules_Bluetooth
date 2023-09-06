@@ -58,7 +58,8 @@ namespace connection_manager {
 bool background_connect_remove(uint8_t app_id, const RawAddress& address) {
   return false;
 }
-bool direct_connect_remove(uint8_t app_id, const RawAddress& address) {
+bool direct_connect_remove(uint8_t app_id, const RawAddress& address,
+                           bool connection_timeout) {
   return false;
 }
 bool is_background_connection(const RawAddress& address) { return false; }

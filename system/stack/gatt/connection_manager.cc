@@ -441,6 +441,7 @@ void on_connection_complete(const RawAddress& address) {
 }
 
 void on_connection_timed_out_from_shim(const RawAddress& address) {
+  LOG_INFO("Connection failed %s", ADDRESS_TO_LOGGABLE_CSTR(address));
   on_connection_timed_out(0x00, address);
 }
 
@@ -461,7 +462,7 @@ void wl_direct_connect_timeout_cb(uint8_t app_id, const RawAddress& address) {
 
   // TODO: this would free the timer, from within the timer callback, which is
   // bad.
-  direct_connect_remove(app_id, address);
+  direct_connect_remove(app_id, address, true);
 }
 
 /** Add a device to the direct connection list. Returns true if device
@@ -517,7 +518,8 @@ static void schedule_direct_connect_add(uint8_t app_id,
   direct_connect_add(app_id, address);
 }
 
-bool direct_connect_remove(uint8_t app_id, const RawAddress& address) {
+bool direct_connect_remove(uint8_t app_id, const RawAddress& address,
+                           bool connection_timeout) {
   LOG_DEBUG("app_id=%d, address=%s", static_cast<int>(app_id),
             ADDRESS_TO_LOGGABLE_CSTR(address));
   auto it = bgconn_dev.find(address);
@@ -542,6 +544,18 @@ bool direct_connect_remove(uint8_t app_id, const RawAddress& address) {
   it->second.doing_direct_conn.erase(app_it);
 
   if (is_anyone_interested_to_use_accept_list(it)) {
+    if (connection_timeout) {
+      /* In such case we need to add device back to allow list because,
+       * when connection timeout out, the lower layer removes device from
+       * the allow list.
+       */
+      if (!BTM_AcceptlistAdd(address)) {
+        LOG_WARN(
+            "Failed to re-add device %s to accept list after connection "
+            "timeout",
+            ADDRESS_TO_LOGGABLE_CSTR(address));
+      }
+    }
     return true;
   }
 
