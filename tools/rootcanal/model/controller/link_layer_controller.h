@@ -37,6 +37,7 @@
 #include "model/controller/controller_properties.h"
 #include "model/controller/le_advertiser.h"
 #include "model/controller/sco_connection.h"
+#include "model/controller/vendor_commands/le_apcf.h"
 #include "packets/hci_packets.h"
 #include "packets/link_layer_packets.h"
 #include "phy.h"
@@ -51,6 +52,7 @@ using ::bluetooth::hci::ErrorCode;
 using ::bluetooth::hci::FilterAcceptListAddressType;
 using ::bluetooth::hci::OpCode;
 using ::bluetooth::hci::PageScanRepetitionMode;
+using rootcanal::apcf::ApcfScanner;
 
 // Create an address with type Public Device Address or Random Device Address.
 AddressWithType PeerDeviceAddress(Address address,
@@ -1082,6 +1084,9 @@ class LinkLayerController {
   // of legacy_advertising_in_use_ and extended_advertising_in_use_ flags.
   // Only one type of advertising may be used during a controller session.
   Scanner scanner_{};
+
+  // APCF scanning state for Android vendor support.
+  ApcfScanner apcf_scanner_{};
 
   struct Initiator {
     bool connect_enable;
