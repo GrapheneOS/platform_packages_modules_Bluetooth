@@ -41,6 +41,7 @@ import static org.mockito.Mockito.when;
 
 import android.app.ActivityManager;
 import android.app.AlarmManager;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
@@ -1356,5 +1357,14 @@ public class ScanManagerTest {
         sendMessageWaitForProcessed(createConnectingMessage(true));
         // Since AppScanStats is null, no downgrade takes place for scan mode
         assertThat(client.settings.getScanMode()).isEqualTo(SCAN_MODE_LOW_LATENCY);
+    }
+
+    @Test
+    public void profileConnectionStateChanged_sendStartConnectionMessage() {
+        mScanManager.handleBluetoothProfileConnectionStateChanged(
+                BluetoothProfile.A2DP,
+                BluetoothProfile.STATE_DISCONNECTED,
+                BluetoothProfile.STATE_CONNECTING);
+        assertThat(mHandler.hasMessages(ScanManager.MSG_START_CONNECTING)).isTrue();
     }
 }

@@ -17,7 +17,6 @@
 package com.android.bluetooth.gatt;
 
 import static android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE;
-
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveOrManagedUser;
 import static com.android.bluetooth.Utils.checkCallerTargetSdk;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
@@ -495,6 +494,15 @@ public class GattService extends ProfileService {
             return Service.START_NOT_STICKY;
         }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    /** Notify Scan manager of bluetooth profile connection state changes */
+    public void notifyProfileConnectionStateChange(int profile, int fromState, int toState) {
+        if (mScanManager == null) {
+            Log.w(TAG, "scan manager is null");
+            return;
+        }
+        mScanManager.handleBluetoothProfileConnectionStateChanged(profile, fromState, toState);
     }
 
     /**
