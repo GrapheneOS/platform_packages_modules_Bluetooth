@@ -2816,8 +2816,6 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     leAudioDevice->known_service_handles_ = true;
-    btif_storage_leaudio_update_handles_bin(leAudioDevice->address_);
-
     leAudioDevice->notify_connected_after_read_ = true;
     if (leAudioHealthStatus_) {
       leAudioHealthStatus_->AddStatisticForDevice(
@@ -4856,7 +4854,8 @@ class LeAudioClientImpl : public LeAudioClient {
     if (data && !!PTR_TO_INT(data)) {
       leAudioDevice->notify_connected_after_read_ = false;
 
-      /* Update PACs and ASEs when all is read.*/
+      /* Update handles, PACs and ASEs when all is read.*/
+      btif_storage_leaudio_update_handles_bin(leAudioDevice->address_);
       btif_storage_leaudio_update_pacs_bin(leAudioDevice->address_);
       btif_storage_leaudio_update_ase_bin(leAudioDevice->address_);
 
