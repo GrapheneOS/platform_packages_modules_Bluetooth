@@ -35,6 +35,7 @@ RUN apt-get update && \
     libglib2.0-dev \
     libgtest-dev \
     libgmock-dev \
+    liblc3-dev \
     liblz4-tool \
     libncurses5 \
     libnss3-dev \
