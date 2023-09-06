@@ -318,6 +318,7 @@ class A2dpSinkStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_STATE, currentState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+        mService.connectionStateChanged(mDevice, mMostRecentState, currentState);
         mMostRecentState = currentState;
         Utils.sendBroadcast(mService, intent, BLUETOOTH_CONNECT,
                 Utils.getTempAllowlistBroadcastOptions());
