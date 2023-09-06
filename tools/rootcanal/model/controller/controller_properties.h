@@ -64,6 +64,8 @@ struct ControllerProperties {
   ControllerProperties(ControllerProperties&&) = default;
   ~ControllerProperties() = default;
 
+  ControllerProperties& operator=(ControllerProperties const&) = default;
+
   // Perform a bitwise and operation on the supported commands mask;
   // the default bit setting is either loaded from the configuration
   // file or all 1s.
