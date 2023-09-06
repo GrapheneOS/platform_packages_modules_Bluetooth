@@ -135,6 +135,7 @@ cc_library_static {
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
         "libcom.android.sysprop.bluetooth",
+        "liblc3",
     ],
     shared_libs: [
         "android.hardware.bluetooth.audio@2.1",
@@ -914,6 +915,7 @@ cc_test {
         "libevent",
         "libflatbuffers-cpp",
         "libgmock",
+        "liblc3",
         "libosi",
     ],
     data: [
@@ -1034,6 +1036,7 @@ cc_test {
         "libbt_shim_ffi",
         "libchrome",
         "libgmock",
+        "liblc3",
     ],
     sanitize: {
         cfi: true,
@@ -1101,6 +1104,7 @@ cc_test {
         "libchrome",
         "libevent",
         "libgmock",
+        "liblc3",
         "libosi",
     ],
     sanitize: {

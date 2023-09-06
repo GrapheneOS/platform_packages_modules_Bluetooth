@@ -18,11 +18,12 @@
 
 #include "codec_interface.h"
 
+#include <lc3.h>
+
 #include <memory>
 #include <optional>
 #include <vector>
 
-#include "embdrv/lc3/include/lc3.h"
 #include "osi/include/log.h"
 
 namespace le_audio {
