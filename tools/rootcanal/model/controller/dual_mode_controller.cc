@@ -49,6 +49,11 @@ constexpr uint16_t kLeMaximumDataLength = 64;
 constexpr uint16_t kLeMaximumDataTime = 0x148;
 constexpr uint8_t kTransmitPowerLevel = -20;
 
+void DualModeController::SetProperties(ControllerProperties properties) {
+  WARNING(id_, "updating the device properties!");
+  properties_ = std::move(properties);
+}
+
 // Device methods.
 std::string DualModeController::GetTypeString() const {
   return "Simulated Bluetooth Controller";
