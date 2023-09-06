@@ -60,6 +60,9 @@ class DualModeController : public Device {
 
   DualModeController& operator=(const DualModeController&) = delete;
 
+  // Overwrite the configuration.
+  void SetProperties(ControllerProperties properties);
+
   // Device methods.
   std::string GetTypeString() const override;
 
