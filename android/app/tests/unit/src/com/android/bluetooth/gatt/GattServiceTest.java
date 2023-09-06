@@ -779,4 +779,17 @@ public class GattServiceTest {
     public void cleanUp_doesNotCrash() {
         mService.cleanup();
     }
+
+    @Test
+    public void profileConnectionStateChanged_notifyScanManager() {
+        mService.notifyProfileConnectionStateChange(
+                BluetoothProfile.A2DP,
+                BluetoothProfile.STATE_CONNECTING,
+                BluetoothProfile.STATE_CONNECTED);
+        verify(mScanManager)
+                .handleBluetoothProfileConnectionStateChanged(
+                        BluetoothProfile.A2DP,
+                        BluetoothProfile.STATE_CONNECTING,
+                        BluetoothProfile.STATE_CONNECTED);
+    }
 }

@@ -6860,6 +6860,18 @@ public class AdapterService extends Service {
         }
     }
 
+    /**
+     * Notify GATT of a Bluetooth profile's connection state change for a given {@link
+     * BluetoothProfile}.
+     */
+    public void notifyProfileConnectionStateChangeToGatt(int profile, int fromState, int toState) {
+        if (mGattService == null) {
+            Log.w(TAG, "GATT Service is not running!");
+            return;
+        }
+        mGattService.notifyProfileConnectionStateChange(profile, fromState, toState);
+    }
+
     static int convertScanModeToHal(int mode) {
         switch (mode) {
             case BluetoothAdapter.SCAN_MODE_NONE:

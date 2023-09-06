@@ -20,12 +20,6 @@ import android.annotation.RequiresPermission;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.bluetooth.BluetoothA2dp;
-import android.bluetooth.BluetoothA2dpSink;
-import android.bluetooth.BluetoothHeadset;
-import android.bluetooth.BluetoothHeadsetClient;
-import android.bluetooth.BluetoothHearingAid;
-import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
@@ -204,8 +198,6 @@ public class ScanManager {
         IntentFilter locationIntentFilter = new IntentFilter(LocationManager.MODE_CHANGED_ACTION);
         locationIntentFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         mService.registerReceiver(mLocationReceiver, locationIntentFilter);
-        mService.registerReceiver(mBluetoothConnectionReceiver,
-                getBluetoothConnectionIntentFilter());
     }
 
     void cleanup() {
@@ -240,13 +232,6 @@ public class ScanManager {
             mService.unregisterReceiver(mLocationReceiver);
         } catch (IllegalArgumentException e) {
             Log.w(TAG, "exception when invoking unregisterReceiver(mLocationReceiver)", e);
-        }
-
-        try {
-            mService.unregisterReceiver(mBluetoothConnectionReceiver);
-        } catch (IllegalArgumentException e) {
-            Log.w(TAG, "exception when invoking unregisterReceiver(mBluetoothConnectionReceiver)",
-                    e);
         }
     }
 
@@ -319,26 +304,6 @@ public class ScanManager {
 
     void callbackDone(int scannerId, int status) {
         mScanNative.callbackDone(scannerId, status);
-    }
-
-    void onConnectingState(boolean isConnecting) {
-        if (isConnecting) {
-            sendMessage(MSG_START_CONNECTING, null);
-        } else {
-            sendMessage(MSG_STOP_CONNECTING, null);
-        }
-    }
-
-    private IntentFilter getBluetoothConnectionIntentFilter() {
-        IntentFilter filter = new IntentFilter();
-        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
-        filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED);
-        return filter;
     }
 
     private void sendMessage(int what, ScanClient client) {
@@ -1925,51 +1890,6 @@ public class ScanManager {
                 }
             };
 
-    private BroadcastReceiver mBluetoothConnectionReceiver =
-            new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    String action = intent.getAction();
-                    if (action == null) {
-                        Log.w(TAG, "Received intent with null action");
-                        return;
-                    }
-                    switch (action) {
-                        case BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED:
-                        case BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED:
-                        case BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED:
-                        case BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED:
-                        case BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED:
-                        case BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED:
-                            int prevState = intent.getIntExtra(
-                                    BluetoothProfile.EXTRA_PREVIOUS_STATE, -1);
-                            int state = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
-                            if (DBG) {
-                                Log.d(TAG, "PROFILE_CONNECTION_STATE_CHANGE: action="
-                                        + action + ", prevState=" + prevState + ", state=" + state);
-                            }
-                            boolean updatedConnectingState =
-                                    updateCountersAndCheckForConnectingState(state, prevState);
-                            if (DBG) {
-                                Log.d(TAG, "updatedConnectingState = " + updatedConnectingState);
-                            }
-                            if (updatedConnectingState) {
-                                if (!mIsConnecting) {
-                                    onConnectingState(true);
-                                }
-                            } else {
-                                if (mIsConnecting) {
-                                    onConnectingState(false);
-                                }
-                            }
-                            break;
-                        default:
-                            Log.w(TAG, "Received unknown intent " + intent);
-                            break;
-                    }
-                }
-            };
-
     private boolean updateCountersAndCheckForConnectingState(int state, int prevState) {
         switch (prevState) {
             case BluetoothProfile.STATE_CONNECTING:
@@ -2071,5 +1991,33 @@ public class ScanManager {
         return mPriorityMap.get(oldScanMode) <= mPriorityMap.get(newScanMode)
                 ? oldScanMode
                 : newScanMode;
+    }
+
+    /**
+     * Handle bluetooth profile connection state changes (for A2DP, HFP, HFP Client, A2DP Sink and
+     * LE Audio).
+     */
+    public void handleBluetoothProfileConnectionStateChanged(
+            int profile, int fromState, int toState) {
+        boolean updatedConnectingState =
+                updateCountersAndCheckForConnectingState(toState, fromState);
+        if (DBG) {
+            Log.d(
+                    TAG,
+                    "PROFILE_CONNECTION_STATE_CHANGE:"
+                            + (" profile=" + BluetoothProfile.getProfileName(profile))
+                            + (", prevState=" + fromState)
+                            + (", state=" + toState)
+                            + ("updatedConnectingState = " + updatedConnectingState));
+        }
+        if (updatedConnectingState) {
+            if (!mIsConnecting) {
+                sendMessage(MSG_START_CONNECTING, null);
+            }
+        } else {
+            if (mIsConnecting) {
+                sendMessage(MSG_STOP_CONNECTING, null);
+            }
+        }
     }
 }
