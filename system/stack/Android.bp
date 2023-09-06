@@ -140,6 +140,7 @@ cc_library_static {
         "libbt-platform-protos-lite",
         "libbt-stack-core",
         "libbt_shim_bridge",
+        "liblc3",
     ],
     whole_static_libs: [
         "libaptx_enc",
