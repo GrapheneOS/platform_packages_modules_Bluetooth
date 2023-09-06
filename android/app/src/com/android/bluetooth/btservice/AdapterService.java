@@ -6857,6 +6857,17 @@ public class AdapterService extends Service {
         mGattService.notifyProfileConnectionStateChange(profile, fromState, toState);
     }
 
+    /**
+     * Handle Bluetooth app state when connection state changes for a given {@code profile}.
+     *
+     * <p>Currently this function is limited to handling Phone policy but the eventual goal is to
+     * move all connection logic here.
+     */
+    public void handleProfileConnectionStateChange(
+            int profile, BluetoothDevice device, int fromState, int toState) {
+        mPhonePolicy.profileConnectionStateChanged(profile, device, fromState, toState);
+    }
+
     static int convertScanModeToHal(int mode) {
         switch (mode) {
             case BluetoothAdapter.SCAN_MODE_NONE:
