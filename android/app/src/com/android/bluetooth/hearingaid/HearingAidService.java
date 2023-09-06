@@ -17,7 +17,6 @@
 package com.android.bluetooth.hearingaid;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
-
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveOrManagedUser;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
@@ -50,6 +49,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.ProfileService.IProfileServiceBinder;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.internal.annotations.VisibleForTesting;
@@ -958,6 +958,8 @@ public class HearingAidService extends ProfileService {
                 removeStateMachine(device);
             }
         }
+        mAdapterService.notifyProfileConnectionStateChangeToGatt(
+                BluetoothProfile.HEARING_AID, fromState, toState);
         mAdapterService
                 .getActiveDeviceManager()
                 .profileConnectionStateChanged(

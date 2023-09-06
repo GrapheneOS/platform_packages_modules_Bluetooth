@@ -157,6 +157,8 @@ public class HfpClientConnectionService extends ConnectionService {
                     .getRemoteDevices()
                     .handleHeadsetClientConnectionStateChanged(device, oldState, newState);
         }
+        adapterService.notifyProfileConnectionStateChangeToGatt(
+                BluetoothProfile.HEADSET_CLIENT, oldState, newState);
         if (PbapClientService.getPbapClientService() != null) {
             PbapClientService.getPbapClientService()
                     .handleHeadsetClientConnectionStateChanged(device, oldState, newState);
