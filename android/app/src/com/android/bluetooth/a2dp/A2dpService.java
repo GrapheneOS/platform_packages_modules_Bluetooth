@@ -1253,6 +1253,11 @@ public class A2dpService extends ProfileService {
     }
 
     void connectionStateChanged(BluetoothDevice device, int fromState, int toState) {
+        if (!isAvailable()) {
+            Log.w(TAG, "connectionStateChanged: service is not available");
+            return;
+        }
+
         if ((device == null) || (fromState == toState)) {
             return;
         }
