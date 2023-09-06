@@ -51,7 +51,8 @@ void on_connection_complete(const RawAddress& address);
 std::set<tAPP_ID> get_apps_connecting_to(const RawAddress& remote_bda);
 
 bool direct_connect_add(tAPP_ID app_id, const RawAddress& address);
-bool direct_connect_remove(tAPP_ID app_id, const RawAddress& address);
+bool direct_connect_remove(tAPP_ID app_id, const RawAddress& address,
+                           bool connection_timeout = false);
 
 void dump(int fd);
 
