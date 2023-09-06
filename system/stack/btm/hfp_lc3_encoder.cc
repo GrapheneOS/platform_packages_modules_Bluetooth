@@ -18,9 +18,10 @@
 
 #include "hfp_lc3_encoder.h"
 
+#include <lc3.h>
+
 #include <cstring>
 
-#include "embdrv/lc3/include/lc3.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 

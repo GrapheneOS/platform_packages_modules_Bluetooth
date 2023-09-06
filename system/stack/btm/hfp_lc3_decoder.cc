@@ -19,10 +19,10 @@
 #include "hfp_lc3_decoder.h"
 
 #include <base/logging.h>
+#include <lc3.h>
 
 #include <cstring>
 
-#include "embdrv/lc3/include/lc3.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 
