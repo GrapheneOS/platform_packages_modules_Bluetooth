@@ -27,14 +27,15 @@
 #include <cstdint>
 #include <string>
 
-#include "bta/av/bta_av_int.h"
 #include "bta/include/bta_av_api.h"
-#include "bta/include/bta_av_co.h"
 #include "bta/sys/bta_sys.h"
+#include "include/hardware/bt_av.h"
 #include "osi/include/list.h"
+#include "stack/include/a2dp_error_codes.h"
 #include "stack/include/avdt_api.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/bt_types.h"
+#include "stack/include/hci_error_code.h"
+#include "types/hci_role.h"
 #include "types/raw_address.h"
 
 #define CASE_RETURN_TEXT(code) \
@@ -400,8 +401,8 @@ typedef struct {
 /* data type for BTA_AV_ROLE_CHANGE_EVT */
 typedef struct {
   BT_HDR_RIGID hdr;
-  uint8_t new_role;
-  uint8_t hci_status;
+  tHCI_ROLE new_role;
+  tHCI_STATUS hci_status;
 } tBTA_AV_ROLE_RES;
 
 /* data type for BTA_AV_SDP_DISC_OK_EVT */
