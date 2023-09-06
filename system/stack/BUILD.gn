@@ -236,7 +236,6 @@ source_set("stack") {
     "//bt/system/gd/rust/shim:init_flags_bridge_header",
     "//bt/system/types",
     "//bt/system/types",
-    "//bt/system/embdrv/lc3:liblc3",
   ]
 
   configs += [ "//bt/system:target_defaults" ]
