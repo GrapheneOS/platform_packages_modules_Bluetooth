@@ -17,6 +17,8 @@
 
 #include "broadcaster_types.h"
 
+#include <lc3.h>
+
 #include <vector>
 
 #include "bt_types.h"

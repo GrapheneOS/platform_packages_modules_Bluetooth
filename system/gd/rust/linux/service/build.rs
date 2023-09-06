@@ -25,6 +25,7 @@ fn main() {
     Config::new().probe("libchrome").unwrap();
     Config::new().probe("libmodp_b64").unwrap();
     Config::new().probe("tinyxml2").unwrap();
+    Config::new().probe("lc3").unwrap();
 
     // Include ChromeOS-specific dependencies.
     if option_env!("TARGET_OS_VARIANT").unwrap_or("None").to_string() == "chromeos" {
