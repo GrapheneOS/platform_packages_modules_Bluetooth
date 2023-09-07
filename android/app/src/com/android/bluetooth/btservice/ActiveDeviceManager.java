@@ -198,7 +198,7 @@ public class ActiveDeviceManager implements AdapterService.BluetoothStateCallbac
      * Called when active state of audio profiles changed
      *
      * @param profile The Bluetooth profile of which active state changed
-     * @param device The device currently activated. {@code null} if no A2DP device activated
+     * @param device The device currently activated. {@code null} if no device is active
      */
     public void profileActiveDeviceChanged(int profile, BluetoothDevice device) {
         switch (profile) {
