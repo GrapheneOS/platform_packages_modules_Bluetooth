@@ -6,7 +6,6 @@ from mmi2grpc._proxy import ProfileProxy
 from pandora_experimental.hid_grpc import HID
 from pandora.host_grpc import Host
 from pandora_experimental.hid_pb2 import HID_REPORT_TYPE_OUTPUT
-from mmi2grpc._rootcanal import RootCanal
 
 
 class HIDProxy(ProfileProxy):
@@ -25,7 +24,7 @@ class HIDProxy(ProfileProxy):
         PTS.
         """
 
-        self.rootcanal.reconnect_phy_if_needed()
+        self.rootcanal.move_in_range()
         self.connection = self.host.Connect(address=pts_addr).connection
 
         return "OK"
@@ -46,7 +45,7 @@ class HIDProxy(ProfileProxy):
         # Performing out of range action
         def disconnect():
             sleep(2)
-            self.rootcanal.disconnect_phy()
+            self.rootcanal.move_out_of_range()
 
         Thread(target=disconnect).start()
 
@@ -74,7 +73,7 @@ class HIDProxy(ProfileProxy):
         Please prepare the IUT to accept connection from PTS and then click OK.
         """
 
-        self.rootcanal.reconnect_phy_if_needed()
+        self.rootcanal.move_in_range()
 
         return "OK"
 
@@ -84,7 +83,7 @@ class HIDProxy(ProfileProxy):
         Make the Implementation Under Test (IUT) connectable, then click Ok.
         """
 
-        self.rootcanal.reconnect_phy_if_needed()
+        self.rootcanal.move_in_range()
 
         return "OK"
 
@@ -167,7 +166,7 @@ class HIDProxy(ProfileProxy):
 
         def disconnect():
             sleep(2)
-            self.rootcanal.disconnect_phy()
+            self.rootcanal.move_out_of_range()
 
         Thread(target=disconnect).start()
 
@@ -182,7 +181,7 @@ class HIDProxy(ProfileProxy):
 
         def connect():
             sleep(1)
-            self.rootcanal.reconnect_phy_if_needed()
+            self.rootcanal.move_in_range()
             self.connection = self.host.Connect(address=pts_addr).connection
 
         Thread(target=connect).start()
