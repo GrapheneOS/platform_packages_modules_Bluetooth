@@ -359,7 +359,7 @@ public class HearingAidService extends ProfileService {
         return true;
     }
 
-    List<BluetoothDevice> getConnectedDevices() {
+    public List<BluetoothDevice> getConnectedDevices() {
         synchronized (mStateMachines) {
             List<BluetoothDevice> devices = new ArrayList<>();
             for (HearingAidStateMachine sm : mStateMachines.values()) {
