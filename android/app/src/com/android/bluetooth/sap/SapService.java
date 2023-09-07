@@ -540,6 +540,9 @@ public class SapService extends ProfileService implements AdapterService.Bluetoo
             }
             int prevState = mState;
             mState = state;
+            mAdapterService.updateProfileConnectionAdapterProperties(
+                    mRemoteDevice, BluetoothProfile.SAP, mState, prevState);
+
             BluetoothSap.invalidateBluetoothGetConnectionStateCache();
             Intent intent = new Intent(BluetoothSap.ACTION_CONNECTION_STATE_CHANGED);
             intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);

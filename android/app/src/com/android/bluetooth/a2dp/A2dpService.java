@@ -1372,6 +1372,8 @@ public class A2dpService extends ProfileService {
         mAdapterService
                 .getSilenceDeviceManager()
                 .a2dpConnectionStateChanged(device, fromState, toState);
+        mAdapterService.updateProfileConnectionAdapterProperties(
+                device, BluetoothProfile.A2DP, toState, fromState);
     }
 
     /**

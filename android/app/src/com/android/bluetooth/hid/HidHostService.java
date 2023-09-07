@@ -910,6 +910,12 @@ public class HidHostService extends ProfileService {
         }
         mInputDevices.put(device, newState);
 
+        AdapterService adapterService = AdapterService.getAdapterService();
+        if (adapterService != null) {
+            adapterService.updateProfileConnectionAdapterProperties(
+                    device, BluetoothProfile.HID_HOST, newState, prevState);
+        }
+
         /* Notifying the connection state change of the profile before sending the intent for
            connection state change, as it was causing a race condition, with the UI not being
            updated with the correct connection state. */
