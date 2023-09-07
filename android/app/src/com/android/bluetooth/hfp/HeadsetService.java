@@ -2135,10 +2135,7 @@ public class HeadsetService extends ProfileService {
     private void broadcastActiveDevice(BluetoothDevice device) {
         logD("broadcastActiveDevice: " + device);
 
-        mAdapterService
-                .getActiveDeviceManager()
-                .profileActiveDeviceChanged(BluetoothProfile.HEADSET, device);
-        mAdapterService.getSilenceDeviceManager().hfpActiveDeviceChanged(device);
+        mAdapterService.handleActiveDeviceChange(BluetoothProfile.HEADSET, device);
 
         BluetoothStatsLog.write(
                 BluetoothStatsLog.BLUETOOTH_ACTIVE_DEVICE_CHANGED,
