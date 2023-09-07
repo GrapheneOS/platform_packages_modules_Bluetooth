@@ -167,7 +167,7 @@ public final class DistanceMeasurementManager {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             return null;
         } catch (RemoteException e) {
-            throw e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         }
     }
 
