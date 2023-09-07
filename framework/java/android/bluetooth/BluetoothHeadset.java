@@ -852,7 +852,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
                 return BluetoothStatusCodes.ERROR_TIMEOUT;
@@ -919,7 +919,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
                 return BluetoothStatusCodes.ERROR_TIMEOUT;
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             }
         }
 
@@ -959,7 +959,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
                 return BluetoothStatusCodes.ERROR_TIMEOUT;
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             }
         }
 
@@ -1044,7 +1044,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
                 return BluetoothStatusCodes.ERROR_TIMEOUT;
@@ -1099,7 +1099,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
                 return BluetoothStatusCodes.ERROR_TIMEOUT;
