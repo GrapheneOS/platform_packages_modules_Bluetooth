@@ -40,6 +40,7 @@ import com.android.bluetooth.IObexConnectionHandler;
 import com.android.bluetooth.ObexRejectServer;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.annotations.VisibleForTesting.Visibility;
@@ -159,6 +160,12 @@ public class PbapStateMachine extends StateMachine {
         // Should not be called from enter() method
         private void broadcastConnectionState(BluetoothDevice device, int fromState, int toState) {
             stateLogD("broadcastConnectionState " + device + ": " + fromState + "->" + toState);
+            AdapterService adapterService = AdapterService.getAdapterService();
+            if (adapterService != null) {
+                adapterService.updateProfileConnectionAdapterProperties(
+                        device, BluetoothProfile.PBAP, toState, fromState);
+            }
+
             Intent intent = new Intent(BluetoothPbap.ACTION_CONNECTION_STATE_CHANGED);
             intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, fromState);
             intent.putExtra(BluetoothProfile.EXTRA_STATE, toState);

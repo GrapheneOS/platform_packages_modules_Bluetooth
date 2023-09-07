@@ -1198,6 +1198,9 @@ public class LeAudioService extends ProfileService {
                 .getActiveDeviceManager()
                 .profileConnectionStateChanged(
                         BluetoothProfile.LE_AUDIO, device, prevState, newState);
+        mAdapterService.updateProfileConnectionAdapterProperties(
+                device, BluetoothProfile.LE_AUDIO, newState, prevState);
+
         Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
