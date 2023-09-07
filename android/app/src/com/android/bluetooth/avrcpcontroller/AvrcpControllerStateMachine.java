@@ -38,6 +38,7 @@ import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.annotations.VisibleForTesting;
@@ -1341,6 +1342,12 @@ class AvrcpControllerStateMachine extends StateMachine {
             MetricsLogger.logProfileConnectionEvent(
                     BluetoothMetricsProto.ProfileId.AVRCP_CONTROLLER);
         }
+        AdapterService adapterService = AdapterService.getAdapterService();
+        if (adapterService != null) {
+            adapterService.updateProfileConnectionAdapterProperties(
+                    mDevice, BluetoothProfile.AVRCP_CONTROLLER, currentState, mMostRecentState);
+        }
+
         logD("Connection state " + mDevice + ": " + mMostRecentState + "->" + currentState);
         Intent intent = new Intent(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, mMostRecentState);
