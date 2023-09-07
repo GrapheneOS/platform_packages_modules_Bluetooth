@@ -18,8 +18,8 @@
 #define MMC_CODEC_SERVER_LC3_UTILS_H_
 
 #include <base/logging.h>
+#include <lc3.h>
 
-#include "embdrv/lc3/include/lc3.h"
 #include "mmc/proto/mmc_config.pb.h"
 
 namespace mmc {
