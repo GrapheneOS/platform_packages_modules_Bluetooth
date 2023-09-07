@@ -54,11 +54,6 @@ public class BluetoothModeChangeHelperTest {
     }
 
     @Test
-    public void isMediaProfileConnected() {
-        assertThat(mHelper.isMediaProfileConnected()).isFalse();
-    }
-
-    @Test
     public void isBluetoothOn_doesNotCrash() {
         // assertThat(mHelper.isBluetoothOn()).isFalse();
         // TODO: Strangely, isBluetoothOn() does not call BluetoothAdapter.isEnabled().

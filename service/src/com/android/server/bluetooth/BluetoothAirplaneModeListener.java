@@ -184,8 +184,9 @@ class BluetoothAirplaneModeListener extends Handler {
         if (isAirplaneModeOn) {
             mApmEnabledTime = SystemClock.elapsedRealtime();
             mIsBluetoothOnBeforeApmToggle = mAirplaneHelper.isBluetoothOn();
-            mIsBluetoothOnAfterApmToggle = shouldSkipAirplaneModeChange();
-            mIsMediaProfileConnectedBeforeApmToggle = mAirplaneHelper.isMediaProfileConnected();
+            mIsMediaProfileConnectedBeforeApmToggle = mBluetoothManager.isMediaProfileConnected();
+            mIsBluetoothOnAfterApmToggle =
+                    shouldSkipAirplaneModeChange(mIsMediaProfileConnectedBeforeApmToggle);
             if (mIsBluetoothOnAfterApmToggle) {
                 Log.i(TAG, "Ignore airplane mode change");
                 // Airplane mode enabled when Bluetooth is being used for audio/hearing aid.
@@ -244,14 +245,12 @@ class BluetoothAirplaneModeListener extends Handler {
     }
 
     @VisibleForTesting
-    boolean shouldSkipAirplaneModeChange() {
+    boolean shouldSkipAirplaneModeChange(boolean isMediaProfileConnected) {
         boolean apmEnhancementUsed = isApmEnhancementEnabled() && isBluetoothToggledOnApm();
 
         // APM feature disabled or user has not used the feature yet by changing BT state in APM
         // BT will only remain on in APM when media profile is connected
-        if (!apmEnhancementUsed
-                && mAirplaneHelper.isBluetoothOn()
-                && mAirplaneHelper.isMediaProfileConnected()) {
+        if (!apmEnhancementUsed && mAirplaneHelper.isBluetoothOn() && isMediaProfileConnected) {
             return true;
         }
         // APM feature enabled and user has used the feature by changing BT state in APM
