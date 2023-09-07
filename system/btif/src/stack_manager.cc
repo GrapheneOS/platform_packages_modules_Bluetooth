@@ -351,7 +351,7 @@ static void event_start_up_stack(bluetooth::core::CoreInterface* interface,
 
   stack_is_running = true;
   LOG_INFO("%s finished", __func__);
-  do_in_jni_thread(FROM_HERE, base::Bind(event_signal_stack_up, nullptr));
+  do_in_jni_thread(FROM_HERE, base::BindOnce(event_signal_stack_up, nullptr));
 }
 
 // Synchronous function to shut down the stack
@@ -398,7 +398,7 @@ static void event_shut_down_stack(ProfileStopCallback stopProfiles) {
   get_btm_client_interface().lifecycle.btm_free();
 
   hack_future = future_new();
-  do_in_jni_thread(FROM_HERE, base::Bind(event_signal_stack_down, nullptr));
+  do_in_jni_thread(FROM_HERE, base::BindOnce(event_signal_stack_down, nullptr));
   future_await(hack_future);
   LOG_INFO("%s finished", __func__);
 }

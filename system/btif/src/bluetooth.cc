@@ -980,16 +980,18 @@ static bt_os_callouts_t* wakelock_os_callouts_saved = nullptr;
 
 static int acquire_wake_lock_cb(const char* lock_name) {
   return do_in_jni_thread(
-      FROM_HERE, base::Bind(base::IgnoreResult(
-                                wakelock_os_callouts_saved->acquire_wake_lock),
-                            lock_name));
+      FROM_HERE,
+      base::BindOnce(
+          base::IgnoreResult(wakelock_os_callouts_saved->acquire_wake_lock),
+          lock_name));
 }
 
 static int release_wake_lock_cb(const char* lock_name) {
   return do_in_jni_thread(
-      FROM_HERE, base::Bind(base::IgnoreResult(
-                                wakelock_os_callouts_saved->release_wake_lock),
-                            lock_name));
+      FROM_HERE,
+      base::BindOnce(
+          base::IgnoreResult(wakelock_os_callouts_saved->release_wake_lock),
+          lock_name));
 }
 
 static bt_os_callouts_t wakelock_os_callouts_jni = {
