@@ -77,6 +77,25 @@ public class SilenceDeviceManager {
     private static final int DISABLE_SILENCE = 1;
 
     /**
+     * Called when active state of audio profiles changed
+     *
+     * @param profile The Bluetooth profile of which active state changed
+     * @param device The device currently activated. {@code null} if no device is active
+     */
+    public void profileActiveDeviceChanged(int profile, BluetoothDevice device) {
+        switch (profile) {
+            case BluetoothProfile.A2DP:
+                mHandler.obtainMessage(MSG_A2DP_ACTIVE_DEVICE_CHANGED, device).sendToTarget();
+                break;
+            case BluetoothProfile.HEADSET:
+                mHandler.obtainMessage(MSG_HFP_ACTIVE_DEVICE_CHANGED, device).sendToTarget();
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
      * Called when A2DP connection state changed by A2dpService
      *
      * @param device The device of which connection state was changed
@@ -89,15 +108,6 @@ public class SilenceDeviceManager {
     }
 
     /**
-     * Called when A2DP active device changed by A2dpService
-     *
-     * @param device The device currently activated. {@code null} if no A2DP device activated
-     */
-    public void a2dpActiveDeviceChanged(BluetoothDevice device) {
-        mHandler.obtainMessage(MSG_A2DP_ACTIVE_DEVICE_CHANGED, device).sendToTarget();
-    }
-
-    /**
      * Called when HFP connection state changed by HeadsetService
      *
      * @param device The device of which connection state was changed
@@ -107,15 +117,6 @@ public class SilenceDeviceManager {
     public void hfpConnectionStateChanged(BluetoothDevice device, int fromState, int toState) {
         mHandler.obtainMessage(MSG_HFP_CONNECTION_STATE_CHANGED, fromState, toState, device)
                 .sendToTarget();
-    }
-
-    /**
-     * Called when HFP active device is changed by HeadsetService
-     *
-     * @param device The device currently activated. {@code null} if no HFP device activated
-     */
-    public void hfpActiveDeviceChanged(BluetoothDevice device) {
-        mHandler.obtainMessage(MSG_HFP_ACTIVE_DEVICE_CHANGED, device).sendToTarget();
     }
 
     class SilenceDeviceManagerHandler extends Handler {
