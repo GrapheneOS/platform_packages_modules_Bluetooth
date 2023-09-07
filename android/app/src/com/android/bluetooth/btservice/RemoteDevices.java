@@ -197,6 +197,11 @@ public class RemoteDevices {
                             + bluetoothDevice.isConnected());
 
                     if (bluetoothDevice.isConnected()) {
+                        int transport = deviceProperties.getConnectionHandle(
+                                BluetoothDevice.TRANSPORT_BREDR) != BluetoothDevice.ERROR
+                                        ? BluetoothDevice.TRANSPORT_BREDR
+                                        : BluetoothDevice.TRANSPORT_LE;
+                        mAdapterService.notifyAclDisconnected(bluetoothDevice, transport);
                         Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bluetoothDevice);
                         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
@@ -1144,6 +1149,7 @@ public class RemoteDevices {
                 mDevices.remove(key);
             }
             if (state == BluetoothAdapter.STATE_ON || state == BluetoothAdapter.STATE_TURNING_OFF) {
+                mAdapterService.notifyAclDisconnected(device, transportLinkType);
                 intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
                 intent.putExtra(BluetoothDevice.EXTRA_TRANSPORT, transportLinkType);
             } else if (state == BluetoothAdapter.STATE_BLE_ON

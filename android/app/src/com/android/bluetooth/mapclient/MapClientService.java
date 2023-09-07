@@ -31,6 +31,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.ParcelUuid;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
@@ -66,6 +68,7 @@ public class MapClientService extends ProfileService {
     private static MapClientService sMapClientService;
     @VisibleForTesting
     MapBroadcastReceiver mMapReceiver;
+    private Handler mHandler;
 
     public static boolean isEnabled() {
         return BluetoothProperties.isProfileMapClientEnabled().orElse(false);
@@ -312,6 +315,8 @@ public class MapClientService extends ProfileService {
         mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
                 "DatabaseManager cannot be null when MapClientService starts");
 
+        mHandler = new Handler(Looper.getMainLooper());
+
         if (mMnsServer == null) {
             mMnsServer = MapUtils.newMnsServiceInstance(this);
             if (mMnsServer == null) {
@@ -325,7 +330,6 @@ public class MapClientService extends ProfileService {
         IntentFilter filter = new IntentFilter();
         filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothDevice.ACTION_SDP_RECORD);
-        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         registerReceiver(mMapReceiver, filter);
         removeUncleanAccounts();
         MapClientContent.clearAllContent(this);
@@ -353,6 +357,12 @@ public class MapClientService extends ProfileService {
             stateMachine.doQuit();
         }
         mMapInstanceMap.clear();
+
+        // Unregister Handler and stop all queued messages.
+        if (mHandler != null) {
+            mHandler.removeCallbacksAndMessages(null);
+            mHandler = null;
+        }
         return true;
     }
 
@@ -728,11 +738,6 @@ public class MapClientService extends ProfileService {
             if (DBG) {
                 Log.d(TAG, "onReceive: " + action);
             }
-            if (!action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)
-                    && !action.equals(BluetoothDevice.ACTION_SDP_RECORD)) {
-                // we don't care about this intent
-                return;
-            }
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
             if (device == null) {
                 Log.e(TAG, "broadcast has NO device param!");
@@ -743,21 +748,6 @@ public class MapClientService extends ProfileService {
             if (stateMachine == null) {
                 Log.e(TAG, "No Statemachine found for the device=" + device.toString());
                 return;
-            }
-
-            if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
-                int transport =
-                        intent.getIntExtra(BluetoothDevice.EXTRA_TRANSPORT, BluetoothDevice.ERROR);
-                Log.i(TAG, "Received ACL disconnection event, device=" + device.toString()
-                        + ", transport=" + transport);
-
-                if (transport != BluetoothDevice.TRANSPORT_BREDR) {
-                    return;
-                }
-
-                if (stateMachine.getState() == BluetoothProfile.STATE_CONNECTED) {
-                    stateMachine.disconnect();
-                }
             }
 
             if (action.equals(BluetoothDevice.ACTION_SDP_RECORD)) {
@@ -778,6 +768,29 @@ public class MapClientService extends ProfileService {
                     stateMachine.sendSdpResult(status, masRecord);
                 }
             }
+        }
+    }
+
+    public void aclDisconnected(BluetoothDevice device, int transport) {
+        mHandler.post(() -> handleAclDisconnected(device, transport));
+    }
+
+    private void handleAclDisconnected(BluetoothDevice device, int transport) {
+        MceStateMachine stateMachine = mMapInstanceMap.get(device);
+        if (stateMachine == null) {
+            Log.e(TAG, "No Statemachine found for the device=" + device.toString());
+            return;
+        }
+
+        Log.i(TAG, "Received ACL disconnection event, device=" + device.toString()
+                + ", transport=" + transport);
+
+        if (transport != BluetoothDevice.TRANSPORT_BREDR) {
+            return;
+        }
+
+        if (stateMachine.getState() == BluetoothProfile.STATE_CONNECTED) {
+            stateMachine.disconnect();
         }
     }
 }

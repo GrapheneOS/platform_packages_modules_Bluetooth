@@ -29,6 +29,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.CallLog;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
@@ -92,6 +93,7 @@ public class PbapClientService extends ProfileService {
     private static final int ACCOUNT_VISIBILITY_CHECK_TRIES_MAX = 6;
     private int mAccountVisibilityCheckTries = 0;
     private final Handler mAuthServiceHandler = new Handler();
+    private Handler mHandler;
     private final Runnable mCheckAuthService = new Runnable() {
         @Override
         public void run() {
@@ -134,9 +136,9 @@ public class PbapClientService extends ProfileService {
 
         setComponentAvailable(AUTHENTICATOR_SERVICE, true);
 
+        mHandler = new Handler(Looper.getMainLooper());
         IntentFilter filter = new IntentFilter();
         filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
-        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         // delay initial download until after the user is unlocked to add an account.
         filter.addAction(Intent.ACTION_USER_UNLOCKED);
         try {
@@ -164,6 +166,13 @@ public class PbapClientService extends ProfileService {
             pbapClientStateMachine.doQuit();
         }
         mPbapClientStateMachineMap.clear();
+
+        // Unregister Handler and stop all queued messages.
+        if (mHandler != null) {
+            mHandler.removeCallbacksAndMessages(null);
+            mHandler = null;
+        }
+
         cleanupAuthenicationService();
         setComponentAvailable(AUTHENTICATOR_SERVICE, false);
         return true;
@@ -293,26 +302,32 @@ public class PbapClientService extends ProfileService {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (DBG) Log.v(TAG, "onReceive" + action);
-            if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                int transport =
-                        intent.getIntExtra(BluetoothDevice.EXTRA_TRANSPORT, BluetoothDevice.ERROR);
-
-                Log.i(TAG, "Received ACL disconnection event, device=" + device.toString()
-                        + ", transport=" + transport);
-
-                if (transport != BluetoothDevice.TRANSPORT_BREDR) {
-                    return;
-                }
-
-                if (getConnectionState(device) == BluetoothProfile.STATE_CONNECTED) {
-                    disconnect(device);
-                }
-            } else if (action.equals(Intent.ACTION_USER_UNLOCKED)) {
+            if (action.equals(Intent.ACTION_USER_UNLOCKED)) {
                 for (PbapClientStateMachine stateMachine : mPbapClientStateMachineMap.values()) {
                     stateMachine.tryDownloadIfConnected();
                 }
             }
+        }
+    }
+
+    public void aclDisconnected(BluetoothDevice device, int transport) {
+        mHandler.post(() -> handleAclDisconnected(device, transport));
+    }
+
+    private void handleAclDisconnected(BluetoothDevice device, int transport) {
+        Log.i(
+                TAG,
+                "Received ACL disconnection event, device="
+                        + device.toString()
+                        + ", transport="
+                        + transport);
+
+        if (transport != BluetoothDevice.TRANSPORT_BREDR) {
+            return;
+        }
+
+        if (getConnectionState(device) == BluetoothProfile.STATE_CONNECTED) {
+            disconnect(device);
         }
     }
 

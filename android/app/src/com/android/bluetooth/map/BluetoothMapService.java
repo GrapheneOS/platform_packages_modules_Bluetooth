@@ -694,7 +694,6 @@ public class BluetoothMapService extends ProfileService {
         IntentFilter filter = new IntentFilter();
         filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
-        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         filter.addAction(BluetoothDevice.ACTION_SDP_RECORD);
         filter.addAction(USER_CONFIRM_TIMEOUT_ACTION);
 
@@ -1195,25 +1194,31 @@ public class BluetoothMapService extends ProfileService {
                     BluetoothMapContentObserver.actionMessageSentDisconnected(context, intent,
                             result);
                 }
-            } else if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)
-                    && mIsWaitingAuthorization) {
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-
-                if (sRemoteDevice == null || device == null) {
-                    Log.e(TAG, "Unexpected error!");
-                    return;
-                }
-
-                if (VERBOSE) {
-                    Log.v(TAG, "ACL disconnected for " + device);
-                }
-
-                if (sRemoteDevice.equals(device)) {
-                    // Send any pending timeout now, since ACL got disconnected
-                    mSessionStatusHandler.removeMessages(USER_TIMEOUT);
-                    mSessionStatusHandler.obtainMessage(USER_TIMEOUT).sendToTarget();
-                }
             }
+        }
+    }
+
+    public void aclDisconnected(BluetoothDevice device) {
+        mSessionStatusHandler.post(() -> handleAclDisconnected(device));
+    }
+
+    private void handleAclDisconnected(BluetoothDevice device) {
+        if (!mIsWaitingAuthorization) {
+            return;
+        }
+        if (sRemoteDevice == null || device == null) {
+            Log.e(TAG, "Unexpected error!");
+            return;
+        }
+
+        if (VERBOSE) {
+            Log.v(TAG, "ACL disconnected for " + device);
+        }
+
+        if (sRemoteDevice.equals(device)) {
+            // Send any pending timeout now, since ACL got disconnected
+            mSessionStatusHandler.removeMessages(USER_TIMEOUT);
+            mSessionStatusHandler.obtainMessage(USER_TIMEOUT).sendToTarget();
         }
     }
 
