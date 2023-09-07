@@ -1056,6 +1056,8 @@ public class CsipSetCoordinatorService extends ProfileService {
             mGroupIdToConnectedDevices.get(groupId).add(device);
             disableCsipIfNeeded(groupId);
         }
+        mAdapterService.handleProfileConnectionStateChange(
+                BluetoothProfile.CSIP_SET_COORDINATOR, device, fromState, toState);
     }
 
     /**
