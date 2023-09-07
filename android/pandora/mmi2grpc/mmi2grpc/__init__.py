@@ -93,7 +93,7 @@ class IUT:
     def __enter__(self):
         """Resets the IUT when starting a PTS test."""
         self.rootcanal = RootCanal(port=self.rootcanal_control_port)
-        self.rootcanal.reconnect_phone()
+        self.rootcanal.move_in_range()
 
         self.modem = Modem(port=self.modem_simulator_port)
 
