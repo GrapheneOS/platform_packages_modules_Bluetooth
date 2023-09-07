@@ -48,12 +48,12 @@ namespace avrcp {
 #define VOL_NOT_SUPPORTED -1
 #define VOL_REGISTRATION_FAILED -2
 
-Device::Device(
-    const RawAddress& bdaddr, bool avrcp13_compatibility,
-    base::Callback<void(uint8_t label, bool browse,
+Device::Device(const RawAddress& bdaddr, bool avrcp13_compatibility,
+               base::RepeatingCallback<
+                   void(uint8_t label, bool browse,
                         std::unique_ptr<::bluetooth::PacketBuilder> message)>
-        send_msg_cb,
-    uint16_t ctrl_mtu, uint16_t browse_mtu)
+                   send_msg_cb,
+               uint16_t ctrl_mtu, uint16_t browse_mtu)
     : weak_ptr_factory_(this),
       address_(bdaddr),
       avrcp13_compatibility_(avrcp13_compatibility),

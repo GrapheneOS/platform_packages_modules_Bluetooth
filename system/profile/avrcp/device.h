@@ -63,12 +63,12 @@ class Device {
    */
   friend class ConnectionHandler;
 
-  Device(
-      const RawAddress& bdaddr, bool avrcp13_compatibility,
-      base::Callback<void(uint8_t label, bool browse,
-                          std::unique_ptr<::bluetooth::PacketBuilder> message)>
-          send_msg_cb,
-      uint16_t ctrl_mtu, uint16_t browse_mtu);
+  Device(const RawAddress& bdaddr, bool avrcp13_compatibility,
+         base::RepeatingCallback<
+             void(uint8_t label, bool browse,
+                  std::unique_ptr<::bluetooth::PacketBuilder> message)>
+             send_msg_cb,
+         uint16_t ctrl_mtu, uint16_t browse_mtu);
 
   Device(const Device&) = delete;
   Device& operator=(const Device&) = delete;
@@ -334,8 +334,9 @@ class Device {
   // Enables AVRCP 1.3 Compatibility mode. This disables any AVRCP 1.4+ features
   // such as browsing and playlists but has the highest chance of working.
   bool avrcp13_compatibility_ = false;
-  base::Callback<void(uint8_t label, bool browse,
-                      std::unique_ptr<::bluetooth::PacketBuilder> message)>
+  base::RepeatingCallback<void(
+      uint8_t label, bool browse,
+      std::unique_ptr<::bluetooth::PacketBuilder> message)>
       send_message_cb_;
   uint16_t ctrl_mtu_;
   uint16_t browse_mtu_;
