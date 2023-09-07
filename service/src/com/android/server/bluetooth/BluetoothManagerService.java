@@ -24,9 +24,7 @@ import static android.bluetooth.BluetoothAdapter.STATE_ON;
 import static android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF;
 import static android.bluetooth.BluetoothAdapter.STATE_TURNING_ON;
 import static android.os.PowerExemptionManager.TEMPORARY_ALLOW_LIST_TYPE_FOREGROUND_SERVICE_ALLOWED;
-
 import static com.android.server.bluetooth.BluetoothAirplaneModeListener.APM_ENHANCEMENT;
-
 import static java.util.Objects.requireNonNull;
 
 import android.annotation.NonNull;
@@ -214,8 +212,6 @@ class BluetoothManagerService {
     private AdapterBinder mAdapter = null;
 
     private List<Integer> mSupportedProfileList = new ArrayList<>();
-
-    private BluetoothModeChangeHelper mBluetoothModeChangeHelper;
 
     private final BluetoothAirplaneModeListener mBluetoothAirplaneModeListener;
 
@@ -972,6 +968,13 @@ class BluetoothManagerService {
         return mIsHearingAidProfileSupported;
     }
 
+    boolean isMediaProfileConnected() {
+        if (mAdapter == null || !mState.oneOf(STATE_ON)) {
+            return false;
+        }
+        return mAdapter.isMediaProfileConnected(mContext.getAttributionSource());
+    }
+
     // Monitor change of BLE scan only mode settings.
     private void registerForBleScanModeChange() {
         ContentObserver contentObserver =
@@ -1459,10 +1462,7 @@ class BluetoothManagerService {
             mHandler.sendEmptyMessage(MESSAGE_GET_NAME_AND_ADDRESS);
         }
 
-        mBluetoothModeChangeHelper = new BluetoothModeChangeHelper(mContext);
-        if (mBluetoothAirplaneModeListener != null) {
-            mBluetoothAirplaneModeListener.start(mBluetoothModeChangeHelper);
-        }
+        mBluetoothAirplaneModeListener.start(new BluetoothModeChangeHelper(mContext));
         setApmEnhancementState();
     }
 
