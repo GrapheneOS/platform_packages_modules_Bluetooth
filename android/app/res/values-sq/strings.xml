@@ -39,13 +39,13 @@
     <string name="incoming_file_confirm_timeout_content" msgid="3221412098281076974">"Përfundoi koha e veprimit për pranimin e skedarit hyrës nga \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5381395500920804895">"Skedari në ardhje"</string>
     <string name="incoming_file_confirm_Notification_content" msgid="2669135531488877921">"<xliff:g id="SENDER">%1$s</xliff:g> është gati të dërgojë një skedar: <xliff:g id="FILE">%2$s</xliff:g>"</string>
-    <string name="notification_receiving" msgid="8445265771083510696">"Shpërndarja përmes bluetooth-it: Po merret skedari <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received" msgid="2330252358543000567">"Shpërndarja përmes bluetooth-it: U pranua skedari <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="9059153354809379374">"Shpërndarja përmes bluetooth-it: Skedari <xliff:g id="FILE">%1$s</xliff:g> nuk u pranua"</string>
-    <string name="notification_sending" msgid="8269912843286868700">"Shpërndarja përmes bluetooth-it: Po dërgohet skedari <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="2685202778935769332">"Shpërndarja përmes Bluetooth-it: Skedari <xliff:g id="FILE">%1$s</xliff:g> u dërgua"</string>
+    <string name="notification_receiving" msgid="8445265771083510696">"Ndarja përmes bluetooth-it: Po merret skedari <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received" msgid="2330252358543000567">"Ndarja përmes bluetooth-it: U pranua skedari <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received_fail" msgid="9059153354809379374">"Ndarja përmes bluetooth-it: Skedari <xliff:g id="FILE">%1$s</xliff:g> nuk u pranua"</string>
+    <string name="notification_sending" msgid="8269912843286868700">"Ndarja përmes bluetooth-it: Po dërgohet skedari <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="2685202778935769332">"Ndarja përmes Bluetooth-it: Skedari <xliff:g id="FILE">%1$s</xliff:g> u dërgua"</string>
     <string name="notification_sent_complete" msgid="6293391081175517098">"100% i përfunduar"</string>
-    <string name="notification_sent_fail" msgid="7449832660578001579">"Shpërndarja përmes Bluetooth-it: Skedari <xliff:g id="FILE">%1$s</xliff:g> nuk u dërgua"</string>
+    <string name="notification_sent_fail" msgid="7449832660578001579">"Ndarja përmes Bluetooth-it: Skedari <xliff:g id="FILE">%1$s</xliff:g> nuk u dërgua"</string>
     <string name="download_title" msgid="6449408649671518102">"Transferimi i skedarit"</string>
     <string name="download_line1" msgid="6449220145685308846">"Nga: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="7634316500490825390">"Skedari: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -101,15 +101,15 @@
     <string name="status_protocol_error" msgid="3231573735130475654">"Kërkesa nuk mund të trajtohet si duhet."</string>
     <string name="status_unknown_error" msgid="314676481744304866">"Gabim i panjohur."</string>
     <string name="btopp_live_folder" msgid="4859989703965326287">"Marrjet përmes Bluetooth-it"</string>
-    <string name="opp_notification_group" msgid="150067508422520653">"Shpërndarja përmes \"Bluetooth-it\""</string>
+    <string name="opp_notification_group" msgid="150067508422520653">"Ndarja përmes \"Bluetooth-it\""</string>
     <string name="download_success" msgid="3438268368708549686">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> - Marrja përfundoi."</string>
     <string name="upload_success" msgid="143787470859042049">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Dërgimi përfundoi."</string>
     <string name="inbound_history_title" msgid="189623888169624862">"Transferimet hyrëse"</string>
     <string name="outbound_history_title" msgid="7614166584551065036">"Transferimet dalëse"</string>
     <string name="no_transfers" msgid="740521199933899821">"Historiku i transferimeve është bosh."</string>
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"Të gjithë artikujt do të pastrohen nga lista."</string>
-    <string name="outbound_noti_title" msgid="2045560896819618979">"Shpërndarja përmes Bluetooth-it: Skedarët e dërguar"</string>
-    <string name="inbound_noti_title" msgid="3730993443609581977">"Shpërndarja përmes bluetooth-it: Skedarët e pranuar"</string>
+    <string name="outbound_noti_title" msgid="2045560896819618979">"Ndarja përmes Bluetooth-it: Skedarët e dërguar"</string>
+    <string name="inbound_noti_title" msgid="3730993443609581977">"Ndarja përmes bluetooth-it: Skedarët e pranuar"</string>
     <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# nuk u nda me sukses.}other{# nuk u ndanë me sukses.}}"</string>
     <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# u nda me sukses, %1$s}other{# u ndanë me sukses, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"Pastro listën"</string>
