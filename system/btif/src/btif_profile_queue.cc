@@ -152,8 +152,8 @@ static void queue_int_release() { connect_queue.clear(); }
  ******************************************************************************/
 bt_status_t btif_queue_connect(uint16_t uuid, const RawAddress* bda,
                                btif_connect_cb_t connect_cb) {
-  return do_in_jni_thread(FROM_HERE,
-                          base::Bind(&queue_int_add, uuid, *bda, connect_cb));
+  return do_in_jni_thread(
+      FROM_HERE, base::BindOnce(&queue_int_add, uuid, *bda, connect_cb));
 }
 
 /*******************************************************************************
@@ -166,7 +166,7 @@ bt_status_t btif_queue_connect(uint16_t uuid, const RawAddress* bda,
  *
  ******************************************************************************/
 void btif_queue_cleanup(uint16_t uuid) {
-  do_in_jni_thread(FROM_HERE, base::Bind(&queue_int_cleanup, uuid));
+  do_in_jni_thread(FROM_HERE, base::BindOnce(&queue_int_cleanup, uuid));
 }
 
 /*******************************************************************************
@@ -180,7 +180,7 @@ void btif_queue_cleanup(uint16_t uuid) {
  *
  ******************************************************************************/
 void btif_queue_advance() {
-  do_in_jni_thread(FROM_HERE, base::Bind(&queue_int_advance));
+  do_in_jni_thread(FROM_HERE, base::BindOnce(&queue_int_advance));
 }
 
 bt_status_t btif_queue_connect_next(void) {
@@ -215,7 +215,7 @@ bt_status_t btif_queue_connect_next(void) {
  ******************************************************************************/
 void btif_queue_release() {
   LOG_INFO("%s", __func__);
-  if (do_in_jni_thread(FROM_HERE, base::Bind(&queue_int_release)) !=
+  if (do_in_jni_thread(FROM_HERE, base::BindOnce(&queue_int_release)) !=
       BT_STATUS_SUCCESS) {
     LOG(FATAL) << __func__ << ": Failed to schedule on JNI thread";
   }

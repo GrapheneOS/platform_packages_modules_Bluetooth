@@ -66,14 +66,14 @@ void GattServerCallbacks::OnServerRead(uint16_t conn_id, uint32_t trans_id,
     case AttributeBackingType::CHARACTERISTIC:
       do_in_jni_thread(
           FROM_HERE,
-          base::Bind(callbacks.request_read_characteristic_cb, conn_id,
-                     trans_id, addr.value(), attr_handle, offset, is_long));
+          base::BindOnce(callbacks.request_read_characteristic_cb, conn_id,
+                         trans_id, addr.value(), attr_handle, offset, is_long));
       break;
     case AttributeBackingType::DESCRIPTOR:
       do_in_jni_thread(
           FROM_HERE,
-          base::Bind(callbacks.request_read_descriptor_cb, conn_id, trans_id,
-                     addr.value(), attr_handle, offset, is_long));
+          base::BindOnce(callbacks.request_read_descriptor_cb, conn_id,
+                         trans_id, addr.value(), attr_handle, offset, is_long));
       break;
     default:
       LOG_ALWAYS_FATAL("Unexpected backing type %d", attr_type);
@@ -99,16 +99,18 @@ void GattServerCallbacks::OnServerWrite(
     case AttributeBackingType::CHARACTERISTIC:
       do_in_jni_thread(
           FROM_HERE,
-          base::Bind(callbacks.request_write_characteristic_cb, conn_id,
-                     trans_id, addr.value(), attr_handle, offset, need_response,
-                     is_prepare, base::Owned(buf), value.size()));
+          base::BindOnce(callbacks.request_write_characteristic_cb, conn_id,
+                         trans_id, addr.value(), attr_handle, offset,
+                         need_response, is_prepare, base::Owned(buf),
+                         value.size()));
       break;
     case AttributeBackingType::DESCRIPTOR:
       do_in_jni_thread(
           FROM_HERE,
-          base::Bind(callbacks.request_write_descriptor_cb, conn_id, trans_id,
-                     addr.value(), attr_handle, offset, need_response,
-                     is_prepare, base::Owned(buf), value.size()));
+          base::BindOnce(callbacks.request_write_descriptor_cb, conn_id,
+                         trans_id, addr.value(), attr_handle, offset,
+                         need_response, is_prepare, base::Owned(buf),
+                         value.size()));
       break;
     default:
       LOG_ALWAYS_FATAL("Unexpected backing type %hhu", attr_type);
@@ -117,8 +119,8 @@ void GattServerCallbacks::OnServerWrite(
 
 void GattServerCallbacks::OnIndicationSentConfirmation(uint16_t conn_id,
                                                        int status) const {
-  do_in_jni_thread(FROM_HERE,
-                   base::Bind(callbacks.indication_sent_cb, conn_id, status));
+  do_in_jni_thread(
+      FROM_HERE, base::BindOnce(callbacks.indication_sent_cb, conn_id, status));
 }
 
 void GattServerCallbacks::OnExecute(uint16_t conn_id, uint32_t trans_id,
@@ -130,9 +132,9 @@ void GattServerCallbacks::OnExecute(uint16_t conn_id, uint32_t trans_id,
     return;
   }
 
-  do_in_jni_thread(
-      FROM_HERE, base::Bind(callbacks.request_exec_write_cb, conn_id, trans_id,
-                            addr.value(), execute));
+  do_in_jni_thread(FROM_HERE,
+                   base::BindOnce(callbacks.request_exec_write_cb, conn_id,
+                                  trans_id, addr.value(), execute));
 }
 
 }  // namespace gatt
