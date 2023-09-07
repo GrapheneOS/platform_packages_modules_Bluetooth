@@ -2045,6 +2045,12 @@ public class AdapterService extends Service {
         return mDatabaseManager.getCustomMeta(device, key);
     }
 
+    /** Update Adapter Properties when BT profiles connection state changes. */
+    public void updateProfileConnectionAdapterProperties(
+            BluetoothDevice device, int profile, int state, int prevState) {
+        mAdapterProperties.updateOnProfileConnectionChanged(device, profile, state, prevState);
+    }
+
     /** Handlers for incoming service calls */
     private AdapterServiceBinder mBinder;
 
