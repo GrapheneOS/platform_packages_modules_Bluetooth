@@ -25,7 +25,6 @@ import static com.android.server.bluetooth.BluetoothAirplaneModeListener.NOTIFIC
 import static com.android.server.bluetooth.BluetoothAirplaneModeListener.UNUSED;
 import static com.android.server.bluetooth.BluetoothAirplaneModeListener.USED;
 import static com.android.server.bluetooth.BluetoothAirplaneModeListener.WIFI_APM_STATE;
-
 import static org.mockito.Mockito.*;
 
 import android.content.Context;
@@ -74,13 +73,13 @@ public class BluetoothAirplaneModeListenerTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+
         mContentResolver = new MockContentResolver();
         mContentResolver.addProvider(Settings.AUTHORITY, new FakeSettingsProvider());
         when(mContext.getContentResolver()).thenReturn(mContentResolver);
+
         when(mHelper.getSettingsInt(BluetoothAirplaneModeListener.TOAST_COUNT))
                 .thenReturn(BluetoothAirplaneModeListener.MAX_TOAST_COUNT);
-        doNothing().when(mHelper).setSettingsInt(anyString(), anyInt());
-        doNothing().when(mHelper).showToastMessage();
 
         BluetoothServerProxy.setInstanceForTesting(mBluetoothServerProxy);
 
@@ -92,13 +91,12 @@ public class BluetoothAirplaneModeListenerTest {
 
     @Test
     public void testIgnoreOnAirplanModeChange() {
-        Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange());
+        Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange(false));
 
         when(mHelper.isBluetoothOn()).thenReturn(true);
-        Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange());
+        Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange(false));
 
-        when(mHelper.isMediaProfileConnected()).thenReturn(true);
-        Assert.assertTrue(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange());
+        Assert.assertTrue(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange(true));
     }
 
     @Test
@@ -107,50 +105,45 @@ public class BluetoothAirplaneModeListenerTest {
 
         // When APM enhancement is disabled, BT remains on when connected to a media profile
         when(mHelper.getSettingsInt(APM_ENHANCEMENT)).thenReturn(0);
-        when(mHelper.isMediaProfileConnected()).thenReturn(true);
-        Assert.assertTrue(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange());
+        Assert.assertTrue(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange(true));
 
         // When APM enhancement is disabled, BT turns off when not connected to a media profile
-        when(mHelper.isMediaProfileConnected()).thenReturn(false);
-        Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange());
+        Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange(false));
 
         // When APM enhancement is enabled but not activated by toggling BT in APM,
         // BT remains on when connected to a media profile
         when(mHelper.getSettingsInt(APM_ENHANCEMENT)).thenReturn(1);
         when(mHelper.getSettingsSecureInt(APM_USER_TOGGLED_BLUETOOTH, UNUSED)).thenReturn(UNUSED);
-        when(mHelper.isMediaProfileConnected()).thenReturn(true);
-        Assert.assertTrue(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange());
+        Assert.assertTrue(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange(true));
 
         // When APM enhancement is enabled but not activated by toggling BT in APM,
         // BT turns off when not connected to a media profile
-        when(mHelper.isMediaProfileConnected()).thenReturn(false);
-        Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange());
+        Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange(false));
 
         // When APM enhancement is enabled but not activated by toggling BT in APM,
         // BT remains on when the default value for BT in APM is on
         when(mHelper.isBluetoothOnAPM()).thenReturn(true);
-        Assert.assertTrue(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange());
+        Assert.assertTrue(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange(false));
 
         // When APM enhancement is enabled but not activated by toggling BT in APM,
         // BT remains off when the default value for BT in APM is off
         when(mHelper.isBluetoothOnAPM()).thenReturn(false);
-        Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange());
+        Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange(false));
 
         // When APM enhancement is enabled and activated by toggling BT in APM,
         // BT remains on if user's last choice in APM was on
         when(mHelper.getSettingsSecureInt(APM_USER_TOGGLED_BLUETOOTH, UNUSED)).thenReturn(USED);
         when(mHelper.isBluetoothOnAPM()).thenReturn(true);
-        Assert.assertTrue(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange());
+        Assert.assertTrue(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange(false));
 
         // When APM enhancement is enabled and activated by toggling BT in APM,
         // BT turns off if user's last choice in APM was off
         when(mHelper.isBluetoothOnAPM()).thenReturn(false);
-        Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange());
+        Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange(false));
 
         // When APM enhancement is enabled and activated by toggling BT in APM,
         // BT turns off if user's last choice in APM was off even when connected to a media profile
-        when(mHelper.isMediaProfileConnected()).thenReturn(true);
-        Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange());
+        Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange(true));
     }
 
     @Test
@@ -163,7 +156,7 @@ public class BluetoothAirplaneModeListenerTest {
     public void testHandleAirplaneModeChange_NotInvokeAirplaneModeChanged_NotPopToast() {
         mBluetoothAirplaneModeListener.mToastCount = BluetoothAirplaneModeListener.MAX_TOAST_COUNT;
         when(mHelper.isBluetoothOn()).thenReturn(true);
-        when(mHelper.isMediaProfileConnected()).thenReturn(true);
+        when(mBluetoothManagerService.isMediaProfileConnected()).thenReturn(true);
         mBluetoothAirplaneModeListener.handleAirplaneModeChange(true);
 
         verify(mHelper).setSettingsInt(Settings.Global.BLUETOOTH_ON,
@@ -176,7 +169,7 @@ public class BluetoothAirplaneModeListenerTest {
     public void testHandleAirplaneModeChange_NotInvokeAirplaneModeChanged_PopToast() {
         mBluetoothAirplaneModeListener.mToastCount = 0;
         when(mHelper.isBluetoothOn()).thenReturn(true);
-        when(mHelper.isMediaProfileConnected()).thenReturn(true);
+        when(mBluetoothManagerService.isMediaProfileConnected()).thenReturn(true);
         mBluetoothAirplaneModeListener.handleAirplaneModeChange(true);
 
         verify(mHelper).setSettingsInt(Settings.Global.BLUETOOTH_ON,
