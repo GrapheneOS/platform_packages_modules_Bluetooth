@@ -323,13 +323,11 @@ public class PhonePolicyTest {
                 BluetoothProfile.CONNECTION_POLICY_ALLOWED);
 
         // Inject an event that the adapter is turned on.
-        Intent intent = new Intent(BluetoothAdapter.ACTION_STATE_CHANGED);
-        intent.putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_ON);
-        mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
+        mPhonePolicy.onBluetoothStateChange(BluetoothAdapter.STATE_OFF, BluetoothAdapter.STATE_ON);
 
         // Check that we got a request to connect over HFP and A2DP
-        verify(mA2dpService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).connect(eq(bondedDevice));
-        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).connect(eq(bondedDevice));
+        verify(mA2dpService).connect(eq(bondedDevice));
+        verify(mHeadsetService).connect(eq(bondedDevice));
     }
 
     /**
