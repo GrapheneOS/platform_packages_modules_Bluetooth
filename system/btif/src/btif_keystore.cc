@@ -62,7 +62,7 @@ class BluetoothKeystoreInterfaceImpl
       return;
     }
     do_in_jni_thread(
-        FROM_HERE, base::Bind([]() {
+        FROM_HERE, base::BindOnce([]() {
           shim::BtifConfigInterface::ConvertEncryptOrDecryptKeyIfNeeded();
         }));
   }
@@ -79,10 +79,10 @@ class BluetoothKeystoreInterfaceImpl
     // Save the value into a map.
     key_map[prefix] = decryptedString;
 
-    do_in_jni_thread(
-        base::Bind(&bluetooth::bluetooth_keystore::BluetoothKeystoreCallbacks::
-                       set_encrypt_key_or_remove_key,
-                   base::Unretained(callbacks), prefix, decryptedString));
+    do_in_jni_thread(base::BindOnce(
+        &bluetooth::bluetooth_keystore::BluetoothKeystoreCallbacks::
+            set_encrypt_key_or_remove_key,
+        base::Unretained(callbacks), prefix, decryptedString));
     return true;
   }
 
