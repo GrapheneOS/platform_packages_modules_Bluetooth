@@ -21,6 +21,7 @@ import android.bluetooth.IBluetoothCallback
 import android.content.AttributionSource
 import android.os.IBinder
 import android.os.RemoteException
+import android.util.Log
 import com.android.modules.utils.SynchronousResultReceiver
 import com.android.server.bluetooth.BluetoothManagerService.timeToLog
 import java.time.Duration
@@ -29,6 +30,7 @@ import java.util.concurrent.TimeoutException
 val SYNC_TIMEOUT = Duration.ofSeconds(3)
 
 class AdapterBinder(rawBinder: IBinder) {
+    private val TAG = "AdapterBinder"
     val adapterBinder: IBluetooth = IBluetooth.Stub.asInterface(rawBinder)
     val createdAt = System.currentTimeMillis()
 
@@ -115,5 +117,22 @@ class AdapterBinder(rawBinder: IBinder) {
         val recv: SynchronousResultReceiver<Any> = SynchronousResultReceiver.get()
         adapterBinder.unregAllGattClient(source, recv)
         recv.awaitResultNoInterrupt(SYNC_TIMEOUT).getValue(null)
+    }
+
+    fun isMediaProfileConnected(source: AttributionSource): Boolean {
+        try {
+            val recv: SynchronousResultReceiver<Boolean> = SynchronousResultReceiver.get()
+            adapterBinder.isMediaProfileConnected(source, recv)
+            return recv.awaitResultNoInterrupt(SYNC_TIMEOUT).getValue(false)
+        } catch (ex: Exception) {
+            when (ex) {
+                is RemoteException,
+                is TimeoutException -> {
+                    Log.e(TAG, "Error when calling isMediaProfileConnected", ex)
+                }
+                else -> throw ex
+            }
+            return false
+        }
     }
 }
