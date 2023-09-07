@@ -355,16 +355,6 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     AddressWithType remote_address(address, peer_address_type);
     AddressWithType local_address = le_address_manager_->GetInitiatorAddress();
     const bool in_filter_accept_list = is_device_in_connect_list(remote_address);
-    auto argument_list = std::vector<std::pair<bluetooth::os::ArgumentType, int>>();
-    argument_list.push_back(
-        std::make_pair(os::ArgumentType::ACL_STATUS_CODE, static_cast<int>(status)));
-
-    bluetooth::os::LogMetricBluetoothLEConnectionMetricEvent(
-        address,
-        android::bluetooth::le::LeConnectionOriginType::ORIGIN_NATIVE,
-        android::bluetooth::le::LeConnectionType::CONNECTION_TYPE_LE_ACL,
-        android::bluetooth::le::LeConnectionState::STATE_LE_ACL_END,
-        argument_list);
 
     if (role == hci::Role::CENTRAL) {
       connectability_state_ = ConnectabilityState::DISARMED;
@@ -501,16 +491,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     }
     AddressWithType remote_address(address, remote_address_type);
     const bool in_filter_accept_list = is_device_in_connect_list(remote_address);
-    auto argument_list = std::vector<std::pair<bluetooth::os::ArgumentType, int>>();
-    argument_list.push_back(
-        std::make_pair(os::ArgumentType::ACL_STATUS_CODE, static_cast<int>(status)));
 
-    bluetooth::os::LogMetricBluetoothLEConnectionMetricEvent(
-        address,
-        android::bluetooth::le::LeConnectionOriginType::ORIGIN_NATIVE,
-        android::bluetooth::le::LeConnectionType::CONNECTION_TYPE_LE_ACL,
-        android::bluetooth::le::LeConnectionState::STATE_LE_ACL_END,
-        argument_list);
 
     if (role == hci::Role::CENTRAL) {
       connectability_state_ = ConnectabilityState::DISARMED;
@@ -1015,14 +996,6 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
 
   void disarm_connectability() {
 
-    auto argument_list = std::vector<std::pair<os::ArgumentType, int>>();
-    bluetooth::os::LogMetricBluetoothLEConnectionMetricEvent(
-        Address::kEmpty,
-        os::LeConnectionOriginType::ORIGIN_UNSPECIFIED,
-        os::LeConnectionType::CONNECTION_TYPE_LE_ACL,
-        os::LeConnectionState::STATE_LE_ACL_CANCEL,
-        argument_list);
-
     switch (connectability_state_) {
       case ConnectabilityState::ARMED:
         LOG_INFO("Disarming LE connection state machine with create connection cancel");
@@ -1119,16 +1092,6 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     if (create_connection_timeout_alarms_.find(address_with_type) != create_connection_timeout_alarms_.end()) {
       create_connection_timeout_alarms_.at(address_with_type).Cancel();
       create_connection_timeout_alarms_.erase(address_with_type);
-      auto argument_list = std::vector<std::pair<os::ArgumentType, int>>();
-      argument_list.push_back(std::make_pair(
-          os::ArgumentType::ACL_STATUS_CODE,
-          static_cast<int>(android::bluetooth::hci::StatusEnum::STATUS_CONNECTION_TOUT)));
-      bluetooth::os::LogMetricBluetoothLEConnectionMetricEvent(
-          address_with_type.GetAddress(),
-          android::bluetooth::le::LeConnectionOriginType::ORIGIN_NATIVE,
-          android::bluetooth::le::LeConnectionType::CONNECTION_TYPE_LE_ACL,
-          android::bluetooth::le::LeConnectionState::STATE_LE_ACL_TIMEOUT,
-          argument_list);
 
       if (background_connections_.find(address_with_type) != background_connections_.end()) {
         direct_connections_.erase(address_with_type);
