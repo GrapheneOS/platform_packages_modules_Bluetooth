@@ -17,7 +17,8 @@
 #ifndef MMC_CODEC_SERVER_HFP_LC3_MMC_ENCODER_H_
 #define MMC_CODEC_SERVER_HFP_LC3_MMC_ENCODER_H_
 
-#include "embdrv/lc3/include/lc3.h"
+#include <lc3.h>
+
 #include "mmc/mmc_interface/mmc_interface.h"
 #include "mmc/proto/mmc_config.pb.h"
 

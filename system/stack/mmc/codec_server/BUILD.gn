@@ -22,9 +22,12 @@ source_set("libcodec_server_hfp_lc3"){
     "//bt/system/stack",
     "//bt/system/stack/include",
   ]
+  libs = [
+    "lc3",
+  ]
+
   deps = [
     "//bt/system/stack/mmc/proto:mmc_config_proto",
-    "//bt/system/embdrv/lc3:liblc3",
     "//bt/system/osi",
   ]
   sources = [

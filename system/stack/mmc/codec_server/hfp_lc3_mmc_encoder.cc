@@ -18,10 +18,10 @@
 
 #include <base/logging.h>
 #include <errno.h>
+#include <lc3.h>
 
 #include <algorithm>
 
-#include "embdrv/lc3/include/lc3.h"
 #include "mmc/codec_server/lc3_utils.h"
 #include "mmc/proto/mmc_config.pb.h"
 #include "osi/include/allocator.h"
