@@ -1413,6 +1413,18 @@ bool LeAudioDeviceGroup::IsAudioSetConfigurationSupported(
     }
   }
 
+  // when disabling 32k dual mic, for later join case, we need to
+  // make sure the device is always choosing the config that its
+  // sampling rate matches with the sampling rate which is used
+  // when all devices in the group are connected.
+  bool dual_bidirection_swb_supported_ = osi_property_get_bool(
+      "bluetooth.leaudio.dual_bidirection_swb.supported", true);
+  if (Size() > 1 && !dual_bidirection_swb_supported_ &&
+      AudioSetConfigurationProvider::Get()->CheckConfigurationIsBiDirSwb(
+          *audio_set_conf)) {
+    return false;
+  }
+
   LOG_DEBUG("Chosen ASE Configuration for group: %d, configuration: %s",
             this->group_id_, audio_set_conf->name.c_str());
   return true;
