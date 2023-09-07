@@ -2828,15 +2828,6 @@ bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr,
     return false;
   }
 
-  // argument list
-  auto argument_list = std::vector<std::pair<bluetooth::os::ArgumentType, int>>();
-
-  bluetooth::shim::LogMetricBluetoothLEConnectionMetricEvent(
-      bd_addr, android::bluetooth::le::LeConnectionOriginType::ORIGIN_NATIVE,
-      android::bluetooth::le::LeConnectionType::CONNECTION_TYPE_LE_ACL,
-      android::bluetooth::le::LeConnectionState::STATE_LE_ACL_START,
-      argument_list);
-
   if (bluetooth::common::init_flags::
           use_unified_connection_manager_is_enabled()) {
     bluetooth::connection::GetConnectionManager().start_direct_connection(
