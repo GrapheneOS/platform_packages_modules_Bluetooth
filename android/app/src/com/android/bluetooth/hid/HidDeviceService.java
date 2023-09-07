@@ -962,6 +962,12 @@ public class HidDeviceService extends ProfileService {
             return;
         }
 
+        AdapterService adapterService = AdapterService.getAdapterService();
+        if (adapterService != null) {
+            adapterService.updateProfileConnectionAdapterProperties(
+                    device, BluetoothProfile.HID_DEVICE, newState, prevState);
+        }
+
         if (newState == BluetoothProfile.STATE_CONNECTED) {
             MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.HID_DEVICE);
         }

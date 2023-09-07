@@ -644,5 +644,7 @@ public class A2dpSinkService extends ProfileService {
     void connectionStateChanged(BluetoothDevice device, int fromState, int toState) {
         mAdapterService.notifyProfileConnectionStateChangeToGatt(
                 BluetoothProfile.A2DP_SINK, fromState, toState);
+        mAdapterService.updateProfileConnectionAdapterProperties(
+                device, BluetoothProfile.A2DP_SINK, toState, fromState);
     }
 }
