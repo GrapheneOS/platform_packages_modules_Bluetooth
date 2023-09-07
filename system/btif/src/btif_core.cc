@@ -153,7 +153,7 @@ bt_status_t btif_transfer_context(tBTIF_CBACK* p_cback, uint16_t event,
     memcpy(p_msg->p_param, p_params, param_len); /* callback parameter data */
   }
 
-  return do_in_jni_thread(base::Bind(&bt_jni_msg_ready, p_msg));
+  return do_in_jni_thread(base::BindOnce(&bt_jni_msg_ready, p_msg));
 }
 
 /**
@@ -180,8 +180,8 @@ bool is_on_jni_thread() {
 static void do_post_on_bt_jni(BtJniClosure closure) { closure(); }
 
 void post_on_bt_jni(BtJniClosure closure) {
-  ASSERT(do_in_jni_thread(FROM_HERE,
-                          base::Bind(do_post_on_bt_jni, std::move(closure))) ==
+  ASSERT(do_in_jni_thread(FROM_HERE, base::BindOnce(do_post_on_bt_jni,
+                                                    std::move(closure))) ==
          BT_STATUS_SUCCESS);
 }
 
