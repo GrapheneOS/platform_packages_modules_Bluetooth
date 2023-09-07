@@ -21,11 +21,10 @@
  */
 
 #include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
 
 // Mock include file to share data between tests and mock
+#include "hfp_lc3_decoder.h"
+#include "test/common/mock_functions.h"
 #include "test/mock/mock_stack_btm_hfp_lc3_decoder.h"
 
 // Original usings
