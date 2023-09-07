@@ -6931,6 +6931,13 @@ public class AdapterService extends Service {
         mPhonePolicy.profileConnectionStateChanged(profile, device, fromState, toState);
     }
 
+    /** Handle Bluetooth app state when active device changes for a given {@code profile}. */
+    public void handleActiveDeviceChange(int profile, BluetoothDevice device) {
+        mActiveDeviceManager.profileActiveDeviceChanged(profile, device);
+        mSilenceDeviceManager.profileActiveDeviceChanged(profile, device);
+        mPhonePolicy.profileActiveDeviceChanged(profile, device);
+    }
+
     static int convertScanModeToHal(int mode) {
         switch (mode) {
             case BluetoothAdapter.SCAN_MODE_NONE:
