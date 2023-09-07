@@ -873,7 +873,7 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
                         mAttributionSource);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
@@ -910,7 +910,7 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
                         mAttributionSource);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
@@ -943,7 +943,7 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
@@ -1004,7 +1004,7 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
@@ -1062,7 +1062,7 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
