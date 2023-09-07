@@ -1138,6 +1138,8 @@ public class VolumeControlService extends ProfileService {
                 }
             }
         }
+        mAdapterService.handleProfileConnectionStateChange(
+                BluetoothProfile.VOLUME_CONTROL, device, fromState, toState);
     }
 
     /**
