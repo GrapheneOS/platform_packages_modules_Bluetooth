@@ -855,7 +855,7 @@ public final class BluetoothGattServer implements BluetoothProfile {
             return BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND;
         } catch (RemoteException e) {
             Log.e(TAG, "", e);
-            throw e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         }
     }
 
