@@ -961,7 +961,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
                 } catch (TimeoutException e) {
                     Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
                 } catch (RemoteException e) {
-                    throw e.rethrowFromSystemServer();
+                    throw e.rethrowAsRuntimeException();
                 }
             }
 
@@ -1013,7 +1013,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             }
         }
     }
@@ -1281,7 +1281,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             }
         }
         return defaultValue;
@@ -1432,7 +1432,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             }
         }
         return defaultValue;
@@ -1474,7 +1474,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
                                         mAttributionSource);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             }
         }
     }
