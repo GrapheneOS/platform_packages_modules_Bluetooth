@@ -359,13 +359,13 @@ public class LeAudioServiceTest {
 
         when(mDatabaseManager.getProfileConnectionPolicy(mLeftDevice, BluetoothProfile.LE_AUDIO))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
-        assertWithMessage("Setting device priority to PRIORITY_OFF")
+        assertWithMessage("Setting device priority to CONNECTION_POLICY_FORBIDDEN")
                 .that(BluetoothProfile.CONNECTION_POLICY_FORBIDDEN)
                 .isEqualTo(mService.getConnectionPolicy(mLeftDevice));
 
         when(mDatabaseManager.getProfileConnectionPolicy(mLeftDevice, BluetoothProfile.LE_AUDIO))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-        assertWithMessage("Setting device priority to PRIORITY_ON")
+        assertWithMessage("Setting device priority to CONNECTION_POLICY_ALLOWED")
                 .that(BluetoothProfile.CONNECTION_POLICY_ALLOWED)
                 .isEqualTo(mService.getConnectionPolicy(mLeftDevice));
     }

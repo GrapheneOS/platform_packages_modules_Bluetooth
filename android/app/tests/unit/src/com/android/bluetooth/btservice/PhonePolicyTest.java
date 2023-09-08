@@ -781,15 +781,16 @@ public class PhonePolicyTest {
         // - testDevices[2] - connected for A2DP: setConnectionPolicy() should not be called
         // - testDevices[3] - not connected for HFP nor A2DP: setConnectionPolicy() should not be
         //                    called
-        verify(mHeadsetService, times(0)).setConnectionPolicy(eq(testDevices[0]), anyInt());
-        verify(mA2dpService, times(0)).setConnectionPolicy(eq(testDevices[0]), anyInt());
-        verify(mHeadsetService, times(0)).setConnectionPolicy(eq(testDevices[1]),
-                eq(BluetoothProfile.PRIORITY_AUTO_CONNECT));
-        verify(mA2dpService, times(0)).setConnectionPolicy(eq(testDevices[1]), anyInt());
-        verify(mHeadsetService, times(0)).setConnectionPolicy(eq(testDevices[2]), anyInt());
-        verify(mA2dpService, times(0)).setConnectionPolicy(eq(testDevices[2]), anyInt());
-        verify(mHeadsetService, times(0)).setConnectionPolicy(eq(testDevices[3]), anyInt());
-        verify(mA2dpService, times(0)).setConnectionPolicy(eq(testDevices[3]), anyInt());
+        verify(mHeadsetService, never()).setConnectionPolicy(eq(testDevices[0]), anyInt());
+        verify(mA2dpService, never()).setConnectionPolicy(eq(testDevices[0]), anyInt());
+        verify(mHeadsetService, never())
+                .setConnectionPolicy(
+                        eq(testDevices[1]), eq(BluetoothProfile.CONNECTION_POLICY_ALLOWED));
+        verify(mA2dpService, never()).setConnectionPolicy(eq(testDevices[1]), anyInt());
+        verify(mHeadsetService, never()).setConnectionPolicy(eq(testDevices[2]), anyInt());
+        verify(mA2dpService, never()).setConnectionPolicy(eq(testDevices[2]), anyInt());
+        verify(mHeadsetService, never()).setConnectionPolicy(eq(testDevices[3]), anyInt());
+        verify(mA2dpService, never()).setConnectionPolicy(eq(testDevices[3]), anyInt());
         clearInvocations(mHeadsetService, mA2dpService);
 
         // Generate connection state changed for A2DP for testDevices[2] and trigger
@@ -815,15 +816,16 @@ public class PhonePolicyTest {
         //                    active device change intent
         // - testDevices[3] - not connected for HFP nor A2DP: setConnectionPolicy() should not be
         //                    called
-        verify(mHeadsetService, times(0)).setConnectionPolicy(eq(testDevices[0]), anyInt());
-        verify(mA2dpService, times(0)).setConnectionPolicy(eq(testDevices[0]), anyInt());
-        verify(mHeadsetService, times(0)).setConnectionPolicy(eq(testDevices[1]), anyInt());
-        verify(mA2dpService, times(0)).setConnectionPolicy(eq(testDevices[1]), anyInt());
-        verify(mHeadsetService, times(0)).setConnectionPolicy(eq(testDevices[2]), anyInt());
-        verify(mA2dpService, times(0)).setConnectionPolicy(eq(testDevices[2]),
-                eq(BluetoothProfile.PRIORITY_AUTO_CONNECT));
-        verify(mHeadsetService, times(0)).setConnectionPolicy(eq(testDevices[3]), anyInt());
-        verify(mA2dpService, times(0)).setConnectionPolicy(eq(testDevices[3]), anyInt());
+        verify(mHeadsetService, never()).setConnectionPolicy(eq(testDevices[0]), anyInt());
+        verify(mA2dpService, never()).setConnectionPolicy(eq(testDevices[0]), anyInt());
+        verify(mHeadsetService, never()).setConnectionPolicy(eq(testDevices[1]), anyInt());
+        verify(mA2dpService, never()).setConnectionPolicy(eq(testDevices[1]), anyInt());
+        verify(mHeadsetService, never()).setConnectionPolicy(eq(testDevices[2]), anyInt());
+        verify(mA2dpService, never())
+                .setConnectionPolicy(
+                        eq(testDevices[2]), eq(BluetoothProfile.CONNECTION_POLICY_ALLOWED));
+        verify(mHeadsetService, never()).setConnectionPolicy(eq(testDevices[3]), anyInt());
+        verify(mA2dpService, never()).setConnectionPolicy(eq(testDevices[3]), anyInt());
         clearInvocations(mHeadsetService, mA2dpService);
     }
 
