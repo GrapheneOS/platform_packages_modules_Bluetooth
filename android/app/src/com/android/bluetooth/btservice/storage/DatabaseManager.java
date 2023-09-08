@@ -177,16 +177,6 @@ public class DatabaseManager {
                 return;
             }
             switch (action) {
-                case BluetoothDevice.ACTION_BOND_STATE_CHANGED: {
-                    int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE,
-                            BluetoothDevice.ERROR);
-                    BluetoothDevice device =
-                            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    Objects.requireNonNull(device,
-                            "ACTION_BOND_STATE_CHANGED with no EXTRA_DEVICE");
-                    bondStateChanged(device, state);
-                    break;
-                }
                 case BluetoothAdapter.ACTION_STATE_CHANGED: {
                     int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
                             BluetoothAdapter.STATE_OFF);
@@ -199,6 +189,15 @@ public class DatabaseManager {
             }
         }
     };
+
+    /** Process a change in the bonding state for a device */
+    public void handleBondStateChanged(BluetoothDevice device, int fromState, int toState) {
+        if (mHandlerThread == null) {
+            Log.w(TAG, "handleBondStateChanged call but DatabaseManager cleaned up");
+            return;
+        }
+        mHandler.post(() -> bondStateChanged(device, toState));
+    }
 
     void bondStateChanged(BluetoothDevice device, int state) {
         synchronized (mMetadataCache) {
@@ -1050,7 +1049,6 @@ public class DatabaseManager {
 
         IntentFilter filter = new IntentFilter();
         filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
-        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         mAdapterService.registerReceiver(mReceiver, filter);
 

@@ -6964,6 +6964,43 @@ public class AdapterService extends Service {
         }
     }
 
+    /** Handle Bluetooth profiles when bond state changes with a {@link BluetoothDevice} */
+    public void handleBondStateChanged(BluetoothDevice device, int fromState, int toState) {
+        if (mA2dpService != null && mA2dpService.isAvailable()) {
+            mA2dpService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mHeadsetService != null && mHeadsetService.isAvailable()) {
+            mHeadsetService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mLeAudioService != null && mLeAudioService.isAvailable()) {
+            mLeAudioService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mHearingAidService != null && mHearingAidService.isAvailable()) {
+            mHearingAidService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mHapClientService != null && mHapClientService.isAvailable()) {
+            mHapClientService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mBassClientService != null && mBassClientService.isAvailable()) {
+            mBassClientService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mBatteryService != null && mBatteryService.isAvailable()) {
+            mBatteryService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mVolumeControlService != null && mVolumeControlService.isAvailable()) {
+            mVolumeControlService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mPbapService != null && mPbapService.isAvailable()) {
+            mPbapService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mCsipSetCoordinatorService != null && mCsipSetCoordinatorService.isAvailable()) {
+            mCsipSetCoordinatorService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mDatabaseManager != null) {
+            mDatabaseManager.handleBondStateChanged(device, fromState, toState);
+        }
+    }
+
     static int convertScanModeToHal(int mode) {
         switch (mode) {
             case BluetoothAdapter.SCAN_MODE_NONE:

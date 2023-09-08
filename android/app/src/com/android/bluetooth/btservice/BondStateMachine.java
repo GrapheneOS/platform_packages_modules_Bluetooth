@@ -495,6 +495,7 @@ final class BondStateMachine extends StateMachine {
             }
         }
 
+        mAdapterService.handleBondStateChanged(device, oldState, newState);
         Intent intent = new Intent(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothDevice.EXTRA_BOND_STATE, newState);
