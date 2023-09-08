@@ -44,6 +44,7 @@ import android.view.KeyEvent;
 
 import androidx.lifecycle.Lifecycle;
 import androidx.test.core.app.ActivityScenario;
+import androidx.test.espresso.action.ViewActions;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
@@ -161,6 +162,9 @@ public class IncomingFileConfirmActivityTest {
         // It works normally if sleep for a few seconds
         Thread.sleep(TIMEOUT_MS);
         onView(withText(mTargetContext.getText(R.string.incoming_file_confirm_cancel).toString()))
+                .inRoot(isDialog())
+                .perform(ViewActions.scrollTo());
+        onView(withText(mTargetContext.getText(R.string.incoming_file_confirm_cancel).toString()))
                 .inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
 
         verify(mBluetoothMethodProxy).contentResolverUpdate(any(), any(), argThat(
@@ -181,6 +185,9 @@ public class IncomingFileConfirmActivityTest {
         // The dialog button is clicked (no error throw) but onClick() is not triggered.
         // It works normally if sleep for a few seconds
         Thread.sleep(TIMEOUT_MS);
+        onView(withText(mTargetContext.getText(R.string.incoming_file_confirm_ok).toString()))
+                .inRoot(isDialog())
+                .perform(ViewActions.scrollTo());
         onView(withText(mTargetContext.getText(R.string.incoming_file_confirm_ok).toString()))
                 .inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
 
