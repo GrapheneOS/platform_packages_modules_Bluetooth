@@ -448,6 +448,27 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
     }
 
     /**
+     * Set priority of the profile
+     *
+     * <p> The device should already be paired.
+     * Priority can be one of {@link #PRIORITY_ON} or {@link #PRIORITY_OFF},
+     *
+     * @param device Paired bluetooth device
+     * @param priority
+     * @return true if priority is set, false on error
+     * @hide
+     */
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public boolean setPriority(BluetoothDevice device, int priority) {
+        if (DBG) Log.d(TAG, "setPriority(" + device + ", " + priority + ")");
+        return setConnectionPolicy(device, BluetoothAdapter.priorityToConnectionPolicy(priority));
+    }
+
+    /**
      * Set connection policy of the profile
      *
      * <p> The device should already be paired.
@@ -488,6 +509,26 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
             }
         }
         return defaultValue;
+    }
+
+    /**
+     * Get the priority of the profile.
+     *
+     * <p> The priority can be any of:
+     * {@link #PRIORITY_OFF}, {@link #PRIORITY_ON}, {@link #PRIORITY_UNDEFINED}
+     *
+     * @param device Bluetooth device
+     * @return priority of the device
+     * @hide
+     */
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public int getPriority(BluetoothDevice device) {
+        if (VDBG) Log.d(TAG, "getPriority(" + device + ")");
+        return BluetoothAdapter.connectionPolicyToPriority(getConnectionPolicy(device));
     }
 
     /**
