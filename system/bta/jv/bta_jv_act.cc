@@ -1500,9 +1500,14 @@ static void bta_jv_port_mgmt_sr_cback(uint32_t code, uint16_t port_handle) {
       evt_data.rfc_srv_open.new_listen_handle = p_pcb_new_listen->handle;
       p_pcb_new_listen->rfcomm_slot_id =
           p_cb->p_cback(BTA_JV_RFCOMM_SRV_OPEN_EVT, &evt_data, rfcomm_slot_id);
-      VLOG(2) << __func__ << ": curr_sess=" << p_cb->curr_sess
-              << ", max_sess=" << p_cb->max_sess;
-      failed = false;
+      if (p_pcb_new_listen->rfcomm_slot_id == 0) {
+        LOG(ERROR) << __func__ << ": rfcomm_slot_id == "
+                   << p_pcb_new_listen->rfcomm_slot_id;
+      } else {
+        VLOG(2) << __func__ << ": curr_sess=" << p_cb->curr_sess
+                << ", max_sess=" << p_cb->max_sess;
+        failed = false;
+      }
     } else
       LOG(ERROR) << __func__ << ": failed to create new listen port";
   }
