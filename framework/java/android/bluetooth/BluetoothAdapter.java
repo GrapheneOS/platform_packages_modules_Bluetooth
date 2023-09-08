@@ -1902,7 +1902,7 @@ public final class BluetoothAdapter {
         } catch (TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         } catch (RemoteException e) {
-            throw e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         } finally {
             mServiceLock.readLock().unlock();
         }
@@ -1952,7 +1952,7 @@ public final class BluetoothAdapter {
         } catch (TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         } catch (RemoteException e) {
-            throw e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         } finally {
             mServiceLock.readLock().unlock();
         }
@@ -1981,7 +1981,7 @@ public final class BluetoothAdapter {
         } catch (TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         } catch (RemoteException e) {
-            throw e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         } finally {
             mServiceLock.readLock().unlock();
         }
@@ -2028,7 +2028,7 @@ public final class BluetoothAdapter {
         } catch (TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         } catch (RemoteException e) {
-            throw e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         } finally {
             mServiceLock.readLock().unlock();
         }
@@ -2620,7 +2620,7 @@ public final class BluetoothAdapter {
         } catch (TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         } catch (RemoteException e) {
-            e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         } finally {
             mServiceLock.readLock().unlock();
         }
@@ -2654,7 +2654,7 @@ public final class BluetoothAdapter {
         } catch (TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         } catch (RemoteException e) {
-            e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         } finally {
             mServiceLock.readLock().unlock();
         }
@@ -2689,7 +2689,7 @@ public final class BluetoothAdapter {
         } catch (TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         } catch (RemoteException e) {
-            e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         } finally {
             mServiceLock.readLock().unlock();
         }
@@ -2727,7 +2727,7 @@ public final class BluetoothAdapter {
         } catch (TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         } catch (RemoteException e) {
-            e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         } finally {
             mServiceLock.readLock().unlock();
         }
@@ -4256,14 +4256,14 @@ public final class BluetoothAdapter {
                 try {
                     sService = mManagerService.registerAdapter(sManagerCallback);
                 } catch (RemoteException e) {
-                    throw e.rethrowFromSystemServer();
+                    throw e.rethrowAsRuntimeException();
                 }
             } else {
                 try {
                     mManagerService.unregisterAdapter(sManagerCallback);
                     sService = null;
                 } catch (RemoteException e) {
-                    throw e.rethrowFromSystemServer();
+                    throw e.rethrowAsRuntimeException();
                 }
             }
             sServiceRegistered = wantRegistered;
@@ -5062,7 +5062,7 @@ public final class BluetoothAdapter {
             }
         } catch (RemoteException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-            throw e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         } catch (TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         } finally {
@@ -5127,7 +5127,7 @@ public final class BluetoothAdapter {
             }
         } catch (RemoteException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-            throw e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         } catch (TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         } finally {
@@ -5190,7 +5190,7 @@ public final class BluetoothAdapter {
             }
         } catch (RemoteException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-            throw e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         } catch (TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         } finally {
@@ -5275,7 +5275,7 @@ public final class BluetoothAdapter {
                                 .getValue(defaultValue);
                     }
                 } catch (RemoteException e) {
-                    throw e.rethrowFromSystemServer();
+                    throw e.rethrowAsRuntimeException();
                 } catch (TimeoutException e) {
                     Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
                 } finally {
@@ -5356,7 +5356,7 @@ public final class BluetoothAdapter {
         } catch (TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         } catch (RemoteException e) {
-            throw e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         } finally {
             mServiceLock.readLock().unlock();
         }
@@ -5474,7 +5474,7 @@ public final class BluetoothAdapter {
                                 .getValue(defaultValue);
                     }
                 } catch (RemoteException e) {
-                    throw e.rethrowFromSystemServer();
+                    throw e.rethrowAsRuntimeException();
                 } catch (TimeoutException e) {
                     Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
                 } finally {
@@ -5554,7 +5554,7 @@ public final class BluetoothAdapter {
         } catch (TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         } catch (RemoteException e) {
-            throw e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         } finally {
             mServiceLock.readLock().unlock();
         }
