@@ -114,12 +114,6 @@ public class AdapterServiceBinderTest {
     }
 
     @Test
-    public void isA2dpOffloadEnabled() {
-        mBinder.isA2dpOffloadEnabled(mAttributionSource, SynchronousResultReceiver.get());
-        verify(mService).isA2dpOffloadEnabled();
-    }
-
-    @Test
     public void isActivityAndEnergyReportingSupported() {
         mBinder.isActivityAndEnergyReportingSupported(SynchronousResultReceiver.get());
         verify(mService.mAdapterProperties).isActivityAndEnergyReportingSupported();
