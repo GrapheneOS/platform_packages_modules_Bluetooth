@@ -449,7 +449,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
                 } catch (TimeoutException e) {
                     Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
                 } catch (RemoteException e) {
-                    throw e.rethrowFromSystemServer();
+                    throw e.rethrowAsRuntimeException();
                 }
             }
 
@@ -502,7 +502,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             } catch (TimeoutException | IllegalStateException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             }
         }
     }
@@ -574,7 +574,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (SecurityException e) {
                 throw e;
             }
@@ -614,7 +614,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (SecurityException e) {
                 throw e;
             }
@@ -663,7 +663,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (SecurityException e) {
                 throw e;
             }
@@ -709,7 +709,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (SecurityException e) {
                 throw e;
             }
@@ -751,7 +751,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (SecurityException e) {
                 throw e;
             }
@@ -786,7 +786,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             }
         }
         return defaultValue;
@@ -820,7 +820,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             }
         }
         return defaultValue;
@@ -848,7 +848,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             }
         }
         return defaultValue;
@@ -877,7 +877,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             }
         }
         return defaultValue;
@@ -909,7 +909,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             }
         }
         return defaultValue;
