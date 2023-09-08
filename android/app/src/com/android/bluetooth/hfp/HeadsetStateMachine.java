@@ -17,7 +17,6 @@
 package com.android.bluetooth.hfp;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
-
 import static com.android.modules.utils.build.SdkLevel.isAtLeastU;
 
 import android.annotation.RequiresPermission;
@@ -514,6 +513,13 @@ public class HeadsetStateMachine extends StateMachine {
                                 device,
                                 BluetoothProfile.STATE_DISCONNECTED,
                                 BluetoothProfile.STATE_DISCONNECTED);
+                        BluetoothStatsLog.write(
+                                BluetoothStatsLog.BLUETOOTH_PROFILE_CONNECTION_ATTEMPTED,
+                                BluetoothProfile.HEADSET,
+                                BluetoothProtoEnums.RESULT_FAILURE,
+                                BluetoothProfile.STATE_DISCONNECTED,
+                                BluetoothProfile.STATE_DISCONNECTED,
+                                BluetoothProtoEnums.REASON_NATIVE_LAYER_REJECTED);
                         break;
                     }
                     transitionTo(mConnecting);
@@ -575,6 +581,13 @@ public class HeadsetStateMachine extends StateMachine {
                         // Indicate rejection to other components.
                         broadcastConnectionState(mDevice, BluetoothProfile.STATE_DISCONNECTED,
                                 BluetoothProfile.STATE_DISCONNECTED);
+                        BluetoothStatsLog.write(
+                                BluetoothStatsLog.BLUETOOTH_PROFILE_CONNECTION_ATTEMPTED,
+                                BluetoothProfile.HEADSET,
+                                BluetoothProtoEnums.RESULT_FAILURE,
+                                BluetoothProfile.STATE_DISCONNECTED,
+                                BluetoothProfile.STATE_DISCONNECTED,
+                                BluetoothProtoEnums.REASON_INCOMING_CONN_REJECTED);
                     }
                     break;
                 case HeadsetHalConstants.CONNECTION_STATE_DISCONNECTING:
