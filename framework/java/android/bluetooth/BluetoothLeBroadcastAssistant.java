@@ -732,7 +732,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
                         service.registerCallback(mCallback);
                     }
                 } catch (RemoteException e) {
-                    throw e.rethrowFromSystemServer();
+                    throw e.rethrowAsRuntimeException();
                 }
             }
 
@@ -780,7 +780,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
                         service.unregisterCallback(mCallback);
                     }
                 } catch (RemoteException e) {
-                    throw e.rethrowFromSystemServer();
+                    throw e.rethrowAsRuntimeException();
                 }
             }
         }

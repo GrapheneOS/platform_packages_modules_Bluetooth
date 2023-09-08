@@ -247,7 +247,7 @@ public final class BluetoothPbapClient implements BluetoothProfile, AutoCloseabl
                         mAttributionSource);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
@@ -286,7 +286,7 @@ public final class BluetoothPbapClient implements BluetoothProfile, AutoCloseabl
                         mAttributionSource);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
@@ -321,7 +321,7 @@ public final class BluetoothPbapClient implements BluetoothProfile, AutoCloseabl
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
@@ -399,7 +399,7 @@ public final class BluetoothPbapClient implements BluetoothProfile, AutoCloseabl
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
@@ -460,7 +460,7 @@ public final class BluetoothPbapClient implements BluetoothProfile, AutoCloseabl
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                throw e.rethrowFromSystemServer();
+                throw e.rethrowAsRuntimeException();
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
