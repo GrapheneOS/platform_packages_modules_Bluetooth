@@ -3962,30 +3962,6 @@ public class AdapterService extends Service {
             return service.getMaxConnectedAudioDevices();
         }
 
-        // @Override
-        @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-        public void isA2dpOffloadEnabled(
-                AttributionSource source, SynchronousResultReceiver receiver) {
-            try {
-                receiver.send(isA2dpOffloadEnabled(source));
-            } catch (RuntimeException e) {
-                receiver.propagateException(e);
-            }
-        }
-
-        @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-        private boolean isA2dpOffloadEnabled(AttributionSource attributionSource) {
-            // don't check caller, may be called from system UI
-            AdapterService service = getService();
-            if (service == null
-                    || !Utils.checkConnectPermissionForDataDelivery(
-                            service, attributionSource, "AdapterService isA2dpOffloadEnabled")) {
-                return false;
-            }
-
-            return service.isA2dpOffloadEnabled();
-        }
-
         @Override
         public void factoryReset(AttributionSource source, SynchronousResultReceiver receiver) {
             try {
