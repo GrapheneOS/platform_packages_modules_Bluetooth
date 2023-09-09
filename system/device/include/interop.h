@@ -328,6 +328,8 @@ typedef enum {
 
   INTEROP_HFP_1_7_ALLOWLIST,
 
+  INTEROP_HFP_1_9_ALLOWLIST,
+
   // Some device may have problem in reconnect flow,
   // need we initiate connection after signalling timeout
   INTEROP_IGNORE_DISC_BEFORE_SIGNALLING_TIMEOUT,
