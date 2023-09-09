@@ -6890,6 +6890,11 @@ public class AdapterService extends Service {
         }
     }
 
+    /** Update PhonePolicy when new {@link BluetoothDevice} creates an ACL connection. */
+    public void updatePhonePolicyOnAclConnect(BluetoothDevice device) {
+        mPhonePolicy.handleAclConnected(device);
+    }
+
     /**
      * Notify GATT of a Bluetooth profile's connection state change for a given {@link
      * BluetoothProfile}.
