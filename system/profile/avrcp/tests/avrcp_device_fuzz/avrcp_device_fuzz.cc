@@ -91,10 +91,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
   FakePlayerSettingsInterface fpsi;
 
   std::vector<uint8_t> Packet(Data, Data + Size);
-  Device device(RawAddress::kAny, true,
-                base::Bind([](uint8_t, bool,
-                              std::unique_ptr<::bluetooth::PacketBuilder>) {}),
-                0xFFFF, 0xFFFF);
+  Device device(
+      RawAddress::kAny, true,
+      base::BindRepeating(
+          [](uint8_t, bool, std::unique_ptr<::bluetooth::PacketBuilder>) {}),
+      0xFFFF, 0xFFFF);
   device.RegisterInterfaces(&fmi, &fai, &fvi, &fpsi);
 
   auto browse_request = TestPacketType<BrowsePacket>::Make(Packet);

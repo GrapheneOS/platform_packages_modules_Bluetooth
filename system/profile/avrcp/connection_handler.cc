@@ -268,8 +268,8 @@ void ConnectionHandler::InitiatorControlCb(uint8_t handle, uint8_t event,
       // devices SDP is completed after the device connects AVRCP so that
       // information isn't very useful when trying to control our
       // capabilities. For now always use AVRCP 1.6.
-      auto&& callback = base::Bind(&ConnectionHandler::SendMessage,
-                                   base::Unretained(this), handle);
+      auto&& callback = base::BindRepeating(&ConnectionHandler::SendMessage,
+                                            base::Unretained(this), handle);
       auto&& ctrl_mtu = avrc_->GetPeerMtu(handle) - AVCT_HDR_LEN;
       auto&& browse_mtu = avrc_->GetBrowseMtu(handle) - AVCT_HDR_LEN;
       std::shared_ptr<Device> newDevice = std::make_shared<Device>(
@@ -356,8 +356,9 @@ void ConnectionHandler::AcceptorControlCb(uint8_t handle, uint8_t event,
         AvrcpConnect(false, RawAddress::kAny);
         return;
       }
-      auto&& callback = base::Bind(&ConnectionHandler::SendMessage,
-                                   weak_ptr_factory_.GetWeakPtr(), handle);
+      auto&& callback =
+          base::BindRepeating(&ConnectionHandler::SendMessage,
+                              weak_ptr_factory_.GetWeakPtr(), handle);
       auto&& ctrl_mtu = avrc_->GetPeerMtu(handle) - AVCT_HDR_LEN;
       auto&& browse_mtu = avrc_->GetBrowseMtu(handle) - AVCT_HDR_LEN;
       std::shared_ptr<Device> newDevice = std::make_shared<Device>(
