@@ -17,7 +17,6 @@ cc_library_static {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     local_include_dirs: [
         "include",
