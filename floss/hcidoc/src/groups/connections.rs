@@ -7,16 +7,17 @@ use std::io::Write;
 use crate::engine::{Rule, RuleGroup, Signal};
 use crate::parser::{Packet, PacketChild};
 use bt_packets::hci::{
-    Acl, AclCommandChild, Address, CommandChild, CommandStatus, ConnectionManagementCommandChild,
-    DisconnectReason, ErrorCode, Event, EventChild, LeConnectionManagementCommandChild,
-    LeMetaEventChild, NumberOfCompletedPackets, OpCode, ScoConnectionCommandChild,
-    SecurityCommandChild, SubeventCode,
+    Acl, AclCommandChild, Address, AuthenticatedPayloadTimeoutExpired, CommandChild, CommandStatus,
+    ConnectionManagementCommandChild, DisconnectReason, ErrorCode, Event, EventChild,
+    LeConnectionManagementCommandChild, LeMetaEventChild, NumberOfCompletedPackets, OpCode,
+    ScoConnectionCommandChild, SecurityCommandChild, SubeventCode,
 };
 
 enum ConnectionSignal {
     LinkKeyMismatch, // Peer forgets the link key or it mismatches ours
     NocpDisconnect,  // Peer is disconnected when NOCP packet isn't yet received
     NocpTimeout,     // Host doesn't receive NOCP packet 5 seconds after ACL is sent
+    ApteDisconnect,  // Host doesn't receive a packet with valid MIC for a while.
 }
 
 impl Into<&'static str> for ConnectionSignal {
@@ -25,6 +26,7 @@ impl Into<&'static str> for ConnectionSignal {
             ConnectionSignal::LinkKeyMismatch => "LinkKeyMismatch",
             ConnectionSignal::NocpDisconnect => "Nocp",
             ConnectionSignal::NocpTimeout => "Nocp",
+            ConnectionSignal::ApteDisconnect => "AuthenticatedPayloadTimeoutExpired",
         }
     }
 }
@@ -73,6 +75,9 @@ struct OddDisconnectionsRule {
     /// identify bursts.
     nocp_by_handle: HashMap<ConnectionHandle, NocpData>,
 
+    /// Number of |Authenticated Payload Timeout Expired| events hapened.
+    apte_by_handle: HashMap<ConnectionHandle, u32>,
+
     /// Pre-defined signals discovered in the logs.
     signals: Vec<Signal>,
 
@@ -91,6 +96,7 @@ impl OddDisconnectionsRule {
             sco_connection_attempt: HashMap::new(),
             last_sco_connection_attempt: None,
             nocp_by_handle: HashMap::new(),
+            apte_by_handle: HashMap::new(),
             signals: vec![],
             reportable: vec![],
         }
@@ -315,6 +321,26 @@ impl OddDisconnectionsRule {
 
                 // Remove nocp information for handles that were removed.
                 self.nocp_by_handle.remove(&handle);
+
+                // Check if auth payload timeout happened.
+                match self.apte_by_handle.get_mut(&handle) {
+                    Some(apte_count) => {
+                        self.signals.push(Signal {
+                            index: packet.index,
+                            ts: packet.ts.clone(),
+                            tag: ConnectionSignal::ApteDisconnect.into(),
+                        });
+
+                        self.reportable.push((
+                            packet.ts,
+                            format!("DisconnectionComplete with {} Authenticated Payload Timeout Expired (handle={})",
+                            apte_count, handle)));
+                    }
+                    None => (),
+                }
+
+                // Remove apte information for handles that were removed.
+                self.apte_by_handle.remove(&handle);
             }
 
             EventChild::SynchronousConnectionComplete(scc) => {
@@ -436,6 +462,11 @@ impl OddDisconnectionsRule {
         }
     }
 
+    fn process_apte(&mut self, apte: &AuthenticatedPayloadTimeoutExpired, _packet: &Packet) {
+        let handle = apte.get_connection_handle();
+        *self.apte_by_handle.entry(handle).or_insert(0) += 1;
+    }
+
     fn process_reset(&mut self) {
         self.active_handles.clear();
         self.connection_attempt.clear();
@@ -445,6 +476,7 @@ impl OddDisconnectionsRule {
         self.sco_connection_attempt.clear();
         self.last_sco_connection_attempt = None;
         self.nocp_by_handle.clear();
+        self.apte_by_handle.clear();
     }
 }
 
@@ -516,6 +548,10 @@ impl Rule for OddDisconnectionsRule {
 
                 EventChild::NumberOfCompletedPackets(nocp) => {
                     self.process_nocp(&nocp, packet);
+                }
+
+                EventChild::AuthenticatedPayloadTimeoutExpired(apte) => {
+                    self.process_apte(&apte, packet);
                 }
 
                 // end hci event
