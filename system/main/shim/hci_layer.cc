@@ -113,6 +113,7 @@ bool is_valid_event_code(bluetooth::hci::EventCode event_code) {
       return true;
     case bluetooth::hci::EventCode::VENDOR_SPECIFIC:
     case bluetooth::hci::EventCode::LE_META_EVENT:  // Private to hci
+    case bluetooth::hci::EventCode::AUTHENTICATED_PAYLOAD_TIMEOUT_EXPIRED:
       return false;
   }
   return false;

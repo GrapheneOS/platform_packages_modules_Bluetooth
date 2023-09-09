@@ -831,6 +831,7 @@ enum EventCode : 8 {
   REMOTE_HOST_SUPPORTED_FEATURES_NOTIFICATION = 0x3D,
   LE_META_EVENT = 0x3e,
   NUMBER_OF_COMPLETED_DATA_BLOCKS = 0x48,
+  AUTHENTICATED_PAYLOAD_TIMEOUT_EXPIRED = 0x57,
   VENDOR_SPECIFIC = 0xFF,
 }
 
@@ -5801,6 +5802,11 @@ packet LeMetaEvent : Event (event_code = LE_META_EVENT) {
 packet NumberOfCompletedDataBlocks : Event (event_code = NUMBER_OF_COMPLETED_DATA_BLOCKS) {
   total_num_data_blocks : 16,
   _payload_, // placeholder (unimplemented)
+}
+
+packet AuthenticatedPayloadTimeoutExpired : Event (event_code = AUTHENTICATED_PAYLOAD_TIMEOUT_EXPIRED) {
+  connection_handle : 12,
+  _reserved_ : 4,
 }
 
 // LE Events
