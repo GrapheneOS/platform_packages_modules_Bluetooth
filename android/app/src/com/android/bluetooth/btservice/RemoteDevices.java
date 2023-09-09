@@ -1107,6 +1107,7 @@ public class RemoteDevices {
             if (batteryService != null && transportLinkType == BluetoothDevice.TRANSPORT_LE) {
                 batteryService.connectIfPossible(device);
             }
+            mAdapterService.updatePhonePolicyOnAclConnect(device);
             SecurityLog.writeEvent(SecurityLog.TAG_BLUETOOTH_CONNECTION,
                     Utils.getLoggableAddress(device), /* success */ 1, /* reason */ "");
             debugLog(
