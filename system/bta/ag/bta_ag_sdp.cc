@@ -437,7 +437,10 @@ bool bta_ag_sdp_find_attr(tBTA_AG_SCB* p_scb, tBTA_SERVICE_MASK service) {
         }
         /* Remote supports 1.7, store it in HFP 1.7 BL file */
         if (bluetooth::common::init_flags::hfp_dynamic_version_is_enabled()) {
-          if (p_scb->peer_version == HFP_VERSION_1_7) {
+          if (p_scb->peer_version >= HFP_VERSION_1_9) {
+            interop_database_add_addr(INTEROP_HFP_1_9_ALLOWLIST,
+                                      &p_scb->peer_addr, 3);
+          } else if (p_scb->peer_version >= HFP_VERSION_1_7) {
             interop_database_add_addr(INTEROP_HFP_1_7_ALLOWLIST,
                                       &p_scb->peer_addr, 3);
           }

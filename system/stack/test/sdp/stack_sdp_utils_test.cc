@@ -589,6 +589,10 @@ TEST_F(StackSdpUtilsTest, check_HFP_version_change_fail) {
               InteropMatchAddrOrName(INTEROP_HFP_1_7_ALLOWLIST, &bdaddr,
                                      &btif_storage_get_remote_device_property))
       .WillOnce(Return(false));
+  EXPECT_CALL(*localIopMock,
+              InteropMatchAddrOrName(INTEROP_HFP_1_9_ALLOWLIST, &bdaddr,
+                                     &btif_storage_get_remote_device_property))
+      .WillOnce(Return(false));
   ASSERT_EQ(sdp_dynamic_change_hfp_version(&hfp_attr, bdaddr), false);
 }
 
@@ -601,6 +605,10 @@ TEST_F(StackSdpUtilsTest, check_HFP_version_change_success) {
               InteropMatchAddrOrName(INTEROP_HFP_1_7_ALLOWLIST, &bdaddr,
                                      &btif_storage_get_remote_device_property))
       .WillOnce(Return(true));
+  EXPECT_CALL(*localIopMock,
+              InteropMatchAddrOrName(INTEROP_HFP_1_9_ALLOWLIST, &bdaddr,
+                                     &btif_storage_get_remote_device_property))
+      .WillOnce(Return(true));
   ASSERT_EQ(sdp_dynamic_change_hfp_version(&hfp_attr, bdaddr), true);
 }
 
@@ -611,6 +619,10 @@ TEST_F(StackSdpUtilsTest, check_HFP_version_fallback_success) {
                UUID_HF_LSB);
   EXPECT_CALL(*localIopMock,
               InteropMatchAddrOrName(INTEROP_HFP_1_7_ALLOWLIST, &bdaddr,
+                                     &btif_storage_get_remote_device_property))
+      .WillOnce(Return(true));
+  EXPECT_CALL(*localIopMock,
+              InteropMatchAddrOrName(INTEROP_HFP_1_9_ALLOWLIST, &bdaddr,
                                      &btif_storage_get_remote_device_property))
       .WillOnce(Return(true));
   bool is_hfp_fallback = sdp_dynamic_change_hfp_version(&hfp_attr, bdaddr);
