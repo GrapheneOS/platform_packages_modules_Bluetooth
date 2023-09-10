@@ -14,4 +14,5 @@ cc_fuzz {
     srcs: [
         "fuzz_a2dp.cc",
     ],
+    cflags: ["-Wno-unused-parameter"],
 }

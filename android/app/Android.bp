@@ -149,6 +149,7 @@ cc_library_shared {
         "com.android.btservices",
     ],
     min_sdk_version: "Tiramisu",
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_library {

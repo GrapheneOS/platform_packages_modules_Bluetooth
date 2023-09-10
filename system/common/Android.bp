@@ -57,6 +57,7 @@ cc_library_static {
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
     ],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -112,6 +113,7 @@ cc_test {
         cfi: false,
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -138,6 +140,7 @@ cc_test {
         "libosi",
     ],
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_benchmark {
@@ -161,4 +164,5 @@ cc_benchmark {
         "libosi",
     ],
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }

@@ -81,4 +81,5 @@ cc_test {
         cfi: true,
         misc_undefined: ["bounds"],
     },
+    cflags: ["-Wno-unused-parameter"],
 }
