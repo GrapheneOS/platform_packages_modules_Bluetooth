@@ -161,7 +161,8 @@ static void handshake_callback(RawAddress* bd_addr, bthh_status_t hh_status) {
                                (jint)hh_status);
 }
 
-static void get_idle_time_callback(RawAddress* bd_addr, bthh_status_t hh_status,
+static void get_idle_time_callback(RawAddress* bd_addr,
+                                   bthh_status_t /* hh_status */,
                                    int idle_time) {
   std::shared_lock<std::shared_timed_mutex> lock(mCallbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
@@ -224,7 +225,7 @@ static void initializeNative(JNIEnv* env, jobject object) {
   mCallbacksObj = env->NewGlobalRef(object);
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_timed_mutex> lock(mCallbacks_mutex);
   const bt_interface_t* btInf = getBluetoothInterface();
 
@@ -246,7 +247,7 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static jboolean connectHidNative(JNIEnv* env, jobject object,
+static jboolean connectHidNative(JNIEnv* env, jobject /* object */,
                                  jbyteArray address) {
   if (!sBluetoothHidInterface) return JNI_FALSE;
 
@@ -267,7 +268,7 @@ static jboolean connectHidNative(JNIEnv* env, jobject object,
   return ret;
 }
 
-static jboolean disconnectHidNative(JNIEnv* env, jobject object,
+static jboolean disconnectHidNative(JNIEnv* env, jobject /* object */,
                                     jbyteArray address) {
   jbyte* addr;
   jboolean ret = JNI_TRUE;
@@ -289,7 +290,7 @@ static jboolean disconnectHidNative(JNIEnv* env, jobject object,
   return ret;
 }
 
-static jboolean getProtocolModeNative(JNIEnv* env, jobject object,
+static jboolean getProtocolModeNative(JNIEnv* env, jobject /* object */,
                                       jbyteArray address) {
   if (!sBluetoothHidInterface) return JNI_FALSE;
 
@@ -313,7 +314,7 @@ static jboolean getProtocolModeNative(JNIEnv* env, jobject object,
   return ret;
 }
 
-static jboolean virtualUnPlugNative(JNIEnv* env, jobject object,
+static jboolean virtualUnPlugNative(JNIEnv* env, jobject /* object */,
                                     jbyteArray address) {
   if (!sBluetoothHidInterface) return JNI_FALSE;
 
@@ -334,7 +335,7 @@ static jboolean virtualUnPlugNative(JNIEnv* env, jobject object,
   return ret;
 }
 
-static jboolean setProtocolModeNative(JNIEnv* env, jobject object,
+static jboolean setProtocolModeNative(JNIEnv* env, jobject /* object */,
                                       jbyteArray address, jint protocolMode) {
   if (!sBluetoothHidInterface) return JNI_FALSE;
 
@@ -371,9 +372,9 @@ static jboolean setProtocolModeNative(JNIEnv* env, jobject object,
   return ret;
 }
 
-static jboolean getReportNative(JNIEnv* env, jobject object, jbyteArray address,
-                                jbyte reportType, jbyte reportId,
-                                jint bufferSize) {
+static jboolean getReportNative(JNIEnv* env, jobject /* object */,
+                                jbyteArray address, jbyte reportType,
+                                jbyte reportId, jint bufferSize) {
   ALOGV("%s: reportType = %d, reportId = %d, bufferSize = %d", __func__,
         reportType, reportId, bufferSize);
   if (!sBluetoothHidInterface) return JNI_FALSE;
@@ -399,8 +400,9 @@ static jboolean getReportNative(JNIEnv* env, jobject object, jbyteArray address,
   return ret;
 }
 
-static jboolean setReportNative(JNIEnv* env, jobject object, jbyteArray address,
-                                jbyte reportType, jstring report) {
+static jboolean setReportNative(JNIEnv* env, jobject /* object */,
+                                jbyteArray address, jbyte reportType,
+                                jstring report) {
   ALOGV("%s: reportType = %d", __func__, reportType);
   if (!sBluetoothHidInterface) return JNI_FALSE;
 
@@ -425,8 +427,8 @@ static jboolean setReportNative(JNIEnv* env, jobject object, jbyteArray address,
   return ret;
 }
 
-static jboolean sendDataNative(JNIEnv* env, jobject object, jbyteArray address,
-                               jstring report) {
+static jboolean sendDataNative(JNIEnv* env, jobject /* object */,
+                               jbyteArray address, jstring report) {
   ALOGV("%s", __func__);
   jboolean ret = JNI_TRUE;
   if (!sBluetoothHidInterface) return JNI_FALSE;
@@ -451,7 +453,7 @@ static jboolean sendDataNative(JNIEnv* env, jobject object, jbyteArray address,
   return ret;
 }
 
-static jboolean getIdleTimeNative(JNIEnv* env, jobject object,
+static jboolean getIdleTimeNative(JNIEnv* env, jobject /* object */,
                                   jbyteArray address) {
   if (!sBluetoothHidInterface) return JNI_FALSE;
 
@@ -470,7 +472,7 @@ static jboolean getIdleTimeNative(JNIEnv* env, jobject object,
   return status == BT_STATUS_SUCCESS ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean setIdleTimeNative(JNIEnv* env, jobject object,
+static jboolean setIdleTimeNative(JNIEnv* env, jobject /* object */,
                                   jbyteArray address, jbyte idle_time) {
   if (!sBluetoothHidInterface) return JNI_FALSE;
 

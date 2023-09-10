@@ -52,8 +52,8 @@ static const btrc_ctrl_interface_t* sBluetoothAvrcpInterface = NULL;
 static jobject sCallbacksObj = NULL;
 static std::shared_timed_mutex sCallbacks_mutex;
 
-static void btavrcp_passthrough_response_callback(const RawAddress& bd_addr,
-                                                  int id, int pressed) {
+static void btavrcp_passthrough_response_callback(
+    const RawAddress& /* bd_addr */, int id, int pressed) {
   ALOGV("%s: id: %d, pressed: %d --- Not implemented", __func__, id, pressed);
 }
 
@@ -86,19 +86,19 @@ static void btavrcp_connection_state_callback(bool rc_connect, bool br_connect,
                                addr.get());
 }
 
-static void btavrcp_get_rcfeatures_callback(const RawAddress& bd_addr,
-                                            int features) {
+static void btavrcp_get_rcfeatures_callback(const RawAddress& /* bd_addr */,
+                                            int /* features */) {
   ALOGV("%s --- Not implemented", __func__);
 }
 static void btavrcp_setplayerapplicationsetting_rsp_callback(
-    const RawAddress& bd_addr, uint8_t accepted) {
+    const RawAddress& /* bd_addr */, uint8_t /* accepted */) {
   ALOGV("%s --- Not implemented", __func__);
 }
 
 static void btavrcp_playerapplicationsetting_callback(
     const RawAddress& bd_addr, uint8_t num_attr,
-    btrc_player_app_attr_t* app_attrs, uint8_t num_ext_attr,
-    btrc_player_app_ext_attr_t* ext_attrs) {
+    btrc_player_app_attr_t* app_attrs, uint8_t /* num_ext_attr */,
+    btrc_player_app_ext_attr_t* /* ext_attrs */) {
   ALOGI("%s", __func__);
   std::shared_lock<std::shared_timed_mutex> lock(sCallbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
@@ -768,7 +768,7 @@ static void initNative(JNIEnv* env, jobject object) {
   sCallbacksObj = env->NewGlobalRef(object);
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_timed_mutex> lock(sCallbacks_mutex);
 
   const bt_interface_t* btInf = getBluetoothInterface();
@@ -788,7 +788,7 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static jboolean sendPassThroughCommandNative(JNIEnv* env, jobject object,
+static jboolean sendPassThroughCommandNative(JNIEnv* env, jobject /* object */,
                                              jbyteArray address, jint key_code,
                                              jint key_state) {
   if (!sBluetoothAvrcpInterface) return JNI_FALSE;
@@ -815,7 +815,8 @@ static jboolean sendPassThroughCommandNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean sendGroupNavigationCommandNative(JNIEnv* env, jobject object,
+static jboolean sendGroupNavigationCommandNative(JNIEnv* env,
+                                                 jobject /* object */,
                                                  jbyteArray address,
                                                  jint key_code,
                                                  jint key_state) {
@@ -843,11 +844,9 @@ static jboolean sendGroupNavigationCommandNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static void setPlayerApplicationSettingValuesNative(JNIEnv* env, jobject object,
-                                                    jbyteArray address,
-                                                    jbyte num_attrib,
-                                                    jbyteArray attrib_ids,
-                                                    jbyteArray attrib_val) {
+static void setPlayerApplicationSettingValuesNative(
+    JNIEnv* env, jobject /* object */, jbyteArray address, jbyte num_attrib,
+    jbyteArray attrib_ids, jbyteArray attrib_val) {
   ALOGI("%s: sBluetoothAvrcpInterface: %p", __func__, sBluetoothAvrcpInterface);
   if (!sBluetoothAvrcpInterface) return;
 
@@ -894,8 +893,8 @@ static void setPlayerApplicationSettingValuesNative(JNIEnv* env, jobject object,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void sendAbsVolRspNative(JNIEnv* env, jobject object, jbyteArray address,
-                                jint abs_vol, jint label) {
+static void sendAbsVolRspNative(JNIEnv* env, jobject /* object */,
+                                jbyteArray address, jint abs_vol, jint label) {
   if (!sBluetoothAvrcpInterface) return;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -916,7 +915,7 @@ static void sendAbsVolRspNative(JNIEnv* env, jobject object, jbyteArray address,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void sendRegisterAbsVolRspNative(JNIEnv* env, jobject object,
+static void sendRegisterAbsVolRspNative(JNIEnv* env, jobject /* object */,
                                         jbyteArray address, jbyte rsp_type,
                                         jint abs_vol, jint label) {
   if (!sBluetoothAvrcpInterface) return;
@@ -940,7 +939,7 @@ static void sendRegisterAbsVolRspNative(JNIEnv* env, jobject object,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void getCurrentMetadataNative(JNIEnv* env, jobject object,
+static void getCurrentMetadataNative(JNIEnv* env, jobject /* object */,
                                      jbyteArray address) {
   if (!sBluetoothAvrcpInterface) return;
 
@@ -961,7 +960,7 @@ static void getCurrentMetadataNative(JNIEnv* env, jobject object,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void getPlaybackStateNative(JNIEnv* env, jobject object,
+static void getPlaybackStateNative(JNIEnv* env, jobject /* object */,
                                    jbyteArray address) {
   if (!sBluetoothAvrcpInterface) return;
 
@@ -982,7 +981,7 @@ static void getPlaybackStateNative(JNIEnv* env, jobject object,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void getNowPlayingListNative(JNIEnv* env, jobject object,
+static void getNowPlayingListNative(JNIEnv* env, jobject /* object */,
                                     jbyteArray address, jint start, jint end) {
   if (!sBluetoothAvrcpInterface) return;
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -1002,8 +1001,8 @@ static void getNowPlayingListNative(JNIEnv* env, jobject object,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void getFolderListNative(JNIEnv* env, jobject object, jbyteArray address,
-                                jint start, jint end) {
+static void getFolderListNative(JNIEnv* env, jobject /* object */,
+                                jbyteArray address, jint start, jint end) {
   if (!sBluetoothAvrcpInterface) return;
   jbyte* addr = env->GetByteArrayElements(address, NULL);
   if (!addr) {
@@ -1022,8 +1021,8 @@ static void getFolderListNative(JNIEnv* env, jobject object, jbyteArray address,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void getPlayerListNative(JNIEnv* env, jobject object, jbyteArray address,
-                                jint start, jint end) {
+static void getPlayerListNative(JNIEnv* env, jobject /* object */,
+                                jbyteArray address, jint start, jint end) {
   if (!sBluetoothAvrcpInterface) return;
   jbyte* addr = env->GetByteArrayElements(address, NULL);
   if (!addr) {
@@ -1042,7 +1041,7 @@ static void getPlayerListNative(JNIEnv* env, jobject object, jbyteArray address,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void changeFolderPathNative(JNIEnv* env, jobject object,
+static void changeFolderPathNative(JNIEnv* env, jobject /* object */,
                                    jbyteArray address, jbyte direction,
                                    jlong uid) {
   if (!sBluetoothAvrcpInterface) return;
@@ -1070,7 +1069,7 @@ static void changeFolderPathNative(JNIEnv* env, jobject object,
   // env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void setBrowsedPlayerNative(JNIEnv* env, jobject object,
+static void setBrowsedPlayerNative(JNIEnv* env, jobject /* object */,
                                    jbyteArray address, jint id) {
   if (!sBluetoothAvrcpInterface) return;
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -1090,7 +1089,7 @@ static void setBrowsedPlayerNative(JNIEnv* env, jobject object,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void setAddressedPlayerNative(JNIEnv* env, jobject object,
+static void setAddressedPlayerNative(JNIEnv* env, jobject /* object */,
                                      jbyteArray address, jint id) {
   if (!sBluetoothAvrcpInterface) return;
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -1111,8 +1110,9 @@ static void setAddressedPlayerNative(JNIEnv* env, jobject object,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void playItemNative(JNIEnv* env, jobject object, jbyteArray address,
-                           jbyte scope, jlong uid, jint uidCounter) {
+static void playItemNative(JNIEnv* env, jobject /* object */,
+                           jbyteArray address, jbyte scope, jlong uid,
+                           jint uidCounter) {
   if (!sBluetoothAvrcpInterface) return;
   jbyte* addr = env->GetByteArrayElements(address, NULL);
   if (!addr) {

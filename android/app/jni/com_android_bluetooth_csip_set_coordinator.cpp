@@ -190,7 +190,7 @@ static void initNative(JNIEnv* env, jobject object) {
   sCsisClientInterface->Init(&sCsisClientCallbacks);
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
 
@@ -211,7 +211,8 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static jboolean connectNative(JNIEnv* env, jobject object, jbyteArray address) {
+static jboolean connectNative(JNIEnv* env, jobject /* object */,
+                              jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sCsisClientInterface) {
     LOG(ERROR) << __func__
@@ -231,7 +232,7 @@ static jboolean connectNative(JNIEnv* env, jobject object, jbyteArray address) {
   return JNI_TRUE;
 }
 
-static jboolean disconnectNative(JNIEnv* env, jobject object,
+static jboolean disconnectNative(JNIEnv* env, jobject /* object */,
                                  jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sCsisClientInterface) {
@@ -251,8 +252,8 @@ static jboolean disconnectNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static void groupLockSetNative(JNIEnv* env, jobject object, jint group_id,
-                               jboolean lock) {
+static void groupLockSetNative(JNIEnv* /* env */, jobject /* object */,
+                               jint group_id, jboolean lock) {
   LOG(INFO) << __func__;
 
   if (!sCsisClientInterface) {
