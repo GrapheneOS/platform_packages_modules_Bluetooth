@@ -330,9 +330,10 @@ impl OddDisconnectionsRule {
                 self.active_handles.remove(&handle);
 
                 // Check if this is a NOCP type disconnection and flag it.
-                match self.nocp_by_handle.get_mut(&handle) {
-                    Some(nocp_data) => {
-                        if let Some(acl_front_ts) = nocp_data.inflight_acl_ts.pop_front() {
+                if let Some(nocp_data) = self.nocp_by_handle.get_mut(&handle) {
+                    if let Some(acl_front_ts) = nocp_data.inflight_acl_ts.pop_front() {
+                        let duration_since_acl = packet.ts.signed_duration_since(acl_front_ts);
+                        if duration_since_acl.num_milliseconds() > NOCP_CORRELATION_TIME_MS {
                             self.signals.push(Signal {
                                 index: packet.index,
                                 ts: packet.ts.clone(),
@@ -345,7 +346,6 @@ impl OddDisconnectionsRule {
                                         handle, acl_front_ts)));
                         }
                     }
-                    None => (),
                 }
 
                 // Remove nocp information for handles that were removed.
