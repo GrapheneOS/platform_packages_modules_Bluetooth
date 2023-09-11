@@ -1518,16 +1518,15 @@ void btm_ble_link_encrypted(const RawAddress& bd_addr, uint8_t encr_enable) {
   }
 
   if (encr_enable) {
-    uint8_t remote_lmp_version = 0;
-    if (!BTM_ReadRemoteVersion(p_dev_rec->ble.pseudo_addr, &remote_lmp_version,
+    uint8_t remote_ll_version = 0;
+    if (!BTM_ReadRemoteVersion(p_dev_rec->ble.pseudo_addr, &remote_ll_version,
                                nullptr, nullptr) ||
-        remote_lmp_version == 0) {
+        remote_ll_version == 0) {
       LOG_WARN("BLE Unable to determine remote version");
     }
 
-    if (remote_lmp_version == 0 ||
-        remote_lmp_version >= HCI_PROTO_VERSION_5_2) {
-      /* Link is encrypted, start EATT if remote LMP version is unknown, or 5.2
+    if (remote_ll_version == 0 || remote_ll_version >= HCI_PROTO_VERSION_5_0) {
+      /* Link is encrypted, start EATT if remote LMP version is unknown, or 5.0
        * or greater */
       bluetooth::eatt::EattExtension::GetInstance()->Connect(
           p_dev_rec->ble.pseudo_addr);
