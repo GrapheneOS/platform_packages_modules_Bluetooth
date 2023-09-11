@@ -219,7 +219,7 @@ impl AclInformation {
         let profile_types: Vec<ProfileType> = self.profiles.keys().cloned().collect();
         for profile_type in profile_types {
             if let Some(profile) = self.profiles.get(&profile_type).unwrap().last() {
-                if profile.end_time != INVALID_TS {
+                if profile.end_time == INVALID_TS {
                     self.report_profile_end(profile_type, ts);
                 }
             }
