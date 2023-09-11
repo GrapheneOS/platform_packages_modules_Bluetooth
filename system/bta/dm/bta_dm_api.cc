@@ -710,7 +710,7 @@ void BTA_DmClearFilterAcceptList(void) {
  ******************************************************************************/
 void BTA_DmLeRand(LeRandCallback cb) {
   APPL_TRACE_API("BTA_DmLeRand");
-  do_in_main_thread(FROM_HERE, base::BindOnce(bta_dm_le_rand, cb));
+  do_in_main_thread(FROM_HERE, base::BindOnce(bta_dm_le_rand, std::move(cb)));
 }
 
 /*******************************************************************************

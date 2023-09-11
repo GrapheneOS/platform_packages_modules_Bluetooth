@@ -1341,7 +1341,7 @@ void BTA_DmDisconnectAllAcls(void);
  ******************************************************************************/
 void BTA_DmClearFilterAcceptList(void);
 
-using LeRandCallback = base::Callback<void(uint64_t)>;
+using LeRandCallback = base::OnceCallback<void(uint64_t)>;
 /*******************************************************************************
  *
  * Function         BTA_DmLeRand

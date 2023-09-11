@@ -1128,7 +1128,7 @@ struct shim::legacy::Acl::impl {
   }
 
   void le_rand(LeRandCallback cb ) {
-    controller_get_interface()->le_rand(cb);
+    controller_get_interface()->le_rand(std::move(cb));
   }
 
   void AddToAddressResolution(const hci::AddressWithType& address_with_type,
@@ -1934,7 +1934,7 @@ void shim::legacy::Acl::ClearFilterAcceptList() {
 }
 
 void shim::legacy::Acl::LeRand(LeRandCallback cb) {
-  handler_->CallOn(pimpl_.get(), &Acl::impl::le_rand, cb);
+  handler_->CallOn(pimpl_.get(), &Acl::impl::le_rand, std::move(cb));
 }
 
 void shim::legacy::Acl::AddToAddressResolution(
