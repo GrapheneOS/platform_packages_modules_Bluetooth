@@ -5891,13 +5891,13 @@ packet LeApcfServiceUuidComplete : LeApcfComplete (apcf_opcode = SERVICE_UUID) {
   apcf_available_spaces : 8,
 }
 
-packet LeApcfSolicitationUuid : LeApcf (apcf_opcode = SERVICE_SOLICITATION_UUID) {
+packet LeApcfServiceSolicitationUuid : LeApcf (apcf_opcode = SERVICE_SOLICITATION_UUID) {
   apcf_action : ApcfAction,
   apcf_filter_index : 8,
   acpf_uuid_data : 8[],
 }
 
-packet LeApcfSolicitationUuidComplete : LeApcfComplete (apcf_opcode = SERVICE_SOLICITATION_UUID) {
+packet LeApcfServiceSolicitationUuidComplete : LeApcfComplete (apcf_opcode = SERVICE_SOLICITATION_UUID) {
   apcf_action : ApcfAction,
   apcf_available_spaces : 8,
 }
@@ -5935,13 +5935,16 @@ packet LeApcfServiceDataComplete : LeApcfComplete (apcf_opcode = SERVICE_DATA) {
   apcf_available_spaces : 8,
 }
 
-packet LeApcfADType : LeApcf (apcf_opcode = AD_TYPE_FILTER) {
+packet LeApcfAdTypeFilter : LeApcf (apcf_opcode = AD_TYPE_FILTER) {
   apcf_action : ApcfAction,
   apcf_filter_index : 8,
-  apcf_ad_type_data : 8[],
+  apcf_ad_type : 8,
+  _size_(apcf_ad_data) : 8,
+  apcf_ad_data : 8[],
+  apcf_ad_data_mask : 8[],
 }
 
-packet LeApcfADTypeComplete : LeApcfComplete (apcf_opcode = AD_TYPE_FILTER) {
+packet LeApcfAdTypeFilterComplete : LeApcfComplete (apcf_opcode = AD_TYPE_FILTER) {
   apcf_action : ApcfAction,
   apcf_available_spaces : 8,
 }
