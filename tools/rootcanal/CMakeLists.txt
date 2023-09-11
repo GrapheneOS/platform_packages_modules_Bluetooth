@@ -205,6 +205,7 @@ android_add_library(
       model/controller/le_advertiser.cc
       model/controller/link_layer_controller.cc
       model/controller/sco_connection.cc
+      model/controller/vendor_commands/le_apcf.cc
       model/devices/beacon.cc
       model/devices/beacon_swarm.cc
       model/devices/device.cc
