@@ -8,7 +8,6 @@ use std::error::Error;
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::Duration;
 use tokio::sync::mpsc::Sender;
-use tokio::time;
 
 // Necessary to link right entries.
 #[allow(unused_imports)]
@@ -149,6 +148,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         bluetooth_gatt.clone(),
         battery_provider_manager.clone(),
         tx.clone(),
+        api_tx.clone(),
     ))));
     let battery_manager = Arc::new(Mutex::new(Box::new(BatteryManager::new(
         battery_provider_manager.clone(),
@@ -232,6 +232,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             bluetooth.clone(),
             bluetooth_admin.clone(),
             bluetooth_gatt.clone(),
+            battery_service.clone(),
             battery_manager.clone(),
             battery_provider_manager.clone(),
             bluetooth_media.clone(),
@@ -252,15 +253,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             bluetooth.init(init_flags);
             bluetooth.enable();
 
-            bluetooth_gatt.lock().unwrap().init_profiles(tx.clone(), adapter.clone());
-            // TODO(b/247093293): Gatt topshim api is only usable some
-            // time after init. Investigate why this delay is needed
-            // and make it a blocking part of init before removing
-            // this.
-            tokio::spawn(async move {
-                time::sleep(Duration::from_millis(500)).await;
-                battery_service.lock().unwrap().init();
-            });
+            bluetooth_gatt.lock().unwrap().init_profiles(
+                tx.clone(),
+                api_tx.clone(),
+                adapter.clone(),
+            );
             bt_sock_mgr.lock().unwrap().initialize(intf.clone());
 
             // Install SIGTERM handler so that we can properly shutdown
