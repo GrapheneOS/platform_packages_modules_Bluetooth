@@ -75,8 +75,8 @@ static void initializeNative(JNIEnv* env, jobject object) {
   sCallbacksObj = env->NewGlobalRef(object);
 }
 
-static jboolean sdpSearchNative(JNIEnv* env, jobject obj, jbyteArray address,
-                                jbyteArray uuidObj) {
+static jboolean sdpSearchNative(JNIEnv* env, jobject /* obj */,
+                                jbyteArray address, jbyteArray uuidObj) {
   ALOGD("%s", __func__);
 
   if (!sBluetoothSdpInterface) return JNI_FALSE;
@@ -218,7 +218,7 @@ static void sdp_search_callback(bt_status_t status, const RawAddress& bd_addr,
   }  // End of for-loop
 }
 
-static jint sdpCreateMapMasRecordNative(JNIEnv* env, jobject obj,
+static jint sdpCreateMapMasRecordNative(JNIEnv* env, jobject /* obj */,
                                         jstring name_str, jint mas_id, jint scn,
                                         jint l2cap_psm, jint version,
                                         jint msg_types, jint features) {
@@ -257,7 +257,7 @@ static jint sdpCreateMapMasRecordNative(JNIEnv* env, jobject obj,
   return handle;
 }
 
-static jint sdpCreateMapMnsRecordNative(JNIEnv* env, jobject obj,
+static jint sdpCreateMapMnsRecordNative(JNIEnv* env, jobject /* obj */,
                                         jstring name_str, jint scn,
                                         jint l2cap_psm, jint version,
                                         jint features) {
@@ -294,7 +294,7 @@ static jint sdpCreateMapMnsRecordNative(JNIEnv* env, jobject obj,
   return handle;
 }
 
-static jint sdpCreatePbapPceRecordNative(JNIEnv* env, jobject obj,
+static jint sdpCreatePbapPceRecordNative(JNIEnv* env, jobject /* obj */,
                                          jstring name_str, jint version) {
   ALOGD("%s", __func__);
   if (!sBluetoothSdpInterface) return -1;
@@ -325,7 +325,7 @@ static jint sdpCreatePbapPceRecordNative(JNIEnv* env, jobject obj,
   return handle;
 }
 
-static jint sdpCreatePbapPseRecordNative(JNIEnv* env, jobject obj,
+static jint sdpCreatePbapPseRecordNative(JNIEnv* env, jobject /* obj */,
                                          jstring name_str, jint scn,
                                          jint l2cap_psm, jint version,
                                          jint supported_repositories,
@@ -364,7 +364,7 @@ static jint sdpCreatePbapPseRecordNative(JNIEnv* env, jobject obj,
   return handle;
 }
 
-static jint sdpCreateOppOpsRecordNative(JNIEnv* env, jobject obj,
+static jint sdpCreateOppOpsRecordNative(JNIEnv* env, jobject /* obj */,
                                         jstring name_str, jint scn,
                                         jint l2cap_psm, jint version,
                                         jbyteArray supported_formats_list) {
@@ -413,7 +413,7 @@ static jint sdpCreateOppOpsRecordNative(JNIEnv* env, jobject obj,
   return handle;
 }
 
-static jint sdpCreateSapsRecordNative(JNIEnv* env, jobject obj,
+static jint sdpCreateSapsRecordNative(JNIEnv* env, jobject /* obj */,
                                       jstring name_str, jint scn,
                                       jint version) {
   ALOGD("%s", __func__);
@@ -446,7 +446,7 @@ static jint sdpCreateSapsRecordNative(JNIEnv* env, jobject obj,
   return handle;
 }
 
-static jboolean sdpRemoveSdpRecordNative(JNIEnv* env, jobject obj,
+static jboolean sdpRemoveSdpRecordNative(JNIEnv* /* env */, jobject /* obj */,
                                          jint record_id) {
   ALOGD("%s", __func__);
   if (!sBluetoothSdpInterface) return false;
@@ -461,7 +461,7 @@ static jboolean sdpRemoveSdpRecordNative(JNIEnv* env, jobject obj,
   return true;
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   const bt_interface_t* btInf = getBluetoothInterface();
 
   if (btInf == NULL) {

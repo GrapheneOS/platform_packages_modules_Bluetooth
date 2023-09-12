@@ -153,6 +153,7 @@ cc_test {
     },
     cflags: [
         "-DLIB_OSI_INTERNAL",
+        "-Wno-unused-parameter",
     ],
     sanitize: {
         address: true,

@@ -21,4 +21,5 @@ cc_fuzz {
     static_libs: [
         "libosi",
     ],
+    cflags: ["-Wno-unused-parameter"],
 }

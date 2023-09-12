@@ -410,11 +410,12 @@ class JniHeadsetCallbacks : bluetooth::headset::Callbacks {
                                  signal, battery, addr.get());
   }
 
-  void DebugDumpCallback(bool active, uint16_t codec_id,
-                         int total_num_decoded_frames, double pkt_loss_ratio,
-                         uint64_t begin_ts, uint64_t end_ts,
-                         const char* pkt_status_in_hex,
-                         const char* pkt_status_in_binary) override {
+  void DebugDumpCallback(bool /* active */, uint16_t /* codec_id */,
+                         int /* total_num_decoded_frames */,
+                         double /* pkt_loss_ratio */, uint64_t /* begin_ts */,
+                         uint64_t /* end_ts */,
+                         const char* /* pkt_status_in_hex */,
+                         const char* /* pkt_status_in_binary */) override {
     ALOGE("Not implemented and shouldn't be called");
   }
 };
@@ -465,7 +466,7 @@ static void initializeNative(JNIEnv* env, jobject object, jint max_hf_clients,
   mCallbacksObj = env->NewGlobalRef(object);
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
 
@@ -488,7 +489,7 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static jboolean connectHfpNative(JNIEnv* env, jobject object,
+static jboolean connectHfpNative(JNIEnv* env, jobject /* object */,
                                  jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) {
@@ -511,7 +512,7 @@ static jboolean connectHfpNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean disconnectHfpNative(JNIEnv* env, jobject object,
+static jboolean disconnectHfpNative(JNIEnv* env, jobject /* object */,
                                     jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) {
@@ -534,7 +535,7 @@ static jboolean disconnectHfpNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean connectAudioNative(JNIEnv* env, jobject object,
+static jboolean connectAudioNative(JNIEnv* env, jobject /* object */,
                                    jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) {
@@ -558,7 +559,7 @@ static jboolean connectAudioNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean disconnectAudioNative(JNIEnv* env, jobject object,
+static jboolean disconnectAudioNative(JNIEnv* env, jobject /* object */,
                                       jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) {
@@ -582,7 +583,8 @@ static jboolean disconnectAudioNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean isNoiseReductionSupportedNative(JNIEnv* env, jobject object,
+static jboolean isNoiseReductionSupportedNative(JNIEnv* env,
+                                                jobject /* object */,
                                                 jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) {
@@ -601,7 +603,8 @@ static jboolean isNoiseReductionSupportedNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean isVoiceRecognitionSupportedNative(JNIEnv* env, jobject object,
+static jboolean isVoiceRecognitionSupportedNative(JNIEnv* env,
+                                                  jobject /* object */,
                                                   jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) {
@@ -620,7 +623,7 @@ static jboolean isVoiceRecognitionSupportedNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean startVoiceRecognitionNative(JNIEnv* env, jobject object,
+static jboolean startVoiceRecognitionNative(JNIEnv* env, jobject /* object */,
                                             jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) {
@@ -642,7 +645,7 @@ static jboolean startVoiceRecognitionNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean stopVoiceRecognitionNative(JNIEnv* env, jobject object,
+static jboolean stopVoiceRecognitionNative(JNIEnv* env, jobject /* object */,
                                            jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) {
@@ -664,8 +667,9 @@ static jboolean stopVoiceRecognitionNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean setVolumeNative(JNIEnv* env, jobject object, jint volume_type,
-                                jint volume, jbyteArray address) {
+static jboolean setVolumeNative(JNIEnv* env, jobject /* object */,
+                                jint volume_type, jint volume,
+                                jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) {
     ALOGW("%s: sBluetoothHfpInterface is null", __func__);
@@ -687,7 +691,7 @@ static jboolean setVolumeNative(JNIEnv* env, jobject object, jint volume_type,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean notifyDeviceStatusNative(JNIEnv* env, jobject object,
+static jboolean notifyDeviceStatusNative(JNIEnv* env, jobject /* object */,
                                          jint network_state, jint service_type,
                                          jint signal, jint battery_charge,
                                          jbyteArray address) {
@@ -713,7 +717,7 @@ static jboolean notifyDeviceStatusNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean copsResponseNative(JNIEnv* env, jobject object,
+static jboolean copsResponseNative(JNIEnv* env, jobject /* object */,
                                    jstring operator_str, jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) {
@@ -737,8 +741,8 @@ static jboolean copsResponseNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean cindResponseNative(JNIEnv* env, jobject object, jint service,
-                                   jint num_active, jint num_held,
+static jboolean cindResponseNative(JNIEnv* env, jobject /* object */,
+                                   jint service, jint num_active, jint num_held,
                                    jint call_state, jint signal, jint roam,
                                    jint battery_charge, jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
@@ -763,7 +767,7 @@ static jboolean cindResponseNative(JNIEnv* env, jobject object, jint service,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean atResponseStringNative(JNIEnv* env, jobject object,
+static jboolean atResponseStringNative(JNIEnv* env, jobject /* object */,
                                        jstring response_str,
                                        jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
@@ -788,7 +792,7 @@ static jboolean atResponseStringNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean atResponseCodeNative(JNIEnv* env, jobject object,
+static jboolean atResponseCodeNative(JNIEnv* env, jobject /* object */,
                                      jint response_code, jint cmee_code,
                                      jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
@@ -812,10 +816,10 @@ static jboolean atResponseCodeNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean clccResponseNative(JNIEnv* env, jobject object, jint index,
-                                   jint dir, jint callStatus, jint mode,
-                                   jboolean mpty, jstring number_str, jint type,
-                                   jbyteArray address) {
+static jboolean clccResponseNative(JNIEnv* env, jobject /* object */,
+                                   jint index, jint dir, jint callStatus,
+                                   jint mode, jboolean mpty, jstring number_str,
+                                   jint type, jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) {
     ALOGW("%s: sBluetoothHfpInterface is null", __func__);
@@ -849,7 +853,7 @@ static jboolean clccResponseNative(JNIEnv* env, jobject object, jint index,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean phoneStateChangeNative(JNIEnv* env, jobject object,
+static jboolean phoneStateChangeNative(JNIEnv* env, jobject /* object */,
                                        jint num_active, jint num_held,
                                        jint call_state, jstring number_str,
                                        jint type, jstring name_str,
@@ -885,7 +889,7 @@ static jboolean phoneStateChangeNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean setScoAllowedNative(JNIEnv* env, jobject object,
+static jboolean setScoAllowedNative(JNIEnv* /* env */, jobject /* object */,
                                     jboolean value) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) {
@@ -899,8 +903,8 @@ static jboolean setScoAllowedNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean sendBsirNative(JNIEnv* env, jobject object, jboolean value,
-                               jbyteArray address) {
+static jboolean sendBsirNative(JNIEnv* env, jobject /* object */,
+                               jboolean value, jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) {
     ALOGW("%s: sBluetoothHfpInterface is null", __func__);
@@ -921,7 +925,7 @@ static jboolean sendBsirNative(JNIEnv* env, jobject object, jboolean value,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean setActiveDeviceNative(JNIEnv* env, jobject object,
+static jboolean setActiveDeviceNative(JNIEnv* env, jobject /* object */,
                                       jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) {

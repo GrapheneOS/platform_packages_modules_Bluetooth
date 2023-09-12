@@ -101,4 +101,5 @@ cc_test {
         "libgmock",
     ],
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
