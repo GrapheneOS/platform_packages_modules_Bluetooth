@@ -74,7 +74,6 @@ cc_library_static {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     srcs: crypto_toolbox_srcs + [
         "a2dp/a2dp_aac.cc",
@@ -136,6 +135,7 @@ cc_library_static {
         "pan/pan_utils.cc",
     ],
     static_libs: [
+        "libbluetooth_hci_pdl",
         "libbt-hci",
         "libbt-platform-protos-lite",
         "libbt-stack-core",
@@ -283,7 +283,6 @@ cc_library_static {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     cflags: [
         "-Wno-unused-parameter",
@@ -293,6 +292,7 @@ cc_library_static {
     static_libs: [
         "libbluetooth_core_rs",
         "libbluetooth_gd",
+        "libbluetooth_hci_pdl",
         "libbt-hci",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
@@ -420,7 +420,6 @@ cc_fuzz {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     srcs: crypto_toolbox_srcs + [
         ":TestCommonLogMsg",
@@ -446,6 +445,9 @@ cc_fuzz {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbluetooth_hci_pdl",
+        "libbluetooth_l2cap_pdl",
+        "libbluetooth_smp_pdl",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
@@ -466,7 +468,6 @@ cc_fuzz {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     srcs: crypto_toolbox_srcs + [
         ":TestCommonLogMsg",
@@ -487,6 +488,9 @@ cc_fuzz {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbluetooth_hci_pdl",
+        "libbluetooth_l2cap_pdl",
+        "libbluetooth_smp_pdl",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
@@ -507,7 +511,6 @@ cc_fuzz {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     srcs: [
         ":TestCommonLogMsg",
@@ -528,6 +531,9 @@ cc_fuzz {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbluetooth_hci_pdl",
+        "libbluetooth_l2cap_pdl",
+        "libbluetooth_smp_pdl",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
@@ -548,7 +554,6 @@ cc_fuzz {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     srcs: [
         ":TestCommonLogMsg",
@@ -571,6 +576,9 @@ cc_fuzz {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbluetooth_hci_pdl",
+        "libbluetooth_l2cap_pdl",
+        "libbluetooth_smp_pdl",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
@@ -599,7 +607,6 @@ cc_fuzz {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     srcs: [
         ":TestCommonLogMsg",
@@ -619,6 +626,9 @@ cc_fuzz {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbluetooth_hci_pdl",
+        "libbluetooth_l2cap_pdl",
+        "libbluetooth_smp_pdl",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
@@ -763,7 +773,6 @@ cc_test {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     shared_libs: [
         "libcrypto",
@@ -772,6 +781,9 @@ cc_test {
     static_libs: [
         "libbluetooth-types",
         "libbluetooth_gd",
+        "libbluetooth_hci_pdl",
+        "libbluetooth_l2cap_pdl",
+        "libbluetooth_smp_pdl",
         "libbt-common",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
@@ -847,7 +859,6 @@ cc_test {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     shared_libs: [
         "libcrypto",
@@ -856,6 +867,9 @@ cc_test {
     static_libs: [
         "libbluetooth-types",
         "libbluetooth_gd",
+        "libbluetooth_hci_pdl",
+        "libbluetooth_l2cap_pdl",
+        "libbluetooth_smp_pdl",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
@@ -1442,7 +1456,6 @@ cc_test {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     srcs: crypto_toolbox_srcs + [
         ":BluetoothHalSources_hci_host",
@@ -1683,7 +1696,6 @@ cc_test {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     srcs: [
         ":TestCommonLogMsg",
@@ -1755,7 +1767,6 @@ cc_test {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     srcs: [
         ":OsiCompatSources",
@@ -1850,7 +1861,6 @@ cc_test {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     srcs: [
         ":OsiCompatSources",
@@ -1941,7 +1951,6 @@ cc_test {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     srcs: [
         ":OsiCompatSources",
