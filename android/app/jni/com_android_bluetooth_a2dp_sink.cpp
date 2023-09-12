@@ -34,9 +34,9 @@ static const btav_sink_interface_t* sBluetoothA2dpInterface = NULL;
 static jobject mCallbacksObj = NULL;
 static std::shared_timed_mutex callbacks_mutex;
 
-static void a2dp_sink_connection_state_callback(const RawAddress& bd_addr,
-                                                btav_connection_state_t state,
-                                                const btav_error_t& error) {
+static void a2dp_sink_connection_state_callback(
+    const RawAddress& bd_addr, btav_connection_state_t state,
+    const btav_error_t& /* error */) {
   ALOGI("%s", __func__);
   std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   if (!mCallbacksObj) return;
@@ -151,7 +151,7 @@ static void initNative(JNIEnv* env, jobject object,
   mCallbacksObj = env->NewGlobalRef(object);
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   const bt_interface_t* btInf = getBluetoothInterface();
 
@@ -171,7 +171,7 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static jboolean connectA2dpNative(JNIEnv* env, jobject object,
+static jboolean connectA2dpNative(JNIEnv* env, jobject /* object */,
                                   jbyteArray address) {
   ALOGI("%s: sBluetoothA2dpInterface: %p", __func__, sBluetoothA2dpInterface);
   if (!sBluetoothA2dpInterface) return JNI_FALSE;
@@ -192,7 +192,7 @@ static jboolean connectA2dpNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean disconnectA2dpNative(JNIEnv* env, jobject object,
+static jboolean disconnectA2dpNative(JNIEnv* env, jobject /* object */,
                                      jbyteArray address) {
   if (!sBluetoothA2dpInterface) return JNI_FALSE;
 
@@ -212,19 +212,19 @@ static jboolean disconnectA2dpNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static void informAudioFocusStateNative(JNIEnv* env, jobject object,
+static void informAudioFocusStateNative(JNIEnv* /* env */, jobject /* object */,
                                         jint focus_state) {
   if (!sBluetoothA2dpInterface) return;
   sBluetoothA2dpInterface->set_audio_focus_state((uint8_t)focus_state);
 }
 
-static void informAudioTrackGainNative(JNIEnv* env, jobject object,
+static void informAudioTrackGainNative(JNIEnv* /* env */, jobject /* object */,
                                        jfloat gain) {
   if (!sBluetoothA2dpInterface) return;
   sBluetoothA2dpInterface->set_audio_track_gain((float)gain);
 }
 
-static jboolean setActiveDeviceNative(JNIEnv* env, jobject object,
+static jboolean setActiveDeviceNative(JNIEnv* env, jobject /* object */,
                                       jbyteArray address) {
   if (!sBluetoothA2dpInterface) return JNI_FALSE;
 

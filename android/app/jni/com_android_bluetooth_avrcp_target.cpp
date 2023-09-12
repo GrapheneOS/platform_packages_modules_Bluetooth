@@ -150,7 +150,7 @@ class AvrcpMediaInterfaceImpl : public MediaInterface {
     mServiceCallbacks = callback;
   }
 
-  void UnregisterUpdateCallback(MediaCallbacks* callback) override {
+  void UnregisterUpdateCallback(MediaCallbacks* /* callback */) override {
     mServiceCallbacks = nullptr;
   }
 
@@ -243,7 +243,7 @@ static void initNative(JNIEnv* env, jobject object) {
                           &mPlayerSettingsInterface);
 }
 
-static void registerBipServerNative(JNIEnv* env, jobject object,
+static void registerBipServerNative(JNIEnv* /* env */, jobject /* object */,
                                     jint l2cap_psm) {
   ALOGD("%s: l2cap_psm=%d", __func__, (int)l2cap_psm);
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
@@ -254,7 +254,7 @@ static void registerBipServerNative(JNIEnv* env, jobject object,
   sServiceInterface->RegisterBipServer((int)l2cap_psm);
 }
 
-static void unregisterBipServerNative(JNIEnv* env, jobject object) {
+static void unregisterBipServerNative(JNIEnv* /* env */, jobject /* object */) {
   ALOGD("%s", __func__);
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   if (sServiceInterface == nullptr) {
@@ -264,7 +264,7 @@ static void unregisterBipServerNative(JNIEnv* env, jobject object) {
   sServiceInterface->UnregisterBipServer();
 }
 
-static void sendMediaUpdateNative(JNIEnv* env, jobject object,
+static void sendMediaUpdateNative(JNIEnv* /* env */, jobject /* object */,
                                   jboolean metadata, jboolean state,
                                   jboolean queue) {
   ALOGD("%s", __func__);
@@ -278,7 +278,7 @@ static void sendMediaUpdateNative(JNIEnv* env, jobject object,
                                      queue == JNI_TRUE);
 }
 
-static void sendFolderUpdateNative(JNIEnv* env, jobject object,
+static void sendFolderUpdateNative(JNIEnv* /* env */, jobject /* object */,
                                    jboolean available_players,
                                    jboolean addressed_player, jboolean uids) {
   ALOGD("%s", __func__);
@@ -293,7 +293,7 @@ static void sendFolderUpdateNative(JNIEnv* env, jobject object,
                                       uids == JNI_TRUE);
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
 
@@ -307,7 +307,8 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   sServiceInterface = nullptr;
 }
 
-jboolean connectDeviceNative(JNIEnv* env, jobject object, jstring address) {
+jboolean connectDeviceNative(JNIEnv* env, jobject /* object */,
+                             jstring address) {
   ALOGD("%s", __func__);
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   if (mServiceCallbacks == nullptr) {
@@ -326,7 +327,8 @@ jboolean connectDeviceNative(JNIEnv* env, jobject object, jstring address) {
                                                           : JNI_FALSE;
 }
 
-jboolean disconnectDeviceNative(JNIEnv* env, jobject object, jstring address) {
+jboolean disconnectDeviceNative(JNIEnv* env, jobject /* object */,
+                                jstring address) {
   ALOGD("%s", __func__);
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   if (mServiceCallbacks == nullptr) {
@@ -705,9 +707,10 @@ static void setBrowsedPlayer(uint16_t player_id, SetBrowsedPlayerCb cb) {
                                player_id);
 }
 
-static void setBrowsedPlayerResponseNative(JNIEnv* env, jobject object,
-                                           jint player_id, jboolean success,
-                                           jstring root_id, jint num_items) {
+static void setBrowsedPlayerResponseNative(JNIEnv* env, jobject /* object */,
+                                           jint /* player_id */,
+                                           jboolean success, jstring root_id,
+                                           jint num_items) {
   ALOGD("%s", __func__);
 
   std::string root;
@@ -720,7 +723,7 @@ static void setBrowsedPlayerResponseNative(JNIEnv* env, jobject object,
   set_browsed_player_cb.Run(success == JNI_TRUE, root, num_items);
 }
 
-static void getFolderItemsResponseNative(JNIEnv* env, jobject object,
+static void getFolderItemsResponseNative(JNIEnv* env, jobject /* object */,
                                          jstring parent_id, jobject list) {
   ALOGD("%s", __func__);
 
@@ -875,7 +878,7 @@ static void volumeDeviceDisconnected(const RawAddress& address) {
                                j_bdaddr);
 }
 
-static void sendVolumeChangedNative(JNIEnv* env, jobject object,
+static void sendVolumeChangedNative(JNIEnv* env, jobject /* object */,
                                     jstring address, jint volume) {
   const char* tmp_addr = env->GetStringUTFChars(address, 0);
   RawAddress bdaddr;
@@ -899,8 +902,8 @@ static void setVolume(int8_t volume) {
   sCallbackEnv->CallVoidMethod(mJavaInterface, method_setVolume, volume);
 }
 
-static void setBipClientStatusNative(JNIEnv* env, jobject object,
-                                    jstring address, jboolean connected) {
+static void setBipClientStatusNative(JNIEnv* env, jobject /* object */,
+                                     jstring address, jboolean connected) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   if (mServiceCallbacks == nullptr) {
     ALOGW("%s: Service not loaded.", __func__);
@@ -929,7 +932,7 @@ static void listPlayerSettings(ListPlayerSettingsCb cb) {
   sCallbackEnv->CallVoidMethod(mJavaInterface, method_listPlayerSettings);
 }
 
-static void listPlayerSettingsResponseNative(JNIEnv* env, jobject object,
+static void listPlayerSettingsResponseNative(JNIEnv* env, jobject /* object */,
                                              jbyteArray attributes) {
   ALOGD("%s", __func__);
 
@@ -952,7 +955,8 @@ static void listPlayerSettingValues(PlayerAttribute attribute,
                                (jbyte)attribute);
 }
 
-static void listPlayerSettingValuesResponseNative(JNIEnv* env, jobject object,
+static void listPlayerSettingValuesResponseNative(JNIEnv* env,
+                                                  jobject /* object */,
                                                   jbyte attribute,
                                                   jbyteArray values) {
   ALOGD("%s", __func__);
@@ -980,7 +984,7 @@ static void getPlayerSettings(std::vector<PlayerAttribute> attributes,
                                attributes_array);
 }
 
-static void getPlayerSettingsResponseNative(JNIEnv* env, jobject object,
+static void getPlayerSettingsResponseNative(JNIEnv* env, jobject /* object */,
                                             jbyteArray attributes,
                                             jbyteArray values) {
   ALOGD("%s", __func__);
@@ -1017,13 +1021,14 @@ static void setPlayerSettings(std::vector<PlayerAttribute> attributes,
                                attributes_array, values_array);
 }
 
-static void setPlayerSettingsResponseNative(JNIEnv* env, jobject object,
+static void setPlayerSettingsResponseNative(JNIEnv* /* env */,
+                                            jobject /* object */,
                                             jboolean success) {
   ALOGD("%s", __func__);
   set_player_setting_value_cb.Run(success);
 }
 
-static void sendPlayerSettingsNative(JNIEnv* env, jobject object,
+static void sendPlayerSettingsNative(JNIEnv* env, jobject /* object */,
                                      jbyteArray attributes, jbyteArray values) {
   ALOGD("%s", __func__);
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
