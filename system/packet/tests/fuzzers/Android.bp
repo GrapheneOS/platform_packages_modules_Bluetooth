@@ -37,6 +37,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -72,6 +73,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -107,6 +109,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -142,6 +145,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -177,6 +181,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -212,6 +217,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -247,6 +253,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -282,6 +289,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -317,6 +325,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -352,6 +361,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -387,6 +397,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -422,6 +433,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -457,6 +469,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -492,6 +505,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -527,6 +541,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -562,6 +577,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -597,6 +613,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -632,6 +649,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -667,6 +685,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -702,6 +721,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -737,6 +757,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -772,6 +793,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -807,6 +829,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -842,6 +865,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }
@@ -877,6 +901,7 @@ cc_fuzz {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: ["liblog"],
 }

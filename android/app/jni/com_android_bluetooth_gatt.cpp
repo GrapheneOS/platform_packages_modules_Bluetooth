@@ -1285,7 +1285,7 @@ static void initializeNative(JNIEnv* env, jobject object) {
   mCallbacksObj = env->NewGlobalRef(object);
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_mutex> lock(callbacks_mutex);
 
   if (!btIf) return;
@@ -1306,13 +1306,13 @@ static void cleanupNative(JNIEnv* env, jobject object) {
  * Native Client functions
  */
 
-static int gattClientGetDeviceTypeNative(JNIEnv* env, jobject object,
+static int gattClientGetDeviceTypeNative(JNIEnv* env, jobject /* object */,
                                          jstring address) {
   if (!sGattIf) return 0;
   return sGattIf->client->get_device_type(str2addr(env, address));
 }
 
-static void gattClientRegisterAppNative(JNIEnv* env, jobject object,
+static void gattClientRegisterAppNative(JNIEnv* /* env */, jobject /* object */,
                                         jlong app_uuid_lsb, jlong app_uuid_msb,
                                         jboolean eatt_support) {
   if (!sGattIf) return;
@@ -1320,8 +1320,8 @@ static void gattClientRegisterAppNative(JNIEnv* env, jobject object,
   sGattIf->client->register_client(uuid, eatt_support);
 }
 
-static void gattClientUnregisterAppNative(JNIEnv* env, jobject object,
-                                          jint clientIf) {
+static void gattClientUnregisterAppNative(JNIEnv* /* env */,
+                                          jobject /* object */, jint clientIf) {
   if (!sGattIf) return;
   sGattIf->client->unregister_client(clientIf);
 }
@@ -1335,7 +1335,7 @@ void btgattc_register_scanner_cb(const Uuid& app_uuid, uint8_t scannerId,
                                status, scannerId, UUID_PARAMS(app_uuid));
 }
 
-static void registerScannerNative(JNIEnv* env, jobject object,
+static void registerScannerNative(JNIEnv* /* env */, jobject /* object */,
                                   jlong app_uuid_lsb, jlong app_uuid_msb) {
   if (!sGattIf) return;
 
@@ -1344,22 +1344,23 @@ static void registerScannerNative(JNIEnv* env, jobject object,
       uuid, base::Bind(&btgattc_register_scanner_cb, uuid));
 }
 
-static void unregisterScannerNative(JNIEnv* env, jobject object,
+static void unregisterScannerNative(JNIEnv* /* env */, jobject /* object */,
                                     jint scanner_id) {
   if (!sGattIf) return;
 
   sGattIf->scanner->Unregister(scanner_id);
 }
 
-static void gattClientScanNative(JNIEnv* env, jobject object, jboolean start) {
+static void gattClientScanNative(JNIEnv* /* env */, jobject /* object */,
+                                 jboolean start) {
   if (!sGattIf) return;
   sGattIf->scanner->Scan(start);
 }
 
-static void gattClientConnectNative(JNIEnv* env, jobject object, jint clientif,
-                                    jstring address, jint addressType,
-                                    jboolean isDirect, jint transport,
-                                    jboolean opportunistic,
+static void gattClientConnectNative(JNIEnv* env, jobject /* object */,
+                                    jint clientif, jstring address,
+                                    jint addressType, jboolean isDirect,
+                                    jint transport, jboolean opportunistic,
                                     jint initiating_phys) {
   if (!sGattIf) return;
 
@@ -1367,17 +1368,17 @@ static void gattClientConnectNative(JNIEnv* env, jobject object, jint clientif,
                            isDirect, transport, opportunistic, initiating_phys);
 }
 
-static void gattClientDisconnectNative(JNIEnv* env, jobject object,
+static void gattClientDisconnectNative(JNIEnv* env, jobject /* object */,
                                        jint clientIf, jstring address,
                                        jint conn_id) {
   if (!sGattIf) return;
   sGattIf->client->disconnect(clientIf, str2addr(env, address), conn_id);
 }
 
-static void gattClientSetPreferredPhyNative(JNIEnv* env, jobject object,
-                                            jint clientIf, jstring address,
-                                            jint tx_phy, jint rx_phy,
-                                            jint phy_options) {
+static void gattClientSetPreferredPhyNative(JNIEnv* env, jobject /* object */,
+                                            jint /* clientIf */,
+                                            jstring address, jint tx_phy,
+                                            jint rx_phy, jint phy_options) {
   if (!sGattIf) return;
   sGattIf->client->set_preferred_phy(str2addr(env, address), tx_phy, rx_phy,
                                      phy_options);
@@ -1396,23 +1397,24 @@ static void readClientPhyCb(uint8_t clientIf, RawAddress bda, uint8_t tx_phy,
                                address.get(), tx_phy, rx_phy, status);
 }
 
-static void gattClientReadPhyNative(JNIEnv* env, jobject object, jint clientIf,
-                                    jstring address) {
+static void gattClientReadPhyNative(JNIEnv* env, jobject /* object */,
+                                    jint clientIf, jstring address) {
   if (!sGattIf) return;
 
   RawAddress bda = str2addr(env, address);
   sGattIf->client->read_phy(bda, base::Bind(&readClientPhyCb, clientIf, bda));
 }
 
-static void gattClientRefreshNative(JNIEnv* env, jobject object, jint clientIf,
-                                    jstring address) {
+static void gattClientRefreshNative(JNIEnv* env, jobject /* object */,
+                                    jint clientIf, jstring address) {
   if (!sGattIf) return;
 
   sGattIf->client->refresh(clientIf, str2addr(env, address));
 }
 
-static void gattClientSearchServiceNative(JNIEnv* env, jobject object,
-                                          jint conn_id, jboolean search_all,
+static void gattClientSearchServiceNative(JNIEnv* /* env */,
+                                          jobject /* object */, jint conn_id,
+                                          jboolean search_all,
                                           jlong service_uuid_lsb,
                                           jlong service_uuid_msb) {
   if (!sGattIf) return;
@@ -1421,7 +1423,8 @@ static void gattClientSearchServiceNative(JNIEnv* env, jobject object,
   sGattIf->client->search_service(conn_id, search_all ? 0 : &uuid);
 }
 
-static void gattClientDiscoverServiceByUuidNative(JNIEnv* env, jobject object,
+static void gattClientDiscoverServiceByUuidNative(JNIEnv* /* env */,
+                                                  jobject /* object */,
                                                   jint conn_id,
                                                   jlong service_uuid_lsb,
                                                   jlong service_uuid_msb) {
@@ -1431,14 +1434,15 @@ static void gattClientDiscoverServiceByUuidNative(JNIEnv* env, jobject object,
   sGattIf->client->btif_gattc_discover_service_by_uuid(conn_id, uuid);
 }
 
-static void gattClientGetGattDbNative(JNIEnv* env, jobject object,
+static void gattClientGetGattDbNative(JNIEnv* /* env */, jobject /* object */,
                                       jint conn_id) {
   if (!sGattIf) return;
 
   sGattIf->client->get_gatt_db(conn_id);
 }
 
-static void gattClientReadCharacteristicNative(JNIEnv* env, jobject object,
+static void gattClientReadCharacteristicNative(JNIEnv* /* env */,
+                                               jobject /* object */,
                                                jint conn_id, jint handle,
                                                jint authReq) {
   if (!sGattIf) return;
@@ -1447,8 +1451,8 @@ static void gattClientReadCharacteristicNative(JNIEnv* env, jobject object,
 }
 
 static void gattClientReadUsingCharacteristicUuidNative(
-    JNIEnv* env, jobject object, jint conn_id, jlong uuid_lsb, jlong uuid_msb,
-    jint s_handle, jint e_handle, jint authReq) {
+    JNIEnv* /* env */, jobject /* object */, jint conn_id, jlong uuid_lsb,
+    jlong uuid_msb, jint s_handle, jint e_handle, jint authReq) {
   if (!sGattIf) return;
 
   Uuid uuid = from_java_uuid(uuid_msb, uuid_lsb);
@@ -1456,15 +1460,16 @@ static void gattClientReadUsingCharacteristicUuidNative(
                                                   e_handle, authReq);
 }
 
-static void gattClientReadDescriptorNative(JNIEnv* env, jobject object,
-                                           jint conn_id, jint handle,
-                                           jint authReq) {
+static void gattClientReadDescriptorNative(JNIEnv* /* env */,
+                                           jobject /* object */, jint conn_id,
+                                           jint handle, jint authReq) {
   if (!sGattIf) return;
 
   sGattIf->client->read_descriptor(conn_id, handle, authReq);
 }
 
-static void gattClientWriteCharacteristicNative(JNIEnv* env, jobject object,
+static void gattClientWriteCharacteristicNative(JNIEnv* env,
+                                                jobject /* object */,
                                                 jint conn_id, jint handle,
                                                 jint write_type, jint auth_req,
                                                 jbyteArray value) {
@@ -1486,13 +1491,14 @@ static void gattClientWriteCharacteristicNative(JNIEnv* env, jobject object,
   env->ReleaseByteArrayElements(value, p_value, 0);
 }
 
-static void gattClientExecuteWriteNative(JNIEnv* env, jobject object,
-                                         jint conn_id, jboolean execute) {
+static void gattClientExecuteWriteNative(JNIEnv* /* env */,
+                                         jobject /* object */, jint conn_id,
+                                         jboolean execute) {
   if (!sGattIf) return;
   sGattIf->client->execute_write(conn_id, execute ? 1 : 0);
 }
 
-static void gattClientWriteDescriptorNative(JNIEnv* env, jobject object,
+static void gattClientWriteDescriptorNative(JNIEnv* env, jobject /* object */,
                                             jint conn_id, jint handle,
                                             jint auth_req, jbyteArray value) {
   if (!sGattIf) return;
@@ -1513,8 +1519,8 @@ static void gattClientWriteDescriptorNative(JNIEnv* env, jobject object,
 }
 
 static void gattClientRegisterForNotificationsNative(
-    JNIEnv* env, jobject object, jint clientIf, jstring address, jint handle,
-    jboolean enable) {
+    JNIEnv* env, jobject /* object */, jint clientIf, jstring address,
+    jint handle, jboolean enable) {
   if (!sGattIf) return;
 
   RawAddress bd_addr = str2addr(env, address);
@@ -1524,7 +1530,7 @@ static void gattClientRegisterForNotificationsNative(
     sGattIf->client->deregister_for_notification(clientIf, bd_addr, handle);
 }
 
-static void gattClientReadRemoteRssiNative(JNIEnv* env, jobject object,
+static void gattClientReadRemoteRssiNative(JNIEnv* env, jobject /* object */,
                                            jint clientif, jstring address) {
   if (!sGattIf) return;
 
@@ -1539,7 +1545,7 @@ void set_scan_params_cmpl_cb(int client_if, uint8_t status) {
                                status, client_if);
 }
 
-static void gattSetScanParametersNative(JNIEnv* env, jobject object,
+static void gattSetScanParametersNative(JNIEnv* /* env */, jobject /* object */,
                                         jint client_if, jint scan_interval_unit,
                                         jint scan_window_unit) {
   if (!sGattIf) return;
@@ -1558,7 +1564,8 @@ void scan_filter_param_cb(uint8_t client_if, uint8_t avbl_space, uint8_t action,
                                status, client_if, avbl_space);
 }
 
-static void gattClientScanFilterParamAddNative(JNIEnv* env, jobject object,
+static void gattClientScanFilterParamAddNative(JNIEnv* env,
+                                               jobject /* object */,
                                                jobject params) {
   if (!sGattIf) return;
   const int add_scan_filter_params_action = 0;
@@ -1608,7 +1615,8 @@ static void gattClientScanFilterParamAddNative(JNIEnv* env, jobject object,
       std::move(filt_params), base::Bind(&scan_filter_param_cb, client_if));
 }
 
-static void gattClientScanFilterParamDeleteNative(JNIEnv* env, jobject object,
+static void gattClientScanFilterParamDeleteNative(JNIEnv* /* env */,
+                                                  jobject /* object */,
                                                   jint client_if,
                                                   jint filt_index) {
   if (!sGattIf) return;
@@ -1618,7 +1626,8 @@ static void gattClientScanFilterParamDeleteNative(JNIEnv* env, jobject object,
       base::Bind(&scan_filter_param_cb, client_if));
 }
 
-static void gattClientScanFilterParamClearAllNative(JNIEnv* env, jobject object,
+static void gattClientScanFilterParamClearAllNative(JNIEnv* /* env */,
+                                                    jobject /* object */,
                                                     jint client_if) {
   if (!sGattIf) return;
   const int clear_scan_filter_params_action = 2;
@@ -1637,7 +1646,7 @@ static void scan_filter_cfg_cb(uint8_t client_if, uint8_t filt_type,
                                status, client_if, filt_type, avbl_space);
 }
 
-static void gattClientScanFilterAddNative(JNIEnv* env, jobject object,
+static void gattClientScanFilterAddNative(JNIEnv* env, jobject /* object */,
                                           jint client_if, jobjectArray filters,
                                           jint filter_index) {
   if (!sGattIf) return;
@@ -1798,7 +1807,8 @@ static void gattClientScanFilterAddNative(JNIEnv* env, jobject object,
                                   base::Bind(&scan_filter_cfg_cb, client_if));
 }
 
-static void gattClientScanFilterClearNative(JNIEnv* env, jobject object,
+static void gattClientScanFilterClearNative(JNIEnv* /* env */,
+                                            jobject /* object */,
                                             jint client_if, jint filt_index) {
   if (!sGattIf) return;
   sGattIf->scanner->ScanFilterClear(filt_index,
@@ -1813,33 +1823,33 @@ void scan_enable_cb(uint8_t client_if, uint8_t action, uint8_t status) {
                                action, status, client_if);
 }
 
-static void gattClientScanFilterEnableNative(JNIEnv* env, jobject object,
+static void gattClientScanFilterEnableNative(JNIEnv* /* env */,
+                                             jobject /* object */,
                                              jint client_if, jboolean enable) {
   if (!sGattIf) return;
   sGattIf->scanner->ScanFilterEnable(enable,
                                      base::Bind(&scan_enable_cb, client_if));
 }
 
-static void gattClientConfigureMTUNative(JNIEnv* env, jobject object,
-                                         jint conn_id, jint mtu) {
+static void gattClientConfigureMTUNative(JNIEnv* /* env */,
+                                         jobject /* object */, jint conn_id,
+                                         jint mtu) {
   if (!sGattIf) return;
   sGattIf->client->configure_mtu(conn_id, mtu);
 }
 
-static void gattConnectionParameterUpdateNative(JNIEnv* env, jobject object,
-                                                jint client_if, jstring address,
-                                                jint min_interval,
-                                                jint max_interval, jint latency,
-                                                jint timeout, jint min_ce_len,
-                                                jint max_ce_len) {
+static void gattConnectionParameterUpdateNative(
+    JNIEnv* env, jobject /* object */, jint /* client_if */, jstring address,
+    jint min_interval, jint max_interval, jint latency, jint timeout,
+    jint min_ce_len, jint max_ce_len) {
   if (!sGattIf) return;
   sGattIf->client->conn_parameter_update(
       str2addr(env, address), min_interval, max_interval, latency, timeout,
       (uint16_t)min_ce_len, (uint16_t)max_ce_len);
 }
 
-static void gattSubrateRequestNative(JNIEnv* env, jobject object,
-                                     jint client_if, jstring address,
+static void gattSubrateRequestNative(JNIEnv* env, jobject /* object */,
+                                     jint /* client_if */, jstring address,
                                      jint subrate_min, jint subrate_max,
                                      jint max_latency, jint cont_num,
                                      jint sup_timeout) {
@@ -1858,8 +1868,9 @@ void batchscan_cfg_storage_cb(uint8_t client_if, uint8_t status) {
 }
 
 static void gattClientConfigBatchScanStorageNative(
-    JNIEnv* env, jobject object, jint client_if, jint max_full_reports_percent,
-    jint max_trunc_reports_percent, jint notify_threshold_level_percent) {
+    JNIEnv* /* env */, jobject /* object */, jint client_if,
+    jint max_full_reports_percent, jint max_trunc_reports_percent,
+    jint notify_threshold_level_percent) {
   if (!sGattIf) return;
   sGattIf->scanner->BatchscanConfigStorage(
       client_if, max_full_reports_percent, max_trunc_reports_percent,
@@ -1875,8 +1886,9 @@ void batchscan_enable_cb(uint8_t client_if, uint8_t status) {
                                0 /* unused */, status, client_if);
 }
 
-static void gattClientStartBatchScanNative(JNIEnv* env, jobject object,
-                                           jint client_if, jint scan_mode,
+static void gattClientStartBatchScanNative(JNIEnv* /* env */,
+                                           jobject /* object */, jint client_if,
+                                           jint scan_mode,
                                            jint scan_interval_unit,
                                            jint scan_window_unit,
                                            jint addr_type, jint discard_rule) {
@@ -1886,14 +1898,16 @@ static void gattClientStartBatchScanNative(JNIEnv* env, jobject object,
       base::Bind(&batchscan_enable_cb, client_if));
 }
 
-static void gattClientStopBatchScanNative(JNIEnv* env, jobject object,
+static void gattClientStopBatchScanNative(JNIEnv* /* env */,
+                                          jobject /* object */,
                                           jint client_if) {
   if (!sGattIf) return;
   sGattIf->scanner->BatchscanDisable(
       base::Bind(&batchscan_enable_cb, client_if));
 }
 
-static void gattClientReadScanReportsNative(JNIEnv* env, jobject object,
+static void gattClientReadScanReportsNative(JNIEnv* /* env */,
+                                            jobject /* object */,
                                             jint client_if, jint scan_type) {
   if (!sGattIf) return;
   sGattIf->scanner->BatchscanReadReports(client_if, scan_type);
@@ -1902,7 +1916,7 @@ static void gattClientReadScanReportsNative(JNIEnv* env, jobject object,
 /**
  * Native server functions
  */
-static void gattServerRegisterAppNative(JNIEnv* env, jobject object,
+static void gattServerRegisterAppNative(JNIEnv* /* env */, jobject /* object */,
                                         jlong app_uuid_lsb, jlong app_uuid_msb,
                                         jboolean eatt_support) {
   if (!sGattIf) return;
@@ -1910,33 +1924,33 @@ static void gattServerRegisterAppNative(JNIEnv* env, jobject object,
   sGattIf->server->register_server(uuid, eatt_support);
 }
 
-static void gattServerUnregisterAppNative(JNIEnv* env, jobject object,
-                                          jint serverIf) {
+static void gattServerUnregisterAppNative(JNIEnv* /* env */,
+                                          jobject /* object */, jint serverIf) {
   if (!sGattIf) return;
   bluetooth::gatt::close_server(serverIf);
   sGattIf->server->unregister_server(serverIf);
 }
 
-static void gattServerConnectNative(JNIEnv* env, jobject object, jint server_if,
-                                    jstring address, jboolean is_direct,
-                                    jint transport) {
+static void gattServerConnectNative(JNIEnv* env, jobject /* object */,
+                                    jint server_if, jstring address,
+                                    jboolean is_direct, jint transport) {
   if (!sGattIf) return;
 
   RawAddress bd_addr = str2addr(env, address);
   sGattIf->server->connect(server_if, bd_addr, is_direct, transport);
 }
 
-static void gattServerDisconnectNative(JNIEnv* env, jobject object,
+static void gattServerDisconnectNative(JNIEnv* env, jobject /* object */,
                                        jint serverIf, jstring address,
                                        jint conn_id) {
   if (!sGattIf) return;
   sGattIf->server->disconnect(serverIf, str2addr(env, address), conn_id);
 }
 
-static void gattServerSetPreferredPhyNative(JNIEnv* env, jobject object,
-                                            jint serverIf, jstring address,
-                                            jint tx_phy, jint rx_phy,
-                                            jint phy_options) {
+static void gattServerSetPreferredPhyNative(JNIEnv* env, jobject /* object */,
+                                            jint /* serverIf */,
+                                            jstring address, jint tx_phy,
+                                            jint rx_phy, jint phy_options) {
   if (!sGattIf) return;
   RawAddress bda = str2addr(env, address);
   sGattIf->server->set_preferred_phy(bda, tx_phy, rx_phy, phy_options);
@@ -1955,15 +1969,15 @@ static void readServerPhyCb(uint8_t serverIf, RawAddress bda, uint8_t tx_phy,
                                address.get(), tx_phy, rx_phy, status);
 }
 
-static void gattServerReadPhyNative(JNIEnv* env, jobject object, jint serverIf,
-                                    jstring address) {
+static void gattServerReadPhyNative(JNIEnv* env, jobject /* object */,
+                                    jint serverIf, jstring address) {
   if (!sGattIf) return;
 
   RawAddress bda = str2addr(env, address);
   sGattIf->server->read_phy(bda, base::Bind(&readServerPhyCb, serverIf, bda));
 }
 
-static void gattServerAddServiceNative(JNIEnv* env, jobject object,
+static void gattServerAddServiceNative(JNIEnv* env, jobject /* object */,
                                        jint server_if,
                                        jobject gatt_db_elements) {
   if (!sGattIf) return;
@@ -2038,19 +2052,20 @@ static void gattServerAddServiceNative(JNIEnv* env, jobject object,
   sGattIf->server->add_service(server_if, db.data(), db.size());
 }
 
-static void gattServerStopServiceNative(JNIEnv* env, jobject object,
+static void gattServerStopServiceNative(JNIEnv* /* env */, jobject /* object */,
                                         jint server_if, jint svc_handle) {
   if (!sGattIf) return;
   sGattIf->server->stop_service(server_if, svc_handle);
 }
 
-static void gattServerDeleteServiceNative(JNIEnv* env, jobject object,
-                                          jint server_if, jint svc_handle) {
+static void gattServerDeleteServiceNative(JNIEnv* /* env */,
+                                          jobject /* object */, jint server_if,
+                                          jint svc_handle) {
   if (!sGattIf) return;
   sGattIf->server->delete_service(server_if, svc_handle);
 }
 
-static void gattServerSendIndicationNative(JNIEnv* env, jobject object,
+static void gattServerSendIndicationNative(JNIEnv* env, jobject /* object */,
                                            jint server_if, jint attr_handle,
                                            jint conn_id, jbyteArray val) {
   if (!sGattIf) return;
@@ -2069,7 +2084,7 @@ static void gattServerSendIndicationNative(JNIEnv* env, jobject object,
   env->ReleaseByteArrayElements(val, array, JNI_ABORT);
 }
 
-static void gattServerSendNotificationNative(JNIEnv* env, jobject object,
+static void gattServerSendNotificationNative(JNIEnv* env, jobject /* object */,
                                              jint server_if, jint attr_handle,
                                              jint conn_id, jbyteArray val) {
   if (!sGattIf) return;
@@ -2083,7 +2098,7 @@ static void gattServerSendNotificationNative(JNIEnv* env, jobject object,
   env->ReleaseByteArrayElements(val, array, JNI_ABORT);
 }
 
-static void gattServerSendResponseNative(JNIEnv* env, jobject object,
+static void gattServerSendResponseNative(JNIEnv* env, jobject /* object */,
                                          jint server_if, jint conn_id,
                                          jint trans_id, jint status,
                                          jint handle, jint offset,
@@ -2131,7 +2146,7 @@ static void advertiseInitializeNative(JNIEnv* env, jobject object) {
   mAdvertiseCallbacksObj = env->NewGlobalRef(object);
 }
 
-static void advertiseCleanupNative(JNIEnv* env, jobject object) {
+static void advertiseCleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_mutex> lock(callbacks_mutex);
   if (mAdvertiseCallbacksObj != NULL) {
     env->DeleteGlobalRef(mAdvertiseCallbacksObj);
@@ -2253,7 +2268,7 @@ static void ble_advertising_set_timeout_cb(uint8_t advertiser_id,
 }
 
 static void startAdvertisingSetNative(
-    JNIEnv* env, jobject object, jobject parameters, jbyteArray adv_data,
+    JNIEnv* env, jobject /* object */, jobject parameters, jbyteArray adv_data,
     jbyteArray scan_resp, jobject periodic_parameters, jbyteArray periodic_data,
     jint duration, jint maxExtAdvEvents, jint reg_id, jint server_if) {
   if (!sGattIf) return;
@@ -2286,7 +2301,7 @@ static void startAdvertisingSetNative(
       maxExtAdvEvents, base::Bind(ble_advertising_set_timeout_cb));
 }
 
-static void stopAdvertisingSetNative(JNIEnv* env, jobject object,
+static void stopAdvertisingSetNative(JNIEnv* /* env */, jobject /* object */,
                                      jint advertiser_id) {
   if (!sGattIf) return;
 
@@ -2307,7 +2322,7 @@ static void getOwnAddressCb(uint8_t advertiser_id, uint8_t address_type,
                                advertiser_id, address_type, addr.get());
 }
 
-static void getOwnAddressNative(JNIEnv* env, jobject object,
+static void getOwnAddressNative(JNIEnv* /* env */, jobject /* object */,
                                 jint advertiser_id) {
   if (!sGattIf) return;
   sGattIf->advertiser->GetOwnAddress(
@@ -2332,7 +2347,7 @@ static void enableSetCb(uint8_t advertiser_id, bool enable, uint8_t status) {
                                enable, status);
 }
 
-static void enableAdvertisingSetNative(JNIEnv* env, jobject object,
+static void enableAdvertisingSetNative(JNIEnv* /* env */, jobject /* object */,
                                        jint advertiser_id, jboolean enable,
                                        jint duration, jint maxExtAdvEvents) {
   if (!sGattIf) return;
@@ -2343,7 +2358,7 @@ static void enableAdvertisingSetNative(JNIEnv* env, jobject object,
                               base::Bind(&enableSetCb, advertiser_id, false));
 }
 
-static void setAdvertisingDataNative(JNIEnv* env, jobject object,
+static void setAdvertisingDataNative(JNIEnv* env, jobject /* object */,
                                      jint advertiser_id, jbyteArray data) {
   if (!sGattIf) return;
 
@@ -2352,7 +2367,7 @@ static void setAdvertisingDataNative(JNIEnv* env, jobject object,
       base::Bind(&callJniCallback, method_onAdvertisingDataSet, advertiser_id));
 }
 
-static void setScanResponseDataNative(JNIEnv* env, jobject object,
+static void setScanResponseDataNative(JNIEnv* env, jobject /* object */,
                                       jint advertiser_id, jbyteArray data) {
   if (!sGattIf) return;
 
@@ -2372,7 +2387,7 @@ static void setAdvertisingParametersNativeCb(uint8_t advertiser_id,
                                advertiser_id, tx_power, status);
 }
 
-static void setAdvertisingParametersNative(JNIEnv* env, jobject object,
+static void setAdvertisingParametersNative(JNIEnv* env, jobject /* object */,
                                            jint advertiser_id,
                                            jobject parameters) {
   if (!sGattIf) return;
@@ -2384,7 +2399,7 @@ static void setAdvertisingParametersNative(JNIEnv* env, jobject object,
 }
 
 static void setPeriodicAdvertisingParametersNative(
-    JNIEnv* env, jobject object, jint advertiser_id,
+    JNIEnv* env, jobject /* object */, jint advertiser_id,
     jobject periodic_parameters) {
   if (!sGattIf) return;
 
@@ -2396,7 +2411,7 @@ static void setPeriodicAdvertisingParametersNative(
                  method_onPeriodicAdvertisingParametersUpdated, advertiser_id));
 }
 
-static void setPeriodicAdvertisingDataNative(JNIEnv* env, jobject object,
+static void setPeriodicAdvertisingDataNative(JNIEnv* env, jobject /* object */,
                                              jint advertiser_id,
                                              jbyteArray data) {
   if (!sGattIf) return;
@@ -2417,7 +2432,8 @@ static void enablePeriodicSetCb(uint8_t advertiser_id, bool enable,
                                advertiser_id, enable, status);
 }
 
-static void setPeriodicAdvertisingEnableNative(JNIEnv* env, jobject object,
+static void setPeriodicAdvertisingEnableNative(JNIEnv* /* env */,
+                                               jobject /* object */,
                                                jint advertiser_id,
                                                jboolean enable) {
   if (!sGattIf) return;
@@ -2440,7 +2456,7 @@ static void periodicScanInitializeNative(JNIEnv* env, jobject object) {
   mPeriodicScanCallbacksObj = env->NewGlobalRef(object);
 }
 
-static void periodicScanCleanupNative(JNIEnv* env, jobject object) {
+static void periodicScanCleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_mutex> lock(callbacks_mutex);
   if (mPeriodicScanCallbacksObj != NULL) {
     env->DeleteGlobalRef(mPeriodicScanCallbacksObj);
@@ -2448,7 +2464,7 @@ static void periodicScanCleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static void startSyncNative(JNIEnv* env, jobject object, jint sid,
+static void startSyncNative(JNIEnv* env, jobject /* object */, jint sid,
                             jstring address, jint skip, jint timeout,
                             jint reg_id) {
   if (!sGattIf) return;
@@ -2456,34 +2472,35 @@ static void startSyncNative(JNIEnv* env, jobject object, jint sid,
                               reg_id);
 }
 
-static void stopSyncNative(JNIEnv* env, jobject object, jint sync_handle) {
+static void stopSyncNative(JNIEnv* /* env */, jobject /* object */,
+                           jint sync_handle) {
   if (!sGattIf) return;
   sGattIf->scanner->StopSync(sync_handle);
 }
 
-static void cancelSyncNative(JNIEnv* env, jobject object, jint sid,
+static void cancelSyncNative(JNIEnv* env, jobject /* object */, jint sid,
                              jstring address) {
   if (!sGattIf) return;
   sGattIf->scanner->CancelCreateSync(sid, str2addr(env, address));
 }
 
-static void syncTransferNative(JNIEnv* env, jobject object, jint pa_source,
-                               jstring addr, jint service_data,
+static void syncTransferNative(JNIEnv* env, jobject /* object */,
+                               jint pa_source, jstring addr, jint service_data,
                                jint sync_handle) {
   if (!sGattIf) return;
   sGattIf->scanner->TransferSync(str2addr(env, addr), service_data, sync_handle,
                                  pa_source);
 }
 
-static void transferSetInfoNative(JNIEnv* env, jobject object, jint pa_source,
-                                  jstring addr, jint service_data,
-                                  jint adv_handle) {
+static void transferSetInfoNative(JNIEnv* env, jobject /* object */,
+                                  jint pa_source, jstring addr,
+                                  jint service_data, jint adv_handle) {
   if (!sGattIf) return;
   sGattIf->scanner->TransferSetInfo(str2addr(env, addr), service_data,
                                     adv_handle, pa_source);
 }
 
-static void gattTestNative(JNIEnv* env, jobject object, jint command,
+static void gattTestNative(JNIEnv* env, jobject /* object */, jint command,
                            jlong uuid1_lsb, jlong uuid1_msb, jstring bda1,
                            jint p1, jint p2, jint p3, jint p4, jint p5) {
   if (!sGattIf) return;
@@ -2514,7 +2531,8 @@ static void distanceMeasurementInitializeNative(JNIEnv* env, jobject object) {
   mDistanceMeasurementCallbacksObj = env->NewGlobalRef(object);
 }
 
-static void distanceMeasurementCleanupNative(JNIEnv* env, jobject object) {
+static void distanceMeasurementCleanupNative(JNIEnv* env,
+                                             jobject /* object */) {
   std::unique_lock<std::shared_mutex> lock(callbacks_mutex);
   if (mDistanceMeasurementCallbacksObj != NULL) {
     env->DeleteGlobalRef(mDistanceMeasurementCallbacksObj);
@@ -2522,7 +2540,7 @@ static void distanceMeasurementCleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static void startDistanceMeasurementNative(JNIEnv* env, jobject object,
+static void startDistanceMeasurementNative(JNIEnv* env, jobject /* object */,
                                            jstring address, jint frequency,
                                            jint method) {
   if (!sGattIf) return;
@@ -2530,7 +2548,7 @@ static void startDistanceMeasurementNative(JNIEnv* env, jobject object,
       str2addr(env, address), frequency, method);
 }
 
-static void stopDistanceMeasurementNative(JNIEnv* env, jobject object,
+static void stopDistanceMeasurementNative(JNIEnv* env, jobject /* object */,
                                           jstring address, jint method) {
   if (!sGattIf) return;
   sGattIf->distance_measurement_manager->StopDistanceMeasurement(

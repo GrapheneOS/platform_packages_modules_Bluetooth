@@ -124,7 +124,7 @@ static void initNative(JNIEnv* env, jobject object) {
   sHearingAidInterface->Init(&sHearingAidCallbacks);
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
 
@@ -145,7 +145,7 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static jboolean connectHearingAidNative(JNIEnv* env, jobject object,
+static jboolean connectHearingAidNative(JNIEnv* env, jobject /* object */,
                                         jbyteArray address) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
@@ -163,7 +163,7 @@ static jboolean connectHearingAidNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static jboolean disconnectHearingAidNative(JNIEnv* env, jobject object,
+static jboolean disconnectHearingAidNative(JNIEnv* env, jobject /* object */,
                                            jbyteArray address) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
@@ -181,8 +181,8 @@ static jboolean disconnectHearingAidNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static jboolean addToAcceptlistNative(JNIEnv* env, jobject object,
-                                     jbyteArray address) {
+static jboolean addToAcceptlistNative(JNIEnv* env, jobject /* object */,
+                                      jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sHearingAidInterface) return JNI_FALSE;
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
@@ -197,7 +197,8 @@ static jboolean addToAcceptlistNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static void setVolumeNative(JNIEnv* env, jclass clazz, jint volume) {
+static void setVolumeNative(JNIEnv* /* env */, jclass /* clazz */,
+                            jint volume) {
   if (!sHearingAidInterface) {
     LOG(ERROR) << __func__
                << ": Failed to get the Bluetooth Hearing Aid Interface";

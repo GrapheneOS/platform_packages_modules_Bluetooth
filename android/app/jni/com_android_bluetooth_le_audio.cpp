@@ -249,7 +249,7 @@ class LeAudioClientCallbacksImpl : public LeAudioClientCallbacks {
 
   void OnAudioGroupCodecConf(
       int group_id, btle_audio_codec_config_t input_codec_conf,
-      btle_audio_codec_config_t output_codec_conf,
+      btle_audio_codec_config_t /* output_codec_conf */,
       std::vector<btle_audio_codec_config_t> input_selectable_codec_conf,
       std::vector<btle_audio_codec_config_t> output_selectable_codec_conf)
       override {
@@ -315,7 +315,7 @@ class LeAudioClientCallbacksImpl : public LeAudioClientCallbacks {
 static LeAudioClientCallbacksImpl sLeAudioClientCallbacks;
 
 std::vector<btle_audio_codec_config_t> prepareCodecPreferences(
-    JNIEnv* env, jobject object, jobjectArray codecConfigArray) {
+    JNIEnv* env, jobject /* object */, jobjectArray codecConfigArray) {
   std::vector<btle_audio_codec_config_t> codec_preferences;
 
   int numConfigs = env->GetArrayLength(codecConfigArray);
@@ -386,7 +386,7 @@ static void initNative(JNIEnv* env, jobject object,
                                       codec_offloading);
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
 
@@ -410,7 +410,7 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static jboolean connectLeAudioNative(JNIEnv* env, jobject object,
+static jboolean connectLeAudioNative(JNIEnv* env, jobject /* object */,
                                      jbyteArray address) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
@@ -428,7 +428,7 @@ static jboolean connectLeAudioNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static jboolean disconnectLeAudioNative(JNIEnv* env, jobject object,
+static jboolean disconnectLeAudioNative(JNIEnv* env, jobject /* object */,
                                         jbyteArray address) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
@@ -446,7 +446,7 @@ static jboolean disconnectLeAudioNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static jboolean setEnableStateNative(JNIEnv* env, jobject object,
+static jboolean setEnableStateNative(JNIEnv* env, jobject /* object */,
                                      jbyteArray address, jboolean enabled) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
@@ -467,8 +467,8 @@ static jboolean setEnableStateNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static jboolean groupAddNodeNative(JNIEnv* env, jobject object, jint group_id,
-                                   jbyteArray address) {
+static jboolean groupAddNodeNative(JNIEnv* env, jobject /* object */,
+                                   jint group_id, jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
 
@@ -489,7 +489,7 @@ static jboolean groupAddNodeNative(JNIEnv* env, jobject object, jint group_id,
   return JNI_TRUE;
 }
 
-static jboolean groupRemoveNodeNative(JNIEnv* env, jobject object,
+static jboolean groupRemoveNodeNative(JNIEnv* env, jobject /* object */,
                                       jint group_id, jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sLeAudioClientInterface) {
@@ -509,7 +509,8 @@ static jboolean groupRemoveNodeNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static void groupSetActiveNative(JNIEnv* env, jobject object, jint group_id) {
+static void groupSetActiveNative(JNIEnv* /* env */, jobject /* object */,
+                                 jint group_id) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
 
@@ -521,7 +522,7 @@ static void groupSetActiveNative(JNIEnv* env, jobject object, jint group_id) {
   sLeAudioClientInterface->GroupSetActive(group_id);
 }
 
-static void setCodecConfigPreferenceNative(JNIEnv* env, jobject object,
+static void setCodecConfigPreferenceNative(JNIEnv* env, jobject /* object */,
                                            jint group_id,
                                            jobject inputCodecConfig,
                                            jobject outputCodecConfig) {
@@ -553,8 +554,8 @@ static void setCodecConfigPreferenceNative(JNIEnv* env, jobject object,
       group_id, input_codec_config, output_codec_config);
 }
 
-static void setCcidInformationNative(JNIEnv* env, jobject object, jint ccid,
-                                     jint contextType) {
+static void setCcidInformationNative(JNIEnv* /* env */, jobject /* object */,
+                                     jint ccid, jint contextType) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sLeAudioClientInterface) {
     LOG(ERROR) << __func__ << ": Failed to get the Bluetooth LeAudio Interface";
@@ -564,7 +565,8 @@ static void setCcidInformationNative(JNIEnv* env, jobject object, jint ccid,
   sLeAudioClientInterface->SetCcidInformation(ccid, contextType);
 }
 
-static void setInCallNative(JNIEnv* env, jobject object, jboolean inCall) {
+static void setInCallNative(JNIEnv* /* env */, jobject /* object */,
+                            jboolean inCall) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sLeAudioClientInterface) {
     LOG(ERROR) << __func__ << ": Failed to get the Bluetooth LeAudio Interface";
@@ -575,7 +577,7 @@ static void setInCallNative(JNIEnv* env, jobject object, jboolean inCall) {
 }
 
 static void sendAudioProfilePreferencesNative(
-    JNIEnv* env, jint groupId, jboolean isOutputPreferenceLeAudio,
+    JNIEnv* /* env */, jint groupId, jboolean isOutputPreferenceLeAudio,
     jboolean isDuplexPreferenceLeAudio) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sLeAudioClientInterface) {
@@ -1139,7 +1141,7 @@ static void BroadcasterInitNative(JNIEnv* env, jobject object) {
   sLeAudioBroadcasterInterface->Initialize(&sLeAudioBroadcasterCallbacks);
 }
 
-static void BroadcasterStopNative(JNIEnv* env, jobject object) {
+static void BroadcasterStopNative(JNIEnv* /* env */, jobject /* object */) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(
       sBroadcasterInterfaceMutex);
 
@@ -1153,7 +1155,7 @@ static void BroadcasterStopNative(JNIEnv* env, jobject object) {
     sLeAudioBroadcasterInterface->Stop();
 }
 
-static void BroadcasterCleanupNative(JNIEnv* env, jobject object) {
+static void BroadcasterCleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(
       sBroadcasterInterfaceMutex);
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(
@@ -1215,7 +1217,7 @@ std::vector<std::vector<uint8_t>> convertToDataVectors(JNIEnv* env,
   return res;
 }
 
-static void CreateBroadcastNative(JNIEnv* env, jobject object,
+static void CreateBroadcastNative(JNIEnv* env, jobject /* object */,
                                   jboolean isPublic, jstring broadcastName,
                                   jbyteArray broadcast_code,
                                   jbyteArray publicMetadata,
@@ -1269,8 +1271,8 @@ static void CreateBroadcastNative(JNIEnv* env, jobject object,
   if (quality_array) env->ReleaseIntArrayElements(qualityArray, quality_array, 0);
 }
 
-static void UpdateMetadataNative(JNIEnv* env, jobject object, jint broadcast_id,
-                                 jstring broadcastName,
+static void UpdateMetadataNative(JNIEnv* env, jobject /* object */,
+                                 jint broadcast_id, jstring broadcastName,
                                  jbyteArray publicMetadata,
                                  jobjectArray metadataArray) {
   const char* broadcast_name = nullptr;
@@ -1295,7 +1297,7 @@ static void UpdateMetadataNative(JNIEnv* env, jobject object, jint broadcast_id,
   if (public_meta) env->ReleaseByteArrayElements(publicMetadata, public_meta, 0);
 }
 
-static void StartBroadcastNative(JNIEnv* env, jobject object,
+static void StartBroadcastNative(JNIEnv* /* env */, jobject /* object */,
                                  jint broadcast_id) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterInterfaceMutex);
@@ -1303,7 +1305,7 @@ static void StartBroadcastNative(JNIEnv* env, jobject object,
   sLeAudioBroadcasterInterface->StartBroadcast(broadcast_id);
 }
 
-static void StopBroadcastNative(JNIEnv* env, jobject object,
+static void StopBroadcastNative(JNIEnv* /* env */, jobject /* object */,
                                 jint broadcast_id) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterInterfaceMutex);
@@ -1311,7 +1313,7 @@ static void StopBroadcastNative(JNIEnv* env, jobject object,
   sLeAudioBroadcasterInterface->StopBroadcast(broadcast_id);
 }
 
-static void PauseBroadcastNative(JNIEnv* env, jobject object,
+static void PauseBroadcastNative(JNIEnv* /* env */, jobject /* object */,
                                  jint broadcast_id) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterInterfaceMutex);
@@ -1319,7 +1321,7 @@ static void PauseBroadcastNative(JNIEnv* env, jobject object,
   sLeAudioBroadcasterInterface->PauseBroadcast(broadcast_id);
 }
 
-static void DestroyBroadcastNative(JNIEnv* env, jobject object,
+static void DestroyBroadcastNative(JNIEnv* /* env */, jobject /* object */,
                                    jint broadcast_id) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterInterfaceMutex);
@@ -1327,7 +1329,7 @@ static void DestroyBroadcastNative(JNIEnv* env, jobject object,
   sLeAudioBroadcasterInterface->DestroyBroadcast(broadcast_id);
 }
 
-static void getBroadcastMetadataNative(JNIEnv* env, jobject object,
+static void getBroadcastMetadataNative(JNIEnv* /* env */, jobject /* object */,
                                        jint broadcast_id) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterInterfaceMutex);

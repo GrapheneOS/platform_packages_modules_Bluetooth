@@ -400,7 +400,7 @@ static void acl_state_changed_callback(bt_status_t status, RawAddress* bd_addr,
                                        bt_acl_state_t state,
                                        int transport_link_type,
                                        bt_hci_error_code_t hci_reason,
-                                       bt_conn_direction_t direction,
+                                       bt_conn_direction_t /* direction */,
                                        uint16_t acl_handle) {
   if (!bd_addr) {
     ALOGE("Address is null in %s", __func__);
@@ -748,7 +748,7 @@ static void switch_codec_callback(bool is_low_latency_buffer_size) {
                                (jboolean)is_low_latency_buffer_size);
 }
 
-static void le_rand_callback(uint64_t random) {
+static void le_rand_callback(uint64_t /* random */) {
   // Android doesn't support the LeRand API.
 }
 
@@ -773,9 +773,8 @@ static void callback_thread_event(bt_cb_thread_evt event) {
   }
 }
 
-static void dut_mode_recv_callback(uint16_t opcode, uint8_t* buf, uint8_t len) {
-
-}
+static void dut_mode_recv_callback(uint16_t /* opcode */, uint8_t* /* buf */,
+                                   uint8_t /* len */) {}
 
 static void le_test_mode_recv_callback(bt_status_t status,
                                        uint16_t packet_count) {
@@ -1063,7 +1062,7 @@ static bool initNative(JNIEnv* env, jobject obj, jboolean isGuest,
   return JNI_TRUE;
 }
 
-static bool cleanupNative(JNIEnv* env, jobject obj) {
+static bool cleanupNative(JNIEnv* env, jobject /* obj */) {
   std::unique_lock<std::shared_timed_mutex> lock(jniObjMutex);
 
   ALOGV("%s", __func__);
@@ -1090,7 +1089,7 @@ static bool cleanupNative(JNIEnv* env, jobject obj) {
   return JNI_TRUE;
 }
 
-static jboolean enableNative(JNIEnv* env, jobject obj) {
+static jboolean enableNative(JNIEnv* /* env */, jobject /* obj */) {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1099,7 +1098,7 @@ static jboolean enableNative(JNIEnv* env, jobject obj) {
                                                              : JNI_FALSE;
 }
 
-static jboolean disableNative(JNIEnv* env, jobject obj) {
+static jboolean disableNative(JNIEnv* /* env */, jobject /* obj */) {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1112,7 +1111,7 @@ static jboolean disableNative(JNIEnv* env, jobject obj) {
   return (ret == BT_STATUS_FAIL) ? JNI_FALSE : JNI_TRUE;
 }
 
-static jboolean startDiscoveryNative(JNIEnv* env, jobject obj) {
+static jboolean startDiscoveryNative(JNIEnv* /* env */, jobject /* obj */) {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1121,7 +1120,7 @@ static jboolean startDiscoveryNative(JNIEnv* env, jobject obj) {
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean cancelDiscoveryNative(JNIEnv* env, jobject obj) {
+static jboolean cancelDiscoveryNative(JNIEnv* /* env */, jobject /* obj */) {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1130,8 +1129,9 @@ static jboolean cancelDiscoveryNative(JNIEnv* env, jobject obj) {
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean createBondNative(JNIEnv* env, jobject obj, jbyteArray address,
-                                 jint addrType, jint transport) {
+static jboolean createBondNative(JNIEnv* env, jobject /* obj */,
+                                 jbyteArray address, jint addrType,
+                                 jint transport) {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1355,7 +1355,7 @@ static jboolean set_data(JNIEnv* env, bt_oob_data_t& oob_data, jobject oobData,
   return JNI_TRUE;
 }
 
-static void generateLocalOobDataNative(JNIEnv* env, jobject obj,
+static void generateLocalOobDataNative(JNIEnv* /* env */, jobject /* obj */,
                                        jint transport) {
   // No BT interface? Can't do anything.
   if (!sBluetoothInterface) return;
@@ -1369,7 +1369,7 @@ static void generateLocalOobDataNative(JNIEnv* env, jobject obj,
   }
 }
 
-static jboolean createBondOutOfBandNative(JNIEnv* env, jobject obj,
+static jboolean createBondOutOfBandNative(JNIEnv* env, jobject /* obj */,
                                           jbyteArray address, jint transport,
                                           jobject p192Data, jobject p256Data) {
   // No BT interface? Can't do anything.
@@ -1431,7 +1431,8 @@ static jboolean createBondOutOfBandNative(JNIEnv* env, jobject obj,
              : JNI_FALSE;
 }
 
-static jboolean removeBondNative(JNIEnv* env, jobject obj, jbyteArray address) {
+static jboolean removeBondNative(JNIEnv* env, jobject /* obj */,
+                                 jbyteArray address) {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1448,7 +1449,8 @@ static jboolean removeBondNative(JNIEnv* env, jobject obj, jbyteArray address) {
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean cancelBondNative(JNIEnv* env, jobject obj, jbyteArray address) {
+static jboolean cancelBondNative(JNIEnv* env, jobject /* obj */,
+                                 jbyteArray address) {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1464,7 +1466,7 @@ static jboolean cancelBondNative(JNIEnv* env, jobject obj, jbyteArray address) {
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static int getConnectionStateNative(JNIEnv* env, jobject obj,
+static int getConnectionStateNative(JNIEnv* env, jobject /* obj */,
                                     jbyteArray address) {
   ALOGV("%s", __func__);
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1481,8 +1483,9 @@ static int getConnectionStateNative(JNIEnv* env, jobject obj,
   return ret;
 }
 
-static jboolean pinReplyNative(JNIEnv* env, jobject obj, jbyteArray address,
-                               jboolean accept, jint len, jbyteArray pinArray) {
+static jboolean pinReplyNative(JNIEnv* env, jobject /* obj */,
+                               jbyteArray address, jboolean accept, jint len,
+                               jbyteArray pinArray) {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1511,8 +1514,9 @@ static jboolean pinReplyNative(JNIEnv* env, jobject obj, jbyteArray address,
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean sspReplyNative(JNIEnv* env, jobject obj, jbyteArray address,
-                               jint type, jboolean accept, jint passkey) {
+static jboolean sspReplyNative(JNIEnv* env, jobject /* obj */,
+                               jbyteArray address, jint type, jboolean accept,
+                               jint passkey) {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1530,8 +1534,8 @@ static jboolean sspReplyNative(JNIEnv* env, jobject obj, jbyteArray address,
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean setAdapterPropertyNative(JNIEnv* env, jobject obj, jint type,
-                                         jbyteArray value) {
+static jboolean setAdapterPropertyNative(JNIEnv* env, jobject /* obj */,
+                                         jint type, jbyteArray value) {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1548,7 +1552,8 @@ static jboolean setAdapterPropertyNative(JNIEnv* env, jobject obj, jint type,
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean getAdapterPropertiesNative(JNIEnv* env, jobject obj) {
+static jboolean getAdapterPropertiesNative(JNIEnv* /* env */,
+                                           jobject /* obj */) {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1557,7 +1562,8 @@ static jboolean getAdapterPropertiesNative(JNIEnv* env, jobject obj) {
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean getAdapterPropertyNative(JNIEnv* env, jobject obj, jint type) {
+static jboolean getAdapterPropertyNative(JNIEnv* /* env */, jobject /* obj */,
+                                         jint type) {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1566,7 +1572,7 @@ static jboolean getAdapterPropertyNative(JNIEnv* env, jobject obj, jint type) {
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean getDevicePropertyNative(JNIEnv* env, jobject obj,
+static jboolean getDevicePropertyNative(JNIEnv* env, jobject /* obj */,
                                         jbyteArray address, jint type) {
   ALOGV("%s", __func__);
 
@@ -1584,7 +1590,7 @@ static jboolean getDevicePropertyNative(JNIEnv* env, jobject obj,
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean setDevicePropertyNative(JNIEnv* env, jobject obj,
+static jboolean setDevicePropertyNative(JNIEnv* env, jobject /* obj */,
                                         jbyteArray address, jint type,
                                         jbyteArray value) {
   ALOGV("%s", __func__);
@@ -1617,7 +1623,7 @@ static jboolean setDevicePropertyNative(JNIEnv* env, jobject obj,
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean getRemoteServicesNative(JNIEnv* env, jobject obj,
+static jboolean getRemoteServicesNative(JNIEnv* env, jobject /* obj */,
                                         jbyteArray address, jint transport) {
   ALOGV("%s", __func__);
 
@@ -1643,7 +1649,7 @@ static int readEnergyInfoNative() {
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static void dumpNative(JNIEnv* env, jobject obj, jobject fdObj,
+static void dumpNative(JNIEnv* env, jobject /* obj */, jobject fdObj,
                        jobjectArray argArray) {
   ALOGV("%s", __func__);
   if (!sBluetoothInterface) return;
@@ -1675,7 +1681,7 @@ static void dumpNative(JNIEnv* env, jobject obj, jobject fdObj,
   delete[] argObjs;
 }
 
-static jbyteArray dumpMetricsNative(JNIEnv* env, jobject obj) {
+static jbyteArray dumpMetricsNative(JNIEnv* env, jobject /* obj */) {
   ALOGI("%s", __func__);
   if (!sBluetoothInterface) return env->NewByteArray(0);
 
@@ -1688,14 +1694,14 @@ static jbyteArray dumpMetricsNative(JNIEnv* env, jobject obj) {
   return output_bytes;
 }
 
-static jboolean factoryResetNative(JNIEnv* env, jobject obj) {
+static jboolean factoryResetNative(JNIEnv* /* env */, jobject /* obj */) {
   ALOGV("%s", __func__);
   if (!sBluetoothInterface) return JNI_FALSE;
   int ret = sBluetoothInterface->config_clear();
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jbyteArray obfuscateAddressNative(JNIEnv* env, jobject obj,
+static jbyteArray obfuscateAddressNative(JNIEnv* env, jobject /* obj */,
                                          jbyteArray address) {
   ALOGV("%s", __func__);
   if (!sBluetoothInterface) return env->NewByteArray(0);
@@ -1714,8 +1720,9 @@ static jbyteArray obfuscateAddressNative(JNIEnv* env, jobject obj,
   return output_bytes;
 }
 
-static jboolean setBufferLengthMillisNative(JNIEnv* env, jobject obj,
-                                            jint codec, jint size) {
+static jboolean setBufferLengthMillisNative(JNIEnv* /* env */,
+                                            jobject /* obj */, jint codec,
+                                            jint size) {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1724,9 +1731,9 @@ static jboolean setBufferLengthMillisNative(JNIEnv* env, jobject obj,
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jint connectSocketNative(JNIEnv* env, jobject obj, jbyteArray address,
-                                jint type, jbyteArray uuid, jint port,
-                                jint flag, jint callingUid) {
+static jint connectSocketNative(JNIEnv* env, jobject /* obj */,
+                                jbyteArray address, jint type, jbyteArray uuid,
+                                jint port, jint flag, jint callingUid) {
   int socket_fd = INVALID_FD;
   jbyte* addr = nullptr;
   jbyte* uuidBytes = nullptr;
@@ -1755,7 +1762,7 @@ done:
   return socket_fd;
 }
 
-static jint createSocketChannelNative(JNIEnv* env, jobject obj, jint type,
+static jint createSocketChannelNative(JNIEnv* env, jobject /* obj */, jint type,
                                       jstring serviceName, jbyteArray uuid,
                                       jint port, jint flag, jint callingUid) {
   int socket_fd = INVALID_FD;
@@ -1789,7 +1796,7 @@ done:
   return socket_fd;
 }
 
-static void requestMaximumTxDataLengthNative(JNIEnv* env, jobject obj,
+static void requestMaximumTxDataLengthNative(JNIEnv* env, jobject /* obj */,
                                              jbyteArray address) {
   if (!sBluetoothSocketInterface) {
     return;
@@ -1805,7 +1812,8 @@ static void requestMaximumTxDataLengthNative(JNIEnv* env, jobject obj,
   env->ReleaseByteArrayElements(address, addr, 1);
 }
 
-static int getMetricIdNative(JNIEnv* env, jobject obj, jbyteArray address) {
+static int getMetricIdNative(JNIEnv* env, jobject /* obj */,
+                             jbyteArray address) {
   ALOGV("%s", __func__);
   if (!sBluetoothInterface) return 0;  // 0 is invalid id
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
@@ -1818,7 +1826,7 @@ static int getMetricIdNative(JNIEnv* env, jobject obj, jbyteArray address) {
   return sBluetoothInterface->get_metric_id(addr_obj);
 }
 
-static jboolean allowLowLatencyAudioNative(JNIEnv* env, jobject obj,
+static jboolean allowLowLatencyAudioNative(JNIEnv* env, jobject /* obj */,
                                            jboolean allowed,
                                            jbyteArray address) {
   ALOGV("%s", __func__);
@@ -1835,8 +1843,9 @@ static jboolean allowLowLatencyAudioNative(JNIEnv* env, jobject obj,
   return true;
 }
 
-static void metadataChangedNative(JNIEnv* env, jobject obj, jbyteArray address,
-                                  jint key, jbyteArray value) {
+static void metadataChangedNative(JNIEnv* env, jobject /* obj */,
+                                  jbyteArray address, jint key,
+                                  jbyteArray value) {
   ALOGV("%s", __func__);
   if (!sBluetoothInterface) return;
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
@@ -1864,12 +1873,13 @@ static void metadataChangedNative(JNIEnv* env, jobject obj, jbyteArray address,
   return;
 }
 
-static jboolean isLogRedactionEnabledNative(JNIEnv* env, jobject obj) {
+static jboolean isLogRedactionEnabledNative(JNIEnv* /* env */,
+                                            jobject /* obj */) {
   ALOGV("%s", __func__);
   return bluetooth::os::should_log_be_redacted();
 }
 
-static jboolean interopMatchAddrNative(JNIEnv* env, jclass clazz,
+static jboolean interopMatchAddrNative(JNIEnv* env, jclass /* clazz */,
                                        jstring feature_name, jstring address) {
   ALOGV("%s", __func__);
 
@@ -1906,7 +1916,7 @@ static jboolean interopMatchAddrNative(JNIEnv* env, jclass clazz,
   return matched ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean interopMatchNameNative(JNIEnv* env, jclass clazz,
+static jboolean interopMatchNameNative(JNIEnv* env, jclass /* clazz */,
                                        jstring feature_name, jstring name) {
   ALOGV("%s", __func__);
 
@@ -1936,7 +1946,7 @@ static jboolean interopMatchNameNative(JNIEnv* env, jclass clazz,
   return matched ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean interopMatchAddrOrNameNative(JNIEnv* env, jclass clazz,
+static jboolean interopMatchAddrOrNameNative(JNIEnv* env, jclass /* clazz */,
                                              jstring feature_name,
                                              jstring address) {
   ALOGV("%s", __func__);
@@ -1974,7 +1984,7 @@ static jboolean interopMatchAddrOrNameNative(JNIEnv* env, jclass clazz,
   return matched ? JNI_TRUE : JNI_FALSE;
 }
 
-static void interopDatabaseAddRemoveAddrNative(JNIEnv* env, jclass clazz,
+static void interopDatabaseAddRemoveAddrNative(JNIEnv* env, jclass /* clazz */,
                                                jboolean do_add,
                                                jstring feature_name,
                                                jstring address, jint length) {
@@ -2018,7 +2028,7 @@ static void interopDatabaseAddRemoveAddrNative(JNIEnv* env, jclass clazz,
   env->ReleaseStringUTFChars(feature_name, feature_name_str);
 }
 
-static void interopDatabaseAddRemoveNameNative(JNIEnv* env, jclass clazz,
+static void interopDatabaseAddRemoveNameNative(JNIEnv* env, jclass /* clazz */,
                                                jboolean do_add,
                                                jstring feature_name,
                                                jstring name) {
@@ -2049,7 +2059,7 @@ static void interopDatabaseAddRemoveNameNative(JNIEnv* env, jclass clazz,
   env->ReleaseStringUTFChars(name, name_str);
 }
 
-static int getRemotePbapPceVersionNative(JNIEnv* env, jobject obj,
+static int getRemotePbapPceVersionNative(JNIEnv* env, jobject /* obj */,
                                          jstring address) {
   ALOGV("%s", __func__);
 
@@ -2074,8 +2084,8 @@ static int getRemotePbapPceVersionNative(JNIEnv* env, jobject obj,
   return sBluetoothInterface->get_remote_pbap_pce_version(&bdaddr);
 }
 
-static jboolean pbapPseDynamicVersionUpgradeIsEnabledNative(JNIEnv* env,
-                                                            jobject obj) {
+static jboolean pbapPseDynamicVersionUpgradeIsEnabledNative(JNIEnv* /* env */,
+                                                            jobject /* obj */) {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -2212,7 +2222,7 @@ int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env) {
 /*
  * JNI Initialization
  */
-jint JNI_OnLoad(JavaVM* jvm, void* reserved) {
+jint JNI_OnLoad(JavaVM* jvm, void* /* reserved */) {
   JNIEnv* e;
   int status;
 

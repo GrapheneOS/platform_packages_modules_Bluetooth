@@ -85,6 +85,7 @@ cc_test {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     target: {
         android: {
