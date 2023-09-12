@@ -1263,6 +1263,9 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 // Initialize media
                 self.bluetooth_media.lock().unwrap().initialize();
 
+                // Initialize core profiles
+                self.init_profiles();
+
                 // Trigger properties update
                 self.intf.lock().unwrap().get_adapter_properties();
 
