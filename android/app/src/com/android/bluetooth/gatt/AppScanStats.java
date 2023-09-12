@@ -586,7 +586,7 @@ import java.util.Objects;
             return false;
         }
         return (SystemClock.elapsedRealtime() - mScanStartTime)
-                > mAdapterService.getScanTimeoutMillis();
+                >= mAdapterService.getScanTimeoutMillis();
     }
 
     synchronized boolean hasRecentScan() {
