@@ -75,7 +75,7 @@ tBTM_STATUS bluetooth::shim::BTM_DisconnectAllAcls() {
 }
 
 tBTM_STATUS bluetooth::shim::BTM_LeRand(LeRandCallback cb) {
-  Stack::GetInstance()->GetAcl()->LeRand(cb);
+  Stack::GetInstance()->GetAcl()->LeRand(std::move(cb));
   return BTM_SUCCESS;
 }
 
