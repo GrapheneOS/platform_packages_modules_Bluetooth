@@ -27,6 +27,9 @@ cc_fuzz {
         "libgmock",
         "libosi",
     ],
-    cflags: ["-Wno-unused-function"],
+    cflags: [
+        "-Wno-unused-function",
+        "-Wno-unused-parameter",
+    ],
     header_libs: ["libbluetooth_headers"],
 }

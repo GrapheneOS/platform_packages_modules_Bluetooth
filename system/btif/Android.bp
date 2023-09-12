@@ -160,6 +160,7 @@ cc_library_static {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     apex_available: [
         "com.android.btservices",
@@ -236,8 +237,9 @@ cc_library_static {
         "libcrypto",
     ],
     cflags: [
-        /* we export all classes, so change default visibility, instead of having EXPORT_SYMBOL on each class*/
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
+        /* we export all classes, so change default visibility, instead of having EXPORT_SYMBOL on each class*/
         "-fvisibility=default",
     ],
     apex_available: [
@@ -355,7 +357,10 @@ cc_test {
         "libchrome",
         "libosi",
     ],
-    cflags: ["-DBUILDCFG"],
+    cflags: [
+        "-DBUILDCFG",
+        "-Wno-unused-parameter",
+    ],
     shared_libs: ["liblog"],
 }
 
@@ -388,7 +393,10 @@ cc_test {
         "libchrome",
         "libosi",
     ],
-    cflags: ["-DBUILDCFG"],
+    cflags: [
+        "-DBUILDCFG",
+        "-Wno-unused-parameter",
+    ],
     shared_libs: ["liblog"],
 }
 
@@ -434,7 +442,10 @@ cc_test {
             shared_libs: ["libstatssocket"],
         },
     },
-    cflags: ["-DBUILDCFG"],
+    cflags: [
+        "-DBUILDCFG",
+        "-Wno-unused-parameter",
+    ],
     sanitize: {
         address: true,
         cfi: true,
@@ -511,7 +522,10 @@ cc_test {
         "libcom.android.sysprop.bluetooth",
         "libosi",
     ],
-    cflags: ["-DBUILDCFG"],
+    cflags: [
+        "-DBUILDCFG",
+        "-Wno-unused-parameter",
+    ],
 }
 
 cc_test {
@@ -625,7 +639,10 @@ cc_test {
         "libgmock",
         "libstatslog_bt",
     ],
-    cflags: ["-DBUILDCFG"],
+    cflags: [
+        "-DBUILDCFG",
+        "-Wno-unused-parameter",
+    ],
     target: {
         android: {
             static_libs: [
@@ -759,7 +776,10 @@ cc_test {
         "libgmock",
         "libstatslog_bt",
     ],
-    cflags: ["-DBUILDCFG"],
+    cflags: [
+        "-DBUILDCFG",
+        "-Wno-unused-parameter",
+    ],
     target: {
         android: {
             static_libs: [
