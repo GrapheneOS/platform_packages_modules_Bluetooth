@@ -286,7 +286,7 @@ static uint8_t controller_clear_event_mask() {
 
 static uint8_t controller_le_rand(LeRandCallback cb) {
   LOG_VERBOSE("Called!");
-  bluetooth::shim::GetController()->LeRand(cb);
+  bluetooth::shim::GetController()->LeRand(std::move(cb));
   return BTM_SUCCESS;
 }
 
