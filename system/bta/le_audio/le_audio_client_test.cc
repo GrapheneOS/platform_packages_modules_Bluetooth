@@ -741,7 +741,7 @@ class UnicastTestNoInit : public Test {
                 }
                 leAudioDevice = group->GetNextDevice(leAudioDevice);
               }
-              group->CigClearCis();
+              group->ClearAllCises();
               /* end */
 
               if (!group->Configure(context_type, metadata_context_types,
@@ -753,7 +753,7 @@ class UnicastTestNoInit : public Test {
                 return false;
               }
 
-              group->CigGenerateCisIds(context_type);
+              group->cig.GenerateCisIds(context_type);
 
               for (LeAudioDevice* device = group->GetFirstDevice();
                    device != nullptr; device = group->GetNextDevice(device)) {
@@ -797,8 +797,8 @@ class UnicastTestNoInit : public Test {
 
           group->Configure(group->GetConfigurationContextType(),
                            group->GetMetadataContexts(), ccids);
-          if (!group->CigAssignCisIds(leAudioDevice)) return false;
-          group->CigAssignCisConnHandlesToAses(leAudioDevice);
+          if (!group->cig.AssignCisIds(leAudioDevice)) return false;
+          group->AssignCisConnHandlesToAses(leAudioDevice);
 
           auto* stream_conf = &group->stream_conf;
 
@@ -901,7 +901,7 @@ class UnicastTestNoInit : public Test {
             }
             leAudioDevice = group->GetNextDevice(leAudioDevice);
           }
-          group->CigClearCis();
+          group->ClearAllCises();
           /* end */
 
           if (!group->Configure(context_type, metadata_context_types,
@@ -912,18 +912,18 @@ class UnicastTestNoInit : public Test {
 
           if (group->GetState() ==
               types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
-            group->CigGenerateCisIds(context_type);
+            group->cig.GenerateCisIds(context_type);
 
             std::vector<uint16_t> conn_handles;
-            for (uint8_t i = 0; i < (uint8_t)(group->cises_.size()); i++) {
+            for (uint8_t i = 0; i < (uint8_t)(group->cig.cises.size()); i++) {
               conn_handles.push_back(iso_con_counter_++);
             }
-            group->CigAssignCisConnHandles(conn_handles);
+            group->cig.AssignCisConnHandles(conn_handles);
             for (LeAudioDevice* device = group->GetFirstActiveDevice();
                  device != nullptr;
                  device = group->GetNextActiveDevice(device)) {
-              if (!group->CigAssignCisIds(device)) return false;
-              group->CigAssignCisConnHandlesToAses(device);
+              if (!group->cig.AssignCisIds(device)) return false;
+              group->AssignCisConnHandlesToAses(device);
             }
           }
 
@@ -1110,7 +1110,7 @@ class UnicastTestNoInit : public Test {
           streaming_groups[group->group_id_] = group;
 
           /* Assume CIG is created */
-          group->cig_state_ = le_audio::types::CigState::CREATED;
+          group->cig.SetState(le_audio::types::CigState::CREATED);
 
           if (block_streaming_state_callback) return true;
 
@@ -1200,10 +1200,10 @@ class UnicastTestNoInit : public Test {
                 stream_conf->stream_params.source.stream_locations.end());
           }
 
-          group->CigUnassignCis(leAudioDevice);
+          group->cig.UnassignCis(leAudioDevice);
 
           if (group->IsEmpty()) {
-            group->cig_state_ = le_audio::types::CigState::NONE;
+            group->cig.SetState(le_audio::types::CigState::NONE);
             InjectCigRemoved(group->group_id_);
           }
         });
@@ -1288,7 +1288,7 @@ class UnicastTestNoInit : public Test {
                     stream_conf->stream_params.source.stream_locations.end());
               }
 
-              group->CigUnassignCis(leAudioDevice);
+              group->cig.UnassignCis(leAudioDevice);
             });
 
     ON_CALL(mock_state_machine_, StopStream(_))
@@ -1354,7 +1354,7 @@ class UnicastTestNoInit : public Test {
                   stream_conf->stream_params.source.stream_locations.end());
             }
 
-            group->CigUnassignCis(device);
+            group->cig.UnassignCis(device);
 
             for (auto& ase : device->ases_) {
               ase.cis_state = types::CisState::IDLE;
@@ -7335,7 +7335,7 @@ TEST_F(UnicastTest, SpeakerStreamingTimeout) {
 
   /* No assigned cises should remain when transition remains in IDLE state */
   auto group = streaming_groups.at(group_id);
-  ASSERT_EQ(0, static_cast<int>(group->cises_.size()));
+  ASSERT_EQ(0, static_cast<int>(group->cig.cises.size()));
 }
 
 TEST_F(UnicastTest, AddMemberToAllowListWhenOneDeviceConnected) {
