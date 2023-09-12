@@ -124,7 +124,7 @@ static void initNative(JNIEnv* env, jobject object) {
   sBluetoothKeystoreInterface->init(&sBluetoothKeystoreCallbacks);
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
 

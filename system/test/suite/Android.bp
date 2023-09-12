@@ -129,4 +129,5 @@ cc_test {
         "libchrome",
         "libevent",
     ],
+    cflags: ["-Wno-unused-parameter"],
 }

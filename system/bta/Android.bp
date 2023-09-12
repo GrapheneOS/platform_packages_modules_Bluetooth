@@ -124,6 +124,7 @@ cc_library_static {
         "vc/vc.cc",
     ],
     cflags: [
+        "-Wno-unused-parameter",
         /* we export all classes, so change default visibility, instead of having EXPORT_SYMBOL on each class*/
         "-fvisibility=default",
     ],
@@ -188,6 +189,7 @@ cc_library_static {
         "sys/utl.cc",
     ],
     cflags: [
+        "-Wno-unused-parameter",
         /* we export all classes, so change default visibility, instead of having EXPORT_SYMBOL on each class*/
         "-fvisibility=default",
     ],
@@ -263,6 +265,7 @@ cc_test {
         ":audio_set_scenarios_bfbs",
         ":audio_set_scenarios_json",
     ],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // bta unit tests for target
@@ -306,6 +309,7 @@ cc_test {
         "libosi",
         "libstatslog_bt",
     ],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -439,6 +443,7 @@ cc_test {
             ],
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // csis unit tests for host
@@ -498,6 +503,7 @@ cc_test {
             undefined: true,
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // groups unit tests for host
@@ -545,6 +551,7 @@ cc_test {
             undefined: true,
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // bta unit tests for host
@@ -597,6 +604,7 @@ cc_test {
     sanitize: {
         cfi: false,
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 genrule {
@@ -746,6 +754,7 @@ cc_test {
         cfi: false,
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -843,6 +852,7 @@ cc_test {
         cfi: false,
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -944,6 +954,7 @@ cc_test {
             undefined: true,
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // health status unit tests for host
@@ -1048,6 +1059,7 @@ cc_test {
             undefined: true,
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -1117,6 +1129,7 @@ cc_test {
             undefined: true,
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -1178,6 +1191,7 @@ cc_test {
             undefined: true,
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -1251,4 +1265,5 @@ cc_test {
             undefined: true,
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }

@@ -73,8 +73,6 @@ cc_defaults {
         "-Wall",
         "-Werror",
         "-Wextra",
-        // there are too many unused parameters in all the code.
-        "-Wno-unused-parameter",
     ],
     c_std: "c99",
     cpp_std: "c++17",

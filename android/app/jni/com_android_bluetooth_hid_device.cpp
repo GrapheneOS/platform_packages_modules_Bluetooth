@@ -190,7 +190,7 @@ static void initNative(JNIEnv* env, jobject object) {
   ALOGV("%s done", __FUNCTION__);
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   ALOGV("%s enter", __FUNCTION__);
 
   if (sHiddIf != NULL) {
@@ -237,7 +237,7 @@ static void fill_qos(JNIEnv* env, jintArray in, bthd_qos_param_t* out) {
   free(buf);
 }
 
-static jboolean registerAppNative(JNIEnv* env, jobject thiz, jstring name,
+static jboolean registerAppNative(JNIEnv* env, jobject /* thiz */, jstring name,
                                   jstring description, jstring provider,
                                   jbyte subclass, jbyteArray descriptors,
                                   jintArray p_in_qos, jintArray p_out_qos) {
@@ -291,7 +291,7 @@ static jboolean registerAppNative(JNIEnv* env, jobject thiz, jstring name,
   return result;
 }
 
-static jboolean unregisterAppNative(JNIEnv* env, jobject thiz) {
+static jboolean unregisterAppNative(JNIEnv* /* env */, jobject /* thiz */) {
   ALOGV("%s enter", __FUNCTION__);
 
   jboolean result = JNI_FALSE;
@@ -314,7 +314,7 @@ static jboolean unregisterAppNative(JNIEnv* env, jobject thiz) {
   return result;
 }
 
-static jboolean sendReportNative(JNIEnv* env, jobject thiz, jint id,
+static jboolean sendReportNative(JNIEnv* env, jobject /* thiz */, jint id,
                                  jbyteArray data) {
   jboolean result = JNI_FALSE;
 
@@ -345,7 +345,7 @@ static jboolean sendReportNative(JNIEnv* env, jobject thiz, jint id,
   return result;
 }
 
-static jboolean replyReportNative(JNIEnv* env, jobject thiz, jbyte type,
+static jboolean replyReportNative(JNIEnv* env, jobject /* thiz */, jbyte type,
                                   jbyte id, jbyteArray data) {
   ALOGV("%s enter", __FUNCTION__);
 
@@ -382,7 +382,8 @@ static jboolean replyReportNative(JNIEnv* env, jobject thiz, jbyte type,
   return result;
 }
 
-static jboolean reportErrorNative(JNIEnv* env, jobject thiz, jbyte error) {
+static jboolean reportErrorNative(JNIEnv* /* env */, jobject /* thiz */,
+                                  jbyte error) {
   ALOGV("%s enter", __FUNCTION__);
 
   if (!sHiddIf) {
@@ -405,7 +406,7 @@ static jboolean reportErrorNative(JNIEnv* env, jobject thiz, jbyte error) {
   return result;
 }
 
-static jboolean unplugNative(JNIEnv* env, jobject thiz) {
+static jboolean unplugNative(JNIEnv* /* env */, jobject /* thiz */) {
   ALOGV("%s enter", __FUNCTION__);
 
   if (!sHiddIf) {
@@ -428,7 +429,8 @@ static jboolean unplugNative(JNIEnv* env, jobject thiz) {
   return result;
 }
 
-static jboolean connectNative(JNIEnv* env, jobject thiz, jbyteArray address) {
+static jboolean connectNative(JNIEnv* env, jobject /* thiz */,
+                              jbyteArray address) {
   ALOGV("%s enter", __FUNCTION__);
 
   if (!sHiddIf) {
@@ -457,7 +459,7 @@ static jboolean connectNative(JNIEnv* env, jobject thiz, jbyteArray address) {
   return result;
 }
 
-static jboolean disconnectNative(JNIEnv* env, jobject thiz) {
+static jboolean disconnectNative(JNIEnv* /* env */, jobject /* thiz */) {
   ALOGV("%s enter", __FUNCTION__);
 
   if (!sHiddIf) {

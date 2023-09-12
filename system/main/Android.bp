@@ -61,6 +61,7 @@ cc_library_static {
         "libbt_shim_bridge",
     ],
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_library {
@@ -146,6 +147,7 @@ cc_library_static {
     ],
     cflags: [
         "-DBUILDCFG",
+        "-Wno-unused-parameter",
     ],
     shared_libs: [
     ],
@@ -246,4 +248,5 @@ cc_test {
     ],
     min_sdk_version: "Tiramisu",
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
