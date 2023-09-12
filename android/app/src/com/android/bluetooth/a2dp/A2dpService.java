@@ -1286,6 +1286,16 @@ public class A2dpService extends ProfileService {
     }
 
     /**
+     * Retrieves the most recently connected device in the A2DP connected devices list.
+     */
+    public BluetoothDevice getFallbackDevice() {
+        DatabaseManager dbManager = mAdapterService.getDatabase();
+        return dbManager != null ? dbManager
+            .getMostRecentlyConnectedDevicesInList(getConnectedDevices())
+            : null;
+    }
+
+    /**
      * Binder object: must be a static class or memory leak may occur.
      */
     @VisibleForTesting
