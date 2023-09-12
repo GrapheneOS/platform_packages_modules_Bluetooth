@@ -4561,6 +4561,28 @@ public class GattService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "serverConnect() - address=" + address);
         }
+
+        int importance = mActivityManager.getUidImportance(attributionSource.getUid());
+        if (importance == IMPORTANCE_FOREGROUND_SERVICE) {
+            MetricsLogger.getInstance()
+                    .count(
+                            isDirect
+                                    ? BluetoothProtoEnums
+                                            .GATT_SERVER_CONNECT_IS_DIRECT_IN_FOREGROUND
+                                    : BluetoothProtoEnums
+                                            .GATT_SERVER_CONNECT_IS_AUTOCONNECT_IN_FOREGROUND,
+                            1);
+        } else {
+            MetricsLogger.getInstance()
+                    .count(
+                            isDirect
+                                    ? BluetoothProtoEnums
+                                            .GATT_SERVER_CONNECT_IS_DIRECT_NOT_IN_FOREGROUND
+                                    : BluetoothProtoEnums
+                                            .GATT_SERVER_CONNECT_IS_AUTOCONNECT_NOT_IN_FOREGROUND,
+                            1);
+        }
+
         mNativeInterface.gattServerConnect(serverIf, address, isDirect, transport);
     }
 
