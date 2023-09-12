@@ -33,7 +33,7 @@ PYBIND11_INCLUDE_DIR = os.path.join(ANDROID_BUILD_TOP, "external/python/pybind11
 GD_DIR = os.path.join(ANDROID_BUILD_TOP, "packages/modules/Bluetooth/system/gd")
 BT_PACKETS_GEN_DIR = os.path.join(
     ANDROID_BUILD_TOP,
-    "out/soong/.intermediates/packages/modules/Bluetooth/system/gd/BluetoothGeneratedPackets_h/gen")
+    "out/soong/.intermediates/packages/modules/Bluetooth/system/pdl/l2cap/BluetoothGeneratedPacketsL2cap_h/gen")
 BT_PACKETS_PY3_GEN_DIR = os.path.join(
     ANDROID_BUILD_TOP,
     "out/soong/.intermediates/packages/modules/Bluetooth/system/gd/BluetoothGeneratedPackets_python3_cc/gen")
