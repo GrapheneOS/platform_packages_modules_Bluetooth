@@ -16,8 +16,6 @@
 
 package android.bluetooth;
 
-import static android.bluetooth.Utils.factoryResetAndCreateNewChannel;
-
 import static com.google.common.truth.Truth.assertThat;
 
 import android.bluetooth.le.BluetoothLeScanner;
@@ -32,12 +30,11 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.google.protobuf.Empty;
+import io.grpc.stub.StreamObserver;
 
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -46,10 +43,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import io.grpc.ManagedChannel;
-import io.grpc.stub.StreamObserver;
-
-import pandora.HostGrpc;
 import pandora.HostProto;
 import pandora.HostProto.AdvertiseRequest;
 import pandora.HostProto.AdvertiseResponse;
@@ -59,11 +52,7 @@ public class LeScanningTest {
     private static final String TAG = "LeScanningTest";
     private static final int TIMEOUT_SCANNING_MS = 2000;
 
-    private static ManagedChannel mChannel;
-
-    private static HostGrpc.HostBlockingStub mHostBlockingStub;
-
-    private static HostGrpc.HostStub mHostStub;
+    @Rule public final PandoraDevice mBumble = new PandoraDevice();
 
     private final String TEST_UUID_STRING = "00001805-0000-1000-8000-00805f9b34fb";
 
@@ -72,22 +61,6 @@ public class LeScanningTest {
         InstrumentationRegistry.getInstrumentation()
                 .getUiAutomation()
                 .adoptShellPermissionIdentity();
-    }
-
-    @Before
-    public void setUp() throws Exception {
-        // Cleanup previous channels and create a new channel for all successive grpc calls
-        mChannel = factoryResetAndCreateNewChannel();
-
-        mHostBlockingStub = HostGrpc.newBlockingStub(mChannel);
-        mHostStub = HostGrpc.newStub(mChannel);
-        mHostBlockingStub.withWaitForReady().readLocalAddress(Empty.getDefaultInstance());
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        // terminate the channel
-        mChannel.shutdown().awaitTermination(1, TimeUnit.SECONDS);
     }
 
     @AfterClass
@@ -101,17 +74,17 @@ public class LeScanningTest {
     public void startBleScan_withCallbackTypeAllMatches() {
         advertiseWithBumble(TEST_UUID_STRING);
 
-        List<ScanResult> results = startScanning(TEST_UUID_STRING,
-                ScanSettings.CALLBACK_TYPE_ALL_MATCHES).join();
+        List<ScanResult> results =
+                startScanning(TEST_UUID_STRING, ScanSettings.CALLBACK_TYPE_ALL_MATCHES).join();
 
-        assertThat(results.get(0).getScanRecord().getServiceUuids().get(0)).isEqualTo(
-                ParcelUuid.fromString(TEST_UUID_STRING));
-        assertThat(results.get(1).getScanRecord().getServiceUuids().get(0)).isEqualTo(
-                ParcelUuid.fromString(TEST_UUID_STRING));
+        assertThat(results.get(0).getScanRecord().getServiceUuids().get(0))
+                .isEqualTo(ParcelUuid.fromString(TEST_UUID_STRING));
+        assertThat(results.get(1).getScanRecord().getServiceUuids().get(0))
+                .isEqualTo(ParcelUuid.fromString(TEST_UUID_STRING));
     }
 
-    private CompletableFuture<List<ScanResult>> startScanning(String serviceUuid,
-            int callbackType) {
+    private CompletableFuture<List<ScanResult>> startScanning(
+            String serviceUuid, int callbackType) {
         CompletableFuture<List<ScanResult>> future = new CompletableFuture<>();
         List<ScanResult> scanResults = new ArrayList<>();
 
@@ -129,17 +102,21 @@ public class LeScanningTest {
                         .build();
 
         List<ScanFilter> scanFilters = new ArrayList<>();
-        ScanFilter scanFilter = new ScanFilter.Builder()
-                .setServiceUuid(ParcelUuid.fromString(serviceUuid))
-                .build();
+        ScanFilter scanFilter =
+                new ScanFilter.Builder().setServiceUuid(ParcelUuid.fromString(serviceUuid)).build();
         scanFilters.add(scanFilter);
 
         ScanCallback scanCallback =
                 new ScanCallback() {
                     @Override
                     public void onScanResult(int callbackType, ScanResult result) {
-                        Log.i(TAG, "onScanResult " + "callbackType: " + callbackType
-                                + ", service uuids: " + result.getScanRecord().getServiceUuids());
+                        Log.i(
+                                TAG,
+                                "onScanResult "
+                                        + "callbackType: "
+                                        + callbackType
+                                        + ", service uuids: "
+                                        + result.getScanRecord().getServiceUuids());
                         if (scanResults.size() < 2) {
                             scanResults.add(result);
                         } else {
@@ -161,14 +138,13 @@ public class LeScanningTest {
     }
 
     private void advertiseWithBumble(String serviceUuid) {
-        HostProto.DataTypes dataType = HostProto.DataTypes.newBuilder()
-                .addCompleteServiceClassUuids128(serviceUuid)
-                .build();
+        HostProto.DataTypes dataType =
+                HostProto.DataTypes.newBuilder()
+                        .addCompleteServiceClassUuids128(serviceUuid)
+                        .build();
 
-        AdvertiseRequest request = AdvertiseRequest.newBuilder()
-                .setLegacy(true)
-                .setData(dataType)
-                .build();
+        AdvertiseRequest request =
+                AdvertiseRequest.newBuilder().setLegacy(true).setData(dataType).build();
 
         StreamObserver<AdvertiseResponse> responseObserver =
                 new StreamObserver<>() {
@@ -188,6 +164,6 @@ public class LeScanningTest {
                     }
                 };
 
-        mHostStub.advertise(request, responseObserver);
+        mBumble.host().advertise(request, responseObserver);
     }
 }
