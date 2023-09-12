@@ -347,7 +347,7 @@ static void initNative(JNIEnv* env, jobject object) {
   sHasClientInterface->Init(&sHasClientCallbacks);
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
 
@@ -368,7 +368,7 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static jboolean connectHapClientNative(JNIEnv* env, jobject object,
+static jboolean connectHapClientNative(JNIEnv* env, jobject /* object */,
                                        jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sHasClientInterface) {
@@ -388,7 +388,7 @@ static jboolean connectHapClientNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static jboolean disconnectHapClientNative(JNIEnv* env, jobject object,
+static jboolean disconnectHapClientNative(JNIEnv* env, jobject /* object */,
                                           jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sHasClientInterface) {
@@ -408,7 +408,7 @@ static jboolean disconnectHapClientNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static void selectActivePresetNative(JNIEnv* env, jobject object,
+static void selectActivePresetNative(JNIEnv* env, jobject /* object */,
                                      jbyteArray address, jint preset_index) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sHasClientInterface) {
@@ -427,8 +427,9 @@ static void selectActivePresetNative(JNIEnv* env, jobject object,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void groupSelectActivePresetNative(JNIEnv* env, jobject object,
-                                          jint group_id, jint preset_index) {
+static void groupSelectActivePresetNative(JNIEnv* /* env */,
+                                          jobject /* object */, jint group_id,
+                                          jint preset_index) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sHasClientInterface) {
     LOG(ERROR) << __func__ << ": Failed to get the Bluetooth HAP Interface";
@@ -438,7 +439,7 @@ static void groupSelectActivePresetNative(JNIEnv* env, jobject object,
   sHasClientInterface->SelectActivePreset(group_id, preset_index);
 }
 
-static void nextActivePresetNative(JNIEnv* env, jobject object,
+static void nextActivePresetNative(JNIEnv* env, jobject /* object */,
                                    jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sHasClientInterface) {
@@ -457,7 +458,7 @@ static void nextActivePresetNative(JNIEnv* env, jobject object,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void groupNextActivePresetNative(JNIEnv* env, jobject object,
+static void groupNextActivePresetNative(JNIEnv* /* env */, jobject /* object */,
                                         jint group_id) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sHasClientInterface) {
@@ -468,7 +469,7 @@ static void groupNextActivePresetNative(JNIEnv* env, jobject object,
   sHasClientInterface->NextActivePreset(group_id);
 }
 
-static void previousActivePresetNative(JNIEnv* env, jobject object,
+static void previousActivePresetNative(JNIEnv* env, jobject /* object */,
                                        jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sHasClientInterface) {
@@ -487,7 +488,8 @@ static void previousActivePresetNative(JNIEnv* env, jobject object,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void groupPreviousActivePresetNative(JNIEnv* env, jobject object,
+static void groupPreviousActivePresetNative(JNIEnv* /* env */,
+                                            jobject /* object */,
                                             jint group_id) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sHasClientInterface) {
@@ -498,8 +500,8 @@ static void groupPreviousActivePresetNative(JNIEnv* env, jobject object,
   sHasClientInterface->PreviousActivePreset(group_id);
 }
 
-static void getPresetInfoNative(JNIEnv* env, jobject object, jbyteArray address,
-                                jint preset_index) {
+static void getPresetInfoNative(JNIEnv* env, jobject /* object */,
+                                jbyteArray address, jint preset_index) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sHasClientInterface) {
     LOG(ERROR) << __func__ << ": Failed to get the Bluetooth HAP Interface";
@@ -517,8 +519,9 @@ static void getPresetInfoNative(JNIEnv* env, jobject object, jbyteArray address,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void setPresetNameNative(JNIEnv* env, jobject object, jbyteArray address,
-                                jint preset_index, jstring name) {
+static void setPresetNameNative(JNIEnv* env, jobject /* object */,
+                                jbyteArray address, jint preset_index,
+                                jstring name) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sHasClientInterface) {
     LOG(ERROR) << __func__ << ": Failed to get the Bluetooth HAP Interface";
@@ -544,8 +547,9 @@ static void setPresetNameNative(JNIEnv* env, jobject object, jbyteArray address,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void groupSetPresetNameNative(JNIEnv* env, jobject object, jint group_id,
-                                     jint preset_index, jstring name) {
+static void groupSetPresetNameNative(JNIEnv* env, jobject /* object */,
+                                     jint group_id, jint preset_index,
+                                     jstring name) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sHasClientInterface) {
     LOG(ERROR) << __func__ << ": Failed to get the Bluetooth HAP Interface";
