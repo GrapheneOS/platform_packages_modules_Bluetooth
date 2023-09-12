@@ -26,7 +26,7 @@
 #include "btcore/include/version.h"
 #include "types/raw_address.h"
 
-using LeRandCallback = base::Callback<void(uint64_t)>;
+using LeRandCallback = base::OnceCallback<void(uint64_t)>;
 
 typedef struct controller_t {
   bool (*get_is_ready)(void);

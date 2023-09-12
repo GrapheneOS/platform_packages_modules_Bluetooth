@@ -1820,7 +1820,7 @@ tBTM_STATUS BTM_DisconnectAllAcls(void);
  * Returns          Return btm status
  *
  ******************************************************************************/
-using LeRandCallback = base::Callback<void(uint64_t)>;
+using LeRandCallback = base::OnceCallback<void(uint64_t)>;
 tBTM_STATUS BTM_LeRand(LeRandCallback);
 
 /*******************************************************************************
