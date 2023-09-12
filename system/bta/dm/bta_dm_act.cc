@@ -4521,7 +4521,7 @@ void bta_dm_disconnect_all_acls(void) {
  ******************************************************************************/
 void bta_dm_le_rand(LeRandCallback cb) {
   VLOG(1) << "bta_dm_le_rand in bta_dm_act";
-  bluetooth::shim::BTM_LeRand(cb);
+  bluetooth::shim::BTM_LeRand(std::move(cb));
 }
 
 /*******************************************************************************
