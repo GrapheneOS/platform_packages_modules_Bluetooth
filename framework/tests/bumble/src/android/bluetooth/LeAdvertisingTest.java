@@ -16,7 +16,6 @@
 
 package android.bluetooth;
 
-import static android.bluetooth.Utils.factoryResetAndCreateNewChannel;
 import static com.google.common.truth.Truth.assertThat;
 
 import android.bluetooth.le.AdvertiseData;
@@ -31,61 +30,35 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.google.protobuf.Empty;
-
 import io.grpc.Context.CancellableContext;
 import io.grpc.Deadline;
-import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import pandora.HostGrpc;
 import pandora.HostProto.ScanRequest;
 import pandora.HostProto.ScanningResponse;
 
 /** Test cases for {@link AdvertiseManager}. */
 @RunWith(AndroidJUnit4.class)
 public class LeAdvertisingTest {
-
     private static final String TAG = "LeAdvertisingTest";
 
     private static final int TIMEOUT_ADVERTISING_MS = 1000;
 
-    private static ManagedChannel mChannel;
-
-    private static HostGrpc.HostBlockingStub mHostBlockingStub;
-
-    private static HostGrpc.HostStub mHostStub;
+    @Rule public final PandoraDevice mBumble = new PandoraDevice();
 
     @BeforeClass
     public static void setUpClass() throws Exception {
         InstrumentationRegistry.getInstrumentation()
                 .getUiAutomation()
                 .adoptShellPermissionIdentity();
-    }
-
-    @Before
-    public void setUp() throws Exception {
-        // Cleanup previous channels and create a new channel for all successive grpc calls
-        mChannel = factoryResetAndCreateNewChannel();
-
-        mHostBlockingStub = HostGrpc.newBlockingStub(mChannel);
-        mHostStub = HostGrpc.newStub(mChannel);
-        mHostBlockingStub.withWaitForReady().readLocalAddress(Empty.getDefaultInstance());
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        // terminate the channel
-        mChannel.shutdown().awaitTermination(1, TimeUnit.SECONDS);
     }
 
     @Test
@@ -202,7 +175,7 @@ public class LeAdvertisingTest {
 
         Deadline initialDeadline = Deadline.after(TIMEOUT_ADVERTISING_MS, TimeUnit.MILLISECONDS);
         withCancellation.run(
-                () -> mHostStub.withDeadline(initialDeadline).scan(request, responseObserver));
+                () -> mBumble.host().withDeadline(initialDeadline).scan(request, responseObserver));
 
         return future.whenComplete(
                 (input, exception) -> {

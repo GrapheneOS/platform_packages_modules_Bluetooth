@@ -16,7 +16,6 @@
 
 package android.bluetooth;
 
-import static android.bluetooth.Utils.factoryResetAndCreateNewChannel;
 import static com.google.common.truth.Truth.assertThat;
 
 import android.bluetooth.le.BluetoothLeScanner;
@@ -31,15 +30,11 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.google.protobuf.Empty;
-
-import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -48,7 +43,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import pandora.HostGrpc;
 import pandora.HostProto;
 import pandora.HostProto.AdvertiseRequest;
 import pandora.HostProto.AdvertiseResponse;
@@ -58,11 +52,7 @@ public class LeScanningTest {
     private static final String TAG = "LeScanningTest";
     private static final int TIMEOUT_SCANNING_MS = 2000;
 
-    private static ManagedChannel mChannel;
-
-    private static HostGrpc.HostBlockingStub mHostBlockingStub;
-
-    private static HostGrpc.HostStub mHostStub;
+    @Rule public final PandoraDevice mBumble = new PandoraDevice();
 
     private final String TEST_UUID_STRING = "00001805-0000-1000-8000-00805f9b34fb";
 
@@ -71,22 +61,6 @@ public class LeScanningTest {
         InstrumentationRegistry.getInstrumentation()
                 .getUiAutomation()
                 .adoptShellPermissionIdentity();
-    }
-
-    @Before
-    public void setUp() throws Exception {
-        // Cleanup previous channels and create a new channel for all successive grpc calls
-        mChannel = factoryResetAndCreateNewChannel();
-
-        mHostBlockingStub = HostGrpc.newBlockingStub(mChannel);
-        mHostStub = HostGrpc.newStub(mChannel);
-        mHostBlockingStub.withWaitForReady().readLocalAddress(Empty.getDefaultInstance());
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        // terminate the channel
-        mChannel.shutdown().awaitTermination(1, TimeUnit.SECONDS);
     }
 
     @AfterClass
@@ -190,6 +164,6 @@ public class LeScanningTest {
                     }
                 };
 
-        mHostStub.advertise(request, responseObserver);
+        mBumble.host().advertise(request, responseObserver);
     }
 }
