@@ -310,7 +310,6 @@ impl ISuspend for Suspend {
 
             suspend_state.lock().unwrap().le_rand_expected = false;
             suspend_state.lock().unwrap().suspend_expected = false;
-            suspend_state.lock().unwrap().suspend_id = None;
             tokio::spawn(async move {
                 let _result = tx.send(Message::SuspendReady(suspend_id)).await;
             });
