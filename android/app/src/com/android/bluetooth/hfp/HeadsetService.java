@@ -1339,12 +1339,12 @@ public class HeadsetService extends ProfileService {
      * Remove the active device
      */
     private void removeActiveDevice() {
-        BluetoothDevice fallbackDevice = mActiveDeviceManager.getHfpFallbackDevice();
         synchronized (mStateMachines) {
             // As per b/202602952, if we remove the active device due to a disconnection,
             // we need to check if another device is connected and set it active instead.
             // Calling this before any other active related calls has the same effect as
             // a classic active device switch.
+            BluetoothDevice fallbackDevice = mActiveDeviceManager.getHfpFallbackDevice();
             if (fallbackDevice != null && mActiveDevice != null
                     && getConnectionState(mActiveDevice) != BluetoothProfile.STATE_CONNECTED) {
                 setActiveDevice(fallbackDevice);
