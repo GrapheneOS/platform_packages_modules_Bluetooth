@@ -21,7 +21,7 @@
 namespace bluetooth {
 namespace hci {
 
-using LeRandCallback = common::Callback<void(uint64_t)>;
+using LeRandCallback = common::OnceCallback<void(uint64_t)>;
 
 }  // namespace hci
 }  // namespace bluetooth

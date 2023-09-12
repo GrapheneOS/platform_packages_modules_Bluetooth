@@ -4060,7 +4060,7 @@ void btif_dm_disconnect_all_acls() {
 
 void btif_dm_le_rand(LeRandCallback callback) {
   LOG_VERBOSE("%s: called", __func__);
-  BTA_DmLeRand(callback);
+  BTA_DmLeRand(std::move(callback));
 }
 
 void btif_dm_set_event_filter_connection_setup_all_devices() {
