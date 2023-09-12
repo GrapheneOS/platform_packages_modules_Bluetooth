@@ -125,9 +125,9 @@ cc_library_static {
     ],
     export_include_dirs: ["."],
     static_libs: [
+        "libbluetooth_hci_pdl",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
-
         "libchrome",
         "libflatbuffers-cpp",
     ],
@@ -137,7 +137,6 @@ cc_library_static {
 
         "BluetoothGeneratedBundlerSchema_h_bfbs",
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     export_generated_headers: [
         "libbluetooth_core_rs_bridge_codegen_header",
