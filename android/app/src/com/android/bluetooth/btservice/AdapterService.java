@@ -66,7 +66,6 @@ import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothActivityEnergyInfoListener;
 import android.bluetooth.IBluetoothCallback;
 import android.bluetooth.IBluetoothConnectionCallback;
-import android.bluetooth.IBluetoothGatt;
 import android.bluetooth.IBluetoothMetadataListener;
 import android.bluetooth.IBluetoothOobDataCallback;
 import android.bluetooth.IBluetoothPreferredAudioProfilesCallback;
@@ -5179,7 +5178,15 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public IBluetoothGatt getBluetoothGatt() {
+        public void getBluetoothGatt(SynchronousResultReceiver receiver) {
+            try {
+                receiver.send(getBluetoothGatt());
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        private IBinder getBluetoothGatt() {
             AdapterService service = getService();
             if (service == null) {
                 return null;
@@ -6841,11 +6848,11 @@ public class AdapterService extends Service {
         return BluetoothStatusCodes.FEATURE_NOT_SUPPORTED;
     }
 
-    IBluetoothGatt getBluetoothGatt() {
+    IBinder getBluetoothGatt() {
         if (mGattService == null) {
             return null;
         }
-        return IBluetoothGatt.Stub.asInterface(((ProfileService) mGattService).getBinder());
+        return ((ProfileService) mGattService).getBinder();
     }
 
     void unregAllGattClient(AttributionSource source) {
