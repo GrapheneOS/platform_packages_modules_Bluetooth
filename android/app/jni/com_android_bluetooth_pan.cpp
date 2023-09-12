@@ -143,7 +143,7 @@ static void initializeNative(JNIEnv* env, jobject object) {
   }
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   debug("Cleanup pan");
   if (!btIf) return;
 
@@ -161,7 +161,7 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   btIf = NULL;
 }
 
-static jboolean connectPanNative(JNIEnv* env, jobject object,
+static jboolean connectPanNative(JNIEnv* env, jobject /* object */,
                                  jbyteArray address, jint src_role,
                                  jint dest_role) {
   debug("Connect pan");
@@ -184,7 +184,7 @@ static jboolean connectPanNative(JNIEnv* env, jobject object,
   return ret;
 }
 
-static jboolean disconnectPanNative(JNIEnv* env, jobject object,
+static jboolean disconnectPanNative(JNIEnv* env, jobject /* object */,
                                     jbyteArray address) {
   debug("Disconnects pan");
   if (!sPanIf) return JNI_FALSE;

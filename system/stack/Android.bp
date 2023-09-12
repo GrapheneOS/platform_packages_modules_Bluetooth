@@ -154,6 +154,7 @@ cc_library_static {
     ],
     host_supported: true,
     min_sdk_version: "Tiramisu",
+    cflags: ["-Wno-unused-parameter"],
 }
 
 filegroup {
@@ -285,6 +286,7 @@ cc_library_static {
         "BluetoothGeneratedPackets_h",
     ],
     cflags: [
+        "-Wno-unused-parameter",
         /* we export all classes, so change default visibility, instead of having EXPORT_SYMBOL on each class*/
         "-fvisibility=default",
     ],
@@ -793,6 +795,7 @@ cc_test {
         cfi: false,
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // Bluetooth stack smp unit tests for target
@@ -863,6 +866,7 @@ cc_test {
         "libosi",
     ],
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // Bluetooth stack advertise data parsing unit tests for target
@@ -936,6 +940,7 @@ cc_test {
         cfi: false,
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -1000,6 +1005,7 @@ cc_test {
         misc_undefined: ["bounds"],
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -1067,6 +1073,7 @@ cc_test {
         misc_undefined: ["bounds"],
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -1078,6 +1085,7 @@ cc_test {
     ],
     cflags: [
         "-DUNIT_TESTS",
+        "-Wno-unused-parameter",
     ],
     test_suites: ["device-tests"],
     host_supported: true,
@@ -1224,6 +1232,7 @@ cc_test {
         misc_undefined: ["bounds"],
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // gatt sr hash test
@@ -1287,6 +1296,7 @@ cc_test {
         },
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // Iso manager unit tests
@@ -1339,6 +1349,7 @@ cc_test {
         },
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // EATT unit tests
@@ -1406,6 +1417,7 @@ cc_test {
         cfi: false,
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -1534,6 +1546,7 @@ cc_test {
         },
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -1649,6 +1662,7 @@ cc_test {
         },
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -1720,6 +1734,7 @@ cc_test {
         },
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -1814,6 +1829,7 @@ cc_test {
         },
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -1904,6 +1920,7 @@ cc_test {
         },
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -1990,6 +2007,7 @@ cc_test {
         },
     },
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // Bluetooth stack connection multiplexing
@@ -2040,4 +2058,5 @@ cc_test {
         "liblog",
     ],
     header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
