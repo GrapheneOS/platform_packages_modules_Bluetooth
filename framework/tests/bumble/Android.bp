@@ -34,9 +34,6 @@ android_test_helper_app {
     srcs: ["src/**/*.java"],
 
     platform_apis: true,
-    test_suites: [
-        "general-tests",
-    ],
 }
 
 // This empty test host is needed for building required host binary
