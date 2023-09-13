@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <base/logging.h>
+
 #include <variant>
 
 #include "bta/le_audio/audio_hal_client/audio_hal_client.h"
