@@ -598,7 +598,7 @@ class LeAudioLtvMap {
   std::map<uint8_t, std::vector<uint8_t>> values;
 };
 
-struct LeAudioLc3Config {
+struct LeAudioCoreCodecConfig {
   static const std::map<uint8_t, uint32_t> sampling_freq_map;
   static const std::map<uint8_t, uint32_t> frame_duration_map;
 
@@ -739,7 +739,7 @@ struct ase {
 
   /* Codec configuration */
   LeAudioCodecId codec_id;
-  LeAudioLc3Config codec_config;
+  LeAudioCoreCodecConfig codec_config;
   uint8_t framing;
   uint8_t preferred_phy;
 
@@ -776,7 +776,8 @@ using AudioLocations = std::bitset<32>;
 
 std::ostream& operator<<(std::ostream& os, const AseState& state);
 std::ostream& operator<<(std::ostream& os, const CigState& state);
-std::ostream& operator<<(std::ostream& os, const LeAudioLc3Config& config);
+std::ostream& operator<<(std::ostream& os,
+                         const LeAudioCoreCodecConfig& config);
 std::string contextTypeToStr(const LeAudioContextType& context);
 std::ostream& operator<<(std::ostream& os, const LeAudioContextType& context);
 std::ostream& operator<<(std::ostream& os, const DataPathState& state);
@@ -790,7 +791,7 @@ struct CodecCapabilitySetting {
   types::LeAudioCodecId id;
 
   /* Codec Specific Configuration variant */
-  std::variant<types::LeAudioLc3Config> config;
+  std::variant<types::LeAudioCoreCodecConfig> config;
 
   /* Sampling freqency requested for codec */
   uint32_t GetConfigSamplingFrequency() const;

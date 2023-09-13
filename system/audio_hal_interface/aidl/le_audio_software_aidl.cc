@@ -45,7 +45,7 @@ using ::bluetooth::audio::le_audio::LeAudioClientInterface;
 using ::bluetooth::audio::le_audio::StartRequestState;
 using ::bluetooth::audio::le_audio::StreamCallbacks;
 using ::le_audio::set_configurations::SetConfiguration;
-using ::le_audio::types::LeAudioLc3Config;
+using ::le_audio::types::LeAudioCoreCodecConfig;
 
 static ChannelMode le_audio_channel_mode2audio_hal(uint8_t channels_count) {
   switch (channels_count) {
@@ -502,7 +502,7 @@ bool hal_ucast_capability_to_stack_format(
 
   stack_capability = {
       .id = ::le_audio::set_configurations::LeAudioCodecIdLc3,
-      .config = LeAudioLc3Config(
+      .config = LeAudioCoreCodecConfig(
           {.sampling_frequency = sampling_freq_map[sample_rate_hz],
            .frame_duration = frame_duration_map[frame_duration_us],
            .audio_channel_allocation = audio_location_map[supported_channel],
@@ -556,7 +556,7 @@ bool hal_bcast_capability_to_stack_format(
 
   stack_capability = {
       .id = ::le_audio::set_configurations::LeAudioCodecIdLc3,
-      .config = LeAudioLc3Config(
+      .config = LeAudioCoreCodecConfig(
           {.sampling_frequency = sampling_freq_map[sample_rate_hz],
            .frame_duration = frame_duration_map[frame_duration_us],
            .audio_channel_allocation = audio_location_map[supported_channel],

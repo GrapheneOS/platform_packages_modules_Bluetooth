@@ -211,7 +211,7 @@ struct AudioSetConfigurationProviderJson {
         .vendor_codec_id = flat_codec_id->vendor_codec_id(),
     });
 
-    /* Cache the types::LeAudioLc3Config type value */
+    /* Cache the types::LeAudioCoreCodecConfig type value */
     uint8_t sampling_frequency = 0;
     uint8_t frame_duration = 0;
     uint32_t audio_channel_allocation = 0;
@@ -278,7 +278,7 @@ struct AudioSetConfigurationProviderJson {
       STREAM_TO_UINT8(codec_frames_blocks_per_sdu, ptr);
     }
 
-    codec.config = types::LeAudioLc3Config({
+    codec.config = types::LeAudioCoreCodecConfig({
         .sampling_frequency = sampling_frequency,
         .frame_duration = frame_duration,
         .audio_channel_allocation = audio_channel_allocation,
