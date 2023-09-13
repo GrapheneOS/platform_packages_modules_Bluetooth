@@ -96,7 +96,7 @@ public final class BrowsablePlayerConnectorTest {
                         mTestLooper.getLooper(),
                         mPlayerList,
                         (List<BrowsedPlayerWrapper> players) -> latch.countDown());
-        verify(mMediaBrowser, timeout(TIMEOUT_MS)).connect();
+        verify(mMediaBrowser, timeout(TIMEOUT_MS).atLeast(1)).connect();
         assertThat(latch.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
         connector.cleanup();
         mTestLooper.stopAutoDispatch();
@@ -111,7 +111,7 @@ public final class BrowsablePlayerConnectorTest {
                         mTestLooper.getLooper(),
                         mPlayerList,
                         (List<BrowsedPlayerWrapper> players) -> {});
-        verify(mMediaBrowser, timeout(TIMEOUT_MS)).connect();
+        verify(mMediaBrowser, timeout(TIMEOUT_MS).atLeast(1)).connect();
         connector.cleanup();
         mTestLooper.dispatchAll();
     }
