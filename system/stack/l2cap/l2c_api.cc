@@ -35,10 +35,11 @@
 #include "device/include/controller.h"  // TODO Remove
 #include "gd/common/init_flags.h"
 #include "gd/hal/snoop_logger.h"
-#include "gd/os/metrics.h"
 #include "gd/os/system_properties.h"
-#include "main/shim/metrics_api.h"
+#include "gd/os/metrics.h"
+#include "hci/include/btsnoop.h"
 #include "main/shim/shim.h"
+#include "main/shim/metrics_api.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/btm/btm_sec.h"
