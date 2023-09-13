@@ -44,6 +44,9 @@ pkg_config("target_defaults") {
   } else {
     pkg_deps += [ "protobuf-lite" ]
   }
+  if (!(defined(use.bt_nonstandard_codecs) && use.bt_nonstandard_codecs)) {
+    defines = [ "EXCLUDE_NONSTANDARD_CODECS" ]
+  }
 }
 
 install_config("install_dbus_config") {
@@ -81,6 +84,9 @@ source_set("libmmc") {
     "//bt/system/stack/mmc/proto:mmc_service_proto",
     "//bt/system/stack/mmc/codec_server:libcodec_server_hfp_lc3",
   ]
+  if (defined(use.bt_nonstandard_codecs) && use.bt_nonstandard_codecs) {
+    deps += [ "//bt/system/stack/mmc/codec_server:libcodec_server_a2dp_aac" ]
+  }
 }
 
 executable("mmc_service") {
