@@ -275,6 +275,13 @@ class AdapterProperties {
     public void cleanup() {
         mRemoteDevices = null;
         mProfileConnectionState.clear();
+
+        // Unregister Handler and stop all queued messages.
+        if (mHandler != null) {
+            mHandler.removeCallbacksAndMessages(null);
+            mHandler = null;
+        }
+
         if (mReceiverRegistered) {
             mService.unregisterReceiver(mReceiver);
             mReceiverRegistered = false;
