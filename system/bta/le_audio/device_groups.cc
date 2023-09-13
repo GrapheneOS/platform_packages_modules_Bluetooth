@@ -1949,7 +1949,7 @@ void LeAudioDeviceGroup::Dump(int fd, int active_group_id) const {
          << "      stream configuration: "
          << (stream_conf.conf != nullptr ? stream_conf.conf->name : " unknown ")
          << "\n"
-         << "      codec id: " << +(stream_conf.id.coding_format)
+         << "      codec id: " << +(stream_conf.codec_id.coding_format)
          << ",\tpending_configuration: " << stream_conf.pending_configuration
          << "\n"
          << "      num of devices(connected): " << Size() << "("

@@ -898,17 +898,17 @@ struct stream_parameters {
 };
 
 struct stream_configuration {
+  /* Whether the group should be reconfigured once the streaming stops */
   bool pending_configuration;
 
-  types::LeAudioCodecId id;
-
-  /* Pointer to chosen req */
+  /* Currently selected remote device set configuration */
   const le_audio::set_configurations::AudioSetConfiguration* conf;
 
-  /* Sink & Source configuration */
-  types::BidirectionalPair<stream_parameters> stream_params;
+  /* Currently selected local audio codec */
+  types::LeAudioCodecId codec_id;
 
-  bool is_active;
+  /* Currently selected local Sink & Source configuration */
+  types::BidirectionalPair<stream_parameters> stream_params;
 };
 
 void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
