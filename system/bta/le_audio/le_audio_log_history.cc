@@ -17,6 +17,7 @@
 #include "le_audio_log_history.h"
 
 #include <base/logging.h>
+#include <check.h>
 
 #include <cstdint>
 #include <memory>

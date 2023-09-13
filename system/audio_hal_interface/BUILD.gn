@@ -18,6 +18,7 @@ static_library("audio_hal_interface") {
   sources = [
     "a2dp_encoding_host.cc",
     "hearing_aid_software_encoding_host.cc",
+    "le_audio_software_host.cc",
   ]
 
   include_dirs = [
