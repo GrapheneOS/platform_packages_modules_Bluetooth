@@ -18,6 +18,7 @@
 
 #include "codec_interface.h"
 
+#include <base/logging.h>
 #include <lc3.h>
 
 #include <memory>
