@@ -26,6 +26,7 @@ static_library("crypto_toolbox") {
   configs += [ "//bt/system:target_defaults" ]
 }
 
+# Nonstandard codecs are associated with 3P libs and must be contained in MMC
 source_set("nonstandard_codecs") {
   if (defined(use.bt_nonstandard_codecs) && use.bt_nonstandard_codecs) {
     sources = [
@@ -44,19 +45,16 @@ source_set("nonstandard_codecs") {
       "//bt/system",
       "//bt/system/bta/include",
       "//bt/system/btif/include",
+      "//bt/system/include",
       "//bt/system/internal_include",
+      "//bt/system/stack",
       "//bt/system/stack/include",
       "//bt/system/utils/include",
     ]
 
-    deps = [ "//bt/system/gd/rust/shim:init_flags_bridge_header" ]
-
-    # b/289017207: external codec libs should not be directly linked
-    libs = [
-      # Following are for AAC using FFmpeg
-      "avcodec",
-      "avformat",
-      "avutil",
+    deps = [
+      "//bt/system/gd/rust/shim:init_flags_bridge_header",
+      "//bt/system/stack/mmc",
     ]
 
     configs += [

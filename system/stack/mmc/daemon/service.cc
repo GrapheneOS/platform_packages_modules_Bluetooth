@@ -40,6 +40,10 @@
 #include "mmc/mmc_interface/mmc_interface.h"
 #include "mmc/proto/mmc_service.pb.h"
 
+#if !defined(EXCLUDE_NONSTANDARD_CODECS)
+#include "mmc/codec_server/a2dp_aac_mmc_encoder.h"
+#endif
+
 namespace mmc {
 namespace {
 // Task that would run on the thread.
@@ -185,7 +189,13 @@ void Service::CodecInit(dbus::MethodCall* method_call,
     codec_server = std::make_unique<HfpLc3Decoder>();
   } else if (request.config().has_hfp_lc3_encoder_param()) {
     codec_server = std::make_unique<HfpLc3Encoder>();
-  } else {
+  }
+#if !defined(EXCLUDE_NONSTANDARD_CODECS)
+  else if (request.config().has_a2dp_aac_encoder_param()) {
+    codec_server = std::make_unique<A2dpAacEncoder>();
+  }
+#endif
+  else {
     std::move(sender).Run(dbus::ErrorResponse::FromMethodCall(
         method_call, kMmcServiceError, "Codec type must be specified"));
     return;

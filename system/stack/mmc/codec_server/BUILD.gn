@@ -14,6 +14,31 @@
 #  limitations under the License.
 #
 
+source_set("libcodec_server_a2dp_aac") {
+  configs += [
+    "//bt/system:target_defaults",
+    "//bt/system/stack/mmc:target_defaults",
+  ]
+  include_dirs = [
+    "//bt/system",
+    "//bt/system/include",
+    "//bt/system/internal_include",
+    "//bt/system/stack",
+    "//bt/system/stack/include",
+  ]
+  deps = [
+    "//bt/system/gd/rust/shim:init_flags_bridge_header",
+    "//bt/system/stack/mmc/proto:mmc_config_proto",
+  ]
+  sources = [ "a2dp_aac_mmc_encoder.cc" ]
+  libs = [
+    # Following are for AAC using FFmpeg
+    "avcodec",
+    "avformat",
+    "avutil",
+  ]
+}
+
 source_set("libcodec_server_hfp_lc3"){
   configs += [ "//bt/system/stack/mmc:target_defaults" ]
   include_dirs = [
