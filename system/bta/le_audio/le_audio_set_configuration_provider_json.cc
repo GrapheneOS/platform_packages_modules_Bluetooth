@@ -15,6 +15,8 @@
  *
  */
 
+#include <base/logging.h>
+
 #include <mutex>
 #include <string>
 #include <string_view>
@@ -55,6 +57,17 @@ static const std::vector<
                              "le_audio/audio_set_scenarios.bfbs",
                              "/apex/com.android.btservices/etc/bluetooth/"
                              "le_audio/audio_set_scenarios.json"}};
+#elif defined(TARGET_FLOSS)
+static const std::vector<
+    std::pair<const char* /*schema*/, const char* /*content*/>>
+    kLeAudioSetConfigs = {
+        {"/etc/bluetooth/le_audio/audio_set_configurations.bfbs",
+         "/etc/bluetooth/le_audio/audio_set_configurations.json"}};
+static const std::vector<
+    std::pair<const char* /*schema*/, const char* /*content*/>>
+    kLeAudioSetScenarios = {
+        {"/etc/bluetooth/le_audio/audio_set_scenarios.bfbs",
+         "/etc/bluetooth/le_audio/audio_set_scenarios.json"}};
 #else
 static const std::vector<
     std::pair<const char* /*schema*/, const char* /*content*/>>

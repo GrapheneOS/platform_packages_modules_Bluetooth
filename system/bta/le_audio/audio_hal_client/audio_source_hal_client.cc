@@ -18,6 +18,8 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
+
 #include "audio_hal_client.h"
 #include "audio_hal_interface/le_audio_software.h"
 #include "bta/le_audio/codec_manager.h"
