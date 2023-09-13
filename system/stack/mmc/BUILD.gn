@@ -27,6 +27,12 @@ group("mmc") {
     "//bt/system/stack/mmc/codec_client:libcodec_client",
     "//bt/system/stack/mmc/proto:mmc_config_proto",
   ]
+  if (use.test) {
+    deps += [
+      ":hfp_lc3_mmc_encoder_test",
+      ":hfp_lc3_mmc_decoder_test",
+    ]
+  }
 }
 
 pkg_config("target_defaults") {
@@ -93,4 +99,50 @@ executable("mmc_service") {
   configs += [ ":target_defaults" ]
   deps = [ ":libmmc" ]
   sources = [ "main.cc" ]
+}
+
+if (use.test) {
+  executable("hfp_lc3_mmc_encoder_test") {
+    sources = [
+      "codec_server/hfp_lc3_mmc_encoder.cc",
+      "test/hfp_lc3_mmc_encoder_test.cc",
+      "test/mock/mock_embdrv_lc3.cc",
+      "//bt/system/test/mock/mock_osi_allocator.cc",
+      "//bt/system/test/common/mock_functions.cc",
+    ]
+    include_dirs = [
+      "//bt/system/gd",
+    ]
+    configs += [
+      ":target_defaults",
+      "//bt/system:external_gtest_main",
+    ]
+    deps = [
+      "//bt/system/stack/mmc/proto:mmc_config_proto",
+      "//bt/system/common",
+      "//bt/system/osi",
+    ]
+  }
+
+  executable("hfp_lc3_mmc_decoder_test") {
+    sources = [
+      "codec_server/hfp_lc3_mmc_decoder.cc",
+      "test/hfp_lc3_mmc_decoder_test.cc",
+      "test/mock/mock_embdrv_lc3.cc",
+      "//bt/system/test/mock/mock_osi_allocator.cc",
+      "//bt/system/test/common/mock_functions.cc",
+    ]
+    include_dirs = [
+      "//bt/system/gd",
+    ]
+    configs += [
+      ":target_defaults",
+      "//bt/system:external_gtest_main",
+    ]
+    deps = [
+      "//bt/system/stack/mmc/proto:mmc_config_proto",
+      "//bt/system/common",
+      "//bt/system/osi",
+    ]
+  }
 }

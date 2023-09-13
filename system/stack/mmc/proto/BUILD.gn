@@ -23,6 +23,11 @@ proto_library("mmc_config_proto") {
     "${proto_in_dir}/mmc_config.proto",
   ]
   standalone=true
+  if (use.test) {
+    # Override optimize_for option in proto file.
+    gen_cpp_mode = "speed"
+    all_dependent_pkg_deps = [ "protobuf" ]
+  }
 }
 
 proto_library("mmc_service_proto") {
@@ -33,4 +38,9 @@ proto_library("mmc_service_proto") {
   ]
   deps = [ ":mmc_config_proto" ]
   standalone=true
+  if (use.test) {
+    # Override optimize_for option in proto file.
+    gen_cpp_mode = "speed"
+    all_dependent_pkg_deps = [ "protobuf" ]
+  }
 }
