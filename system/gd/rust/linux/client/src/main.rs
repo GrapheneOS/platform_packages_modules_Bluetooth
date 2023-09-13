@@ -297,6 +297,13 @@ impl ClientContext {
 
         result
     }
+
+    fn get_floss_api_version(&mut self) -> (u32, u32) {
+        let ver = self.manager_dbus.get_floss_api_version();
+        let major = (ver & 0xFFFF_0000) >> 16;
+        let minor = ver & 0x0000_FFFF;
+        (major, minor)
+    }
 }
 
 /// Actions to take on the foreground loop. This allows us to queue actions in
