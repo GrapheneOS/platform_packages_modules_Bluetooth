@@ -190,11 +190,15 @@ public class RemoteDevices {
             if (mDevices != null) {
                 debugLog("reset(): Broadcasting ACL_DISCONNECTED");
 
-                mDevices.forEach((address, deviceProperties) -> {
-                    BluetoothDevice bluetoothDevice = deviceProperties.getDevice();
+                mDevices.forEach(
+                        (address, deviceProperties) -> {
+                            BluetoothDevice bluetoothDevice = deviceProperties.getDevice();
 
-                    debugLog("reset(): address=" + address + ", connected="
-                            + bluetoothDevice.isConnected());
+                            debugLog(
+                                    "reset(): address="
+                                            + address
+                                            + ", connected="
+                                            + bluetoothDevice.isConnected());
 
                     if (bluetoothDevice.isConnected()) {
                         int transport = deviceProperties.getConnectionHandle(

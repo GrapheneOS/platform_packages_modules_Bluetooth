@@ -92,6 +92,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
+import android.os.Parcelable;
 import android.os.PowerManager;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
@@ -6980,6 +6981,20 @@ public class AdapterService extends Service {
         mSilenceDeviceManager.profileActiveDeviceChanged(profile, device);
         if (mPhonePolicy != null) {
             mPhonePolicy.profileActiveDeviceChanged(profile, device);
+        }
+    }
+
+    /** Notify MAP and Pbap when a new sdp search record is found. */
+    public void sendSdpSearchRecord(
+            BluetoothDevice device, int status, Parcelable record, ParcelUuid uuid) {
+        if (mMapService != null && mMapService.isAvailable()) {
+            mMapService.receiveSdpSearchRecord(status, record, uuid);
+        }
+        if (mMapClientService != null && mMapClientService.isAvailable()) {
+            mMapClientService.receiveSdpSearchRecord(device, status, record, uuid);
+        }
+        if (mPbapClientService != null && mPbapClientService.isAvailable()) {
+            mPbapClientService.receiveSdpSearchRecord(device, status, record, uuid);
         }
     }
 

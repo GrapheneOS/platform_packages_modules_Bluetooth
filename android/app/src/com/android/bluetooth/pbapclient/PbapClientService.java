@@ -21,6 +21,7 @@ import android.accounts.AccountManager;
 import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothPbapClient;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
@@ -30,6 +31,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.ParcelUuid;
+import android.os.Parcelable;
 import android.provider.CallLog;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
@@ -90,6 +93,7 @@ public class PbapClientService extends ProfileService {
      */
     // TODO(233361365): Remove this pattern when the framework solves their race condition
     private static final int ACCOUNT_VISIBILITY_CHECK_MS = 500;
+
     private static final int ACCOUNT_VISIBILITY_CHECK_TRIES_MAX = 6;
     private int mAccountVisibilityCheckTries = 0;
     private final Handler mAuthServiceHandler = new Handler();
@@ -131,8 +135,10 @@ public class PbapClientService extends ProfileService {
             Log.v(TAG, "onStart");
         }
 
-        mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
-                "DatabaseManager cannot be null when PbapClientService starts");
+        mDatabaseManager =
+                Objects.requireNonNull(
+                        AdapterService.getAdapterService().getDatabase(),
+                        "DatabaseManager cannot be null when PbapClientService starts");
 
         setComponentAvailable(AUTHENTICATOR_SERVICE, true);
 
@@ -294,7 +300,6 @@ public class PbapClientService extends ProfileService {
             Log.e(TAG, "cleanUpSdpRecord, removeSdpRecord failed, sdpHandle=" + sdpHandle);
         }
     }
-
 
     @VisibleForTesting
     class PbapBroadcastReceiver extends BroadcastReceiver {
@@ -579,6 +584,24 @@ public class PbapClientService extends ProfileService {
             }
         }
         return deviceList;
+    }
+
+    public void receiveSdpSearchRecord(
+            BluetoothDevice device, int status, Parcelable record, ParcelUuid uuid) {
+        PbapClientStateMachine stateMachine = mPbapClientStateMachineMap.get(device);
+        if (stateMachine == null) {
+            Log.e(TAG, "No Statemachine found for the device=" + device.toString());
+            return;
+        }
+        if (DBG) {
+            Log.v(TAG, "Received UUID: " + uuid.toString());
+            Log.v(TAG, "expected UUID: " + BluetoothUuid.PBAP_PSE.toString());
+        }
+        if (uuid.equals(BluetoothUuid.PBAP_PSE)) {
+            stateMachine
+                    .obtainMessage(PbapClientStateMachine.MSG_SDP_COMPLETE, record)
+                    .sendToTarget();
+        }
     }
 
     /**

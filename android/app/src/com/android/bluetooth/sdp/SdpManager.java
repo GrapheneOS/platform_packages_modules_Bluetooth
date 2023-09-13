@@ -451,6 +451,9 @@ public class SdpManager {
 
         inst.stopSearch();
 
+        sAdapterService.sendSdpSearchRecord(
+                inst.getDevice(), inst.getStatus(), record, inst.getUuid());
+
         Intent intent = new Intent(BluetoothDevice.ACTION_SDP_RECORD);
 
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, inst.getDevice());
