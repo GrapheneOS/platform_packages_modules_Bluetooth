@@ -179,6 +179,7 @@ constexpr uint16_t kLeAudioCodecLC3FrameLen30 = 30;
 constexpr uint16_t kLeAudioCodecLC3FrameLen40 = 40;
 constexpr uint16_t kLeAudioCodecLC3FrameLen60 = 60;
 constexpr uint16_t kLeAudioCodecLC3FrameLen80 = 80;
+constexpr uint16_t kLeAudioCodecLC3FrameLen100 = 100;
 constexpr uint16_t kLeAudioCodecLC3FrameLen120 = 120;
 
 }  // namespace codec_spec_conf
