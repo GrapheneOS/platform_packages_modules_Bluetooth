@@ -1269,6 +1269,14 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         group->GetPhyBitmask(le_audio::types::kLeAudioDirectionSink);
     uint8_t phy_stom =
         group->GetPhyBitmask(le_audio::types::kLeAudioDirectionSource);
+
+    // Use 1M Phy for the ACK packet from remote device to phone for better
+    // sensitivity
+    if (max_sdu_size_stom == 0 &&
+        (phy_stom & bluetooth::hci::kIsoCigPhy1M) != 0) {
+      phy_stom = bluetooth::hci::kIsoCigPhy1M;
+    }
+
     uint8_t rtn_mtos = 0;
     uint8_t rtn_stom = 0;
 
