@@ -84,6 +84,17 @@ message SbcDecoderParam {
   bool enhanced = 3;
 }
 
+message AacEncoderParam {
+  // encoder config
+  int32 sample_rate = 1;
+  int32 channel_count = 2;
+  int32 bit_rate = 3;
+
+  // encode parameter
+  int32 bit_depth = 4;
+  int32 effective_frame_size = 5;
+}
+
 // union of different codec parameters
 message ConfigParam {
   // This determines the codec type and whether it is an encoder or a decoder.
@@ -94,5 +105,6 @@ message ConfigParam {
     // HFP MSBC use SBC parameters
     SbcEncoderParam hfp_msbc_encoder_param = 3;
     SbcDecoderParam hfp_msbc_decoder_param = 4;
+    AacEncoderParam a2dp_aac_encoder_param = 5;
   }
 }
