@@ -14,6 +14,9 @@
 #  limitations under the License.
 #
 
+import("//bt/system/gd/dumpsys/bundler/bundler.gni")
+import("//common-mk/flatbuffer.gni")
+
 static_library("bta") {
   sources = [
     "ag/bta_ag_act.cc",
@@ -55,11 +58,11 @@ static_library("bta") {
     "gatt/database.cc",
     "gatt/database_builder.cc",
     "groups/groups.cc",
-    # TODO(abps) - Enable with long-term effort for LE Audio
-    #"has/has_client.cc",
-    #"has/has_ctp.cc",
-    #"has/has_preset.cc",
-    #"has/has_types.cc",
+    "has/has_client.cc",
+    "has/has_ctp.cc",
+    "has/has_preset.cc",
+    "has/has_types.cc",
+    "has/has_journal.cc",
     "hearing_aid/hearing_aid.cc",
     "hearing_aid/hearing_aid_audio_source.cc",
     "hf_client/bta_hf_client_act.cc",
@@ -82,8 +85,26 @@ static_library("bta") {
     "jv/bta_jv_act.cc",
     "jv/bta_jv_api.cc",
     "jv/bta_jv_cfg.cc",
-    "le_audio/client_linux.cc",
+    "le_audio/audio_hal_client/audio_sink_hal_client.cc",
+    "le_audio/audio_hal_client/audio_source_hal_client.cc",
+    "le_audio/broadcaster/broadcaster.cc",
+    "le_audio/broadcaster/broadcaster_types.cc",
+    "le_audio/broadcaster/state_machine.cc",
+    "le_audio/client.cc",
+    "le_audio/client_parser.cc",
+    "le_audio/codec_interface.cc",
+    "le_audio/codec_manager.cc",
+    "le_audio/content_control_id_keeper.cc",
+    "le_audio/devices.cc",
     "le_audio/hal_verifier_linux.cc",
+    "le_audio/le_audio_health_status.cc",
+    "le_audio/le_audio_log_history.cc",
+    "le_audio/le_audio_set_configuration_provider_json.cc",
+    "le_audio/le_audio_types.cc",
+    "le_audio/le_audio_utils.cc",
+    "le_audio/metrics_collector.cc",
+    "le_audio/state_machine.cc",
+    "le_audio/storage_helper.cc",
     "pan/bta_pan_act.cc",
     "pan/bta_pan_api.cc",
     "pan/bta_pan_ci.cc",
@@ -107,6 +128,7 @@ static_library("bta") {
     "include",
     "sys",
     "//bt/system/",
+    "//bt/system/include",
     "//bt/system/linux_include",
     "//bt/system/bta",
     "//bt/system/gd",
@@ -129,9 +151,57 @@ static_library("bta") {
   ]
 
   deps = [
+    "//bt/system/bta:LeAudioSetScenariosSchema_bfbs",
+    "//bt/system/bta:LeAudioSetConfigsSchema_bfbs",
+    "//bt/system/bta:install_audio_set_scenarios_json",
+    "//bt/system/bta:install_audio_set_configurations_json",
+    "//bt/system/bta:install_audio_set_scenarios_bfbs",
+    "//bt/system/bta:install_audio_set_configurations_bfbs",
     "//bt/system:libbt-platform-protos-lite",
     "//bt/system/gd/rust/shim:init_flags_bridge_header",
   ]
+
+  libs = [
+    "lc3",
+  ]
+}
+
+bt_flatc_binary_schema("LeAudioSetScenariosSchema_bfbs") {
+  sources = [
+    "le_audio/audio_set_scenarios.fbs",
+  ]
+
+  include_dir = "system"
+  gen_header = true
+}
+
+bt_flatc_binary_schema("LeAudioSetConfigsSchema_bfbs") {
+  sources = [
+    "le_audio/audio_set_configurations.fbs",
+  ]
+
+  include_dir = "system"
+  gen_header = true
+}
+
+install_config("install_audio_set_scenarios_bfbs") {
+  sources = [ "$target_gen_dir/audio_set_scenarios.bfbs" ]
+  install_path = "/etc/bluetooth/le_audio/"
+}
+
+install_config("install_audio_set_configurations_bfbs") {
+  sources = [ "$target_gen_dir/audio_set_configurations.bfbs" ]
+  install_path = "/etc/bluetooth/le_audio/"
+}
+
+install_config("install_audio_set_scenarios_json") {
+  sources = [ "le_audio/audio_set_scenarios.json" ]
+  install_path = "/etc/bluetooth/le_audio/"
+}
+
+install_config("install_audio_set_configurations_json") {
+  sources = [ "le_audio/audio_set_configurations.json" ]
+  install_path = "/etc/bluetooth/le_audio/"
 }
 
 if (use.test) {
