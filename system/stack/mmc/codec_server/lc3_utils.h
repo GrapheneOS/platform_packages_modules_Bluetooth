@@ -30,7 +30,7 @@ const int HFP_LC3_PKT_FRAME_LEN = 58;
 const int HFP_LC3_PCM_BYTES = 480;
 
 // Helper that maps MMC pcm format to lc3 pcm format.
-static lc3_pcm_format MapLc3PcmFmt(Lc3Param_PcmFmt fmt) {
+inline lc3_pcm_format MapLc3PcmFmt(Lc3Param_PcmFmt fmt) {
   switch (fmt) {
     case Lc3Param::kLc3PcmFormatS16:
       return LC3_PCM_FORMAT_S16;
