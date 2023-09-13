@@ -194,7 +194,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         ReleaseCisIds(group);
 
         /* If configuration is needed */
-        FALLTHROUGH;
+        FALLTHROUGH_INTENDED;
       case AseState::BTA_LE_AUDIO_ASE_STATE_IDLE:
         if (!group->Configure(context_type, metadata_context_types,
                               ccid_lists)) {

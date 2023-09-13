@@ -17,7 +17,7 @@
 
 #include "bta/le_audio/broadcaster/state_machine.h"
 
-#include <base/bind_helpers.h>
+#include <bind_helpers.h>
 
 #include <functional>
 #include <iostream>
