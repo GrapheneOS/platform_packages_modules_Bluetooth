@@ -561,6 +561,8 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
       scan_on_resume_ = true;
       return;
     }
+    scan_on_resume_ = false;
+
     is_scanning_ = true;
     if (!address_manager_registered_) {
       le_address_manager_->Register(this);
@@ -584,6 +586,8 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
   }
 
   void stop_scan() {
+    scan_on_resume_ = false;
+
     if (!is_scanning_) {
       LOG_INFO("Scanning already stopped, return!");
       return;
