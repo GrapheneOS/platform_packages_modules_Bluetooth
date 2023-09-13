@@ -300,6 +300,12 @@ public class VolumeControlService extends ProfileService {
             }
         }
 
+        // Unregister handler and remove all queued messages.
+        if (mHandler != null) {
+            mHandler.removeCallbacksAndMessages(null);
+            mHandler = null;
+        }
+
         // Cleanup native interface
         mVolumeControlNativeInterface.cleanup();
         mVolumeControlNativeInterface = null;

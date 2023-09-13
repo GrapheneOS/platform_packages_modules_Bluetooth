@@ -302,15 +302,16 @@ public class BassClientService extends ProfileService {
         mDatabaseManager = Objects.requireNonNull(mAdapterService.getDatabase(),
                 "DatabaseManager cannot be null when BassClientService starts");
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        // Setup Handler to handle local broadcast use cases.
+        mHandler = new Handler(Looper.getMainLooper());
+
         mStateMachines.clear();
         mStateMachinesThread = new HandlerThread("BassClientService.StateMachines");
         mStateMachinesThread.start();
         mCallbackHandlerThread = new HandlerThread(TAG);
         mCallbackHandlerThread.start();
         mCallbacks = new Callbacks(mCallbackHandlerThread.getLooper());
-
-        // Setup Handler to handle local broadcast use cases.
-        mHandler = new Handler(Looper.getMainLooper());
 
         IntentFilter filter = new IntentFilter();
         filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
@@ -349,6 +350,7 @@ public class BassClientService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "stop()");
         }
+
         synchronized (mStateMachines) {
             for (BassClientStateMachine sm : mStateMachines.values()) {
                 BassObjectsFactory.getInstance().destroyStateMachine(sm);
@@ -362,6 +364,12 @@ public class BassClientService extends ProfileService {
         if (mStateMachinesThread != null) {
             mStateMachinesThread.quitSafely();
             mStateMachinesThread = null;
+        }
+
+        // Unregister Handler and stop all queued messages.
+        if (mHandler != null) {
+            mHandler.removeCallbacksAndMessages(null);
+            mHandler = null;
         }
 
         if (mIntentReceiver != null) {
