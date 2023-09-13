@@ -24,6 +24,8 @@ group("mmc") {
     ":install_system_service",
     ":install_tmpfiles_config",
     ":mmc_service",
+    "//bt/system/stack/mmc/codec_client:libcodec_client",
+    "//bt/system/stack/mmc/proto:mmc_config_proto",
   ]
 }
 
