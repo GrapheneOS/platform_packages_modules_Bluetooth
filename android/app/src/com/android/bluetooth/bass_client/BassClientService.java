@@ -83,7 +83,7 @@ public class BassClientService extends ProfileService {
 
     private final Map<BluetoothDevice, BassClientStateMachine> mStateMachines = new HashMap<>();
     private final Object mSearchScanCallbackLock = new Object();
-    private final Map<Integer, ScanResult> mScanBroadcasts = new HashMap<>();
+    private final Map<Integer, ScanResult> mCachedBroadcasts = new HashMap<>();
 
     private final Map<BluetoothDevice, List<Pair<Integer, Object>>> mPendingGroupOp =
             new ConcurrentHashMap<>();
@@ -280,6 +280,10 @@ public class BassClientService extends ProfileService {
         return currentSources;
     }
 
+    ScanResult getCachedBroadcast(int broadcastId) {
+        return mCachedBroadcasts.get(broadcastId);
+    }
+
     public Callbacks getCallbacks() {
         return mCallbacks;
     }
@@ -391,6 +395,9 @@ public class BassClientService extends ProfileService {
         }
         if (mPendingGroupOp != null) {
             mPendingGroupOp.clear();
+        }
+        if (mCachedBroadcasts != null) {
+            mCachedBroadcasts.clear();
         }
         return true;
     }
@@ -1009,9 +1016,9 @@ public class BassClientService extends ProfileService {
                     sEventLogger.logd(DBG, TAG, "Broadcast Source Found: Broadcast ID: "
                             + broadcastId);
 
-                    if (mScanBroadcasts.get(broadcastId) == null) {
+                    if (mCachedBroadcasts.get(broadcastId) == null) {
                         log("selectBroadcastSource: broadcastId " + broadcastId);
-                        mScanBroadcasts.put(broadcastId, result);
+                        mCachedBroadcasts.put(broadcastId, result);
                         synchronized (mStateMachines) {
                             for (BassClientStateMachine sm : mStateMachines.values()) {
                                 if (sm.isConnected()) {
@@ -1026,7 +1033,8 @@ public class BassClientService extends ProfileService {
                     Log.e(TAG, "Scan Failure:" + errorCode);
                 }
             };
-            mScanBroadcasts.clear();
+            // when starting scan, clear the previously cached broadcast scan results
+            mCachedBroadcasts.clear();
             // clear previous sources notify flag before scanning new result
             // this is to make sure the active sources are notified even if already synced
             if (mPeriodicAdvertisementResultMap != null) {
@@ -1079,7 +1087,6 @@ public class BassClientService extends ProfileService {
             mSearchScanCallback = null;
             sEventLogger.logd(DBG, TAG, "stopSearchingForSources");
             mCallbacks.notifySearchStopped(BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
-            mScanBroadcasts.clear();
         }
     }
 

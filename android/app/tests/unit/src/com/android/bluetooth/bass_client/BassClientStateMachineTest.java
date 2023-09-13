@@ -1661,6 +1661,90 @@ public class BassClientStateMachineTest {
         verify(btGatt).writeCharacteristic(any());
     }
 
+    @Test
+    public void selectBcastSource_withSameBroadcastId() {
+        initToConnectedState();
+
+        byte[] scanRecord = new byte[]{
+                0x02, 0x01, 0x1a, // advertising flags
+                0x05, 0x02, 0x52, 0x18, 0x0a, 0x11, // 16 bit service uuids
+                0x04, 0x09, 0x50, 0x65, 0x64, // name
+                0x02, 0x0A, (byte) 0xec, // tx power level
+                0x05, 0x30, 0x54, 0x65, 0x73, 0x74, // broadcast name: Test
+                0x06, 0x16, 0x52, 0x18, 0x2A, 0x00, 0x00, // service data, broadcast id 42
+                0x08, 0x16, 0x56, 0x18, 0x07, 0x03, 0x06, 0x07, 0x08,
+                // service data - public broadcast,
+                // feature - 0x7, metadata len - 0x3, metadata - 0x6, 0x7, 0x8
+                0x05, (byte) 0xff, (byte) 0xe0, 0x00, 0x02, 0x15, // manufacturer specific data
+                0x03, 0x50, 0x01, 0x02, // an unknown data type won't cause trouble
+        };
+        ScanRecord record = ScanRecord.parseFromBytes(scanRecord);
+        ScanResult scanResult = new ScanResult(mTestDevice, 0, 0, 0, 0, 0, 0, 0, record, 0);
+        mBassClientStateMachine.mPendingSourceToAdd = createBroadcastMetadata();
+
+        doNothing().when(mMethodProxy).periodicAdvertisingManagerRegisterSync(
+                any(), any(), anyInt(), anyInt(), any(), any());
+        mBassClientStateMachine.sendMessage(
+                SELECT_BCAST_SOURCE, BassConstants.AUTO, 0, scanResult);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        // validate syncing to the same broadcast id will be skipped
+        verify(mBassClientService, never()).updatePeriodicAdvertisementResultMap(
+                any(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
+                any(), any());
+
+        mBassClientStateMachine.mPendingSourceToAdd = null;
+        mBassClientStateMachine.sendMessage(
+                SELECT_BCAST_SOURCE, BassConstants.AUTO, 0, scanResult);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        verify(mBassClientService).updatePeriodicAdvertisementResultMap(
+                any(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
+                any(), eq(TEST_BROADCAST_NAME));
+    }
+
+    @Test
+    public void addBcastSource_withCachedScanResults() {
+        initToConnectedState();
+
+        BassClientService.Callbacks callbacks = Mockito.mock(BassClientService.Callbacks.class);
+        when(mBassClientService.getCallbacks()).thenReturn(callbacks);
+
+        BluetoothLeBroadcastMetadata metadata = createBroadcastMetadata();
+        when(mBassClientService.isLocalBroadcast(any())).thenReturn(false);
+        when(mBassClientService.getActiveSyncedSources(any())).thenReturn(null);
+        when(mBassClientService.getCachedBroadcast(anyInt())).thenReturn(null);
+        mBassClientStateMachine.sendMessage(ADD_BCAST_SOURCE, metadata);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+
+        verify(mBassClientService).getCallbacks();
+        verify(callbacks).notifySourceAddFailed(any(), any(), anyInt());
+
+        byte[] scanRecord = new byte[]{
+                0x02, 0x01, 0x1a, // advertising flags
+                0x05, 0x02, 0x52, 0x18, 0x0a, 0x11, // 16 bit service uuids
+                0x04, 0x09, 0x50, 0x65, 0x64, // name
+                0x02, 0x0A, (byte) 0xec, // tx power level
+                0x05, 0x30, 0x54, 0x65, 0x73, 0x74, // broadcast name: Test
+                0x06, 0x16, 0x52, 0x18, 0x2A, 0x00, 0x00, // service data, broadcast id 42
+                0x08, 0x16, 0x56, 0x18, 0x07, 0x03, 0x06, 0x07, 0x08,
+                // service data - public broadcast,
+                // feature - 0x7, metadata len - 0x3, metadata - 0x6, 0x7, 0x8
+                0x05, (byte) 0xff, (byte) 0xe0, 0x00, 0x02, 0x15, // manufacturer specific data
+                0x03, 0x50, 0x01, 0x02, // an unknown data type won't cause trouble
+        };
+        ScanRecord record = ScanRecord.parseFromBytes(scanRecord);
+        ScanResult scanResult = new ScanResult(mAdapter.getRemoteLeDevice("00:11:22:33:44:55",
+                        BluetoothDevice.ADDRESS_TYPE_RANDOM), 0, 0, 0, 0, 0, 0, 0, record, 0);
+        when(mBassClientService.getCachedBroadcast(anyInt())).thenReturn(scanResult);
+        doNothing().when(mMethodProxy).periodicAdvertisingManagerRegisterSync(
+                any(), any(), anyInt(), anyInt(), any(), any());
+        // validate add source will trigger select source and update mPendingSourceToAdd
+        mBassClientStateMachine.sendMessage(ADD_BCAST_SOURCE, metadata);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+
+        Assert.assertEquals(mBassClientStateMachine.mPendingSourceToAdd, metadata);
+        verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
+    }
+
     private void initToDisconnectedState() {
         allowConnection(true);
         allowConnectGatt(true);

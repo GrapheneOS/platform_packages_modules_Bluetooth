@@ -164,6 +164,8 @@ public class BassClientStateMachine extends StateMachine {
     boolean mAutoTriggered = false;
     private boolean mDefNoPAS = false;
     private boolean mForceSB = false;
+    @VisibleForTesting
+    BluetoothLeBroadcastMetadata mPendingSourceToAdd = null;
     private int mBroadcastSourceIdLength = 3;
     @VisibleForTesting
     byte mNextSourceId = 0;
@@ -238,6 +240,7 @@ public class BassClientStateMachine extends StateMachine {
         mPendingOperation = -1;
         mPendingSourceId = -1;
         mPendingMetadata = null;
+        mPendingSourceToAdd = null;
         mCurrentMetadata.clear();
         mPendingRemove.clear();
     }
@@ -383,18 +386,7 @@ public class BassClientStateMachine extends StateMachine {
         log("selectSource: ScanResult " + scanRes);
         mAutoTriggered = autoTriggered;
         mPASyncRetryCounter = 1;
-        // Cache Scan res for Retrys
-        mScanRes = scanRes;
-        try {
-            BluetoothMethodProxy.getInstance().periodicAdvertisingManagerRegisterSync(
-                    mPeriodicAdvManager, scanRes, 0, BassConstants.PSYNC_TIMEOUT,
-                    mPeriodicAdvCallback, null);
-        } catch (IllegalArgumentException ex) {
-            Log.w(TAG, "registerSync:IllegalArgumentException");
-            Message message = obtainMessage(STOP_SCAN_OFFLOAD);
-            sendMessage(message);
-            return false;
-        }
+
         // updating mainly for Address type and PA Interval here
         // extract BroadcastId from ScanResult
         ScanRecord scanRecord = scanRes.getScanRecord();
@@ -416,6 +408,27 @@ public class BassClientStateMachine extends StateMachine {
             // Check if broadcast name present in scan record and parse
             // null if no name present
             String broadcastName = checkAndParseBroadcastName(scanRecord);
+
+            // Avoid duplicated sync requests for the same broadcast BIG
+            // This is required because selectSource can be triggered from both scanning(user)
+            // and adding inactive source(auto)
+            if (broadcastId != BassConstants.INVALID_BROADCAST_ID
+                    && mPendingSourceToAdd != null
+                    && broadcastId == mPendingSourceToAdd.getBroadcastId()) {
+                log("Skip duplicated sync request to broadcast id: " + broadcastId);
+                return false;
+            }
+
+            try {
+                BluetoothMethodProxy.getInstance().periodicAdvertisingManagerRegisterSync(
+                        mPeriodicAdvManager, scanRes, 0, BassConstants.PSYNC_TIMEOUT,
+                        mPeriodicAdvCallback, null);
+            } catch (IllegalArgumentException ex) {
+                Log.w(TAG, "registerSync:IllegalArgumentException");
+                Message message = obtainMessage(STOP_SCAN_OFFLOAD);
+                sendMessage(message);
+                return false;
+            }
 
             mService.updatePeriodicAdvertisementResultMap(
                     scanRes.getDevice(),
@@ -592,15 +605,20 @@ public class BassClientStateMachine extends StateMachine {
                                 PSYNC_ACTIVE_TIMEOUT, BassConstants.PSYNC_ACTIVE_TIMEOUT_MS);
                         mService.addActiveSyncedSource(mDevice, device);
                         mFirstTimeBisDiscoveryMap.put(syncHandle, true);
+                        if (mPendingSourceToAdd != null) {
+                            Message message = obtainMessage(ADD_BCAST_SOURCE);
+                            message.obj = mPendingSourceToAdd;
+                            sendMessage(message);
+                        }
                     } else {
                         log("failed to sync to PA: " + mPASyncRetryCounter);
-                        mScanRes = null;
                         if (!mAutoTriggered) {
                             Message message = obtainMessage(STOP_SCAN_OFFLOAD);
                             sendMessage(message);
                         }
                         mAutoTriggered = false;
                     }
+                    mPendingSourceToAdd = null;
                 }
 
                 @Override
@@ -1605,12 +1623,22 @@ public class BassClientStateMachine extends StateMachine {
 
                     HashSet<BluetoothDevice> activeSyncedSrc =
                             mService.getActiveSyncedSources(mDevice);
+                    BluetoothDevice sourceDevice = metaData.getSourceDevice();
                     if (!mService.isLocalBroadcast(metaData)
                             && (activeSyncedSrc == null
-                                    || !activeSyncedSrc.contains(metaData.getSourceDevice()))) {
-                        log("Adding non-active synced source: " + metaData.getSourceDevice());
-                        mService.getCallbacks().notifySourceAddFailed(mDevice, metaData,
-                                BluetoothStatusCodes.ERROR_UNKNOWN);
+                                    || !activeSyncedSrc.contains(sourceDevice))) {
+                        log("Adding inactive source: " + sourceDevice);
+                        int broadcastId = metaData.getBroadcastId();
+                        if (broadcastId != BassConstants.INVALID_BROADCAST_ID
+                                && mService.getCachedBroadcast(broadcastId) != null) {
+                            // If the source has been synced before, try to re-sync(auto/true)
+                            // with the source by previously cached scan result
+                            selectSource(mService.getCachedBroadcast(broadcastId), true);
+                            mPendingSourceToAdd = metaData;
+                        } else {
+                            mService.getCallbacks().notifySourceAddFailed(mDevice, metaData,
+                                    BluetoothStatusCodes.ERROR_UNKNOWN);
+                        }
                         break;
                     }
 
