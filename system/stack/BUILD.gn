@@ -130,8 +130,6 @@ source_set("stack") {
     "btm/btm_sec.cc",
     "btm/hfp_msbc_encoder.cc",
     "btm/hfp_msbc_decoder.cc",
-    "btm/hfp_lc3_encoder.cc",
-    "btm/hfp_lc3_decoder.cc",
     "btu/btu_hcif.cc",
     "btu/btu_task.cc",
     "eatt/eatt.cc",
@@ -226,7 +224,6 @@ source_set("stack") {
     "//bt/system/udrv/include",
     "//bt/system/vnd/ble",
     "//bt/system/vnd/include",
-    "//bt/system/embdrv/lc3/include",
   ]
 
   deps = [
@@ -238,7 +235,23 @@ source_set("stack") {
     "//bt/system/types",
   ]
 
-  configs += [ "//bt/system:target_defaults" ]
+  configs += [
+    "//bt/system:target_defaults",
+  ]
+
+  if (defined(use.floss_mmc) && use.floss_mmc) {
+    sources += [
+      "btm/hfp_lc3_encoder_linux.cc",
+      "btm/hfp_lc3_decoder_linux.cc",
+    ]
+    deps += [ "//bt/system/stack/mmc" ]
+  } else {
+    sources += [
+      "btm/hfp_lc3_encoder.cc",
+      "btm/hfp_lc3_decoder.cc",
+    ]
+    libs = [ "lc3" ]
+  }
 }
 
 if (use.test) {
