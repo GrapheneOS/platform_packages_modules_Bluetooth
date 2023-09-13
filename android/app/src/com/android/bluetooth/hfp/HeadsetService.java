@@ -1382,11 +1382,11 @@ public class HeadsetService extends ProfileService {
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     public boolean setActiveDevice(BluetoothDevice device) {
         Log.i(TAG, "setActiveDevice: device=" + device + ", " + Utils.getUidPidString());
+        if (device == null) {
+            removeActiveDevice();
+            return true;
+        }
         synchronized (mStateMachines) {
-            if (device == null) {
-                removeActiveDevice();
-                return true;
-            }
             if (device.equals(mActiveDevice)) {
                 Log.i(TAG, "setActiveDevice: device " + device + " is already active");
                 return true;

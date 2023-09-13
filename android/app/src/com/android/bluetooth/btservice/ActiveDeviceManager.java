@@ -884,12 +884,13 @@ public class ActiveDeviceManager implements AdapterService.BluetoothStateCallbac
             Log.d(TAG, "setHearingAidActiveDevice(" + device + ")"
                     + (device == null ? " hasFallbackDevice=" + hasFallbackDevice : ""));
         }
-        synchronized (mLock) {
-            final HearingAidService hearingAidService = mFactory.getHearingAidService();
-            if (hearingAidService == null) {
-                return false;
-            }
 
+        final HearingAidService hearingAidService = mFactory.getHearingAidService();
+        if (hearingAidService == null) {
+            return false;
+        }
+
+        synchronized (mLock) {
             if (device == null) {
                 if (!hearingAidService.removeActiveDevice(!hasFallbackDevice)) {
                     return false;
