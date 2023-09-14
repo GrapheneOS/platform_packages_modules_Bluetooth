@@ -229,14 +229,24 @@ public final class BluetoothGatt implements BluetoothProfile {
                         Log.d(TAG, "onClientRegistered() - status=" + status
                                 + " clientIf=" + clientIf);
                     }
-                    if (VDBG) {
-                        synchronized (mStateLock) {
+                    mClientIf = clientIf;
+                    synchronized (mStateLock) {
+                        if (mConnState == CONN_STATE_CLOSED) {
+                            if (DBG) {
+                                Log.d(
+                                        TAG,
+                                        "Client registration completed after closed,"
+                                                + " unregistering");
+                            }
+                            unregisterApp();
+                            return;
+                        }
+                        if (VDBG) {
                             if (mConnState != CONN_STATE_CONNECTING) {
                                 Log.e(TAG, "Bad connection state: " + mConnState);
                             }
                         }
                     }
-                    mClientIf = clientIf;
                     if (status != GATT_SUCCESS) {
                         runOrQueueCallback(new Runnable() {
                             @Override
@@ -1006,8 +1016,8 @@ public final class BluetoothGatt implements BluetoothProfile {
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private void unregisterApp() {
-        if (DBG) Log.d(TAG, "unregisterApp() - mClientIf=" + mClientIf);
         if (mService == null || mClientIf == 0) return;
+        if (DBG) Log.d(TAG, "unregisterApp() - mClientIf=" + mClientIf);
 
         try {
             mCallback = null;
