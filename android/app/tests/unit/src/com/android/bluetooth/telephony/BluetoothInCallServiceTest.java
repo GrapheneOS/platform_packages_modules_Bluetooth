@@ -16,7 +16,6 @@
 
 package com.android.bluetooth.telephony;
 
-import static com.android.bluetooth.telephony.BluetoothInCallService.CLCC_INFERENCE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -818,7 +817,6 @@ public class BluetoothInCallServiceTest {
 
     @Test
     public void testListCurrentCallsConferenceEmptyChildrenInference() throws Exception {
-        DeviceConfig.setProperty(DeviceConfig.NAMESPACE_BLUETOOTH, CLCC_INFERENCE, "true", false);
         mBluetoothInCallService.mTelephonyManager = mMockTelephonyManager;
         when(mMockTelephonyManager.getNetworkCountryIso()).thenReturn("");
 
@@ -952,8 +950,6 @@ public class BluetoothInCallServiceTest {
                         anyBoolean(),
                         nullable(String.class),
                         anyInt());
-
-        DeviceConfig.setProperty(DeviceConfig.NAMESPACE_BLUETOOTH, CLCC_INFERENCE, "false", false);
     }
 
     @Test
