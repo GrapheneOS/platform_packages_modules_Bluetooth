@@ -34,25 +34,44 @@ bool ApcfScanner::HasFilterIndex(uint8_t apcf_filter_index) const {
 }
 
 void ApcfScanner::ClearFilterIndex(uint8_t apcf_filter_index) {
-  std::remove_if(std::begin(broadcaster_address_filters),
-                 std::end(broadcaster_address_filters),
-                 [&](auto it) { return it.filter_index == apcf_filter_index; });
-  std::remove_if(std::begin(service_uuid_filters),
-                 std::end(service_uuid_filters),
-                 [&](auto it) { return it.filter_index == apcf_filter_index; });
-  std::remove_if(std::begin(service_solicitation_uuid_filters),
-                 std::end(service_solicitation_uuid_filters),
-                 [&](auto it) { return it.filter_index == apcf_filter_index; });
-  std::remove_if(std::begin(local_name_filters), std::end(local_name_filters),
-                 [&](auto it) { return it.filter_index == apcf_filter_index; });
-  std::remove_if(std::begin(manufacturer_data_filters),
-                 std::end(manufacturer_data_filters),
-                 [&](auto it) { return it.filter_index == apcf_filter_index; });
-  std::remove_if(std::begin(service_data_filters),
-                 std::end(service_data_filters),
-                 [&](auto it) { return it.filter_index == apcf_filter_index; });
-  std::remove_if(std::begin(ad_type_filters), std::end(ad_type_filters),
-                 [&](auto it) { return it.filter_index == apcf_filter_index; });
+  broadcaster_address_filters.erase(
+      std::remove_if(
+          std::begin(broadcaster_address_filters),
+          std::end(broadcaster_address_filters),
+          [&](auto it) { return it.filter_index == apcf_filter_index; }),
+      std::end(broadcaster_address_filters));
+  service_uuid_filters.erase(
+      std::remove_if(
+          std::begin(service_uuid_filters), std::end(service_uuid_filters),
+          [&](auto it) { return it.filter_index == apcf_filter_index; }),
+      std::end(service_uuid_filters));
+  service_solicitation_uuid_filters.erase(
+      std::remove_if(
+          std::begin(service_solicitation_uuid_filters),
+          std::end(service_solicitation_uuid_filters),
+          [&](auto it) { return it.filter_index == apcf_filter_index; }),
+      std::end(service_solicitation_uuid_filters));
+  local_name_filters.erase(
+      std::remove_if(
+          std::begin(local_name_filters), std::end(local_name_filters),
+          [&](auto it) { return it.filter_index == apcf_filter_index; }),
+      std::end(local_name_filters));
+  manufacturer_data_filters.erase(
+      std::remove_if(
+          std::begin(manufacturer_data_filters),
+          std::end(manufacturer_data_filters),
+          [&](auto it) { return it.filter_index == apcf_filter_index; }),
+      std::end(manufacturer_data_filters));
+  service_data_filters.erase(
+      std::remove_if(
+          std::begin(service_data_filters), std::end(service_data_filters),
+          [&](auto it) { return it.filter_index == apcf_filter_index; }),
+      std::end(service_data_filters));
+  ad_type_filters.erase(
+      std::remove_if(
+          std::begin(ad_type_filters), std::end(ad_type_filters),
+          [&](auto it) { return it.filter_index == apcf_filter_index; }),
+      std::end(ad_type_filters));
 }
 
 template <typename T>
@@ -75,15 +94,19 @@ ErrorCode ApcfScanner::UpdateFilterList(std::vector<T>& filter_list,
     }
     case ApcfAction::DELETE: {
       // Delete will delete the specified data in the specified filter.
-      std::remove_if(std::begin(filter_list), std::end(filter_list),
-                     [&](auto it) { return it == filter; });
+      filter_list.erase(
+          std::remove_if(std::begin(filter_list), std::end(filter_list),
+                         [&](auto it) { return it == filter; }),
+          std::end(filter_list));
       return ErrorCode::SUCCESS;
     }
     case ApcfAction::CLEAR: {
       // Clear will clear all data in the specified filter.
-      std::remove_if(
-          std::begin(filter_list), std::end(filter_list),
-          [&](auto it) { return it.filter_index == filter.filter_index; });
+      filter_list.erase(
+          std::remove_if(
+              std::begin(filter_list), std::end(filter_list),
+              [&](auto it) { return it.filter_index == filter.filter_index; }),
+          std::end(filter_list));
       return ErrorCode::SUCCESS;
     }
     default:
@@ -168,9 +191,12 @@ ErrorCode LinkLayerController::LeApcfSetFilteringParameters(
         return ErrorCode::UNKNOWN_CONNECTION;
       }
 
-      std::remove_if(
-          std::begin(apcf_scanner_.filters), std::end(apcf_scanner_.filters),
-          [&](auto it) { return it.filter_index == apcf_filter_index; });
+      apcf_scanner_.filters.erase(
+          std::remove_if(
+              std::begin(apcf_scanner_.filters),
+              std::end(apcf_scanner_.filters),
+              [&](auto it) { return it.filter_index == apcf_filter_index; }),
+          std::end(apcf_scanner_.filters));
 
       apcf_scanner_.ClearFilterIndex(apcf_filter_index);
       *apcf_available_spaces += 1;
