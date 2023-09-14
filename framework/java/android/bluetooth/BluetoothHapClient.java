@@ -403,6 +403,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      *
      * @hide
      */
+    @SystemApi
     public static final int PRESET_INDEX_UNAVAILABLE = IBluetoothHapClient.PRESET_INDEX_UNAVAILABLE;
 
     /**
@@ -863,6 +864,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @return valid group identifier or -1
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(
             allOf = {
@@ -896,6 +898,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @return active preset index
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(
             allOf = {
@@ -1036,6 +1039,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @param device is the device for which we want to set the active preset
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(
             allOf = {
@@ -1068,6 +1072,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @param groupId is the device group identifier for which want to set the active preset
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(
             allOf = {
@@ -1097,6 +1102,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @param device is the device for which we want to set the active preset
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(
             allOf = {
@@ -1129,6 +1135,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @param groupId is the device group identifier for which want to set the active preset
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(
             allOf = {
@@ -1157,6 +1164,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @return preset info
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(
             allOf = {
