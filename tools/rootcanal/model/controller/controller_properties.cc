@@ -1973,6 +1973,7 @@ ControllerProperties::ControllerProperties(
       supports_csr_vendor_command = config.vendor().csr();
     }
     if (config.vendor().has_android()) {
+      supports_le_get_vendor_capabilities_command = config.vendor().android();
       supports_le_apcf_vendor_command = config.vendor().android();
     }
   }
