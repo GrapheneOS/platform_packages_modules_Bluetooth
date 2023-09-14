@@ -21,6 +21,7 @@
 
 #include "btm_api_mock.h"
 #include "gd/common/init_flags.h"
+#include "le_audio_set_configuration_provider.h"
 #include "mock_controller.h"
 #include "osi/include/properties.h"
 #include "stack/acl/acl.h"
@@ -45,7 +46,10 @@ T& le_audio::types::BidirectionalPair<T>::get(uint8_t direction) {
   return (direction == le_audio::types::kLeAudioDirectionSink) ? sink : source;
 }
 
-std::vector<AudioSetConfiguration> offload_capabilities(0);
+static const std::vector<AudioSetConfiguration> offload_capabilities_none(0);
+
+const std::vector<AudioSetConfiguration>* offload_capabilities =
+    &offload_capabilities_none;
 
 const char* test_flags[] = {
     "INIT_default_log_level_str=LOG_VERBOSE",
@@ -55,7 +59,7 @@ namespace bluetooth {
 namespace audio {
 namespace le_audio {
 std::vector<AudioSetConfiguration> get_offload_capabilities() {
-  return offload_capabilities;
+  return *offload_capabilities;
 }
 }  // namespace le_audio
 }  // namespace audio
@@ -63,6 +67,11 @@ std::vector<AudioSetConfiguration> get_offload_capabilities() {
 
 namespace le_audio {
 namespace {
+
+void set_mock_offload_capabilities(
+    const std::vector<AudioSetConfiguration>& caps) {
+  offload_capabilities = &caps;
+}
 
 static constexpr char kPropLeAudioOffloadSupported[] =
     "ro.bluetooth.leaudio_offload.supported";
@@ -73,8 +82,7 @@ class CodecManagerTestBase : public Test {
  public:
   virtual void SetUp() override {
     bluetooth::common::InitFlags::Load(test_flags);
-
-    offload_capabilities.clear();
+    set_mock_offload_capabilities(offload_capabilities_none);
 
     ON_CALL(controller_interface, SupportsBleIsochronousBroadcaster)
         .WillByDefault(Return(true));
@@ -275,8 +283,49 @@ TEST_F(CodecManagerTestAdsp, testStreamConfigurationAdspDownMix) {
   }
 }
 
+TEST_F(CodecManagerTestAdsp, test_capabilities_none) {
+  const std::vector<bluetooth::le_audio::btle_audio_codec_config_t>
+      offloading_preference(0);
+  codec_manager->Start(offloading_preference);
+
+  // Verify every context
+  for (::le_audio::types::LeAudioContextType ctx_type :
+       ::le_audio::types::kLeAudioContextAllTypesArray) {
+    ASSERT_EQ(nullptr, codec_manager->GetOffloadCodecConfig(ctx_type));
+  }
+}
+
+TEST_F(CodecManagerTestAdsp, test_capabilities) {
+  for (auto test_context : ::le_audio::types::kLeAudioContextAllTypesArray) {
+    // Build the offloader capabilities vector using the configuration provider
+    // in HOST mode to get all the .json filce configuration entries.
+    std::vector<AudioSetConfiguration> offload_capabilities;
+    AudioSetConfigurationProvider::Initialize(
+        le_audio::types::CodecLocation::HOST);
+    for (auto& cap : *AudioSetConfigurationProvider::Get()->GetConfigurations(
+             test_context)) {
+      offload_capabilities.push_back(*cap);
+    }
+    ASSERT_NE(0u, offload_capabilities.size());
+    set_mock_offload_capabilities(offload_capabilities);
+    // Clean up before the codec manager starts it in ADSP mode.
+    AudioSetConfigurationProvider::Cleanup();
+
+    const std::vector<bluetooth::le_audio::btle_audio_codec_config_t>
+        offloading_preference = {
+            {bluetooth::le_audio::LE_AUDIO_CODEC_INDEX_SOURCE_LC3}};
+    codec_manager->Start(offloading_preference);
+
+    auto cfg = codec_manager->GetOffloadCodecConfig(test_context);
+    ASSERT_NE(nullptr, cfg);
+    ASSERT_EQ(offload_capabilities.size(), cfg->size());
+
+    // Clean up the before testing any other offload capabilities.
+    codec_manager->Stop();
+  }
+}
+
 // TODO: Add the unit tests for:
-// GetOffloadCodecConfig
 // GetBroadcastOffloadConfig
 // UpdateBroadcastConnHandle
 

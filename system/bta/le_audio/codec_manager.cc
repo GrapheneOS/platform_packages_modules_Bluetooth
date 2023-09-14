@@ -173,7 +173,9 @@ struct codec_manager_impl {
 
   const AudioSetConfigurations* GetOffloadCodecConfig(
       types::LeAudioContextType ctx_type) {
-    return &context_type_offload_config_map_[ctx_type];
+    return context_type_offload_config_map_.count(ctx_type)
+               ? &context_type_offload_config_map_[ctx_type]
+               : nullptr;
   }
 
   void UpdateSupportedBroadcastConfig(
