@@ -90,6 +90,7 @@ class AdapterProperties {
     private static final long DEFAULT_DISCOVERY_TIMEOUT_MS = 12800;
     @VisibleForTesting static final int BLUETOOTH_NAME_MAX_LENGTH_BYTES = 248;
     private static final int BD_ADDR_LEN = 6; // in bytes
+    private static final int SYSTEM_CONNECTION_LATENCY_METRIC = 65536;
 
     private volatile String mName;
     private volatile byte[] mAddress;
@@ -779,6 +780,15 @@ class AdapterProperties {
                     + BluetoothProfile.getProfileName(profile)
                     + ", device=" + device + ", " + prevState + " -> " + state);
         }
+        BluetoothStatsLog.write(
+                BluetoothStatsLog.BLUETOOTH_CONNECTION_STATE_CHANGED,
+                state,
+                0 /* deprecated */,
+                profile,
+                mService.obfuscateAddress(device),
+                mService.getMetricId(device),
+                0,
+                SYSTEM_CONNECTION_LATENCY_METRIC);
         if (!validateProfileConnectionState(state) || !validateProfileConnectionState(prevState)) {
             // Previously, an invalid state was broadcast anyway,
             // with the invalid state converted to -1 in the intent.
