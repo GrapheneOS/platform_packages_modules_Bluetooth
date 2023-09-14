@@ -2805,19 +2805,25 @@ void DualModeController::LeGetVendorCapabilities(CommandView command) {
     return;
   }
 
-  std::vector<uint8_t> return_parameters = {
-      static_cast<uint8_t>(ErrorCode::SUCCESS)};
-  return_parameters.insert(return_parameters.end(),
-                           properties_.le_vendor_capabilities.begin(),
-                           properties_.le_vendor_capabilities.end());
-  // Ensure a minimal size for vendor capabilities.
-  if (return_parameters.size() < 9) {
-    return_parameters.resize(9);
-  }
+  DEBUG(id_, "<< LE Get Vendor Capabilities");
 
-  send_event_(bluetooth::hci::CommandCompleteBuilder::Create(
-      kNumCommandPackets, OpCode::LE_GET_VENDOR_CAPABILITIES,
-      std::move(return_parameters)));
+  bluetooth::hci::VendorCapabilities_V_0_98 vendor_capabilities;
+  vendor_capabilities.total_scan_results_storage_ = 0;
+  vendor_capabilities.max_irk_list_sz_ = 16;
+  vendor_capabilities.filtering_support_ =
+      properties_.supports_le_apcf_vendor_command;
+  vendor_capabilities.max_filter_ = properties_.le_apcf_filter_list_size;
+  vendor_capabilities.activity_energy_info_support_ = 0;
+  vendor_capabilities.total_num_of_advt_tracked_ =
+      properties_.le_apcf_num_of_tracked_advertisers;
+  vendor_capabilities.extended_scan_support_ = 0;
+  vendor_capabilities.debug_logging_supported_ = 0;
+  vendor_capabilities.a2dp_source_offload_capability_mask_ = 0;
+  vendor_capabilities.bluetooth_quality_report_support_ = 0;
+
+  send_event_(bluetooth::hci::LeGetVendorCapabilitiesCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS,
+      vendor_capabilities.SerializeToBytes()));
 }
 
 void DualModeController::LeBatchScan(CommandView command) {
