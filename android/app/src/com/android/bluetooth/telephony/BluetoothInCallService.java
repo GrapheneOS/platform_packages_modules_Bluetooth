@@ -78,8 +78,6 @@ import java.util.concurrent.Executors;
 public class BluetoothInCallService extends InCallService {
 
     private static final String TAG = "BluetoothInCallService";
-    @VisibleForTesting static final String CLCC_INFERENCE = "ConferenceCallInference";
-
     // match up with bthf_call_state_t of bt_hf.h
     private static final int CALL_STATE_ACTIVE = 0;
     private static final int CALL_STATE_HELD = 1;
@@ -750,16 +748,12 @@ public class BluetoothInCallService extends InCallService {
 
     private void sendListOfCalls(boolean shouldLog) {
         Collection<BluetoothCall> calls = mCallInfo.getBluetoothCalls();
-        boolean isInferenceEnabled =
-                DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, CLCC_INFERENCE, false);
-        Log.d(TAG, "is conference call inference enabled: " + isInferenceEnabled);
+
         // either do conference call CLCC index inference or normal conference call
         BluetoothCall conferenceCallChildrenNotReady = null;
         for (BluetoothCall call : calls) {
             // find the conference call parent among calls
-            if (isInferenceEnabled
-                    && call.isConference()
-                    && !mBluetoothConferenceCallInference.isEmpty()) {
+            if (call.isConference() && !mBluetoothConferenceCallInference.isEmpty()) {
                 Log.d(
                         TAG,
                         "conference call inferred size: "
