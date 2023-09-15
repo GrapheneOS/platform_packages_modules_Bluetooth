@@ -61,6 +61,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -260,6 +261,32 @@ public class GattServiceTest {
         verify(appScanStats).recordScanStart(
                 mPiInfo.settings, mPiInfo.filters, false, false, scannerId);
         verify(mScanManager).startScan(any());
+    }
+
+    @Test
+    public void continuePiStartScanCheckUid() {
+        int scannerId = 1;
+
+        mPiInfo.settings = new ScanSettings.Builder().build();
+        mPiInfo.callingUid = 123;
+        mApp.info = mPiInfo;
+
+        AppScanStats appScanStats = mock(AppScanStats.class);
+        doReturn(appScanStats).when(mScannerMap).getAppScanStatsById(scannerId);
+
+        mService.continuePiStartScan(scannerId, mApp);
+
+        verify(appScanStats)
+                .recordScanStart(mPiInfo.settings, mPiInfo.filters, false, false, scannerId);
+        verify(mScanManager)
+                .startScan(
+                        argThat(
+                                new ArgumentMatcher<ScanClient>() {
+                                    @Override
+                                    public boolean matches(ScanClient client) {
+                                        return mPiInfo.callingUid == client.appUid;
+                                    }
+                                }));
     }
 
     @Test
