@@ -387,6 +387,8 @@ public class ScanManager {
                 Log.d(TAG, "handling starting scan");
             }
 
+            fetchAppForegroundState(client);
+
             if (!isScanSupported(client)) {
                 Log.e(TAG, "Scan settings not supported");
                 return;
@@ -730,6 +732,17 @@ public class ScanManager {
          */
         private boolean isAppForeground(ScanClient client) {
             return mIsUidForegroundMap.get(client.appUid, DEFAULT_UID_IS_FOREGROUND);
+        }
+
+        private void fetchAppForegroundState(ScanClient client) {
+            if (mActivityManager == null) {
+                return;
+            }
+            int importance = mActivityManager.getUidImportance(client.appUid);
+            boolean isForeground =
+                    importance
+                            <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE;
+            mIsUidForegroundMap.put(client.appUid, isForeground);
         }
 
         private boolean updateScanModeBeforeStart(ScanClient client) {
