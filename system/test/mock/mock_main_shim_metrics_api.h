@@ -143,6 +143,20 @@ struct LogMetricHfpPacketLossStats {
   };
 };
 extern struct LogMetricHfpPacketLossStats LogMetricHfpPacketLossStats;
+// Name: LogMetricMmcTranscodeRttStats
+// Params: int maximum_rtt, double mean_rtt, int num_requests, int codec_type
+// Return: void
+struct LogMetricMmcTranscodeRttStats {
+  std::function<void(int maximum_rtt, double mean_rtt, int num_requests,
+                     int codec_type)>
+      body{[](int maximum_rtt, double mean_rtt, int num_requests,
+              int codec_type) {}};
+  void operator()(int maximum_rtt, double mean_rtt, int num_requests,
+                  int codec_type) {
+    body(maximum_rtt, mean_rtt, num_requests, codec_type);
+  };
+};
+extern struct LogMetricMmcTranscodeRttStats LogMetricMmcTranscodeRttStats;
 // Name: LogMetricReadRssiResult
 // Params: const RawAddress& raw_address, uint16_t handle, uint32_t cmd_status,
 // int8_t rssi Returns: void
