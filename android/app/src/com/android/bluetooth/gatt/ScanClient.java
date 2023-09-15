@@ -58,11 +58,15 @@ import java.util.Objects;
     }
 
     ScanClient(int scannerId, ScanSettings settings, List<ScanFilter> filters) {
+        this(scannerId, settings, filters, Binder.getCallingUid());
+    }
+
+    ScanClient(int scannerId, ScanSettings settings, List<ScanFilter> filters, int appUid) {
         this.scannerId = scannerId;
         this.settings = settings;
         this.scanModeApp = settings.getScanMode();
         this.filters = filters;
-        this.appUid = Binder.getCallingUid();
+        this.appUid = appUid;
     }
 
     @Override
