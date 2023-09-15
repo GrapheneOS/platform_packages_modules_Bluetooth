@@ -653,7 +653,8 @@ class PhonePolicy implements AdapterService.BluetoothStateCallback {
         }
 
         /* Make sure that device is still connected before connecting other profiles */
-        if (mAdapterService.getConnectionState(device) != BluetoothAdapter.STATE_CONNECTED) {
+        if (mAdapterService.getConnectionState(device)
+                == AdapterService.CONNECTION_STATE_DISCONNECTED) {
             debugLog("processConnectOtherProfiles: device is not connected anymore " + device);
             return;
         }

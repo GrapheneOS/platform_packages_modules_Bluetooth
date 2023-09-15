@@ -462,7 +462,7 @@ public class PhonePolicyTest {
 
         // ACL is connected, lets simulate this.
         when(mAdapterService.getConnectionState(bondedDevices[0]))
-                .thenReturn(BluetoothProfile.STATE_CONNECTED);
+                .thenReturn(AdapterService.CONNECTION_STATE_ENCRYPTED_BREDR);
 
         // We send a connection successful for one profile since the re-connect *only* works if we
         // have already connected successfully over one of the profiles
@@ -507,7 +507,7 @@ public class PhonePolicyTest {
         // ACL is disconnected just after HEADSET profile got connected and connectOtherProfile
         // was scheduled. Lets simulate this.
         when(mAdapterService.getConnectionState(bondedDevices[0]))
-                .thenReturn(BluetoothProfile.STATE_DISCONNECTED);
+                .thenReturn(AdapterService.CONNECTION_STATE_DISCONNECTED);
 
         // We send a connection successful for one profile since the re-connect *only* works if we
         // have already connected successfully over one of the profiles
