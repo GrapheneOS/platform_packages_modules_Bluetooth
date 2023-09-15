@@ -231,6 +231,14 @@ public class AdapterService extends Service {
 
     private static final int CONTROLLER_ENERGY_UPDATE_TIMEOUT_MILLIS = 30;
 
+    /**
+     * Connection state bitmask as returned by getConnectionState.
+     */
+    public static final int CONNECTION_STATE_DISCONNECTED = 0;
+    public static final int CONNECTION_STATE_CONNECTED = 1;
+    public static final int CONNECTION_STATE_ENCRYPTED_BREDR = 2;
+    public static final int CONNECTION_STATE_ENCRYPTED_LE = 4;
+
     // Report ID definition
     public enum BqrQualityReportId {
         QUALITY_REPORT_ID_MONITOR_MODE(0x01),
@@ -2914,7 +2922,7 @@ public class AdapterService extends Service {
             if (service == null
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService getConnectionState")) {
-                return BluetoothProfile.STATE_DISCONNECTED;
+                return CONNECTION_STATE_DISCONNECTED;
             }
 
             return service.getConnectionState(device);
