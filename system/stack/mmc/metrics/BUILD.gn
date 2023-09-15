@@ -14,15 +14,12 @@
 #  limitations under the License.
 #
 
-source_set("libcodec_client"){
+source_set("libmmc_metrics"){
   configs += [ "//bt/system/stack/mmc:target_defaults" ]
   sources = [
-    "codec_client.cc",
+    "mmc_rtt_logger.cc",
   ]
-
   deps = [
-    "//bt/system/stack/mmc/proto:mmc_service_proto",
-    "//bt/system/stack/mmc/proto:mmc_config_proto",
-    "//bt/system/stack/mmc/metrics:libmmc_metrics",
+    "//bt/system:libbt-platform-protos-lite",
   ]
 }

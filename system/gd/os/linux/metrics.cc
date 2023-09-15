@@ -104,6 +104,9 @@ void LogMetricHfpPacketLossStats(
     const Address& address, int num_decoded_frames, double packet_loss_ratio, uint16_t codec_type) {
 }
 
+void LogMetricMmcTranscodeRttStats(
+    int maximum_rtt, double mean_rtt, int num_requests, int codec_type) {}
+
 void LogMetricBluetoothHalCrashReason(
     const Address& address, uint32_t error_code, uint32_t vendor_error_code) {}
 
