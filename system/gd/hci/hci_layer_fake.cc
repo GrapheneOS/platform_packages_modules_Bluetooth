@@ -104,10 +104,6 @@ CommandView TestHciLayer::GetCommand() {
   return command_packet_view;
 }
 
-void TestHciLayer::AssertNoQueuedCommand() {
-  EXPECT_TRUE(command_queue_.empty());
-}
-
 void TestHciLayer::RegisterEventHandler(
     EventCode event_code, common::ContextualCallback<void(EventView)> event_handler) {
   registered_events_[event_code] = event_handler;
