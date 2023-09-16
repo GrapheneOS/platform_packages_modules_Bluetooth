@@ -7,6 +7,9 @@ use uhid_virt::{Bus, CreateParams, UHIDDevice};
 const VID_DEFAULT: u32 = 0x0000;
 const PID_DEFAULT: u32 = 0x0000;
 
+/// Default address for a virtual uhid device.
+pub const BD_ADDR_DEFAULT: &str = "00:00:00:00:00:00";
+
 // Report descriptor for a standard mouse
 const RDESC: [u8; 50] = [
     0x05, 0x01, // USAGE_PAGE (Generic Desktop)
@@ -85,5 +88,10 @@ impl UHid {
             }
         }
         self.devices.clear();
+    }
+
+    /// Return if the UHID vector is empty.
+    pub fn is_empty(&self) -> bool {
+        self.devices.is_empty()
     }
 }
