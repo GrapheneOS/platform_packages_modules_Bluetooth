@@ -71,6 +71,11 @@ impl IBluetoothManager for BluetoothManagerDBus {
     fn set_desired_default_adapter(&mut self, hci_interface: i32) {
         dbus_generated!()
     }
+
+    #[dbus_method("GetFlossApiVersion")]
+    fn get_floss_api_version(&mut self) -> u32 {
+        dbus_generated!()
+    }
 }
 
 /// D-Bus projection of IBluetoothManagerCallback.

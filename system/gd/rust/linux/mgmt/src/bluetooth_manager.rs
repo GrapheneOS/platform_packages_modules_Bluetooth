@@ -13,6 +13,7 @@ use crate::state_machine::{
 use crate::{config_util, migrate};
 
 const BLUEZ_INIT_TARGET: &str = "bluetoothd";
+const INVALID_VER: u16 = 0xffff;
 
 /// Implementation of IBluetoothManager.
 pub struct BluetoothManager {
@@ -182,6 +183,12 @@ impl IBluetoothManager for BluetoothManager {
 
     fn set_desired_default_adapter(&mut self, adapter_index: i32) {
         self.proxy.set_desired_default_adapter(VirtualHciIndex(adapter_index));
+    }
+
+    fn get_floss_api_version(&mut self) -> u32 {
+        let major = env!("CARGO_PKG_VERSION_MAJOR").parse::<u16>().unwrap_or(INVALID_VER);
+        let minor = env!("CARGO_PKG_VERSION_MINOR").parse::<u16>().unwrap_or(INVALID_VER);
+        ((major as u32) << 16) | (minor as u32)
     }
 }
 
