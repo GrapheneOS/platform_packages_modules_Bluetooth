@@ -911,6 +911,8 @@ impl CommandHandler {
                 self.lock_context().manager_dbus.set_floss_enabled(false);
             }
             "show" => {
+                let (major, minor) = self.lock_context().get_floss_api_version();
+                print_info!("Floss API version: {}.{}", major, minor);
                 print_info!(
                     "Floss enabled: {}",
                     self.lock_context().manager_dbus.get_floss_enabled()
