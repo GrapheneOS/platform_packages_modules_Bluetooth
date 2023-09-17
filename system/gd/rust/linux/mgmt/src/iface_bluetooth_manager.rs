@@ -47,6 +47,10 @@ pub trait IBluetoothManager {
 
     /// Set the preferred default adapter.
     fn set_desired_default_adapter(&mut self, hci_interface: i32);
+
+    /// Returns Floss API verion.The MSB 16-bit is the major version and
+    /// LSB 16-bit is the minor version
+    fn get_floss_api_version(&mut self) -> u32;
 }
 
 /// Interface of Bluetooth Manager callbacks.
