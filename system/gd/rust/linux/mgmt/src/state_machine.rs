@@ -1988,7 +1988,7 @@ mod tests {
 
     #[test]
     fn test_updated_virtual_id() {
-        let mut process_manager = MockProcessManager::new();
+        let process_manager = MockProcessManager::new();
         let mut state_machine = make_state_machine(process_manager);
 
         // Note: Test ordering matters here. When re-ordering, keep track of what
