@@ -141,7 +141,7 @@ public class ScanManager {
     private static final int SCAN_MODE_MAX_IN_CONCURRENCY = ScanSettings.SCAN_MODE_BALANCED;
     private final SparseBooleanArray mIsUidForegroundMap = new SparseBooleanArray();
     private boolean mScreenOn = false;
-    private boolean mIsConnecting;
+    @VisibleForTesting boolean mIsConnecting;
     private int mProfilesConnecting, mProfilesConnected, mProfilesDisconnecting;
 
     @VisibleForTesting
