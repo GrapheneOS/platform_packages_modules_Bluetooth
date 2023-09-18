@@ -406,8 +406,10 @@ struct classic_impl : public security::ISecurityManagerListener {
 
     // HACK: Some failed SCO connections are reporting failures via
     //       ConnectComplete instead of ScoConnectionComplete.
-    //       Drop such packets.
-    if (handle == 0xffff && link_type == LinkType::SCO) {
+    //       The pattern of it is that the handle is always 0xffff.
+    //       We check it with 0x0fff since PDL only extracts 12 bits for handle.
+    //       Drop such packets when the pattern is matched.
+    if (handle == 0x0fff && link_type == LinkType::SCO) {
       LOG_ERROR(
           "ConnectionComplete with invalid handle(%u), link type(%u) and status(%d). Dropping packet.",
           handle,
