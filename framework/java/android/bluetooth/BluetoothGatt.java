@@ -1442,7 +1442,7 @@ public final class BluetoothGatt implements BluetoothProfile {
         }
         if (value.length > GATT_MAX_ATTR_LEN) {
             throw new IllegalArgumentException(
-                    "notification should not be longer than max length of an attribute value");
+                    "value should not be longer than max length of an attribute value");
         }
         if (VDBG) Log.d(TAG, "writeCharacteristic() - uuid: " + characteristic.getUuid());
         if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE) == 0
