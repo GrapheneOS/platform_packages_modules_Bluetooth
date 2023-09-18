@@ -657,7 +657,7 @@ uint8_t LeAudioDevice::GetLc3SupportedChannelCount(uint8_t direction) {
         continue;
 
       auto supported_channel_count_ltv = pac.codec_spec_caps.Find(
-          codec_spec_caps::kLeAudioLtvTypeAudioChannelCounts);
+          codec_spec_caps::kLeAudioLtvTypeSupportedAudioChannelCounts);
 
       if (supported_channel_count_ltv == std::nullopt ||
           supported_channel_count_ltv->size() == 0L) {

@@ -211,15 +211,15 @@ inline uint8_t GetAudioChannelCounts(std::bitset<32> allocation) {
 /* LTV Types - same values as in Codec Specific Configurations but 0x03 is
  * named differently.
  */
-constexpr uint8_t kLeAudioLtvTypeSamplingFreq =
+constexpr uint8_t kLeAudioLtvTypeSupportedSamplingFrequencies =
     codec_spec_conf::kLeAudioLtvTypeSamplingFreq;
-constexpr uint8_t kLeAudioLtvTypeFrameDuration =
+constexpr uint8_t kLeAudioLtvTypeSupportedFrameDurations =
     codec_spec_conf::kLeAudioLtvTypeFrameDuration;
-constexpr uint8_t kLeAudioLtvTypeAudioChannelCounts =
+constexpr uint8_t kLeAudioLtvTypeSupportedAudioChannelCounts =
     codec_spec_conf::kLeAudioLtvTypeAudioChannelAllocation;
-constexpr uint8_t kLeAudioLtvTypeOctetsPerCodecFrame =
+constexpr uint8_t kLeAudioLtvTypeSupportedOctetsPerCodecFrame =
     codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame;
-constexpr uint8_t kLeAudioLtvTypeMaxCodecFramesPerSdu =
+constexpr uint8_t kLeAudioLtvTypeSupportedMaxCodecFramesPerSdu =
     codec_spec_conf::kLeAudioLtvTypeCodecFrameBlocksPerSdu;
 
 /* Sampling Frequencies */
