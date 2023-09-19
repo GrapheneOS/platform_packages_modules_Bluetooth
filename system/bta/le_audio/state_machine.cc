@@ -33,6 +33,7 @@
 #include "devices.h"
 #include "gd/common/strings.h"
 #include "hcimsgs.h"
+#include "le_audio_health_status.h"
 #include "le_audio_log_history.h"
 #include "le_audio_types.h"
 #include "osi/include/alarm.h"
@@ -302,6 +303,18 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     state_machine_callbacks_->StatusReportCb(group->group_id_, status);
   }
 
+  void notifyLeAudioHealth(int group_id,
+                           le_audio::LeAudioHealthGroupStatType stat) {
+    if (!bluetooth::common::InitFlags::IsLeAudioHealthBasedActionsEnabled()) {
+      return;
+    }
+
+    auto leAudioHealthStatus = le_audio::LeAudioHealthStatus::Get();
+    if (leAudioHealthStatus) {
+      leAudioHealthStatus->AddStatisticForGroup(group_id, stat);
+    }
+  }
+
   void ProcessGattCtpNotification(LeAudioDeviceGroup* group, uint8_t* value,
                                   uint16_t len) {
     auto ntf =
@@ -349,6 +362,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
             "Stoping stream due to control point error for ase: %d, error: "
             "0x%02x, reason: 0x%02x",
             entry.ase_id, entry.response_code, entry.reason);
+
+        notifyLeAudioHealth(group->group_id_,
+                            le_audio::LeAudioHealthGroupStatType::
+                                STREAM_CREATE_SIGNALING_FAILED);
         StopStream(group);
         return;
       }
