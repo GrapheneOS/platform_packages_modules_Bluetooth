@@ -429,6 +429,20 @@ enum OpCode : 16 {
   LE_SET_DATA_RELATED_ADDRESS_CHANGES = 0x207C,
   LE_SET_DEFAULT_SUBRATE = 0x207D,
   LE_SUBRATE_REQUEST = 0x207E,
+  LE_CS_WRITE_CACHED_REMOTE_SUPPORTED_CAPABILITIES = 0xFBE9,
+  LE_CS_SET_PROCEDURE_PARAMETERS = 0xFBEA,
+  LE_CS_TEST_END = 0xFBEB,
+  LE_CS_TEST = 0xFBEC,
+  LE_CS_PROCEDURE_ENABLE = 0xFBF1,
+  LE_CS_SET_CHANNEL_CLASSIFICATION = 0xFBF2,
+  LE_CS_REMOVE_CONFIG = 0xFBF3,
+  LE_CS_CREATE_CONFIG = 0xFBF4,
+  LE_CS_READ_REMOTE_FAE_TABLE = 0xFBF6,
+  LE_CS_WRITE_CACHED_REMOTE_FAE_TABLE = 0xFBF7,
+  LE_CS_SET_DEFAULT_SETTINGS = 0xFBF8,
+  LE_CS_SECURITY_ENABLE = 0xFBF9,
+  LE_CS_READ_REMOTE_SUPPORTED_CAPABILITIES = 0xFBFA,
+  LE_CS_READ_LOCAL_SUPPORTED_CAPABILITIES = 0xFBFB,
 
   // VENDOR_SPECIFIC
   // MSFT_OPCODE_xxxx below is needed for the tests.
@@ -774,6 +788,7 @@ packet LeScanningCommand : Command { _payload_, }
 packet LeConnectionManagementCommand : AclCommand { _payload_, }
 packet LeSecurityCommand : Command { _payload_, }
 packet LeIsoCommand : Command { _payload_, }
+packet LeCsCommand : Command { _payload_, }
 packet VendorCommand : Command { _payload_, }
 
 // HCI Event Packets
@@ -879,6 +894,14 @@ enum SubeventCode : 8 {
   TRANSMIT_POWER_REPORTING = 0x21,
   BIG_INFO_ADVERTISING_REPORT = 0x22,
   LE_SUBRATE_CHANGE = 0x23,
+  LE_CS_TEST_END_COMPLETE = 0xF5,
+  LE_CS_SUBEVENT_RESULT_CONTINUE = 0xF6,
+  LE_CS_SUBEVENT_RESULT = 0xF7,
+  LE_CS_PROCEDURE_ENABLE_COMPLETE = 0xF8,
+  LE_CS_CONFIG_COMPLETE = 0xF9,
+  LE_CS_SECURITY_ENABLE_COMPLETE = 0xFA,
+  LE_CS_READ_REMOTE_FAE_TABLE_COMPLETE = 0xFB,
+  LE_CS_READ_REMOTE_SUPPORTED_CAPABILITIES_COMPLETE = 0xFC,
 }
 
 // Vendor specific events
@@ -4844,6 +4867,390 @@ packet LeSubrateRequest : AclCommand (op_code = LE_SUBRATE_REQUEST) {
 packet LeSubrateRequestStatus : CommandStatus (command_op_code = LE_SUBRATE_REQUEST) {
 }
 
+packet LeCsReadLocalSupportedCapabilities : LeCsCommand (op_code = LE_CS_READ_LOCAL_SUPPORTED_CAPABILITIES) {
+
+}
+
+struct CsRoleSupported {
+  initiator : 1,
+  reflector : 1,
+  _reserved_ : 6,
+}
+
+struct CsOptionalModesSupported {
+  mode_3 : 1,
+  _reserved_ : 7,
+}
+
+struct CsRttCapability {
+  rtt_aa_only_n : 1,
+  rtt_sounding_n : 1,
+  rtt_random_payload_n : 1,
+  _reserved_ : 5,
+}
+
+struct CsOptionalNadmSoundingCapability {
+  normalized_attack_detector_metric : 1,
+  _reserved_ : 15,
+}
+
+struct CsOptionalNadmRandomCapability {
+  normalized_attack_detector_metric : 1,
+  _reserved_ : 15,
+}
+
+struct CsOptionalCsSyncPhysSupported {
+  le_2m_phy : 1,
+  _reserved_ : 7,
+}
+
+struct CsOptionalSubfeaturesSupported {
+  companion_signal : 1,
+  frequency_actuation_error : 1,
+  channel_selection_algorithm : 1,
+  phase_based_ranging : 1,
+  _reserved_ : 12,
+}
+
+struct CsOptionalTIp1TimesSupported {
+  support_10_microsecond  : 1,
+  support_20_microsecond : 1,
+  support_30_microsecond : 1,
+  support_40_microsecond : 1,
+  support_50_microsecond : 1,
+  support_60_microsecond : 1,
+  support_80_microsecond : 1,
+  _reserved_ : 9,
+}
+
+struct CsOptionalTIp2TimesSupported {
+  support_10_microsecond  : 1,
+  support_20_microsecond : 1,
+  support_30_microsecond : 1,
+  support_40_microsecond : 1,
+  support_50_microsecond : 1,
+  support_60_microsecond : 1,
+  support_80_microsecond : 1,
+  _reserved_ : 9,
+}
+
+struct CsOptionalTFcsTimesSupported {
+  support_15_microsecond  : 1,
+  support_20_microsecond : 1,
+  support_30_microsecond : 1,
+  support_40_microsecond : 1,
+  support_50_microsecond : 1,
+  support_60_microsecond : 1,
+  support_80_microsecond : 1,
+  support_100_microsecond : 1,
+  support_120_microsecond : 1,
+  _reserved_ : 7,
+}
+
+struct CsOptionalTPmTimesSupported {
+  support_10_microsecond  : 1,
+  support_20_microsecond : 1,
+  _reserved_ : 14,
+}
+
+packet LeCsReadLocalSupportedCapabilitiesComplete : CommandComplete (command_op_code = LE_CS_READ_LOCAL_SUPPORTED_CAPABILITIES) {
+  status : ErrorCode,
+  num_config_supported: 8,
+  max_consecutive_procedures_supported : 16,
+  num_antennas_supported : 8,
+  max_antenna_paths_supported : 8,
+  roles_supported : CsRoleSupported,
+  optional_modes_supported : CsOptionalModesSupported,
+  rtt_capability : CsRttCapability,
+  rtt_aa_only_n : 8,
+  rtt_sounding_n : 8,
+  rtt_random_payload_n : 8,
+  optional_nadm_sounding_capability : CsOptionalNadmSoundingCapability,
+  optional_nadm_random_capability : CsOptionalNadmRandomCapability,
+  optional_cs_sync_phys_supported : CsOptionalCsSyncPhysSupported,
+  optional_subfeatures_supported : CsOptionalSubfeaturesSupported,
+  optional_t_ip1_times_supported : CsOptionalTIp1TimesSupported,
+  optional_t_ip2_times_supported : CsOptionalTIp2TimesSupported,
+  optional_t_fcs_times_supported : CsOptionalTFcsTimesSupported,
+  optional_t_pm_times_supported : CsOptionalTPmTimesSupported,
+  t_sw_time_supported : 8,
+}
+
+packet LeCsReadRemoteSupportedCapabilities : LeCsCommand (op_code = LE_CS_READ_REMOTE_SUPPORTED_CAPABILITIES) {
+  connection_handle: 12,
+  _reserved_ : 4,
+}
+
+packet LeCsReadRemoteSupportedCapabilitiesStatus : CommandStatus (command_op_code = LE_CS_READ_REMOTE_SUPPORTED_CAPABILITIES) {
+}
+
+packet LeCsWriteCachedRemoteSupportedCapabilities : LeCsCommand (op_code = LE_CS_WRITE_CACHED_REMOTE_SUPPORTED_CAPABILITIES) {
+  connection_handle: 12,
+  _reserved_ : 4,
+  num_config_supported: 8,
+  max_consecutive_procedures_supported : 16,
+  num_antennas_supported : 8,
+  max_antenna_paths_supported : 8,
+  roles_supported : CsRoleSupported,
+  optional_modes_supported : CsOptionalModesSupported,
+  rtt_capability : CsRttCapability,
+  rtt_aa_only_n : 8,
+  rtt_sounding_n : 8,
+  rtt_random_payload_n : 8,
+  optional_nadm_sounding_capability : CsOptionalNadmSoundingCapability,
+  optional_nadm_random_capability : CsOptionalNadmRandomCapability,
+  optional_cs_sync_phys_supported : CsOptionalCsSyncPhysSupported,
+  optional_subfeatures_supported : CsOptionalSubfeaturesSupported,
+  optional_t_ip1_times_supported : CsOptionalTIp1TimesSupported,
+  optional_t_ip2_times_supported : CsOptionalTIp2TimesSupported,
+  optional_t_fcs_times_supported : CsOptionalTFcsTimesSupported,
+  optional_t_pm_times_supported : CsOptionalTPmTimesSupported,
+  t_sw_time_supported : 8,
+}
+
+packet LeCsWriteCachedRemoteSupportedCapabilitiesComplete : CommandComplete (command_op_code = LE_CS_WRITE_CACHED_REMOTE_SUPPORTED_CAPABILITIES) {
+  status : ErrorCode,
+  connection_handle: 12,
+  _reserved_ : 4,
+}
+
+packet LeCsSecurityEnable : LeCsCommand (op_code = LE_CS_SECURITY_ENABLE) {
+  connection_handle: 12,
+  _reserved_ : 4,
+}
+
+packet LeCsSecurityEnableStatus : CommandStatus (command_op_code = LE_CS_SECURITY_ENABLE) {
+}
+
+enum CsSyncAntennaSelection : 8 {
+  ANTENNA_1 = 0x01,
+  ANTENNA_2 = 0x02,
+  ANTENNA_3 = 0x03,
+  ANTENNA_4 = 0x04,
+  ANTENNAS_IN_ORDER = 0xFE,
+  NO_RECOMMENDATION = 0xFF,
+}
+
+packet LeCsSetDefaultSettings : LeCsCommand (op_code = LE_CS_SET_DEFAULT_SETTINGS) {
+  connection_handle: 12,
+  _reserved_ : 4,
+  role_enable : 8,
+  cs_sync_antenna_selection : CsSyncAntennaSelection,
+  max_tx_power : 8,
+}
+
+packet LeCsSetDefaultSettingsComplete : CommandComplete (command_op_code = LE_CS_SET_DEFAULT_SETTINGS) {
+  status : ErrorCode,
+  connection_handle: 12,
+  _reserved_ : 4,
+}
+
+packet LeCsReadRemoteFaeTable : LeCsCommand (op_code = LE_CS_READ_REMOTE_FAE_TABLE) {
+  connection_handle: 12,
+  _reserved_ : 4,
+}
+
+packet LeCsReadRemoteFaeTableStatus : CommandStatus (command_op_code = LE_CS_READ_REMOTE_FAE_TABLE) {
+}
+
+packet LeCsWriteCachedRemoteFaeTable : LeCsCommand (op_code = LE_CS_WRITE_CACHED_REMOTE_FAE_TABLE) {
+  connection_handle: 12,
+  _reserved_ : 4,
+  remote_fae_table : 8[9],
+}
+
+packet LeCsWriteCachedRemoteFaeTableComplete : CommandComplete (command_op_code = LE_CS_WRITE_CACHED_REMOTE_FAE_TABLE) {
+  status : ErrorCode,
+  connection_handle: 12,
+  _reserved_ : 4,
+}
+
+enum CsCreateContext: 8 {
+  LOCAL_CONTROLLER_ONLY = 0x00,
+  BOTH_LOCAL_AND_REMOTE_CONTROLLER = 0x01,
+}
+
+enum CsMainModeType: 8 {
+  MODE_1 = 0x01,
+  MODE_2 = 0x02,
+  MODE_3 = 0x03,
+}
+
+enum CsSubModeType: 8 {
+  MODE_1 = 0x01,
+  MODE_2 = 0x02,
+  MODE_3 = 0x03,
+  UNUSED = 0xff,
+}
+
+enum CsRole : 8 {
+  INITIATOR = 0x00,
+  REFLECTOR = 0x01,
+}
+
+enum CsConfigRttType : 8 {
+  RTT_AA_COARSE = 0x00,
+  RTT_WITH_32_BIT_SOUNDING_SEQUENCE = 0x01,
+  RTT_WITH_96_BIT_SOUNDING_SEQUENCE = 0x02,
+  RTT_WITH_32_BIT_RANDOM_SEQUENCE = 0x03,
+  RTT_WITH_64_BIT_RANDOM_SEQUENCE = 0x04,
+  RTT_WITH_96_BIT_RANDOM_SEQUENCE = 0x05,
+  RTT_WITH_128_BIT_RANDOM_SEQUENCE = 0x06,
+}
+
+enum CsSyncPhy : 8 {
+  LE_1M_PHY = 0x01,
+  LE_2M_PHY = 0x02,
+}
+
+enum CsChannelSelectionType : 8 {
+  TYPE_3B = 0x00,
+  TYPE_3C = 0x01,
+}
+
+enum CsCh3cShape : 8 {
+  HAT_SHAPE = 0x00,
+  X_SHAPE = 0x01,
+}
+
+packet LeCsCreateConfig : LeCsCommand (op_code = LE_CS_CREATE_CONFIG) {
+  connection_handle: 12,
+  _reserved_ : 4,
+  config_id : 2,
+  _reserved_ : 6,
+  create_context : CsCreateContext,
+  main_mode_type : CsMainModeType,
+  sub_mode_type : CsSubModeType,
+  main_mode_min_steps : 8,
+  main_mode_max_steps : 8,
+  main_mode_repetition : 2,
+  _reserved_ : 6,
+  mode_0_steps : 2,
+  _reserved_ : 6,
+  role : CsRole,
+  rtt_type : CsConfigRttType,
+  cs_sync_phy : CsSyncPhy,
+  channel_map : 8[10],
+  channel_map_repetition : 8,
+  channel_selection_type : CsChannelSelectionType,
+  ch3c_shape : CsCh3cShape,
+  ch3c_jump : 8,
+  companion_signal_enable : Enable,
+}
+
+packet LeCsCreateConfigStatus : CommandStatus (command_op_code = LE_CS_CREATE_CONFIG) {
+
+}
+
+packet LeCsRemoveConfig : LeCsCommand (op_code = LE_CS_REMOVE_CONFIG) {
+  connection_handle: 12,
+  _reserved_ : 4,
+  config_id : 2,
+  _reserved_ : 6,
+}
+
+packet LeCsRemoveConfigStatus : CommandStatus (command_op_code = LE_CS_REMOVE_CONFIG) {
+
+}
+
+packet LeCsSetChannelClassification : LeCsCommand (op_code = LE_CS_SET_CHANNEL_CLASSIFICATION) {
+  channel_classification : 8[10],
+}
+
+packet LeCsSetChannelClassificationComplete : CommandComplete (command_op_code = LE_CS_SET_CHANNEL_CLASSIFICATION) {
+}
+
+enum CsPhy : 8 {
+  LE_1M_PHY = 0x01,
+  LE_2M_PHY = 0x02,
+}
+
+struct CsPreferredPeerAntenna {
+  use_first_ordered_antenna_element : 1,
+  use_second_ordered_antenna_element : 1,
+  use_third_ordered_antenna_element : 1,
+  use_fourth_ordered_antenna_element : 1,
+  _reserved_ : 4,
+}
+
+packet LeCsSetProcedureParameters  : LeCsCommand (op_code = LE_CS_SET_PROCEDURE_PARAMETERS) {
+  connection_handle: 12,
+  _reserved_ : 4,
+  config_id : 2,
+  _reserved_ : 6,
+  max_procedure_duration : 16,
+  min_procedure_interval : 16,
+  max_procedure_interval : 16,
+  max_procedure_count : 16,
+  min_subevent_len : 24,
+  max_subevent_len : 24,
+  tone_antenna_config_selection : 8,
+  phy : CsPhy,
+  tx_pwr_delta : 8,
+  preferred_peer_antenna : CsPreferredPeerAntenna,
+}
+
+packet LeCsSetProcedureParametersComplete : CommandComplete (command_op_code = LE_CS_SET_PROCEDURE_PARAMETERS) {
+  status : ErrorCode,
+  connection_handle: 12,
+  _reserved_ : 4,
+}
+
+packet LeCsProcedureEnable : LeCsCommand (op_code = LE_CS_PROCEDURE_ENABLE) {
+  connection_handle: 12,
+  _reserved_ : 4,
+  procedure_enable : 8,
+  config_id : 2,
+  _reserved_ : 6,
+}
+
+packet LeCsProcedureEnableStatus : CommandStatus (command_op_code = LE_CS_PROCEDURE_ENABLE) {
+}
+
+packet LeCsTest : LeCsCommand (op_code = LE_CS_TEST) {
+  main_mode_type : 8,
+  sub_mode_type : 8,
+  main_mode_steps : 8,
+  main_mode_repetition : 8,
+  mode_0_steps : 8,
+  role : 8,
+  rtt_type : 8,
+  cs_sync_phy : 8,
+  cs_sync_antenna_selection : 8,
+  cs_sync_aa_initiator : 32,
+  cs_sync_aa_reflector : 32,
+  cs_sync_random : 8[16],
+  cs_sync_user_payload_pattern : 8,
+  cs_subevent_length : 24,
+  cs_subevent_interval : 16,
+  transmit_power_level : 8,
+  t_ip1_time : 8,
+  t_ip2_time : 8,
+  t_fcs_time : 8,
+  t_pm_time : 8,
+  t_sw_time : 8,
+  t_pm_tone_ext : 8,
+  ss_marker1_position: 8,
+  ss_marker2_position: 8,
+  ss_marker_value : 8,
+  companion_signal_enable : 8,
+  tone_antenna_config : 8,
+  tone_antenna_permutation : 8,
+  channel_map_repetition: 8,
+  _size_(channel) : 8,
+  channel : 8[],
+}
+
+packet LeCsTestComplete : CommandComplete (command_op_code = LE_CS_TEST) {
+  status : ErrorCode,
+}
+
+packet LeCsTestEnd : LeCsCommand (op_code = LE_CS_TEST_END) {
+}
+
+packet LeCsTestEndStatus : CommandStatus (command_op_code = LE_CS_TEST_END) {
+}
+
   // VENDOR_SPECIFIC
 packet LeGetVendorCapabilities : VendorCommand (op_code = LE_GET_VENDOR_CAPABILITIES) {
 }
@@ -6249,6 +6656,164 @@ packet LeSubrateChange : LeMetaEvent (subevent_code = LE_SUBRATE_CHANGE) {
   _reserved_ : 7,
   supervision_timeout: 12,
   _reserved_ : 4,
+}
+
+packet LeCsReadRemoteSupportedCapabilitiesComplete : LeMetaEvent (subevent_code = LE_CS_READ_REMOTE_SUPPORTED_CAPABILITIES_COMPLETE) {
+  status : ErrorCode,
+  connection_handle : 12,
+  _reserved_ : 4,
+  num_config_supported: 8,
+  max_consecutive_procedures_supported : 16,
+  num_antennas_supported : 8,
+  max_antenna_paths_supported : 8,
+  roles_supported : CsRoleSupported,
+  optional_modes_supported : 8,
+  rtt_capability : CsRttCapability,
+  rtt_aa_only_n : 8,
+  rtt_sounding_n : 8,
+  rtt_random_payload_n : 8,
+  optional_nadm_sounding_capability : CsOptionalNadmSoundingCapability,
+  optional_nadm_random_capability : CsOptionalNadmRandomCapability,
+  optional_cs_sync_phys_supported : CsOptionalCsSyncPhysSupported,
+  optional_subfeatures_supported : CsOptionalSubfeaturesSupported,
+  optional_t_ip1_times_supported : CsOptionalTIp1TimesSupported,
+  optional_t_ip2_times_supported : CsOptionalTIp2TimesSupported,
+  optional_t_fcs_times_supported : CsOptionalTFcsTimesSupported,
+  optional_t_pm_times_supported : CsOptionalTPmTimesSupported,
+  t_sw_time_supported : 8,
+}
+
+packet LeCsReadRemoteFaeTableComplete : LeMetaEvent (subevent_code = LE_CS_READ_REMOTE_FAE_TABLE_COMPLETE) {
+  status : ErrorCode,
+  connection_handle : 12,
+  _reserved_ : 4,
+  remote_fae_table : 8[9],
+}
+
+packet LeCsSecurityEnableComplete : LeMetaEvent (subevent_code = LE_CS_SECURITY_ENABLE_COMPLETE) {
+  status : ErrorCode,
+  connection_handle : 12,
+  _reserved_ : 4,
+}
+
+enum CsRttType : 8 {
+  RTT_AA_ONLY = 0x00,
+  RTT_WITH_32_BIT_SOUNDING_SEQUENCE = 0x01,
+  RTT_WITH_96_BIT_SOUNDING_SEQUENCE = 0x02,
+  RTT_WITH_32_BIT_RANDOM_SEQUENCE = 0x03,
+  RTT_WITH_64_BIT_RANDOM_SEQUENCE = 0x04,
+  RTT_WITH_96_BIT_RANDOM_SEQUENCE = 0x05,
+  RTT_WITH_128_BIT_RANDOM_SEQUENCE = 0x06,
+}
+
+enum CsAction : 8 {
+  CONFIG_REMOVED = 0x00,
+  CONFIG_CREATED = 0x01,
+}
+
+packet LeCsConfigComplete : LeMetaEvent (subevent_code = LE_CS_CONFIG_COMPLETE) {
+  status : ErrorCode,
+  connection_handle : 12,
+  _reserved_ : 4,
+  config_id : 2,
+  _reserved_ : 6,
+  action : CsAction,
+  main_mode_type : CsMainModeType,
+  sub_mode_type : CsSubModeType,
+  min_main_mode_steps : 8,
+  max_main_mode_steps : 8,
+  main_mode_repetition : 2,
+  _reserved_ : 6,
+  mode_0_steps : 2,
+  _reserved_ : 6,
+  role : CsRole,
+  rtt_type : CsRttType,
+  cs_sync_phy : CsSyncPhy,
+  channel_map : 8[10],
+  channel_map_repetition : 8,
+  channel_selection_type : CsChannelSelectionType,
+  ch3c_shape : CsCh3cShape,
+  ch3c_jump : 8,
+  companion_signal_enable : Enable,
+  t_ip1_time : 8,
+  t_ip2_time : 8,
+  t_fcs_time : 8,
+  t_pm_time : 8,
+}
+
+enum CsProcedureState : 8 {
+  DISABLED = 0x00,
+  ENABLED = 0x01,
+}
+
+packet LeCsProcedureEnableComplete : LeMetaEvent (subevent_code = LE_CS_PROCEDURE_ENABLE_COMPLETE) {
+  status : ErrorCode,
+  connection_handle : 12,
+  _reserved_ : 4,
+  config_id : 2,
+  _reserved_ : 6,
+  state : CsProcedureState,
+  tone_antenna_config_selection : 8,
+  selected_tx_power : 8,
+  subevent_len : 24,
+  subevents_per_event : 8,
+  subevent_interval : 16,
+  event_interval : 16,
+  procedure_interval : 16,
+  procedure_count : 16,
+}
+
+enum CsProcedureDoneStatus : 4 {
+  ALL_RESULTS_COMPLETE = 0x0,
+  PARTIAL_RESULTS = 0x1,
+  ABORTED = 0xF,
+}
+
+enum CsSubeventDoneStatus : 4 {
+  ALL_RESULTS_COMPLETE = 0x0,
+  PARTIAL_RESULTS = 0x1,
+  ABORTED = 0xF,
+}
+
+struct LeCsResultDataStructure {
+  step_mode : 8,
+  step_channel : 8,
+  _size_(step_data) : 8,
+  step_data : 8[],
+}
+
+packet LeCsSubeventResult : LeMetaEvent (subevent_code = LE_CS_SUBEVENT_RESULT) {
+  connection_handle : 12,
+  _reserved_ : 4,
+  config_id : 2,
+  _reserved_ : 6,
+  start_acl_conn_event : 16,
+  procedure_counter : 16,
+  frequency_compensation : 16,
+  reference_power_level : 8,
+  procedure_done_status : CsProcedureDoneStatus,
+  _reserved_ : 4,
+  subevent_done_status : CsSubeventDoneStatus,
+  _reserved_ : 4,
+  abort_reason : 8,
+  num_antenna_paths : 8,
+  _count_(result_data_structures) : 8,
+  result_data_structures : LeCsResultDataStructure[],
+}
+
+packet LeCsSubeventResultContinue : LeMetaEvent (subevent_code = LE_CS_SUBEVENT_RESULT_CONTINUE) {
+  connection_handle : 12,
+  _reserved_ : 4,
+  config_id : 2,
+  _reserved_ : 6,
+  procedure_done_status : CsProcedureDoneStatus,
+  _reserved_ : 4,
+  subevent_done_status : CsSubeventDoneStatus,
+  _reserved_ : 4,
+  abort_reason : 8,
+  num_antenna_paths : 8,
+  _count_(result_data_structures) : 8,
+  result_data_structures : LeCsResultDataStructure[],
 }
 
 // Vendor specific events
