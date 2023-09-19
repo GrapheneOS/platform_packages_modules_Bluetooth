@@ -110,7 +110,10 @@ impl IBluetoothCallback for BluetoothCallbackDBus {
     fn on_discovering_changed(&mut self, discovering: bool) {
         dbus_generated!()
     }
-    #[dbus_method("OnSspRequest")]
+    #[dbus_method(
+        "OnSspRequest",
+        DBusLog::Enable(DBusLogOptions::LogAll, DBusLogVerbosity::Verbose)
+    )]
     fn on_ssp_request(
         &mut self,
         remote_device: BluetoothDevice,
@@ -128,7 +131,10 @@ impl IBluetoothCallback for BluetoothCallbackDBus {
     fn on_pin_display(&mut self, remote_device: BluetoothDevice, pincode: String) {
         dbus_generated!()
     }
-    #[dbus_method("OnBondStateChanged")]
+    #[dbus_method(
+        "OnBondStateChanged",
+        DBusLog::Enable(DBusLogOptions::LogAll, DBusLogVerbosity::Verbose)
+    )]
     fn on_bond_state_changed(&mut self, status: u32, address: String, state: u32) {
         dbus_generated!()
     }
@@ -160,12 +166,18 @@ struct BluetoothConnectionCallbackDBus {}
 
 #[dbus_proxy_obj(BluetoothConnectionCallback, "org.chromium.bluetooth.BluetoothConnectionCallback")]
 impl IBluetoothConnectionCallback for BluetoothConnectionCallbackDBus {
-    #[dbus_method("OnDeviceConnected")]
+    #[dbus_method(
+        "OnDeviceConnected",
+        DBusLog::Enable(DBusLogOptions::LogAll, DBusLogVerbosity::Verbose)
+    )]
     fn on_device_connected(&mut self, remote_device: BluetoothDevice) {
         dbus_generated!()
     }
 
-    #[dbus_method("OnDeviceDisconnected")]
+    #[dbus_method(
+        "OnDeviceDisconnected",
+        DBusLog::Enable(DBusLogOptions::LogAll, DBusLogVerbosity::Verbose)
+    )]
     fn on_device_disconnected(&mut self, remote_device: BluetoothDevice) {
         dbus_generated!()
     }
