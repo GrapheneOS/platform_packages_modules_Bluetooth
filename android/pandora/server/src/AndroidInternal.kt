@@ -20,8 +20,6 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.provider.Telephony.*
-import android.telephony.SmsManager
-import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import android.util.Log
 import com.google.protobuf.Empty
@@ -65,24 +63,6 @@ class AndroidInternal(val context: Context) : AndroidImplBase() {
                     bluetoothDevice.setSimAccessPermission(BluetoothDevice.ACCESS_ALLOWED)
                 else -> {}
             }
-            Empty.getDefaultInstance()
-        }
-    }
-
-    override fun sendSMS(request: Empty, responseObserver: StreamObserver<Empty>) {
-        grpcUnary<Empty>(scope, responseObserver) {
-            val smsManager = SmsManager.getDefault()
-            val defaultSmsSub = SubscriptionManager.getDefaultSmsSubscriptionId()
-            telephonyManager = telephonyManager.createForSubscriptionId(defaultSmsSub)
-            val avdPhoneNumber = telephonyManager.getLine1Number()
-
-            smsManager.sendTextMessage(
-                avdPhoneNumber,
-                avdPhoneNumber,
-                generateAlphanumericString(DEFAULT_MESSAGE_LEN),
-                null,
-                null
-            )
             Empty.getDefaultInstance()
         }
     }

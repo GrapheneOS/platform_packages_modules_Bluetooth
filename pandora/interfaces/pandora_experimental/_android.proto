@@ -17,9 +17,6 @@ service Android {
   rpc Log(LogRequest) returns (LogResponse);
   // Set Message, PhoneBook and SIM access permission
   rpc SetAccessPermission(SetAccessPermissionRequest) returns (google.protobuf.Empty);
-  // Send SMS
-  rpc SendSMS(google.protobuf.Empty) returns (google.protobuf.Empty);
-
   // Send ping
   rpc SendPing(SendPingRequest) returns (google.protobuf.Empty);
 }

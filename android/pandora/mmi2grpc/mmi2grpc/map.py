@@ -20,6 +20,7 @@ from mmi2grpc._proxy import ProfileProxy
 
 from pandora.host_grpc import Host
 from pandora.host_pb2 import Connection
+from pandora_experimental.map_grpc import Map as MapProfile
 from pandora_experimental._android_grpc import Android
 from pandora_experimental._android_pb2 import ACCESS_MESSAGE
 
@@ -37,6 +38,7 @@ class MAPProxy(ProfileProxy):
 
         self.host = Host(channel)
         self._android = Android(channel)
+        self.map_profile = MapProfile(channel)
 
         self.connection = None
         self._init_send_sms()
@@ -162,7 +164,7 @@ class MAPProxy(ProfileProxy):
         Send Set Event Report with New GSM Message.
         """
 
-        self._android.SendSMS()
+        self.map_profile.SendSMS()
 
         return "OK"
 
@@ -184,5 +186,5 @@ class MAPProxy(ProfileProxy):
     def _init_send_sms(self):
 
         min_sms_count = 2  # Few test cases requires minimum 2 sms to pass
-        for index in range(min_sms_count):
-            self._android.SendSMS()
+        for _ in range(min_sms_count):
+            self.map_profile.SendSMS()
