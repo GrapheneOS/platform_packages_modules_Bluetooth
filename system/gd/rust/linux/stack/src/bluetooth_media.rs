@@ -987,8 +987,10 @@ impl BluetoothMedia {
                 }
                 self.phone_state_change("".into());
 
-                debug!("[{}]: Start SCO call due to ATA", DisplayAddress(&addr));
-                self.start_sco_call_impl(addr.to_string(), false, HfpCodecCapability::NONE);
+                if self.mps_qualification_enabled {
+                    debug!("[{}]: Start SCO call due to ATA", DisplayAddress(&addr));
+                    self.start_sco_call_impl(addr.to_string(), false, HfpCodecCapability::NONE);
+                }
                 self.uhid_send_input_report(&addr);
             }
             HfpCallbacks::HangupCall(addr) => {
@@ -2933,16 +2935,18 @@ impl IBluetoothTelephony for BluetoothMedia {
         }
         self.phone_state_change("".into());
 
-        // Find a connected HFP and try to establish an SCO.
-        if let Some(addr) = self.hfp_states.iter().find_map(|(addr, state)| {
-            if *state == BthfConnectionState::SlcConnected {
-                Some(addr.clone())
-            } else {
-                None
+        if self.mps_qualification_enabled {
+            // Find a connected HFP and try to establish an SCO.
+            if let Some(addr) = self.hfp_states.iter().find_map(|(addr, state)| {
+                if *state == BthfConnectionState::SlcConnected {
+                    Some(addr.clone())
+                } else {
+                    None
+                }
+            }) {
+                info!("Start SCO call due to call answered");
+                self.start_sco_call_impl(addr.to_string(), false, HfpCodecCapability::NONE);
             }
-        }) {
-            info!("Start SCO call due to call answered");
-            self.start_sco_call_impl(addr.to_string(), false, HfpCodecCapability::NONE);
         }
 
         true
