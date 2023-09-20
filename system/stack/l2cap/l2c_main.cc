@@ -834,11 +834,6 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
  *
  ******************************************************************************/
 void l2c_init(void) {
-  if (bluetooth::shim::is_gd_l2cap_enabled()) {
-    // L2CAP init should be handled by GD stack manager
-    return;
-  }
-
   int16_t xx;
 
   memset(&l2cb, 0, sizeof(tL2C_CB));
@@ -878,12 +873,7 @@ void l2c_init(void) {
                                   L2CAP_FIXED_CHNL_SMP_BIT;
 }
 
-void l2c_free(void) {
-  if (bluetooth::shim::is_gd_l2cap_enabled()) {
-    // L2CAP cleanup should be handled by GD stack manager
-    return;
-  }
-}
+void l2c_free(void) {}
 
 void l2c_ccb_timer_timeout(void* data) {
   tL2C_CCB* p_ccb = (tL2C_CCB*)data;

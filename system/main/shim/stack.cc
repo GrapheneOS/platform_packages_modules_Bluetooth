@@ -91,11 +91,6 @@ void Stack::StartEverything() {
   modules.add<hci::acl_manager::AclScheduler>();
   modules.add<hci::AclManager>();
   modules.add<hci::RemoteNameRequestModule>();
-  if (common::init_flags::gd_l2cap_is_enabled()) {
-    modules.add<l2cap::classic::L2capClassicModule>();
-    modules.add<l2cap::le::L2capLeModule>();
-    modules.add<hci::LeAdvertisingManager>();
-  }
   modules.add<hci::LeAdvertisingManager>();
   modules.add<hci::MsftExtensionManager>();
   modules.add<hci::LeScanningManager>();
@@ -118,10 +113,6 @@ void Stack::StartEverything() {
   bluetooth::shim::init_advertising_manager();
   bluetooth::shim::init_scanning_manager();
   bluetooth::shim::init_distance_measurement_manager();
-
-  if (common::init_flags::gd_l2cap_is_enabled()) {
-    L2CA_UseLegacySecurityModule();
-  }
 }
 
 void Stack::Start(ModuleList* modules) {
