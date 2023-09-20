@@ -212,22 +212,24 @@ public final class BluetoothGatt implements BluetoothProfile {
      */
     /*package*/ static final int AUTHENTICATION_MITM = 2;
 
-    /**
-     * Bluetooth GATT callbacks. Overrides the default BluetoothGattCallback implementation.
-     */
+    /** Bluetooth GATT callbacks. Overrides the default BluetoothGattCallback implementation. */
     @SuppressLint("AndroidFrameworkBluetoothPermission")
     private final IBluetoothGattCallback mBluetoothGattCallback =
             new IBluetoothGattCallback.Stub() {
                 /**
                  * Application interface registered - app is ready to go
+                 *
                  * @hide
                  */
                 @Override
                 @SuppressLint("AndroidFrameworkRequiresPermission")
                 public void onClientRegistered(int status, int clientIf) {
                     if (DBG) {
-                        Log.d(TAG, "onClientRegistered() - status=" + status
-                                + " clientIf=" + clientIf);
+                        Log.d(
+                                TAG,
+                                "onClientRegistered() -"
+                                        + (" status=" + status)
+                                        + (" clientIf=" + clientIf));
                     }
                     mClientIf = clientIf;
                     synchronized (mStateLock) {
@@ -248,17 +250,19 @@ public final class BluetoothGatt implements BluetoothProfile {
                         }
                     }
                     if (status != GATT_SUCCESS) {
-                        runOrQueueCallback(new Runnable() {
-                            @Override
-                            public void run() {
-                                final BluetoothGattCallback callback = mCallback;
-                                if (callback != null) {
-                                    callback.onConnectionStateChange(BluetoothGatt.this,
-                                            GATT_FAILURE,
-                                            BluetoothProfile.STATE_DISCONNECTED);
-                                }
-                            }
-                        });
+                        runOrQueueCallback(
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        final BluetoothGattCallback callback = mCallback;
+                                        if (callback != null) {
+                                            callback.onConnectionStateChange(
+                                                    BluetoothGatt.this,
+                                                    GATT_FAILURE,
+                                                    BluetoothProfile.STATE_DISCONNECTED);
+                                        }
+                                    }
+                                });
 
                         synchronized (mStateLock) {
                             mConnState = CONN_STATE_IDLE;
@@ -268,9 +272,16 @@ public final class BluetoothGatt implements BluetoothProfile {
                     try {
                         final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
                         // autoConnect is inverse of "isDirect"
-                        mService.clientConnect(mClientIf, mDevice.getAddress(),
-                                mDevice.getAddressType(), !mAutoConnect, mTransport,
-                                mOpportunistic, mPhy, mAttributionSource, recv);
+                        mService.clientConnect(
+                                mClientIf,
+                                mDevice.getAddress(),
+                                mDevice.getAddressType(),
+                                !mAutoConnect,
+                                mTransport,
+                                mOpportunistic,
+                                mPhy,
+                                mAttributionSource,
+                                recv);
                         recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
                     } catch (RemoteException | TimeoutException e) {
                         Log.e(TAG, "", e);
@@ -279,81 +290,105 @@ public final class BluetoothGatt implements BluetoothProfile {
 
                 /**
                  * Phy update callback
+                 *
                  * @hide
                  */
                 @Override
                 public void onPhyUpdate(String address, int txPhy, int rxPhy, int status) {
                     if (DBG) {
-                        Log.d(TAG, "onPhyUpdate() - status=" + status
-                                + " address=" + address + " txPhy=" + txPhy + " rxPhy=" + rxPhy);
+                        Log.d(
+                                TAG,
+                                "onPhyUpdate() -"
+                                        + (" status=" + status)
+                                        + (" address=" + address)
+                                        + (" txPhy=" + txPhy)
+                                        + (" rxPhy=" + rxPhy));
                     }
                     if (!address.equals(mDevice.getAddress())) {
                         return;
                     }
 
-                    runOrQueueCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            final BluetoothGattCallback callback = mCallback;
-                            if (callback != null) {
-                                callback.onPhyUpdate(BluetoothGatt.this, txPhy, rxPhy, status);
-                            }
-                        }
-                    });
+                    runOrQueueCallback(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    final BluetoothGattCallback callback = mCallback;
+                                    if (callback != null) {
+                                        callback.onPhyUpdate(
+                                                BluetoothGatt.this, txPhy, rxPhy, status);
+                                    }
+                                }
+                            });
                 }
 
                 /**
                  * Phy read callback
+                 *
                  * @hide
                  */
                 @Override
                 public void onPhyRead(String address, int txPhy, int rxPhy, int status) {
                     if (DBG) {
-                        Log.d(TAG, "onPhyRead() - status=" + status
-                                + " address=" + address + " txPhy=" + txPhy + " rxPhy=" + rxPhy);
+                        Log.d(
+                                TAG,
+                                "onPhyRead() -"
+                                        + (" status=" + status)
+                                        + (" address=" + address)
+                                        + (" txPhy=" + txPhy)
+                                        + (" rxPhy=" + rxPhy));
                     }
                     if (!address.equals(mDevice.getAddress())) {
                         return;
                     }
 
-                    runOrQueueCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            final BluetoothGattCallback callback = mCallback;
-                            if (callback != null) {
-                                callback.onPhyRead(BluetoothGatt.this, txPhy, rxPhy, status);
-                            }
-                        }
-                    });
+                    runOrQueueCallback(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    final BluetoothGattCallback callback = mCallback;
+                                    if (callback != null) {
+                                        callback.onPhyRead(
+                                                BluetoothGatt.this, txPhy, rxPhy, status);
+                                    }
+                                }
+                            });
                 }
 
                 /**
                  * Client connection state changed
+                 *
                  * @hide
                  */
                 @Override
-                public void onClientConnectionState(int status, int clientIf,
-                        boolean connected, String address) {
+                public void onClientConnectionState(
+                        int status, int clientIf, boolean connected, String address) {
                     if (DBG) {
-                        Log.d(TAG, "onClientConnectionState() - status=" + status
-                                + " clientIf=" + clientIf + " device=" + address);
+                        Log.d(
+                                TAG,
+                                "onClientConnectionState() -"
+                                        + (" status=" + status)
+                                        + (" clientIf=" + clientIf)
+                                        + (" device=" + address));
                     }
                     if (!address.equals(mDevice.getAddress())) {
                         return;
                     }
-                    int profileState = connected ? BluetoothProfile.STATE_CONNECTED :
-                            BluetoothProfile.STATE_DISCONNECTED;
+                    int profileState =
+                            connected
+                                    ? BluetoothProfile.STATE_CONNECTED
+                                    : BluetoothProfile.STATE_DISCONNECTED;
 
-                    runOrQueueCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            final BluetoothGattCallback callback = mCallback;
-                            if (callback != null) {
-                                callback.onConnectionStateChange(BluetoothGatt.this, status,
-                                        profileState);
-                            }
-                        }
-                    });
+                    runOrQueueCallback(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    final BluetoothGattCallback callback = mCallback;
+                                    if (callback != null) {
+                                        callback.onConnectionStateChange(
+                                                BluetoothGatt.this, status, profileState);
+                                    }
+                                }
+                            });
 
                     synchronized (mStateLock) {
                         if (connected) {
@@ -369,25 +404,24 @@ public final class BluetoothGatt implements BluetoothProfile {
                 }
 
                 /**
-                 * Remote search has been completed.
-                 * The internal object structure should now reflect the state
-                 * of the remote device database. Let the application know that
-                 * we are done at this point.
+                 * Remote search has been completed. The internal object structure should now
+                 * reflect the state of the remote device database. Let the application know that we
+                 * are done at this point.
+                 *
                  * @hide
                  */
                 @Override
-                public void onSearchComplete(String address, List<BluetoothGattService> services,
-                        int status) {
+                public void onSearchComplete(
+                        String address, List<BluetoothGattService> services, int status) {
                     if (DBG) {
-                        Log.d(TAG,
-                                "onSearchComplete() = Device=" + address + " Status=" + status);
+                        Log.d(TAG, "onSearchComplete() = Device=" + address + " Status=" + status);
                     }
                     if (!address.equals(mDevice.getAddress())) {
                         return;
                     }
 
                     for (BluetoothGattService s : services) {
-                        //services we receive don't have device set properly.
+                        // services we receive don't have device set properly.
                         s.setDevice(mDevice);
                     }
 
@@ -400,8 +434,11 @@ public final class BluetoothGatt implements BluetoothProfile {
                         fixedService.getIncludedServices().clear();
 
                         for (BluetoothGattService brokenRef : includedServices) {
-                            BluetoothGattService includedService = getService(mDevice,
-                                    brokenRef.getUuid(), brokenRef.getInstanceId());
+                            BluetoothGattService includedService =
+                                    getService(
+                                            mDevice,
+                                            brokenRef.getUuid(),
+                                            brokenRef.getInstanceId());
                             if (includedService != null) {
                                 fixedService.addIncludedService(includedService);
                             } else {
@@ -410,29 +447,34 @@ public final class BluetoothGatt implements BluetoothProfile {
                         }
                     }
 
-                    runOrQueueCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            final BluetoothGattCallback callback = mCallback;
-                            if (callback != null) {
-                                callback.onServicesDiscovered(BluetoothGatt.this, status);
-                            }
-                        }
-                    });
+                    runOrQueueCallback(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    final BluetoothGattCallback callback = mCallback;
+                                    if (callback != null) {
+                                        callback.onServicesDiscovered(BluetoothGatt.this, status);
+                                    }
+                                }
+                            });
                 }
 
                 /**
-                 * Remote characteristic has been read.
-                 * Updates the internal value.
+                 * Remote characteristic has been read. Updates the internal value.
+                 *
                  * @hide
                  */
                 @Override
                 @SuppressLint("AndroidFrameworkRequiresPermission")
-                public void onCharacteristicRead(String address, int status, int handle,
-                        byte[] value) {
+                public void onCharacteristicRead(
+                        String address, int status, int handle, byte[] value) {
                     if (VDBG) {
-                        Log.d(TAG, "onCharacteristicRead() - Device=" + address
-                                + " handle=" + handle + " Status=" + status);
+                        Log.d(
+                                TAG,
+                                "onCharacteristicRead() -"
+                                        + (" Device=" + address)
+                                        + (" handle=" + handle)
+                                        + (" Status=" + status));
                     }
 
                     if (!address.equals(mDevice.getAddress())) {
@@ -444,11 +486,13 @@ public final class BluetoothGatt implements BluetoothProfile {
                     }
 
                     if ((status == GATT_INSUFFICIENT_AUTHENTICATION
-                            || status == GATT_INSUFFICIENT_ENCRYPTION)
+                                    || status == GATT_INSUFFICIENT_ENCRYPTION)
                             && (mAuthRetryState != AUTH_RETRY_STATE_MITM)) {
                         try {
-                            final int authReq = (mAuthRetryState == AUTH_RETRY_STATE_IDLE)
-                                    ? AUTHENTICATION_NO_MITM : AUTHENTICATION_MITM;
+                            final int authReq =
+                                    (mAuthRetryState == AUTH_RETRY_STATE_IDLE)
+                                            ? AUTHENTICATION_NO_MITM
+                                            : AUTHENTICATION_MITM;
                             final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
                             mService.readCharacteristic(
                                     mClientIf, address, handle, authReq, mAttributionSource, recv);
@@ -462,38 +506,44 @@ public final class BluetoothGatt implements BluetoothProfile {
 
                     mAuthRetryState = AUTH_RETRY_STATE_IDLE;
 
-                    BluetoothGattCharacteristic characteristic = getCharacteristicById(mDevice,
-                            handle);
+                    BluetoothGattCharacteristic characteristic =
+                            getCharacteristicById(mDevice, handle);
                     if (characteristic == null) {
                         Log.w(TAG, "onCharacteristicRead() failed to find characteristic!");
                         return;
                     }
 
-                    runOrQueueCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            final BluetoothGattCallback callback = mCallback;
-                            if (callback != null) {
-                                if (status == 0) characteristic.setValue(value);
-                                callback.onCharacteristicRead(BluetoothGatt.this, characteristic,
-                                        value, status);
-                            }
-                        }
-                    });
+                    runOrQueueCallback(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    final BluetoothGattCallback callback = mCallback;
+                                    if (callback != null) {
+                                        if (status == 0) characteristic.setValue(value);
+                                        callback.onCharacteristicRead(
+                                                BluetoothGatt.this, characteristic, value, status);
+                                    }
+                                }
+                            });
                 }
 
                 /**
-                 * Characteristic has been written to the remote device.
-                 * Let the app know how we did...
+                 * Characteristic has been written to the remote device. Let the app know how we
+                 * did...
+                 *
                  * @hide
                  */
                 @Override
                 @SuppressLint("AndroidFrameworkRequiresPermission")
-                public void onCharacteristicWrite(String address, int status, int handle,
-                        byte[] value) {
+                public void onCharacteristicWrite(
+                        String address, int status, int handle, byte[] value) {
                     if (VDBG) {
-                        Log.d(TAG, "onCharacteristicWrite() - Device=" + address
-                                + " handle=" + handle + " Status=" + status);
+                        Log.d(
+                                TAG,
+                                "onCharacteristicWrite() -"
+                                        + (" Device=" + address)
+                                        + (" handle=" + handle)
+                                        + (" Status=" + status));
                     }
 
                     if (!address.equals(mDevice.getAddress())) {
@@ -504,25 +554,36 @@ public final class BluetoothGatt implements BluetoothProfile {
                         mDeviceBusy = false;
                     }
 
-                    BluetoothGattCharacteristic characteristic = getCharacteristicById(mDevice,
-                            handle);
+                    BluetoothGattCharacteristic characteristic =
+                            getCharacteristicById(mDevice, handle);
                     if (characteristic == null) return;
 
                     if ((status == GATT_INSUFFICIENT_AUTHENTICATION
-                            || status == GATT_INSUFFICIENT_ENCRYPTION)
+                                    || status == GATT_INSUFFICIENT_ENCRYPTION)
                             && (mAuthRetryState != AUTH_RETRY_STATE_MITM)) {
                         try {
-                            final int authReq = (mAuthRetryState == AUTH_RETRY_STATE_IDLE)
-                                    ? AUTHENTICATION_NO_MITM : AUTHENTICATION_MITM;
+                            final int authReq =
+                                    (mAuthRetryState == AUTH_RETRY_STATE_IDLE)
+                                            ? AUTHENTICATION_NO_MITM
+                                            : AUTHENTICATION_MITM;
                             int requestStatus = BluetoothStatusCodes.ERROR_UNKNOWN;
                             for (int i = 0; i < WRITE_CHARACTERISTIC_MAX_RETRIES; i++) {
                                 final SynchronousResultReceiver<Integer> recv =
                                         SynchronousResultReceiver.get();
-                                mService.writeCharacteristic(mClientIf, address, handle,
-                                        characteristic.getWriteType(), authReq, value,
-                                        mAttributionSource, recv);
-                                requestStatus = recv.awaitResultNoInterrupt(getSyncTimeout())
-                                    .getValue(BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND);
+                                mService.writeCharacteristic(
+                                        mClientIf,
+                                        address,
+                                        handle,
+                                        characteristic.getWriteType(),
+                                        authReq,
+                                        value,
+                                        mAttributionSource,
+                                        recv);
+                                requestStatus =
+                                        recv.awaitResultNoInterrupt(getSyncTimeout())
+                                                .getValue(
+                                                        BluetoothStatusCodes
+                                                                .ERROR_PROFILE_SERVICE_NOT_BOUND);
                                 if (requestStatus
                                         != BluetoothStatusCodes.ERROR_GATT_WRITE_REQUEST_BUSY) {
                                     break;
@@ -540,21 +601,22 @@ public final class BluetoothGatt implements BluetoothProfile {
                     }
 
                     mAuthRetryState = AUTH_RETRY_STATE_IDLE;
-                    runOrQueueCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            final BluetoothGattCallback callback = mCallback;
-                            if (callback != null) {
-                                callback.onCharacteristicWrite(BluetoothGatt.this, characteristic,
-                                        status);
-                            }
-                        }
-                    });
+                    runOrQueueCallback(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    final BluetoothGattCallback callback = mCallback;
+                                    if (callback != null) {
+                                        callback.onCharacteristicWrite(
+                                                BluetoothGatt.this, characteristic, status);
+                                    }
+                                }
+                            });
                 }
 
                 /**
-                 * Remote characteristic has been updated.
-                 * Updates the internal value.
+                 * Remote characteristic has been updated. Updates the internal value.
+                 *
                  * @hide
                  */
                 @Override
@@ -565,33 +627,34 @@ public final class BluetoothGatt implements BluetoothProfile {
                         return;
                     }
 
-                    BluetoothGattCharacteristic characteristic = getCharacteristicById(mDevice,
-                            handle);
+                    BluetoothGattCharacteristic characteristic =
+                            getCharacteristicById(mDevice, handle);
                     if (characteristic == null) return;
 
-                    runOrQueueCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            final BluetoothGattCallback callback = mCallback;
-                            if (callback != null) {
-                                characteristic.setValue(value);
-                                callback.onCharacteristicChanged(BluetoothGatt.this,
-                                        characteristic, value);
-                            }
-                        }
-                    });
+                    runOrQueueCallback(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    final BluetoothGattCallback callback = mCallback;
+                                    if (callback != null) {
+                                        characteristic.setValue(value);
+                                        callback.onCharacteristicChanged(
+                                                BluetoothGatt.this, characteristic, value);
+                                    }
+                                }
+                            });
                 }
 
                 /**
                  * Descriptor has been read.
+                 *
                  * @hide
                  */
                 @Override
                 @SuppressLint("AndroidFrameworkRequiresPermission")
                 public void onDescriptorRead(String address, int status, int handle, byte[] value) {
                     if (VDBG) {
-                        Log.d(TAG,
-                                "onDescriptorRead() - Device=" + address + " handle=" + handle);
+                        Log.d(TAG, "onDescriptorRead() - Device=" + address + " handle=" + handle);
                     }
 
                     if (!address.equals(mDevice.getAddress())) {
@@ -605,16 +668,17 @@ public final class BluetoothGatt implements BluetoothProfile {
                     BluetoothGattDescriptor descriptor = getDescriptorById(mDevice, handle);
                     if (descriptor == null) return;
 
-
                     if ((status == GATT_INSUFFICIENT_AUTHENTICATION
-                            || status == GATT_INSUFFICIENT_ENCRYPTION)
+                                    || status == GATT_INSUFFICIENT_ENCRYPTION)
                             && (mAuthRetryState != AUTH_RETRY_STATE_MITM)) {
                         try {
-                            final int authReq = (mAuthRetryState == AUTH_RETRY_STATE_IDLE)
-                                    ? AUTHENTICATION_NO_MITM : AUTHENTICATION_MITM;
+                            final int authReq =
+                                    (mAuthRetryState == AUTH_RETRY_STATE_IDLE)
+                                            ? AUTHENTICATION_NO_MITM
+                                            : AUTHENTICATION_MITM;
                             final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
-                            mService.readDescriptor(mClientIf, address, handle, authReq,
-                                    mAttributionSource, recv);
+                            mService.readDescriptor(
+                                    mClientIf, address, handle, authReq, mAttributionSource, recv);
                             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
                             mAuthRetryState++;
                             return;
@@ -625,30 +689,31 @@ public final class BluetoothGatt implements BluetoothProfile {
 
                     mAuthRetryState = AUTH_RETRY_STATE_IDLE;
 
-                    runOrQueueCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            final BluetoothGattCallback callback = mCallback;
-                            if (callback != null) {
-                                if (status == 0) descriptor.setValue(value);
-                                callback.onDescriptorRead(BluetoothGatt.this, descriptor, status,
-                                        value);
-                            }
-                        }
-                    });
+                    runOrQueueCallback(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    final BluetoothGattCallback callback = mCallback;
+                                    if (callback != null) {
+                                        if (status == 0) descriptor.setValue(value);
+                                        callback.onDescriptorRead(
+                                                BluetoothGatt.this, descriptor, status, value);
+                                    }
+                                }
+                            });
                 }
 
                 /**
                  * Descriptor write operation complete.
+                 *
                  * @hide
                  */
                 @Override
                 @SuppressLint("AndroidFrameworkRequiresPermission")
-                public void onDescriptorWrite(String address, int status, int handle,
-                        byte[] value) {
+                public void onDescriptorWrite(
+                        String address, int status, int handle, byte[] value) {
                     if (VDBG) {
-                        Log.d(TAG,
-                                "onDescriptorWrite() - Device=" + address + " handle=" + handle);
+                        Log.d(TAG, "onDescriptorWrite() - Device=" + address + " handle=" + handle);
                     }
 
                     if (!address.equals(mDevice.getAddress())) {
@@ -663,14 +728,22 @@ public final class BluetoothGatt implements BluetoothProfile {
                     if (descriptor == null) return;
 
                     if ((status == GATT_INSUFFICIENT_AUTHENTICATION
-                            || status == GATT_INSUFFICIENT_ENCRYPTION)
+                                    || status == GATT_INSUFFICIENT_ENCRYPTION)
                             && (mAuthRetryState != AUTH_RETRY_STATE_MITM)) {
                         try {
-                            final int authReq = (mAuthRetryState == AUTH_RETRY_STATE_IDLE)
-                                    ? AUTHENTICATION_NO_MITM : AUTHENTICATION_MITM;
+                            final int authReq =
+                                    (mAuthRetryState == AUTH_RETRY_STATE_IDLE)
+                                            ? AUTHENTICATION_NO_MITM
+                                            : AUTHENTICATION_MITM;
                             final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
-                            mService.writeDescriptor(mClientIf, address, handle,
-                                    authReq, value, mAttributionSource, recv);
+                            mService.writeDescriptor(
+                                    mClientIf,
+                                    address,
+                                    handle,
+                                    authReq,
+                                    value,
+                                    mAttributionSource,
+                                    recv);
                             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
                             mAuthRetryState++;
                             return;
@@ -681,26 +754,28 @@ public final class BluetoothGatt implements BluetoothProfile {
 
                     mAuthRetryState = AUTH_RETRY_STATE_IDLE;
 
-                    runOrQueueCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            final BluetoothGattCallback callback = mCallback;
-                            if (callback != null) {
-                                callback.onDescriptorWrite(BluetoothGatt.this, descriptor, status);
-                            }
-                        }
-                    });
+                    runOrQueueCallback(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    final BluetoothGattCallback callback = mCallback;
+                                    if (callback != null) {
+                                        callback.onDescriptorWrite(
+                                                BluetoothGatt.this, descriptor, status);
+                                    }
+                                }
+                            });
                 }
 
                 /**
                  * Prepared write transaction completed (or aborted)
+                 *
                  * @hide
                  */
                 @Override
                 public void onExecuteWrite(String address, int status) {
                     if (VDBG) {
-                        Log.d(TAG, "onExecuteWrite() - Device=" + address
-                                + " status=" + status);
+                        Log.d(TAG, "onExecuteWrite() - Device=" + address + " status=" + status);
                     }
                     if (!address.equals(mDevice.getAddress())) {
                         return;
@@ -710,96 +785,122 @@ public final class BluetoothGatt implements BluetoothProfile {
                         mDeviceBusy = false;
                     }
 
-                    runOrQueueCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            final BluetoothGattCallback callback = mCallback;
-                            if (callback != null) {
-                                callback.onReliableWriteCompleted(BluetoothGatt.this, status);
-                            }
-                        }
-                    });
+                    runOrQueueCallback(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    final BluetoothGattCallback callback = mCallback;
+                                    if (callback != null) {
+                                        callback.onReliableWriteCompleted(
+                                                BluetoothGatt.this, status);
+                                    }
+                                }
+                            });
                 }
 
                 /**
                  * Remote device RSSI has been read
+                 *
                  * @hide
                  */
                 @Override
                 public void onReadRemoteRssi(String address, int rssi, int status) {
                     if (VDBG) {
-                        Log.d(TAG, "onReadRemoteRssi() - Device=" + address
-                                + " rssi=" + rssi + " status=" + status);
+                        Log.d(
+                                TAG,
+                                "onReadRemoteRssi() -"
+                                        + (" Device=" + address)
+                                        + (" rssi=" + rssi)
+                                        + (" status=" + status));
                     }
                     if (!address.equals(mDevice.getAddress())) {
                         return;
                     }
-                    runOrQueueCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            final BluetoothGattCallback callback = mCallback;
-                            if (callback != null) {
-                                callback.onReadRemoteRssi(BluetoothGatt.this, rssi, status);
-                            }
-                        }
-                    });
+                    runOrQueueCallback(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    final BluetoothGattCallback callback = mCallback;
+                                    if (callback != null) {
+                                        callback.onReadRemoteRssi(BluetoothGatt.this, rssi, status);
+                                    }
+                                }
+                            });
                 }
 
                 /**
                  * Callback invoked when the MTU for a given connection changes
+                 *
                  * @hide
                  */
                 @Override
                 public void onConfigureMTU(String address, int mtu, int status) {
                     if (DBG) {
-                        Log.d(TAG, "onConfigureMTU() - Device=" + address
-                                + " mtu=" + mtu + " status=" + status);
+                        Log.d(
+                                TAG,
+                                "onConfigureMTU() -"
+                                        + (" Device=" + address)
+                                        + (" mtu=" + mtu)
+                                        + (" status=" + status));
                     }
                     if (!address.equals(mDevice.getAddress())) {
                         return;
                     }
 
-                    runOrQueueCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            final BluetoothGattCallback callback = mCallback;
-                            if (callback != null) {
-                                callback.onMtuChanged(BluetoothGatt.this, mtu, status);
-                            }
-                        }
-                    });
+                    runOrQueueCallback(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    final BluetoothGattCallback callback = mCallback;
+                                    if (callback != null) {
+                                        callback.onMtuChanged(BluetoothGatt.this, mtu, status);
+                                    }
+                                }
+                            });
                 }
 
                 /**
                  * Callback invoked when the given connection is updated
+                 *
                  * @hide
                  */
                 @Override
-                public void onConnectionUpdated(String address, int interval, int latency,
-                        int timeout, int status) {
+                public void onConnectionUpdated(
+                        String address, int interval, int latency, int timeout, int status) {
                     if (DBG) {
-                        Log.d(TAG, "onConnectionUpdated() - Device=" + address
-                                + " interval=" + interval + " latency=" + latency
-                                + " timeout=" + timeout + " status=" + status);
+                        Log.d(
+                                TAG,
+                                "onConnectionUpdated() -"
+                                        + (" Device=" + address)
+                                        + (" interval=" + interval)
+                                        + (" latency=" + latency)
+                                        + (" timeout=" + timeout)
+                                        + (" status=" + status));
                     }
                     if (!address.equals(mDevice.getAddress())) {
                         return;
                     }
 
-                    runOrQueueCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            final BluetoothGattCallback callback = mCallback;
-                            if (callback != null) {
-                                callback.onConnectionUpdated(BluetoothGatt.this, interval, latency,
-                                        timeout, status);
-                            }
-                        }
-                    });
+                    runOrQueueCallback(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    final BluetoothGattCallback callback = mCallback;
+                                    if (callback != null) {
+                                        callback.onConnectionUpdated(
+                                                BluetoothGatt.this,
+                                                interval,
+                                                latency,
+                                                timeout,
+                                                status);
+                                    }
+                                }
+                            });
                 }
 
                 /**
                  * Callback invoked when service changed event is received
+                 *
                  * @hide
                  */
                 @Override
@@ -812,45 +913,61 @@ public final class BluetoothGatt implements BluetoothProfile {
                         return;
                     }
 
-                    runOrQueueCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            final BluetoothGattCallback callback = mCallback;
-                            if (callback != null) {
-                                callback.onServiceChanged(BluetoothGatt.this);
-                            }
-                        }
-                    });
+                    runOrQueueCallback(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    final BluetoothGattCallback callback = mCallback;
+                                    if (callback != null) {
+                                        callback.onServiceChanged(BluetoothGatt.this);
+                                    }
+                                }
+                            });
                 }
 
                 /**
                  * Callback invoked when the given connection's subrate is changed
+                 *
                  * @hide
                  */
                 @Override
-                public void onSubrateChange(String address, int subrateFactor, int latency,
-                        int contNum, int timeout, int status) {
-                    Log.d(TAG,
+                public void onSubrateChange(
+                        String address,
+                        int subrateFactor,
+                        int latency,
+                        int contNum,
+                        int timeout,
+                        int status) {
+                    Log.d(
+                            TAG,
                             "onSubrateChange() - "
-                                    + "Device=" + BluetoothUtils.toAnonymizedAddress(address)
-                                    + ", subrateFactor=" + subrateFactor + ", latency=" + latency
-                                    + ", contNum=" + contNum + ", timeout=" + timeout
-                                    + ", status=" + status);
+                                    + (" Device=" + address)
+                                    + (" subrateFactor=" + subrateFactor)
+                                    + (" latency=" + latency)
+                                    + (" contNum=" + contNum)
+                                    + (" timeout=" + timeout)
+                                    + (" status=" + status));
 
                     if (!address.equals(mDevice.getAddress())) {
                         return;
                     }
 
-                    runOrQueueCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            final BluetoothGattCallback callback = mCallback;
-                            if (callback != null) {
-                                callback.onSubrateChange(BluetoothGatt.this, subrateFactor, latency,
-                                        contNum, timeout, status);
-                            }
-                        }
-                    });
+                    runOrQueueCallback(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    final BluetoothGattCallback callback = mCallback;
+                                    if (callback != null) {
+                                        callback.onSubrateChange(
+                                                BluetoothGatt.this,
+                                                subrateFactor,
+                                                latency,
+                                                contNum,
+                                                timeout,
+                                                status);
+                                    }
+                                }
+                            });
                 }
             };
 
@@ -901,7 +1018,6 @@ public final class BluetoothGatt implements BluetoothProfile {
         }
         return null;
     }
-
 
     /**
      * Returns a characteristic with id equal to instanceId.
