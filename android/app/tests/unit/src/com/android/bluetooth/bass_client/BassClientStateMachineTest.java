@@ -1593,6 +1593,74 @@ public class BassClientStateMachineTest {
         mBassClientStateMachine.dump(new StringBuilder());
     }
 
+    @Test
+    public void sendAddBcastSourceMessage_NoResponseWrite() {
+        mBassClientStateMachine.connectGatt(true);
+        BluetoothGattCallback cb = mBassClientStateMachine.mGattCallback;
+        cb.onMtuChanged(null, 250, GATT_SUCCESS);
+        initToConnectedState();
+
+        BassClientService.Callbacks callbacks = Mockito.mock(BassClientService.Callbacks.class);
+        when(mBassClientService.getCallbacks()).thenReturn(callbacks);
+
+        BluetoothLeBroadcastMetadata metadata = createBroadcastMetadata();
+        // verify local broadcast doesn't require active synced source
+        when(mBassClientService.isLocalBroadcast(any())).thenReturn(true);
+        mBassClientStateMachine.sendMessage(ADD_BCAST_SOURCE, metadata);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+
+        verify(mBassClientService).getCallbacks();
+        verify(callbacks).notifySourceAddFailed(any(), any(), anyInt());
+
+        BassClientStateMachine.BluetoothGattTestableWrapper btGatt =
+                Mockito.mock(BassClientStateMachine.BluetoothGattTestableWrapper.class);
+        mBassClientStateMachine.mBluetoothGatt = btGatt;
+        BluetoothGattCharacteristic scanControlPoint =
+                Mockito.mock(BluetoothGattCharacteristic.class);
+        mBassClientStateMachine.mBroadcastScanControlPoint = scanControlPoint;
+
+        sendMessageAndVerifyTransition(
+                mBassClientStateMachine.obtainMessage(ADD_BCAST_SOURCE, metadata),
+                BassClientStateMachine.ConnectedProcessing.class);
+        verify(scanControlPoint).setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+        verify(scanControlPoint).setValue(any(byte[].class));
+        verify(btGatt).writeCharacteristic(any());
+    }
+
+    @Test
+    public void sendAddBcastSourceMessage_LongWrite() {
+        mBassClientStateMachine.connectGatt(true);
+        BluetoothGattCallback cb = mBassClientStateMachine.mGattCallback;
+        cb.onMtuChanged(null, 23, GATT_SUCCESS);
+        initToConnectedState();
+
+        BassClientService.Callbacks callbacks = Mockito.mock(BassClientService.Callbacks.class);
+        when(mBassClientService.getCallbacks()).thenReturn(callbacks);
+
+        BluetoothLeBroadcastMetadata metadata = createBroadcastMetadata();
+        // verify local broadcast doesn't require active synced source
+        when(mBassClientService.isLocalBroadcast(any())).thenReturn(true);
+        mBassClientStateMachine.sendMessage(ADD_BCAST_SOURCE, metadata);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+
+        verify(mBassClientService).getCallbacks();
+        verify(callbacks).notifySourceAddFailed(any(), any(), anyInt());
+
+        BassClientStateMachine.BluetoothGattTestableWrapper btGatt =
+                Mockito.mock(BassClientStateMachine.BluetoothGattTestableWrapper.class);
+        mBassClientStateMachine.mBluetoothGatt = btGatt;
+        BluetoothGattCharacteristic scanControlPoint =
+                Mockito.mock(BluetoothGattCharacteristic.class);
+        mBassClientStateMachine.mBroadcastScanControlPoint = scanControlPoint;
+
+        sendMessageAndVerifyTransition(
+                mBassClientStateMachine.obtainMessage(ADD_BCAST_SOURCE, metadata),
+                BassClientStateMachine.ConnectedProcessing.class);
+        verify(scanControlPoint).setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+        verify(scanControlPoint).setValue(any(byte[].class));
+        verify(btGatt).writeCharacteristic(any());
+    }
+
     private void initToDisconnectedState() {
         allowConnection(true);
         allowConnectGatt(true);
