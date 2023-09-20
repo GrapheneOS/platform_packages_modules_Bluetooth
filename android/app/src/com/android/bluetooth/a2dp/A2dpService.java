@@ -17,12 +17,10 @@
 package com.android.bluetooth.a2dp;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
-
 import static com.android.bluetooth.Utils.checkCallerTargetSdk;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 import static com.android.bluetooth.Utils.enforceCdmAssociation;
 import static com.android.bluetooth.Utils.hasBluetoothPrivilegedPermission;
-
 import static java.util.Objects.requireNonNull;
 
 import android.annotation.NonNull;
@@ -706,15 +704,7 @@ public class A2dpService extends ProfileService {
                 .getProfileConnectionPolicy(device, BluetoothProfile.A2DP);
     }
 
-    public boolean isAvrcpAbsoluteVolumeSupported() {
-        // TODO (apanicke): Add a hook here for the AvrcpTargetService.
-        return false;
-    }
-
-
     public void setAvrcpAbsoluteVolume(int volume) {
-        // TODO (apanicke): Instead of using A2DP as a middleman for volume changes, add a binder
-        // service to the new AVRCP Profile and have the audio manager use that instead.
         if (mFactory.getAvrcpTargetService() != null) {
             mFactory.getAvrcpTargetService().sendVolumeChanged(volume);
             return;
@@ -1452,12 +1442,6 @@ public class A2dpService extends ProfileService {
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
-        }
-
-        @Override
-        public void isAvrcpAbsoluteVolumeSupported(SynchronousResultReceiver receiver) {
-            // TODO (apanicke): Add a hook here for the AvrcpTargetService.
-            receiver.send(false);
         }
 
         @Override
