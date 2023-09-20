@@ -101,11 +101,14 @@ class LeAudioSinkAudioHalClient {
  public:
   class Callbacks {
    public:
+    Callbacks() = default;
     virtual ~Callbacks() = default;
     virtual void OnAudioSuspend(void) = 0;
     virtual void OnAudioResume(void) = 0;
     virtual void OnAudioMetadataUpdate(
         std::vector<struct record_track_metadata> sink_metadata) = 0;
+
+    base::WeakPtrFactory<Callbacks> weak_factory_{this};
   };
 
   virtual ~LeAudioSinkAudioHalClient() = default;
@@ -137,12 +140,15 @@ class LeAudioSourceAudioHalClient {
  public:
   class Callbacks {
    public:
+    Callbacks() = default;
     virtual ~Callbacks() = default;
     virtual void OnAudioDataReady(const std::vector<uint8_t>& data) = 0;
     virtual void OnAudioSuspend(void) = 0;
     virtual void OnAudioResume(void) = 0;
     virtual void OnAudioMetadataUpdate(
         std::vector<struct playback_track_metadata> source_metadata) = 0;
+
+    base::WeakPtrFactory<Callbacks> weak_factory_{this};
   };
 
   virtual ~LeAudioSourceAudioHalClient() = default;
