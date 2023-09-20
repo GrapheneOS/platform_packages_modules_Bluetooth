@@ -84,11 +84,12 @@ const tBLE_BD_ADDR convert_to_address_with_type(
     };
   } else {
     // Floss doesn't support LL Privacy (yet). To expedite ARC testing, always
-    // connect to the latest LE random address (if available) rather than
-    // redesign.
+    // connect to the latest LE random address (if available and LL Privacy is
+    // not enabled) rather than redesign.
     // TODO(b/235218533): Remove when LL Privacy is implemented.
 #if TARGET_FLOSS
-    if (!p_dev_rec->ble.cur_rand_addr.IsEmpty()) {
+    if (!p_dev_rec->ble.cur_rand_addr.IsEmpty() &&
+        btm_cb.ble_ctr_cb.privacy_mode < BTM_PRIVACY_1_2) {
       return {
           .type = BLE_ADDR_RANDOM,
           .bda = p_dev_rec->ble.cur_rand_addr,
