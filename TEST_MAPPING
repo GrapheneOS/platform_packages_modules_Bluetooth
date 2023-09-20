@@ -10,7 +10,7 @@
     },
     {
       "name": "GoogleBluetoothInstrumentationTests",
-      "keywords": ["cf"]
+      "keywords": ["internal"]
     },
     {
       "name": "FrameworkBluetoothTests"
