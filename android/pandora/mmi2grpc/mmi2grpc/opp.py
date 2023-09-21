@@ -20,7 +20,6 @@ from mmi2grpc._proxy import ProfileProxy
 
 from pandora.host_grpc import Host
 from pandora.host_pb2 import Connection
-from pandora_experimental._android_grpc import Android
 from pandora_experimental.opp_grpc import Opp
 
 
@@ -35,7 +34,6 @@ class OPPProxy(ProfileProxy):
         super().__init__(channel)
 
         self.host = Host(channel)
-        self._android = Android(channel)
         self.opp = Opp(channel)
 
         self.connection = None
@@ -67,7 +65,7 @@ class OPPProxy(ProfileProxy):
         """
         Please accept the PUT REQUEST.
         """
-        self._android.AcceptIncomingFile()
+        self.opp.AcceptPutOperation()
 
         return "OK"
 
