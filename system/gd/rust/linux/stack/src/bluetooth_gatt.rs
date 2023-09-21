@@ -2042,8 +2042,8 @@ impl IBluetoothGatt for BluetoothGatt {
         let adv_timeout = clamp(duration, 0, 0xffff) as u16;
         let adv_events = clamp(max_ext_adv_events, 0, 0xff) as u8;
 
-        let s = AdvertisingSetInfo::new(callback_id, adv_timeout, adv_events, is_legacy);
-        let reg_id = s.reg_id();
+        let reg_id = self.advertisers.new_reg_id();
+        let s = AdvertisingSetInfo::new(callback_id, adv_timeout, adv_events, is_legacy, reg_id);
         self.advertisers.add(s);
 
         self.gatt.as_ref().unwrap().lock().unwrap().advertiser.start_advertising_set(
