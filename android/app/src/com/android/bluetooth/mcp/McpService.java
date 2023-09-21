@@ -23,6 +23,7 @@ import android.bluetooth.IBluetoothMcpServiceManager;
 import android.content.AttributionSource;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.ParcelUuid;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
@@ -33,7 +34,9 @@ import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
+import java.util.List;
 
 /**
  * Provides Media Control Profile, as a service in the Bluetooth application.
@@ -47,7 +50,7 @@ public class McpService extends ProfileService {
     private static McpService sMcpService;
     private static MediaControlProfile sGmcsForTesting;
 
-    private Object mLock = new Object();
+    private final Object mLock = new Object();
     @GuardedBy("mLock")
     private MediaControlProfile mGmcs;
     private Map<BluetoothDevice, Integer> mDeviceAuthorizations = new HashMap<>();
@@ -246,6 +249,26 @@ public class McpService extends ProfileService {
 
         Log.e(TAG, "MCS access not permited");
         return BluetoothDevice.ACCESS_UNKNOWN;
+    }
+
+    List<ParcelUuid> getNotificationSubscriptions(int ccid, BluetoothDevice device) {
+        synchronized (mLock) {
+            MediaControlProfile gmcs = getGmcsLocked();
+            if (gmcs != null) {
+                return gmcs.getNotificationSubscriptions(ccid, device);
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    void setNotificationSubscription(
+            int ccid, BluetoothDevice device, ParcelUuid charUuid, boolean doNotify) {
+        synchronized (mLock) {
+            MediaControlProfile gmcs = getGmcsLocked();
+            if (gmcs != null) {
+                gmcs.setNotificationSubscription(ccid, device, charUuid, doNotify);
+            }
+        }
     }
 
     @GuardedBy("mLock")
