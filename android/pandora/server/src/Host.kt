@@ -437,7 +437,7 @@ class Host(
                         throw IllegalArgumentException("Request address field must be set")
                 }
             Log.i(TAG, "connectLE: $address")
-            val bluetoothDevice = scanLeDevice(address.decodeAsMacAddressToString(), type)!!
+            val bluetoothDevice = bluetoothAdapter.getRemoteLeDevice(address.decodeAsMacAddressToString(), type)
             initiatedConnection.add(bluetoothDevice)
             GattInstance(bluetoothDevice, TRANSPORT_LE, context)
                 .waitForState(BluetoothProfile.STATE_CONNECTED)
@@ -445,39 +445,6 @@ class Host(
                 .setConnection(bluetoothDevice.toConnection(TRANSPORT_LE))
                 .build()
         }
-    }
-
-    private fun scanLeDevice(address: String, addressType: Int): BluetoothDevice? {
-        Log.d(TAG, "scanLeDevice")
-        var bluetoothDevice: BluetoothDevice? = null
-        runBlocking {
-            val flow = callbackFlow {
-                val leScanCallback =
-                    object : ScanCallback() {
-                        override fun onScanFailed(errorCode: Int) {
-                            super.onScanFailed(errorCode)
-                            Log.d(TAG, "onScanFailed: errorCode: $errorCode")
-                            trySendBlocking(null)
-                        }
-                        override fun onScanResult(callbackType: Int, result: ScanResult) {
-                            super.onScanResult(callbackType, result)
-                            val deviceAddress = result.device.address
-                            val deviceAddressType = result.device.addressType
-                            if (deviceAddress == address && deviceAddressType == addressType) {
-                                Log.d(TAG, "found device address: $deviceAddress")
-                                trySendBlocking(result.device)
-                            }
-                        }
-                    }
-                val bluetoothLeScanner = bluetoothAdapter.bluetoothLeScanner
-                val leScanFilters: List<ScanFilter> = listOf()
-                val leScanSettings = ScanSettings.Builder().setLegacy(false).build()
-                bluetoothLeScanner?.startScan(leScanFilters, leScanSettings, leScanCallback) ?: run { trySendBlocking(null) }
-                awaitClose { bluetoothLeScanner?.stopScan(leScanCallback) }
-            }
-            bluetoothDevice = flow.first()
-        }
-        return bluetoothDevice
     }
 
     override fun advertise(
