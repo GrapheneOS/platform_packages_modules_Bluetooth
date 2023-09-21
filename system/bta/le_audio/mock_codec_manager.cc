@@ -37,6 +37,14 @@ types::CodecLocation CodecManager::GetCodecLocation() const {
   return pimpl_->GetCodecLocation();
 }
 
+bool CodecManager::IsOffloadDualBiDirSwbSupported(void) const {
+  if (!pimpl_) {
+    return false;
+  }
+
+  return pimpl_->IsOffloadDualBiDirSwbSupported();
+}
+
 void CodecManager::UpdateActiveAudioConfig(
     const types::BidirectionalPair<stream_parameters>& stream_params,
     types::BidirectionalPair<uint16_t> delays_ms,
