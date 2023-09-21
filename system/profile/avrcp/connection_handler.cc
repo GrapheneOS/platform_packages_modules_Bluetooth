@@ -396,9 +396,19 @@ void ConnectionHandler::AcceptorControlCb(uint8_t handle, uint8_t event,
         }
       };
 
-      SdpLookup(*peer_addr, base::Bind(sdp_lambda, this, handle), false);
-
-      avrc_->OpenBrowse(handle, AVCT_ACP);
+      if (SdpLookup(*peer_addr, base::Bind(sdp_lambda, this, handle), false)) {
+        avrc_->OpenBrowse(handle, AVCT_ACP);
+      } else {
+        // SDP search failed, this could be due to a collision between outgoing
+        // and incoming connection. In any case, we need to reject the current
+        // connection.
+        LOG(ERROR) << __PRETTY_FUNCTION__
+                   << ": SDP search failed for handle: " << loghex(handle)
+                   << ", closing connection";
+        DisconnectDevice(*peer_addr);
+      }
+      // Open for the next incoming connection. The handle will not be the same
+      // as this one which will be closed when the device is disconnected.
       AvrcpConnect(false, RawAddress::kAny);
     } break;
 
