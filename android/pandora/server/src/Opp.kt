@@ -29,6 +29,10 @@ import android.graphics.Bitmap
 import android.os.Environment
 import android.provider.MediaStore.Images.Media
 import android.provider.MediaStore.MediaColumns
+import androidx.test.InstrumentationRegistry
+import androidx.test.uiautomator.By
+import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.Until
 import com.google.protobuf.Empty
 import io.grpc.stub.StreamObserver
 import java.io.Closeable
@@ -49,11 +53,15 @@ private const val TAG = "PandoraOpp"
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Opp(val context: Context) : OppImplBase(), Closeable {
     private val IMAGE_FILE_NAME = "OPP_TEST_IMAGE.bmp"
+    private val INCOMING_FILE_TITLE = "Incoming file"
+    private val INCOMING_FILE_ACCEPT_BTN = "ACCEPT"
+    private val INCOMING_FILE_WAIT_TIMEOUT = 2000L
     private val flow: Flow<Intent>
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
     private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
     private val bluetoothAdapter = bluetoothManager.adapter
-
+    private var uiDevice: UiDevice =
+        UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     init {
         createImageFile()
 
@@ -94,6 +102,25 @@ class Opp(val context: Context) : OppImplBase(), Closeable {
             sendFile(bluetoothDevice)
             Empty.getDefaultInstance()
         }
+    }
+
+    override fun acceptPutOperation(
+        request: Empty,
+        responseObserver: StreamObserver<AcceptPutOperationResponse>
+    ) {
+        grpcUnary<AcceptPutOperationResponse>(scope, responseObserver) {
+            acceptIncomingFile()
+            AcceptPutOperationResponse.newBuilder().setStatus(PutStatus.ACCEPTED).build()
+        }
+    }
+
+    fun acceptIncomingFile() {
+        uiDevice
+            .wait(Until.findObject(By.text(INCOMING_FILE_TITLE)), INCOMING_FILE_WAIT_TIMEOUT)
+            .click()
+        uiDevice
+            .wait(Until.findObject(By.text(INCOMING_FILE_ACCEPT_BTN)), INCOMING_FILE_WAIT_TIMEOUT)
+            .click()
     }
 
     private suspend fun sendFile(bluetoothDevice: BluetoothDevice) {
