@@ -824,7 +824,7 @@ public final class BluetoothAdapter {
 
     /** @hide */
     public static final String BLUETOOTH_MANAGER_SERVICE = "bluetooth_manager";
-    private final IBinder mToken;
+    private final IBinder mToken = new Binder(DESCRIPTOR);
 
 
     /**
@@ -873,7 +873,7 @@ public final class BluetoothAdapter {
     private static final Object sServiceLock = new Object();
 
     private final Object mLock = new Object();
-    private final Map<LeScanCallback, ScanCallback> mLeScanClients;
+    private final Map<LeScanCallback, ScanCallback> mLeScanClients = new HashMap<>();
     private final Map<BluetoothDevice, List<Pair<OnMetadataChangedListener, Executor>>>
                 mMetadataListeners = new HashMap<>();
     private final Map<BluetoothConnectionCallback, Executor>
@@ -1066,8 +1066,6 @@ public final class BluetoothAdapter {
         } finally {
             mServiceLock.writeLock().unlock();
         }
-        mLeScanClients = new HashMap<LeScanCallback, ScanCallback>();
-        mToken = new Binder(DESCRIPTOR);
     }
 
     /**
@@ -3858,9 +3856,7 @@ public final class BluetoothAdapter {
                     mServiceLock.writeLock().lock();
                     try {
                         mService = null;
-                        if (mLeScanClients != null) {
-                            mLeScanClients.clear();
-                        }
+                        mLeScanClients.clear();
                         if (mBluetoothLeAdvertiser != null) {
                             mBluetoothLeAdvertiser.cleanup();
                         }
