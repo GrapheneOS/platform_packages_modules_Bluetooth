@@ -5121,16 +5121,43 @@ class LeAudioClientImpl : public LeAudioClient {
         bluetooth::common::ToString(audio_receiver_state_).c_str());
     LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
     switch (status) {
-      case GroupStreamStatus::STREAMING:
+      case GroupStreamStatus::STREAMING: {
         ASSERT_LOG(group_id == active_group_id_, "invalid group id %d!=%d",
                    group_id, active_group_id_);
+
+        take_stream_time();
+
+        le_audio::MetricsCollector::Get()->OnStreamStarted(
+            active_group_id_, configuration_context_type_);
+
+        if (leAudioHealthStatus_) {
+          leAudioHealthStatus_->AddStatisticForGroup(
+              group_id, LeAudioHealthGroupStatType::STREAM_CREATE_SUCCESS);
+        }
+
+        if (!group) {
+          LOG_ERROR("Group %d does not exist anymore. This shall not happen ",
+                    group_id);
+          return;
+        }
+
+        if ((audio_sender_state_ == AudioState::IDLE) &&
+            (audio_receiver_state_ == AudioState::IDLE)) {
+          /* Audio Framework is not interested in the stream anymore.
+           * Just stop streaming
+           */
+          LOG_WARN("Stopping stream for group %d as AF not interested.",
+                   group_id);
+          groupStateMachine_->StopStream(group);
+          return;
+        }
 
         /* It might happen that the configuration has already changed, while
          * the group was in the ongoing reconfiguration. We should stop the
          * stream and reconfigure once again.
          */
-        if (group && group->GetConfigurationContextType() !=
-                         configuration_context_type_) {
+        if (group->GetConfigurationContextType() !=
+            configuration_context_type_) {
           LOG_DEBUG(
               "The configuration %s is no longer valid. Stopping the stream to"
               " reconfigure to %s",
@@ -5143,35 +5170,24 @@ class LeAudioClientImpl : public LeAudioClient {
           return;
         }
 
-        if (group) {
-          BidirectionalPair<uint16_t> delays_pair = {
-              .sink =
-                  group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink),
-              .source = group->GetRemoteDelay(
-                  le_audio::types::kLeAudioDirectionSource)};
-          CodecManager::GetInstance()->UpdateActiveAudioConfig(
-              group->stream_conf.stream_params, delays_pair,
-              std::bind(&LeAudioClientImpl::UpdateAudioConfigToHal,
-                        weak_factory_.GetWeakPtr(), std::placeholders::_1,
-                        std::placeholders::_2));
-        }
+        BidirectionalPair<uint16_t> delays_pair = {
+            .sink =
+                group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink),
+            .source = group->GetRemoteDelay(
+                le_audio::types::kLeAudioDirectionSource)};
+        CodecManager::GetInstance()->UpdateActiveAudioConfig(
+            group->stream_conf.stream_params, delays_pair,
+            std::bind(&LeAudioClientImpl::UpdateAudioConfigToHal,
+                      weak_factory_.GetWeakPtr(), std::placeholders::_1,
+                      std::placeholders::_2));
 
         if (audio_sender_state_ == AudioState::READY_TO_START)
           StartSendingAudio(group_id);
         if (audio_receiver_state_ == AudioState::READY_TO_START)
           StartReceivingAudio(group_id);
 
-        take_stream_time();
-
-        le_audio::MetricsCollector::Get()->OnStreamStarted(
-            active_group_id_, configuration_context_type_);
-
-        if (leAudioHealthStatus_) {
-          leAudioHealthStatus_->AddStatisticForGroup(
-              group_id, LeAudioHealthGroupStatType::STREAM_CREATE_SUCCESS);
-        }
-
         break;
+      }
       case GroupStreamStatus::SUSPENDED:
         stream_setup_end_timestamp_ = 0;
         stream_setup_start_timestamp_ = 0;
