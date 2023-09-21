@@ -25,12 +25,23 @@ service Opp {
   rpc OpenRfcommChannel(OpenRfcommChannelRequest) returns (google.protobuf.Empty);
   // Open an l2cap channel for an OBEX connection.
   rpc OpenL2capChannel(OpenL2capChannelRequest) returns (google.protobuf.Empty);
+  // Accept Put request by the Push Client to the Push Server within an OBEX connection.
+  rpc AcceptPutOperation(google.protobuf.Empty) returns (AcceptPutOperationResponse);
 }
 
 message OpenRfcommChannelRequest {
-    bytes address = 1;
+  bytes address = 1;
 }
 
 message OpenL2capChannelRequest {
-    bytes address = 1;
+  bytes address = 1;
+}
+
+enum PutStatus {
+  ACCEPTED = 0;
+  DECLINED = 1;
+}
+
+message AcceptPutOperationResponse {
+  PutStatus status = 1;
 }
