@@ -27,16 +27,21 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.media.session.PlaybackState;
 import android.os.Looper;
+import android.os.ParcelUuid;
 import android.os.SystemClock;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothEventLogger;
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.audio_util.MediaData;
 import com.android.bluetooth.audio_util.MediaPlayerList;
 import com.android.bluetooth.audio_util.MediaPlayerWrapper;
 import com.android.bluetooth.le_audio.ContentControlIdKeeper;
 import com.android.internal.annotations.VisibleForTesting;
 
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -856,6 +861,65 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
         // Notify all service instances in case of pending operations
         for (MediaControlGattServiceInterface svc : mServiceMap.values()) {
             svc.onDeviceAuthorizationSet(device);
+        }
+    }
+
+    private boolean isGenericMediaService(int ccid) {
+        for (MediaControlGattServiceInterface svc : mServiceMap.values()) {
+            if (svc.getContentControlId() == ccid) {
+                return svc.getServiceUuid().equals(BluetoothUuid.GENERIC_MEDIA_CONTROL.getUuid());
+            }
+        }
+        return false;
+    }
+
+    List<ParcelUuid> getNotificationSubscriptions(int ccid, BluetoothDevice device) {
+        // TODO: Support multiple MCS instances
+        if (isGenericMediaService(ccid)) {
+            byte[] gmcs_cccd = device.getMetadata(BluetoothDevice.METADATA_GMCS_CCCD);
+            if ((gmcs_cccd != null) && (gmcs_cccd.length != 0)) {
+                return Arrays.asList(Utils.byteArrayToUuid(gmcs_cccd));
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    void setNotificationSubscription(
+            int ccid, BluetoothDevice device, ParcelUuid charUuid, boolean doNotify) {
+        // TODO: Support multiple MCS instances
+        if (isGenericMediaService(ccid)) {
+            byte[] gmcs_cccd = device.getMetadata(BluetoothDevice.METADATA_GMCS_CCCD);
+            List<ParcelUuid> uuidList;
+
+            if ((gmcs_cccd == null) || (gmcs_cccd.length == 0)) {
+                uuidList = new ArrayList<ParcelUuid>();
+            } else {
+                uuidList =
+                        new ArrayList<ParcelUuid>(Arrays.asList(Utils.byteArrayToUuid(gmcs_cccd)));
+            }
+
+            boolean updateDb = false;
+            if (doNotify) {
+                if (!uuidList.contains(charUuid)) {
+                    uuidList.add(charUuid);
+                    updateDb = true;
+                }
+            } else if (uuidList.contains(charUuid)) {
+                uuidList.remove(charUuid);
+                updateDb = true;
+            }
+
+            if (updateDb) {
+                if (!device.setMetadata(
+                        BluetoothDevice.METADATA_GMCS_CCCD,
+                        Utils.uuidsToByteArray(uuidList.toArray(new ParcelUuid[0])))) {
+                    Log.e(
+                            TAG,
+                            "Can't set CCCD for GMCS characteristic UUID: "
+                                    + charUuid.toString()
+                                    + ", (remove)");
+                }
+            }
         }
     }
 
