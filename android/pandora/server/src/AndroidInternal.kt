@@ -24,10 +24,6 @@ import android.telephony.SmsManager
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import android.util.Log
-import androidx.test.InstrumentationRegistry
-import androidx.test.uiautomator.By
-import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.Until
 import com.google.protobuf.Empty
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineScope
@@ -41,22 +37,11 @@ private const val TAG = "PandoraAndroidInternal"
 class AndroidInternal(val context: Context) : AndroidImplBase() {
 
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
-    private val INCOMING_FILE_ACCEPT_BTN = "ACCEPT"
-    private val INCOMING_FILE_TITLE = "Incoming file"
-    private val INCOMING_FILE_WAIT_TIMEOUT = 2000L
-
-    // PTS does not configure the Extended Inquiry Response with the
-    // device name; the device will be found after the Inquiry Timeout
-    // (40 secondes) has elapsed.
-    private val BT_DEVICE_SELECT_WAIT_TIMEOUT = 40000L
-    private val IMAGE_FILE_NAME = "OPP_TEST_IMAGE.bmp"
 
     private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
     private val bluetoothAdapter = bluetoothManager.adapter
     private var telephonyManager = context.getSystemService(TelephonyManager::class.java)!!
     private val DEFAULT_MESSAGE_LEN = 130
-    private var device: UiDevice =
-        UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
 
     override fun log(request: LogRequest, responseObserver: StreamObserver<LogResponse>) {
         grpcUnary(scope, responseObserver) {
@@ -98,21 +83,6 @@ class AndroidInternal(val context: Context) : AndroidImplBase() {
                 null,
                 null
             )
-            Empty.getDefaultInstance()
-        }
-    }
-
-    override fun acceptIncomingFile(request: Empty, responseObserver: StreamObserver<Empty>) {
-        grpcUnary<Empty>(scope, responseObserver) {
-            device
-                .wait(Until.findObject(By.text(INCOMING_FILE_TITLE)), INCOMING_FILE_WAIT_TIMEOUT)
-                .click()
-            device
-                .wait(
-                    Until.findObject(By.text(INCOMING_FILE_ACCEPT_BTN)),
-                    INCOMING_FILE_WAIT_TIMEOUT
-                )
-                .click()
             Empty.getDefaultInstance()
         }
     }
