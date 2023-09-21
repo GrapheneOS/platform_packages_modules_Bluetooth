@@ -20,6 +20,7 @@ package com.android.bluetooth.mcp;
 import android.bluetooth.BluetoothDevice;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Media Control Service interface. These are sent Media Players => GATT Servers
@@ -46,6 +47,7 @@ public interface MediaControlGattServiceInterface {
     void setSearchRequestResult(SearchRequest request,
             SearchRequest.Results resultStatus, long resultObjectId);
     int getContentControlId();
+    UUID getServiceUuid();
     void onDeviceAuthorizationSet(BluetoothDevice device);
     void destroy();
     void dump(StringBuilder sb);
