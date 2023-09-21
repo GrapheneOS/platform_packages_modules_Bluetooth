@@ -26,13 +26,13 @@ import com.google.protobuf.Empty
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import pandora.AndroidGrpc.AndroidImplBase
-import pandora.AndroidProto.*
+import pandora.OsGrpc.OsImplBase
+import pandora.OsProto.*
 
-private const val TAG = "PandoraAndroidInternal"
+private const val TAG = "PandoraOs"
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-class AndroidInternal(val context: Context) : AndroidImplBase() {
+class Os(val context: Context) : OsImplBase() {
 
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
 
