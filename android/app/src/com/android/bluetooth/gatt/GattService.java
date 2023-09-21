@@ -17,6 +17,7 @@
 package com.android.bluetooth.gatt;
 
 import static android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE;
+
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveOrManagedUser;
 import static com.android.bluetooth.Utils.checkCallerTargetSdk;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
@@ -358,7 +359,6 @@ public class GattService extends ProfileService {
 
         mScanManager = GattObjectsFactory.getInstance()
                 .createScanManager(this, mAdapterService, mBluetoothAdapterProxy);
-        mScanManager.start();
 
         mPeriodicScanManager = GattObjectsFactory.getInstance()
                 .createPeriodicScanManager(mAdapterService);
