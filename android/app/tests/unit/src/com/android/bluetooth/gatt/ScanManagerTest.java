@@ -182,7 +182,6 @@ public class ScanManagerTest {
         doReturn(mTargetContext.getPackageName()).when(mMockGattService).getPackageName();
 
         mScanManager = new ScanManager(mMockGattService, mAdapterService, mBluetoothAdapterProxy);
-        mScanManager.start();
 
         mHandler = mScanManager.getClientHandler();
         assertThat(mHandler).isNotNull();
