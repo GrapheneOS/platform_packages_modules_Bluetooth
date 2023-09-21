@@ -131,6 +131,7 @@ public class MediaControlGattServiceTest {
 
         doReturn(mMandatoryFeatures).when(mMockMcsCallbacks).onGetFeatureFlags();
         Assert.assertTrue(mMcpService.init(UUID_GMCS));
+        Assert.assertEquals(mMcpService.getServiceUuid(), UUID_GMCS);
         Assert.assertEquals(mMcpService.getContentControlId(), TEST_CCID);
 
         doReturn(true).when(mMockGattServer).removeService(any(BluetoothGattService.class));
