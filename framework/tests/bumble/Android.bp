@@ -23,6 +23,7 @@ android_test_helper_app {
         "androidx.core_core",
         "androidx.test.ext.truth",
         "androidx.test.rules",
+        "compatibility-device-util-axt",
         "grpc-java-lite",
         "grpc-java-okhttp-client-lite",
         "opencensus-java-contrib-grpc-metrics",
