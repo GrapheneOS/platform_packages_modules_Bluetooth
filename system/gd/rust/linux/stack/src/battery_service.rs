@@ -243,7 +243,7 @@ impl BatteryService {
     fn set_battery_info(&mut self, remote_address: &String, value: &Vec<u8>) -> BatterySet {
         let level: Vec<_> = value.iter().cloned().chain(iter::repeat(0 as u8)).take(4).collect();
         let level = u32::from_le_bytes(level.try_into().unwrap());
-        debug!("Received battery level for {}: {}", remote_address.clone(), level);
+        debug!("BAS received battery level for {}: {}", remote_address.clone(), level);
         let battery_set = self.battery_sets.entry(remote_address.clone()).or_insert_with(|| {
             BatterySet::new(
                 remote_address.clone(),
@@ -284,14 +284,10 @@ impl BatteryService {
             None => return,
         }
         // Let BatteryProviderManager know that BAS no longer has a battery for this device.
-        self.battery_provider_manager.lock().unwrap().set_battery_info(
+        self.battery_provider_manager.lock().unwrap().remove_battery_info(
             self.battery_provider_id,
-            BatterySet::new(
-                remote_address.clone(),
-                uuid::BAS.to_string(),
-                "BAS".to_string(),
-                vec![],
-            ),
+            remote_address.clone(),
+            uuid::BAS.to_string(),
         );
         self.battery_sets.remove(&remote_address);
     }

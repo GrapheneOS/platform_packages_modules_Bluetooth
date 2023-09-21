@@ -45,10 +45,10 @@
 #define BTM_BLE_GAP_ADV_INT 512
 /* Tgap(lim_timeout) = 180s max */
 #define BTM_BLE_GAP_LIM_TIMEOUT_MS (180 * 1000)
-/* Interval(scan_int) = 5s= 8000 * 0.625 ms */
-#define BTM_BLE_LOW_LATENCY_SCAN_INT 8000
-/* scan_window = 5s= 8000 * 0.625 ms */
-#define BTM_BLE_LOW_LATENCY_SCAN_WIN 8000
+/* Interval(scan_int) = 100ms= 160 * 0.625 ms */
+#define BTM_BLE_LOW_LATENCY_SCAN_INT 160
+/* scan_window = 100ms= 160 * 0.625 ms */
+#define BTM_BLE_LOW_LATENCY_SCAN_WIN 160
 
 /* TGAP(adv_fast_interval1) = 30(used) ~ 60 ms  = 48 *0.625 */
 #define BTM_BLE_GAP_ADV_FAST_INT_1 48

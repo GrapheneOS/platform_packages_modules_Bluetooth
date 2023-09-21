@@ -42,7 +42,7 @@ class LeAudioClient {
       base::Closure initCb, base::Callback<bool()> hal_2_1_verifier,
       const std::vector<bluetooth::le_audio::btle_audio_codec_config_t>&
           offloading_preference);
-  static void Cleanup(base::Callback<void()> cleanupCb);
+  static void Cleanup(void);
   static LeAudioClient* Get(void);
   static void DebugDump(int fd);
 
@@ -90,7 +90,4 @@ class LeAudioClient {
   static bool GetAsesForStorage(const RawAddress& addr,
                                 std::vector<uint8_t>& out);
   static bool IsLeAudioClientRunning();
-
-  static void InitializeAudioSetConfigurationProvider(void);
-  static void CleanupAudioSetConfigurationProvider(void);
 };

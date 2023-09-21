@@ -3,6 +3,7 @@ use crate::callbacks::Callbacks;
 use crate::uuid;
 use crate::Message;
 use crate::RPCProxy;
+use itertools::Itertools;
 use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc::Sender;
 
@@ -137,11 +138,22 @@ impl Batteries {
         }
     }
 
+    pub fn remove_battery_set(&mut self, uuid: &String) {
+        self.0.retain(|battery_set| &battery_set.source_uuid != uuid);
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     /// Returns the best BatterySet from among reported battery data.
     pub fn pick_best(&self) -> Option<BatterySet> {
         self.0
             .iter()
-            .find(|battery_set| battery_set.source_uuid == uuid::BAS)
+            .filter(|battery_set| !battery_set.batteries.is_empty())
+            // Now we prefer BAS, but we might need to prioritize other sources first
+            // TODO (b/295577710): Make a preference list
+            .find_or_first(|battery_set| battery_set.source_uuid == uuid::BAS)
             .or_else(|| self.0.first())
             .cloned()
     }

@@ -158,8 +158,6 @@ int register_com_android_bluetooth_hap_client(JNIEnv* env);
 
 int register_com_android_bluetooth_btservice_BluetoothKeystore(JNIEnv* env);
 
-int register_com_android_bluetooth_btservice_activity_attribution(JNIEnv* env);
-
 int register_com_android_bluetooth_le_audio(JNIEnv* env);
 
 int register_com_android_bluetooth_vc(JNIEnv* env);
@@ -168,6 +166,23 @@ int register_com_android_bluetooth_csip_set_coordinator(JNIEnv* env);
 
 int register_com_android_bluetooth_btservice_BluetoothQualityReport(
     JNIEnv* env);
+
+struct JNIJavaMethod {
+    const char* name;
+    const char* signature;
+    jmethodID* id;
+    bool is_static{false};
+};
+
+void jniGetMethodsOrDie(JNIEnv* env, const char* className,
+                        const JNIJavaMethod* methods, int nMethods);
+
+#define REGISTER_NATIVE_METHODS(env, classname, methodsArray) \
+    jniRegisterNativeMethods(env, classname, methodsArray, NELEM(methodsArray))
+
+#define GET_JAVA_METHODS(env, classname, methodsArray) \
+    jniGetMethodsOrDie(env, classname, methodsArray, NELEM(methodsArray))
+
 }  // namespace android
 
 #endif /* COM_ANDROID_BLUETOOTH_H */

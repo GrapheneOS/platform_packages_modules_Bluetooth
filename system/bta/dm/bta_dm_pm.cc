@@ -43,7 +43,7 @@
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "types/raw_address.h"
 
-static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
+static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, const tBTA_SYS_ID id,
                             uint8_t app_id, const RawAddress& peer_addr);
 static void bta_dm_pm_set_mode(const RawAddress& peer_addr,
                                tBTA_DM_PM_ACTION pm_mode,
@@ -341,13 +341,13 @@ static void bta_dm_pm_stop_timer_by_index(tBTA_PM_TIMER* p_timer,
  * Returns          void
  *
  ******************************************************************************/
-static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
+static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, const tBTA_SYS_ID id,
                             uint8_t app_id, const RawAddress& peer_addr) {
   uint8_t i, j;
   tBTA_DM_PEER_DEVICE* p_dev;
   tBTA_DM_PM_REQ pm_req = BTA_DM_PM_NEW_REQ;
 
-  LOG_DEBUG("Power management callback status:%s[%hhu] id:%s[%d], app:%hhu",
+  LOG_DEBUG("Power management callback status:%s[%hhu] id:%s[%hhu], app:%hhu",
             bta_sys_conn_status_text(status).c_str(), status,
             BtaIdSysText(id).c_str(), id, app_id);
 
@@ -366,21 +366,20 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
     return;
   }
 
-  LOG_DEBUG("Stopped all timers for service to device:%s id:%hhu",
-            ADDRESS_TO_LOGGABLE_CSTR(peer_addr), id);
-  bta_dm_pm_stop_timer_by_srvc_id(peer_addr, id);
+  LOG_DEBUG("Stopped all timers for service to device:%s id:%s[%hhu]",
+            ADDRESS_TO_LOGGABLE_CSTR(peer_addr), BtaIdSysText(id).c_str(), id);
+  bta_dm_pm_stop_timer_by_srvc_id(peer_addr, static_cast<uint8_t>(id));
 
   p_dev = bta_dm_find_peer_device(peer_addr);
   if (p_dev) {
-    LOG_DEBUG("Device info:%s", device_info_text(p_dev->Info()).c_str());
+    LOG_DEBUG("Device info:%s", p_dev->info_text().c_str());
   } else {
     LOG_ERROR("Unable to find peer device...yet soldiering on...");
   }
 
   /* set SSR parameters on SYS CONN OPEN */
   int index = BTA_DM_PM_SSR0;
-  if ((BTA_SYS_CONN_OPEN == status) && p_dev &&
-      (p_dev->Info() & BTA_DM_DI_USE_SSR)) {
+  if ((BTA_SYS_CONN_OPEN == status) && p_dev && (p_dev->is_ssr_active())) {
     index = get_bta_dm_pm_spec()[p_bta_dm_pm_cfg[i].spec_idx].ssr;
   } else if (BTA_ID_AV == id) {
     if (BTA_SYS_CONN_BUSY == status) {
@@ -779,9 +778,9 @@ void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index) {
              ADDRESS_TO_LOGGABLE_CSTR(p_peer_dev->peer_bdaddr));
   }
   tBTM_PM_STATUS mode_status = static_cast<tBTM_PM_STATUS>(mode);
-  LOG_DEBUG("Current power mode:%s[0x%x] peer_info:%s[0x%02x]",
+  LOG_DEBUG("Current power mode:%s[0x%x] peer_info:%s",
             power_mode_status_text(mode_status).c_str(), mode_status,
-            device_info_text(p_peer_dev->Info()).c_str(), p_peer_dev->Info());
+            p_peer_dev->info_text().c_str());
 
   uint8_t* p_rem_feat = BTM_ReadRemoteFeatures(p_peer_dev->peer_bdaddr);
 
@@ -789,13 +788,12 @@ void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index) {
   if (mode != BTM_PM_MD_SNIFF ||
       (controller->supports_sniff_subrating() && p_rem_feat &&
        HCI_SNIFF_SUB_RATE_SUPPORTED(p_rem_feat) &&
-       !(p_peer_dev->Info() & BTA_DM_DI_USE_SSR))) {
+       !(p_peer_dev->is_ssr_active()))) {
     /* Dont initiate Sniff if controller has alreay accepted
      * remote sniff params. This avoid sniff loop issue with
      * some agrresive headsets who use sniff latencies more than
      * DUT supported range of Sniff intervals.*/
-    if ((mode == BTM_PM_MD_SNIFF) &&
-        (p_peer_dev->Info() & BTA_DM_DI_ACP_SNIFF)) {
+    if ((mode == BTM_PM_MD_SNIFF) && (p_peer_dev->is_remote_init_sniff())) {
       LOG_DEBUG("Link already in sniff mode peer:%s",
                 ADDRESS_TO_LOGGABLE_CSTR(p_peer_dev->peer_bdaddr));
       return;
@@ -805,24 +803,22 @@ void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index) {
    * If sniff, but SSR is not used in this link, still issue the command */
   tBTM_PM_PWR_MD sniff_entry = get_sniff_entry(index);
   memcpy(&pwr_md, &sniff_entry, sizeof(tBTM_PM_PWR_MD));
-  if (p_peer_dev->Info() & BTA_DM_DI_INT_SNIFF) {
+  if (p_peer_dev->is_local_init_sniff()) {
     LOG_DEBUG("Trying to force power mode");
     pwr_md.mode |= BTM_PM_MD_FORCE;
   }
   status = BTM_SetPowerMode(bta_dm_cb.pm_id, p_peer_dev->peer_bdaddr, &pwr_md);
   if (status == BTM_CMD_STORED || status == BTM_CMD_STARTED) {
-    p_peer_dev->info &= ~(BTA_DM_DI_INT_SNIFF | BTA_DM_DI_ACP_SNIFF);
-    p_peer_dev->info |= BTA_DM_DI_SET_SNIFF;
+    p_peer_dev->reset_sniff_flags();
+    p_peer_dev->set_sniff_command_sent();
   } else if (status == BTM_SUCCESS) {
     APPL_TRACE_DEBUG("bta_dm_pm_sniff BTM_SetPowerMode() returns BTM_SUCCESS");
-    p_peer_dev->info &=
-        ~(BTA_DM_DI_INT_SNIFF | BTA_DM_DI_ACP_SNIFF | BTA_DM_DI_SET_SNIFF);
+    p_peer_dev->reset_sniff_flags();
   } else {
     LOG_ERROR("Unable to set power mode peer:%s status:%s",
               ADDRESS_TO_LOGGABLE_CSTR(p_peer_dev->peer_bdaddr),
               btm_status_text(status).c_str());
-    p_peer_dev->info &=
-        ~(BTA_DM_DI_INT_SNIFF | BTA_DM_DI_ACP_SNIFF | BTA_DM_DI_SET_SNIFF);
+    p_peer_dev->reset_sniff_flags();
   }
 }
 /*******************************************************************************
@@ -1009,7 +1005,6 @@ void bta_dm_pm_btm_status(const RawAddress& bd_addr, tBTM_PM_STATUS status,
     return;
   }
 
-  tBTA_DM_DEV_INFO info = p_dev->Info();
   /* check new mode */
   switch (status) {
     case BTM_PM_STS_ACTIVE:
@@ -1017,8 +1012,7 @@ void bta_dm_pm_btm_status(const RawAddress& bd_addr, tBTM_PM_STATUS status,
       we should not try it again*/
       if (hci_status != 0) {
         APPL_TRACE_ERROR("%s hci_status=%d", __func__, hci_status);
-        p_dev->info &=
-            ~(BTA_DM_DI_INT_SNIFF | BTA_DM_DI_ACP_SNIFF | BTA_DM_DI_SET_SNIFF);
+        p_dev->reset_sniff_flags();
 
         if (p_dev->pm_mode_attempted & (BTA_DM_PM_PARK | BTA_DM_PM_SNIFF)) {
           p_dev->pm_mode_failed |=
@@ -1044,7 +1038,7 @@ void bta_dm_pm_btm_status(const RawAddress& bd_addr, tBTM_PM_STATUS status,
       /* save the previous low power mode - for SSR.
        * SSR parameters are sent to controller on "conn open".
        * the numbers stay good until park/hold/detach */
-      if (p_dev->info & BTA_DM_DI_USE_SSR) p_dev->prev_low = status;
+      if (p_dev->is_ssr_active()) p_dev->prev_low = status;
       break;
 
     case BTM_PM_STS_SSR:
@@ -1052,11 +1046,11 @@ void bta_dm_pm_btm_status(const RawAddress& bd_addr, tBTM_PM_STATUS status,
         LOG_WARN("Received error when attempting to set sniff subrating mode");
       }
       if (interval) {
-        p_dev->info |= BTA_DM_DI_USE_SSR;
+        p_dev->set_ssr_active();
         LOG_DEBUG("Enabling sniff subrating mode for peer:%s",
                   ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
       } else {
-        p_dev->info &= ~BTA_DM_DI_USE_SSR;
+        p_dev->reset_ssr_active();
         LOG_DEBUG("Disabling sniff subrating mode for peer:%s",
                   ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
       }
@@ -1071,17 +1065,17 @@ void bta_dm_pm_btm_status(const RawAddress& bd_addr, tBTM_PM_STATUS status,
          */
         bta_dm_pm_stop_timer(bd_addr);
       } else {
-        p_dev->info &=
-            ~(BTA_DM_DI_SET_SNIFF | BTA_DM_DI_INT_SNIFF | BTA_DM_DI_ACP_SNIFF);
-        if (info & BTA_DM_DI_SET_SNIFF)
-          p_dev->info |= BTA_DM_DI_INT_SNIFF;
+        bool is_sniff_command_sent = p_dev->is_sniff_command_sent();
+        p_dev->reset_sniff_flags();
+        if (is_sniff_command_sent)
+          p_dev->set_local_init_sniff();
         else
-          p_dev->info |= BTA_DM_DI_ACP_SNIFF;
+          p_dev->set_remote_init_sniff();
       }
       break;
 
     case BTM_PM_STS_ERROR:
-      p_dev->info &= ~BTA_DM_DI_SET_SNIFF;
+      p_dev->reset_sniff_command_sent();
       break;
 
     default:

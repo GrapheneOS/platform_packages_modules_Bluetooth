@@ -19,8 +19,6 @@
 #include <cstring>
 #include <memory>
 
-#include "hci/address.h"
-#include "hci/class_of_device.h"
 #include "packet/base_packet_builder.h"
 #include "packet/bit_inserter.h"
 #include "packet/checksum_type_checker.h"
@@ -38,14 +36,9 @@ namespace bluetooth {
 namespace l2cap {
 void define_l2cap_packets_submodule(py::module&);
 }
-namespace security {
-void define_smp_packets_submodule(py::module&);
-}
 
 namespace packet {
 
-using ::bluetooth::hci::Address;
-using ::bluetooth::hci::ClassOfDevice;
 using ::bluetooth::packet::BasePacketBuilder;
 using ::bluetooth::packet::BaseStruct;
 using ::bluetooth::packet::BitInserter;
@@ -104,8 +97,6 @@ PYBIND11_MODULE(bluetooth_packets_python3, m) {
 
   py::module l2cap_m = m.def_submodule("l2cap_packets", "A submodule of l2cap_packets");
   bluetooth::l2cap::define_l2cap_packets_submodule(l2cap_m);
-  py::module security_m = m.def_submodule("security_packets", "A submodule of security_packets");
-  bluetooth::security::define_smp_packets_submodule(security_m);
 }
 
 }  // namespace packet

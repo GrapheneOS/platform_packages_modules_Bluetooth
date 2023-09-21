@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/**
- * @hide
- */
-
 package com.android.bluetooth.btservice;
 
 import android.app.Application;
 import android.util.Log;
+
+import com.android.bluetooth.Utils;
 
 public class AdapterApp extends Application {
     private static final String TAG = "BluetoothAdapterApp";
@@ -33,7 +30,11 @@ public class AdapterApp extends Application {
         if (DBG) {
             Log.d(TAG, "Loading JNI Library");
         }
-        System.loadLibrary("bluetooth_jni");
+        if (Utils.isInstrumentationTestMode()) {
+            Log.w(TAG, "App is instrumented. Skip loading the native");
+        } else {
+            System.loadLibrary("bluetooth_jni");
+        }
     }
 
     public AdapterApp() {

@@ -16,7 +16,6 @@
 
 package com.android.bluetooth.btservice;
 
-import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.bluetooth.BluetoothAdapter.STATE_BLE_ON;
 import static android.bluetooth.BluetoothAdapter.STATE_BLE_TURNING_OFF;
 import static android.bluetooth.BluetoothAdapter.STATE_BLE_TURNING_ON;
@@ -50,7 +49,6 @@ import android.os.BatteryStatsManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.Process;
@@ -78,8 +76,13 @@ import com.android.bluetooth.avrcp.AvrcpTargetService;
 import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
 import com.android.bluetooth.bas.BatteryService;
 import com.android.bluetooth.bass_client.BassClientService;
+import com.android.bluetooth.btservice.bluetoothkeystore.BluetoothKeystoreNativeInterface;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
+import com.android.bluetooth.gatt.AdvertiseManagerNativeInterface;
+import com.android.bluetooth.gatt.DistanceMeasurementNativeInterface;
+import com.android.bluetooth.gatt.GattNativeInterface;
 import com.android.bluetooth.gatt.GattService;
+import com.android.bluetooth.gatt.PeriodicScanNativeInterface;
 import com.android.bluetooth.hap.HapClientService;
 import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
@@ -95,6 +98,7 @@ import com.android.bluetooth.pan.PanService;
 import com.android.bluetooth.pbap.BluetoothPbapService;
 import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.sap.SapService;
+import com.android.bluetooth.sdp.SdpManagerNativeInterface;
 import com.android.bluetooth.tbs.TbsService;
 import com.android.bluetooth.vc.VolumeControlService;
 import com.android.internal.app.IBatteryStats;
@@ -103,7 +107,7 @@ import libcore.util.HexEncoding;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -115,7 +119,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -143,6 +146,15 @@ public class AdapterServiceTest {
     private @Mock Binder mBinder;
     private @Mock android.app.Application mApplication;
     private @Mock MetricsLogger mMockMetricsLogger;
+    private @Mock AdapterNativeInterface mNativeInterface;
+    private @Mock BluetoothKeystoreNativeInterface mKeystoreNativeInterface;
+    private @Mock BluetoothQualityReportNativeInterface mQualityNativeInterface;
+    private @Mock SdpManagerNativeInterface mSdpNativeInterface;
+    private @Mock AdvertiseManagerNativeInterface mAdvertiseNativeInterface;
+    private @Mock DistanceMeasurementNativeInterface mDistanceNativeInterface;
+    private @Mock GattNativeInterface mGattNativeInterface;
+    private @Mock PeriodicScanNativeInterface mPeriodicNativeInterface;
+    private @Mock JniCallbacks mJniCallbacks;
 
     // SystemService that are not mocked
     private BluetoothManager mBluetoothManager;
@@ -166,7 +178,6 @@ public class AdapterServiceTest {
 
     private PackageManager mMockPackageManager;
     private MockContentResolver mMockContentResolver;
-    private HashMap<String, HashMap<String, String>> mAdapterConfig;
     private int mForegroundUserId;
     private TestLooper mLooper;
 
@@ -200,23 +211,6 @@ public class AdapterServiceTest {
         Config.setProfileEnabled(VolumeControlService.class, false);
     }
 
-    @BeforeClass
-    public static void setupClass() {
-        Log.e(TAG, "setupClass");
-        // Bring native layer up and down to make sure config files are properly loaded
-        if (Looper.myLooper() == null) {
-            Looper.prepare();
-        }
-        assertThat(Looper.myLooper()).isNotNull();
-        AdapterService adapterService = new AdapterService(Looper.myLooper());
-        adapterService.initNative(false /* is_restricted */, false /* is_common_criteria_mode */,
-                0 /* config_compare_result */, new String[0], false, "");
-        adapterService.cleanupNative();
-        HashMap<String, HashMap<String, String>> adapterConfig = TestUtils.readAdapterConfig();
-        assertThat(adapterConfig).isNotNull();
-        assertThat(getMetricsSalt(adapterConfig)).isNotNull();
-    }
-
     <T> void mockGetSystemService(String serviceName, Class<T> serviceClass, T mockService) {
         TestUtils.mockGetSystemService(mMockContext, serviceName, serviceClass, mockService);
     }
@@ -232,6 +226,17 @@ public class AdapterServiceTest {
 
         mLooper = new TestLooper();
         Handler handler = new Handler(mLooper.getLooper());
+
+        doReturn(mJniCallbacks).when(mNativeInterface).getCallbacks();
+
+        AdapterNativeInterface.setInstance(mNativeInterface);
+        BluetoothKeystoreNativeInterface.setInstance(mKeystoreNativeInterface);
+        BluetoothQualityReportNativeInterface.setInstance(mQualityNativeInterface);
+        SdpManagerNativeInterface.setInstance(mSdpNativeInterface);
+        AdvertiseManagerNativeInterface.setInstance(mAdvertiseNativeInterface);
+        DistanceMeasurementNativeInterface.setInstance(mDistanceNativeInterface);
+        GattNativeInterface.setInstance(mGattNativeInterface);
+        PeriodicScanNativeInterface.setInstance(mPeriodicNativeInterface);
 
         // Post the creation of AdapterService since it rely on Looper.myLooper()
         handler.post(() -> mAdapterService = new AdapterService(mLooper.getLooper()));
@@ -337,10 +342,7 @@ public class AdapterServiceTest {
 
         mLooper.dispatchAll();
 
-        mAdapterService.registerCallback(mIBluetoothCallback);
-
-        mAdapterConfig = TestUtils.readAdapterConfig();
-        assertThat(mAdapterConfig).isNotNull();
+        mAdapterService.registerRemoteCallback(mIBluetoothCallback);
     }
 
     @After
@@ -350,17 +352,21 @@ public class AdapterServiceTest {
         // Restores the foregroundUserId to the ID prior to the test setup
         Utils.setForegroundUserId(mForegroundUserId);
 
+        assertThat(mLooper.nextMessage()).isNull();
         mAdapterService.cleanup();
-        mAdapterService.unregisterCallback(mIBluetoothCallback);
+        mAdapterService.unregisterRemoteCallback(mIBluetoothCallback);
+        AdapterNativeInterface.setInstance(null);
+        BluetoothKeystoreNativeInterface.setInstance(null);
+        BluetoothQualityReportNativeInterface.setInstance(null);
+        SdpManagerNativeInterface.setInstance(null);
+        AdvertiseManagerNativeInterface.setInstance(null);
+        DistanceMeasurementNativeInterface.setInstance(null);
+        GattNativeInterface.setInstance(null);
+        PeriodicScanNativeInterface.setInstance(null);
     }
 
-    /**
-     * Dispatch all the message on the Loopper and check that the `what` is expected
-     *
-     * @param what list of message that are expected to be run by the handler
-     */
     private void syncHandler(int... what) {
-        syncHandler(mLooper, what);
+        TestUtils.syncHandler(mLooper, what);
     }
 
     private void dropNextMessage(int what) {
@@ -368,20 +374,6 @@ public class AdapterServiceTest {
         assertThat(msg).isNotNull();
         assertWithMessage("Not the expected Message:\n" + msg).that(msg.what).isEqualTo(what);
         Log.d(TAG, "Message dropped on purpose: " + msg);
-    }
-
-    private static void syncHandler(TestLooper looper, int... what) {
-        IntStream.of(what)
-                .forEach(
-                        w -> {
-                            Message msg = looper.nextMessage();
-                            assertThat(msg).isNotNull();
-                            assertWithMessage("Not the expected Message:\n" + msg)
-                                    .that(msg.what)
-                                    .isEqualTo(w);
-                            Log.d(TAG, "Processing message: " + msg);
-                            msg.getTarget().dispatchMessage(msg);
-                        });
     }
 
     private void verifyStateChange(int prevState, int currState) {
@@ -423,20 +415,20 @@ public class AdapterServiceTest {
             ProfileService gattService,
             AdapterService adapter,
             Context ctx,
-            IBluetoothCallback callback) {
+            IBluetoothCallback callback,
+            AdapterNativeInterface nativeInterface) {
         adapter.enable(false);
-        syncHandler(looper, AdapterState.BLE_TURN_ON);
+        TestUtils.syncHandler(looper, AdapterState.BLE_TURN_ON);
         verifyStateChange(callback, STATE_OFF, STATE_BLE_TURNING_ON);
 
-        syncHandler(looper, MESSAGE_PROFILE_SERVICE_REGISTERED);
+        TestUtils.syncHandler(looper, MESSAGE_PROFILE_SERVICE_REGISTERED);
 
-        syncHandler(looper, MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
+        TestUtils.syncHandler(looper, MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
 
-        // Native loop is not in TestLooper and it will send a event later
-        looper.startAutoDispatch();
-        verifyStateChange(callback, STATE_BLE_TURNING_ON, STATE_BLE_ON, NATIVE_INIT_MS);
-        looper.stopAutoDispatch(); // stop autoDispatch ASAP
-
+        verify(nativeInterface).enable();
+        adapter.stateChangeCallback(AbstractionLayer.BT_STATE_ON);
+        TestUtils.syncHandler(looper, AdapterState.BLE_STARTED);
+        verifyStateChange(callback, STATE_BLE_TURNING_ON, STATE_BLE_ON);
         assertThat(adapter.getState()).isEqualTo(STATE_BLE_ON);
     }
 
@@ -448,7 +440,7 @@ public class AdapterServiceTest {
             boolean onlyGatt,
             List<ProfileService> services) {
         adapter.disable();
-        syncHandler(looper, AdapterState.USER_TURN_OFF);
+        TestUtils.syncHandler(looper, AdapterState.USER_TURN_OFF);
         verifyStateChange(callback, STATE_ON, STATE_TURNING_OFF);
 
         if (!onlyGatt) {
@@ -457,11 +449,11 @@ public class AdapterServiceTest {
 
             for (ProfileService service : services) {
                 adapter.onProfileServiceStateChanged(service, STATE_OFF);
-                syncHandler(looper, MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
+                TestUtils.syncHandler(looper, MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
             }
         }
 
-        syncHandler(looper, AdapterState.BREDR_STOPPED);
+        TestUtils.syncHandler(looper, AdapterState.BREDR_STOPPED);
         verifyStateChange(callback, STATE_TURNING_OFF, STATE_BLE_ON);
 
         assertThat(adapter.getState()).isEqualTo(STATE_BLE_ON);
@@ -474,7 +466,8 @@ public class AdapterServiceTest {
                 mAdapterService,
                 mMockContext,
                 onlyGatt,
-                List.of(mMockService, mMockService2));
+                List.of(mMockService, mMockService2),
+                mNativeInterface);
     }
     // Method is re-used in other AdapterService*Test
     static void doEnable(
@@ -483,20 +476,21 @@ public class AdapterServiceTest {
             AdapterService adapter,
             Context ctx,
             boolean onlyGatt,
-            List<ProfileService> services) {
+            List<ProfileService> services,
+            AdapterNativeInterface nativeInterface) {
         Log.e(TAG, "doEnable() start");
 
         IBluetoothCallback callback = mock(IBluetoothCallback.class);
         Binder binder = mock(Binder.class);
         doReturn(binder).when(callback).asBinder();
-        adapter.registerCallback(callback);
+        adapter.registerRemoteCallback(callback);
 
         assertThat(adapter.getState()).isEqualTo(STATE_OFF);
 
-        offToBleOn(looper, gattService, adapter, ctx, callback);
+        offToBleOn(looper, gattService, adapter, ctx, callback, nativeInterface);
 
         adapter.startBrEdr();
-        syncHandler(looper, AdapterState.USER_TURN_ON);
+        TestUtils.syncHandler(looper, AdapterState.USER_TURN_ON);
         verifyStateChange(callback, STATE_BLE_ON, STATE_TURNING_ON);
 
         if (!onlyGatt) {
@@ -505,20 +499,20 @@ public class AdapterServiceTest {
 
             for (ProfileService service : services) {
                 adapter.addProfile(service);
-                syncHandler(looper, MESSAGE_PROFILE_SERVICE_REGISTERED);
+                TestUtils.syncHandler(looper, MESSAGE_PROFILE_SERVICE_REGISTERED);
             }
             // Keep in 2 separate loop to first add the services and then eventually trigger the
             // ON transition during the callback
             for (ProfileService service : services) {
                 adapter.onProfileServiceStateChanged(service, STATE_ON);
-                syncHandler(looper, MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
+                TestUtils.syncHandler(looper, MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
             }
         }
-        syncHandler(looper, AdapterState.BREDR_STARTED);
+        TestUtils.syncHandler(looper, AdapterState.BREDR_STARTED);
         verifyStateChange(callback, STATE_TURNING_ON, STATE_ON);
 
         assertThat(adapter.getState()).isEqualTo(STATE_ON);
-        adapter.unregisterCallback(callback);
+        adapter.unregisterRemoteCallback(callback);
         Log.e(TAG, "doEnable() complete success");
     }
 
@@ -529,7 +523,8 @@ public class AdapterServiceTest {
                 mAdapterService,
                 mMockContext,
                 onlyGatt,
-                List.of(mMockService, mMockService2));
+                List.of(mMockService, mMockService2),
+                mNativeInterface);
     }
 
     private static void doDisable(
@@ -538,30 +533,32 @@ public class AdapterServiceTest {
             AdapterService adapter,
             Context ctx,
             boolean onlyGatt,
-            List<ProfileService> services) {
+            List<ProfileService> services,
+            AdapterNativeInterface nativeInterface) {
         Log.e(TAG, "doDisable() start");
         IBluetoothCallback callback = mock(IBluetoothCallback.class);
         Binder binder = mock(Binder.class);
         doReturn(binder).when(callback).asBinder();
-        adapter.registerCallback(callback);
+        adapter.registerRemoteCallback(callback);
 
         assertThat(adapter.getState()).isEqualTo(STATE_ON);
 
         onToBleOn(looper, adapter, ctx, callback, onlyGatt, services);
 
         adapter.stopBle();
-        syncHandler(looper, AdapterState.BLE_TURN_OFF);
+        TestUtils.syncHandler(looper, AdapterState.BLE_TURN_OFF);
         verifyStateChange(callback, STATE_BLE_ON, STATE_BLE_TURNING_OFF);
 
-        syncHandler(looper, MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
+        TestUtils.syncHandler(looper, MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
+        TestUtils.syncHandler(looper, MESSAGE_PROFILE_SERVICE_UNREGISTERED);
 
-        // Native loop is not in TestLooper and it will send a event later
-        looper.startAutoDispatch();
-        verifyStateChange(callback, STATE_BLE_TURNING_OFF, STATE_OFF, NATIVE_DISABLE_MS);
-        looper.stopAutoDispatch(); // stop autoDispatch ASAP
+        verify(nativeInterface).disable();
+        adapter.stateChangeCallback(AbstractionLayer.BT_STATE_OFF);
+        TestUtils.syncHandler(looper, AdapterState.BLE_STOPPED);
+        verifyStateChange(callback, STATE_BLE_TURNING_OFF, STATE_OFF);
 
         assertThat(adapter.getState()).isEqualTo(STATE_OFF);
-        adapter.unregisterCallback(callback);
+        adapter.unregisterRemoteCallback(callback);
         Log.e(TAG, "doDisable() complete success");
     }
 
@@ -578,9 +575,15 @@ public class AdapterServiceTest {
     public void enable_isCorrectScanMode() {
         doEnable(false);
 
-        verify(mMockContext, timeout(ONE_SECOND_MS).times(2))
-                .sendBroadcast(any(), eq(BLUETOOTH_SCAN), any(Bundle.class));
+        final int expectedScanMode = BluetoothAdapter.SCAN_MODE_CONNECTABLE;
 
+        int type = AbstractionLayer.BT_PROPERTY_ADAPTER_SCAN_MODE;
+        byte[] val = Utils.intToByteArray(AdapterService.convertScanModeToHal(expectedScanMode));
+
+        verify(mNativeInterface).setAdapterProperty(eq(type), eq(val));
+        // Intercept native call and simulate its callback
+        mAdapterService.mAdapterProperties.adapterPropertyChangedCallback(
+                new int[] {type}, new byte[][] {val});
         assertThat(mAdapterService.getScanMode()).isEqualTo(BluetoothAdapter.SCAN_MODE_CONNECTABLE);
     }
 
@@ -640,11 +643,11 @@ public class AdapterServiceTest {
         syncHandler(AdapterState.BLE_START_TIMEOUT);
         assertThat(mAdapterService.getBluetoothGatt()).isNull();
 
-        // Native loop is not in TestLooper and it will send a event later
-        mLooper.startAutoDispatch();
-        verifyStateChange(STATE_BLE_TURNING_OFF, STATE_OFF, NATIVE_DISABLE_MS);
-        mLooper.stopAutoDispatch(); // stop autoDispatch ASAP
+        syncHandler(AdapterState.BLE_STOPPED);
+        syncHandler(MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
+        syncHandler(MESSAGE_PROFILE_SERVICE_UNREGISTERED);
 
+        verifyStateChange(STATE_BLE_TURNING_OFF, STATE_OFF);
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
     }
 
@@ -688,7 +691,13 @@ public class AdapterServiceTest {
     public void testProfileStartTimeout() {
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
 
-        offToBleOn(mLooper, mMockGattService, mAdapterService, mMockContext, mIBluetoothCallback);
+        offToBleOn(
+                mLooper,
+                mMockGattService,
+                mAdapterService,
+                mMockContext,
+                mIBluetoothCallback,
+                mNativeInterface);
 
         mAdapterService.startBrEdr();
         syncHandler(AdapterState.USER_TURN_ON);
@@ -782,13 +791,16 @@ public class AdapterServiceTest {
         // Do not call stopBle().  The Adapter should turn itself off.
         syncHandler(AdapterState.BLE_TURN_OFF);
         verifyStateChange(STATE_BLE_ON, STATE_BLE_TURNING_OFF, CONTEXT_SWITCH_MS);
+
         syncHandler(MESSAGE_PROFILE_SERVICE_STATE_CHANGED); // stop GATT
+        syncHandler(MESSAGE_PROFILE_SERVICE_UNREGISTERED);
 
-        // Native loop is not in TestLooper and it will send a event later
-        mLooper.startAutoDispatch();
-        verifyStateChange(STATE_BLE_TURNING_OFF, STATE_OFF, NATIVE_DISABLE_MS);
-        mLooper.stopAutoDispatch(); // stop autoDispatch ASAP
+        verify(mNativeInterface).disable();
 
+        mAdapterService.stateChangeCallback(AbstractionLayer.BT_STATE_OFF);
+        syncHandler(AdapterState.BLE_STOPPED);
+
+        verifyStateChange(STATE_BLE_TURNING_OFF, STATE_OFF);
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
 
         // Restore earlier setting
@@ -807,13 +819,17 @@ public class AdapterServiceTest {
     }
 
     /**
-     * Test: Obfuscate Bluetooth address when Bluetooth is disabled
-     * Check whether the returned value meets expectation
+     * Test: Obfuscate Bluetooth address when Bluetooth is disabled Check whether the returned value
+     * meets expectation
      */
     @Test
+    @Ignore("b/296127545: This is a native test")
     public void testObfuscateBluetoothAddress_BluetoothDisabled() {
+        HashMap<String, HashMap<String, String>> adapterConfig = TestUtils.readAdapterConfig();
+        assertThat(adapterConfig).isNotNull();
+
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
-        byte[] metricsSalt = getMetricsSalt(mAdapterConfig);
+        byte[] metricsSalt = getMetricsSalt(adapterConfig);
         assertThat(metricsSalt).isNotNull();
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
         byte[] obfuscatedAddress = mAdapterService.obfuscateAddress(device);
@@ -823,15 +839,19 @@ public class AdapterServiceTest {
     }
 
     /**
-     * Test: Obfuscate Bluetooth address when Bluetooth is enabled
-     * Check whether the returned value meets expectation
+     * Test: Obfuscate Bluetooth address when Bluetooth is enabled Check whether the returned value
+     * meets expectation
      */
     @Test
+    @Ignore("b/296127545: This is a native test")
     public void testObfuscateBluetoothAddress_BluetoothEnabled() {
+        HashMap<String, HashMap<String, String>> adapterConfig = TestUtils.readAdapterConfig();
+        assertThat(adapterConfig).isNotNull();
+
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
         doEnable(false);
         assertThat(mAdapterService.getState()).isEqualTo(STATE_ON);
-        byte[] metricsSalt = getMetricsSalt(mAdapterConfig);
+        byte[] metricsSalt = getMetricsSalt(adapterConfig);
         assertThat(metricsSalt).isNotNull();
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
         byte[] obfuscatedAddress = mAdapterService.obfuscateAddress(device);
@@ -840,13 +860,15 @@ public class AdapterServiceTest {
         assertThat(obfuscateInJava(metricsSalt, device)).isEqualTo(obfuscatedAddress);
     }
 
-    /**
-     * Test: Check if obfuscated Bluetooth address stays the same after toggling Bluetooth
-     */
+    /** Test: Check if obfuscated Bluetooth address stays the same after toggling Bluetooth */
     @Test
+    @Ignore("b/296127545: This is a native test")
     public void testObfuscateBluetoothAddress_PersistentBetweenToggle() {
+        HashMap<String, HashMap<String, String>> adapterConfig = TestUtils.readAdapterConfig();
+        assertThat(adapterConfig).isNotNull();
+
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
-        byte[] metricsSalt = getMetricsSalt(mAdapterConfig);
+        byte[] metricsSalt = getMetricsSalt(adapterConfig);
         assertThat(metricsSalt).isNotNull();
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
         byte[] obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
@@ -937,21 +959,19 @@ public class AdapterServiceTest {
     }
 
     /**
-     * Test: Get id when Bluetooth is disabled
-     * Check whether the returned value meets expectation
+     * Test: Get id when Bluetooth is disabled Check whether the returned value meets expectation
      */
     @Test
+    @Ignore("b/296127545: This is a native test")
     public void testGetMetricId_BluetoothDisabled() {
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
         assertThat(mAdapterService.getMetricId(device)).isGreaterThan(0);
     }
 
-    /**
-     * Test: Get id when Bluetooth is enabled
-     * Check whether the returned value meets expectation
-     */
+    /** Test: Get id when Bluetooth is enabled Check whether the returned value meets expectation */
     @Test
+    @Ignore("b/296127545: This is a native test")
     public void testGetMetricId_BluetoothEnabled() {
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
         doEnable(false);
@@ -960,10 +980,9 @@ public class AdapterServiceTest {
         assertThat(mAdapterService.getMetricId(device)).isGreaterThan(0);
     }
 
-    /**
-     * Test: Check if id gotten stays the same after toggling Bluetooth
-     */
+    /** Test: Check if id gotten stays the same after toggling Bluetooth */
     @Test
+    @Ignore("b/296127545: This is a native test")
     public void testGetMetricId_PersistentBetweenToggle() {
         assertThat(mAdapterService.getState()).isEqualTo(STATE_OFF);
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
@@ -988,7 +1007,8 @@ public class AdapterServiceTest {
 
         mAdapterService.dump(fd, writer, new String[]{});
         mAdapterService.dump(fd, writer, new String[]{"set-test-mode", "enabled"});
-        mAdapterService.dump(fd, writer, new String[]{"--proto-bin"});
-        mAdapterService.dump(fd, writer, new String[]{"random", "arguments"});
+        doReturn(new byte[0]).when(mNativeInterface).dumpMetrics();
+        mAdapterService.dump(fd, writer, new String[] {"--proto-bin"});
+        mAdapterService.dump(fd, writer, new String[] {"random", "arguments"});
     }
 }

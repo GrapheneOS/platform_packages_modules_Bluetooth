@@ -26,6 +26,7 @@ static_library("crypto_toolbox") {
   configs += [ "//bt/system:target_defaults" ]
 }
 
+# Nonstandard codecs are associated with 3P libs and must be contained in MMC
 source_set("nonstandard_codecs") {
   if (defined(use.bt_nonstandard_codecs) && use.bt_nonstandard_codecs) {
     sources = [
@@ -44,19 +45,16 @@ source_set("nonstandard_codecs") {
       "//bt/system",
       "//bt/system/bta/include",
       "//bt/system/btif/include",
+      "//bt/system/include",
       "//bt/system/internal_include",
+      "//bt/system/stack",
       "//bt/system/stack/include",
       "//bt/system/utils/include",
     ]
 
-    deps = [ "//bt/system/gd/rust/shim:init_flags_bridge_header" ]
-
-    # b/289017207: external codec libs should not be directly linked
-    libs = [
-      # Following are for AAC using FFmpeg
-      "avcodec",
-      "avformat",
-      "avutil",
+    deps = [
+      "//bt/system/gd/rust/shim:init_flags_bridge_header",
+      "//bt/system/stack/mmc",
     ]
 
     configs += [
@@ -130,8 +128,6 @@ source_set("stack") {
     "btm/btm_sec.cc",
     "btm/hfp_msbc_encoder.cc",
     "btm/hfp_msbc_decoder.cc",
-    "btm/hfp_lc3_encoder.cc",
-    "btm/hfp_lc3_decoder.cc",
     "btu/btu_hcif.cc",
     "btu/btu_task.cc",
     "eatt/eatt.cc",
@@ -226,7 +222,6 @@ source_set("stack") {
     "//bt/system/udrv/include",
     "//bt/system/vnd/ble",
     "//bt/system/vnd/include",
-    "//bt/system/embdrv/lc3/include",
   ]
 
   deps = [
@@ -236,10 +231,25 @@ source_set("stack") {
     "//bt/system/gd/rust/shim:init_flags_bridge_header",
     "//bt/system/types",
     "//bt/system/types",
-    "//bt/system/embdrv/lc3:liblc3",
   ]
 
-  configs += [ "//bt/system:target_defaults" ]
+  configs += [
+    "//bt/system:target_defaults",
+  ]
+
+  if (defined(use.floss_mmc) && use.floss_mmc) {
+    sources += [
+      "btm/hfp_lc3_encoder_linux.cc",
+      "btm/hfp_lc3_decoder_linux.cc",
+    ]
+    deps += [ "//bt/system/stack/mmc" ]
+  } else {
+    sources += [
+      "btm/hfp_lc3_encoder.cc",
+      "btm/hfp_lc3_decoder.cc",
+    ]
+    libs = [ "lc3" ]
+  }
 }
 
 if (use.test) {

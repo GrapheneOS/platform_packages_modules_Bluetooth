@@ -771,31 +771,42 @@ public final class ScanFilter implements Parcelable {
         /**
          * Set a scan filter on the remote device address with an address type and the Identity
          * Resolving Key (IRK).
-         * <p>
-         * The address passed to this API must be either a public or random static address in big
+         *
+         * <p>The address passed to this API must be either a public or random static address in big
          * endian byte order. It needs to be in the format of "01:02:03:AB:CD:EF". The device
          * address can be validated using {@link BluetoothAdapter#checkBluetoothAddress}.
-         * <p>
-         * The IRK is used to resolve a static address from a private address. The IRK must be
+         *
+         * <p>The IRK is used to resolve a static address from a private address. The IRK must be
          * provided in little endian byte order.
          *
-         * @param deviceAddress the remote device Bluetooth address for the filter
+         * <p>When using this API, it is recommended to continue scanning until the device is
+         * bonded.
+         *
+         * <p>The resulting {@link ScanResult} that matches this filter will contain an {@link
+         * BluetoothDevice} object for which the {@link BluetoothDevice#getAddress} method will
+         * return the device address passed as a parameter in this method.
+         *
+         * <p>It is not recommended to use this API for discovering devices that are already bonded,
+         * but note if the device with this IRK is already bonded, calling {@link
+         * BluetoothDevice#getAddress} on the {@link ScanResult} using this filter will return the
+         * device address that was used to initiate bonding, and may not match the address passed
+         * into this method in that scenario.
+         *
+         * @param deviceAddress the remote device Bluetooth address for the filter in big endian
+         *     order
          * @param addressType indication of the type of address
          * @param irk non-null little endian byte array representing the Identity Resolving Key
-         *
          * @throws IllegalArgumentException If the {@code deviceAddress} is invalid
          * @throws IllegalArgumentException if the {@code irk} is invalid length
          * @throws IllegalArgumentException If the {@code addressType} is an invalid length or is
-         * not PUBLIC or RANDOM STATIC
+         *     not PUBLIC or RANDOM STATIC
          * @throws NullPointerException if {@code deviceAddress} or {@code irk} is null
-         *
          * @hide
          */
         @NonNull
         @SystemApi
-        public Builder setDeviceAddress(@NonNull String deviceAddress,
-                                        @AddressType int addressType,
-                                        @NonNull byte[] irk) {
+        public Builder setDeviceAddress(
+                @NonNull String deviceAddress, @AddressType int addressType, @NonNull byte[] irk) {
             requireNonNull(irk);
             if (irk.length != LEN_IRK_OCTETS) {
                 throw new IllegalArgumentException("'irk' is invalid length!");

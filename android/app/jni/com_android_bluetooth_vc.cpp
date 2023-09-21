@@ -199,31 +199,6 @@ class VolumeControlCallbacksImpl : public VolumeControlCallbacks {
 
 static VolumeControlCallbacksImpl sVolumeControlCallbacks;
 
-static void classInitNative(JNIEnv* env, jclass clazz) {
-  method_onConnectionStateChanged =
-      env->GetMethodID(clazz, "onConnectionStateChanged", "(I[B)V");
-
-  method_onVolumeStateChanged =
-      env->GetMethodID(clazz, "onVolumeStateChanged", "(IZ[BZ)V");
-
-  method_onGroupVolumeStateChanged =
-      env->GetMethodID(clazz, "onGroupVolumeStateChanged", "(IZIZ)V");
-
-  method_onDeviceAvailable =
-      env->GetMethodID(clazz, "onDeviceAvailable", "(I[B)V");
-
-  method_onExtAudioOutVolumeOffsetChanged =
-      env->GetMethodID(clazz, "onExtAudioOutVolumeOffsetChanged", "(II[B)V");
-
-  method_onExtAudioOutLocationChanged =
-      env->GetMethodID(clazz, "onExtAudioOutLocationChanged", "(II[B)V");
-
-  method_onExtAudioOutDescriptionChanged = env->GetMethodID(
-      clazz, "onExtAudioOutDescriptionChanged", "(ILjava/lang/String;[B)V");
-
-  LOG(INFO) << __func__ << ": succeeds";
-}
-
 static void initNative(JNIEnv* env, jobject object) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
@@ -261,7 +236,7 @@ static void initNative(JNIEnv* env, jobject object) {
   sVolumeControlInterface->Init(&sVolumeControlCallbacks);
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
 
@@ -282,7 +257,7 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static jboolean connectVolumeControlNative(JNIEnv* env, jobject object,
+static jboolean connectVolumeControlNative(JNIEnv* env, jobject /* object */,
                                            jbyteArray address) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
@@ -305,7 +280,7 @@ static jboolean connectVolumeControlNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static jboolean disconnectVolumeControlNative(JNIEnv* env, jobject object,
+static jboolean disconnectVolumeControlNative(JNIEnv* env, jobject /* object */,
                                               jbyteArray address) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
@@ -328,8 +303,8 @@ static jboolean disconnectVolumeControlNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static void setVolumeNative(JNIEnv* env, jobject object, jbyteArray address,
-                            jint volume) {
+static void setVolumeNative(JNIEnv* env, jobject /* object */,
+                            jbyteArray address, jint volume) {
   if (!sVolumeControlInterface) {
     LOG(ERROR) << __func__
                << ": Failed to get the Bluetooth Volume Control Interface";
@@ -347,8 +322,8 @@ static void setVolumeNative(JNIEnv* env, jobject object, jbyteArray address,
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void setGroupVolumeNative(JNIEnv* env, jobject object, jint group_id,
-                                 jint volume) {
+static void setGroupVolumeNative(JNIEnv* /* env */, jobject /* object */,
+                                 jint group_id, jint volume) {
   if (!sVolumeControlInterface) {
     LOG(ERROR) << __func__
                << ": Failed to get the Bluetooth Volume Control Interface";
@@ -358,7 +333,7 @@ static void setGroupVolumeNative(JNIEnv* env, jobject object, jint group_id,
   sVolumeControlInterface->SetVolume(group_id, volume);
 }
 
-static void muteNative(JNIEnv* env, jobject object, jbyteArray address) {
+static void muteNative(JNIEnv* env, jobject /* object */, jbyteArray address) {
   if (!sVolumeControlInterface) {
     LOG(ERROR) << __func__
                << ": Failed to get the Bluetooth Volume Control Interface";
@@ -376,7 +351,8 @@ static void muteNative(JNIEnv* env, jobject object, jbyteArray address) {
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void muteGroupNative(JNIEnv* env, jobject object, jint group_id) {
+static void muteGroupNative(JNIEnv* /* env */, jobject /* object */,
+                            jint group_id) {
   if (!sVolumeControlInterface) {
     LOG(ERROR) << __func__
                << ": Failed to get the Bluetooth Volume Control Interface";
@@ -385,7 +361,8 @@ static void muteGroupNative(JNIEnv* env, jobject object, jint group_id) {
   sVolumeControlInterface->Mute(group_id);
 }
 
-static void unmuteNative(JNIEnv* env, jobject object, jbyteArray address) {
+static void unmuteNative(JNIEnv* env, jobject /* object */,
+                         jbyteArray address) {
   if (!sVolumeControlInterface) {
     LOG(ERROR) << __func__
                << ": Failed to get the Bluetooth Volume Control Interface";
@@ -403,7 +380,8 @@ static void unmuteNative(JNIEnv* env, jobject object, jbyteArray address) {
   env->ReleaseByteArrayElements(address, addr, 0);
 }
 
-static void unmuteGroupNative(JNIEnv* env, jobject object, jint group_id) {
+static void unmuteGroupNative(JNIEnv* /* env */, jobject /* object */,
+                              jint group_id) {
   if (!sVolumeControlInterface) {
     LOG(ERROR) << __func__
                << ": Failed to get the Bluetooth Volume Control Interface";
@@ -413,7 +391,8 @@ static void unmuteGroupNative(JNIEnv* env, jobject object, jint group_id) {
 }
 
 /* Native methods for exterbak audio outputs */
-static jboolean getExtAudioOutVolumeOffsetNative(JNIEnv* env, jobject object,
+static jboolean getExtAudioOutVolumeOffsetNative(JNIEnv* env,
+                                                 jobject /* object */,
                                                  jbyteArray address,
                                                  jint ext_output_id) {
   LOG(INFO) << __func__;
@@ -432,7 +411,8 @@ static jboolean getExtAudioOutVolumeOffsetNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static jboolean setExtAudioOutVolumeOffsetNative(JNIEnv* env, jobject object,
+static jboolean setExtAudioOutVolumeOffsetNative(JNIEnv* env,
+                                                 jobject /* object */,
                                                  jbyteArray address,
                                                  jint ext_output_id,
                                                  jint offset) {
@@ -453,7 +433,7 @@ static jboolean setExtAudioOutVolumeOffsetNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static jboolean getExtAudioOutLocationNative(JNIEnv* env, jobject object,
+static jboolean getExtAudioOutLocationNative(JNIEnv* env, jobject /* object */,
                                              jbyteArray address,
                                              jint ext_output_id) {
   LOG(INFO) << __func__;
@@ -472,7 +452,7 @@ static jboolean getExtAudioOutLocationNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static jboolean setExtAudioOutLocationNative(JNIEnv* env, jobject object,
+static jboolean setExtAudioOutLocationNative(JNIEnv* env, jobject /* object */,
                                              jbyteArray address,
                                              jint ext_output_id,
                                              jint location) {
@@ -493,7 +473,8 @@ static jboolean setExtAudioOutLocationNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static jboolean getExtAudioOutDescriptionNative(JNIEnv* env, jobject object,
+static jboolean getExtAudioOutDescriptionNative(JNIEnv* env,
+                                                jobject /* object */,
                                                 jbyteArray address,
                                                 jint ext_output_id) {
   LOG(INFO) << __func__;
@@ -512,7 +493,8 @@ static jboolean getExtAudioOutDescriptionNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static jboolean setExtAudioOutDescriptionNative(JNIEnv* env, jobject object,
+static jboolean setExtAudioOutDescriptionNative(JNIEnv* env,
+                                                jobject /* object */,
                                                 jbyteArray address,
                                                 jint ext_output_id,
                                                 jstring descr) {
@@ -540,36 +522,55 @@ static jboolean setExtAudioOutDescriptionNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static JNINativeMethod sMethods[] = {
-    {"classInitNative", "()V", (void*)classInitNative},
-    {"initNative", "()V", (void*)initNative},
-    {"cleanupNative", "()V", (void*)cleanupNative},
-    {"connectVolumeControlNative", "([B)Z", (void*)connectVolumeControlNative},
-    {"disconnectVolumeControlNative", "([B)Z",
-     (void*)disconnectVolumeControlNative},
-    {"setVolumeNative", "([BI)V", (void*)setVolumeNative},
-    {"setGroupVolumeNative", "(II)V", (void*)setGroupVolumeNative},
-    {"muteNative", "([B)V", (void*)muteNative},
-    {"muteGroupNative", "(I)V", (void*)muteGroupNative},
-    {"unmuteNative", "([B)V", (void*)unmuteNative},
-    {"unmuteGroupNative", "(I)V", (void*)unmuteGroupNative},
-    {"getExtAudioOutVolumeOffsetNative", "([BI)Z",
-     (void*)getExtAudioOutVolumeOffsetNative},
-    {"setExtAudioOutVolumeOffsetNative", "([BII)Z",
-     (void*)setExtAudioOutVolumeOffsetNative},
-    {"getExtAudioOutLocationNative", "([BI)Z",
-     (void*)getExtAudioOutLocationNative},
-    {"setExtAudioOutLocationNative", "([BII)Z",
-     (void*)setExtAudioOutLocationNative},
-    {"getExtAudioOutDescriptionNative", "([BI)Z",
-     (void*)getExtAudioOutDescriptionNative},
-    {"setExtAudioOutDescriptionNative", "([BILjava/lang/String;)Z",
-     (void*)setExtAudioOutDescriptionNative},
-};
-
 int register_com_android_bluetooth_vc(JNIEnv* env) {
-  return jniRegisterNativeMethods(
-      env, "com/android/bluetooth/vc/VolumeControlNativeInterface", sMethods,
-      NELEM(sMethods));
+  const JNINativeMethod methods[] = {
+      {"initNative", "()V", (void*)initNative},
+      {"cleanupNative", "()V", (void*)cleanupNative},
+      {"connectVolumeControlNative", "([B)Z",
+       (void*)connectVolumeControlNative},
+      {"disconnectVolumeControlNative", "([B)Z",
+       (void*)disconnectVolumeControlNative},
+      {"setVolumeNative", "([BI)V", (void*)setVolumeNative},
+      {"setGroupVolumeNative", "(II)V", (void*)setGroupVolumeNative},
+      {"muteNative", "([B)V", (void*)muteNative},
+      {"muteGroupNative", "(I)V", (void*)muteGroupNative},
+      {"unmuteNative", "([B)V", (void*)unmuteNative},
+      {"unmuteGroupNative", "(I)V", (void*)unmuteGroupNative},
+      {"getExtAudioOutVolumeOffsetNative", "([BI)Z",
+       (void*)getExtAudioOutVolumeOffsetNative},
+      {"setExtAudioOutVolumeOffsetNative", "([BII)Z",
+       (void*)setExtAudioOutVolumeOffsetNative},
+      {"getExtAudioOutLocationNative", "([BI)Z",
+       (void*)getExtAudioOutLocationNative},
+      {"setExtAudioOutLocationNative", "([BII)Z",
+       (void*)setExtAudioOutLocationNative},
+      {"getExtAudioOutDescriptionNative", "([BI)Z",
+       (void*)getExtAudioOutDescriptionNative},
+      {"setExtAudioOutDescriptionNative", "([BILjava/lang/String;)Z",
+       (void*)setExtAudioOutDescriptionNative},
+  };
+  const int result = REGISTER_NATIVE_METHODS(
+      env, "com/android/bluetooth/vc/VolumeControlNativeInterface", methods);
+  if (result != 0) {
+    return result;
+  }
+
+  const JNIJavaMethod javaMethods[] = {
+      {"onConnectionStateChanged", "(I[B)V", &method_onConnectionStateChanged},
+      {"onVolumeStateChanged", "(IZ[BZ)V", &method_onVolumeStateChanged},
+      {"onGroupVolumeStateChanged", "(IZIZ)V",
+       &method_onGroupVolumeStateChanged},
+      {"onDeviceAvailable", "(I[B)V", &method_onDeviceAvailable},
+      {"onExtAudioOutVolumeOffsetChanged", "(II[B)V",
+       &method_onExtAudioOutVolumeOffsetChanged},
+      {"onExtAudioOutLocationChanged", "(II[B)V",
+       &method_onExtAudioOutLocationChanged},
+      {"onExtAudioOutDescriptionChanged", "(ILjava/lang/String;[B)V",
+       &method_onExtAudioOutDescriptionChanged},
+  };
+  GET_JAVA_METHODS(env, "com/android/bluetooth/vc/VolumeControlNativeInterface",
+                   javaMethods);
+
+  return 0;
 }
 }  // namespace android

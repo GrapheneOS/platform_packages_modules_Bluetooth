@@ -42,11 +42,8 @@ public class HidDeviceNativeInterface {
 
     @GuardedBy("INSTANCE_LOCK")
     private static HidDeviceNativeInterface sInstance;
-    private static final Object INSTANCE_LOCK = new Object();
 
-    static {
-        classInitNative();
-    }
+    private static final Object INSTANCE_LOCK = new Object();
 
     @VisibleForTesting
     private HidDeviceNativeInterface() {
@@ -64,19 +61,18 @@ public class HidDeviceNativeInterface {
     public static HidDeviceNativeInterface getInstance() {
         synchronized (INSTANCE_LOCK) {
             if (sInstance == null) {
-                setInstance(new HidDeviceNativeInterface());
+                sInstance = new HidDeviceNativeInterface();
             }
             return sInstance;
         }
     }
 
-    /**
-     * Set the singleton instance.
-     *
-     * @param nativeInterface native interface
-     */
-    private static void setInstance(HidDeviceNativeInterface nativeInterface) {
-        sInstance = nativeInterface;
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(HidDeviceNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
+        }
     }
 
     /**
@@ -267,8 +263,6 @@ public class HidDeviceNativeInterface {
     private byte[] getByteAddress(BluetoothDevice device) {
         return mAdapterService.getByteIdentityAddress(device);
     }
-
-    private static native void classInitNative();
 
     private native void initNative();
 

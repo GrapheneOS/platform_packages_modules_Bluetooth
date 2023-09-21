@@ -16,18 +16,20 @@
  */
 
 #include <base/functional/bind.h>
+#include <base/logging.h>
+#include <lc3.h>
 
 #include <mutex>
 
 #include "bta/include/bta_le_audio_api.h"
 #include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "bta/le_audio/broadcaster/state_machine.h"
+#include "bta/le_audio/codec_interface.h"
 #include "bta/le_audio/content_control_id_keeper.h"
 #include "bta/le_audio/le_audio_types.h"
 #include "bta/le_audio/le_audio_utils.h"
 #include "bta/le_audio/metrics_collector.h"
 #include "device/include/controller.h"
-#include "embdrv/lc3/include/lc3.h"
 #include "gd/common/strings.h"
 #include "internal_include/stack_config.h"
 #include "osi/include/log.h"
@@ -371,6 +373,18 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     LeAudioLtvMap public_ltv;
     std::vector<LeAudioLtvMap> subgroup_ltvs;
 
+    if (queued_broadcast_.IsQueuedBroadcast()) {
+      LOG_ERROR("Not processed yet queued broadcast");
+      return;
+    }
+
+    if (!queued_broadcast_.CanCreateBroadcast()) {
+      queued_broadcast_.SetQueuedBroadcast(is_public, broadcast_name,
+                                           broadcast_code, public_metadata,
+                                           subgroup_quality, subgroup_metadata);
+      return;
+    }
+
     if (is_public) {
       // Prepare public broadcast announcement format
       bool is_metadata_valid;
@@ -483,8 +497,8 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
       BroadcastStateMachineConfig msg = {
           .is_public = is_public,
-          .broadcast_name = broadcast_name,
           .broadcast_id = broadcast_id,
+          .broadcast_name = broadcast_name,
           .streaming_phy = GetStreamingPhy(),
           .codec_wrapper = codec_config,
           .qos_config = qos_config,
@@ -501,8 +515,8 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
           le_audio::broadcaster::getStreamConfigForContext(context_type);
       BroadcastStateMachineConfig msg = {
           .is_public = is_public,
-          .broadcast_name = broadcast_name,
           .broadcast_id = broadcast_id,
+          .broadcast_name = broadcast_name,
           .streaming_phy = GetStreamingPhy(),
           .codec_wrapper = codec_qos_pair.first,
           .qos_config = codec_qos_pair.second,
@@ -729,6 +743,18 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     }
   }
 
+  void IsoTrafficEventCb(bool is_active) {
+    if (is_active) {
+      queued_broadcast_.SetIsoTrafficFlag();
+    } else {
+      queued_broadcast_.ResetIsoTrafficFlag();
+
+      if (!queued_broadcast_.IsQueuedBroadcast()) return;
+
+      queued_broadcast_.CreateAudioBroadcast();
+    }
+  }
+
   void Dump(int fd) {
     std::stringstream stream;
 
@@ -949,31 +975,21 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
     void CheckAndReconfigureEncoders() {
       auto const& codec_id = codec_wrapper_.GetLeAudioCodecId();
-      if (codec_id.coding_format != kLeAudioCodingFormatLC3) {
-        LOG_ERROR("Invalid codec ID: [%d:%d:%d]", codec_id.coding_format,
-                  codec_id.vendor_company_id, codec_id.vendor_codec_id);
-        return;
-      }
-
-      if (enc_audio_buffers_.size() != codec_wrapper_.GetNumChannels()) {
-        enc_audio_buffers_.resize(codec_wrapper_.GetNumChannels());
-      }
-
-      const int dt_us = codec_wrapper_.GetDataIntervalUs();
-      const int sr_hz = codec_wrapper_.GetSampleRate();
-      const auto encoder_bytes = lc3_encoder_size(dt_us, sr_hz);
-      const auto channel_bytes = codec_wrapper_.GetMaxSduSizePerChannel();
-
       /* TODO: We should act smart and reuse current configurations */
-      encoders_.clear();
-      encoders_mem_.clear();
-      while (encoders_.size() < codec_wrapper_.GetNumChannels()) {
-        auto& encoder_buf = enc_audio_buffers_.at(encoders_.size());
-        encoder_buf.resize(channel_bytes);
+      sw_enc_.clear();
+      while (sw_enc_.size() != codec_wrapper_.GetNumChannels()) {
+        auto codec = le_audio::CodecInterface::CreateInstance(codec_id);
 
-        encoders_mem_.emplace_back(malloc(encoder_bytes), &std::free);
-        encoders_.emplace_back(
-            lc3_setup_encoder(dt_us, sr_hz, 0, encoders_mem_.back().get()));
+        auto codec_status =
+            codec->InitEncoder(codec_wrapper_.GetLeAudioCodecConfiguration(),
+                               codec_wrapper_.GetLeAudioCodecConfiguration());
+        if (codec_status != le_audio::CodecInterface::Status::STATUS_OK) {
+          LOG_ERROR("Channel %d codec setup failed with err: %d",
+                    (uint32_t)sw_enc_.size(), codec_status);
+          return;
+        }
+
+        sw_enc_.emplace_back(std::move(codec));
       }
     }
 
@@ -985,23 +1001,9 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
       codec_wrapper_ = config;
     }
 
-    void encodeLc3Channel(lc3_encoder_t encoder,
-                          std::vector<uint8_t>& out_buffer,
-                          const std::vector<uint8_t>& data,
-                          int initial_channel_offset, int pitch_samples,
-                          int num_channels) {
-      auto encoder_status =
-          lc3_encode(encoder, LC3_PCM_FORMAT_S16,
-                     (int16_t*)(data.data() + initial_channel_offset),
-                     pitch_samples, out_buffer.size(), out_buffer.data());
-      if (encoder_status != 0) {
-        LOG_ERROR("Encoding error=%d", encoder_status);
-      }
-    }
-
     static void sendBroadcastData(
         const std::unique_ptr<BroadcastStateMachine>& broadcast,
-        std::vector<std::vector<uint8_t>>& encoded_channels) {
+        std::vector<std::unique_ptr<le_audio::CodecInterface>>& encoders) {
       auto const& config = broadcast->GetBigConfig();
       if (config == std::nullopt) {
         LOG_ERROR(
@@ -1012,15 +1014,16 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
         return;
       }
 
-      if (config->connection_handles.size() < encoded_channels.size()) {
+      if (config->connection_handles.size() < encoders.size()) {
         LOG_ERROR("Not enough BIS'es to broadcast all channels!");
         return;
       }
 
-      for (uint8_t chan = 0; chan < encoded_channels.size(); ++chan) {
-        IsoManager::GetInstance()->SendIsoData(config->connection_handles[chan],
-                                               encoded_channels[chan].data(),
-                                               encoded_channels[chan].size());
+      for (uint8_t chan = 0; chan < encoders.size(); ++chan) {
+        IsoManager::GetInstance()->SendIsoData(
+            config->connection_handles[chan],
+            (const uint8_t*)encoders[chan]->GetDecodedSamples().data(),
+            encoders[chan]->GetDecodedSamples().size() * 2);
       }
     }
 
@@ -1035,9 +1038,9 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
       /* Prepare encoded data for all channels */
       for (uint8_t chan = 0; chan < num_channels; ++chan) {
-        /* TODO: Use encoder agnostic wrapper */
-        encodeLc3Channel(encoders_[chan], enc_audio_buffers_[chan], data,
-                         chan * bytes_per_sample, num_channels, num_channels);
+        auto initial_channel_offset = chan * bytes_per_sample;
+        sw_enc_[chan]->Encode(data.data() + initial_channel_offset,
+                              num_channels, codec_wrapper_.GetFrameLen());
       }
 
       /* Currently there is no way to broadcast multiple distinct streams.
@@ -1049,7 +1052,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
         if ((broadcast->GetState() ==
              BroadcastStateMachine::State::STREAMING) &&
             !broadcast->IsMuted())
-          sendBroadcastData(broadcast, enc_audio_buffers_);
+          sendBroadcastData(broadcast, sw_enc_);
       }
       LOG_VERBOSE("All data sent.");
     }
@@ -1096,10 +1099,83 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
    private:
     BroadcastCodecWrapper codec_wrapper_;
-    std::vector<lc3_encoder_t> encoders_;
-    std::vector<std::unique_ptr<void, decltype(&std::free)>> encoders_mem_;
-    std::vector<std::vector<uint8_t>> enc_audio_buffers_;
+    std::vector<std::unique_ptr<le_audio::CodecInterface>> sw_enc_;
   } audio_receiver_;
+
+  static class QueuedBroadcast {
+   public:
+    bool IsQueuedBroadcast() {
+      LOG_INFO("");
+
+      return is_queued_;
+    }
+
+    void SetQueuedBroadcast(
+        bool is_public, const std::string& broadcast_name,
+        const std::optional<bluetooth::le_audio::BroadcastCode>& broadcast_code,
+        const std::vector<uint8_t>& public_metadata,
+        const std::vector<uint8_t>& subgroup_quality,
+        const std::vector<std::vector<uint8_t>>& subgroup_metadata) {
+      LOG_INFO();
+
+      is_public_ = is_public;
+      broadcast_name_ = broadcast_name;
+      broadcast_code_ = broadcast_code;
+      public_metadata_ = public_metadata;
+      subgroup_quality_ = subgroup_quality;
+      subgroup_metadata_ = subgroup_metadata;
+
+      is_queued_ = true;
+    }
+
+    void CreateAudioBroadcast() {
+      if (!instance || !CanCreateBroadcast()) return;
+
+      LOG_INFO("Create queued broadcast");
+
+      is_queued_ = false;
+
+      instance->CreateAudioBroadcast(is_public_, broadcast_name_,
+                                     broadcast_code_, public_metadata_,
+                                     subgroup_quality_, subgroup_metadata_);
+    }
+
+    void ClearQueuedBroadcast() {
+      LOG_INFO();
+
+      is_queued_ = false;
+    }
+
+    void SetIsoTrafficFlag() {
+      LOG_INFO();
+
+      is_iso_running_ = true;
+    }
+
+    void ResetIsoTrafficFlag() {
+      LOG_INFO();
+
+      is_iso_running_ = false;
+    }
+
+    bool CanCreateBroadcast() {
+      LOG_INFO("%d", is_iso_running_ == false);
+
+      return is_iso_running_ == false;
+    }
+
+   private:
+    /* Queued broadcast data */
+    bool is_public_;
+    std::string broadcast_name_;
+    std::optional<bluetooth::le_audio::BroadcastCode> broadcast_code_;
+    std::vector<uint8_t> public_metadata_;
+    std::vector<uint8_t> subgroup_quality_;
+    std::vector<std::vector<uint8_t>> subgroup_metadata_;
+
+    bool is_iso_running_;
+    bool is_queued_;
+  } queued_broadcast_;
 
   bluetooth::le_audio::LeAudioBroadcasterCallbacks* callbacks_;
   std::map<uint32_t, std::unique_ptr<BroadcastStateMachine>> broadcasts_;
@@ -1119,6 +1195,8 @@ LeAudioBroadcasterImpl::LeAudioSourceCallbacksImpl
     LeAudioBroadcasterImpl::audio_receiver_;
 LeAudioBroadcasterImpl::BroadcastAdvertisingCallbacks
     LeAudioBroadcasterImpl::state_machine_adv_callbacks_;
+LeAudioBroadcasterImpl::QueuedBroadcast
+    LeAudioBroadcasterImpl::queued_broadcast_;
 } /* namespace */
 
 void LeAudioBroadcaster::Initialize(
@@ -1146,6 +1224,14 @@ void LeAudioBroadcaster::Initialize(
   instance = new LeAudioBroadcasterImpl(callbacks);
   /* Register HCI event handlers */
   IsoManager::GetInstance()->RegisterBigCallbacks(instance);
+  /* Register for active traffic */
+  IsoManager::GetInstance()->RegisterOnIsoTrafficActiveCallback(
+      [](bool is_active) {
+        if (!instance) {
+          return;
+        }
+        instance->IsoTrafficEventCb(is_active);
+      });
 }
 
 bool LeAudioBroadcaster::IsLeAudioBroadcasterRunning() { return instance; }

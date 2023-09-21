@@ -75,34 +75,8 @@ static void initializeNative(JNIEnv* env, jobject object) {
   sCallbacksObj = env->NewGlobalRef(object);
 }
 
-static void classInitNative(JNIEnv* env, jclass clazz) {
-  /* generic SDP record (raw data)*/
-  method_sdpRecordFoundCallback =
-      env->GetMethodID(clazz, "sdpRecordFoundCallback", "(I[B[BI[B)V");
-
-  /* MAS SDP record*/
-  method_sdpMasRecordFoundCallback = env->GetMethodID(
-      clazz, "sdpMasRecordFoundCallback", "(I[B[BIIIIIILjava/lang/String;Z)V");
-  /* MNS SDP record*/
-  method_sdpMnsRecordFoundCallback = env->GetMethodID(
-      clazz, "sdpMnsRecordFoundCallback", "(I[B[BIIIILjava/lang/String;Z)V");
-  /* PBAP PSE record */
-  method_sdpPseRecordFoundCallback = env->GetMethodID(
-      clazz, "sdpPseRecordFoundCallback", "(I[B[BIIIIILjava/lang/String;Z)V");
-  /* OPP Server record */
-  method_sdpOppOpsRecordFoundCallback =
-      env->GetMethodID(clazz, "sdpOppOpsRecordFoundCallback",
-                       "(I[B[BIIILjava/lang/String;[BZ)V");
-  /* SAP Server record */
-  method_sdpSapsRecordFoundCallback = env->GetMethodID(
-      clazz, "sdpSapsRecordFoundCallback", "(I[B[BIILjava/lang/String;Z)V");
-  /* DIP record */
-  method_sdpDipRecordFoundCallback = env->GetMethodID(
-      clazz, "sdpDipRecordFoundCallback", "(I[B[BIIIIIZZ)V");
-}
-
-static jboolean sdpSearchNative(JNIEnv* env, jobject obj, jbyteArray address,
-                                jbyteArray uuidObj) {
+static jboolean sdpSearchNative(JNIEnv* env, jobject /* obj */,
+                                jbyteArray address, jbyteArray uuidObj) {
   ALOGD("%s", __func__);
 
   if (!sBluetoothSdpInterface) return JNI_FALSE;
@@ -244,7 +218,7 @@ static void sdp_search_callback(bt_status_t status, const RawAddress& bd_addr,
   }  // End of for-loop
 }
 
-static jint sdpCreateMapMasRecordNative(JNIEnv* env, jobject obj,
+static jint sdpCreateMapMasRecordNative(JNIEnv* env, jobject /* obj */,
                                         jstring name_str, jint mas_id, jint scn,
                                         jint l2cap_psm, jint version,
                                         jint msg_types, jint features) {
@@ -283,7 +257,7 @@ static jint sdpCreateMapMasRecordNative(JNIEnv* env, jobject obj,
   return handle;
 }
 
-static jint sdpCreateMapMnsRecordNative(JNIEnv* env, jobject obj,
+static jint sdpCreateMapMnsRecordNative(JNIEnv* env, jobject /* obj */,
                                         jstring name_str, jint scn,
                                         jint l2cap_psm, jint version,
                                         jint features) {
@@ -320,7 +294,7 @@ static jint sdpCreateMapMnsRecordNative(JNIEnv* env, jobject obj,
   return handle;
 }
 
-static jint sdpCreatePbapPceRecordNative(JNIEnv* env, jobject obj,
+static jint sdpCreatePbapPceRecordNative(JNIEnv* env, jobject /* obj */,
                                          jstring name_str, jint version) {
   ALOGD("%s", __func__);
   if (!sBluetoothSdpInterface) return -1;
@@ -351,7 +325,7 @@ static jint sdpCreatePbapPceRecordNative(JNIEnv* env, jobject obj,
   return handle;
 }
 
-static jint sdpCreatePbapPseRecordNative(JNIEnv* env, jobject obj,
+static jint sdpCreatePbapPseRecordNative(JNIEnv* env, jobject /* obj */,
                                          jstring name_str, jint scn,
                                          jint l2cap_psm, jint version,
                                          jint supported_repositories,
@@ -390,7 +364,7 @@ static jint sdpCreatePbapPseRecordNative(JNIEnv* env, jobject obj,
   return handle;
 }
 
-static jint sdpCreateOppOpsRecordNative(JNIEnv* env, jobject obj,
+static jint sdpCreateOppOpsRecordNative(JNIEnv* env, jobject /* obj */,
                                         jstring name_str, jint scn,
                                         jint l2cap_psm, jint version,
                                         jbyteArray supported_formats_list) {
@@ -439,7 +413,7 @@ static jint sdpCreateOppOpsRecordNative(JNIEnv* env, jobject obj,
   return handle;
 }
 
-static jint sdpCreateSapsRecordNative(JNIEnv* env, jobject obj,
+static jint sdpCreateSapsRecordNative(JNIEnv* env, jobject /* obj */,
                                       jstring name_str, jint scn,
                                       jint version) {
   ALOGD("%s", __func__);
@@ -472,7 +446,7 @@ static jint sdpCreateSapsRecordNative(JNIEnv* env, jobject obj,
   return handle;
 }
 
-static jboolean sdpRemoveSdpRecordNative(JNIEnv* env, jobject obj,
+static jboolean sdpRemoveSdpRecordNative(JNIEnv* /* env */, jobject /* obj */,
                                          jint record_id) {
   ALOGD("%s", __func__);
   if (!sBluetoothSdpInterface) return false;
@@ -487,7 +461,7 @@ static jboolean sdpRemoveSdpRecordNative(JNIEnv* env, jobject obj,
   return true;
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   const bt_interface_t* btInf = getBluetoothInterface();
 
   if (btInf == NULL) {
@@ -508,28 +482,49 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static JNINativeMethod sMethods[] = {
-    /* name, signature, funcPtr */
-    {"classInitNative", "()V", (void*)classInitNative},
-    {"initializeNative", "()V", (void*)initializeNative},
-    {"cleanupNative", "()V", (void*)cleanupNative},
-    {"sdpSearchNative", "([B[B)Z", (void*)sdpSearchNative},
-    {"sdpCreateMapMasRecordNative", "(Ljava/lang/String;IIIIII)I",
-     (void*)sdpCreateMapMasRecordNative},
-    {"sdpCreateMapMnsRecordNative", "(Ljava/lang/String;IIII)I",
-     (void*)sdpCreateMapMnsRecordNative},
-    {"sdpCreatePbapPceRecordNative", "(Ljava/lang/String;I)I",
-     (void*)sdpCreatePbapPceRecordNative},
-    {"sdpCreatePbapPseRecordNative", "(Ljava/lang/String;IIIII)I",
-     (void*)sdpCreatePbapPseRecordNative},
-    {"sdpCreateOppOpsRecordNative", "(Ljava/lang/String;III[B)I",
-     (void*)sdpCreateOppOpsRecordNative},
-    {"sdpCreateSapsRecordNative", "(Ljava/lang/String;II)I",
-     (void*)sdpCreateSapsRecordNative},
-    {"sdpRemoveSdpRecordNative", "(I)Z", (void*)sdpRemoveSdpRecordNative}};
-
 int register_com_android_bluetooth_sdp(JNIEnv* env) {
-  return jniRegisterNativeMethods(env, "com/android/bluetooth/sdp/SdpManager",
-                                  sMethods, NELEM(sMethods));
+  const JNINativeMethod methods[] = {
+      {"initializeNative", "()V", (void*)initializeNative},
+      {"cleanupNative", "()V", (void*)cleanupNative},
+      {"sdpSearchNative", "([B[B)Z", (void*)sdpSearchNative},
+      {"sdpCreateMapMasRecordNative", "(Ljava/lang/String;IIIIII)I",
+       (void*)sdpCreateMapMasRecordNative},
+      {"sdpCreateMapMnsRecordNative", "(Ljava/lang/String;IIII)I",
+       (void*)sdpCreateMapMnsRecordNative},
+      {"sdpCreatePbapPceRecordNative", "(Ljava/lang/String;I)I",
+       (void*)sdpCreatePbapPceRecordNative},
+      {"sdpCreatePbapPseRecordNative", "(Ljava/lang/String;IIIII)I",
+       (void*)sdpCreatePbapPseRecordNative},
+      {"sdpCreateOppOpsRecordNative", "(Ljava/lang/String;III[B)I",
+       (void*)sdpCreateOppOpsRecordNative},
+      {"sdpCreateSapsRecordNative", "(Ljava/lang/String;II)I",
+       (void*)sdpCreateSapsRecordNative},
+      {"sdpRemoveSdpRecordNative", "(I)Z", (void*)sdpRemoveSdpRecordNative},
+  };
+  const int result = REGISTER_NATIVE_METHODS(
+      env, "com/android/bluetooth/sdp/SdpManagerNativeInterface", methods);
+  if (result != 0) {
+    return result;
+  }
+
+  const JNIJavaMethod javaMethods[] = {
+      {"sdpRecordFoundCallback", "(I[B[BI[B)V", &method_sdpRecordFoundCallback},
+      {"sdpMasRecordFoundCallback", "(I[B[BIIIIIILjava/lang/String;Z)V",
+       &method_sdpMasRecordFoundCallback},
+      {"sdpMnsRecordFoundCallback", "(I[B[BIIIILjava/lang/String;Z)V",
+       &method_sdpMnsRecordFoundCallback},
+      {"sdpPseRecordFoundCallback", "(I[B[BIIIIILjava/lang/String;Z)V",
+       &method_sdpPseRecordFoundCallback},
+      {"sdpOppOpsRecordFoundCallback", "(I[B[BIIILjava/lang/String;[BZ)V",
+       &method_sdpOppOpsRecordFoundCallback},
+      {"sdpSapsRecordFoundCallback", "(I[B[BIILjava/lang/String;Z)V",
+       &method_sdpSapsRecordFoundCallback},
+      {"sdpDipRecordFoundCallback", "(I[B[BIIIIIZZ)V",
+       &method_sdpDipRecordFoundCallback},
+  };
+  GET_JAVA_METHODS(env, "com/android/bluetooth/sdp/SdpManagerNativeInterface",
+                   javaMethods);
+
+  return 0;
 }
 }

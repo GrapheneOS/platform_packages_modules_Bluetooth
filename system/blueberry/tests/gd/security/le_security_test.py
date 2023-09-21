@@ -14,7 +14,7 @@
 #   limitations under the License.
 
 import hci_packets as hci
-from bluetooth_packets_python3.security_packets import PairingFailedReason
+import smp_packets as smp
 from blueberry.tests.gd.cert.matchers import SecurityMatchers
 from blueberry.tests.gd.cert.metadata import metadata
 from blueberry.tests.gd.cert.py_hci import PyHci
@@ -585,7 +585,7 @@ class LeSecurityTest(gd_base_test.GdBaseTestClass):
         # 3. IUT transmits the Pairing Failed command.
         assertThat(self.dut_security.get_bond_stream()).emits(
             SecurityMatchers.BondMsg(BondMsgType.DEVICE_BOND_FAILED, self.cert_address,
-                                     int(PairingFailedReason.ENCRYPTION_KEY_SIZE)))
+                                     int(smp.PairingFailedReason.ENCRYPTION_KEY_SIZE)))
 
     @metadata(pts_test_id="SM/SLA/EKS/BI-02-C",
               pts_test_name="IUT Responder, Lower Tester Maximum Encryption Key Size < Min_Encryption_Key_Length")
@@ -622,7 +622,7 @@ class LeSecurityTest(gd_base_test.GdBaseTestClass):
         #3. IUT transmits the Pairing Failed command.
         assertThat(self.cert_security.get_bond_stream()).emits(
             SecurityMatchers.BondMsg(BondMsgType.DEVICE_BOND_FAILED, self.dut_address,
-                                     int(PairingFailedReason.ENCRYPTION_KEY_SIZE)))
+                                     int(smp.PairingFailedReason.ENCRYPTION_KEY_SIZE)))
 
     @metadata(pts_test_id="SM/MAS/SCPK/BV-01-C",
               pts_test_name="Passkey Entry, IUT Initiator, Secure Connections – Success")

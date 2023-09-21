@@ -73,7 +73,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.InteropUtil;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
-import com.android.bluetooth.sdp.SdpManager;
+import com.android.bluetooth.sdp.SdpManagerNativeInterface;
 import com.android.bluetooth.util.DevicePolicyUtils;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -376,11 +376,15 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             return;
         }
 
-        mSdpHandle = SdpManager.getDefaultManager()
-                .createPbapPseRecord("OBEX Phonebook Access Server",
-                       mServerSockets.getRfcommChannel(), mServerSockets.getL2capPsm(),
-                       SDP_PBAP_SERVER_VERSION_1_2, SDP_PBAP_SUPPORTED_REPOSITORIES,
-                       SDP_PBAP_SUPPORTED_FEATURES);
+        mSdpHandle =
+                SdpManagerNativeInterface.getInstance()
+                        .createPbapPseRecord(
+                                "OBEX Phonebook Access Server",
+                                mServerSockets.getRfcommChannel(),
+                                mServerSockets.getL2capPsm(),
+                                SDP_PBAP_SERVER_VERSION_1_2,
+                                SDP_PBAP_SUPPORTED_REPOSITORIES,
+                                SDP_PBAP_SUPPORTED_FEATURES);
 
         if (DEBUG) {
             Log.d(TAG, "created Sdp record, mSdpHandle=" + mSdpHandle);
@@ -395,13 +399,13 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
         int sdpHandle = mSdpHandle;
         mSdpHandle = -1;
-        SdpManager sdpManager = SdpManager.getDefaultManager();
+        SdpManagerNativeInterface nativeInterface = SdpManagerNativeInterface.getInstance();
         if (DEBUG) {
             Log.d(TAG, "cleanUpSdpRecord, mSdpHandle=" + sdpHandle);
         }
-        if (sdpManager == null) {
-            Log.e(TAG, "sdpManager is null");
-        } else if (!sdpManager.removeSdpRecord(sdpHandle)) {
+        if (!nativeInterface.isAvailable()) {
+            Log.e(TAG, "SdpManagerNativeInterface is not available");
+        } else if (!nativeInterface.removeSdpRecord(sdpHandle)) {
             Log.w(TAG, "cleanUpSdpRecord, removeSdpRecord failed, sdpHandle=" + sdpHandle);
         }
     }

@@ -200,10 +200,10 @@ void LeSignallingManager::OnConnectionRequest(SignalId signal_id, Psm psm, Cid r
 
   PendingConnection pending{
       .remote_cid = remote_cid,
-      .incoming_signal_id = signal_id,
-      .initial_credits = initial_credits,
-      .max_pdu_size = mps,
       .mtu = mtu,
+      .max_pdu_size = mps,
+      .initial_credits = initial_credits,
+      .incoming_signal_id = signal_id,
   };
   dynamic_service_manager_->GetSecurityEnforcementInterface()->Enforce(
       link_->GetDevice(),

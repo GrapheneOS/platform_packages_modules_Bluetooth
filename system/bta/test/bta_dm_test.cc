@@ -378,8 +378,8 @@ TEST_F(BtaDmTest, bta_dm_state_text) {
 
 TEST_F(BtaDmTest, bta_dm_remname_cback__typical) {
   bta_dm_search_cb = {
-      .name_discover_done = false,
       .peer_bdaddr = kRawAddress,
+      .name_discover_done = false,
   };
 
   tBTM_REMOTE_DEV_NAME name = {
@@ -407,8 +407,8 @@ TEST_F(BtaDmTest, bta_dm_remname_cback__typical) {
 
 TEST_F(BtaDmTest, bta_dm_remname_cback__wrong_address) {
   bta_dm_search_cb = {
-      .name_discover_done = false,
       .peer_bdaddr = kRawAddress,
+      .name_discover_done = false,
   };
 
   tBTM_REMOTE_DEV_NAME name = {
@@ -436,8 +436,8 @@ TEST_F(BtaDmTest, bta_dm_remname_cback__wrong_address) {
 
 TEST_F(BtaDmTest, bta_dm_remname_cback__HCI_ERR_CONNECTION_EXISTS) {
   bta_dm_search_cb = {
-      .name_discover_done = false,
       .peer_bdaddr = kRawAddress,
+      .name_discover_done = false,
   };
 
   tBTM_REMOTE_DEV_NAME name = {

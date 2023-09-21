@@ -29,7 +29,7 @@ import com.android.bluetooth.IObexConnectionHandler;
 import com.android.bluetooth.ObexServerSockets;
 import com.android.bluetooth.map.BluetoothMapContentObserver.Msg;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
-import com.android.bluetooth.sdp.SdpManager;
+import com.android.bluetooth.sdp.SdpManagerNativeInterface;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.obex.ServerSession;
 
@@ -137,12 +137,13 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
     }
 
     private void removeSdpRecord() {
-        if (mAdapter != null && mSdpHandle >= 0 && SdpManager.getDefaultManager() != null) {
+        SdpManagerNativeInterface nativeInterface = SdpManagerNativeInterface.getInstance();
+        if (mAdapter != null && mSdpHandle >= 0 && nativeInterface.isAvailable()) {
             if (V) {
                 Log.d(mTag, "Removing SDP record for MAS instance: " + mMasInstanceId
                         + " Object reference: " + this + "SDP handle: " + mSdpHandle);
             }
-            boolean status = SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
+            boolean status = nativeInterface.removeSdpRecord(mSdpHandle);
             Log.d(mTag, "RemoveSDPrecord returns " + status);
             mSdpHandle = -1;
         }
@@ -371,9 +372,15 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
                 sFeatureMask = SDP_MAP_MAS_FEATURES_1_4;
         }
 
-        return SdpManager.getDefaultManager()
-                .createMapMasRecord(masName, mMasInstanceId, rfcommChannel, l2capPsm,
-                        masVersion, messageTypeFlags, sFeatureMask);
+        return SdpManagerNativeInterface.getInstance()
+                .createMapMasRecord(
+                        masName,
+                        mMasInstanceId,
+                        rfcommChannel,
+                        l2capPsm,
+                        masVersion,
+                        messageTypeFlags,
+                        sFeatureMask);
     }
 
     /* Called for all MAS instances for each instance when auth. is completed, hence

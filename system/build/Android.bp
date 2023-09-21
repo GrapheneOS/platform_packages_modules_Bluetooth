@@ -7,22 +7,14 @@ package {
     default_applicable_licenses: ["system_bt_license"],
 }
 
-// Fuzzable defaults are the subset of defaults that are used in fuzzing, which
-// requires no shared libraries, and no explicit sanitization.
 cc_defaults {
-    name: "fluoride_types_defaults_fuzzable",
+    name: "fluoride_defaults",
     defaults: ["bluetooth_cflags"],
     cflags: [
         "-DEXPORT_SYMBOL=__attribute__((visibility(\"default\")))",
         "-DLOG_NDEBUG=1",
         "-fvisibility=hidden",
-        // struct BT_HDR is defined as a variable-size header in a struct.
-        "-Wno-gnu-variable-sized-type-not-at-end",
     ],
-}
-
-cc_defaults {
-    name: "fluoride_defaults",
     target: {
         android: {
             test_config_template: ":BluetoothTestConfigTemplate",
@@ -31,13 +23,4 @@ cc_defaults {
             },
         },
     },
-    defaults: ["fluoride_types_defaults_fuzzable"],
-    header_libs: ["libbluetooth_headers"],
-    static_libs: [
-        "libbluetooth-types",
-        "libbluetooth_rust_interop",
-        "libbt-platform-protos-lite",
-        "libbt_shim_bridge",
-        "libbt_shim_ffi",
-    ],
 }

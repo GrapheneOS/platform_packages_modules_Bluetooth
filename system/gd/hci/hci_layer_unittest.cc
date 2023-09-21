@@ -118,6 +118,8 @@ class HciLayerTest : public ::testing::Test {
   TestModuleRegistry fake_registry_;
 };
 
+class HciLayerDeathTest : public HciLayerTest {};
+
 TEST_F(HciLayerTest, setup_teardown) {}
 
 TEST_F(HciLayerTest, reset_command_sent_on_start) {
@@ -136,7 +138,7 @@ TEST_F(HciLayerTest, controller_debug_info_requested_on_hci_timeout) {
   ASSERT_TRUE(debug_info_view.IsValid());
 }
 
-TEST_F(HciLayerTest, abort_after_hci_restart_timeout) {
+TEST_F(HciLayerDeathTest, abort_after_hci_restart_timeout) {
   FailIfResetNotSent();
   FakeTimerAdvance(HciLayer::kHciTimeoutMs.count());
 
@@ -154,7 +156,28 @@ TEST_F(HciLayerTest, abort_after_hci_restart_timeout) {
       "");
 }
 
-TEST_F(HciLayerTest, abort_on_root_inflammation_event) {
+TEST_F(HciLayerDeathTest, discard_event_after_hci_timeout) {
+  FailIfResetNotSent();
+  FakeTimerAdvance(HciLayer::kHciTimeoutMs.count());
+
+  auto sent_command = hal_->GetSentCommand();
+  ASSERT_TRUE(sent_command.has_value());
+  auto debug_info_view = ControllerDebugInfoView::Create(VendorCommandView::Create(*sent_command));
+  ASSERT_TRUE(debug_info_view.IsValid());
+
+  // This event should be discarded, not cause an abort.
+  hal_->InjectEvent(ResetCompleteBuilder::Create(1, ErrorCode::SUCCESS));
+  sync_handler();
+
+  ASSERT_DEATH(
+      {
+        FakeTimerAdvance(HciLayer::kHciTimeoutRestartMs.count());
+        sync_handler();
+      },
+      "");
+}
+
+TEST_F(HciLayerDeathTest, abort_on_root_inflammation_event) {
   FailIfResetNotSent();
 
   ASSERT_DEATH(
@@ -174,7 +197,7 @@ TEST_F(HciLayerTest, successful_reset) {
   sync_handler();
 }
 
-TEST_F(HciLayerTest, abort_if_reset_complete_returns_error) {
+TEST_F(HciLayerDeathTest, abort_if_reset_complete_returns_error) {
   FailIfResetNotSent();
   ASSERT_DEATH(
       {
@@ -213,7 +236,7 @@ TEST_F(HciLayerTest, le_event_handler_is_invoked) {
       ClockAccuracy::PPM_30));
 }
 
-TEST_F(HciLayerTest, abort_on_second_register_event_handler) {
+TEST_F(HciLayerDeathTest, abort_on_second_register_event_handler) {
   FailIfResetNotSent();
   ASSERT_DEATH(
       {
@@ -226,7 +249,7 @@ TEST_F(HciLayerTest, abort_on_second_register_event_handler) {
       "");
 }
 
-TEST_F(HciLayerTest, abort_on_second_register_le_event_handler) {
+TEST_F(HciLayerDeathTest, abort_on_second_register_le_event_handler) {
   ASSERT_DEATH(
       {
         FailIfResetNotSent();
@@ -378,7 +401,7 @@ TEST_F(HciLayerTest, our_command_status_callback_is_invoked) {
 }
 
 TEST_F(
-    HciLayerTest,
+    HciLayerDeathTest,
     command_complete_callback_is_invoked_with_an_opcode_that_does_not_match_command_queue) {
   ASSERT_DEATH(
       {
@@ -392,7 +415,7 @@ TEST_F(
 }
 
 TEST_F(
-    HciLayerTest,
+    HciLayerDeathTest,
     command_status_callback_is_invoked_with_an_opcode_that_does_not_match_command_queue) {
   ASSERT_DEATH(
       {
@@ -405,7 +428,7 @@ TEST_F(
       "");
 }
 
-TEST_F(HciLayerTest, command_complete_callback_is_invoked_but_command_queue_empty) {
+TEST_F(HciLayerDeathTest, command_complete_callback_is_invoked_but_command_queue_empty) {
   ASSERT_DEATH(
       {
         FailIfResetNotSent();
@@ -416,7 +439,7 @@ TEST_F(HciLayerTest, command_complete_callback_is_invoked_but_command_queue_empt
       "");
 }
 
-TEST_F(HciLayerTest, command_status_callback_is_invoked_but_command_queue_empty) {
+TEST_F(HciLayerDeathTest, command_status_callback_is_invoked_but_command_queue_empty) {
   ASSERT_DEATH(
       {
         FailIfResetNotSent();

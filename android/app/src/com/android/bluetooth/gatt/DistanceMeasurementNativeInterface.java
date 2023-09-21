@@ -18,17 +18,21 @@ package com.android.bluetooth.gatt;
 
 import android.bluetooth.BluetoothStatusCodes;
 
+import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
 /**
  * Distance Measurement Native Interface to/from JNI.
- *
- * @hide
  */
 @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
 public class DistanceMeasurementNativeInterface {
-    private static DistanceMeasurementNativeInterface sInterface;
+    private static final String TAG = DistanceMeasurementNativeInterface.class.getSimpleName();
+
+    @GuardedBy("INSTANCE_LOCK")
+    private static DistanceMeasurementNativeInterface sInstance;
+
     private static final Object INSTANCE_LOCK = new Object();
+
     private DistanceMeasurementManager mDistanceMeasurementManager;
 
     /**
@@ -54,11 +58,19 @@ public class DistanceMeasurementNativeInterface {
      */
     public static DistanceMeasurementNativeInterface getInstance() {
         synchronized (INSTANCE_LOCK) {
-            if (sInterface == null) {
-                sInterface = new DistanceMeasurementNativeInterface();
+            if (sInstance == null) {
+                sInstance = new DistanceMeasurementNativeInterface();
             }
+            return sInstance;
         }
-        return sInterface;
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(DistanceMeasurementNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
+        }
     }
 
     void init(DistanceMeasurementManager manager) {
@@ -123,11 +135,9 @@ public class DistanceMeasurementNativeInterface {
         }
     }
 
-    static {
-        classInitNative();
-    }
-
-    private static native void classInitNative();
+    /**********************************************************************************************/
+    /******************************************* native *******************************************/
+    /**********************************************************************************************/
 
     private native void initializeNative();
 

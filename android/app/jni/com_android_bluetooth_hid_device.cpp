@@ -150,21 +150,6 @@ static bthd_callbacks_t sHiddCb = {
     vc_unplug_callback,
 };
 
-static void classInitNative(JNIEnv* env, jclass clazz) {
-  ALOGV("%s: done", __FUNCTION__);
-
-  method_onApplicationStateChanged =
-      env->GetMethodID(clazz, "onApplicationStateChanged", "([BZ)V");
-  method_onConnectStateChanged =
-      env->GetMethodID(clazz, "onConnectStateChanged", "([BI)V");
-  method_onGetReport = env->GetMethodID(clazz, "onGetReport", "(BBS)V");
-  method_onSetReport = env->GetMethodID(clazz, "onSetReport", "(BB[B)V");
-  method_onSetProtocol = env->GetMethodID(clazz, "onSetProtocol", "(B)V");
-  method_onInterruptData = env->GetMethodID(clazz, "onInterruptData", "(B[B)V");
-  method_onVirtualCableUnplug =
-      env->GetMethodID(clazz, "onVirtualCableUnplug", "()V");
-}
-
 static void initNative(JNIEnv* env, jobject object) {
   const bt_interface_t* btif;
   bt_status_t status;
@@ -205,7 +190,7 @@ static void initNative(JNIEnv* env, jobject object) {
   ALOGV("%s done", __FUNCTION__);
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   ALOGV("%s enter", __FUNCTION__);
 
   if (sHiddIf != NULL) {
@@ -252,7 +237,7 @@ static void fill_qos(JNIEnv* env, jintArray in, bthd_qos_param_t* out) {
   free(buf);
 }
 
-static jboolean registerAppNative(JNIEnv* env, jobject thiz, jstring name,
+static jboolean registerAppNative(JNIEnv* env, jobject /* thiz */, jstring name,
                                   jstring description, jstring provider,
                                   jbyte subclass, jbyteArray descriptors,
                                   jintArray p_in_qos, jintArray p_out_qos) {
@@ -306,7 +291,7 @@ static jboolean registerAppNative(JNIEnv* env, jobject thiz, jstring name,
   return result;
 }
 
-static jboolean unregisterAppNative(JNIEnv* env, jobject thiz) {
+static jboolean unregisterAppNative(JNIEnv* /* env */, jobject /* thiz */) {
   ALOGV("%s enter", __FUNCTION__);
 
   jboolean result = JNI_FALSE;
@@ -329,7 +314,7 @@ static jboolean unregisterAppNative(JNIEnv* env, jobject thiz) {
   return result;
 }
 
-static jboolean sendReportNative(JNIEnv* env, jobject thiz, jint id,
+static jboolean sendReportNative(JNIEnv* env, jobject /* thiz */, jint id,
                                  jbyteArray data) {
   jboolean result = JNI_FALSE;
 
@@ -360,7 +345,7 @@ static jboolean sendReportNative(JNIEnv* env, jobject thiz, jint id,
   return result;
 }
 
-static jboolean replyReportNative(JNIEnv* env, jobject thiz, jbyte type,
+static jboolean replyReportNative(JNIEnv* env, jobject /* thiz */, jbyte type,
                                   jbyte id, jbyteArray data) {
   ALOGV("%s enter", __FUNCTION__);
 
@@ -397,7 +382,8 @@ static jboolean replyReportNative(JNIEnv* env, jobject thiz, jbyte type,
   return result;
 }
 
-static jboolean reportErrorNative(JNIEnv* env, jobject thiz, jbyte error) {
+static jboolean reportErrorNative(JNIEnv* /* env */, jobject /* thiz */,
+                                  jbyte error) {
   ALOGV("%s enter", __FUNCTION__);
 
   if (!sHiddIf) {
@@ -420,7 +406,7 @@ static jboolean reportErrorNative(JNIEnv* env, jobject thiz, jbyte error) {
   return result;
 }
 
-static jboolean unplugNative(JNIEnv* env, jobject thiz) {
+static jboolean unplugNative(JNIEnv* /* env */, jobject /* thiz */) {
   ALOGV("%s enter", __FUNCTION__);
 
   if (!sHiddIf) {
@@ -443,7 +429,8 @@ static jboolean unplugNative(JNIEnv* env, jobject thiz) {
   return result;
 }
 
-static jboolean connectNative(JNIEnv* env, jobject thiz, jbyteArray address) {
+static jboolean connectNative(JNIEnv* env, jobject /* thiz */,
+                              jbyteArray address) {
   ALOGV("%s enter", __FUNCTION__);
 
   if (!sHiddIf) {
@@ -472,7 +459,7 @@ static jboolean connectNative(JNIEnv* env, jobject thiz, jbyteArray address) {
   return result;
 }
 
-static jboolean disconnectNative(JNIEnv* env, jobject thiz) {
+static jboolean disconnectNative(JNIEnv* /* env */, jobject /* thiz */) {
   ALOGV("%s enter", __FUNCTION__);
 
   if (!sHiddIf) {
@@ -495,25 +482,40 @@ static jboolean disconnectNative(JNIEnv* env, jobject thiz) {
   return result;
 }
 
-static JNINativeMethod sMethods[] = {
-    {"classInitNative", "()V", (void*)classInitNative},
-    {"initNative", "()V", (void*)initNative},
-    {"cleanupNative", "()V", (void*)cleanupNative},
-    {"registerAppNative",
-     "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;B[B[I[I)Z",
-     (void*)registerAppNative},
-    {"unregisterAppNative", "()Z", (void*)unregisterAppNative},
-    {"sendReportNative", "(I[B)Z", (void*)sendReportNative},
-    {"replyReportNative", "(BB[B)Z", (void*)replyReportNative},
-    {"reportErrorNative", "(B)Z", (void*)reportErrorNative},
-    {"unplugNative", "()Z", (void*)unplugNative},
-    {"connectNative", "([B)Z", (void*)connectNative},
-    {"disconnectNative", "()Z", (void*)disconnectNative},
-};
-
 int register_com_android_bluetooth_hid_device(JNIEnv* env) {
-  return jniRegisterNativeMethods(
-      env, "com/android/bluetooth/hid/HidDeviceNativeInterface", sMethods,
-      NELEM(sMethods));
+  const JNINativeMethod methods[] = {
+      {"initNative", "()V", (void*)initNative},
+      {"cleanupNative", "()V", (void*)cleanupNative},
+      {"registerAppNative",
+       "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;B[B[I[I)Z",
+       (void*)registerAppNative},
+      {"unregisterAppNative", "()Z", (void*)unregisterAppNative},
+      {"sendReportNative", "(I[B)Z", (void*)sendReportNative},
+      {"replyReportNative", "(BB[B)Z", (void*)replyReportNative},
+      {"reportErrorNative", "(B)Z", (void*)reportErrorNative},
+      {"unplugNative", "()Z", (void*)unplugNative},
+      {"connectNative", "([B)Z", (void*)connectNative},
+      {"disconnectNative", "()Z", (void*)disconnectNative},
+  };
+  const int result = REGISTER_NATIVE_METHODS(
+      env, "com/android/bluetooth/hid/HidDeviceNativeInterface", methods);
+  if (result != 0) {
+    return result;
+  }
+
+  const JNIJavaMethod javaMethods[] = {
+      {"onApplicationStateChanged", "([BZ)V",
+       &method_onApplicationStateChanged},
+      {"onConnectStateChanged", "([BI)V", &method_onConnectStateChanged},
+      {"onGetReport", "(BBS)V", &method_onGetReport},
+      {"onSetReport", "(BB[B)V", &method_onSetReport},
+      {"onSetProtocol", "(B)V", &method_onSetProtocol},
+      {"onInterruptData", "(B[B)V", &method_onInterruptData},
+      {"onVirtualCableUnplug", "()V", &method_onVirtualCableUnplug},
+  };
+  GET_JAVA_METHODS(env, "com/android/bluetooth/hid/HidDeviceNativeInterface",
+                   javaMethods);
+
+  return 0;
 }
 }  // namespace android

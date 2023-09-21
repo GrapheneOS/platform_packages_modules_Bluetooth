@@ -45,7 +45,10 @@ namespace avrcp {
 
 ConnectionHandler* ConnectionHandler::instance_ = nullptr;
 
-std::mutex device_map_lock;
+// ConnectionHandler::CleanUp take the lock and calls
+// ConnectionHandler::AcceptorControlCB with AVRC_CLOSE_IND_EVT
+// which also takes the lock, so use a recursive_mutex.
+std::recursive_mutex device_map_lock;
 
 ConnectionHandler* ConnectionHandler::Get() {
   CHECK(instance_);
@@ -95,7 +98,7 @@ bool ConnectionHandler::CleanUp() {
   CHECK(instance_ != nullptr);
 
   // TODO (apanicke): Cleanup the SDP Entries here
-  std::lock_guard<std::mutex> lock(device_map_lock);
+  std::lock_guard<std::recursive_mutex> lock(device_map_lock);
   for (auto entry = instance_->device_map_.begin();
        entry != instance_->device_map_.end();) {
     auto curr = entry;
@@ -175,7 +178,7 @@ void ConnectionHandler::SetBipClientStatus(const RawAddress& bdaddr,
 std::vector<std::shared_ptr<Device>> ConnectionHandler::GetListOfDevices()
     const {
   std::vector<std::shared_ptr<Device>> list;
-  std::lock_guard<std::mutex> lock(device_map_lock);
+  std::lock_guard<std::recursive_mutex> lock(device_map_lock);
   for (const auto& device : device_map_) {
     list.push_back(device.second);
   }
@@ -265,8 +268,8 @@ void ConnectionHandler::InitiatorControlCb(uint8_t handle, uint8_t event,
       // devices SDP is completed after the device connects AVRCP so that
       // information isn't very useful when trying to control our
       // capabilities. For now always use AVRCP 1.6.
-      auto&& callback = base::Bind(&ConnectionHandler::SendMessage,
-                                   base::Unretained(this), handle);
+      auto&& callback = base::BindRepeating(&ConnectionHandler::SendMessage,
+                                            base::Unretained(this), handle);
       auto&& ctrl_mtu = avrc_->GetPeerMtu(handle) - AVCT_HDR_LEN;
       auto&& browse_mtu = avrc_->GetBrowseMtu(handle) - AVCT_HDR_LEN;
       std::shared_ptr<Device> newDevice = std::make_shared<Device>(
@@ -298,7 +301,7 @@ void ConnectionHandler::InitiatorControlCb(uint8_t handle, uint8_t event,
             << "Connection Close received from device that doesn't exist";
         return;
       }
-      std::lock_guard<std::mutex> lock(device_map_lock);
+      std::lock_guard<std::recursive_mutex> lock(device_map_lock);
       avrc_->Close(handle);
       feature_map_.erase(device_map_[handle]->GetAddress());
       device_map_[handle]->DeviceDisconnected();
@@ -344,7 +347,7 @@ void ConnectionHandler::AcceptorControlCb(uint8_t handle, uint8_t event,
           btif_av_peer_is_connected_source(*peer_addr)) {
         LOG(WARNING) << "peer is src, close new avrcp cback";
         if (device_map_.find(handle) != device_map_.end()) {
-          std::lock_guard<std::mutex> lock(device_map_lock);
+          std::lock_guard<std::recursive_mutex> lock(device_map_lock);
           feature_map_.erase(device_map_[handle]->GetAddress());
           device_map_[handle]->DeviceDisconnected();
           device_map_.erase(handle);
@@ -353,8 +356,9 @@ void ConnectionHandler::AcceptorControlCb(uint8_t handle, uint8_t event,
         AvrcpConnect(false, RawAddress::kAny);
         return;
       }
-      auto&& callback = base::Bind(&ConnectionHandler::SendMessage,
-                                   weak_ptr_factory_.GetWeakPtr(), handle);
+      auto&& callback =
+          base::BindRepeating(&ConnectionHandler::SendMessage,
+                              weak_ptr_factory_.GetWeakPtr(), handle);
       auto&& ctrl_mtu = avrc_->GetPeerMtu(handle) - AVCT_HDR_LEN;
       auto&& browse_mtu = avrc_->GetBrowseMtu(handle) - AVCT_HDR_LEN;
       std::shared_ptr<Device> newDevice = std::make_shared<Device>(
@@ -407,7 +411,7 @@ void ConnectionHandler::AcceptorControlCb(uint8_t handle, uint8_t event,
         return;
       }
       {
-        std::lock_guard<std::mutex> lock(device_map_lock);
+        std::lock_guard<std::recursive_mutex> lock(device_map_lock);
         feature_map_.erase(device_map_[handle]->GetAddress());
         device_map_[handle]->DeviceDisconnected();
         device_map_.erase(handle);
@@ -515,7 +519,9 @@ void ConnectionHandler::SdpCb(RawAddress bdaddr, SdpCallback cb,
         VLOG(1) << __PRETTY_FUNCTION__ << " Get Supported categories";
         tSDP_DISC_ATTR* sdp_attribute =
             sdp_->FindAttributeInRec(sdp_record, ATTR_ID_SUPPORTED_FEATURES);
-        if (sdp_attribute != NULL) {
+        if (sdp_attribute != NULL &&
+            SDP_DISC_ATTR_TYPE(sdp_attribute->attr_len_type) == UINT_DESC_TYPE &&
+            SDP_DISC_ATTR_LEN(sdp_attribute->attr_len_type) >= 2) {
           VLOG(1) << __PRETTY_FUNCTION__
                   << "Get Supported categories SDP ATTRIBUTES != null";
           uint16_t categories = sdp_attribute->attr_value.v.u16;
@@ -562,7 +568,9 @@ void ConnectionHandler::SdpCb(RawAddress bdaddr, SdpCallback cb,
         VLOG(1) << __PRETTY_FUNCTION__ << " Get Supported categories";
         tSDP_DISC_ATTR* sdp_attribute =
             sdp_->FindAttributeInRec(sdp_record, ATTR_ID_SUPPORTED_FEATURES);
-        if (sdp_attribute != NULL) {
+        if (sdp_attribute != NULL &&
+            SDP_DISC_ATTR_TYPE(sdp_attribute->attr_len_type) == UINT_DESC_TYPE &&
+            SDP_DISC_ATTR_LEN(sdp_attribute->attr_len_type) >= 2) {
           VLOG(1) << __PRETTY_FUNCTION__
                   << "Get Supported categories SDP ATTRIBUTES != null";
           uint16_t categories = sdp_attribute->attr_value.v.u16;

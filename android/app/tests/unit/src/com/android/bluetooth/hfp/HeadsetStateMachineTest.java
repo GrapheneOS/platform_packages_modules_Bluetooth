@@ -51,6 +51,8 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.ActiveDeviceManager;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.RemoteDevices;
+import com.android.bluetooth.btservice.SilenceDeviceManager;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.hamcrest.core.IsInstanceOf;
@@ -87,6 +89,7 @@ public class HeadsetStateMachineTest {
 
     @Mock private AdapterService mAdapterService;
     @Mock private ActiveDeviceManager mActiveDeviceManager;
+    @Mock private SilenceDeviceManager mSilenceDeviceManager;
     @Mock private DatabaseManager mDatabaseManager;
     @Mock private HeadsetService mHeadsetService;
     @Mock private HeadsetSystemInterface mSystemInterface;
@@ -94,7 +97,8 @@ public class HeadsetStateMachineTest {
     @Mock private HeadsetPhoneState mPhoneState;
     @Mock private Intent mIntent;
     private MockContentResolver mMockContentResolver;
-    private HeadsetNativeInterface mNativeInterface;
+    @Mock private HeadsetNativeInterface mNativeInterface;
+    @Mock private RemoteDevices mRemoteDevices;
 
     @Before
     public void setUp() throws Exception {
@@ -114,9 +118,9 @@ public class HeadsetStateMachineTest {
         doReturn(true).when(mDatabaseManager).setAudioPolicyMetadata(anyObject(), anyObject());
         // Get an active device manager
         doReturn(mActiveDeviceManager).when(mAdapterService).getActiveDeviceManager();
-        // Spy on native interface
-        mNativeInterface = spy(HeadsetNativeInterface.getInstance());
-        doNothing().when(mNativeInterface).init(anyInt(), anyBoolean());
+        // Get a silence device manager
+        doReturn(mSilenceDeviceManager).when(mAdapterService).getSilenceDeviceManager();
+        doReturn(mRemoteDevices).when(mAdapterService).getRemoteDevices();
         doReturn(true).when(mNativeInterface).connectHfp(mTestDevice);
         doReturn(true).when(mNativeInterface).disconnectHfp(mTestDevice);
         doReturn(true).when(mNativeInterface).connectAudio(mTestDevice);

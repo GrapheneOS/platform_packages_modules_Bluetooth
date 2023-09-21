@@ -35,12 +35,10 @@ public class CsipSetCoordinatorNativeInterface {
     private static final boolean DBG = false;
     private BluetoothAdapter mAdapter;
 
-    @GuardedBy("INSTANCE_LOCK") private static CsipSetCoordinatorNativeInterface sInstance;
-    private static final Object INSTANCE_LOCK = new Object();
+    @GuardedBy("INSTANCE_LOCK")
+    private static CsipSetCoordinatorNativeInterface sInstance;
 
-    static {
-        classInitNative();
-    }
+    private static final Object INSTANCE_LOCK = new Object();
 
     private CsipSetCoordinatorNativeInterface() {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -58,6 +56,14 @@ public class CsipSetCoordinatorNativeInterface {
                 sInstance = new CsipSetCoordinatorNativeInterface();
             }
             return sInstance;
+        }
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(CsipSetCoordinatorNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
         }
     }
 
@@ -216,7 +222,6 @@ public class CsipSetCoordinatorNativeInterface {
     }
 
     // Native methods that call into the JNI interface
-    private static native void classInitNative();
     private native void initNative();
     private native void cleanupNative();
     private native boolean connectNative(byte[] address);

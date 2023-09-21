@@ -22,31 +22,24 @@ import static org.mockito.Mockito.verify;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.SdpDipRecord;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Looper;
-import android.os.ParcelUuid;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
-import com.android.bluetooth.sdp.SdpManager;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AbstractionLayer;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.Utils;
 
 import org.junit.After;
-import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -66,6 +59,7 @@ public class DipTest {
     private ArgumentCaptor<Bundle> mBundleArgument = ArgumentCaptor.forClass(Bundle.class);
 
     @Mock private AdapterService mAdapterService = null;
+    @Mock private SdpManagerNativeInterface mNativeInterface;
 
     @Before
     public void setUp() throws Exception {
@@ -73,6 +67,7 @@ public class DipTest {
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
 
+        SdpManagerNativeInterface.setInstance(mNativeInterface);
         TestUtils.setAdapterService(mAdapterService);
         doReturn("00:01:02:03:04:05").when(mAdapterService).getIdentityAddress("00:01:02:03:04:05");
 
@@ -90,6 +85,7 @@ public class DipTest {
     @After
     public void tearDown() throws Exception {
         TestUtils.clearAdapterService(mAdapterService);
+        SdpManagerNativeInterface.setInstance(null);
     }
 
     private void verifyDipSdpRecordIntent(ArgumentCaptor<Intent> intentArgument,

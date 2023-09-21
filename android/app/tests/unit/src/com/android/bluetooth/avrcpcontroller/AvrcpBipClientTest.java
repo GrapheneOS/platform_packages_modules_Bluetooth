@@ -53,8 +53,8 @@ public class AvrcpBipClientTest {
     @Rule
     public final ServiceTestRule mBluetoothBrowserMediaServiceTestRule = new ServiceTestRule();
 
-    @Mock
-    private AdapterService mAdapterService;
+    @Mock private AdapterService mAdapterService;
+    @Mock private AvrcpControllerNativeInterface mNativeInterface;
 
     private BluetoothAdapter mAdapter;
     private BluetoothDevice mTestDevice;
@@ -67,6 +67,7 @@ public class AvrcpBipClientTest {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
+        AvrcpControllerNativeInterface.setInstance(mNativeInterface);
         TestUtils.startService(mServiceRule, AvrcpControllerService.class);
         mService = AvrcpControllerService.getAvrcpControllerService();
         final Intent bluetoothBrowserMediaServiceStartIntent =
@@ -87,6 +88,7 @@ public class AvrcpBipClientTest {
     @After
     public void tearDown() throws Exception {
         TestUtils.stopService(mServiceRule, AvrcpControllerService.class);
+        AvrcpControllerNativeInterface.setInstance(null);
         mService = AvrcpControllerService.getAvrcpControllerService();
         assertThat(mService).isNull();
         TestUtils.clearAdapterService(mAdapterService);
@@ -141,11 +143,12 @@ public class AvrcpBipClientTest {
 
     @Test
     public void toString_returnsClientInfo() {
-        AvrcpBipClient client = new AvrcpBipClient(mTestDevice, TEST_PSM,
-                mArtManager.new BipClientCallback(mTestDevice));
-
-        String expected = "<AvrcpBipClient" + " device=" + mTestDevice + " psm="
-                + TEST_PSM + " state=" + client.getStateName() + ">";
-        assertThat(client.toString()).isEqualTo(expected);
+        String expected =
+                "<AvrcpBipClient"
+                        + (" device=" + mTestDevice)
+                        + (" psm=" + TEST_PSM)
+                        + (" state=" + mClient.getStateName())
+                        + ">";
+        assertThat(mClient.toString()).isEqualTo(expected);
     }
 }

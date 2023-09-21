@@ -17,7 +17,6 @@
 package com.android.bluetooth.hfp;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
-
 import static com.android.modules.utils.build.SdkLevel.isAtLeastU;
 
 import android.annotation.RequiresPermission;
@@ -514,6 +513,13 @@ public class HeadsetStateMachine extends StateMachine {
                                 device,
                                 BluetoothProfile.STATE_DISCONNECTED,
                                 BluetoothProfile.STATE_DISCONNECTED);
+                        BluetoothStatsLog.write(
+                                BluetoothStatsLog.BLUETOOTH_PROFILE_CONNECTION_ATTEMPTED,
+                                BluetoothProfile.HEADSET,
+                                BluetoothProtoEnums.RESULT_FAILURE,
+                                BluetoothProfile.STATE_DISCONNECTED,
+                                BluetoothProfile.STATE_DISCONNECTED,
+                                BluetoothProtoEnums.REASON_NATIVE_LAYER_REJECTED);
                         break;
                     }
                     transitionTo(mConnecting);
@@ -575,6 +581,13 @@ public class HeadsetStateMachine extends StateMachine {
                         // Indicate rejection to other components.
                         broadcastConnectionState(mDevice, BluetoothProfile.STATE_DISCONNECTED,
                                 BluetoothProfile.STATE_DISCONNECTED);
+                        BluetoothStatsLog.write(
+                                BluetoothStatsLog.BLUETOOTH_PROFILE_CONNECTION_ATTEMPTED,
+                                BluetoothProfile.HEADSET,
+                                BluetoothProtoEnums.RESULT_FAILURE,
+                                BluetoothProfile.STATE_DISCONNECTED,
+                                BluetoothProfile.STATE_DISCONNECTED,
+                                BluetoothProtoEnums.REASON_INCOMING_CONN_REJECTED);
                     }
                     break;
                 case HeadsetHalConstants.CONNECTION_STATE_DISCONNECTING:
@@ -1604,6 +1617,11 @@ public class HeadsetStateMachine extends StateMachine {
     void broadcastVendorSpecificEventIntent(String command, int companyId, int commandType,
             Object[] arguments, BluetoothDevice device) {
         log("broadcastVendorSpecificEventIntent(" + command + ")");
+        mAdapterService
+                .getRemoteDevices()
+                .handleVendorSpecificHeadsetEvent(
+                        device, command, companyId, commandType, arguments);
+
         Intent intent = new Intent(BluetoothHeadset.ACTION_VENDOR_SPECIFIC_HEADSET_EVENT);
         intent.putExtra(BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_CMD, command);
         intent.putExtra(BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_CMD_TYPE, commandType);
@@ -2233,11 +2251,11 @@ public class HeadsetStateMachine extends StateMachine {
      * @param indValue Indicator Value [0-65535], -1 means invalid but indId is supported
      */
     private void sendIndicatorIntent(BluetoothDevice device, int indId, int indValue) {
+        mAdapterService.getRemoteDevices().handleHfIndicatorValueChanged(device, indId, indValue);
         Intent intent = new Intent(BluetoothHeadset.ACTION_HF_INDICATORS_VALUE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_ID, indId);
         intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_VALUE, indValue);
-
         Utils.sendBroadcast(mHeadsetService, intent, BLUETOOTH_CONNECT,
                 Utils.getTempAllowlistBroadcastOptions());
     }

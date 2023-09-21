@@ -29,21 +29,17 @@ import com.android.internal.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-/**
- * Hearing Access Profile Client Native Interface to/from JNI.
- */
+/** Hearing Access Profile Client Native Interface to/from JNI. */
 public class HapClientNativeInterface {
-    private static final String TAG = "HapClientNativeInterface";
-    private static final boolean DBG = true;
+    private static final String TAG = HapClientNativeInterface.class.getSimpleName();
+    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
+
     private final BluetoothAdapter mAdapter;
 
     @GuardedBy("INSTANCE_LOCK")
     private static HapClientNativeInterface sInstance;
-    private static final Object INSTANCE_LOCK = new Object();
 
-    static {
-        classInitNative();
-    }
+    private static final Object INSTANCE_LOCK = new Object();
 
     private HapClientNativeInterface() {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -61,6 +57,14 @@ public class HapClientNativeInterface {
                 sInstance = new HapClientNativeInterface();
             }
             return sInstance;
+        }
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(HapClientNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
         }
     }
 
@@ -346,7 +350,7 @@ public class HapClientNativeInterface {
         event.valueList = new ArrayList<>(Arrays.asList(presets));
 
         if (DBG) {
-            Log.d(TAG, "onPresetInfo: " + event);
+            Log.d(TAG, "onGroupPresetInfo: " + event);
         }
         sendMessageToService(event);
     }
@@ -360,7 +364,7 @@ public class HapClientNativeInterface {
         event.valueInt2 = presetIndex;
 
         if (DBG) {
-            Log.d(TAG, "OnPresetNameSetError: " + event);
+            Log.d(TAG, "onPresetNameSetError: " + event);
         }
         sendMessageToService(event);
     }
@@ -374,7 +378,7 @@ public class HapClientNativeInterface {
         event.valueInt3 = groupId;
 
         if (DBG) {
-            Log.d(TAG, "OnPresetNameSetError: " + event);
+            Log.d(TAG, "onGroupPresetNameSetError: " + event);
         }
         sendMessageToService(event);
     }
@@ -402,13 +406,12 @@ public class HapClientNativeInterface {
         event.valueInt3 = groupId;
 
         if (DBG) {
-            Log.d(TAG, "onPresetInfoError: " + event);
+            Log.d(TAG, "onGroupPresetInfoError: " + event);
         }
         sendMessageToService(event);
     }
 
     // Native methods that call into the JNI interface
-    private static native void classInitNative();
     private native void initNative();
     private native void cleanupNative();
     private native boolean connectHapClientNative(byte[] address);

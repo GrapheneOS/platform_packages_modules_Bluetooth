@@ -841,8 +841,8 @@ class HasClientTestBase : public ::testing::Test {
     if (!allow_fake_conn) ASSERT_NE(connected_devices.count(conn_id), 0u);
 
     tBTA_GATTC_CLOSE event_data = {
-        .status = GATT_SUCCESS,
         .conn_id = conn_id,
+        .status = GATT_SUCCESS,
         .client_if = gatt_if,
         .remote_bda = connected_devices[conn_id],
         .reason = reason,
@@ -854,8 +854,8 @@ class HasClientTestBase : public ::testing::Test {
 
   void InjectSearchCompleteEvent(uint16_t conn_id) {
     tBTA_GATTC_SEARCH_CMPL event_data = {
-        .status = GATT_SUCCESS,
         .conn_id = conn_id,
+        .status = GATT_SUCCESS,
     };
 
     gatt_callback(BTA_GATTC_SEARCH_CMPL_EVT, (tBTA_GATTC*)&event_data);
@@ -1289,6 +1289,37 @@ TEST_F(HasClientTest, test_encryption_failed) {
       .Times(0);
   SetEncryptionResult(test_address, false);
   TestConnect(test_address);
+}
+
+TEST_F(HasClientTest, test_service_discovery_complete_before_encryption) {
+  const RawAddress test_address = GetTestAddress(1);
+  SetSampleDatabaseHasPresetsNtf(
+      test_address, bluetooth::has::kFeatureBitHearingAidTypeBinaural);
+
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::DISCONNECTED, test_address))
+      .Times(0);
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::CONNECTED, test_address))
+      .Times(0);
+
+  SetEncryptionResult(test_address, false);
+  ON_CALL(btm_interface, SetEncryption(_, _, _, _, _))
+      .WillByDefault(Return(BTM_SUCCESS));
+
+  TestConnect(test_address);
+  auto test_conn_id = GetTestConnId(test_address);
+  InjectSearchCompleteEvent(test_conn_id);
+
+  Mock::VerifyAndClearExpectations(callbacks.get());
+
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::CONNECTED, test_address))
+      .Times(1);
+
+  SetEncryptionResult(test_address, true);
+  InjectEncryptionEvent(test_address);
+  Mock::VerifyAndClearExpectations(callbacks.get());
 }
 
 TEST_F(HasClientTest, test_reconnect_after_encryption_failed) {

@@ -24,9 +24,7 @@ import static android.bluetooth.BluetoothAdapter.STATE_ON;
 import static android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF;
 import static android.bluetooth.BluetoothAdapter.STATE_TURNING_ON;
 import static android.os.PowerExemptionManager.TEMPORARY_ALLOW_LIST_TYPE_FOREGROUND_SERVICE_ALLOWED;
-
 import static com.android.server.bluetooth.BluetoothAirplaneModeListener.APM_ENHANCEMENT;
-
 import static java.util.Objects.requireNonNull;
 
 import android.annotation.NonNull;
@@ -215,8 +213,6 @@ class BluetoothManagerService {
 
     private List<Integer> mSupportedProfileList = new ArrayList<>();
 
-    private BluetoothModeChangeHelper mBluetoothModeChangeHelper;
-
     private final BluetoothAirplaneModeListener mBluetoothAirplaneModeListener;
 
     private BluetoothNotificationManager mBluetoothNotificationManager;
@@ -299,8 +295,7 @@ class BluetoothManagerService {
     // bluetooth profile services
     private final Map<Integer, ProfileServiceConnections> mProfileServices = new HashMap<>();
 
-    @GuardedBy("mProfileServices")
-    private boolean mUnbindingAll = false;
+    private volatile boolean mUnbindingAll = false;
 
     private final IBluetoothCallback mBluetoothCallback =
             new IBluetoothCallback.Stub() {
@@ -972,6 +967,13 @@ class BluetoothManagerService {
         return mIsHearingAidProfileSupported;
     }
 
+    boolean isMediaProfileConnected() {
+        if (mAdapter == null || !mState.oneOf(STATE_ON)) {
+            return false;
+        }
+        return mAdapter.isMediaProfileConnected(mContext.getAttributionSource());
+    }
+
     // Monitor change of BLE scan only mode settings.
     private void registerForBleScanModeChange() {
         ContentObserver contentObserver =
@@ -1384,6 +1386,9 @@ class BluetoothManagerService {
 
     void unbindBluetoothProfileService(
             int bluetoothProfile, IBluetoothProfileServiceConnection proxy) {
+        if (mUnbindingAll) {
+            return;
+        }
         synchronized (mProfileServices) {
             ProfileServiceConnections psc = mProfileServices.get(bluetoothProfile);
             if (psc == null) {
@@ -1397,16 +1402,14 @@ class BluetoothManagerService {
                 } catch (IllegalArgumentException e) {
                     Log.e(TAG, "Unable to unbind service with intent: " + psc.mIntent, e);
                 }
-                if (!mUnbindingAll) {
-                    mProfileServices.remove(bluetoothProfile);
-                }
+                mProfileServices.remove(bluetoothProfile);
             }
         }
     }
 
     private void unbindAllBluetoothProfileServices() {
+        mUnbindingAll = true;
         synchronized (mProfileServices) {
-            mUnbindingAll = true;
             for (Integer i : mProfileServices.keySet()) {
                 ProfileServiceConnections psc = mProfileServices.get(i);
                 try {
@@ -1416,9 +1419,9 @@ class BluetoothManagerService {
                 }
                 psc.removeAllProxies();
             }
-            mUnbindingAll = false;
             mProfileServices.clear();
         }
+        mUnbindingAll = false;
     }
 
     /**
@@ -1459,10 +1462,7 @@ class BluetoothManagerService {
             mHandler.sendEmptyMessage(MESSAGE_GET_NAME_AND_ADDRESS);
         }
 
-        mBluetoothModeChangeHelper = new BluetoothModeChangeHelper(mContext);
-        if (mBluetoothAirplaneModeListener != null) {
-            mBluetoothAirplaneModeListener.start(mBluetoothModeChangeHelper);
-        }
+        mBluetoothAirplaneModeListener.start(new BluetoothModeChangeHelper(mContext));
         setApmEnhancementState();
     }
 

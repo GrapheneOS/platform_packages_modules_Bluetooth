@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,6 +38,7 @@ import com.android.bluetooth.Utils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -53,12 +55,14 @@ public class AdapterPropertiesTest {
     private Context mTargetContext;
 
     @Mock private AdapterService mAdapterService;
+    @Mock private AdapterNativeInterface mNativeInterface;
 
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
 
         MockitoAnnotations.initMocks(this);
+        doReturn(mNativeInterface).when(mAdapterService).getNative();
         mHandlerThread = new HandlerThread("RemoteDevicesTestHandlerThread");
         mHandlerThread.start();
 
@@ -73,7 +77,7 @@ public class AdapterPropertiesTest {
         when(mAdapterService.getIdentityAddress(
                         Utils.getAddressStringFromByte(TEST_BT_ADDR_BYTES_2)))
                 .thenReturn(Utils.getAddressStringFromByte(TEST_BT_ADDR_BYTES));
-        when(mAdapterService.removeBondNative(any(byte[].class))).thenReturn(true);
+        when(mNativeInterface.removeBond(any(byte[].class))).thenReturn(true);
 
         mRemoteDevices = new RemoteDevices(mAdapterService, mHandlerThread.getLooper());
         verify(mAdapterService, times(1)).getSystemService(Context.BLUETOOTH_SERVICE);
@@ -107,5 +111,51 @@ public class AdapterPropertiesTest {
         assertThat(mAdapterProperties.getBondedDevices().length).isEqualTo(1);
         assertThat(mAdapterProperties.getBondedDevices()[0].getAddress())
                 .isEqualTo(Utils.getAddressStringFromByte(TEST_BT_ADDR_BYTES_2));
+    }
+
+    @Test
+    public void setName_shortName_isEqual() {
+        StringBuilder builder = new StringBuilder();
+        String stringName = "Wonderful Bluetooth Name Using utf8";
+        builder.append(stringName);
+        builder.append(Character.toChars(0x20AC));
+
+        String initial = builder.toString();
+
+        final ArgumentCaptor<byte[]> argumentName = ArgumentCaptor.forClass(byte[].class);
+
+        mAdapterProperties.setName(initial);
+        verify(mNativeInterface)
+                .setAdapterProperty(
+                        eq(AbstractionLayer.BT_PROPERTY_BDNAME), argumentName.capture());
+
+        assertThat(argumentName.getValue()).isEqualTo(initial.getBytes());
+    }
+
+    @Test
+    public void setName_tooLongName_isTruncated() {
+        StringBuilder builder = new StringBuilder();
+        String stringName = "Wonderful Bluetooth Name Using utf8 ... But this name is too long";
+        builder.append(stringName);
+
+        int n = 300;
+        for (int i = 0; i < 2 * n; i++) {
+            builder.append(Character.toChars(0x20AC));
+        }
+
+        String initial = builder.toString();
+
+        final ArgumentCaptor<byte[]> argumentName = ArgumentCaptor.forClass(byte[].class);
+
+        mAdapterProperties.setName(initial);
+        verify(mNativeInterface)
+                .setAdapterProperty(
+                        eq(AbstractionLayer.BT_PROPERTY_BDNAME), argumentName.capture());
+
+        byte[] name = argumentName.getValue();
+
+        assertThat(name.length).isLessThan(initial.getBytes().length);
+
+        assertThat(initial).startsWith(new String(name));
     }
 }

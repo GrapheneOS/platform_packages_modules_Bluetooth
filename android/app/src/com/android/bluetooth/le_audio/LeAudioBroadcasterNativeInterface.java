@@ -41,11 +41,8 @@ public class LeAudioBroadcasterNativeInterface {
 
     @GuardedBy("INSTANCE_LOCK")
     private static LeAudioBroadcasterNativeInterface sInstance;
-    private static final Object INSTANCE_LOCK = new Object();
 
-    static {
-        classInitNative();
-    }
+    private static final Object INSTANCE_LOCK = new Object();
 
     private LeAudioBroadcasterNativeInterface() {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -63,6 +60,14 @@ public class LeAudioBroadcasterNativeInterface {
                 sInstance = new LeAudioBroadcasterNativeInterface();
             }
             return sInstance;
+        }
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    static void setInstance(LeAudioBroadcasterNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
         }
     }
 
@@ -248,7 +253,6 @@ public class LeAudioBroadcasterNativeInterface {
     }
 
     // Native methods that call into the JNI interface
-    private static native void classInitNative();
     private native void initNative();
     private native void stopNative();
     private native void cleanupNative();

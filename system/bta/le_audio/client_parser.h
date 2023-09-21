@@ -161,7 +161,7 @@ struct ctp_codec_conf {
   uint8_t target_latency;
   uint8_t target_phy;
   types::LeAudioCodecId codec_id;
-  types::LeAudioLc3Config codec_config;
+  types::LeAudioLtvMap codec_config;
 };
 
 constexpr uint16_t kCtpQosConfMinLen = 16;

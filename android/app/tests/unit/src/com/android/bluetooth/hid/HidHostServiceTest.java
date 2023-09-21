@@ -27,14 +27,12 @@ import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,6 +52,7 @@ public class HidHostServiceTest {
 
     @Mock private AdapterService mAdapterService;
     @Mock private DatabaseManager mDatabaseManager;
+    @Mock private HidHostNativeInterface mNativeInterface;
 
     @Before
     public void setUp() throws Exception {
@@ -62,6 +61,7 @@ public class HidHostServiceTest {
         TestUtils.setAdapterService(mAdapterService);
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
         when(mAdapterService.isStartedProfile(anyString())).thenReturn(true);
+        HidHostNativeInterface.setInstance(mNativeInterface);
         TestUtils.startService(mServiceRule, HidHostService.class);
         mService = HidHostService.getHidHostService();
         Assert.assertNotNull(mService);
@@ -77,6 +77,7 @@ public class HidHostServiceTest {
     public void tearDown() throws Exception {
         when(mAdapterService.isStartedProfile(anyString())).thenReturn(false);
         TestUtils.stopService(mServiceRule, HidHostService.class);
+        HidHostNativeInterface.setInstance(null);
         mService = HidHostService.getHidHostService();
         Assert.assertNull(mService);
         TestUtils.clearAdapterService(mAdapterService);

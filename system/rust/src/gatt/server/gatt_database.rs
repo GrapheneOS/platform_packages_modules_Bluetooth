@@ -264,7 +264,7 @@ impl GattDatabase {
         }
 
         // if we made it here, we successfully loaded the new service
-        static_data.attributes.extend(attributes.clone().into_iter());
+        static_data.attributes.extend(attributes.clone());
 
         // re-entrancy via the listeners is possible, so we prevent it by dropping here
         drop(static_data);

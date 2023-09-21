@@ -952,3 +952,21 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id) {
       btsock_l2cap_free_l(sock);
   }
 }
+
+bt_status_t btsock_l2cap_disconnect(const RawAddress* bd_addr) {
+  if (!bd_addr) return BT_STATUS_PARM_INVALID;
+  if (!is_inited()) return BT_STATUS_NOT_READY;
+
+  std::unique_lock<std::mutex> lock(state_lock);
+  l2cap_socket* sock = socks;
+
+  while (sock) {
+    l2cap_socket* next = sock->next;
+    if (sock->addr == *bd_addr) {
+      btsock_l2cap_free_l(sock);
+    }
+    sock = next;
+  }
+
+  return BT_STATUS_SUCCESS;
+}

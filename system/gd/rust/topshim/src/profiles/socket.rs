@@ -248,6 +248,10 @@ impl BtSocket {
         )
         .into()
     }
+
+    pub fn disconnect_all(&self, addr: RawAddress) -> BtStatus {
+        ccall!(self, disconnect_all, &addr).into()
+    }
 }
 
 #[cfg(test)]

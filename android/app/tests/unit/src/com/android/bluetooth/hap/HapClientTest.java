@@ -129,8 +129,8 @@ public class HapClientTest {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mAttributionSource = mAdapter.getAttributionSource();
 
+        HapClientNativeInterface.setInstance(mNativeInterface);
         startService();
-        mService.mHapClientNativeInterface = mNativeInterface;
         mService.mFactory = mServiceFactory;
         doReturn(mCsipService).when(mServiceFactory).getCsipSetCoordinatorService();
         mServiceBinder = (HapClientService.BluetoothHapClientBinder) mService.initBinder();
@@ -217,6 +217,7 @@ public class HapClientTest {
         mService.mCallbacks.unregister(mCallback);
 
         stopService();
+        HapClientNativeInterface.setInstance(null);
 
         if (mHasIntentReceiver != null) {
             mTargetContext.unregisterReceiver(mHasIntentReceiver);

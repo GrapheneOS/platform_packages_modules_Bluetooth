@@ -68,6 +68,8 @@ public final class BluetoothGattServer implements BluetoothProfile {
     private List<BluetoothGattService> mServices;
 
     private static final int CALLBACK_REG_TIMEOUT = 10000;
+    // Max length of an attribute value, defined in gatt_api.h
+    private static final int GATT_MAX_ATTR_LEN = 512;
 
     /**
      * Bluetooth GATT interface callbacks
@@ -829,6 +831,10 @@ public final class BluetoothGattServer implements BluetoothProfile {
         if (device == null) {
             throw new IllegalArgumentException("device must not be null");
         }
+        if (value.length > GATT_MAX_ATTR_LEN) {
+            throw new IllegalArgumentException(
+                    "notification should not be longer than max length of an attribute value");
+        }
         BluetoothGattService service = characteristic.getService();
         if (service == null) {
             throw new IllegalArgumentException("Characteristic must have a non-null service");
@@ -849,7 +855,7 @@ public final class BluetoothGattServer implements BluetoothProfile {
             return BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND;
         } catch (RemoteException e) {
             Log.e(TAG, "", e);
-            throw e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         }
     }
 

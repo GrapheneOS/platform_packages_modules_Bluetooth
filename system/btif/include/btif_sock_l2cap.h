@@ -18,5 +18,6 @@ bt_status_t btsock_l2cap_connect(const RawAddress* bd_addr, int channel,
                                  int* sock_fd, int flags, int app_uid);
 void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id);
 void on_l2cap_psm_assigned(int id, int psm);
+bt_status_t btsock_l2cap_disconnect(const RawAddress* bd_addr);
 
 #endif

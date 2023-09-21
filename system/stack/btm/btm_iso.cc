@@ -112,7 +112,8 @@ void IsoManager::CreateBig(uint8_t big_id,
 }
 
 void IsoManager::TerminateBig(uint8_t big_id, uint8_t reason) {
-  pimpl_->iso_impl_->terminate_big(big_id, reason);
+  if (pimpl_->IsRunning())
+    pimpl_->iso_impl_->terminate_big(big_id, reason);
 }
 
 void IsoManager::HandleIsoData(void* p_msg) {

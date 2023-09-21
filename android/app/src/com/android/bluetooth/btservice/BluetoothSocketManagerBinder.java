@@ -51,16 +51,17 @@ class BluetoothSocketManagerBinder extends IBluetoothSocketManager.Stub {
         }
 
         return marshalFd(
-                mService.connectSocketNative(
-                        Utils.getBytesFromAddress(
-                                type == BluetoothSocket.TYPE_L2CAP_LE
-                                        ? device.getAddress()
-                                        : mService.getIdentityAddress(device.getAddress())),
-                        type,
-                        Utils.uuidToByteArray(uuid),
-                        port,
-                        flag,
-                        Binder.getCallingUid()));
+                mService.getNative()
+                        .connectSocket(
+                                Utils.getBytesFromAddress(
+                                        type == BluetoothSocket.TYPE_L2CAP_LE
+                                                ? device.getAddress()
+                                                : mService.getIdentityAddress(device.getAddress())),
+                                type,
+                                Utils.uuidToByteArray(uuid),
+                                port,
+                                flag,
+                                Binder.getCallingUid()));
     }
 
     @Override
@@ -73,14 +74,15 @@ class BluetoothSocketManagerBinder extends IBluetoothSocketManager.Stub {
             return null;
         }
 
-        return marshalFd(mService.createSocketChannelNative(
-            type,
-            serviceName,
-            Utils.uuidToByteArray(uuid),
-            port,
-            flag,
-            Binder.getCallingUid()));
-
+        return marshalFd(
+                mService.getNative()
+                        .createSocketChannel(
+                                type,
+                                serviceName,
+                                Utils.uuidToByteArray(uuid),
+                                port,
+                                flag,
+                                Binder.getCallingUid()));
     }
 
     @Override
@@ -91,7 +93,8 @@ class BluetoothSocketManagerBinder extends IBluetoothSocketManager.Stub {
             return;
         }
 
-        mService.requestMaximumTxDataLengthNative(Utils.getBytesFromAddress(device.getAddress()));
+        mService.getNative()
+                .requestMaximumTxDataLength(Utils.getBytesFromAddress(device.getAddress()));
     }
 
     private void enforceActiveUser() {

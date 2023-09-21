@@ -41,4 +41,9 @@ impl IBatteryProviderManager for IBatteryProviderManagerDBus {
     fn set_battery_info(&mut self, battery_provider_id: u32, battery_set: BatterySet) {
         dbus_generated!()
     }
+
+    #[dbus_method("RemoveBatteryInfo")]
+    fn remove_battery_info(&mut self, battery_provider_id: u32, address: String, uuid: String) {
+        dbus_generated!()
+    }
 }

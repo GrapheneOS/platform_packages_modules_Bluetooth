@@ -20,7 +20,6 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothPbapClient;
 import android.content.AttributionSource;
@@ -41,7 +40,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.hfpclient.HfpClientConnectionService;
-import com.android.bluetooth.sdp.SdpManager;
+import com.android.bluetooth.sdp.SdpManagerNativeInterface;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.SynchronousResultReceiver;
 
@@ -140,9 +139,6 @@ public class PbapClientService extends ProfileService {
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         // delay initial download until after the user is unlocked to add an account.
         filter.addAction(Intent.ACTION_USER_UNLOCKED);
-        // To remove call logs when PBAP was never connected while calls were made,
-        // we also listen for HFP to become disconnected.
-        filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
         try {
             registerReceiver(mPbapBroadcastReceiver, filter);
         } catch (Exception e) {
@@ -179,6 +175,7 @@ public class PbapClientService extends ProfileService {
             PbapClientStateMachine pbapClientStateMachine = mPbapClientStateMachineMap.get(device);
             if (pbapClientStateMachine != null) {
                 mPbapClientStateMachineMap.remove(device);
+                pbapClientStateMachine.doQuit();
             }
         }
     }
@@ -257,13 +254,14 @@ public class PbapClientService extends ProfileService {
     }
 
     private void registerSdpRecord() {
-        SdpManager sdpManager = SdpManager.getDefaultManager();
-        if (sdpManager == null) {
-            Log.e(TAG, "SdpManager is null");
+        SdpManagerNativeInterface nativeInterface = SdpManagerNativeInterface.getInstance();
+        if (!nativeInterface.isAvailable()) {
+            Log.e(TAG, "SdpManagerNativeInterface is not available");
             return;
         }
-        mSdpHandle = sdpManager.createPbapPceRecord(SERVICE_NAME,
-                PbapClientConnectionHandler.PBAP_V1_2);
+        mSdpHandle =
+                nativeInterface.createPbapPceRecord(
+                        SERVICE_NAME, PbapClientConnectionHandler.PBAP_V1_2);
     }
 
     private void cleanUpSdpRecord() {
@@ -273,13 +271,17 @@ public class PbapClientService extends ProfileService {
         }
         int sdpHandle = mSdpHandle;
         mSdpHandle = -1;
-        SdpManager sdpManager = SdpManager.getDefaultManager();
-        if (sdpManager == null) {
-            Log.e(TAG, "cleanUpSdpRecord failed, sdpManager is null, sdpHandle=" + sdpHandle);
+        SdpManagerNativeInterface nativeInterface = SdpManagerNativeInterface.getInstance();
+        if (!nativeInterface.isAvailable()) {
+            Log.e(
+                    TAG,
+                    "cleanUpSdpRecord failed, SdpManagerNativeInterface is not available,"
+                            + " sdpHandle="
+                            + sdpHandle);
             return;
         }
         Log.i(TAG, "cleanUpSdpRecord, mSdpHandle=" + sdpHandle);
-        if (!sdpManager.removeSdpRecord(sdpHandle)) {
+        if (!nativeInterface.removeSdpRecord(sdpHandle)) {
             Log.e(TAG, "cleanUpSdpRecord, removeSdpRecord failed, sdpHandle=" + sdpHandle);
         }
     }
@@ -310,22 +312,24 @@ public class PbapClientService extends ProfileService {
                 for (PbapClientStateMachine stateMachine : mPbapClientStateMachineMap.values()) {
                     stateMachine.tryDownloadIfConnected();
                 }
-            } else if (action.equals(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED)) {
-                // PbapClientConnectionHandler has code to remove calllogs when PBAP disconnects.
-                // However, if PBAP was never connected/enabled in the first place, and calls are
-                // made over HFP, these calllogs will not be removed when the device disconnects.
-                // This code ensures callogs are still removed in this case.
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                int newState = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
-
-                if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                    if (DBG) {
-                        Log.d(TAG, "Received intent to disconnect HFP with " + device);
-                    }
-                    // HFP client stores entries in calllog.db by BD_ADDR and component name
-                    removeHfpCallLog(device.getAddress(), context);
-                }
             }
+        }
+    }
+
+    /**
+     * Ensure that after HFP disconnects, we remove call logs. This addresses the situation when
+     * PBAP was never connected while calls were made. Ideally {@link PbapClientConnectionHandler}
+     * has code to remove calllogs when PBAP disconnects.
+     */
+    public void handleHeadsetClientConnectionStateChanged(
+            BluetoothDevice device, int oldState, int newState) {
+        if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+            if (DBG) {
+                Log.d(TAG, "Received intent to disconnect HFP with " + device);
+            }
+            // HFP client stores entries in calllog.db by BD_ADDR and component name
+            // Using the current Service as the context.
+            removeHfpCallLog(device.getAddress(), this);
         }
     }
 

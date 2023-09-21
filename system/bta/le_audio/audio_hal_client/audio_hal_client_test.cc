@@ -235,7 +235,7 @@ class LeAudioClientAudioTest : public ::testing::Test {
 
     // Init sink Audio HAL mock
     is_sink_audio_hal_acquired = false;
-    sink_audio_hal_stream_cb = {.on_suspend_ = nullptr, .on_resume_ = nullptr};
+    sink_audio_hal_stream_cb = {.on_resume_ = nullptr, .on_suspend_ = nullptr};
 
     ON_CALL(mock_client_interface_, GetSink(_, _, _))
         .WillByDefault(DoAll(SaveArg<0>(&sink_audio_hal_stream_cb),
@@ -246,8 +246,8 @@ class LeAudioClientAudioTest : public ::testing::Test {
 
     // Init source Audio HAL mock
     is_source_audio_hal_acquired = false;
-    source_audio_hal_stream_cb = {.on_suspend_ = nullptr,
-                                  .on_resume_ = nullptr};
+    source_audio_hal_stream_cb = {.on_resume_ = nullptr,
+                                  .on_suspend_ = nullptr};
 
     ON_CALL(mock_client_interface_, GetSource(_, _))
         .WillByDefault(DoAll(SaveArg<0>(&source_audio_hal_stream_cb),

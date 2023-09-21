@@ -1444,7 +1444,7 @@ void smp_collect_local_ble_address(uint8_t* le_addr, tSMP_CB* p_cb) {
 
   SMP_TRACE_DEBUG("%s", __func__);
 
-  BTM_ReadConnectionAddr(p_cb->pairing_bda, bda, &addr_type);
+  BTM_ReadConnectionAddr(p_cb->pairing_bda, bda, &addr_type, true);
   BDADDR_TO_STREAM(p, bda);
   UINT8_TO_STREAM(p, addr_type);
 }
@@ -1466,7 +1466,7 @@ void smp_collect_peer_ble_address(uint8_t* le_addr, tSMP_CB* p_cb) {
 
   SMP_TRACE_DEBUG("%s", __func__);
 
-  if (!BTM_ReadRemoteConnectionAddr(p_cb->pairing_bda, bda, &addr_type)) {
+  if (!BTM_ReadRemoteConnectionAddr(p_cb->pairing_bda, bda, &addr_type, true)) {
     SMP_TRACE_ERROR(
         "can not collect peer le addr information for unknown device");
     return;
@@ -1533,9 +1533,9 @@ void smp_save_secure_connections_long_term_key(tSMP_CB* p_cb) {
       .penc_key =
           {
               .ltk = p_cb->ltk,
+              .ediv = 0,
               .sec_level = p_cb->sec_level,
               .key_size = p_cb->loc_enc_size,
-              .ediv = 0,
           },
   };
   memset(ple_key.penc_key.rand, 0, BT_OCTET8_LEN);

@@ -220,6 +220,23 @@ class CsisDevice : public GattServiceDevice {
     csis_instances_.clear();
   }
 
+  uint16_t FindValueHandleByCccHandle(uint16_t ccc_handle) {
+    uint16_t val_handle = 0;
+    for (const auto& [_, inst] : csis_instances_) {
+      if (inst->svc_data.sirk_handle.ccc_hdl == ccc_handle) {
+        val_handle = inst->svc_data.sirk_handle.val_hdl;
+      } else if (inst->svc_data.lock_handle.ccc_hdl == ccc_handle) {
+        val_handle = inst->svc_data.lock_handle.val_hdl;
+      } else if (inst->svc_data.size_handle.ccc_hdl == ccc_handle) {
+        val_handle = inst->svc_data.size_handle.val_hdl;
+      }
+      if (val_handle) {
+        break;
+      }
+    }
+    return val_handle;
+  }
+
   std::shared_ptr<CsisInstance> GetCsisInstanceByOwningHandle(uint16_t handle) {
     uint16_t hdl = 0;
     for (const auto& [h, inst] : csis_instances_) {
@@ -272,17 +289,25 @@ class CsisDevice : public GattServiceDevice {
   }
 
   void SetExpectedGroupIdMember(int group_id) {
-    LOG_DEBUG("Expected Group ID: %d, for member: %s is set", group_id,
-              ADDRESS_TO_LOGGABLE_CSTR(addr));
-    expected_group_id_member = group_id;
+    LOG_INFO("Expected Group ID: %d, for member: %s is set", group_id,
+             ADDRESS_TO_LOGGABLE_CSTR(addr));
+    expected_group_id_member_ = group_id;
   }
 
-  inline int GetExpectedGroupIdMember() { return expected_group_id_member; }
+  void SetPairingSirkReadFlag(bool flag) {
+    LOG_INFO("Pairing flag for Group ID: %d, member: %s is set to %d",
+             expected_group_id_member_, ADDRESS_TO_LOGGABLE_CSTR(addr), flag);
+    pairing_sirk_read_flag_ = flag;
+  }
+
+  inline int GetExpectedGroupIdMember() { return expected_group_id_member_; }
+  inline bool GetPairingSirkReadFlag() { return pairing_sirk_read_flag_; }
 
  private:
   /* Instances per start handle  */
   std::map<uint16_t, std::shared_ptr<CsisInstance>> csis_instances_;
-  int expected_group_id_member = bluetooth::groups::kGroupUnknown;
+  int expected_group_id_member_ = bluetooth::groups::kGroupUnknown;
+  bool pairing_sirk_read_flag_ = false;
 };
 
 /*

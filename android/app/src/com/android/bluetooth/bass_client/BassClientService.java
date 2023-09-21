@@ -22,7 +22,6 @@ import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothLeBroadcastAssistant;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.bluetooth.BluetoothLeBroadcastReceiveState;
 import android.bluetooth.BluetoothProfile;
@@ -64,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -77,6 +77,7 @@ public class BassClientService extends ProfileService {
     private static final boolean DBG = true;
     private static final String TAG = BassClientService.class.getSimpleName();
     private static final int MAX_BASS_CLIENT_STATE_MACHINES = 10;
+    private static final int MAX_ACTIVE_SYNCED_SOURCES_NUM = 4;
 
     private static BassClientService sService;
 
@@ -88,13 +89,16 @@ public class BassClientService extends ProfileService {
             new ConcurrentHashMap<>();
     private final Map<BluetoothDevice, List<Integer>> mGroupManagedSources =
             new ConcurrentHashMap<>();
+    private final Map<BluetoothDevice, HashSet<BluetoothDevice>> mActiveSourceMap =
+            new ConcurrentHashMap<>();
 
     private HandlerThread mStateMachinesThread;
     private HandlerThread mCallbackHandlerThread;
+    private Handler mHandler = null;
     private AdapterService mAdapterService;
     private DatabaseManager mDatabaseManager;
     private BluetoothAdapter mBluetoothAdapter = null;
-    private Map<BluetoothDevice, BluetoothDevice> mActiveSourceMap;
+
     /* Caching the PeriodicAdvertisementResult from Broadcast source */
     /* This is stored at service so that each device state machine can access
     and use it as needed. Once the periodic sync in cancelled, this data will bre
@@ -219,34 +223,61 @@ public class BassClientService extends ProfileService {
         return base;
     }
 
-    void setActiveSyncedSource(BluetoothDevice scanDelegator, BluetoothDevice sourceDevice) {
+    void removeActiveSyncedSource(BluetoothDevice scanDelegator, BluetoothDevice sourceDevice) {
         if (mActiveSourceMap == null) {
-            Log.e(TAG, "setActiveSyncedSource: mActiveSourceMap is null");
+            Log.e(TAG, "removeActiveSyncedSource: mActiveSourceMap is null");
             return;
         }
 
-        log("setActiveSyncedSource, scanDelegator: " + scanDelegator + ", sourceDevice: " +
-            sourceDevice);
+        log("removeActiveSyncedSource, scanDelegator: " + scanDelegator + ", sourceDevice: "
+                + sourceDevice);
         if (sourceDevice == null) {
+            // remove all sources for this scanDelegator
             mActiveSourceMap.remove(scanDelegator);
         } else {
-            mActiveSourceMap.put(scanDelegator, sourceDevice);
+            HashSet<BluetoothDevice> sources = mActiveSourceMap.get(scanDelegator);
+            if (sources != null) {
+                sources.remove(sourceDevice);
+                if (sources.isEmpty()) {
+                    mActiveSourceMap.remove(scanDelegator);
+                }
+            }
         }
+        sEventLogger.logd(DBG, TAG, "Broadcast Source Unsynced: scanDelegator= " + scanDelegator
+                + ", sourceDevice= " + sourceDevice);
     }
 
-    BluetoothDevice getActiveSyncedSource(BluetoothDevice scanDelegator) {
+    void addActiveSyncedSource(BluetoothDevice scanDelegator, BluetoothDevice sourceDevice) {
         if (mActiveSourceMap == null) {
-            Log.e(TAG, "getActiveSyncedSource: mActiveSourceMap is null");
+            Log.e(TAG, "addActiveSyncedSource: mActiveSourceMap is null");
+            return;
+        }
+
+        log("addActiveSyncedSource, scanDelegator: " + scanDelegator + ", sourceDevice: "
+                + sourceDevice);
+        if (sourceDevice != null) {
+            mActiveSourceMap.putIfAbsent(scanDelegator, new HashSet<>());
+            mActiveSourceMap.get(scanDelegator).add(sourceDevice);
+        }
+        sEventLogger.logd(DBG, TAG, "Broadcast Source Synced: scanDelegator= " + scanDelegator
+                + ", sourceDevice= " + sourceDevice);
+    }
+
+    HashSet<BluetoothDevice> getActiveSyncedSources(BluetoothDevice scanDelegator) {
+        if (mActiveSourceMap == null) {
+            Log.e(TAG, "getActiveSyncedSources: mActiveSourceMap is null");
             return null;
         }
 
-        BluetoothDevice currentSource = mActiveSourceMap.get(scanDelegator);
-        log(
-                "getActiveSyncedSource: scanDelegator: "
-                        + scanDelegator
-                        + ", returning: "
-                        + currentSource);
-        return currentSource;
+        HashSet<BluetoothDevice> currentSources = mActiveSourceMap.get(scanDelegator);
+        if (currentSources != null) {
+            log("getActiveSyncedSources: scanDelegator: " + scanDelegator
+                    + ", sources num: " + currentSources.size());
+        } else {
+            log("getActiveSyncedSources: scanDelegator: " + scanDelegator
+                    + ", currentSources is null");
+        }
+        return currentSources;
     }
 
     public Callbacks getCallbacks() {
@@ -271,6 +302,10 @@ public class BassClientService extends ProfileService {
         mDatabaseManager = Objects.requireNonNull(mAdapterService.getDatabase(),
                 "DatabaseManager cannot be null when BassClientService starts");
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        // Setup Handler to handle local broadcast use cases.
+        mHandler = new Handler(Looper.getMainLooper());
+
         mStateMachines.clear();
         mStateMachinesThread = new HandlerThread("BassClientService.StateMachines");
         mStateMachinesThread.start();
@@ -281,7 +316,6 @@ public class BassClientService extends ProfileService {
         IntentFilter filter = new IntentFilter();
         filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        filter.addAction(BluetoothLeBroadcastAssistant.ACTION_CONNECTION_STATE_CHANGED);
         mIntentReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -296,13 +330,6 @@ public class BassClientService extends ProfileService {
                             "ACTION_BOND_STATE_CHANGED with no EXTRA_DEVICE");
                     bondStateChanged(device, state);
 
-                } else if (action.equals(
-                            BluetoothLeBroadcastAssistant.ACTION_CONNECTION_STATE_CHANGED)) {
-                    BluetoothDevice device =
-                            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    int toState = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
-                    int fromState = intent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, -1);
-                    connectionStateChanged(device, fromState, toState);
                 }
             }
         };
@@ -314,7 +341,6 @@ public class BassClientService extends ProfileService {
         mPeriodicAdvertisementResultMap = new HashMap<BluetoothDevice,
                 PeriodicAdvertisementResult>();
         mSyncHandleToBaseDataMap = new HashMap<Integer, BaseData>();
-        mActiveSourceMap = new HashMap<BluetoothDevice, BluetoothDevice>();
         mSearchScanCallback = null;
         return true;
     }
@@ -324,6 +350,7 @@ public class BassClientService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "stop()");
         }
+
         synchronized (mStateMachines) {
             for (BassClientStateMachine sm : mStateMachines.values()) {
                 BassObjectsFactory.getInstance().destroyStateMachine(sm);
@@ -337,6 +364,12 @@ public class BassClientService extends ProfileService {
         if (mStateMachinesThread != null) {
             mStateMachinesThread.quitSafely();
             mStateMachinesThread = null;
+        }
+
+        // Unregister Handler and stop all queued messages.
+        if (mHandler != null) {
+            mHandler.removeCallbacksAndMessages(null);
+            mHandler = null;
         }
 
         if (mIntentReceiver != null) {
@@ -355,7 +388,6 @@ public class BassClientService extends ProfileService {
         }
         if (mActiveSourceMap != null) {
             mActiveSourceMap.clear();
-            mActiveSourceMap = null;
         }
         if (mPendingGroupOp != null) {
             mPendingGroupOp.clear();
@@ -380,6 +412,9 @@ public class BassClientService extends ProfileService {
                 device = entry.getKey();
                 break;
             }
+        }
+        if (device == null) {
+            Log.w(TAG, "No device found for sync handle: " + syncHandle);
         }
         return device;
     }
@@ -644,8 +679,17 @@ public class BassClientService extends ProfileService {
         mPeriodicAdvertisementResultMap.remove(device);
     }
 
+    void handleConnectionStateChanged(BluetoothDevice device, int fromState, int toState) {
+        mHandler.post(() -> connectionStateChanged(device, fromState, toState));
+    }
+
     synchronized void connectionStateChanged(BluetoothDevice device, int fromState,
                                              int toState) {
+        if (!isAvailable()) {
+            Log.w(TAG, "connectionStateChanged: service is not available");
+            return;
+        }
+
         if ((device == null) || (fromState == toState)) {
             Log.e(TAG, "connectionStateChanged: unexpected invocation. device=" + device
                     + " fromState=" + fromState + " toState=" + toState);
@@ -983,6 +1027,11 @@ public class BassClientService extends ProfileService {
                 }
             };
             mScanBroadcasts.clear();
+            // clear previous sources notify flag before scanning new result
+            // this is to make sure the active sources are notified even if already synced
+            if (mPeriodicAdvertisementResultMap != null) {
+                clearNotifiedFlags();
+            }
             ScanSettings settings = new ScanSettings.Builder().setCallbackType(
                     ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
                     .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
@@ -1047,6 +1096,15 @@ public class BassClientService extends ProfileService {
     void selectSource(BluetoothDevice sink, ScanResult result, boolean autoTrigger) {
         if (!hasRoomForBroadcastSourceAddition(sink)) {
             log("selectSource: No more slot");
+            return;
+        }
+
+        HashSet<BluetoothDevice> activeSyncedSrc = getActiveSyncedSources(sink);
+        if (activeSyncedSrc != null
+                && (activeSyncedSrc.size() >= MAX_ACTIVE_SYNCED_SOURCES_NUM
+                        || activeSyncedSrc.contains(result.getDevice()))) {
+            log("selectSource : found num of active sources: " + activeSyncedSrc.size()
+                    + ", is source synced: " + activeSyncedSrc.contains(result.getDevice()));
             return;
         }
 

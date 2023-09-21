@@ -83,8 +83,7 @@ class LeAclConnection : public AclConnection {
 
   // The peer address and type returned from the Connection Complete Event
   AddressWithType peer_address_with_type_;
-  Address remote_initiator_address_;
-  Address local_initiator_address_;
+
   // 5.2::7.7.65.10 Connection interval used on this connection.
   // Range: 0x0006 to 0x0C80
   // Time = N * 1.25 ms
@@ -107,6 +106,27 @@ class LeAclConnection : public AclConnection {
 
   Address local_resolvable_private_address_ = Address::kEmpty;
   Address peer_resolvable_private_address_ = Address::kEmpty;
+
+  virtual AddressWithType GetPeerAddress() const {
+    return peer_address_with_type_;
+  }
+
+  // This function return actual peer address which was used for the connection over the air.
+  virtual AddressWithType GetPeerOtaAddress() const {
+    if (peer_resolvable_private_address_ == Address::kEmpty) {
+      return GetPeerAddress();
+    }
+    return AddressWithType(peer_resolvable_private_address_, AddressType::RANDOM_DEVICE_ADDRESS);
+  }
+
+  // This function return actual local address which was used for the connection over the air.
+  virtual AddressWithType GetLocalOtaAddress() const {
+    if (local_resolvable_private_address_ == Address::kEmpty) {
+      return GetLocalAddress();
+    }
+
+    return AddressWithType(local_resolvable_private_address_, AddressType::RANDOM_DEVICE_ADDRESS);
+  }
 
   virtual void RegisterCallbacks(LeConnectionManagementCallbacks* callbacks, os::Handler* handler);
   virtual void Disconnect(DisconnectReason reason);

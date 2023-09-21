@@ -262,6 +262,7 @@ bool l2cble_conn_comp(uint16_t handle, uint8_t role, const RawAddress& bda,
         return false;
       }
     }
+    p_lcb->link_state = LST_CONNECTING;
   } else if (role == HCI_ROLE_CENTRAL && p_lcb->link_state != LST_CONNECTING) {
     LOG_ERROR(
         "Received le acl connection as role central but not in connecting "
@@ -1799,8 +1800,7 @@ static void l2cble_start_subrate_change(tL2C_LCB* p_lcb) {
     return;
   }
 
-  if (!controller_get_interface()->supports_ble_connection_subrating_host() ||
-      !controller_get_interface()->supports_ble_connection_subrating() ||
+  if (!controller_get_interface()->supports_ble_connection_subrating() ||
       !acl_peer_supports_ble_connection_subrating(p_lcb->remote_bd_addr) ||
       !acl_peer_supports_ble_connection_subrating_host(p_lcb->remote_bd_addr)) {
     L2CAP_TRACE_DEBUG(

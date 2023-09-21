@@ -26,7 +26,6 @@
 
 #include "device/include/controller.h"
 #include "gd/att/att_module.h"
-#include "gd/btaa/activity_attribution.h"
 #include "gd/common/init_flags.h"
 #include "gd/common/strings.h"
 #include "gd/hal/hci_hal.h"
@@ -55,7 +54,6 @@
 #include "gd/storage/storage_module.h"
 #include "gd/sysprops/sysprops_module.h"
 #include "main/shim/acl_legacy_interface.h"
-#include "main/shim/activity_attribution.h"
 #include "main/shim/distance_measurement_manager.h"
 #include "main/shim/hci_layer.h"
 #include "main/shim/helpers.h"
@@ -102,50 +100,26 @@ void Stack::StartEverything() {
   modules.add<hci::MsftExtensionManager>();
   modules.add<hci::LeScanningManager>();
   modules.add<hci::DistanceMeasurementManager>();
-  if (common::init_flags::btaa_hci_is_enabled()) {
-    modules.add<activity_attribution::ActivityAttribution>();
-  }
-  if (common::init_flags::gd_core_is_enabled()) {
-    modules.add<att::AttModule>();
-    modules.add<neighbor::ConnectabilityModule>();
-    modules.add<neighbor::DiscoverabilityModule>();
-    modules.add<neighbor::InquiryModule>();
-    modules.add<neighbor::NameDbModule>();
-    modules.add<neighbor::PageModule>();
-    modules.add<neighbor::ScanModule>();
-    modules.add<storage::StorageModule>();
-  }
   Start(&modules);
   is_running_ = true;
   // Make sure the leaf modules are started
   ASSERT(stack_manager_.GetInstance<storage::StorageModule>() != nullptr);
   ASSERT(stack_manager_.GetInstance<shim::Dumpsys>() != nullptr);
-  if (common::init_flags::gd_core_is_enabled()) {
-    btm_ = new Btm(stack_handler_,
-                   stack_manager_.GetInstance<neighbor::InquiryModule>());
-  }
-  if (!common::init_flags::gd_core_is_enabled()) {
-    if (stack_manager_.IsStarted<hci::Controller>()) {
-      acl_ = new legacy::Acl(
-          stack_handler_, legacy::GetAclInterface(),
-          controller_get_interface()->get_ble_acceptlist_size(),
-          controller_get_interface()->get_ble_resolving_list_max_size());
-    } else {
-      LOG_ERROR(
-          "Unable to create shim ACL layer as Controller has not started");
-    }
+  if (stack_manager_.IsStarted<hci::Controller>()) {
+    acl_ = new legacy::Acl(
+        stack_handler_, legacy::GetAclInterface(),
+        controller_get_interface()->get_ble_acceptlist_size(),
+        controller_get_interface()->get_ble_resolving_list_max_size());
+  } else {
+    LOG_ERROR("Unable to create shim ACL layer as Controller has not started");
   }
 
-  if (!common::init_flags::gd_core_is_enabled()) {
-    bluetooth::shim::hci_on_reset_complete();
-  }
-
+  bluetooth::shim::hci_on_reset_complete();
   bluetooth::shim::init_advertising_manager();
   bluetooth::shim::init_scanning_manager();
   bluetooth::shim::init_distance_measurement_manager();
 
-  if (common::init_flags::gd_l2cap_is_enabled() &&
-      !common::init_flags::gd_core_is_enabled()) {
+  if (common::init_flags::gd_l2cap_is_enabled()) {
     L2CA_UseLegacySecurityModule();
   }
 }
@@ -165,9 +139,7 @@ void Stack::Start(ModuleList* modules) {
 
 void Stack::Stop() {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
-  if (!common::init_flags::gd_core_is_enabled()) {
-    bluetooth::shim::hci_on_shutting_down();
-  }
+  bluetooth::shim::hci_on_shutting_down();
 
   // Make sure gd acl flag is enabled and we started it up
   if (acl_ != nullptr) {

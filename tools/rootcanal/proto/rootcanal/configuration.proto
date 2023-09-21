@@ -47,6 +47,16 @@ message ControllerQuirks {
   optional bool hardware_error_before_reset = 3;
 }
 
+message VendorFeatures {
+  // Enable the support for the CSR vendor command.
+  optional bool csr = 1;
+  // Enable the support for Android vendor commands.
+  // Note: not all required vendor commands are necessarily implemented
+  // in RootCanal, unimplemented commands will return a Command Status or
+  // Command Complete HCI event with the status Unsupported Opcode.
+  optional bool android = 2;
+}
+
 message Controller {
   // Configure the controller preset. Presets come with a pre-selection
   // of features and quirks, but these can be overridden with the next fields.
@@ -61,6 +71,8 @@ message Controller {
   // Activate assertion checks in RootCanal for missing RootCanal features
   // or Host stack misbehavior.
   optional bool strict = 4;
+  // Configure support for vendor features.
+  optional VendorFeatures vendor = 5;
 }
 
 message TcpServer {

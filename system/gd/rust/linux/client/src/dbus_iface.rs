@@ -831,12 +831,12 @@ impl IBluetooth for BluetoothDBus {
     }
 
     #[dbus_method("CancelBondProcess")]
-    fn cancel_bond_process(&self, device: BluetoothDevice) -> bool {
+    fn cancel_bond_process(&mut self, device: BluetoothDevice) -> bool {
         dbus_generated!()
     }
 
     #[dbus_method("RemoveBond")]
-    fn remove_bond(&self, device: BluetoothDevice) -> bool {
+    fn remove_bond(&mut self, device: BluetoothDevice) -> bool {
         dbus_generated!()
     }
 
@@ -1118,6 +1118,11 @@ impl IBluetoothManager for BluetoothManagerDBus {
 
     #[dbus_method("SetDesiredDefaultAdapter")]
     fn set_desired_default_adapter(&mut self, adapter: i32) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetFlossApiVersion")]
+    fn get_floss_api_version(&mut self) -> u32 {
         dbus_generated!()
     }
 }

@@ -21,7 +21,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -375,6 +374,38 @@ public class MediaPlayerWrapperTest {
         MediaData data = mMediaUpdateData.getValue();
         Assert.assertEquals("Returned metadata is incorrect", data.metadata,
                 Util.toMetadata(mMockContext, mTestMetadata.build()));
+    }
+
+    @Test
+    public void testNullPlayback() {
+        // Create the wrapper object and register the looper with the timeout handler
+        TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
+        MediaPlayerWrapper wrapper =
+                MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
+        wrapper.registerCallback(mTestCbs);
+
+        // Return null when getting the queue
+        doReturn(null).when(mMockController).getQueue();
+
+        // Grab the callbacks the wrapper registered with the controller
+        verify(mMockController).registerCallback(mControllerCbs.capture(), any());
+        MediaController.Callback controllerCallbacks = mControllerCbs.getValue();
+
+        // Update Metadata returned by controller
+        mTestState.setState(PlaybackState.STATE_PLAYING, 1000, 1.0f);
+        doReturn(mTestState.build()).when(mMockController).getPlaybackState();
+
+        // Call the callback
+        controllerCallbacks.onPlaybackStateChanged(null);
+
+        // Assert that the metadata returned by getPlaybackState() is used instead of null
+
+        verify(mTestCbs, times(1)).mediaUpdatedCallback(mMediaUpdateData.capture());
+        MediaData data = mMediaUpdateData.getValue();
+        Assert.assertEquals(
+                "Returned PlaybackState is incorrect",
+                data.state.toString(),
+                mTestState.build().toString());
     }
 
     @Test

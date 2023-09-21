@@ -73,10 +73,11 @@ class AvrcpDeviceTest : public ::testing::Test {
     // NOTE: We use a wrapper lambda for the MockFunction in order to
     // add a const qualifier to the response. Otherwise the MockFunction
     // type doesn't match the callback type and a compiler error occurs.
-    base::Callback<void(uint8_t, bool, AvrcpResponse)> cb = base::Bind(
-        [](MockFunction<void(uint8_t, bool, const AvrcpResponse&)>* a,
-           uint8_t b, bool c, AvrcpResponse d) { a->Call(b, c, d); },
-        &response_cb);
+    base::RepeatingCallback<void(uint8_t, bool, AvrcpResponse)> cb =
+        base::BindRepeating(
+            [](MockFunction<void(uint8_t, bool, const AvrcpResponse&)>* a,
+               uint8_t b, bool c, AvrcpResponse d) { a->Call(b, c, d); },
+            &response_cb);
 
     // TODO (apanicke): Test setting avrc13 to false once we have full
     // functionality.
@@ -114,10 +115,11 @@ class AvrcpDeviceTest : public ::testing::Test {
 };
 
 TEST_F(AvrcpDeviceTest, addressTest) {
-  base::Callback<void(uint8_t, bool, AvrcpResponse)> cb =
-      base::Bind([](MockFunction<void(uint8_t, bool, const AvrcpResponse&)>* a,
-                    uint8_t b, bool c, AvrcpResponse d) { a->Call(b, c, d); },
-                 &response_cb);
+  base::RepeatingCallback<void(uint8_t, bool, AvrcpResponse)> cb =
+      base::BindRepeating(
+          [](MockFunction<void(uint8_t, bool, const AvrcpResponse&)>* a,
+             uint8_t b, bool c, AvrcpResponse d) { a->Call(b, c, d); },
+          &response_cb);
 
   Device device(RawAddress::kAny, true, cb, 0xFFFF, 0xFFFF);
   ASSERT_EQ(device.GetAddress(), RawAddress::kAny);
@@ -793,10 +795,11 @@ TEST_F(AvrcpDeviceTest, getElementAttributesMtuTest) {
   MockMediaInterface interface;
   NiceMock<MockA2dpInterface> a2dp_interface;
 
-  base::Callback<void(uint8_t, bool, AvrcpResponse)> cb =
-      base::Bind([](MockFunction<void(uint8_t, bool, const AvrcpResponse&)>* a,
-                    uint8_t b, bool c, AvrcpResponse d) { a->Call(b, c, d); },
-                 &response_cb);
+  base::RepeatingCallback<void(uint8_t, bool, AvrcpResponse)> cb =
+      base::BindRepeating(
+          [](MockFunction<void(uint8_t, bool, const AvrcpResponse&)>* a,
+             uint8_t b, bool c, AvrcpResponse d) { a->Call(b, c, d); },
+          &response_cb);
   Device device(RawAddress::kAny, true, cb, truncated_packet->size(), 0xFFFF);
 
   device.RegisterInterfaces(&interface, &a2dp_interface, nullptr, nullptr);
@@ -1016,10 +1019,11 @@ TEST_F(AvrcpDeviceTest, getFolderItemsMtuTest) {
 
   MockMediaInterface interface;
   NiceMock<MockA2dpInterface> a2dp_interface;
-  base::Callback<void(uint8_t, bool, AvrcpResponse)> cb =
-      base::Bind([](MockFunction<void(uint8_t, bool, const AvrcpResponse&)>* a,
-                    uint8_t b, bool c, AvrcpResponse d) { a->Call(b, c, d); },
-                 &response_cb);
+  base::RepeatingCallback<void(uint8_t, bool, AvrcpResponse)> cb =
+      base::BindRepeating(
+          [](MockFunction<void(uint8_t, bool, const AvrcpResponse&)>* a,
+             uint8_t b, bool c, AvrcpResponse d) { a->Call(b, c, d); },
+          &response_cb);
 
   Device device(RawAddress::kAny, true, cb, 0xFFFF,
                 truncated_packet->size() + FolderItem::kHeaderSize() + 5);
@@ -1257,10 +1261,11 @@ TEST_F(AvrcpDeviceTest, getItemAttributesMtuTest) {
 
   MockMediaInterface interface;
   NiceMock<MockA2dpInterface> a2dp_interface;
-  base::Callback<void(uint8_t, bool, AvrcpResponse)> cb =
-      base::Bind([](MockFunction<void(uint8_t, bool, const AvrcpResponse&)>* a,
-                    uint8_t b, bool c, AvrcpResponse d) { a->Call(b, c, d); },
-                 &response_cb);
+  base::RepeatingCallback<void(uint8_t, bool, AvrcpResponse)> cb =
+      base::BindRepeating(
+          [](MockFunction<void(uint8_t, bool, const AvrcpResponse&)>* a,
+             uint8_t b, bool c, AvrcpResponse d) { a->Call(b, c, d); },
+          &response_cb);
   Device device(RawAddress::kAny, true, cb, 0xFFFF, truncated_packet->size());
   device.RegisterInterfaces(&interface, &a2dp_interface, nullptr, nullptr);
 

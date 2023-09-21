@@ -780,9 +780,25 @@ class CsisClientImpl : public CsisClient {
       }
 
       csis_group->RemoveDevice(device->addr);
+
       if (csis_group->IsEmpty()) {
         RemoveCsisGroup(group_id);
+
+        /* Remove cached candidate devices for group */
+        devices_.erase(
+            std::remove_if(devices_.begin(), devices_.end(),
+                           [group_id](auto& dev) {
+                             if (dev->GetNumberOfCsisInstances() == 0 &&
+                                 dev->GetExpectedGroupIdMember() == group_id &&
+                                 dev->GetPairingSirkReadFlag() == false) {
+                               return true;
+                             }
+
+                             return false;
+                           }),
+            devices_.end());
       }
+
       device->RemoveCsisInstance(group_id);
     }
 
@@ -888,8 +904,6 @@ class CsisClientImpl : public CsisClient {
 
   void OnGattWriteCcc(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
                       void* user_data) {
-    LOG(INFO) << __func__ << " handle=" << loghex(handle);
-
     auto device = FindDeviceByConnId(conn_id);
     if (device == nullptr) {
       LOG(INFO) << __func__ << " unknown conn_id=" << loghex(conn_id);
@@ -901,6 +915,29 @@ class CsisClientImpl : public CsisClient {
       LOG_INFO("Database out of sync for %s",
                ADDRESS_TO_LOGGABLE_CSTR(device->addr));
       ClearDeviceInformationAndStartSearch(device);
+      return;
+    }
+
+    if (status == GATT_SUCCESS) {
+      LOG_INFO("Successfully registered on ccc: 0x%04x, device: %s", handle,
+               ADDRESS_TO_LOGGABLE_CSTR(device->addr));
+      return;
+    }
+
+    LOG_ERROR(
+        "Failed to register for indications: 0x%04x, device: %s, status: "
+        "0x%02x",
+        handle, ADDRESS_TO_LOGGABLE_CSTR(device->addr), status);
+
+    auto val_handle = device->FindValueHandleByCccHandle(handle);
+    if (!val_handle) {
+      LOG_ERROR("Unknown ccc handle: 0x%04x, device: %s", handle,
+                ADDRESS_TO_LOGGABLE_CSTR(device->addr));
+      return;
+    }
+
+    if (val_handle != GAP_INVALID_HANDLE) {
+      BTA_GATTC_DeregisterForNotifications(gatt_if_, device->addr, val_handle);
     }
   }
 
@@ -1264,8 +1301,6 @@ class CsisClientImpl : public CsisClient {
      * truly is member of group.
      */
     device.get()->SetExpectedGroupIdMember(group_id);
-    devices_.push_back(device);
-
     callbacks_->OnSetMemberAvailable(address,
                                      device.get()->GetExpectedGroupIdMember());
   }
@@ -1628,9 +1663,9 @@ class CsisClientImpl : public CsisClient {
                           const gatt::Service* service,
                           const bluetooth::Uuid& context_uuid,
                           bool is_last_instance) {
-    DLOG(INFO) << __func__ << " service handle: " << loghex(service->handle)
-               << " end handle: " << loghex(service->end_handle)
-               << " uuid: " << context_uuid;
+    LOG_DEBUG("service handle: 0x%04x, end handle: 0x%04x, uuid: %s",
+              service->handle, service->end_handle,
+              context_uuid.ToString().c_str());
 
     auto csis_inst = std::make_shared<CsisInstance>(
         (uint16_t)service->handle, (uint16_t)service->end_handle, context_uuid);
@@ -1640,6 +1675,8 @@ class CsisClientImpl : public CsisClient {
     if (group_id != bluetooth::groups::kGroupUnknown)
       csis_inst->SetGroupId(group_id);
 
+    device->SetCsisInstance(csis_inst->svc_data.start_handle, csis_inst);
+
     /* Initially validate and store GATT service discovery data */
     for (const gatt::Characteristic& charac : service->characteristics) {
       if (charac.uuid == kCsisLockUuid) {
@@ -1647,8 +1684,8 @@ class CsisClientImpl : public CsisClient {
         uint16_t ccc_handle =
             FindCccHandle(device->conn_id, charac.value_handle);
         if (ccc_handle == GAP_INVALID_HANDLE) {
-          DLOG(ERROR) << __func__
-                      << ": no HAS Active Preset CCC descriptor found!";
+          LOG_ERROR("no HAS Active Preset CCC descriptor found!");
+          device->RemoveCsisInstance(group_id);
           return false;
         }
         csis_inst->svc_data.lock_handle.val_hdl = charac.value_handle;
@@ -1657,15 +1694,17 @@ class CsisClientImpl : public CsisClient {
         SubscribeForNotifications(device->conn_id, device->addr,
                                   charac.value_handle, ccc_handle);
 
-        DLOG(INFO) << __func__ << " Lock UUID found handle: "
-                   << loghex(csis_inst->svc_data.lock_handle.val_hdl)
-                   << " ccc handle: "
-                   << loghex(csis_inst->svc_data.lock_handle.ccc_hdl);
+        LOG_DEBUG(
+            "Lock UUID found handle: 0x%04x, ccc handle: 0x%04x, device: %s",
+            csis_inst->svc_data.lock_handle.val_hdl,
+            csis_inst->svc_data.lock_handle.ccc_hdl,
+            ADDRESS_TO_LOGGABLE_CSTR(device->addr));
       } else if (charac.uuid == kCsisRankUuid) {
         csis_inst->svc_data.rank_handle = charac.value_handle;
 
-        DLOG(INFO) << __func__ << " Rank UUID found handle: "
-                   << loghex(csis_inst->svc_data.rank_handle);
+        LOG_DEBUG("Rank UUID found handle: 0x%04x, device: %s",
+                  csis_inst->svc_data.rank_handle,
+                  ADDRESS_TO_LOGGABLE_CSTR(device->addr));
       } else if (charac.uuid == kCsisSirkUuid) {
         /* Find the optional CCC descriptor */
         uint16_t ccc_handle =
@@ -1677,10 +1716,11 @@ class CsisClientImpl : public CsisClient {
           SubscribeForNotifications(device->conn_id, device->addr,
                                     charac.value_handle, ccc_handle);
 
-        DLOG(INFO) << __func__ << " SIRK UUID found handle: "
-                   << loghex(csis_inst->svc_data.sirk_handle.val_hdl)
-                   << " ccc handle: "
-                   << loghex(csis_inst->svc_data.sirk_handle.ccc_hdl);
+        LOG_DEBUG(
+            "SIRK UUID found handle: 0x%04x, ccc handle: 0x%04x, device: %s",
+            csis_inst->svc_data.sirk_handle.val_hdl,
+            csis_inst->svc_data.sirk_handle.ccc_hdl,
+            ADDRESS_TO_LOGGABLE_CSTR(device->addr));
       } else if (charac.uuid == kCsisSizeUuid) {
         /* Find the optional CCC descriptor */
         uint16_t ccc_handle =
@@ -1692,10 +1732,11 @@ class CsisClientImpl : public CsisClient {
           SubscribeForNotifications(device->conn_id, device->addr,
                                     charac.value_handle, ccc_handle);
 
-        DLOG(INFO) << __func__ << " Size UUID found handle: "
-                   << loghex(csis_inst->svc_data.size_handle.val_hdl)
-                   << " ccc handle: "
-                   << loghex(csis_inst->svc_data.size_handle.ccc_hdl);
+        LOG_DEBUG(
+            "Size UUID found handle: 0x%04x, ccc handle: 0x%04x, device: %s",
+            csis_inst->svc_data.size_handle.val_hdl,
+            csis_inst->svc_data.size_handle.ccc_hdl,
+            ADDRESS_TO_LOGGABLE_CSTR(device->addr));
       }
     }
 
@@ -1705,9 +1746,9 @@ class CsisClientImpl : public CsisClient {
     if (csis_inst->svc_data.sirk_handle.val_hdl == GAP_INVALID_HANDLE) {
       /* We have some characteristics but all dependencies are not satisfied */
       LOG(ERROR) << __func__ << " Service has a broken structure.";
+      device->RemoveCsisInstance(group_id);
       return false;
     }
-    device->SetCsisInstance(csis_inst->svc_data.start_handle, csis_inst);
 
     bool notify_after_sirk_read = false;
     bool notify_after_lock_read = false;
@@ -1921,6 +1962,12 @@ class CsisClientImpl : public CsisClient {
       return;
     }
 
+    /* verify encryption enabled */
+    if (!BTM_IsEncrypted(device->addr, BT_TRANSPORT_LE)) {
+      LOG_WARN("Device not yet bonded - waiting for encryption");
+      return;
+    }
+
     /* Ignore if our service data is valid (discovery initiated by someone
      * else?) */
     if (!device->is_gatt_service_valid) {
@@ -2103,10 +2150,10 @@ class CsisClientImpl : public CsisClient {
     UINT16_TO_STREAM(value_ptr, GATT_CHAR_CLIENT_CONFIG_NOTIFICATION);
     BtaGattQueue::WriteDescriptor(
         conn_id, ccc_handle, std::move(value), GATT_WRITE,
-        [](uint16_t conn_id, tGATT_STATUS status, uint16_t value_handle,
-           uint16_t len, const uint8_t* value, void* user_data) {
+        [](uint16_t conn_id, tGATT_STATUS status, uint16_t handle, uint16_t len,
+           const uint8_t* value, void* user_data) {
           if (instance)
-            instance->OnGattWriteCcc(conn_id, status, value_handle, user_data);
+            instance->OnGattWriteCcc(conn_id, status, handle, user_data);
         },
         nullptr);
   }
@@ -2124,22 +2171,39 @@ class CsisClientImpl : public CsisClient {
     }
   }
 
-  void ReadSirkValue(tGATT_STATUS status, const RawAddress& address,
-                     uint8_t sirk_type, Octet16& received_sirk) {
+  void SirkValueReadCompleteDuringPairing(tGATT_STATUS status,
+                                          const RawAddress& address,
+                                          uint8_t sirk_type,
+                                          Octet16& received_sirk) {
+    LOG_INFO("%s, status: 0x%02x", ADDRESS_TO_LOGGABLE_CSTR(address), status);
+
+    auto device = FindDeviceByAddress(address);
+    if (device == nullptr) {
+      LOG_ERROR("Unknown device %s", ADDRESS_TO_LOGGABLE_CSTR(address));
+      BTA_DmSirkConfirmDeviceReply(address, false);
+      return;
+    }
+
+    auto group_id_to_join = device->GetExpectedGroupIdMember();
+    device->SetPairingSirkReadFlag(false);
+
+    /* Verify group still exist, if not it means user forget the group and
+     * paring should be rejected.
+     */
+    auto csis_group = FindCsisGroup(group_id_to_join);
+    if (!csis_group) {
+      LOG_ERROR("Group %d removed during paring a set member",
+                group_id_to_join);
+      RemoveDevice(address);
+      BTA_DmSirkConfirmDeviceReply(address, false);
+      return;
+    }
+
     if (status != GATT_SUCCESS) {
       LOG_INFO("Invalid member, can't read SIRK (status: %02x)", status);
       BTA_DmSirkConfirmDeviceReply(address, false);
       return;
     }
-
-    auto device = FindDeviceByAddress(address);
-    if (device == nullptr) {
-      LOG_ERROR("Invalid SIRK value read for unknown device");
-      BTA_DmSirkConfirmDeviceReply(address, false);
-      return;
-    }
-
-    LOG_DEBUG("%s, status: 0x%02x", ADDRESS_TO_LOGGABLE_CSTR(address), status);
 
     /* Verify if sirk is not all zeros */
     Octet16 zero{};
@@ -2153,30 +2217,11 @@ class CsisClientImpl : public CsisClient {
     if (sirk_type == bluetooth::csis::kCsisSirkTypeEncrypted) {
       /* Decrypt encrypted SIRK */
       Octet16 sirk;
-      sdf(device->addr, received_sirk, sirk);
+      sdf(address, received_sirk, sirk);
       received_sirk = sirk;
     }
 
-    /* SIRK is ready. Add device to the group */
-
-    /* Now having SIRK we can decide if the device belongs to some group we
-     * know or this is a new group
-     */
-    auto csis_group = FindCsisGroup(device->GetExpectedGroupIdMember());
-    if (!csis_group) {
-      LOG_ERROR("Expected group with ID: %d, isn't cached",
-                device->GetExpectedGroupIdMember());
-      return;
-    }
-
-    /* Device will be added to group when upper layer decides */
-    RemoveDevice(device->addr);
-
-    if (csis_group->IsSirkBelongsToGroup(received_sirk)) {
-      LOG_INFO("Device %s, verified successfully by SIRK",
-               ADDRESS_TO_LOGGABLE_CSTR(address));
-      BTA_DmSirkConfirmDeviceReply(address, true);
-    } else {
+    if (!csis_group->IsSirkBelongsToGroup(received_sirk)) {
       /*
        * Joining member must join already existing group otherwise it means
        * that its SIRK is different. Device connection was triggered by RSI
@@ -2185,7 +2230,17 @@ class CsisClientImpl : public CsisClient {
       LOG_ERROR("Joining device %s, does not match any existig group",
                 ADDRESS_TO_LOGGABLE_CSTR(address));
       BTA_DmSirkConfirmDeviceReply(address, false);
+      return;
     }
+
+    LOG_INFO("Device %s, verified successfully by SIRK",
+             ADDRESS_TO_LOGGABLE_CSTR(address));
+    BTA_DmSirkConfirmDeviceReply(address, true);
+
+    /* It was temporary device and we can remove it. When upper layer
+     * decides to connect CSIS it will be added then
+     */
+    RemoveDevice(address);
   }
 
   void VerifySetMember(const RawAddress& address) {
@@ -2200,9 +2255,15 @@ class CsisClientImpl : public CsisClient {
       return;
     }
 
-    gatt_cl_read_sirk_req(address,
-                          base::BindOnce(&CsisClientImpl::ReadSirkValue,
-                                         base::Unretained(instance)));
+    if (!gatt_cl_read_sirk_req(
+            address,
+            base::BindOnce(&CsisClientImpl::SirkValueReadCompleteDuringPairing,
+                           weak_factory_.GetWeakPtr()))) {
+      LOG_ERROR("Could not read SIKR of %s", ADDRESS_TO_LOGGABLE_CSTR(address));
+      BTA_DmSirkConfirmDeviceReply(address, false);
+      return;
+    }
+    device->SetPairingSirkReadFlag(true);
   }
 
   uint8_t gatt_if_;
@@ -2211,6 +2272,8 @@ class CsisClientImpl : public CsisClient {
   std::list<std::shared_ptr<CsisGroup>> csis_groups_;
   DeviceGroups* dev_groups_;
   int discovering_group_ = bluetooth::groups::kGroupUnknown;
+
+  base::WeakPtrFactory<CsisClientImpl> weak_factory_{this};
 };
 
 class DeviceGroupsCallbacksImpl : public DeviceGroupsCallbacks {

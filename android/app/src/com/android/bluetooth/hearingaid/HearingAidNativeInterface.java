@@ -39,11 +39,8 @@ public class HearingAidNativeInterface {
 
     @GuardedBy("INSTANCE_LOCK")
     private static HearingAidNativeInterface sInstance;
-    private static final Object INSTANCE_LOCK = new Object();
 
-    static {
-        classInitNative();
-    }
+    private static final Object INSTANCE_LOCK = new Object();
 
     private HearingAidNativeInterface() {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -61,6 +58,14 @@ public class HearingAidNativeInterface {
                 sInstance = new HearingAidNativeInterface();
             }
             return sInstance;
+        }
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(HearingAidNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
         }
     }
 
@@ -178,7 +183,6 @@ public class HearingAidNativeInterface {
     }
 
     // Native methods that call into the JNI interface
-    private static native void classInitNative();
     private native void initNative();
     private native void cleanupNative();
     private native boolean connectHearingAidNative(byte[] address);

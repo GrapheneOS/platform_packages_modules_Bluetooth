@@ -1112,10 +1112,15 @@ TEST(LeAudioClientParserTest, testPrepareAseCtpCodecConfigSingle) {
   types::LeAudioCodecId codec_id{.coding_format = 0x06,
                                  .vendor_company_id = 0x0203,
                                  .vendor_codec_id = 0x0405};
-  types::LeAudioLc3Config codec_conf{.sampling_frequency = 0x10,
-                                     .frame_duration = 0x03,
-                                     .audio_channel_allocation = 0x04050607,
-                                     .octets_per_codec_frame = 0x0203};
+  types::LeAudioLtvMap codec_conf =
+      types::LeAudioLtvMap()
+          .Add(codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq, (uint8_t)0x10)
+          .Add(codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration,
+               (uint8_t)0x03)
+          .Add(codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation,
+               (uint32_t)0x04050607)
+          .Add(codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame,
+               (uint16_t)0x0203);
 
   confs.push_back(ctp_codec_conf{
       .ase_id = 0x05,
@@ -1168,10 +1173,15 @@ TEST(LeAudioClientParserTest, testPrepareAseCtpCodecConfigMultiple) {
   types::LeAudioCodecId codec_id{.coding_format = 0x06,
                                  .vendor_company_id = 0x0203,
                                  .vendor_codec_id = 0x0405};
-  types::LeAudioLc3Config codec_conf{.sampling_frequency = 0x10,
-                                     .frame_duration = 0x03,
-                                     .audio_channel_allocation = 0x04050607,
-                                     .octets_per_codec_frame = 0x0203};
+  types::LeAudioLtvMap codec_conf =
+      types::LeAudioLtvMap()
+          .Add(codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq, (uint8_t)0x10)
+          .Add(codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration,
+               (uint8_t)0x03)
+          .Add(codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation,
+               (uint32_t)0x04050607)
+          .Add(codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame,
+               (uint16_t)0x0203);
 
   confs.push_back(ctp_codec_conf{
       .ase_id = 0x05,
@@ -1219,10 +1229,15 @@ TEST(LeAudioClientParserTest, testPrepareAseCtpCodecConfigMultiple) {
   types::LeAudioCodecId codec_id2{.coding_format = 0x16,
                                   .vendor_company_id = 0x1213,
                                   .vendor_codec_id = 0x1415};
-  types::LeAudioLc3Config codec_conf2{.sampling_frequency = 0x11,
-                                      .frame_duration = 0x13,
-                                      .audio_channel_allocation = 0x14151617,
-                                      .octets_per_codec_frame = 0x1213};
+  types::LeAudioLtvMap codec_conf2 =
+      types::LeAudioLtvMap()
+          .Add(codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq, (uint8_t)0x11)
+          .Add(codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration,
+               (uint8_t)0x13)
+          .Add(codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation,
+               (uint32_t)0x14151617)
+          .Add(codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame,
+               (uint16_t)0x1213);
 
   confs.push_back(ctp_codec_conf{
       .ase_id = 0x15,

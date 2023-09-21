@@ -104,8 +104,8 @@ public class HearingAidServiceTest {
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        HearingAidNativeInterface.setInstance(mNativeInterface);
         startService();
-        mService.mHearingAidNativeInterface = mNativeInterface;
         mService.mAudioManager = mAudioManager;
         mServiceBinder = (HearingAidService.BluetoothHearingAidBinder) mService.initBinder();
         mServiceBinder.mIsTesting = true;
@@ -137,6 +137,7 @@ public class HearingAidServiceTest {
     @After
     public void tearDown() throws Exception {
         stopService();
+        HearingAidNativeInterface.setInstance(null);
         mTargetContext.unregisterReceiver(mHearingAidIntentReceiver);
         mHearingAidIntentReceiver.clear();
         mDeviceQueueMap.clear();
@@ -148,7 +149,6 @@ public class HearingAidServiceTest {
         TestUtils.startService(mServiceRule, HearingAidService.class);
         mService = HearingAidService.getHearingAidService();
         Assert.assertNotNull(mService);
-        verify(mAdapterService).notifyActivityAttributionInfo(any(), any());
     }
 
     private void stopService() throws TimeoutException {

@@ -19,7 +19,6 @@ package com.android.bluetooth.hfpclient;
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
@@ -45,7 +44,7 @@ public class VendorCommandResponseProcessorTest {
 
     private BluetoothAdapter mAdapter;
     private BluetoothDevice mTestDevice;
-    private NativeInterface mNativeInterface;
+    @Mock private NativeInterface mNativeInterface;
     private VendorCommandResponseProcessor mProcessor;
 
     @Mock
@@ -57,7 +56,6 @@ public class VendorCommandResponseProcessorTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
-        mNativeInterface = spy(NativeInterface.getInstance());
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mTestDevice = mAdapter.getRemoteDevice("00:01:02:03:04:05");

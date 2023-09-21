@@ -32,11 +32,8 @@ public class VolumeControlNativeInterface {
 
     @GuardedBy("INSTANCE_LOCK")
     private static VolumeControlNativeInterface sInstance;
-    private static final Object INSTANCE_LOCK = new Object();
 
-    static {
-        classInitNative();
-    }
+    private static final Object INSTANCE_LOCK = new Object();
 
     private VolumeControlNativeInterface() {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -54,6 +51,14 @@ public class VolumeControlNativeInterface {
                 sInstance = new VolumeControlNativeInterface();
             }
             return sInstance;
+        }
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(VolumeControlNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
         }
     }
 
@@ -374,7 +379,6 @@ public class VolumeControlNativeInterface {
     }
 
     // Native methods that call into the JNI interface
-    private static native void classInitNative();
     private native void initNative();
     private native void cleanupNative();
     private native boolean connectVolumeControlNative(byte[] address);

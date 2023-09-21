@@ -57,16 +57,16 @@ public class AvrcpCoverArtProviderTest {
 
     @Rule
     public final ServiceTestRule mServiceRule = new ServiceTestRule();
-    @Mock
-    private Uri mUri;
-    @Mock
-    private AdapterService mAdapterService;
+    @Mock private Uri mUri;
+    @Mock private AdapterService mAdapterService;
+    @Mock private AvrcpControllerNativeInterface mNativeInterface;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
+        AvrcpControllerNativeInterface.setInstance(mNativeInterface);
         TestUtils.startService(mServiceRule, AvrcpControllerService.class);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mTestDevice = mAdapter.getRemoteDevice(mTestAddress);
@@ -76,6 +76,7 @@ public class AvrcpCoverArtProviderTest {
     @After
     public void tearDown() throws Exception {
         TestUtils.stopService(mServiceRule, AvrcpControllerService.class);
+        AvrcpControllerNativeInterface.setInstance(null);
         TestUtils.clearAdapterService(mAdapterService);
     }
 

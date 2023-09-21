@@ -52,6 +52,12 @@ cc_library_static {
         "com.android.btservices",
     ],
     min_sdk_version: "Tiramisu",
+    header_libs: ["libbluetooth_headers"],
+    static_libs: [
+        "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
+    ],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -94,7 +100,10 @@ cc_test {
         "liblog",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbt-common",
+        "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libchrome",
         "libevent",
         "libgmock",
@@ -103,6 +112,8 @@ cc_test {
     sanitize: {
         cfi: false,
     },
+    header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -128,6 +139,8 @@ cc_test {
         "libgmock",
         "libosi",
     ],
+    header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_benchmark {
@@ -150,4 +163,6 @@ cc_benchmark {
         "libevent",
         "libosi",
     ],
+    header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }

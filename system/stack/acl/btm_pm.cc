@@ -94,6 +94,12 @@ const uint8_t
 static void send_sniff_subrating(uint16_t handle, const RawAddress& addr,
                                  uint16_t max_lat, uint16_t min_rmt_to,
                                  uint16_t min_loc_to) {
+  uint16_t new_max_lat = 0;
+  if (interop_match_addr_get_max_lat(INTEROP_UPDATE_HID_SSR_MAX_LAT, &addr,
+                                     &new_max_lat)) {
+    max_lat = new_max_lat;
+  }
+
   btsnd_hcic_sniff_sub_rate(handle, max_lat, min_rmt_to, min_loc_to);
   BTM_LogHistory(kBtmLogTag, addr, "Sniff subrating",
                  base::StringPrintf(
@@ -122,12 +128,6 @@ static tBTM_STATUS btm_pm_snd_md_req(uint16_t handle, uint8_t pm_id,
  ******************************************************************************/
 tBTM_STATUS BTM_PmRegister(uint8_t mask, uint8_t* p_pm_id,
                            tBTM_PM_STATUS_CBACK* p_cb) {
-  if (bluetooth::shim::is_gd_link_policy_enabled()) {
-    ASSERT(p_pm_id != nullptr);
-    ASSERT(p_cb != nullptr);
-    return BTM_NO_RESOURCES;
-  }
-
   /* de-register */
   if (mask & BTM_PM_DEREG) {
     if (*p_pm_id >= BTM_MAX_PM_RECORDS) return BTM_ILLEGAL_VALUE;

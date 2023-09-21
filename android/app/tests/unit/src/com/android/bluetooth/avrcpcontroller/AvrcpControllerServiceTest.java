@@ -53,6 +53,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
@@ -69,6 +70,7 @@ public class AvrcpControllerServiceTest {
 
     @Mock private AdapterService mAdapterService;
     @Mock private AvrcpControllerStateMachine mStateMachine;
+    @Mock private AvrcpControllerNativeInterface mNativeInterface;
 
     private BluetoothDevice mRemoteDevice;
 
@@ -77,6 +79,7 @@ public class AvrcpControllerServiceTest {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
+        AvrcpControllerNativeInterface.setInstance(mNativeInterface);
         TestUtils.startService(mServiceRule, AvrcpControllerService.class);
         mService = AvrcpControllerService.getAvrcpControllerService();
         assertThat(mService).isNotNull();
@@ -93,6 +96,7 @@ public class AvrcpControllerServiceTest {
     @After
     public void tearDown() throws Exception {
         TestUtils.stopService(mServiceRule, AvrcpControllerService.class);
+        AvrcpControllerNativeInterface.setInstance(null);
         mService = AvrcpControllerService.getAvrcpControllerService();
         assertThat(mService).isNull();
         TestUtils.clearAdapterService(mAdapterService);
@@ -264,70 +268,13 @@ public class AvrcpControllerServiceTest {
     }
 
     @Test
-    public void createFromNativeMediaItem() {
-        long uid = 1;
-        int type = 2;
-        int[] attrIds = new int[] { 0x01 }; // MEDIA_ATTRIBUTE_TITLE}
-        String[] attrVals = new String[] {"test_title"};
-
-        AvrcpItem item = mService.createFromNativeMediaItem(
-                REMOTE_DEVICE_ADDRESS_AS_ARRAY, uid, type, "unused_name", attrIds, attrVals);
-
-        assertThat(item.getDevice().getAddress()).isEqualTo(REMOTE_DEVICE_ADDRESS);
-        assertThat(item.getItemType()).isEqualTo(AvrcpItem.TYPE_MEDIA);
-        assertThat(item.getType()).isEqualTo(type);
-        assertThat(item.getUid()).isEqualTo(uid);
-        assertThat(item.getUuid()).isNotNull(); // Random uuid
-        assertThat(item.getTitle()).isEqualTo(attrVals[0]);
-        assertThat(item.isPlayable()).isTrue();
-    }
-
-    @Test
-    public void createFromNativeFolderItem() {
-        long uid = 1;
-        int type = 2;
-        String folderName = "test_folder_name";
-        int playable = 0x01; // Playable folder
-
-        AvrcpItem item = mService.createFromNativeFolderItem(
-                REMOTE_DEVICE_ADDRESS_AS_ARRAY, uid, type, folderName, playable);
-
-        assertThat(item.getDevice().getAddress()).isEqualTo(REMOTE_DEVICE_ADDRESS);
-        assertThat(item.getItemType()).isEqualTo(AvrcpItem.TYPE_FOLDER);
-        assertThat(item.getType()).isEqualTo(type);
-        assertThat(item.getUid()).isEqualTo(uid);
-        assertThat(item.getUuid()).isNotNull(); // Random uuid
-        assertThat(item.getDisplayableName()).isEqualTo(folderName);
-        assertThat(item.isPlayable()).isTrue();
-    }
-
-    @Test
-    public void createFromNativePlayerItem() {
-        int playerId = 1;
-        String name = "test_name";
-        byte[] transportFlags = new byte[] {1, 0, 0, 0, 0, 0, 0, 0};
-        int playStatus = AvrcpControllerService.JNI_PLAY_STATUS_REV_SEEK;
-        int playerType = AvrcpPlayer.TYPE_AUDIO; // No getter exists
-
-        AvrcpPlayer player = mService.createFromNativePlayerItem(
-                REMOTE_DEVICE_ADDRESS_AS_ARRAY, playerId, name, transportFlags,
-                playStatus, playerType);
-
-        assertThat(player.getDevice().getAddress()).isEqualTo(REMOTE_DEVICE_ADDRESS);
-        assertThat(player.getId()).isEqualTo(playerId);
-        assertThat(player.supportsFeature(0)).isTrue();
-        assertThat(player.getName()).isEqualTo(name);
-        assertThat(player.getPlayStatus()).isEqualTo(PlaybackStateCompat.STATE_REWINDING);
-    }
-
-    @Test
     public void handleChangeFolderRsp() {
         int count = 1;
 
-        mService.handleChangeFolderRsp(REMOTE_DEVICE_ADDRESS_AS_ARRAY, count);
+        mService.handleChangeFolderRsp(mRemoteDevice, count);
 
-        verify(mStateMachine).sendMessage(
-                AvrcpControllerStateMachine.MESSAGE_PROCESS_FOLDER_PATH, count);
+        verify(mStateMachine)
+                .sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_FOLDER_PATH, count);
     }
 
     @Test
@@ -335,45 +282,41 @@ public class AvrcpControllerServiceTest {
         int items = 3;
         int depth = 5;
 
-        mService.handleSetBrowsedPlayerRsp(REMOTE_DEVICE_ADDRESS_AS_ARRAY, items, depth);
+        mService.handleSetBrowsedPlayerRsp(mRemoteDevice, items, depth);
 
-        verify(mStateMachine).sendMessage(
-                AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_BROWSED_PLAYER, items, depth);
+        verify(mStateMachine)
+                .sendMessage(
+                        AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_BROWSED_PLAYER,
+                        items,
+                        depth);
     }
 
     @Test
     public void handleSetAddressedPlayerRsp() {
         int status = 1;
 
-        mService.handleSetAddressedPlayerRsp(REMOTE_DEVICE_ADDRESS_AS_ARRAY, status);
+        mService.handleSetAddressedPlayerRsp(mRemoteDevice, status);
 
-        verify(mStateMachine).sendMessage(
-                AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_ADDRESSED_PLAYER);
+        verify(mStateMachine)
+                .sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_ADDRESSED_PLAYER);
     }
 
     @Test
     public void handleAddressedPlayerChanged() {
         int id = 1;
 
-        mService.handleAddressedPlayerChanged(REMOTE_DEVICE_ADDRESS_AS_ARRAY, id);
+        mService.handleAddressedPlayerChanged(mRemoteDevice, id);
 
-        verify(mStateMachine).sendMessage(
-                AvrcpControllerStateMachine.MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED, id);
+        verify(mStateMachine)
+                .sendMessage(
+                        AvrcpControllerStateMachine.MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED, id);
     }
 
     @Test
     public void handleNowPlayingContentChanged() {
-        mService.handleNowPlayingContentChanged(REMOTE_DEVICE_ADDRESS_AS_ARRAY);
+        mService.handleNowPlayingContentChanged(mRemoteDevice);
 
         verify(mStateMachine).nowPlayingContentChanged();
-    }
-
-    @Test
-    public void JniApisWithNoBehaviors_doNotCrash() {
-        mService.handlePassthroughRsp(1, 2, new byte[0]);
-        mService.handleGroupNavigationRsp(1, 2);
-        mService.getRcFeatures(new byte[0], 1);
-        mService.setPlayerAppSettingRsp(new byte[0], (byte) 0);
     }
 
     @Test
@@ -381,8 +324,7 @@ public class AvrcpControllerServiceTest {
         boolean remoteControlConnected = true;
         boolean browsingConnected = true; // Calls connect when any of them is true.
 
-        mService.onConnectionStateChanged(remoteControlConnected, browsingConnected,
-                REMOTE_DEVICE_ADDRESS_AS_ARRAY);
+        mService.onConnectionStateChanged(remoteControlConnected, browsingConnected, mRemoteDevice);
 
         ArgumentCaptor<StackEvent> captor = ArgumentCaptor.forClass(StackEvent.class);
         verify(mStateMachine).connect(captor.capture());
@@ -398,8 +340,7 @@ public class AvrcpControllerServiceTest {
         boolean remoteControlConnected = false;
         boolean browsingConnected = false; // Calls disconnect when both of them are false.
 
-        mService.onConnectionStateChanged(
-                remoteControlConnected, browsingConnected, REMOTE_DEVICE_ADDRESS_AS_ARRAY);
+        mService.onConnectionStateChanged(remoteControlConnected, browsingConnected, mRemoteDevice);
         assertThat(BluetoothMediaBrowserService.isActive()).isFalse();
         verify(mStateMachine).disconnect();
     }
@@ -408,7 +349,7 @@ public class AvrcpControllerServiceTest {
     public void getRcPsm() {
         int psm = 1;
 
-        mService.getRcPsm(REMOTE_DEVICE_ADDRESS_AS_ARRAY, psm);
+        mService.getRcPsm(mRemoteDevice, psm);
 
         verify(mStateMachine).sendMessage(
                 AvrcpControllerStateMachine.MESSAGE_PROCESS_RECEIVED_COVER_ART_PSM, psm);
@@ -418,7 +359,7 @@ public class AvrcpControllerServiceTest {
     public void handleRegisterNotificationAbsVol() {
         byte label = 1;
 
-        mService.handleRegisterNotificationAbsVol(REMOTE_DEVICE_ADDRESS_AS_ARRAY, label);
+        mService.handleRegisterNotificationAbsVol(mRemoteDevice, label);
 
         verify(mStateMachine).sendMessage(
                 AvrcpControllerStateMachine.MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION);
@@ -429,10 +370,10 @@ public class AvrcpControllerServiceTest {
         byte absVol = 15;
         byte label = 1;
 
-        mService.handleSetAbsVolume(REMOTE_DEVICE_ADDRESS_AS_ARRAY, absVol, label);
+        mService.handleSetAbsVolume(mRemoteDevice, absVol, label);
 
-        verify(mStateMachine).sendMessage(
-                AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_ABS_VOL_CMD, absVol);
+        verify(mStateMachine)
+                .sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_ABS_VOL_CMD, absVol);
     }
 
     @Test
@@ -441,11 +382,13 @@ public class AvrcpControllerServiceTest {
         int[] attrs = new int[0];
         String[] attrVals = new String[0];
 
-        mService.onTrackChanged(REMOTE_DEVICE_ADDRESS_AS_ARRAY, numAttrs, attrs, attrVals);
+        mService.onTrackChanged(mRemoteDevice, numAttrs, attrs, attrVals);
 
         ArgumentCaptor<AvrcpItem> captor = ArgumentCaptor.forClass(AvrcpItem.class);
-        verify(mStateMachine).sendMessage(
-                eq(AvrcpControllerStateMachine.MESSAGE_PROCESS_TRACK_CHANGED), captor.capture());
+        verify(mStateMachine)
+                .sendMessage(
+                        eq(AvrcpControllerStateMachine.MESSAGE_PROCESS_TRACK_CHANGED),
+                        captor.capture());
         AvrcpItem item = captor.getValue();
         assertThat(item.getDevice().getAddress()).isEqualTo(REMOTE_DEVICE_ADDRESS);
         assertThat(item.getItemType()).isEqualTo(AvrcpItem.TYPE_MEDIA);
@@ -457,7 +400,7 @@ public class AvrcpControllerServiceTest {
         int songLen = 100;
         int currSongPos = 33;
 
-        mService.onPlayPositionChanged(REMOTE_DEVICE_ADDRESS_AS_ARRAY, songLen, currSongPos);
+        mService.onPlayPositionChanged(mRemoteDevice, songLen, currSongPos);
 
         verify(mStateMachine).sendMessage(
                 AvrcpControllerStateMachine.MESSAGE_PROCESS_PLAY_POS_CHANGED, songLen, currSongPos);
@@ -465,9 +408,9 @@ public class AvrcpControllerServiceTest {
 
     @Test
     public void onPlayStatusChanged() {
-        byte status = AvrcpControllerService.JNI_PLAY_STATUS_REV_SEEK;
+        byte status = PlaybackStateCompat.STATE_REWINDING;
 
-        mService.onPlayStatusChanged(REMOTE_DEVICE_ADDRESS_AS_ARRAY, status);
+        mService.onPlayStatusChanged(mRemoteDevice, status);
 
         verify(mStateMachine).sendMessage(
                 AvrcpControllerStateMachine.MESSAGE_PROCESS_PLAY_STATUS_CHANGED,
@@ -476,22 +419,28 @@ public class AvrcpControllerServiceTest {
 
     @Test
     public void onPlayerAppSettingChanged() {
-        byte[] playerAttribRsp = new byte[] {PlayerApplicationSettings.REPEAT_STATUS,
-                PlayerApplicationSettings.JNI_REPEAT_STATUS_ALL_TRACK_REPEAT};
+        byte[] playerAttribRsp =
+                new byte[] {
+                    PlayerApplicationSettings.REPEAT_STATUS,
+                    PlayerApplicationSettings.JNI_REPEAT_STATUS_ALL_TRACK_REPEAT
+                };
 
-        mService.onPlayerAppSettingChanged(REMOTE_DEVICE_ADDRESS_AS_ARRAY, playerAttribRsp, 2);
+        mService.onPlayerAppSettingChanged(mRemoteDevice, playerAttribRsp, 2);
 
-        verify(mStateMachine).sendMessage(
-                eq(AvrcpControllerStateMachine.MESSAGE_PROCESS_CURRENT_APPLICATION_SETTINGS),
-                any(PlayerApplicationSettings.class));
+        verify(mStateMachine)
+                .sendMessage(
+                        eq(
+                                AvrcpControllerStateMachine
+                                        .MESSAGE_PROCESS_CURRENT_APPLICATION_SETTINGS),
+                        any(PlayerApplicationSettings.class));
     }
 
     @Test
     public void onAvailablePlayerChanged() {
-        mService.onAvailablePlayerChanged(REMOTE_DEVICE_ADDRESS_AS_ARRAY);
+        mService.onAvailablePlayerChanged(mRemoteDevice);
 
-        verify(mStateMachine).sendMessage(
-                AvrcpControllerStateMachine.MESSAGE_PROCESS_AVAILABLE_PLAYER_CHANGED);
+        verify(mStateMachine)
+                .sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_AVAILABLE_PLAYER_CHANGED);
     }
 
     @Test
@@ -499,27 +448,28 @@ public class AvrcpControllerServiceTest {
         int status = 2;
         AvrcpItem[] items = new AvrcpItem[] {mock(AvrcpItem.class)};
 
-        mService.handleGetFolderItemsRsp(REMOTE_DEVICE_ADDRESS_AS_ARRAY, status, items);
+        mService.handleGetFolderItemsRsp(mRemoteDevice, status, items);
 
-        verify(mStateMachine).sendMessage(
-                eq(AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_FOLDER_ITEMS),
-                eq(new ArrayList<>(Arrays.asList(items))));
+        verify(mStateMachine)
+                .sendMessage(
+                        eq(AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_FOLDER_ITEMS),
+                        eq(new ArrayList<>(Arrays.asList(items))));
     }
 
     @Test
     public void handleGetPlayerItemsRsp() {
-        AvrcpPlayer[] items = new AvrcpPlayer[] {mock(AvrcpPlayer.class)};
+        List<AvrcpPlayer> items = List.of(mock(AvrcpPlayer.class));
 
-        mService.handleGetPlayerItemsRsp(REMOTE_DEVICE_ADDRESS_AS_ARRAY, items);
+        mService.handleGetPlayerItemsRsp(mRemoteDevice, items);
 
         verify(mStateMachine).sendMessage(
                 eq(AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_PLAYER_ITEMS),
-                eq(new ArrayList<>(Arrays.asList(items))));
+                eq(items));
     }
 
     @Test
     public void dump_doesNotCrash() {
-        mService.getRcPsm(REMOTE_DEVICE_ADDRESS_AS_ARRAY, 1);
+        mService.getRcPsm(mRemoteDevice, 1);
         mService.dump(new StringBuilder());
     }
 

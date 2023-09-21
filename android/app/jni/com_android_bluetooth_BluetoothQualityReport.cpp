@@ -82,12 +82,6 @@ class BluetoothQualityReportCallbacksImpl
 
 static BluetoothQualityReportCallbacksImpl sBluetoothQualityReportCallbacks;
 
-static void classInitNative(JNIEnv* env, jclass clazz) {
-  method_bqrDeliver = env->GetMethodID(clazz, "bqrDeliver", "([BIII[B)V");
-
-  LOG(INFO) << __func__ << ": succeeds";
-}
-
 static void initNative(JNIEnv* env, jobject object) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
@@ -131,7 +125,7 @@ static void initNative(JNIEnv* env, jobject object) {
   sBluetoothQualityReportInterface->init(&sBluetoothQualityReportCallbacks);
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
 
@@ -151,17 +145,28 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static JNINativeMethod sMethods[] = {
-    {"classInitNative", "()V", (void*)classInitNative},
-    {"initNative", "()V", (void*)initNative},
-    {"cleanupNative", "()V", (void*)cleanupNative},
-};
-
 int register_com_android_bluetooth_btservice_BluetoothQualityReport(
     JNIEnv* env) {
-  return jniRegisterNativeMethods(env,
-                                  "com/android/bluetooth/btservice/"
-                                  "BluetoothQualityReportNativeInterface",
-                                  sMethods, NELEM(sMethods));
+  const JNINativeMethod methods[] = {
+      {"initNative", "()V", (void*)initNative},
+      {"cleanupNative", "()V", (void*)cleanupNative},
+  };
+  const int result = REGISTER_NATIVE_METHODS(
+      env,
+      "com/android/bluetooth/btservice/BluetoothQualityReportNativeInterface",
+      methods);
+  if (result != 0) {
+    return result;
+  }
+
+  const JNIJavaMethod javaMethods[] = {
+      {"bqrDeliver", "([BIII[B)V", &method_bqrDeliver},
+  };
+  GET_JAVA_METHODS(
+      env,
+      "com/android/bluetooth/btservice/BluetoothQualityReportNativeInterface",
+      javaMethods);
+
+  return 0;
 }
 }  // namespace android

@@ -26,6 +26,8 @@ import com.android.bluetooth.audio_util.PlayStatus;
 import com.android.bluetooth.audio_util.PlayerInfo;
 import com.android.bluetooth.audio_util.PlayerSettingsManager.PlayerSettingsValues;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.internal.annotations.GuardedBy;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.List;
 import java.util.Objects;
@@ -38,25 +40,35 @@ public class AvrcpNativeInterface {
     private static final String TAG = "AvrcpNativeInterface";
     private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
 
+    @GuardedBy("INSTANCE_LOCK")
     private static AvrcpNativeInterface sInstance;
+
+    private static final Object INSTANCE_LOCK = new Object();
+
     private AvrcpTargetService mAvrcpService;
     private AdapterService mAdapterService;
-
-    static {
-        classInitNative();
-    }
 
     private AvrcpNativeInterface() {
         mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
                 "AdapterService cannot be null when AvrcpNativeInterface init");
     }
 
-    static AvrcpNativeInterface getInterface() {
-        if (sInstance == null) {
-            sInstance = new AvrcpNativeInterface();
+    static AvrcpNativeInterface getInstance() {
+        synchronized (INSTANCE_LOCK) {
+            if (sInstance == null) {
+                sInstance = new AvrcpNativeInterface();
+            }
         }
 
         return sInstance;
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(AvrcpNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
+        }
     }
 
     void init(AvrcpTargetService service) {
@@ -344,8 +356,6 @@ public class AvrcpNativeInterface {
         valuesArray[1] = (byte) shuffleMode;
         sendPlayerSettingsNative(settingsArray, valuesArray);
     }
-
-    private static native void classInitNative();
 
     private native void initNative();
 

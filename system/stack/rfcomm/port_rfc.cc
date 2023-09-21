@@ -58,7 +58,7 @@ void port_get_credits(tPORT* p_port, uint8_t k);
  * Description      This function is called after security manager completes
  *                  required security checks.
  *
- * Returns          void
+ * Returns          PORT_SUCCESS or PORT_[ERROR]
  *
  ******************************************************************************/
 int port_open_continue(tPORT* p_port) {
@@ -104,8 +104,6 @@ int port_open_continue(tPORT* p_port) {
  * Description      This function is called in the BTU_TASK context to
  *                  send control information
  *
- * Returns          void
- *
  ******************************************************************************/
 void port_start_control(tPORT* p_port) {
   tRFC_MCB* p_mcb = p_port->rfc.p_mcb;
@@ -121,8 +119,6 @@ void port_start_control(tPORT* p_port) {
  *
  * Description      This function is called in the BTU_TASK context to
  *                  send configuration information
- *
- * Returns          void
  *
  ******************************************************************************/
 void port_start_par_neg(tPORT* p_port) {
@@ -140,8 +136,6 @@ void port_start_par_neg(tPORT* p_port) {
  *
  * Description      This function is called in the BTU_TASK context to
  *                  release DLC
- *
- * Returns          void
  *
  ******************************************************************************/
 void port_start_close(tPORT* p_port) {
@@ -426,8 +420,8 @@ void PORT_ParNegCnf(tRFC_MCB* p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl,
  *                  first message in the establishment procedure port_handle
  *                  has a handle to the port control block otherwise the control
  *                  block should be found based on the muliplexer channel and
- *                  dlci.  The block should be allocated allocated before
- *                  meaning that application already made open.
+ *                  dlci.  The block should be allocated before meaning
+ *                  that application already made open.
  *
  ******************************************************************************/
 void PORT_DlcEstablishInd(tRFC_MCB* p_mcb, uint8_t dlci, uint16_t mtu) {
@@ -479,7 +473,7 @@ void PORT_DlcEstablishInd(tRFC_MCB* p_mcb, uint8_t dlci, uint16_t mtu) {
  * Description      This function is called from the RFCOMM layer when peer
  *                  acknowledges establish procedure (SABME/UA).  Send reply
  *                  to the user and set state to OPENED if result was
- *                  successfull.
+ *                  successful.
  *
  ******************************************************************************/
 void PORT_DlcEstablishCnf(tRFC_MCB* p_mcb, uint8_t dlci, uint16_t mtu,
@@ -755,17 +749,17 @@ void PORT_CloseInd(tRFC_MCB* p_mcb) {
 
 /*******************************************************************************
  *
- * Function         Port_TimeOutCloseMux
+ * Function         PORT_TimeOutCloseMux
  *
  * Description      This function is called when RFCOMM timesout on a command
  *                  as a result multiplexer connection is closed.
  *
  ******************************************************************************/
-void Port_TimeOutCloseMux(tRFC_MCB* p_mcb) {
+void PORT_TimeOutCloseMux(tRFC_MCB* p_mcb) {
   tPORT* p_port;
   int i;
 
-  RFCOMM_TRACE_EVENT("Port_TimeOutCloseMux");
+  RFCOMM_TRACE_EVENT("PORT_TimeOutCloseMux");
 
   p_port = &rfc_cb.port.port[0];
   for (i = 0; i < MAX_RFC_PORTS; i++, p_port++) {

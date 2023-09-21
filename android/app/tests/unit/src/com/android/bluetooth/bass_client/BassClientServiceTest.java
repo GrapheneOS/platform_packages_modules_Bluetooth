@@ -39,7 +39,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothLeAudioCodecConfigMetadata;
 import android.bluetooth.BluetoothLeAudioContentMetadata;
-import android.bluetooth.BluetoothLeBroadcast;
 import android.bluetooth.BluetoothLeBroadcastAssistant;
 import android.bluetooth.BluetoothLeBroadcastChannel;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
@@ -50,6 +49,8 @@ import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothLeBroadcastAssistantCallback;
 import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanRecord;
+import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -1039,5 +1040,107 @@ public class BassClientServiceTest {
         List<BluetoothDevice> devices = mBassClientService.getConnectedDevices();
         assertThat(devices.contains(mCurrentDevice)).isTrue();
         assertThat(devices.contains(mCurrentDevice1)).isTrue();
+    }
+
+    @Test
+    public void testActiveSyncedSource_AddRemoveGet() {
+        prepareConnectedDeviceGroup();
+        assertThat(mStateMachines.size()).isEqualTo(2);
+
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice)).isEqualTo(null);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1)).isEqualTo(null);
+
+        BluetoothDevice testDevice =
+                mBluetoothAdapter.getRemoteLeDevice(
+                        TEST_MAC_ADDRESS, BluetoothDevice.ADDRESS_TYPE_RANDOM);
+        // Verify add active synced source
+        mBassClientService.addActiveSyncedSource(mCurrentDevice, testDevice);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testDevice);
+        // Verify duplicated source won't be added
+        mBassClientService.addActiveSyncedSource(mCurrentDevice, testDevice);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testDevice);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice)).isNotEqualTo(null);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1)).isNotEqualTo(null);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice).size()).isEqualTo(1);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1).size()).isEqualTo(1);
+
+        // Verify remove active synced source
+        mBassClientService.removeActiveSyncedSource(mCurrentDevice, testDevice);
+        mBassClientService.removeActiveSyncedSource(mCurrentDevice1, testDevice);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice)).isEqualTo(null);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1)).isEqualTo(null);
+    }
+
+    @Test
+    public void testSelectSource_invalidActiveSource() {
+        byte[] scanRecord = new byte[]{
+                0x02, 0x01, 0x1a, // advertising flags
+                0x05, 0x02, 0x52, 0x18, 0x0a, 0x11, // 16 bit service uuids
+                0x04, 0x09, 0x50, 0x65, 0x64, // name
+                0x02, 0x0A, (byte) 0xec, // tx power level
+                0x05, 0x30, 0x54, 0x65, 0x73, 0x74, // broadcast name: Test
+                0x06, 0x16, 0x52, 0x18, 0x50, 0x64, 0x65, // service data
+                0x08, 0x16, 0x56, 0x18, 0x07, 0x03, 0x06, 0x07, 0x08,
+                // service data - public broadcast,
+                // feature - 0x7, metadata len - 0x3, metadata - 0x6, 0x7, 0x8
+                0x05, (byte) 0xff, (byte) 0xe0, 0x00, 0x02, 0x15, // manufacturer specific data
+                0x03, 0x50, 0x01, 0x02, // an unknown data type won't cause trouble
+        };
+        ScanRecord record = ScanRecord.parseFromBytes(scanRecord);
+
+        prepareConnectedDeviceGroup();
+        assertThat(mStateMachines.size()).isEqualTo(2);
+
+        BluetoothDevice testDevice = mBluetoothAdapter.getRemoteLeDevice(
+                TEST_MAC_ADDRESS, BluetoothDevice.ADDRESS_TYPE_RANDOM);
+        BluetoothDevice testDevice1 = mBluetoothAdapter.getRemoteLeDevice(
+                "00:11:22:33:44:66", BluetoothDevice.ADDRESS_TYPE_RANDOM);
+        BluetoothDevice testDevice2 = mBluetoothAdapter.getRemoteLeDevice(
+                "00:11:22:33:44:77", BluetoothDevice.ADDRESS_TYPE_RANDOM);
+        BluetoothDevice testDevice3 = mBluetoothAdapter.getRemoteLeDevice(
+                "00:11:22:33:44:88", BluetoothDevice.ADDRESS_TYPE_RANDOM);
+        // Verify add active synced source
+        mBassClientService.addActiveSyncedSource(mCurrentDevice, testDevice);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testDevice);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice)).isNotEqualTo(null);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1)).isNotEqualTo(null);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice).size()).isEqualTo(1);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1).size()).isEqualTo(1);
+
+        // Verify selectSource with synced device should not proceed
+        ScanResult scanResult = new ScanResult(testDevice, 0, 0, 0, 0, 0, 0, 0, record, 0);
+        mBassClientService.selectSource(mCurrentDevice, scanResult, false);
+        mBassClientService.selectSource(mCurrentDevice1, scanResult, false);
+        for (BassClientStateMachine sm : mStateMachines.values()) {
+            verify(sm, never()).sendMessage(any());
+        }
+
+        // Verify selectSource with max synced device should not proceed
+        mBassClientService.addActiveSyncedSource(mCurrentDevice, testDevice1);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testDevice1);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice, testDevice2);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testDevice2);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice, testDevice3);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testDevice3);
+
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice)).isNotEqualTo(null);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1)).isNotEqualTo(null);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice).size()).isEqualTo(4);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1).size()).isEqualTo(4);
+
+        BluetoothDevice testDevice4 = mBluetoothAdapter.getRemoteLeDevice(
+                "00:01:02:03:04:05", BluetoothDevice.ADDRESS_TYPE_RANDOM);
+        ScanResult scanResult1 = new ScanResult(testDevice4, 0, 0, 0, 0, 0, 0, 0, record, 0);
+        mBassClientService.selectSource(mCurrentDevice, scanResult1, false);
+        mBassClientService.selectSource(mCurrentDevice1, scanResult1, false);
+        for (BassClientStateMachine sm : mStateMachines.values()) {
+            verify(sm, never()).sendMessage(any());
+        }
+
+        // Verify remove all active synced source
+        mBassClientService.removeActiveSyncedSource(mCurrentDevice, null);
+        mBassClientService.removeActiveSyncedSource(mCurrentDevice1, null);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice)).isEqualTo(null);
+        assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1)).isEqualTo(null);
     }
 }

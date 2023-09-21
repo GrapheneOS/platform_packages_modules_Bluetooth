@@ -28,7 +28,9 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.os.MessageQueue;
+import android.os.test.TestLooper;
 import android.service.media.MediaBrowserService;
 import android.util.Log;
 
@@ -56,6 +58,7 @@ import java.util.HashMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.IntStream;
 
 /**
  * A set of methods useful in Bluetooth instrumentation tests
@@ -285,6 +288,28 @@ public class TestUtils {
     }
 
     /**
+     * Dispatch all the message on the Loopper and check that the `what` is expected
+     *
+     * @param looper looper to execute the message from
+     * @param what list of Messages.what that are expected to be run by the handler
+     */
+    public static void syncHandler(TestLooper looper, int... what) {
+        IntStream.of(what)
+                .forEach(
+                        w -> {
+                            Message msg = looper.nextMessage();
+                            assertWithMessage("Expecting [" + w + "] instead of null Msg")
+                                    .that(msg)
+                                    .isNotNull();
+                            assertWithMessage("Not the expected Message:\n" + msg)
+                                    .that(msg.what)
+                                    .isEqualTo(w);
+                            Log.d(TAG, "Processing message: " + msg);
+                            msg.getTarget().dispatchMessage(msg);
+                        });
+    }
+
+    /**
      * Wait for looper to become idle
      *
      * @param looper looper of interest
@@ -369,6 +394,7 @@ public class TestUtils {
                 }
                 if (line.startsWith("[")) {
                     if (line.charAt(line.length() - 1) != ']') {
+                        Log.e(TAG, "readAdapterConfig: config line is not correct: " + line);
                         return null;
                     }
                     section = line.substring(1, line.length() - 1);
@@ -380,6 +406,7 @@ public class TestUtils {
                 }
             }
         } catch (IOException e) {
+            Log.e(TAG, "readAdapterConfig: Exception while reading the config" + e);
             return null;
         }
         return adapterConfig;

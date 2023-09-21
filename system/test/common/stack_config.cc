@@ -72,9 +72,9 @@ stack_config_t mock_stack_config{
     .get_pts_eatt_peripheral_collision_support =
         get_pts_eatt_peripheral_collision_support,
     .get_pts_use_eatt_for_all_services = get_pts_use_eatt_for_all_services,
-    .get_pts_l2cap_ecoc_upper_tester = get_pts_l2cap_ecoc_upper_tester,
     .get_pts_force_le_audio_multiple_contexts_metadata =
         get_pts_force_le_audio_multiple_contexts_metadata,
+    .get_pts_l2cap_ecoc_upper_tester = get_pts_l2cap_ecoc_upper_tester,
     .get_pts_l2cap_ecoc_min_key_size = get_pts_l2cap_ecoc_min_key_size,
     .get_pts_l2cap_ecoc_initial_chan_cnt = get_pts_l2cap_ecoc_initial_chan_cnt,
     .get_pts_l2cap_ecoc_connect_remaining =

@@ -94,6 +94,7 @@ public class GattServiceTest {
     @Mock private Set<String> mReliableQueue;
     @Mock private GattService.ServerMap mServerMap;
     @Mock private DistanceMeasurementManager mDistanceMeasurementManager;
+    @Mock private AdvertiseManagerNativeInterface mAdvertiseManagerNativeInterface;
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
@@ -138,6 +139,7 @@ public class GattServiceTest {
         mBtCompanionManager = new CompanionManager(mAdapterService, null);
         doReturn(mBtCompanionManager).when(mAdapterService).getCompanionManager();
 
+        AdvertiseManagerNativeInterface.setInstance(mAdvertiseManagerNativeInterface);
         mService = new GattService(InstrumentationRegistry.getTargetContext());
         mService.start();
 
@@ -151,6 +153,7 @@ public class GattServiceTest {
     public void tearDown() throws Exception {
         mService.stop();
         mService = null;
+        AdvertiseManagerNativeInterface.setInstance(null);
 
         TestUtils.clearAdapterService(mAdapterService);
         GattObjectsFactory.setInstanceForTesting(null);
@@ -775,5 +778,18 @@ public class GattServiceTest {
     @Test
     public void cleanUp_doesNotCrash() {
         mService.cleanup();
+    }
+
+    @Test
+    public void profileConnectionStateChanged_notifyScanManager() {
+        mService.notifyProfileConnectionStateChange(
+                BluetoothProfile.A2DP,
+                BluetoothProfile.STATE_CONNECTING,
+                BluetoothProfile.STATE_CONNECTED);
+        verify(mScanManager)
+                .handleBluetoothProfileConnectionStateChanged(
+                        BluetoothProfile.A2DP,
+                        BluetoothProfile.STATE_CONNECTING,
+                        BluetoothProfile.STATE_CONNECTED);
     }
 }

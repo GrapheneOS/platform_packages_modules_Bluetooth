@@ -43,5 +43,6 @@ bt_status_t btsock_rfc_connect(const RawAddress* bd_addr,
                                const bluetooth::Uuid* uuid, int channel,
                                int* sock_fd, int flags, int app_uid);
 void btsock_rfc_signaled(int fd, int flags, uint32_t user_id);
+bt_status_t btsock_rfc_disconnect(const RawAddress* bd_addr);
 
 #endif

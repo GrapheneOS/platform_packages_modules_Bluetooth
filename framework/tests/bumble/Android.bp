@@ -23,6 +23,7 @@ android_test_helper_app {
         "androidx.core_core",
         "androidx.test.ext.truth",
         "androidx.test.rules",
+        "compatibility-device-util-axt",
         "grpc-java-lite",
         "grpc-java-okhttp-client-lite",
         "opencensus-java-contrib-grpc-metrics",
@@ -34,9 +35,6 @@ android_test_helper_app {
     srcs: ["src/**/*.java"],
 
     platform_apis: true,
-    test_suites: [
-        "general-tests",
-    ],
 }
 
 // This empty test host is needed for building required host binary
@@ -50,6 +48,7 @@ java_test_host {
 
     data: [
         ":BumbleBluetoothTestsApp",
+        "bumble_config.json",
     ],
     data_native_bins: [
         "bumble_pandora_server",

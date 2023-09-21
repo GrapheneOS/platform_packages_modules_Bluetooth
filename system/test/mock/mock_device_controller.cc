@@ -93,6 +93,9 @@ bool ble_supported{false};
 bool iso_supported{false};
 bool simple_pairing_supported{false};
 bool secure_connections_supported{false};
+bool supports_hold_mode{false};
+bool supports_sniff_mode{true};
+bool supports_park_mode{false};
 
 bool get_is_ready(void) { return readable; }
 
@@ -208,18 +211,6 @@ bool supports_3_slot_esco_edr_packets(void) {
 
 bool supports_role_switch(void) {
   return HCI_SWITCH_SUPPORTED(features_classic[0].as_array);
-}
-
-bool supports_hold_mode(void) {
-  return HCI_HOLD_MODE_SUPPORTED(features_classic[0].as_array);
-}
-
-bool supports_sniff_mode(void) {
-  return HCI_SNIFF_MODE_SUPPORTED(features_classic[0].as_array);
-}
-
-bool supports_park_mode(void) {
-  return HCI_PARK_MODE_SUPPORTED(features_classic[0].as_array);
 }
 
 bool supports_non_flushable_pb(void) {
@@ -440,9 +431,9 @@ const controller_t interface = {
     supports_esco_3m_phy,
     supports_3_slot_esco_edr_packets,
     supports_role_switch,
-    supports_hold_mode,
-    supports_sniff_mode,
-    supports_park_mode,
+    []() { return supports_hold_mode; },
+    []() { return supports_sniff_mode; },
+    []() { return supports_park_mode; },
     supports_non_flushable_pb,
     supports_sniff_subrating,
     supports_encryption_pause,

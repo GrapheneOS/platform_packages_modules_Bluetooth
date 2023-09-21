@@ -56,6 +56,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.RemoteDevices;
 import com.android.bluetooth.hfp.HeadsetService;
 
 import org.hamcrest.core.AllOf;
@@ -86,18 +87,14 @@ public class HeadsetClientStateMachineTest {
     private BluetoothDevice mTestDevice;
     private Context mTargetContext;
 
-    @Mock
-    private AdapterService mAdapterService;
-    @Mock
-    private Resources mMockHfpResources;
-    @Mock
-    private HeadsetService mHeadsetService;
-    @Mock
-    private HeadsetClientService mHeadsetClientService;
-    @Mock
-    private AudioManager mAudioManager;
+    @Mock private AdapterService mAdapterService;
+    @Mock private Resources mMockHfpResources;
+    @Mock private HeadsetService mHeadsetService;
+    @Mock private HeadsetClientService mHeadsetClientService;
+    @Mock private AudioManager mAudioManager;
+    @Mock private RemoteDevices mRemoteDevices;
 
-    private NativeInterface mNativeInterface;
+    @Mock private NativeInterface mNativeInterface;
 
     private static final int STANDARD_WAIT_MILLIS = 1000;
     private static final int QUERY_CURRENT_CALLS_WAIT_MILLIS = 2000;
@@ -122,7 +119,7 @@ public class HeadsetClientStateMachineTest {
                 .thenReturn(2000);
 
         TestUtils.setAdapterService(mAdapterService);
-        mNativeInterface = spy(NativeInterface.getInstance());
+        doReturn(mRemoteDevices).when(mAdapterService).getRemoteDevices();
         doReturn(true).when(mNativeInterface).sendAndroidAt(anyObject(), anyString());
 
         // This line must be called to make sure relevant objects are initialized properly

@@ -342,6 +342,9 @@ class CsisClientTest : public ::testing::Test {
     SetMockCsisLockCallback(&csis_lock_cb);
     callbacks.reset(new MockCsisCallbacks());
 
+    ON_CALL(btm_interface, BTM_IsEncrypted(_, _))
+        .WillByDefault(DoAll(Return(true)));
+
     ON_CALL(gatt_interface, GetCharacteristic(_, _))
         .WillByDefault(
             Invoke([&](uint16_t conn_id,
@@ -427,11 +430,11 @@ class CsisClientTest : public ::testing::Test {
     gatt_callback = nullptr;
   }
 
-  void TestConnect(const RawAddress& address) {
+  void TestConnect(const RawAddress& address, bool encrypted = true) {
     // by default indicate link as encrypted
     ON_CALL(btm_interface, GetSecurityFlagsByTransport(address, NotNull(), _))
         .WillByDefault(
-            DoAll(SetArgPointee<1>(BTM_SEC_FLAG_ENCRYPTED), Return(true)));
+            DoAll(SetArgPointee<1>(BTM_SEC_FLAG_ENCRYPTED), Return(encrypted)));
 
     EXPECT_CALL(gatt_interface,
                 Open(gatt_if, address, BTM_BLE_DIRECT_CONNECTION, _));
@@ -494,8 +497,8 @@ class CsisClientTest : public ::testing::Test {
       const RawAddress& address, uint16_t conn_id,
       tGATT_DISCONN_REASON reason = GATT_CONN_TERMINATE_PEER_USER) {
     tBTA_GATTC_CLOSE event_data = {
-        .status = GATT_SUCCESS,
         .conn_id = conn_id,
+        .status = GATT_SUCCESS,
         .client_if = gatt_if,
         .remote_bda = address,
         .reason = reason,
@@ -506,8 +509,8 @@ class CsisClientTest : public ::testing::Test {
 
   void GetSearchCompleteEvent(uint16_t conn_id) {
     tBTA_GATTC_SEARCH_CMPL event_data = {
-        .status = GATT_SUCCESS,
         .conn_id = conn_id,
+        .status = GATT_SUCCESS,
     };
 
     gatt_callback(BTA_GATTC_SEARCH_CMPL_EVT, (tBTA_GATTC*)&event_data);
@@ -531,31 +534,52 @@ class CsisClientTest : public ::testing::Test {
     TestAppUnregister();
   }
 
+  void TestGattWriteCCC(uint16_t ccc_handle, GattStatus status,
+                        int deregister_times) {
+    SetSampleDatabaseCsis(1, 1);
+    TestAppRegister();
+    TestConnect(test_address);
+    InjectConnectedEvent(test_address, 1);
+
+    auto WriteDescriptorCbGenerator = [](tGATT_STATUS status,
+                                         uint16_t ccc_handle) {
+      return [status, ccc_handle](uint16_t conn_id, uint16_t handle,
+                                  std::vector<uint8_t> value,
+                                  tGATT_WRITE_TYPE write_type,
+                                  GATT_WRITE_OP_CB cb, void* cb_data) -> void {
+        if (cb) {
+          if (ccc_handle) {
+            handle = ccc_handle;
+          }
+          cb(conn_id, status, handle, value.size(), value.data(), cb_data);
+        }
+      };
+    };
+
+    // sirk, size, lock
+    EXPECT_CALL(gatt_queue, WriteDescriptor(_, _, _, _, _, _))
+        .Times(3)
+        .WillOnce(Invoke(WriteDescriptorCbGenerator(GATT_SUCCESS, 0)))
+        .WillOnce(Invoke(WriteDescriptorCbGenerator(GATT_SUCCESS, 0)))
+        .WillOnce(Invoke(WriteDescriptorCbGenerator(status, ccc_handle)));
+
+    EXPECT_CALL(gatt_interface, DeregisterForNotifications(_, _, _))
+        .Times(deregister_times);
+
+    GetSearchCompleteEvent(1);
+    Mock::VerifyAndClearExpectations(&gatt_interface);
+  }
+
   void GetDisconnectedEvent(const RawAddress& address, uint16_t conn_id) {
     tBTA_GATTC_CLOSE event_data = {
-        .status = GATT_SUCCESS,
         .conn_id = conn_id,
+        .status = GATT_SUCCESS,
         .client_if = gatt_if,
         .remote_bda = address,
         .reason = GATT_CONN_TERMINATE_PEER_USER,
     };
 
     gatt_callback(BTA_GATTC_CLOSE_EVT, (tBTA_GATTC*)&event_data);
-  }
-
-  void SetEncryptionResult(const RawAddress& address, uint16_t conn_id,
-                           bool success) {
-    ON_CALL(btm_interface, BTM_IsEncrypted(address, _))
-        .WillByDefault(DoAll(Return(success)));
-
-    ON_CALL(btm_interface, SetEncryption(address, _, _, _, _))
-        .WillByDefault(
-            Invoke([&](const RawAddress& bd_addr, tBT_TRANSPORT transport,
-                       tBTM_SEC_CALLBACK* p_callback, void* p_ref_data,
-                       tBTM_BLE_SEC_ACT sec_act) -> tBTM_STATUS {
-              InjectEncryptionEvent(bd_addr, conn_id);
-              return BTM_SUCCESS;
-            }));
   }
 
   void SetSampleDatabaseCsis(uint16_t conn_id, uint8_t rank,
@@ -694,6 +718,24 @@ TEST_F(CsisClientTest, test_discovery_csis_broken) {
   TestAppUnregister();
 }
 
+TEST_F(CsisClientTest, test_ccc_reg_fail_handle_not_found) {
+  // service handle range: 0x0001 ~ 0x0030
+  uint16_t not_existed_ccc_handle = 0x0031;
+  TestGattWriteCCC(not_existed_ccc_handle, GATT_INVALID_HANDLE, 0);
+}
+
+TEST_F(CsisClientTest, test_ccc_reg_fail_handle_found) {
+  // kCsisLockUuid ccc handle
+  uint16_t existed_ccc_hande = 0x0028;
+  TestGattWriteCCC(existed_ccc_hande, GATT_INVALID_HANDLE, 1);
+}
+
+TEST_F(CsisClientTest, test_ccc_reg_fail_out_of_sync) {
+  // kCsisLockUuid ccc handle
+  uint16_t ccc_handle = 0x0028;
+  TestGattWriteCCC(ccc_handle, GATT_DATABASE_OUT_OF_SYNC, 0);
+}
+
 class CsisClientCallbackTest : public CsisClientTest {
  protected:
   const RawAddress test_address = GetTestAddress(0);
@@ -756,6 +798,41 @@ TEST_F(CsisClientTest, test_get_group_id) {
   GetSearchCompleteEvent(1);
   int group_id = CsisClient::Get()->GetGroupId(test_address);
   ASSERT_TRUE(group_id == 1);
+  TestAppUnregister();
+}
+
+TEST_F(CsisClientTest, test_search_complete_before_encryption) {
+  SetSampleDatabaseCsis(1, 1);
+  TestAppRegister();
+  TestConnect(test_address, false);
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(test_address, ConnectionState::CONNECTED))
+      .Times(0);
+  EXPECT_CALL(*callbacks, OnDeviceAvailable(test_address, _, _, _, _)).Times(0);
+
+  ON_CALL(btm_interface, BTM_IsEncrypted(test_address, _))
+      .WillByDefault(DoAll(Return(false)));
+
+  InjectConnectedEvent(test_address, 1);
+  GetSearchCompleteEvent(1);
+  Mock::VerifyAndClearExpectations(callbacks.get());
+
+  /* Incject encryption and expect device connection */
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(test_address, ConnectionState::CONNECTED))
+      .Times(1);
+  EXPECT_CALL(*callbacks, OnDeviceAvailable(test_address, _, _, _, _)).Times(1);
+
+  ON_CALL(btm_interface, BTM_IsEncrypted(test_address, _))
+      .WillByDefault(DoAll(Return(true)));
+  EXPECT_CALL(gatt_interface, ServiceSearchRequest(_, _)).Times(1);
+
+  InjectEncryptionEvent(test_address, 1);
+  GetSearchCompleteEvent(1);
+
+  Mock::VerifyAndClearExpectations(&gatt_interface);
+  Mock::VerifyAndClearExpectations(callbacks.get());
+
   TestAppUnregister();
 }
 

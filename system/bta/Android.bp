@@ -42,6 +42,8 @@ filegroup {
         "dm/bta_dm_api.cc",
         "dm/bta_dm_cfg.cc",
         "dm/bta_dm_ci.cc",
+        "dm/bta_dm_disc.cc",
+        "dm/bta_dm_gatt_client.cc",
         "dm/bta_dm_main.cc",
         "dm/bta_dm_pm.cc",
     ],
@@ -102,13 +104,13 @@ cc_library_static {
         "le_audio/broadcaster/state_machine.cc",
         "le_audio/client.cc",
         "le_audio/client_parser.cc",
+        "le_audio/codec_interface.cc",
         "le_audio/codec_manager.cc",
         "le_audio/content_control_id_keeper.cc",
         "le_audio/devices.cc",
         "le_audio/hal_verifier.cc",
         "le_audio/le_audio_health_status.cc",
         "le_audio/le_audio_log_history.cc",
-        "le_audio/le_audio_set_configuration_provider.cc",
         "le_audio/le_audio_set_configuration_provider_json.cc",
         "le_audio/le_audio_types.cc",
         "le_audio/le_audio_utils.cc",
@@ -123,6 +125,7 @@ cc_library_static {
         "vc/vc.cc",
     ],
     cflags: [
+        "-Wno-unused-parameter",
         /* we export all classes, so change default visibility, instead of having EXPORT_SYMBOL on each class*/
         "-fvisibility=default",
     ],
@@ -131,7 +134,10 @@ cc_library_static {
         "lib-bt-packets",
         "libbluetooth_gd",
         "libbt-bta-core",
+        "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libcom.android.sysprop.bluetooth",
+        "liblc3",
     ],
     shared_libs: [
         "android.hardware.bluetooth.audio@2.1",
@@ -184,11 +190,14 @@ cc_library_static {
         "sys/utl.cc",
     ],
     cflags: [
+        "-Wno-unused-parameter",
         /* we export all classes, so change default visibility, instead of having EXPORT_SYMBOL on each class*/
         "-fvisibility=default",
     ],
     static_libs: [
         "lib-bt-packets",
+        "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
         "libcom.android.sysprop.bluetooth",
     ],
     apex_available: [
@@ -227,7 +236,6 @@ cc_test {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",
@@ -239,10 +247,14 @@ cc_test {
         "crypto_toolbox_for_tests",
         "libbluetooth-types",
         "libbluetooth_gd",
+        "libbluetooth_hci_pdl",
         "libbt-audio-hal-interface",
         "libbt-bta",
         "libbt-bta-core",
         "libbt-common",
+        "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libbtcore",
         "libchrome",
         "libcom.android.sysprop.bluetooth",
@@ -254,6 +266,7 @@ cc_test {
         ":audio_set_scenarios_bfbs",
         ":audio_set_scenarios_json",
     ],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // bta unit tests for target
@@ -289,11 +302,15 @@ cc_test {
         "libbt-bta",
         "libbt-bta-core",
         "libbt-common",
+        "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libbtcore",
         "libchrome",
         "libosi",
         "libstatslog_bt",
     ],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -311,7 +328,6 @@ cc_test {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     srcs: [
         ":BtaDmSources",
@@ -404,7 +420,11 @@ cc_test {
     static_libs: [
         "libbluetooth-types",
         "libbluetooth_gd",
+        "libbluetooth_hci_pdl",
         "libbt-common",
+        "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libbtcore",
         "libbtdevice",
         "libchrome",
@@ -424,6 +444,7 @@ cc_test {
             ],
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // csis unit tests for host
@@ -464,8 +485,11 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libchrome",
         "libgmock",
         "libosi",
@@ -480,6 +504,7 @@ cc_test {
             undefined: true,
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // groups unit tests for host
@@ -508,8 +533,11 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libchrome",
         "libgmock",
         "libosi",
@@ -524,6 +552,7 @@ cc_test {
             undefined: true,
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // bta unit tests for host
@@ -563,8 +592,12 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
+        "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libchrome",
         "libgmock",
         "libosi",
@@ -572,6 +605,7 @@ cc_test {
     sanitize: {
         cfi: false,
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 genrule {
@@ -649,6 +683,82 @@ prebuilt_etc {
 // bta unit tests for LE Audio
 // ========================================================
 cc_test {
+    name: "bluetooth_le_audio_codec_manager_test",
+    test_suites: ["device-tests"],
+    defaults: [
+        "bluetooth_gtest_x86_asan_workaround",
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
+    host_supported: true,
+    target: {
+        darwin: {
+            enabled: false,
+        },
+        android: {
+            sanitize: {
+                misc_undefined: ["bounds"],
+            },
+            whole_static_libs: [
+                "libPlatformProperties",
+            ],
+        },
+    },
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/bta/include",
+        "packages/modules/Bluetooth/system/bta/test/common",
+        "packages/modules/Bluetooth/system/btif/include",
+        "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/stack/include",
+    ],
+    srcs: [
+        ":TestCommonMockFunctions",
+        ":TestMockBtaLeAudioHalVerifier",
+        ":TestStubOsi",
+        "le_audio/codec_manager.cc",
+        "le_audio/codec_manager_test.cc",
+        "le_audio/le_audio_set_configuration_provider_json.cc",
+        "le_audio/le_audio_types.cc",
+        "test/common/btm_api_mock.cc",
+        "test/common/mock_controller.cc",
+    ],
+    data: [
+        ":audio_set_configurations_bfbs",
+        ":audio_set_configurations_json",
+        ":audio_set_scenarios_bfbs",
+        ":audio_set_scenarios_json",
+    ],
+    generated_headers: [
+        "LeAudioSetConfigSchemas_h",
+    ],
+    shared_libs: [
+        "android.hardware.bluetooth.audio@2.0",
+        "android.hardware.bluetooth.audio@2.1",
+        "libcrypto",
+        "libhidlbase",
+        "liblog", // __android_log_print
+    ],
+    static_libs: [
+        "libbluetooth-types",
+        "libbluetooth_gd",
+        "libbt-common",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
+        "libchrome",
+        "libevent",
+        "libflatbuffers-cpp",
+        "libgmock",
+        "libosi",
+    ],
+    sanitize: {
+        cfi: false,
+    },
+    header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
+}
+
+cc_test {
     name: "bluetooth_le_audio_test",
     test_suites: ["device-tests"],
     defaults: [
@@ -697,6 +807,7 @@ cc_test {
         "le_audio/le_audio_types.cc",
         "le_audio/le_audio_types_test.cc",
         "le_audio/metrics_collector_linux.cc",
+        "le_audio/mock_codec_interface.cc",
         "le_audio/mock_codec_manager.cc",
         "le_audio/mock_iso_manager.cc",
         "le_audio/state_machine.cc",
@@ -727,8 +838,11 @@ cc_test {
         "liblog", // __android_log_print
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libchrome",
         "libevent",
         "libflatbuffers-cpp",
@@ -738,6 +852,8 @@ cc_test {
     sanitize: {
         cfi: false,
     },
+    header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -775,6 +891,7 @@ cc_test {
         "le_audio/le_audio_utils.cc",
         "le_audio/metrics_collector.cc",
         "le_audio/metrics_collector_test.cc",
+        "le_audio/mock_codec_interface.cc",
         "le_audio/mock_codec_manager.cc",
         "le_audio/mock_iso_manager.cc",
         "le_audio/mock_state_machine.cc",
@@ -798,9 +915,13 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-audio-hal-interface",
         "libbt-common",
+        "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libchrome",
         "libevent",
         "libflatbuffers-cpp",
@@ -834,6 +955,7 @@ cc_test {
             undefined: true,
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 // health status unit tests for host
@@ -862,8 +984,11 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libchrome",
         "libgmock",
         "libosi",
@@ -907,6 +1032,7 @@ cc_test {
         "le_audio/broadcaster/state_machine.cc",
         "le_audio/broadcaster/state_machine_test.cc",
         "le_audio/le_audio_types.cc",
+        "le_audio/mock_codec_interface.cc",
         "le_audio/mock_codec_manager.cc",
         "le_audio/mock_iso_manager.cc",
     ],
@@ -915,8 +1041,11 @@ cc_test {
         "liblog",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libchrome",
         "libgmock",
         "liblc3",
@@ -931,6 +1060,7 @@ cc_test {
             undefined: true,
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -964,6 +1094,7 @@ cc_test {
         "le_audio/le_audio_types.cc",
         "le_audio/le_audio_utils.cc",
         "le_audio/metrics_collector_linux.cc",
+        "le_audio/mock_codec_interface.cc",
         "le_audio/mock_codec_manager.cc",
         "le_audio/mock_iso_manager.cc",
         "test/common/mock_controller.cc",
@@ -978,8 +1109,11 @@ cc_test {
         "liblog",
     ],
     static_libs: [
+        "libbluetooth-types",
         "libbt-audio-hal-interface",
         "libbt-common",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libchrome",
         "libevent",
         "libgmock",
@@ -996,6 +1130,7 @@ cc_test {
             undefined: true,
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -1039,8 +1174,11 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libchrome",
         "libgmock",
     ],
@@ -1054,6 +1192,7 @@ cc_test {
             undefined: true,
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -1101,8 +1240,13 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbluetooth-types",
         "libbluetooth_gd",
+        "libbluetooth_hci_pdl",
         "libbt-common",
+        "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libchrome",
         "libcom.android.sysprop.bluetooth",
         "libevent",
@@ -1111,7 +1255,6 @@ cc_test {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedPackets_h",
     ],
     sanitize: {
         cfi: true,
@@ -1123,4 +1266,5 @@ cc_test {
             undefined: true,
         },
     },
+    cflags: ["-Wno-unused-parameter"],
 }

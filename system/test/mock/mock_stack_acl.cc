@@ -211,10 +211,11 @@ bool BTM_IsPhy2mSupported(const RawAddress& remote_bda,
 }
 bool BTM_ReadRemoteConnectionAddr(const RawAddress& pseudo_addr,
                                   RawAddress& conn_addr,
-                                  tBLE_ADDR_TYPE* p_addr_type) {
+                                  tBLE_ADDR_TYPE* p_addr_type,
+                                  bool ota_address) {
   inc_func_call_count(__func__);
   return test::mock::stack_acl::BTM_ReadRemoteConnectionAddr(
-      pseudo_addr, conn_addr, p_addr_type);
+      pseudo_addr, conn_addr, p_addr_type, ota_address);
 }
 bool BTM_ReadRemoteVersion(const RawAddress& addr, uint8_t* lmp_version,
                            uint16_t* manufacturer, uint16_t* lmp_sub_version) {
@@ -418,10 +419,10 @@ void ACL_UnregisterClient(struct acl_client_callback_s* callbacks) {
 }
 void BTM_ReadConnectionAddr(const RawAddress& remote_bda,
                             RawAddress& local_conn_addr,
-                            tBLE_ADDR_TYPE* p_addr_type) {
+                            tBLE_ADDR_TYPE* p_addr_type, bool ota_address) {
   inc_func_call_count(__func__);
   test::mock::stack_acl::BTM_ReadConnectionAddr(remote_bda, local_conn_addr,
-                                                p_addr_type);
+                                                p_addr_type, ota_address);
 }
 void BTM_RequestPeerSCA(const RawAddress& remote_bda, tBT_TRANSPORT transport) {
   inc_func_call_count(__func__);

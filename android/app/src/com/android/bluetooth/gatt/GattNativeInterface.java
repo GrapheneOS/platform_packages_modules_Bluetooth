@@ -16,8 +16,10 @@
 
 package com.android.bluetooth.gatt;
 
-import android.bluetooth.BluetoothDevice;
 import android.os.RemoteException;
+
+import com.android.internal.annotations.GuardedBy;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,14 +30,12 @@ import java.util.List;
 public class GattNativeInterface {
     private static final String TAG = GattNativeInterface.class.getSimpleName();
 
-    static {
-        classInitNative();
-    }
-
-    private static GattNativeInterface sInterface;
-    private static final Object INSTANCE_LOCK = new Object();
-
     private GattService mGattService;
+
+    @GuardedBy("INSTANCE_LOCK")
+    private static GattNativeInterface sInstance;
+
+    private static final Object INSTANCE_LOCK = new Object();
 
     private GattNativeInterface() {}
 
@@ -50,13 +50,20 @@ public class GattNativeInterface {
      */
     public static GattNativeInterface getInstance() {
         synchronized (INSTANCE_LOCK) {
-            if (sInterface == null) {
-                sInterface = new GattNativeInterface();
+            if (sInstance == null) {
+                sInstance = new GattNativeInterface();
             }
+            return sInstance;
         }
-        return sInterface;
     }
 
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(GattNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
+        }
+    }
 
     /* Callbacks */
 
@@ -304,9 +311,12 @@ public class GattNativeInterface {
         getGattService().onMtuChanged(connId, mtu);
     }
 
-    /* Native methods */
-    private static native void classInitNative();
+    /**********************************************************************************************/
+    /******************************************* native *******************************************/
+    /**********************************************************************************************/
+
     private native void initializeNative();
+
     private native void cleanupNative();
     private native int gattClientGetDeviceTypeNative(String address);
     private native void gattClientRegisterAppNative(long appUuidLsb, long appUuidMsb,

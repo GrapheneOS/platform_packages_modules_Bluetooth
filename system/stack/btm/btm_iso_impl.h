@@ -646,8 +646,8 @@ struct iso_impl {
     if (cis->state_flags & kStateFlagIsConnected) {
       cis_disconnected_evt evt = {
           .reason = reason,
-          .cis_conn_hdl = handle,
           .cig_id = cis->cig_id,
+          .cis_conn_hdl = handle,
       };
 
       cig_callbacks_->OnCisEvent(kIsoEventCisDisconnected, &evt);

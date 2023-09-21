@@ -17,7 +17,6 @@
 package com.android.bluetooth.hearingaid;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
-
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveOrManagedUser;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
@@ -50,6 +49,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.ProfileService.IProfileServiceBinder;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.internal.annotations.VisibleForTesting;
@@ -161,9 +161,6 @@ public class HearingAidService extends ProfileService {
 
         // Initialize native interface
         mHearingAidNativeInterface.init();
-        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(),
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
-
         return true;
     }
 
@@ -176,9 +173,6 @@ public class HearingAidService extends ProfileService {
             Log.w(TAG, "stop() called before start()");
             return true;
         }
-
-        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(),
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
         // Cleanup native interface
         mHearingAidNativeInterface.cleanup();
         mHearingAidNativeInterface = null;
@@ -365,7 +359,7 @@ public class HearingAidService extends ProfileService {
         return true;
     }
 
-    List<BluetoothDevice> getConnectedDevices() {
+    public List<BluetoothDevice> getConnectedDevices() {
         synchronized (mStateMachines) {
             List<BluetoothDevice> devices = new ArrayList<>();
             for (HearingAidStateMachine sm : mStateMachines.values()) {
@@ -730,7 +724,7 @@ public class HearingAidService extends ProfileService {
     }
 
     private void notifyActiveDeviceChanged() {
-        mAdapterService.getActiveDeviceManager().hearingAidActiveStateChanged(mActiveDevice);
+        mAdapterService.handleActiveDeviceChange(BluetoothProfile.HEARING_AID, mActiveDevice);
         Intent intent = new Intent(BluetoothHearingAid.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mActiveDevice);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
@@ -962,9 +956,14 @@ public class HearingAidService extends ProfileService {
                 removeStateMachine(device);
             }
         }
+        mAdapterService.notifyProfileConnectionStateChangeToGatt(
+                BluetoothProfile.HEARING_AID, fromState, toState);
         mAdapterService
                 .getActiveDeviceManager()
-                .hearingAidConnectionStateChanged(device, fromState, toState);
+                .profileConnectionStateChanged(
+                        BluetoothProfile.HEARING_AID, device, fromState, toState);
+        mAdapterService.updateProfileConnectionAdapterProperties(
+                device, BluetoothProfile.HEARING_AID, toState, fromState);
     }
 
     /**

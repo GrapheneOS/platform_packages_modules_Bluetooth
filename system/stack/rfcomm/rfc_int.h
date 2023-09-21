@@ -275,7 +275,7 @@ void PORT_StartInd(tRFC_MCB* p_mcb);
 void PORT_StartCnf(tRFC_MCB* p_mcb, uint16_t result);
 
 void PORT_CloseInd(tRFC_MCB* p_mcb);
-void Port_TimeOutCloseMux(tRFC_MCB* p_mcb);
+void PORT_TimeOutCloseMux(tRFC_MCB* p_mcb);
 
 void PORT_DlcEstablishInd(tRFC_MCB* p_mcb, uint8_t dlci, uint16_t mtu);
 void PORT_DlcEstablishCnf(tRFC_MCB* p_mcb, uint8_t dlci, uint16_t mtu,

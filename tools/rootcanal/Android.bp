@@ -87,6 +87,7 @@ cc_library_static {
         "model/controller/le_advertiser.cc",
         "model/controller/link_layer_controller.cc",
         "model/controller/sco_connection.cc",
+        "model/controller/vendor_commands/le_apcf.cc",
         "model/devices/baseband_sniffer.cc",
         "model/devices/beacon.cc",
         "model/devices/beacon_swarm.cc",
@@ -157,6 +158,7 @@ cc_library_host_shared {
         "model/controller/le_advertiser.cc",
         "model/controller/link_layer_controller.cc",
         "model/controller/sco_connection.cc",
+        "model/controller/vendor_commands/le_apcf.cc",
         "model/devices/device.cc",
         "model/setup/async_manager.cc",
     ],
@@ -446,6 +448,13 @@ genrule {
     out: [
         "packets/link_layer_packets.h",
     ],
+}
+
+genrule {
+    name: "rootcanal_link_layer_packets_rust_gen",
+    defaults: ["pdl_rust_generator_defaults"],
+    srcs: ["packets/link_layer_packets.pdl"],
+    out: ["link_layer_packets.rs"],
 }
 
 genrule {

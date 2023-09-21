@@ -1,22 +1,24 @@
 ///! Rule group for tracking connection related issues.
 use chrono::NaiveDateTime;
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::convert::Into;
 use std::io::Write;
 
 use crate::engine::{Rule, RuleGroup, Signal};
 use crate::parser::{Packet, PacketChild};
 use bt_packets::hci::{
-    Acl, AclCommandChild, Address, CommandChild, CommandStatus, ConnectionManagementCommandChild,
-    DisconnectReason, ErrorCode, Event, EventChild, LeConnectionManagementCommandChild,
-    LeMetaEventChild, NumberOfCompletedPackets, OpCode, ScoConnectionCommandChild,
-    SecurityCommandChild, SubeventCode,
+    Acl, AclCommandChild, Address, AuthenticatedPayloadTimeoutExpired, CommandChild, CommandStatus,
+    ConnectionManagementCommandChild, DisconnectReason, ErrorCode, Event, EventChild,
+    InitiatorFilterPolicy, LeConnectionManagementCommandChild, LeMetaEventChild,
+    NumberOfCompletedPackets, OpCode, ScoConnectionCommandChild, SecurityCommandChild,
+    SubeventCode,
 };
 
 enum ConnectionSignal {
     LinkKeyMismatch, // Peer forgets the link key or it mismatches ours
     NocpDisconnect,  // Peer is disconnected when NOCP packet isn't yet received
     NocpTimeout,     // Host doesn't receive NOCP packet 5 seconds after ACL is sent
+    ApteDisconnect,  // Host doesn't receive a packet with valid MIC for a while.
 }
 
 impl Into<&'static str> for ConnectionSignal {
@@ -25,6 +27,7 @@ impl Into<&'static str> for ConnectionSignal {
             ConnectionSignal::LinkKeyMismatch => "LinkKeyMismatch",
             ConnectionSignal::NocpDisconnect => "Nocp",
             ConnectionSignal::NocpTimeout => "Nocp",
+            ConnectionSignal::ApteDisconnect => "AuthenticatedPayloadTimeoutExpired",
         }
     }
 }
@@ -65,13 +68,19 @@ struct OddDisconnectionsRule {
 
     le_connection_attempt: HashMap<Address, Packet>,
     last_le_connection_attempt: Option<Address>,
+    last_le_connection_filter_policy: Option<InitiatorFilterPolicy>,
 
     sco_connection_attempt: HashMap<Address, Packet>,
     last_sco_connection_attempt: Option<Address>,
 
+    accept_list: HashSet<Address>,
+
     /// Keep track of some number of |Number of Completed Packets| and filter to
     /// identify bursts.
     nocp_by_handle: HashMap<ConnectionHandle, NocpData>,
+
+    /// Number of |Authenticated Payload Timeout Expired| events hapened.
+    apte_by_handle: HashMap<ConnectionHandle, u32>,
 
     /// Pre-defined signals discovered in the logs.
     signals: Vec<Signal>,
@@ -88,9 +97,12 @@ impl OddDisconnectionsRule {
             last_connection_attempt: None,
             le_connection_attempt: HashMap::new(),
             last_le_connection_attempt: None,
+            last_le_connection_filter_policy: None,
             sco_connection_attempt: HashMap::new(),
             last_sco_connection_attempt: None,
+            accept_list: HashSet::new(),
             nocp_by_handle: HashMap::new(),
+            apte_by_handle: HashMap::new(),
             signals: vec![],
             reportable: vec![],
         }
@@ -175,14 +187,36 @@ impl OddDisconnectionsRule {
         le_conn: &LeConnectionManagementCommandChild,
         packet: &Packet,
     ) {
+        match le_conn {
+            LeConnectionManagementCommandChild::LeAddDeviceToFilterAcceptList(add_accept) => {
+                self.accept_list.insert(add_accept.get_address());
+                return;
+            }
+
+            LeConnectionManagementCommandChild::LeRemoveDeviceFromFilterAcceptList(rem_accept) => {
+                self.accept_list.remove(&rem_accept.get_address());
+                return;
+            }
+
+            LeConnectionManagementCommandChild::LeClearFilterAcceptList(_clear_accept) => {
+                self.accept_list.clear();
+                return;
+            }
+
+            _ => {}
+        }
+
         let has_existing = match le_conn {
             LeConnectionManagementCommandChild::LeCreateConnection(create) => {
                 self.last_le_connection_attempt = Some(create.get_peer_address());
+                self.last_le_connection_filter_policy = Some(create.get_initiator_filter_policy());
                 self.le_connection_attempt.insert(create.get_peer_address().clone(), packet.clone())
             }
 
             LeConnectionManagementCommandChild::LeExtendedCreateConnection(extcreate) => {
                 self.last_le_connection_attempt = Some(extcreate.get_peer_address());
+                self.last_le_connection_filter_policy =
+                    Some(extcreate.get_initiator_filter_policy());
                 self.le_connection_attempt
                     .insert(extcreate.get_peer_address().clone(), packet.clone())
             }
@@ -239,8 +273,9 @@ impl OddDisconnectionsRule {
                         self.sco_connection_attempt.remove(&address);
                     }
 
-                    OpCode::LeCreateConnection => {
+                    OpCode::LeCreateConnection | OpCode::LeExtendedCreateConnection => {
                         self.le_connection_attempt.remove(&address);
+                        self.last_le_connection_filter_policy = None;
                     }
 
                     _ => (),
@@ -295,9 +330,10 @@ impl OddDisconnectionsRule {
                 self.active_handles.remove(&handle);
 
                 // Check if this is a NOCP type disconnection and flag it.
-                match self.nocp_by_handle.get_mut(&handle) {
-                    Some(nocp_data) => {
-                        if let Some(acl_front_ts) = nocp_data.inflight_acl_ts.pop_front() {
+                if let Some(nocp_data) = self.nocp_by_handle.get_mut(&handle) {
+                    if let Some(acl_front_ts) = nocp_data.inflight_acl_ts.pop_front() {
+                        let duration_since_acl = packet.ts.signed_duration_since(acl_front_ts);
+                        if duration_since_acl.num_milliseconds() > NOCP_CORRELATION_TIME_MS {
                             self.signals.push(Signal {
                                 index: packet.index,
                                 ts: packet.ts.clone(),
@@ -310,11 +346,30 @@ impl OddDisconnectionsRule {
                                         handle, acl_front_ts)));
                         }
                     }
-                    None => (),
                 }
 
                 // Remove nocp information for handles that were removed.
                 self.nocp_by_handle.remove(&handle);
+
+                // Check if auth payload timeout happened.
+                match self.apte_by_handle.get_mut(&handle) {
+                    Some(apte_count) => {
+                        self.signals.push(Signal {
+                            index: packet.index,
+                            ts: packet.ts.clone(),
+                            tag: ConnectionSignal::ApteDisconnect.into(),
+                        });
+
+                        self.reportable.push((
+                            packet.ts,
+                            format!("DisconnectionComplete with {} Authenticated Payload Timeout Expired (handle={})",
+                            apte_count, handle)));
+                    }
+                    None => (),
+                }
+
+                // Remove apte information for handles that were removed.
+                self.apte_by_handle.remove(&handle);
             }
 
             EventChild::SynchronousConnectionComplete(scc) => {
@@ -367,18 +422,30 @@ impl OddDisconnectionsRule {
                 };
 
                 if let Some((status, handle, address)) = details {
-                    match self.le_connection_attempt.remove(&address) {
+                    let use_accept_list =
+                        self.last_le_connection_filter_policy.map_or(false, |policy| {
+                            policy == InitiatorFilterPolicy::UseFilterAcceptList
+                        });
+                    let addr_to_remove =
+                        if use_accept_list { bt_packets::hci::EMPTY_ADDRESS } else { address };
+
+                    match self.le_connection_attempt.remove(&addr_to_remove) {
                         Some(_) => {
                             if status == ErrorCode::Success {
                                 self.active_handles.insert(handle, (packet.ts, address));
                             } else {
-                                self.reportable.push((
-                                    packet.ts,
+                                let message = if use_accept_list {
+                                    format!(
+                                        "LeConnectionComplete error {:?} for accept list",
+                                        status,
+                                    )
+                                } else {
                                     format!(
                                         "LeConnectionComplete error {:?} for addr {} (handle={})",
                                         status, address, handle
-                                    ),
-                                ));
+                                    )
+                                };
+                                self.reportable.push((packet.ts, message));
                             }
                         }
                         None => {
@@ -436,15 +503,23 @@ impl OddDisconnectionsRule {
         }
     }
 
+    fn process_apte(&mut self, apte: &AuthenticatedPayloadTimeoutExpired, _packet: &Packet) {
+        let handle = apte.get_connection_handle();
+        *self.apte_by_handle.entry(handle).or_insert(0) += 1;
+    }
+
     fn process_reset(&mut self) {
         self.active_handles.clear();
         self.connection_attempt.clear();
         self.last_connection_attempt = None;
         self.le_connection_attempt.clear();
         self.last_le_connection_attempt = None;
+        self.last_le_connection_filter_policy = None;
         self.sco_connection_attempt.clear();
         self.last_sco_connection_attempt = None;
+        self.accept_list.clear();
         self.nocp_by_handle.clear();
+        self.apte_by_handle.clear();
     }
 }
 
@@ -516,6 +591,10 @@ impl Rule for OddDisconnectionsRule {
 
                 EventChild::NumberOfCompletedPackets(nocp) => {
                     self.process_nocp(&nocp, packet);
+                }
+
+                EventChild::AuthenticatedPayloadTimeoutExpired(apte) => {
+                    self.process_apte(&apte, packet);
                 }
 
                 // end hci event

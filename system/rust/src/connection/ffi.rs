@@ -11,7 +11,7 @@ use tokio::{
     task::spawn_local,
 };
 
-use crate::{core::address::AddressWithType, do_in_rust_thread};
+use crate::do_in_rust_thread;
 
 use super::{
     attempt_manager::ConnectionMode,

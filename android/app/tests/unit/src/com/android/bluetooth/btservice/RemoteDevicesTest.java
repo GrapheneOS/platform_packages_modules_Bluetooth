@@ -8,7 +8,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
-import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSinkAudioPolicy;
@@ -255,8 +254,9 @@ public class RemoteDevicesTest {
         // Verify that resetting battery level changes it back to BluetoothDevice
         // .BATTERY_LEVEL_UNKNOWN
         mRemoteDevices.onHeadsetConnectionStateChanged(
-                getHeadsetConnectionStateChangedIntent(mDevice1,
-                        BluetoothProfile.STATE_DISCONNECTING, BluetoothProfile.STATE_DISCONNECTED));
+                mDevice1,
+                BluetoothProfile.STATE_DISCONNECTING,
+                BluetoothProfile.STATE_DISCONNECTED);
         // Verify BATTERY_LEVEL_CHANGED intent is sent after first reset
         verify(mAdapterService, times(2)).sendBroadcast(mIntentArgument.capture(),
                 mStringArgument.capture(), any(Bundle.class));
@@ -302,8 +302,9 @@ public class RemoteDevicesTest {
 
         // Verify that battery level is not reset
         mRemoteDevices.onHeadsetConnectionStateChanged(
-                getHeadsetConnectionStateChangedIntent(mDevice1,
-                        BluetoothProfile.STATE_DISCONNECTING, BluetoothProfile.STATE_DISCONNECTED));
+                mDevice1,
+                BluetoothProfile.STATE_DISCONNECTING,
+                BluetoothProfile.STATE_DISCONNECTED);
 
         Assert.assertNotNull(mRemoteDevices.getDeviceProperties(mDevice1));
         Assert.assertEquals(batteryLevel,
@@ -373,8 +374,8 @@ public class RemoteDevicesTest {
         Assert.assertNull(mRemoteDevices.getDeviceProperties(mDevice1));
 
         // Verify that ACTION_HF_INDICATORS_VALUE_CHANGED intent updates battery level
-        mRemoteDevices.onHfIndicatorValueChanged(getHfIndicatorIntent(mDevice1, batteryLevel,
-                HeadsetHalConstants.HF_INDICATOR_BATTERY_LEVEL_STATUS));
+        mRemoteDevices.onHfIndicatorValueChanged(
+                mDevice1, HeadsetHalConstants.HF_INDICATOR_BATTERY_LEVEL_STATUS, batteryLevel);
         verify(mAdapterService).sendBroadcast(mIntentArgument.capture(), mStringArgument.capture(),
                 any(Bundle.class));
         verifyBatteryLevelChangedIntent(mDevice1, batteryLevel, mIntentArgument);
@@ -389,7 +390,7 @@ public class RemoteDevicesTest {
         Assert.assertNull(mRemoteDevices.getDeviceProperties(mDevice1));
 
         // Verify that ACTION_HF_INDICATORS_VALUE_CHANGED intent updates battery level
-        mRemoteDevices.onHfIndicatorValueChanged(getHfIndicatorIntent(mDevice1, batteryLevel, 3));
+        mRemoteDevices.onHfIndicatorValueChanged(mDevice1, batteryLevel, 3);
         verify(mAdapterService, never()).sendBroadcast(any(), anyString());
         // Verify that device property is still null after invalid update
         Assert.assertNull(mRemoteDevices.getDeviceProperties(mDevice1));
@@ -401,10 +402,12 @@ public class RemoteDevicesTest {
         Assert.assertNull(mRemoteDevices.getDeviceProperties(mDevice1));
 
         // Verify that correct ACTION_VENDOR_SPECIFIC_HEADSET_EVENT updates battery level
-        mRemoteDevices.onVendorSpecificHeadsetEvent(getVendorSpecificHeadsetEventIntent(
+        mRemoteDevices.onVendorSpecificHeadsetEvent(
+                mDevice1,
                 BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_XEVENT,
-                BluetoothAssignedNumbers.PLANTRONICS, BluetoothHeadset.AT_CMD_TYPE_SET,
-                getXEventArray(3, 8), mDevice1));
+                BluetoothAssignedNumbers.PLANTRONICS,
+                BluetoothHeadset.AT_CMD_TYPE_SET,
+                getXEventArray(3, 8));
         verify(mAdapterService).sendBroadcast(mIntentArgument.capture(), mStringArgument.capture(),
                 any(Bundle.class));
         verifyBatteryLevelChangedIntent(mDevice1, 42, mIntentArgument);
@@ -417,17 +420,20 @@ public class RemoteDevicesTest {
         Assert.assertNull(mRemoteDevices.getDeviceProperties(mDevice1));
 
         // Verify that correct ACTION_VENDOR_SPECIFIC_HEADSET_EVENT updates battery level
-        mRemoteDevices.onVendorSpecificHeadsetEvent(getVendorSpecificHeadsetEventIntent(
+        mRemoteDevices.onVendorSpecificHeadsetEvent(
+                mDevice1,
                 BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_IPHONEACCEV,
-                BluetoothAssignedNumbers.APPLE, BluetoothHeadset.AT_CMD_TYPE_SET, new Object[]{
-                        3,
-                        BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_IPHONEACCEV_BATTERY_LEVEL,
-                        5,
-                        2,
-                        1,
-                        3,
-                        10
-                }, mDevice1));
+                BluetoothAssignedNumbers.APPLE,
+                BluetoothHeadset.AT_CMD_TYPE_SET,
+                new Object[] {
+                    3,
+                    BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_IPHONEACCEV_BATTERY_LEVEL,
+                    5,
+                    2,
+                    1,
+                    3,
+                    10
+                });
         verify(mAdapterService).sendBroadcast(mIntentArgument.capture(), mStringArgument.capture(),
                 any(Bundle.class));
         verifyBatteryLevelChangedIntent(mDevice1, 60, mIntentArgument);
@@ -522,8 +528,9 @@ public class RemoteDevicesTest {
         // Verify that resetting battery level changes it back to BluetoothDevice
         // .BATTERY_LEVEL_UNKNOWN
         mRemoteDevices.onHeadsetClientConnectionStateChanged(
-                getHeadsetClientConnectionStateChangedIntent(mDevice1,
-                        BluetoothProfile.STATE_DISCONNECTING, BluetoothProfile.STATE_DISCONNECTED));
+                mDevice1,
+                BluetoothProfile.STATE_DISCONNECTING,
+                BluetoothProfile.STATE_DISCONNECTED);
 
         // Verify BATTERY_LEVEL_CHANGED intent is sent after first reset
         verify(mAdapterService, times(2)).sendBroadcast(mIntentArgument.capture(),
@@ -571,8 +578,9 @@ public class RemoteDevicesTest {
 
         // Verify that battery level is not reset.
         mRemoteDevices.onHeadsetClientConnectionStateChanged(
-                getHeadsetClientConnectionStateChangedIntent(mDevice1,
-                        BluetoothProfile.STATE_DISCONNECTING, BluetoothProfile.STATE_DISCONNECTED));
+                mDevice1,
+                BluetoothProfile.STATE_DISCONNECTING,
+                BluetoothProfile.STATE_DISCONNECTED);
 
         Assert.assertNotNull(mRemoteDevices.getDeviceProperties(mDevice1));
         Assert.assertEquals(batteryLevel,
@@ -667,35 +675,19 @@ public class RemoteDevicesTest {
     }
 
     @Test
-    public void testAGIndicatorParser_testCorrectValue() {
+    public void testAgBatteryLevelIndicator_testCorrectValue() {
         int batteryLevel = 3;
 
         // Verify that device property is null initially
         Assert.assertNull(mRemoteDevices.getDeviceProperties(mDevice1));
 
         // Verify that ACTION_AG_EVENT intent updates battery level
-        mRemoteDevices.onAgIndicatorValueChanged(
-                getAgIndicatorIntent(mDevice1, null, null, null, new Integer(batteryLevel), null));
+        mRemoteDevices.onAgBatteryLevelChanged(mDevice1, batteryLevel);
         verify(mAdapterService).sendBroadcast(mIntentArgument.capture(), mStringArgument.capture(),
                 any(Bundle.class));
         verifyBatteryLevelChangedIntent(mDevice1,
                 RemoteDevices.batteryChargeIndicatorToPercentge(batteryLevel), mIntentArgument);
         Assert.assertEquals(BLUETOOTH_CONNECT, mStringArgument.getValue());
-    }
-
-    @Test
-    public void testAgIndicatorParser_testWrongIndicatorId() {
-        int batteryLevel = 10;
-
-        // Verify that device property is null initially
-        Assert.assertNull(mRemoteDevices.getDeviceProperties(mDevice1));
-
-        // Verify that ACTION_AG_EVENT intent updates battery level
-        mRemoteDevices.onAgIndicatorValueChanged(
-                getAgIndicatorIntent(mDevice1, new Integer(1), null, null, null, null));
-        verify(mAdapterService, never()).sendBroadcast(any(), anyString());
-        // Verify that device property is still null after invalid update
-        Assert.assertNull(mRemoteDevices.getDeviceProperties(mDevice1));
     }
 
     @Test
@@ -765,37 +757,6 @@ public class RemoteDevicesTest {
                         | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND, intent.getFlags());
     }
 
-    private static Intent getHeadsetConnectionStateChangedIntent(BluetoothDevice device,
-            int oldState, int newState) {
-        Intent intent = new Intent(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, oldState);
-        intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
-        return intent;
-    }
-
-    private static Intent getHfIndicatorIntent(BluetoothDevice device, int batteryLevel,
-            int indicatorId) {
-        Intent intent = new Intent(BluetoothHeadset.ACTION_HF_INDICATORS_VALUE_CHANGED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_ID, indicatorId);
-        intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_VALUE, batteryLevel);
-        return intent;
-    }
-
-    private static Intent getVendorSpecificHeadsetEventIntent(String command, int companyId,
-            int commandType, Object[] arguments, BluetoothDevice device) {
-        Intent intent = new Intent(BluetoothHeadset.ACTION_VENDOR_SPECIFIC_HEADSET_EVENT);
-        intent.putExtra(BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_CMD, command);
-        intent.putExtra(BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_CMD_TYPE, commandType);
-        // assert: all elements of args are Serializable
-        intent.putExtra(BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_ARGS, arguments);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        intent.addCategory(BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_COMPANY_ID_CATEGORY + "."
-                + Integer.toString(companyId));
-        return intent;
-    }
-
     private static Object[] getXEventArray(int batteryLevel, int numLevels) {
         ArrayList<Object> list = new ArrayList<>();
         list.add(BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_XEVENT_BATTERY_LEVEL);
@@ -804,40 +765,6 @@ public class RemoteDevicesTest {
         list.add(0);
         list.add(0);
         return list.toArray();
-    }
-
-    private static Intent getHeadsetClientConnectionStateChangedIntent(BluetoothDevice device,
-            int oldState, int newState) {
-        Intent intent = new Intent(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, oldState);
-        intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
-        return intent;
-    }
-
-    private static Intent getAgIndicatorIntent(BluetoothDevice device, Integer networkStatus,
-            Integer networkStrength, Integer roaming, Integer batteryLevel, String operatorName) {
-        Intent intent = new Intent(BluetoothHeadsetClient.ACTION_AG_EVENT);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-
-        if (networkStatus != null) {
-            intent.putExtra(BluetoothHeadsetClient.EXTRA_NETWORK_STATUS, networkStatus.intValue());
-        }
-        if (networkStrength != null) {
-            intent.putExtra(BluetoothHeadsetClient.EXTRA_NETWORK_SIGNAL_STRENGTH,
-                    networkStrength.intValue());
-        }
-        if (roaming != null) {
-            intent.putExtra(BluetoothHeadsetClient.EXTRA_NETWORK_ROAMING, roaming.intValue());
-        }
-        if (batteryLevel != null) {
-            intent.putExtra(BluetoothHeadsetClient.EXTRA_BATTERY_LEVEL, batteryLevel.intValue());
-        }
-        if (operatorName != null) {
-            intent.putExtra(BluetoothHeadsetClient.EXTRA_OPERATOR_NAME, operatorName);
-        }
-
-        return intent;
     }
 
     private static BatteryService setBatteryServiceForTesting(BluetoothDevice device) {

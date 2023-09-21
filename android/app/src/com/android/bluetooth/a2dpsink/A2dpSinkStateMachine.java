@@ -24,6 +24,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.content.Intent;
 import android.media.AudioFormat;
+import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
@@ -31,24 +32,24 @@ import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 
-
-public class A2dpSinkStateMachine extends StateMachine {
-    static final String TAG = "A2DPSinkStateMachine";
+class A2dpSinkStateMachine extends StateMachine {
+    private static final String TAG = A2dpSinkStateMachine.class.getSimpleName();
     static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
 
-    //0->99 Events from Outside
-    public static final int CONNECT = 1;
-    public static final int DISCONNECT = 2;
+    // 0->99 Events from Outside
+    @VisibleForTesting static final int CONNECT = 1;
+    @VisibleForTesting static final int DISCONNECT = 2;
 
-    //100->199 Internal Events
-    protected static final int CLEANUP = 100;
-    private static final int CONNECT_TIMEOUT = 101;
+    // 100->199 Internal Events
+    @VisibleForTesting static final int CLEANUP = 100;
+    @VisibleForTesting static final int CONNECT_TIMEOUT = 101;
 
-    //200->299 Events from Native
-    static final int STACK_EVENT = 200;
+    // 200->299 Events from Native
+    @VisibleForTesting static final int STACK_EVENT = 200;
 
     static final int CONNECT_TIMEOUT_MS = 10000;
 
@@ -64,9 +65,12 @@ public class A2dpSinkStateMachine extends StateMachine {
     protected int mMostRecentState = BluetoothProfile.STATE_DISCONNECTED;
     protected BluetoothAudioConfig mAudioConfig = null;
 
-    A2dpSinkStateMachine(BluetoothDevice device, A2dpSinkService service,
+    A2dpSinkStateMachine(
+            Looper looper,
+            BluetoothDevice device,
+            A2dpSinkService service,
             A2dpSinkNativeInterface nativeInterface) {
-        super(TAG);
+        super(TAG, looper);
         mDevice = device;
         mDeviceAddress = Utils.getByteAddress(mDevice);
         mService = service;
@@ -111,18 +115,19 @@ public class A2dpSinkStateMachine extends StateMachine {
         return mDevice;
     }
 
-    /**
-     * send the Connect command asynchronously
-     */
-    public final void connect() {
+    /** send the Connect command asynchronously */
+    final void connect() {
         sendMessage(CONNECT);
     }
 
-    /**
-     * send the Disconnect command asynchronously
-     */
-    public final void disconnect() {
+    /** send the Disconnect command asynchronously */
+    final void disconnect() {
         sendMessage(DISCONNECT);
+    }
+
+    /** send the stack event asynchronously */
+    final void onStackEvent(StackEvent event) {
+        sendMessage(STACK_EVENT, event);
     }
 
     /**
@@ -218,6 +223,10 @@ public class A2dpSinkStateMachine extends StateMachine {
                 case CONNECT_TIMEOUT:
                     transitionTo(mDisconnected);
                     return true;
+                case DISCONNECT:
+                    Log.d(TAG, "Received disconnect message while connecting. deferred");
+                    deferMessage(message);
+                    return true;
             }
             return false;
         }
@@ -309,6 +318,7 @@ public class A2dpSinkStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_STATE, currentState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+        mService.connectionStateChanged(mDevice, mMostRecentState, currentState);
         mMostRecentState = currentState;
         Utils.sendBroadcast(mService, intent, BLUETOOTH_CONNECT,
                 Utils.getTempAllowlistBroadcastOptions());

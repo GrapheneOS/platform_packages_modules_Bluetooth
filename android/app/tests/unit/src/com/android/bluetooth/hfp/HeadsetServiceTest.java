@@ -26,7 +26,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -54,6 +53,8 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.ActiveDeviceManager;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.RemoteDevices;
+import com.android.bluetooth.btservice.SilenceDeviceManager;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.hamcrest.Matchers;
@@ -87,7 +88,6 @@ public class HeadsetServiceTest {
     private Context mTargetContext;
     private HeadsetService mHeadsetService;
     private BluetoothAdapter mAdapter;
-    private HeadsetNativeInterface mNativeInterface;
     private BluetoothDevice mCurrentDevice;
     private final HashMap<BluetoothDevice, HeadsetStateMachine> mStateMachines = new HashMap<>();
 
@@ -96,10 +96,13 @@ public class HeadsetServiceTest {
     @Spy private HeadsetObjectsFactory mObjectsFactory = HeadsetObjectsFactory.getInstance();
     @Mock private AdapterService mAdapterService;
     @Mock private ActiveDeviceManager mActiveDeviceManager;
+    @Mock private SilenceDeviceManager mSilenceDeviceManager;
     @Mock private DatabaseManager mDatabaseManager;
     @Mock private HeadsetSystemInterface mSystemInterface;
+    @Mock private HeadsetNativeInterface mNativeInterface;
     @Mock private AudioManager mAudioManager;
     @Mock private HeadsetPhoneState mPhoneState;
+    @Mock private RemoteDevices mRemoteDevices;
 
     @Before
     public void setUp() throws Exception {
@@ -124,8 +127,10 @@ public class HeadsetServiceTest {
         doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService)
                 .getBondState(any(BluetoothDevice.class));
         doReturn(mActiveDeviceManager).when(mAdapterService).getActiveDeviceManager();
+        doReturn(mSilenceDeviceManager).when(mAdapterService).getSilenceDeviceManager();
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
+        doReturn(mRemoteDevices).when(mAdapterService).getRemoteDevices();
         doAnswer(invocation -> {
             Set<BluetoothDevice> keys = mStateMachines.keySet();
             return keys.toArray(new BluetoothDevice[keys.size()]);
@@ -138,7 +143,6 @@ public class HeadsetServiceTest {
         when(mSystemInterface.getAudioManager()).thenReturn(mAudioManager);
         when(mSystemInterface.isCallIdle()).thenReturn(true, false, true, false);
         // Mock methods in HeadsetNativeInterface
-        mNativeInterface = spy(HeadsetNativeInterface.getInstance());
         doNothing().when(mNativeInterface).init(anyInt(), anyBoolean());
         doNothing().when(mNativeInterface).cleanup();
         doReturn(true).when(mNativeInterface).connectHfp(any(BluetoothDevice.class));
@@ -158,10 +162,10 @@ public class HeadsetServiceTest {
         }).when(mObjectsFactory).makeStateMachine(any(), any(), any(), any(), any(), any());
         doReturn(mSystemInterface).when(mObjectsFactory).makeSystemInterface(any());
         doReturn(mNativeInterface).when(mObjectsFactory).getNativeInterface();
+        HeadsetNativeInterface.setInstance(mNativeInterface);
         TestUtils.startService(mServiceRule, HeadsetService.class);
         mHeadsetService = HeadsetService.getHeadsetService();
         Assert.assertNotNull(mHeadsetService);
-        verify(mAdapterService).notifyActivityAttributionInfo(any(), any());
         verify(mObjectsFactory).makeSystemInterface(mHeadsetService);
         verify(mObjectsFactory).getNativeInterface();
         mHeadsetService.setForceScoAudio(true);
@@ -170,6 +174,7 @@ public class HeadsetServiceTest {
     @After
     public void tearDown() throws Exception {
         TestUtils.stopService(mServiceRule, HeadsetService.class);
+        HeadsetNativeInterface.setInstance(null);
         mHeadsetService = HeadsetService.getHeadsetService();
         Assert.assertNull(mHeadsetService);
         mStateMachines.clear();

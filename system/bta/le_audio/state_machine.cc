@@ -33,6 +33,7 @@
 #include "devices.h"
 #include "gd/common/strings.h"
 #include "hcimsgs.h"
+#include "le_audio_health_status.h"
 #include "le_audio_log_history.h"
 #include "le_audio_types.h"
 #include "osi/include/alarm.h"
@@ -194,7 +195,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         ReleaseCisIds(group);
 
         /* If configuration is needed */
-        FALLTHROUGH;
+        FALLTHROUGH_INTENDED;
       case AseState::BTA_LE_AUDIO_ASE_STATE_IDLE:
         if (!group->Configure(context_type, metadata_context_types,
                               ccid_lists)) {
@@ -302,6 +303,18 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     state_machine_callbacks_->StatusReportCb(group->group_id_, status);
   }
 
+  void notifyLeAudioHealth(int group_id,
+                           le_audio::LeAudioHealthGroupStatType stat) {
+    if (!bluetooth::common::InitFlags::IsLeAudioHealthBasedActionsEnabled()) {
+      return;
+    }
+
+    auto leAudioHealthStatus = le_audio::LeAudioHealthStatus::Get();
+    if (leAudioHealthStatus) {
+      leAudioHealthStatus->AddStatisticForGroup(group_id, stat);
+    }
+  }
+
   void ProcessGattCtpNotification(LeAudioDeviceGroup* group, uint8_t* value,
                                   uint16_t len) {
     auto ntf =
@@ -349,6 +362,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
             "Stoping stream due to control point error for ase: %d, error: "
             "0x%02x, reason: 0x%02x",
             entry.ase_id, entry.response_code, entry.reason);
+
+        notifyLeAudioHealth(group->group_id_,
+                            le_audio::LeAudioHealthGroupStatType::
+                                STREAM_CREATE_SIGNALING_FAILED);
         StopStream(group);
         return;
       }
@@ -759,7 +776,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     if (group->IsAnyDeviceConnected()) {
       /*
        * ACL of one of the device has been dropped. If number of CISes has
-       * changed notify upper layer so the offloader can be updated with CIS
+       * changed notify upper layer so the CodecManager can be updated with CIS
        * information.
        */
       if (!group->HaveAllCisesDisconnected()) {
@@ -769,7 +786,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
             (group->GetTargetState() ==
              AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING)) {
           /* We keep streaming but want others to let know user that it might
-           * be need to update offloader with new CIS configuration
+           * be need to update CodecManager with new CIS configuration
            */
           state_machine_callbacks_->StatusReportCb(
               group->group_id_, GroupStreamStatus::STREAMING);
@@ -966,13 +983,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           ases_pair.sink->state == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
         ases_pair.sink->state =
             AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED;
-        ases_pair.sink->active = false;
       }
       if (ases_pair.source && ases_pair.source->state ==
                                   AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
         ases_pair.source->state =
             AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED;
-        ases_pair.source->active = false;
       }
     }
 
@@ -1159,154 +1174,85 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
   void AddCisToStreamConfiguration(LeAudioDeviceGroup* group,
                                    const struct ase* ase) {
-    uint16_t cis_conn_hdl = ase->cis_conn_hdl;
+    group->stream_conf.id = ase->codec_id;
+
+    auto cis_conn_hdl = ase->cis_conn_hdl;
+    auto& params = group->stream_conf.stream_params.get(ase->direction);
     LOG_INFO("Adding cis handle 0x%04x (%s) to stream list", cis_conn_hdl,
              ase->direction == le_audio::types::kLeAudioDirectionSink
                  ? "sink"
                  : "source");
-    auto* stream_conf = &group->stream_conf;
-    if (ase->direction == le_audio::types::kLeAudioDirectionSink) {
-      auto iter = std::find_if(
-          stream_conf->sink_streams.begin(), stream_conf->sink_streams.end(),
-          [cis_conn_hdl](auto& pair) { return cis_conn_hdl == pair.first; });
 
-      ASSERT_LOG(iter == stream_conf->sink_streams.end(),
-                 "Stream is already there 0x%04x", cis_conn_hdl);
+    auto iter = std::find_if(
+        params.stream_locations.begin(), params.stream_locations.end(),
+        [cis_conn_hdl](auto& pair) { return cis_conn_hdl == pair.first; });
+    ASSERT_LOG(iter == params.stream_locations.end(),
+               "Stream is already there 0x%04x", cis_conn_hdl);
 
-      stream_conf->sink_streams.emplace_back(std::make_pair(
-          ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation));
+    params.num_of_devices++;
+    params.num_of_channels += ase->codec_config.channel_count;
 
-      stream_conf->sink_num_of_devices++;
-      stream_conf->sink_num_of_channels += ase->codec_config.channel_count;
-      stream_conf->sink_audio_channel_allocation |=
-          *ase->codec_config.audio_channel_allocation;
+    if (!ase->codec_config.audio_channel_allocation.has_value()) {
+      LOG_WARN("ASE has invalid audio location");
+    }
+    auto ase_audio_channel_allocation =
+        ase->codec_config.audio_channel_allocation.value_or(0);
+    params.audio_channel_allocation |= ase_audio_channel_allocation;
+    params.stream_locations.emplace_back(
+        std::make_pair(ase->cis_conn_hdl, ase_audio_channel_allocation));
 
-      if (stream_conf->sink_sample_frequency_hz == 0) {
-        stream_conf->sink_sample_frequency_hz =
-            ase->codec_config.GetSamplingFrequencyHz();
-      } else {
-        ASSERT_LOG(stream_conf->sink_sample_frequency_hz ==
-                       ase->codec_config.GetSamplingFrequencyHz(),
-                   "sample freq mismatch: %d!=%d",
-                   stream_conf->sink_sample_frequency_hz,
-                   ase->codec_config.GetSamplingFrequencyHz());
-      }
-
-      if (stream_conf->sink_octets_per_codec_frame == 0) {
-        stream_conf->sink_octets_per_codec_frame =
-            *ase->codec_config.octets_per_codec_frame;
-      } else {
-        ASSERT_LOG(stream_conf->sink_octets_per_codec_frame ==
-                       *ase->codec_config.octets_per_codec_frame,
-                   "octets per frame mismatch: %d!=%d",
-                   stream_conf->sink_octets_per_codec_frame,
-                   *ase->codec_config.octets_per_codec_frame);
-      }
-
-      if (stream_conf->sink_codec_frames_blocks_per_sdu == 0) {
-        stream_conf->sink_codec_frames_blocks_per_sdu =
-            *ase->codec_config.codec_frames_blocks_per_sdu;
-      } else {
-        ASSERT_LOG(stream_conf->sink_codec_frames_blocks_per_sdu ==
-                       *ase->codec_config.codec_frames_blocks_per_sdu,
-                   "codec_frames_blocks_per_sdu: %d!=%d",
-                   stream_conf->sink_codec_frames_blocks_per_sdu,
-                   *ase->codec_config.codec_frames_blocks_per_sdu);
-      }
-
-      if (stream_conf->sink_frame_duration_us == 0) {
-        stream_conf->sink_frame_duration_us =
-            ase->codec_config.GetFrameDurationUs();
-      } else {
-        ASSERT_LOG(stream_conf->sink_frame_duration_us ==
-                       ase->codec_config.GetFrameDurationUs(),
-                   "frame_duration_us: %d!=%d",
-                   stream_conf->sink_frame_duration_us,
-                   ase->codec_config.GetFrameDurationUs());
-      }
-
-      LOG_INFO(
-          " Added Sink Stream Configuration. CIS Connection Handle: %d"
-          ", Audio Channel Allocation: %d"
-          ", Sink Number Of Devices: %d"
-          ", Sink Number Of Channels: %d",
-          ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation,
-          stream_conf->sink_num_of_devices, stream_conf->sink_num_of_channels);
-
+    if (params.sample_frequency_hz == 0) {
+      params.sample_frequency_hz = ase->codec_config.GetSamplingFrequencyHz();
     } else {
-      /* Source case */
-      auto iter = std::find_if(
-          stream_conf->source_streams.begin(),
-          stream_conf->source_streams.end(),
-          [cis_conn_hdl](auto& pair) { return cis_conn_hdl == pair.first; });
-
-      ASSERT_LOG(iter == stream_conf->source_streams.end(),
-                 "Stream is already there 0x%04x", cis_conn_hdl);
-
-      stream_conf->source_streams.emplace_back(std::make_pair(
-          ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation));
-
-      stream_conf->source_num_of_devices++;
-      stream_conf->source_num_of_channels += ase->codec_config.channel_count;
-      stream_conf->source_audio_channel_allocation |=
-          *ase->codec_config.audio_channel_allocation;
-
-      if (stream_conf->source_sample_frequency_hz == 0) {
-        stream_conf->source_sample_frequency_hz =
-            ase->codec_config.GetSamplingFrequencyHz();
-      } else {
-        ASSERT_LOG(stream_conf->source_sample_frequency_hz ==
-                       ase->codec_config.GetSamplingFrequencyHz(),
-                   "sample freq mismatch: %d!=%d",
-                   stream_conf->source_sample_frequency_hz,
-                   ase->codec_config.GetSamplingFrequencyHz());
-      }
-
-      if (stream_conf->source_octets_per_codec_frame == 0) {
-        stream_conf->source_octets_per_codec_frame =
-            *ase->codec_config.octets_per_codec_frame;
-      } else {
-        ASSERT_LOG(stream_conf->source_octets_per_codec_frame ==
-                       *ase->codec_config.octets_per_codec_frame,
-                   "octets per frame mismatch: %d!=%d",
-                   stream_conf->source_octets_per_codec_frame,
-                   *ase->codec_config.octets_per_codec_frame);
-      }
-
-      if (stream_conf->source_codec_frames_blocks_per_sdu == 0) {
-        stream_conf->source_codec_frames_blocks_per_sdu =
-            *ase->codec_config.codec_frames_blocks_per_sdu;
-      } else {
-        ASSERT_LOG(stream_conf->source_codec_frames_blocks_per_sdu ==
-                       *ase->codec_config.codec_frames_blocks_per_sdu,
-                   "codec_frames_blocks_per_sdu: %d!=%d",
-                   stream_conf->source_codec_frames_blocks_per_sdu,
-                   *ase->codec_config.codec_frames_blocks_per_sdu);
-      }
-
-      if (stream_conf->source_frame_duration_us == 0) {
-        stream_conf->source_frame_duration_us =
-            ase->codec_config.GetFrameDurationUs();
-      } else {
-        ASSERT_LOG(stream_conf->source_frame_duration_us ==
-                       ase->codec_config.GetFrameDurationUs(),
-                   "frame_duration_us: %d!=%d",
-                   stream_conf->source_frame_duration_us,
-                   ase->codec_config.GetFrameDurationUs());
-      }
-
-      LOG_INFO(
-          " Added Source Stream Configuration. CIS Connection Handle: %d"
-          ", Audio Channel Allocation: %d"
-          ", Source Number Of Devices: %d"
-          ", Source Number Of Channels: %d",
-          ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation,
-          stream_conf->source_num_of_devices,
-          stream_conf->source_num_of_channels);
+      ASSERT_LOG(params.sample_frequency_hz ==
+                     ase->codec_config.GetSamplingFrequencyHz(),
+                 "sample freq mismatch: %d!=%d", params.sample_frequency_hz,
+                 ase->codec_config.GetSamplingFrequencyHz());
     }
 
-    /* Update offloader streams */
-    group->CreateStreamVectorForOffloader(ase->direction);
+    if (params.octets_per_codec_frame == 0) {
+      params.octets_per_codec_frame = *ase->codec_config.octets_per_codec_frame;
+    } else {
+      ASSERT_LOG(params.octets_per_codec_frame ==
+                     *ase->codec_config.octets_per_codec_frame,
+                 "octets per frame mismatch: %d!=%d",
+                 params.octets_per_codec_frame,
+                 *ase->codec_config.octets_per_codec_frame);
+    }
+
+    if (params.codec_frames_blocks_per_sdu == 0) {
+      params.codec_frames_blocks_per_sdu =
+          *ase->codec_config.codec_frames_blocks_per_sdu;
+    } else {
+      ASSERT_LOG(params.codec_frames_blocks_per_sdu ==
+                     *ase->codec_config.codec_frames_blocks_per_sdu,
+                 "codec_frames_blocks_per_sdu: %d!=%d",
+                 params.codec_frames_blocks_per_sdu,
+                 *ase->codec_config.codec_frames_blocks_per_sdu);
+    }
+
+    if (params.frame_duration_us == 0) {
+      params.frame_duration_us = ase->codec_config.GetFrameDurationUs();
+    } else {
+      ASSERT_LOG(
+          params.frame_duration_us == ase->codec_config.GetFrameDurationUs(),
+          "frame_duration_us: %d!=%d", params.frame_duration_us,
+          ase->codec_config.GetFrameDurationUs());
+    }
+
+    LOG_INFO(
+        " Added %s Stream Configuration. CIS Connection Handle: %d"
+        ", Audio Channel Allocation: %d"
+        ", Number Of Devices: %d"
+        ", Number Of Channels: %d",
+        (ase->direction == le_audio::types::kLeAudioDirectionSink ? "Sink"
+                                                                  : "Source"),
+        cis_conn_hdl, ase_audio_channel_allocation, params.num_of_devices,
+        params.num_of_channels);
+
+    /* Update CodecManager stream configuration */
+    state_machine_callbacks_->OnUpdatedCisConfiguration(group->group_id_,
+                                                        ase->direction);
   }
 
   bool CigCreate(LeAudioDeviceGroup* group) {
@@ -1340,6 +1286,14 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         group->GetPhyBitmask(le_audio::types::kLeAudioDirectionSink);
     uint8_t phy_stom =
         group->GetPhyBitmask(le_audio::types::kLeAudioDirectionSource);
+
+    // Use 1M Phy for the ACK packet from remote device to phone for better
+    // sensitivity
+    if (max_sdu_size_stom == 0 &&
+        (phy_stom & bluetooth::hci::kIsoCigPhy1M) != 0) {
+      phy_stom = bluetooth::hci::kIsoCigPhy1M;
+    }
+
     uint8_t rtn_mtos = 0;
     uint8_t rtn_stom = 0;
 
@@ -1528,22 +1482,15 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
   }
 
   static void PrepareDataPath(int group_id, const struct ase* ase) {
-    /* TODO: Handle HW offloading decode as we handle here, force to use SW
-     * decode for now */
-    auto data_path_id = bluetooth::hci::iso_manager::kIsoDataPathHci;
-    if (CodecManager::GetInstance()->GetCodecLocation() !=
-        CodecLocation::HOST) {
-      data_path_id = bluetooth::hci::iso_manager::kIsoDataPathPlatformDefault;
-    }
-    /* TODO: Need to set coding_format when we support the codec location inside
-     * the controller, force to use transparent for now */
     bluetooth::hci::iso_manager::iso_data_path_params param = {
         .data_path_dir =
             ase->direction == le_audio::types::kLeAudioDirectionSink
                 ? bluetooth::hci::iso_manager::kIsoDataPathDirectionIn
                 : bluetooth::hci::iso_manager::kIsoDataPathDirectionOut,
-        .data_path_id = data_path_id,
-        .codec_id_format = bluetooth::hci::kIsoCodingFormatTransparent,
+        .data_path_id = ase->data_path_id,
+        .codec_id_format = ase->is_codec_in_controller
+                               ? ase->codec_id.coding_format
+                               : bluetooth::hci::kIsoCodingFormatTransparent,
         .codec_id_company = ase->codec_id.vendor_company_id,
         .codec_id_vendor = ase->codec_id.vendor_codec_id,
         .controller_delay = 0x00000000,
@@ -1731,7 +1678,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       conf.target_latency = ase->target_latency;
       conf.target_phy = group->GetTargetPhy(ase->direction);
       conf.codec_id = ase->codec_id;
-      conf.codec_config = ase->codec_config;
+      // FIXME: Use LtvMap in ASE
+      conf.codec_config = ase->codec_config.GetAsLtvMap();
       confs.push_back(conf);
 
       msg_stream << "ASE_ID " << +conf.ase_id << ",";
@@ -2444,14 +2392,23 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       auto directional_audio_context =
           context_types.get(ase->direction) &
           leAudioDevice->GetAvailableContexts(ase->direction);
+
+      std::vector<uint8_t> new_metadata;
       if (directional_audio_context.any()) {
-        ase->metadata = leAudioDevice->GetMetadata(
+        new_metadata = leAudioDevice->GetMetadata(
             directional_audio_context, ccid_lists.get(ase->direction));
       } else {
-        ase->metadata = leAudioDevice->GetMetadata(
+        new_metadata = leAudioDevice->GetMetadata(
             AudioContexts(LeAudioContextType::UNSPECIFIED),
             std::vector<uint8_t>());
       }
+
+      /* Do not update if metadata did not changed. */
+      if (ase->metadata == new_metadata) {
+        continue;
+      }
+
+      ase->metadata = new_metadata;
 
       struct le_audio::client_parser::ascs::ctp_update_metadata conf;
 

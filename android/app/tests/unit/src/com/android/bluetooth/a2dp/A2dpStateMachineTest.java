@@ -35,6 +35,7 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.ActiveDeviceManager;
+import com.android.bluetooth.btservice.SilenceDeviceManager;
 import com.android.bluetooth.btservice.AdapterService;
 
 import org.hamcrest.core.IsInstanceOf;
@@ -65,6 +66,7 @@ public class A2dpStateMachineTest {
 
     @Mock private AdapterService mAdapterService;
     @Mock private ActiveDeviceManager mActiveDeviceManager;
+    @Mock private SilenceDeviceManager mSilenceDeviceManager;
     @Mock private A2dpService mA2dpService;
     @Mock private A2dpNativeInterface mA2dpNativeInterface;
 
@@ -74,6 +76,7 @@ public class A2dpStateMachineTest {
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
         doReturn(mActiveDeviceManager).when(mAdapterService).getActiveDeviceManager();
+        doReturn(mSilenceDeviceManager).when(mAdapterService).getSilenceDeviceManager();
 
         TestUtils.setAdapterService(mAdapterService);
 

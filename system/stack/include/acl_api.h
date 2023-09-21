@@ -226,7 +226,8 @@ bool acl_peer_supports_ble_packet_extension(uint16_t hci_handle);
  ******************************************************************************/
 void BTM_ReadConnectionAddr(const RawAddress& remote_bda,
                             RawAddress& local_conn_addr,
-                            tBLE_ADDR_TYPE* p_addr_type);
+                            tBLE_ADDR_TYPE* p_addr_type,
+                            bool ota_address = false);
 
 /*******************************************************************************
  *

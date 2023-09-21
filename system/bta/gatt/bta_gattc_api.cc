@@ -152,12 +152,12 @@ void BTA_GATTC_Open(tGATT_IF client_if, const RawAddress& remote_bda,
                       .event = BTA_GATTC_API_OPEN_EVT,
                   },
               .remote_bda = remote_bda,
-              .remote_addr_type = addr_type,
               .client_if = client_if,
               .connection_type = connection_type,
               .transport = transport,
               .initiating_phys = initiating_phys,
               .opportunistic = opportunistic,
+              .remote_addr_type = addr_type,
           },
   };
 

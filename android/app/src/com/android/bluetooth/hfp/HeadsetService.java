@@ -18,7 +18,6 @@ package com.android.bluetooth.hfp;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.MODIFY_PHONE_STATE;
-
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 import static com.android.modules.utils.build.SdkLevel.isAtLeastU;
 
@@ -60,6 +59,7 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
+import com.android.bluetooth.hfpclient.HeadsetClientStateMachine;
 import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.bluetooth.telephony.BluetoothInCallService;
 import com.android.internal.annotations.VisibleForTesting;
@@ -210,11 +210,6 @@ public class HeadsetService extends ProfileService {
         registerReceiver(mHeadsetReceiver, filter);
         // Step 7: Mark service as started
         mStarted = true;
-        BluetoothDevice activeDevice = getActiveDevice();
-        String deviceAddress = activeDevice != null ?
-                activeDevice.getAddress() :
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS;
-        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(), deviceAddress);
         return true;
     }
 
@@ -228,11 +223,6 @@ public class HeadsetService extends ProfileService {
             return true;
         }
         // Step 7: Mark service as stopped
-        BluetoothDevice activeDevice = getActiveDevice();
-        String deviceAddress = activeDevice != null ?
-                activeDevice.getAddress() :
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS;
-        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(), deviceAddress);
         mStarted = false;
         // Step 6: Tear down broadcast receivers
         unregisterReceiver(mHeadsetReceiver);
@@ -1392,11 +1382,11 @@ public class HeadsetService extends ProfileService {
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     public boolean setActiveDevice(BluetoothDevice device) {
         Log.i(TAG, "setActiveDevice: device=" + device + ", " + Utils.getUidPidString());
+        if (device == null) {
+            removeActiveDevice();
+            return true;
+        }
         synchronized (mStateMachines) {
-            if (device == null) {
-                removeActiveDevice();
-                return true;
-            }
             if (device.equals(mActiveDevice)) {
                 Log.i(TAG, "setActiveDevice: device " + device + " is already active");
                 return true;
@@ -2005,9 +1995,23 @@ public class HeadsetService extends ProfileService {
                 setActiveDevice(null);
             }
         }
+
         mAdapterService
                 .getActiveDeviceManager()
+                .profileConnectionStateChanged(BluetoothProfile.HEADSET, device, fromState,
+                    toState);
+        mAdapterService
+                .getSilenceDeviceManager()
                 .hfpConnectionStateChanged(device, fromState, toState);
+        mAdapterService
+                .getRemoteDevices()
+                .handleHeadsetConnectionStateChanged(device, fromState, toState);
+        mAdapterService.notifyProfileConnectionStateChangeToGatt(
+                BluetoothProfile.HEADSET, fromState, toState);
+        mAdapterService.handleProfileConnectionStateChange(
+                BluetoothProfile.HEADSET, device, fromState, toState);
+        mAdapterService.updateProfileConnectionAdapterProperties(
+                device, BluetoothProfile.HEADSET, toState, fromState);
     }
 
     /**
@@ -2133,10 +2137,15 @@ public class HeadsetService extends ProfileService {
 
     private void broadcastActiveDevice(BluetoothDevice device) {
         logD("broadcastActiveDevice: " + device);
-        mAdapterService.getActiveDeviceManager().hfpActiveStateChanged(device);
-        BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_ACTIVE_DEVICE_CHANGED,
-                BluetoothProfile.HEADSET, mAdapterService.obfuscateAddress(device),
+
+        mAdapterService.handleActiveDeviceChange(BluetoothProfile.HEADSET, device);
+
+        BluetoothStatsLog.write(
+                BluetoothStatsLog.BLUETOOTH_ACTIVE_DEVICE_CHANGED,
+                BluetoothProfile.HEADSET,
+                mAdapterService.obfuscateAddress(device),
                 mAdapterService.getMetricId(device));
+
         Intent intent = new Intent(BluetoothHeadset.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT

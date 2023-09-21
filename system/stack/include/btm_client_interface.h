@@ -57,21 +57,6 @@ struct btm_client_interface_t {
     bool (*BTM_FreeSCN)(uint8_t scn);
   } scn;
 
-  // Neighbor
-  struct {
-    void (*BTM_CancelInquiry)();
-    tBTM_INQ_INFO* (*BTM_InqDbNext)(tBTM_INQ_INFO* p_cur);
-    tBTM_STATUS (*BTM_ClearInqDb)(const RawAddress* p_bda);
-    tBTM_STATUS (*BTM_SetDiscoverability)(uint16_t inq_mode);
-    tBTM_STATUS (*BTM_SetConnectability)(uint16_t page_mode);
-    tBTM_STATUS (*BTM_StartInquiry)(tBTM_INQ_RESULTS_CB* p_results_cb,
-                                    tBTM_CMPL_CB* p_cmpl_cb);
-    uint16_t (*BTM_IsInquiryActive)(void);
-    tBTM_STATUS (*BTM_SetInquiryMode)(uint8_t mode);
-    void (*BTM_EnableInterlacedInquiryScan)();
-    void (*BTM_EnableInterlacedPageScan)();
-  } neighbor;
-
   // Acl peer and lifecycle
   struct {
     struct {
@@ -125,8 +110,6 @@ struct btm_client_interface_t {
                              uint8_t pin_length);
     bool (*BTM_SecAddRmtNameNotifyCallback)(tBTM_RMT_NAME_CALLBACK* p_callback);
     bool (*BTM_SecDeleteDevice)(const RawAddress& bd_addr);
-    bool (*BTM_SecDeleteRmtNameNotifyCallbac)(
-        tBTM_RMT_NAME_CALLBACK* p_callback);
     bool (*BTM_SecRegister)(const tBTM_APPL_INFO* p_cb_info);
     const char* (*BTM_SecReadDevName)(const RawAddress& bd_addr);
     tBTM_STATUS (*BTM_SecBond)(const RawAddress& bd_addr,

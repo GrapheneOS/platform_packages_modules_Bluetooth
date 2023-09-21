@@ -4,6 +4,7 @@ option java_outer_classname = "AndroidProto";
 
 package pandora;
 
+import "pandora/host.proto";
 import "google/protobuf/empty.proto";
 
 // This file contains Android-specific protos and rpcs that should not be part
@@ -18,10 +19,6 @@ service Android {
   rpc SetAccessPermission(SetAccessPermissionRequest) returns (google.protobuf.Empty);
   // Send SMS
   rpc SendSMS(google.protobuf.Empty) returns (google.protobuf.Empty);
-  // Accept incoming file
-  rpc AcceptIncomingFile(google.protobuf.Empty) returns (google.protobuf.Empty);
-  // Send file
-  rpc SendFile(SendFileRequest) returns (google.protobuf.Empty);
 
   // Send ping
   rpc SendPing(SendPingRequest) returns (google.protobuf.Empty);
@@ -44,11 +41,6 @@ message SetAccessPermissionRequest {
   bytes address = 1;
   // Set AccessType to Message, PhoneBook and SIM access permission
   AccessType access_type = 2;
-}
-
-message SendFileRequest {
-  // Peer Bluetooth Device name.
-  string name = 1;
 }
 
 // Internal representation of a Connection - not exposed to clients, included here

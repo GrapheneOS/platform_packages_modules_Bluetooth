@@ -32,6 +32,8 @@ cc_library_static {
         "com.android.btservices",
     ],
     min_sdk_version: "Tiramisu",
+    header_libs: ["libbluetooth_headers"],
+    static_libs: ["libbt_shim_bridge"],
 }
 
 // Bluetooth device unit tests for target
@@ -54,11 +56,14 @@ cc_test {
     static_libs: [
         "libbluetooth-types",
         "libbluetooth_gd",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libbtcore",
         "libbtdevice",
         "libchrome",
         "libosi",
     ],
+    header_libs: ["libbluetooth_headers"],
 }
 
 // Bluetooth device unit tests for target
@@ -87,9 +92,14 @@ cc_test {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libbtcore",
         "libbtdevice",
         "libchrome",
         "libgmock",
     ],
+    header_libs: ["libbluetooth_headers"],
+    cflags: ["-Wno-unused-parameter"],
 }

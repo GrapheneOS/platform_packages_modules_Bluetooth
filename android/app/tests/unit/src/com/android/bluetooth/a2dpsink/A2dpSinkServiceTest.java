@@ -26,19 +26,18 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.media.AudioFormat;
+import android.os.test.TestLooper;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -69,6 +68,8 @@ public class A2dpSinkServiceTest {
     private BluetoothDevice mDevice5;
     private BluetoothDevice mDevice6;
 
+    private TestLooper mLooper;
+
     private static final int TEST_SAMPLE_RATE = 44;
     private static final int TEST_CHANNEL_COUNT = 1;
 
@@ -77,73 +78,63 @@ public class A2dpSinkServiceTest {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         MockitoAnnotations.initMocks(this);
 
+        mLooper = new TestLooper();
+
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         assertThat(mAdapter).isNotNull();
-        mDevice1 = makeBluetoothDevice("11:11:11:11:11:11");
-        mDevice2 = makeBluetoothDevice("22:22:22:22:22:22");
-        mDevice3 = makeBluetoothDevice("33:33:33:33:33:33");
-        mDevice4 = makeBluetoothDevice("44:44:44:44:44:44");
-        mDevice5 = makeBluetoothDevice("55:55:55:55:55:55");
-        mDevice6 = makeBluetoothDevice("66:66:66:66:66:66");
+        mDevice1 = mAdapter.getRemoteDevice("11:11:11:11:11:11");
+        mDevice2 = mAdapter.getRemoteDevice("22:22:22:22:22:22");
+        mDevice3 = mAdapter.getRemoteDevice("33:33:33:33:33:33");
+        mDevice4 = mAdapter.getRemoteDevice("44:44:44:44:44:44");
+        mDevice5 = mAdapter.getRemoteDevice("55:55:55:55:55:55");
+        mDevice6 = mAdapter.getRemoteDevice("66:66:66:66:66:66");
         BluetoothDevice[] bondedDevices = new BluetoothDevice[]{
             mDevice1, mDevice2, mDevice3, mDevice4, mDevice5, mDevice6
         };
 
-        // Setup the adapter service and start our service under test
-        TestUtils.setAdapterService(mAdapterService);
+        doReturn(true).when(mDatabaseManager).setProfileConnectionPolicy(any(), anyInt(), anyInt());
+
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         doReturn(bondedDevices).when(mAdapterService).getBondedDevices();
-        when(mDatabaseManager.setProfileConnectionPolicy(any(), anyInt(),
-                anyInt())).thenReturn(true);
-        setMaxConnectedAudioDevices(1);
-        TestUtils.startService(mServiceRule, A2dpSinkService.class);
-        mService = A2dpSinkService.getA2dpSinkService();
-        assertThat(mService).isNotNull();
-        verify(mAdapterService).notifyActivityAttributionInfo(any(), any());
+        doReturn(1).when(mAdapterService).getMaxConnectedAudioDevices();
 
-        mService.mNativeInterface = mNativeInterface;
+        TestUtils.setAdapterService(mAdapterService);
+
         doReturn(true).when(mNativeInterface).setActiveDevice(any());
+
+        mService = new A2dpSinkService(mTargetContext, mNativeInterface, mLooper.getLooper());
+        mService.doStart();
+        assertThat(mLooper.nextMessage()).isNull();
     }
 
     @After
     public void tearDown() throws Exception {
-        TestUtils.stopService(mServiceRule, A2dpSinkService.class);
-        mService = A2dpSinkService.getA2dpSinkService();
-        assertThat(mService).isNull();
+        assertThat(mLooper.nextMessage()).isNull();
+
+        mService.doStop();
+        assertThat(A2dpSinkService.getA2dpSinkService()).isNull();
         TestUtils.clearAdapterService(mAdapterService);
     }
 
+    private void syncHandler(int... what) {
+        TestUtils.syncHandler(mLooper, what);
+    }
+
     private void setupDeviceConnection(BluetoothDevice device) {
+        assertThat(mLooper.nextMessage()).isNull();
         assertThat(mService.getConnectionState(device)).isEqualTo(
                 BluetoothProfile.STATE_DISCONNECTED);
+        assertThat(mLooper.nextMessage()).isNull();
+
         assertThat(mService.connect(device)).isTrue();
-        sendConnectionEvent(device, StackEvent.CONNECTION_STATE_CONNECTED);
-        waitForDeviceProcessing(device);
+        syncHandler(-2 /* SM_INIT_CMD */, A2dpSinkStateMachine.CONNECT);
+        StackEvent nativeEvent =
+                StackEvent.connectionStateChanged(device, StackEvent.CONNECTION_STATE_CONNECTED);
+        mService.messageFromNative(nativeEvent);
+        syncHandler(A2dpSinkStateMachine.STACK_EVENT);
         assertThat(mService.getConnectionState(device)).isEqualTo(
                 BluetoothProfile.STATE_CONNECTED);
-    }
-
-    private void sendConnectionEvent(BluetoothDevice device, int newState) {
-        StackEvent event = StackEvent.connectionStateChanged(device, newState);
-        mService.messageFromNative(event);
-    }
-
-    private void waitForDeviceProcessing(BluetoothDevice device) {
-        A2dpSinkStateMachine sm = mService.getStateMachineForDevice(device);
-        if (sm == null) return;
-        TestUtils.waitForLooperToFinishScheduledTask(sm.getHandler().getLooper());
-    }
-
-    private BluetoothDevice makeBluetoothDevice(String address) {
-        return mAdapter.getRemoteDevice(address);
-    }
-
-    /**
-     * Set the upper connected device limit
-     */
-    private void setMaxConnectedAudioDevices(int maxConnectedAudioDevices) {
-        when(mAdapterService.getMaxConnectedAudioDevices()).thenReturn(maxConnectedAudioDevices);
     }
 
     /**
@@ -162,7 +153,7 @@ public class A2dpSinkServiceTest {
      */
     @Test
     public void testInitialize() {
-        assertThat(A2dpSinkService.getA2dpSinkService()).isNotNull();
+        assertThat(A2dpSinkService.getA2dpSinkService()).isEqualTo(mService);
     }
 
     /**
@@ -207,7 +198,7 @@ public class A2dpSinkServiceTest {
      */
     @Test
     public void testConnectMultipleDevices() {
-        setMaxConnectedAudioDevices(5);
+        doReturn(5).when(mAdapterService).getMaxConnectedAudioDevices();
 
         mockDevicePriority(mDevice1, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         mockDevicePriority(mDevice2, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
@@ -232,9 +223,11 @@ public class A2dpSinkServiceTest {
         setupDeviceConnection(mDevice1);
 
         assertThat(mService.disconnect(mDevice1)).isTrue();
-        waitForDeviceProcessing(mDevice1);
+        syncHandler(A2dpSinkStateMachine.DISCONNECT);
         assertThat(mService.getConnectionState(mDevice1)).isEqualTo(
                 BluetoothProfile.STATE_DISCONNECTED);
+
+        syncHandler(A2dpSinkStateMachine.CLEANUP, -1 /* SM_QUIT_CMD */);
     }
 
     /**
@@ -295,7 +288,7 @@ public class A2dpSinkServiceTest {
         StackEvent audioConfigChanged =
                 StackEvent.audioConfigChanged(mDevice1, TEST_SAMPLE_RATE, TEST_CHANNEL_COUNT);
         mService.messageFromNative(audioConfigChanged);
-        waitForDeviceProcessing(mDevice1);
+        syncHandler(A2dpSinkStateMachine.STACK_EVENT);
 
         BluetoothAudioConfig expected = new BluetoothAudioConfig(TEST_SAMPLE_RATE,
                 TEST_CHANNEL_COUNT, AudioFormat.ENCODING_PCM_16BIT);
@@ -409,8 +402,11 @@ public class A2dpSinkServiceTest {
     public void testSetConnectionPolicyDeviceAllowed() {
         assertThat(mService.setConnectionPolicy(mDevice1,
                 BluetoothProfile.CONNECTION_POLICY_ALLOWED)).isTrue();
-        verify(mDatabaseManager, times(1)).setProfileConnectionPolicy(mDevice1,
-                BluetoothProfile.A2DP_SINK, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        verify(mDatabaseManager)
+                .setProfileConnectionPolicy(
+                        mDevice1,
+                        BluetoothProfile.A2DP_SINK,
+                        BluetoothProfile.CONNECTION_POLICY_ALLOWED);
     }
 
     /**
@@ -420,8 +416,11 @@ public class A2dpSinkServiceTest {
     public void testSetConnectionPolicyDeviceForbiddenWhileNotConnected() {
         assertThat(mService.setConnectionPolicy(mDevice1,
                 BluetoothProfile.CONNECTION_POLICY_FORBIDDEN)).isTrue();
-        verify(mDatabaseManager, times(1)).setProfileConnectionPolicy(mDevice1,
-                BluetoothProfile.A2DP_SINK, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+        verify(mDatabaseManager)
+                .setProfileConnectionPolicy(
+                        mDevice1,
+                        BluetoothProfile.A2DP_SINK,
+                        BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
     }
 
     /**
@@ -435,12 +434,18 @@ public class A2dpSinkServiceTest {
 
         assertThat(mService.setConnectionPolicy(mDevice1,
                 BluetoothProfile.CONNECTION_POLICY_FORBIDDEN)).isTrue();
-        verify(mDatabaseManager, times(1)).setProfileConnectionPolicy(mDevice1,
-                BluetoothProfile.A2DP_SINK, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+        verify(mDatabaseManager)
+                .setProfileConnectionPolicy(
+                        mDevice1,
+                        BluetoothProfile.A2DP_SINK,
+                        BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
 
-        waitForDeviceProcessing(mDevice1);
+        syncHandler(A2dpSinkStateMachine.DISCONNECT);
+        verify(mNativeInterface).disconnectA2dpSink(eq(mDevice1));
         assertThat(mService.getConnectionState(mDevice1)).isEqualTo(
                 BluetoothProfile.STATE_DISCONNECTED);
+
+        syncHandler(A2dpSinkStateMachine.CLEANUP, -1 /* SM_QUIT_CMD */);
     }
 
     /**
@@ -450,8 +455,11 @@ public class A2dpSinkServiceTest {
     public void testSetConnectionPolicyDeviceUnknown() {
         assertThat(mService.setConnectionPolicy(mDevice1,
                 BluetoothProfile.CONNECTION_POLICY_UNKNOWN)).isTrue();
-        verify(mDatabaseManager, times(1)).setProfileConnectionPolicy(mDevice1,
-                BluetoothProfile.A2DP_SINK, BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+        verify(mDatabaseManager)
+                .setProfileConnectionPolicy(
+                        mDevice1,
+                        BluetoothProfile.A2DP_SINK,
+                        BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
     }
 
     /**

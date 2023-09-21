@@ -19,12 +19,38 @@ package com.android.bluetooth.gatt;
 import android.bluetooth.le.AdvertisingSetParameters;
 import android.bluetooth.le.PeriodicAdvertisingParameters;
 
-import androidx.annotation.VisibleForTesting;
+import com.android.internal.annotations.GuardedBy;
+import com.android.internal.annotations.VisibleForTesting;
 
 /** Native interface for AdvertiseManager */
 @VisibleForTesting
 public class AdvertiseManagerNativeInterface {
-    AdvertiseManager mManager;
+    private static final String TAG = AdvertiseManagerNativeInterface.class.getSimpleName();
+
+    @GuardedBy("INSTANCE_LOCK")
+    private static AdvertiseManagerNativeInterface sInstance;
+
+    private static final Object INSTANCE_LOCK = new Object();
+
+    private AdvertiseManager mManager;
+
+    /** Get singleton instance. */
+    public static AdvertiseManagerNativeInterface getInstance() {
+        synchronized (INSTANCE_LOCK) {
+            if (sInstance == null) {
+                sInstance = new AdvertiseManagerNativeInterface();
+            }
+            return sInstance;
+        }
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    public static void setInstance(AdvertiseManagerNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
+        }
+    }
 
     void init(AdvertiseManager manager) {
         mManager = manager;
@@ -95,10 +121,6 @@ public class AdvertiseManagerNativeInterface {
         setPeriodicAdvertisingEnableNative(advertiserId, enable);
     }
 
-    static {
-        classInitNative();
-    }
-
     void onAdvertisingSetStarted(int regId, int advertiserId, int txPower, int status)
             throws Exception {
         mManager.onAdvertisingSetStarted(regId, advertiserId, txPower, status);
@@ -137,8 +159,6 @@ public class AdvertiseManagerNativeInterface {
             throws Exception {
         mManager.onPeriodicAdvertisingEnabled(advertiserId, enable, status);
     }
-
-    private static native void classInitNative();
 
     private native void initializeNative();
 

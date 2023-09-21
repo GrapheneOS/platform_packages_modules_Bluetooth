@@ -311,62 +311,6 @@ struct tACL_CONN {
   uint8_t sca; /* Sleep clock accuracy */
 
   void Reset();
-
-  struct tPolicy {
-    tBTM_PM_MODE Mode() const { return this->mode.mode_; }
-    struct {
-      bool IsPending() const { return pending_ != BTM_PM_MD_UNKNOWN; }
-      tBTM_PM_MODE Pending() const { return pending_; }
-      uint16_t Interval() const { return interval_; }
-
-     private:
-      tBTM_PM_MODE mode_{BTM_PM_MD_ACTIVE};
-      tBTM_PM_MODE pending_{BTM_PM_MD_UNKNOWN};
-      uint16_t interval_{0};
-      friend tBTM_STATUS bluetooth::shim::BTM_SetPowerMode(
-          uint16_t, const tBTM_PM_PWR_MD& new_mode);
-      friend void bluetooth::shim::btm_pm_on_mode_change(tHCI_STATUS status,
-                                                         uint16_t handle,
-                                                         tHCI_MODE hci_mode,
-                                                         uint16_t interval);
-      friend void tACL_CONN::Reset();
-      friend tBTM_PM_MODE tACL_CONN::tPolicy::Mode() const;
-    } mode;
-
-    hci_role_t Role() const { return this->role.role_; }
-    struct {
-      unsigned RoleSwitchFailedCount() const { return role_switch_failed_cnt_; }
-
-     private:
-      hci_role_t role_{HCI_ROLE_CENTRAL};
-      unsigned role_switch_failed_cnt_{0};
-      friend void tACL_CONN::Reset();
-      friend hci_role_t tACL_CONN::tPolicy::Role() const;
-    } role;
-
-    struct {
-      bool IsPending() const { return pending_; }
-
-     private:
-      bool pending_{false};
-      friend tBTM_STATUS bluetooth::shim::BTM_SetSsrParams(uint16_t handle,
-                                                           uint16_t max_lat,
-                                                           uint16_t min_rmt_to,
-                                                           uint16_t min_loc_to);
-      friend void bluetooth::shim::btm_pm_on_sniff_subrating(
-          tHCI_STATUS status, uint16_t handle,
-          uint16_t maximum_transmit_latency, uint16_t maximum_receive_latency,
-          uint16_t minimum_remote_timeout, uint16_t minimum_local_timeout);
-      friend void tACL_CONN::Reset();
-    } sniff_subrating;
-
-    tLINK_POLICY Settings() const { return settings_; }
-
-   private:
-    tLINK_POLICY settings_{kAllLinkPoliciesEnabled};
-    friend void btm_set_link_policy(tACL_CONN* conn, tLINK_POLICY policy);
-    friend void tACL_CONN::Reset();
-  } policy;
 };
 
 struct controller_t;

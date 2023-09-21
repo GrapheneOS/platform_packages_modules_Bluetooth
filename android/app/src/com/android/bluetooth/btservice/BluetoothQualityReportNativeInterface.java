@@ -25,19 +25,16 @@ import android.util.Log;
 
 import com.android.bluetooth.Utils;
 import com.android.internal.annotations.GuardedBy;
+import com.android.internal.annotations.VisibleForTesting;
 
-final class BluetoothQualityReportNativeInterface {
-
+/** Native interface to BQR */
+public class BluetoothQualityReportNativeInterface {
     private static final String TAG = "BluetoothQualityReportNativeInterface";
 
     @GuardedBy("INSTANCE_LOCK")
     private static BluetoothQualityReportNativeInterface sInstance;
 
     private static final Object INSTANCE_LOCK = new Object();
-
-    static {
-        classInitNative();
-    }
 
     private BluetoothQualityReportNativeInterface() {}
 
@@ -48,6 +45,14 @@ final class BluetoothQualityReportNativeInterface {
                 sInstance = new BluetoothQualityReportNativeInterface();
             }
             return sInstance;
+        }
+    }
+
+    /** Set singleton instance. */
+    @VisibleForTesting
+    static void setInstance(BluetoothQualityReportNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
         }
     }
 
@@ -125,8 +130,6 @@ final class BluetoothQualityReportNativeInterface {
     }
 
     // Native methods that call into the JNI interface
-    private static native void classInitNative();
-
     private native void initNative();
 
     private native void cleanupNative();

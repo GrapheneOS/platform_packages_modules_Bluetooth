@@ -432,8 +432,8 @@ class VolumeControlTest : public ::testing::Test {
 
   void GetDisconnectedEvent(const RawAddress& address, uint16_t conn_id) {
     tBTA_GATTC_CLOSE event_data = {
-        .status = GATT_SUCCESS,
         .conn_id = conn_id,
+        .status = GATT_SUCCESS,
         .client_if = gatt_if,
         .remote_bda = address,
         .reason = GATT_CONN_TERMINATE_PEER_USER,
@@ -444,8 +444,8 @@ class VolumeControlTest : public ::testing::Test {
 
   void GetSearchCompleteEvent(uint16_t conn_id) {
     tBTA_GATTC_SEARCH_CMPL event_data = {
-        .status = GATT_SUCCESS,
         .conn_id = conn_id,
+        .status = GATT_SUCCESS,
     };
 
     gatt_callback(BTA_GATTC_SEARCH_CMPL_EVT, (tBTA_GATTC*)&event_data);
@@ -744,6 +744,43 @@ TEST_F(VolumeControlTest, test_reconnect_after_encryption_failed) {
   Mock::VerifyAndClearExpectations(&btm_interface);
   SetEncryptionResult(test_address, true);
   GetConnectedEvent(test_address, 1);
+  TestAppUnregister();
+}
+
+TEST_F(VolumeControlTest, test_service_discovery_completed_before_encryption) {
+  const RawAddress test_address = GetTestAddress(0);
+  SetSampleDatabaseVCS(1);
+  TestAppRegister();
+  TestConnect(test_address);
+
+  ON_CALL(btm_interface, BTM_IsEncrypted(test_address, _))
+      .WillByDefault(DoAll(Return(false)));
+  ON_CALL(btm_interface, SetEncryption(test_address, _, _, _, _))
+      .WillByDefault(Return(BTM_SUCCESS));
+
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::CONNECTED, test_address))
+      .Times(0);
+  uint16_t conn_id = 1;
+  GetConnectedEvent(test_address, conn_id);
+  GetSearchCompleteEvent(conn_id);
+  Mock::VerifyAndClearExpectations(&btm_interface);
+  Mock::VerifyAndClearExpectations(callbacks.get());
+
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::CONNECTED, test_address))
+      .Times(1);
+
+  ON_CALL(btm_interface, BTM_IsEncrypted(test_address, _))
+      .WillByDefault(DoAll(Return(true)));
+  EXPECT_CALL(gatt_interface, ServiceSearchRequest(_, _));
+
+  GetEncryptionCompleteEvt(test_address);
+  GetSearchCompleteEvent(conn_id);
+
+  Mock::VerifyAndClearExpectations(callbacks.get());
+  Mock::VerifyAndClearExpectations(&gatt_interface);
+
   TestAppUnregister();
 }
 

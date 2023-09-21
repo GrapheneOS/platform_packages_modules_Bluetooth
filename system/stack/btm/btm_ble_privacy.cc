@@ -567,8 +567,8 @@ void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& dev_rec) {
 
   if (dev_rec.ble.identity_address_with_type.bda.IsEmpty()) {
     dev_rec.ble.identity_address_with_type = {
-        .bda = dev_rec.bd_addr,
         .type = dev_rec.ble.AddressType(),
+        .bda = dev_rec.bd_addr,
     };
   }
 

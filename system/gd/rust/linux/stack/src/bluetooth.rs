@@ -21,12 +21,13 @@ use bt_topshim::{
 
 use bt_utils::array_utils;
 use bt_utils::cod::{is_cod_hid_combo, is_cod_hid_keyboard};
+use bt_utils::uhid::{UHid, BD_ADDR_DEFAULT};
 use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 
 use log::{debug, warn};
 use num_traits::cast::ToPrimitive;
 use num_traits::pow;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::fs::File;
 use std::hash::Hash;
@@ -44,6 +45,7 @@ use crate::bluetooth_admin::{BluetoothAdmin, IBluetoothAdmin};
 use crate::bluetooth_gatt::{BluetoothGatt, IBluetoothGatt, IScannerCallback, ScanResult};
 use crate::bluetooth_media::{BluetoothMedia, IBluetoothMedia, MediaActions};
 use crate::callbacks::Callbacks;
+use crate::socket_manager::SocketActions;
 use crate::uuid::{Profile, UuidHelper, HOGP};
 use crate::{Message, RPCProxy, SuspendMode};
 
@@ -145,10 +147,10 @@ pub trait IBluetooth {
     fn create_bond(&mut self, device: BluetoothDevice, transport: BtTransport) -> bool;
 
     /// Cancels any pending bond attempt on given device.
-    fn cancel_bond_process(&self, device: BluetoothDevice) -> bool;
+    fn cancel_bond_process(&mut self, device: BluetoothDevice) -> bool;
 
     /// Removes pairing for given device.
-    fn remove_bond(&self, device: BluetoothDevice) -> bool;
+    fn remove_bond(&mut self, device: BluetoothDevice) -> bool;
 
     /// Returns a list of known bonded devices.
     fn get_bonded_devices(&self) -> Vec<BluetoothDevice>;
@@ -507,9 +509,13 @@ pub struct Bluetooth {
     tx: Sender<Message>,
     // Internal API members
     discoverable_timeout: Option<JoinHandle<()>>,
+    cancelling_devices: HashSet<RawAddress>,
 
     /// Used to notify signal handler that we have turned off the stack.
     sig_notifier: Arc<SigData>,
+
+    /// Virtual uhid device created to keep bluetooth as a wakeup source.
+    uhid_wakeup_source: UHid,
 }
 
 impl Bluetooth {
@@ -557,7 +563,9 @@ impl Bluetooth {
             tx,
             // Internal API members
             discoverable_timeout: None,
+            cancelling_devices: HashSet::new(),
             sig_notifier,
+            uhid_wakeup_source: UHid::new(),
         }
     }
 
@@ -1103,6 +1111,38 @@ impl Bluetooth {
             self.start_discovery();
         }
     }
+
+    /// Return if there are wake-allowed device in bonded status.
+    fn get_wake_allowed_device_bonded(&self) -> bool {
+        self.get_bonded_devices().into_iter().any(|d| self.get_remote_wake_allowed(d))
+    }
+
+    /// Powerd recognizes bluetooth activities as valid wakeup sources if powerd keeps bluetooth in
+    /// the monitored path. This only happens if there is at least one valid wake-allowed BT device
+    /// connected during the suspending process. If there is no BT devices connected at any time
+    /// during the suspending process, the wakeup count will be lost, and system goes to dark
+    /// resume instead of full resume.
+    /// Bluetooth stack disconnects all physical bluetooth HID devices for suspend, so a virtual
+    /// uhid device is necessary to keep bluetooth as a valid wakeup source.
+    fn create_uhid_for_suspend_wakesource(&mut self) {
+        if !self.uhid_wakeup_source.is_empty() {
+            return;
+        }
+        let adapter_addr = self.get_address().to_lowercase();
+        match self.uhid_wakeup_source.create(
+            "suspend uhid".to_string(),
+            adapter_addr,
+            String::from(BD_ADDR_DEFAULT),
+        ) {
+            Err(e) => log::error!("Fail to create uhid {}", e),
+            Ok(_) => (),
+        }
+    }
+
+    /// Clear the UHID device.
+    fn clear_uhid(&mut self) {
+        self.uhid_wakeup_source.clear();
+    }
 }
 
 #[btif_callbacks_dispatcher(dispatch_base_callbacks, BaseCallbacks)]
@@ -1251,6 +1291,8 @@ impl BtifBluetoothCallbacks for Bluetooth {
                     _ => (),
                 }
 
+                self.clear_uhid();
+
                 // Let the signal notifier know we are turned off.
                 *self.sig_notifier.enabled.lock().unwrap() = false;
                 self.sig_notifier.enabled_notify.notify_all();
@@ -1259,6 +1301,9 @@ impl BtifBluetoothCallbacks for Bluetooth {
             BtState::On => {
                 // Initialize media
                 self.bluetooth_media.lock().unwrap().initialize();
+
+                // Initialize core profiles
+                self.init_profiles();
 
                 // Trigger properties update
                 self.intf.lock().unwrap().get_adapter_properties();
@@ -1276,6 +1321,9 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 // Ensure device is connectable so that disconnected device can reconnect
                 self.set_connectable(true);
 
+                if self.get_wake_allowed_device_bonded() {
+                    self.create_uhid_for_suspend_wakesource();
+                }
                 // Notify the signal notifier that we are turned on.
                 *self.sig_notifier.enabled.lock().unwrap() = true;
                 self.sig_notifier.enabled_notify.notify_all();
@@ -1507,6 +1555,9 @@ impl BtifBluetoothCallbacks for Bluetooth {
             self.found_devices
                 .entry(address.clone())
                 .and_modify(|d| d.bond_state = bond_state.clone());
+            if !self.get_wake_allowed_device_bonded() {
+                self.clear_uhid();
+            }
         }
         // We will only insert into the bonded list after bonding is complete
         else if &bond_state == &BtBondState::Bonded && !self.bonded_devices.contains_key(&address)
@@ -1533,6 +1584,9 @@ impl BtifBluetoothCallbacks for Bluetooth {
             device.services_resolved = false;
             self.bonded_devices.insert(address.clone(), device);
             self.fetch_remote_uuids(device_info);
+            if self.get_wake_allowed_device_bonded() {
+                self.create_uhid_for_suspend_wakesource();
+            }
         } else {
             // If we're bonding, we need to update the found devices list
             self.found_devices
@@ -1555,7 +1609,13 @@ impl BtifBluetoothCallbacks for Bluetooth {
             );
         });
 
-        metrics::bond_state_changed(addr, device_type, status, bond_state, fail_reason);
+        // Don't emit the metrics event if we were cancelling the bond.
+        // It is ok to not send the pairing complete event as the server should ignore the dangling
+        // pairing attempt event.
+        // This behavior aligns with BlueZ.
+        if !self.cancelling_devices.remove(&addr) {
+            metrics::bond_state_changed(addr, device_type, status, bond_state, fail_reason);
+        }
     }
 
     fn remote_device_properties_changed(
@@ -2062,6 +2122,12 @@ impl IBluetooth for Bluetooth {
             _ => self.get_remote_type(device.clone()),
         };
 
+        // There could be a race between bond complete and bond cancel, which makes
+        // |cancelling_devices| in a wrong state. Remove the device just in case.
+        if self.cancelling_devices.remove(&address) {
+            warn!("Device {} is also cancelling the bond.", DisplayAddress(&address));
+        }
+
         // We explicitly log the attempt to start the bonding separate from logging the bond state.
         // The start of the attempt is critical to help identify a bonding/pairing session.
         metrics::bond_create_attempt(address, device_type.clone());
@@ -2093,7 +2159,7 @@ impl IBluetooth for Bluetooth {
         return true;
     }
 
-    fn cancel_bond_process(&self, device: BluetoothDevice) -> bool {
+    fn cancel_bond_process(&mut self, device: BluetoothDevice) -> bool {
         let addr = RawAddress::from_string(device.address.clone());
 
         if addr.is_none() {
@@ -2102,10 +2168,14 @@ impl IBluetooth for Bluetooth {
         }
 
         let address = addr.unwrap();
+        if !self.cancelling_devices.insert(address.clone()) {
+            warn!("Device {} has been added to cancelling_device.", DisplayAddress(&address));
+        }
+
         self.intf.lock().unwrap().cancel_bond(&address) == 0
     }
 
-    fn remove_bond(&self, device: BluetoothDevice) -> bool {
+    fn remove_bond(&mut self, device: BluetoothDevice) -> bool {
         let addr = RawAddress::from_string(device.address.clone());
 
         if addr.is_none() {
@@ -2115,6 +2185,13 @@ impl IBluetooth for Bluetooth {
 
         let address = addr.unwrap();
         debug!("Removing bond for {}", DisplayAddress(&address));
+
+        // There could be a race between bond complete and bond cancel, which makes
+        // |cancelling_devices| in a wrong state. Remove the device just in case.
+        if self.cancelling_devices.remove(&address) {
+            warn!("Device {} is also cancelling the bond.", DisplayAddress(&address));
+        }
+
         let status = self.intf.lock().unwrap().remove_bond(&address);
 
         if status != 0 {
@@ -2600,6 +2677,16 @@ impl IBluetooth for Bluetooth {
                 }
                 _ => {}
             }
+        }
+
+        // Disconnect all socket connections
+        if let Some(raw_addr) = RawAddress::from_string(device.address.clone()) {
+            let txl = self.tx.clone();
+            topstack::get_runtime().spawn(async move {
+                let _ = txl
+                    .send(Message::SocketManagerActions(SocketActions::DisconnectAll(raw_addr)))
+                    .await;
+            });
         }
 
         return true;

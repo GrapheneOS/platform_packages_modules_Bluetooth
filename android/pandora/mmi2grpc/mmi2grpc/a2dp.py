@@ -21,7 +21,6 @@ from grpc import RpcError
 from mmi2grpc._audio import AudioSignal
 from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
-from mmi2grpc._rootcanal import RootCanal
 from pandora.a2dp_grpc import A2DP
 from pandora.a2dp_pb2 import Sink, Source, PlaybackAudioRequest
 from pandora.host_grpc import Host
@@ -164,7 +163,8 @@ class A2DPProxy(ProfileProxy):
         Action: This
         can be also be done by placing the IUT or PTS in an RF shielded box.
          """
-        self.rootcanal.disconnect_phy()
+
+        self.rootcanal.move_out_of_range()
 
         return "OK"
 
@@ -396,7 +396,8 @@ class A2DPProxy(ProfileProxy):
         Action: Press OK when the
         IUT is ready to accept Bluetooth connections again.
         """
-        self.rootcanal.reconnect_phy_if_needed()
+
+        self.rootcanal.move_in_range()
 
         return "OK"
 

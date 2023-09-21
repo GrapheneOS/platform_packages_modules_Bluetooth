@@ -19,7 +19,6 @@ package com.android.bluetooth.le_audio;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.bluetooth.IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID;
-
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 import static com.android.modules.utils.build.SdkLevel.isAtLeastU;
 
@@ -1191,9 +1190,17 @@ public class LeAudioService extends ProfileService {
                             + ")");
         }
 
+        mAdapterService.notifyProfileConnectionStateChangeToGatt(
+                BluetoothProfile.LE_AUDIO, prevState, newState);
+        mAdapterService.handleProfileConnectionStateChange(
+                BluetoothProfile.LE_AUDIO, device, prevState, newState);
         mAdapterService
                 .getActiveDeviceManager()
-                .leAudioConnectionStateChanged(device, prevState, newState);
+                .profileConnectionStateChanged(
+                        BluetoothProfile.LE_AUDIO, device, prevState, newState);
+        mAdapterService.updateProfileConnectionAdapterProperties(
+                device, BluetoothProfile.LE_AUDIO, newState, prevState);
+
         Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
@@ -1217,7 +1224,7 @@ public class LeAudioService extends ProfileService {
                     + ". Currently active device is " + mActiveAudioOutDevice);
         }
 
-        mAdapterService.getActiveDeviceManager().leAudioActiveStateChanged(device);
+        mAdapterService.handleActiveDeviceChange(BluetoothProfile.LE_AUDIO, device);
         Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT

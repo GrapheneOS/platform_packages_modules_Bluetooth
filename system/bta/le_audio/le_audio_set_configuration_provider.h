@@ -27,11 +27,13 @@ class AudioSetConfigurationProvider {
   AudioSetConfigurationProvider();
   virtual ~AudioSetConfigurationProvider() = default;
   static AudioSetConfigurationProvider* Get();
-  static void Initialize();
+  static void Initialize(types::CodecLocation location);
   static void DebugDump(int fd);
   static void Cleanup();
   virtual const set_configurations::AudioSetConfigurations* GetConfigurations(
       ::le_audio::types::LeAudioContextType content_type) const;
+  virtual bool CheckConfigurationIsBiDirSwb(
+      const set_configurations::AudioSetConfiguration& set_configuration) const;
 
  private:
   struct impl;

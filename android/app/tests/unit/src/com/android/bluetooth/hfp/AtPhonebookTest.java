@@ -22,7 +22,6 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -58,9 +57,9 @@ public class AtPhonebookTest {
     private BluetoothAdapter mAdapter;
     private BluetoothDevice mTestDevice;
 
-    @Mock
-    private AdapterService mAdapterService;
-    private HeadsetNativeInterface mNativeInterface;
+    @Mock private AdapterService mAdapterService;
+    @Mock private HeadsetNativeInterface mNativeInterface;
+
     private AtPhonebook mAtPhonebook;
     @Spy
     private BluetoothMethodProxy mHfpMethodProxy = BluetoothMethodProxy.getInstance();
@@ -75,7 +74,6 @@ public class AtPhonebookTest {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mTestDevice = mAdapter.getRemoteDevice("00:01:02:03:04:05");
         // Spy on native interface
-        mNativeInterface = spy(HeadsetNativeInterface.getInstance());
         mAtPhonebook = new AtPhonebook(mTargetContext, mNativeInterface);
     }
 

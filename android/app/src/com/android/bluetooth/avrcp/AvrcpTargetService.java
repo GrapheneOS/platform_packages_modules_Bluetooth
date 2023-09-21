@@ -17,7 +17,6 @@
 package com.android.bluetooth.avrcp;
 
 import android.annotation.NonNull;
-import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUtils;
@@ -45,7 +44,6 @@ import com.android.bluetooth.audio_util.Metadata;
 import com.android.bluetooth.audio_util.PlayStatus;
 import com.android.bluetooth.audio_util.PlayerInfo;
 import com.android.bluetooth.audio_util.PlayerSettingsManager;
-import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
@@ -140,25 +138,7 @@ public class AvrcpTargetService extends ProfileService {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED)) {
-                if (mNativeInterface == null) return;
-
-                // Update all the playback status info for each connected device
-                mNativeInterface.sendMediaUpdate(false, true, false);
-            } else if (action.equals(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)) {
-                if (mNativeInterface == null) return;
-
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (device == null) return;
-
-                int state = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
-                if (state == BluetoothProfile.STATE_DISCONNECTED) {
-                    // If there is no connection, disconnectDevice() will do nothing
-                    if (mNativeInterface.disconnectDevice(device.getAddress())) {
-                        Log.d(TAG, "request to disconnect device " + device);
-                    }
-                }
-            } else if (action.equals(AudioManager.ACTION_VOLUME_CHANGED)) {
+            if (action.equals(AudioManager.ACTION_VOLUME_CHANGED)) {
                 int streamType = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1);
                 if (streamType == AudioManager.STREAM_MUSIC) {
                     int volume = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, 0);
@@ -224,7 +204,7 @@ public class AvrcpTargetService extends ProfileService {
 
         mPlayerSettingsManager = new PlayerSettingsManager(mMediaPlayerList, this);
 
-        mNativeInterface = AvrcpNativeInterface.getInterface();
+        mNativeInterface = AvrcpNativeInterface.getInstance();
         mNativeInterface.init(AvrcpTargetService.this);
 
         mAvrcpVersion = AvrcpVersion.getCurrentSystemPropertiesValue();
@@ -252,20 +232,11 @@ public class AvrcpTargetService extends ProfileService {
         mReceiver = new AvrcpBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
         filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
-        filter.addAction(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
-        filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(AudioManager.ACTION_VOLUME_CHANGED);
         registerReceiver(mReceiver, filter);
 
         // Only allow the service to be used once it is initialized
         sInstance = this;
-        BluetoothDevice activeDevice = getA2dpActiveDevice();
-        String deviceAddress = activeDevice != null ?
-                activeDevice.getAddress() :
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS;
-        AdapterService.getAdapterService().notifyActivityAttributionInfo(
-                getAttributionSource(), deviceAddress);
-
         return true;
     }
 
@@ -282,12 +253,6 @@ public class AvrcpTargetService extends ProfileService {
             mAvrcpCoverArtService.stop();
         }
         mAvrcpCoverArtService = null;
-        BluetoothDevice activeDevice = getA2dpActiveDevice();
-        String deviceAddress = activeDevice != null ?
-                activeDevice.getAddress() :
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS;
-        AdapterService.getAdapterService().notifyActivityAttributionInfo(
-                getAttributionSource(), deviceAddress);
 
         sInstance = null;
         unregisterReceiver(mReceiver);
@@ -338,18 +303,6 @@ public class AvrcpTargetService extends ProfileService {
     }
 
     /**
-     * Signal to the service that the current audio out device has changed and to inform
-     * the audio service whether the new device supports absolute volume. If it does, also
-     * set the absolute volume level on the remote device.
-     */
-    public void volumeDeviceSwitched(BluetoothDevice device) {
-        if (DEBUG) {
-            Log.d(TAG, "volumeDeviceSwitched: device=" + device);
-        }
-        mVolumeManager.volumeDeviceSwitched(device);
-    }
-
-    /**
      * Remove the stored volume for a device.
      */
     public void removeStoredVolumeForDevice(BluetoothDevice device) {
@@ -366,6 +319,35 @@ public class AvrcpTargetService extends ProfileService {
         if (device == null) return -1;
 
         return mVolumeManager.getVolume(device, mVolumeManager.getNewDeviceVolume());
+    }
+
+    /**
+     * Handle when A2DP connection state changes.
+     *
+     * <p>If the A2DP connection disconnects, we request AVRCP to disconnect device as well.
+     */
+    public void handleA2dpConnectionStateChanged(BluetoothDevice device, int newState) {
+        if (device == null || mNativeInterface == null) return;
+        if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+            // If there is no connection, disconnectDevice() will do nothing
+            if (mNativeInterface.disconnectDevice(device.getAddress())) {
+                Log.d(TAG, "request to disconnect device " + device);
+            }
+        }
+    }
+    /**
+     * Handle when Active Device changes in A2DP.
+     *
+     * <p>Signal to the service that the current audio out device has changed and to inform the
+     * audio service whether the new device supports absolute volume. If it does, also set the
+     * absolute volume level on the remote device.
+     */
+    public void handleA2dpActiveDeviceChanged(BluetoothDevice device) {
+        mVolumeManager.volumeDeviceSwitched(device);
+        if (mNativeInterface != null) {
+            // Update all the playback status info for each connected device
+            mNativeInterface.sendMediaUpdate(false, true, false);
+        }
     }
 
     // TODO (apanicke): Add checks to rejectlist Absolute Volume devices if they behave poorly.

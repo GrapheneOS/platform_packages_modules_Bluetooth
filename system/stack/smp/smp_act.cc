@@ -431,9 +431,9 @@ void smp_send_csrk_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
     tBTM_LE_KEY_VALUE key = {
         .lcsrk_key =
             {
+                .counter = 0, /* initialize the local counter */
                 .div = p_cb->div,
                 .sec_level = p_cb->sec_level,
-                .counter = 0, /* initialize the local counter */
                 .csrk = p_cb->csrk,
             },
     };

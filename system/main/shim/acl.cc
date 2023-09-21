@@ -763,6 +763,18 @@ class LeShimAclConnection
     return connection_->GetLocalAddress();
   }
 
+  bluetooth::hci::AddressWithType GetLocalOtaAddressWithType() {
+    return connection_->GetLocalOtaAddress();
+  }
+
+  bluetooth::hci::AddressWithType GetPeerAddressWithType() {
+    return connection_->GetPeerAddress();
+  }
+
+  bluetooth::hci::AddressWithType GetPeerOtaAddressWithType() {
+    return connection_->GetPeerOtaAddress();
+  }
+
   std::optional<uint8_t> GetAdvertisingSetConnectedTo() {
     return std::visit(
         [](auto&& data) {
@@ -1116,7 +1128,7 @@ struct shim::legacy::Acl::impl {
   }
 
   void le_rand(LeRandCallback cb ) {
-    controller_get_interface()->le_rand(cb);
+    controller_get_interface()->le_rand(std::move(cb));
   }
 
   void AddToAddressResolution(const hci::AddressWithType& address_with_type,
@@ -1529,13 +1541,35 @@ void shim::legacy::Acl::OnClassicLinkDisconnected(HciHandle handle,
 }
 
 bluetooth::hci::AddressWithType shim::legacy::Acl::GetConnectionLocalAddress(
-    const RawAddress& remote_bda) {
+    uint16_t handle, bool ota_address) {
   bluetooth::hci::AddressWithType address_with_type;
-  auto remote_address = ToGdAddress(remote_bda);
-  for (auto& [handle, connection] : pimpl_->handle_to_le_connection_map_) {
-    if (connection->GetRemoteAddressWithType().GetAddress() == remote_address) {
-      return connection->GetLocalAddressWithType();
+
+  for (auto& [acl_handle, connection] : pimpl_->handle_to_le_connection_map_) {
+    if (acl_handle != handle) {
+      continue;
     }
+
+    if (ota_address) {
+      return connection->GetLocalOtaAddressWithType();
+    }
+    return connection->GetLocalAddressWithType();
+  }
+  LOG_WARN("address not found!");
+  return address_with_type;
+}
+
+bluetooth::hci::AddressWithType shim::legacy::Acl::GetConnectionPeerAddress(
+    uint16_t handle, bool ota_address) {
+  bluetooth::hci::AddressWithType address_with_type;
+  for (auto& [acl_handle, connection] : pimpl_->handle_to_le_connection_map_) {
+    if (acl_handle != handle) {
+      continue;
+    }
+
+    if (ota_address) {
+      return connection->GetPeerOtaAddressWithType();
+    }
+    return connection->GetPeerAddressWithType();
   }
   LOG_WARN("address not found!");
   return address_with_type;
@@ -1900,7 +1934,7 @@ void shim::legacy::Acl::ClearFilterAcceptList() {
 }
 
 void shim::legacy::Acl::LeRand(LeRandCallback cb) {
-  handler_->CallOn(pimpl_.get(), &Acl::impl::le_rand, cb);
+  handler_->CallOn(pimpl_.get(), &Acl::impl::le_rand, std::move(cb));
 }
 
 void shim::legacy::Acl::AddToAddressResolution(

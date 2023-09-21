@@ -15,6 +15,8 @@
  *
  */
 
+#include <base/logging.h>
+
 #include <mutex>
 #include <string>
 #include <string_view>
@@ -55,6 +57,17 @@ static const std::vector<
                              "le_audio/audio_set_scenarios.bfbs",
                              "/apex/com.android.btservices/etc/bluetooth/"
                              "le_audio/audio_set_scenarios.json"}};
+#elif defined(TARGET_FLOSS)
+static const std::vector<
+    std::pair<const char* /*schema*/, const char* /*content*/>>
+    kLeAudioSetConfigs = {
+        {"/etc/bluetooth/le_audio/audio_set_configurations.bfbs",
+         "/etc/bluetooth/le_audio/audio_set_configurations.json"}};
+static const std::vector<
+    std::pair<const char* /*schema*/, const char* /*content*/>>
+    kLeAudioSetScenarios = {
+        {"/etc/bluetooth/le_audio/audio_set_scenarios.bfbs",
+         "/etc/bluetooth/le_audio/audio_set_scenarios.json"}};
 #else
 static const std::vector<
     std::pair<const char* /*schema*/, const char* /*content*/>>
@@ -70,12 +83,10 @@ static const std::vector<
 struct AudioSetConfigurationProviderJson {
   static constexpr auto kDefaultScenario = "Media";
 
-  AudioSetConfigurationProviderJson() {
-    dual_swb_bidirection_supported_ = osi_property_get_bool(
-        "persist.bluetooth.leaudio_dual_bidirection_swb."
-        "supported",
-        true);
-    ASSERT_LOG(LoadContent(kLeAudioSetConfigs, kLeAudioSetScenarios),
+  AudioSetConfigurationProviderJson(types::CodecLocation location) {
+    dual_bidirection_swb_supported_ = osi_property_get_bool(
+        "bluetooth.leaudio.dual_bidirection_swb.supported", true);
+    ASSERT_LOG(LoadContent(kLeAudioSetConfigs, kLeAudioSetScenarios, location),
                ": Unable to load le audio set configuration files.");
   }
 
@@ -166,7 +177,7 @@ struct AudioSetConfigurationProviderJson {
 
   /* property to check if bidirectional sampling frequency >= 32k dual mic is
    * supported or not */
-  bool dual_swb_bidirection_supported_;
+  bool dual_bidirection_swb_supported_;
 
   static const bluetooth::le_audio::CodecSpecificConfiguration*
   LookupCodecSpecificParam(
@@ -265,18 +276,18 @@ struct AudioSetConfigurationProviderJson {
     codec.config = types::LeAudioLc3Config({
         .sampling_frequency = sampling_frequency,
         .frame_duration = frame_duration,
+        .audio_channel_allocation = audio_channel_allocation,
         .octets_per_codec_frame = octets_per_codec_frame,
         .codec_frames_blocks_per_sdu = codec_frames_blocks_per_sdu,
         .channel_count =
             (uint8_t)std::bitset<32>(audio_channel_allocation).count(),
-        .audio_channel_allocation = audio_channel_allocation,
     });
     return codec;
   }
 
   SetConfiguration SetConfigurationFromFlatSubconfig(
       const bluetooth::le_audio::AudioSetSubConfiguration* flat_subconfig,
-      QosConfigSetting qos) {
+      QosConfigSetting qos, types::CodecLocation location) {
     auto strategy_int =
         static_cast<int>(flat_subconfig->configuration_strategy());
 
@@ -290,12 +301,32 @@ struct AudioSetConfigurationProviderJson {
             ? static_cast<types::LeAudioConfigurationStrategy>(strategy_int)
             : types::LeAudioConfigurationStrategy::RFU;
 
-    return SetConfiguration(
+    auto config = SetConfiguration(
         flat_subconfig->direction(), flat_subconfig->device_cnt(),
         flat_subconfig->ase_cnt(),
         CodecCapabilitySettingFromFlat(flat_subconfig->codec_id(),
                                        flat_subconfig->codec_configuration()),
         qos, strategy);
+
+    // Note that these parameters are set here since for now, we are using the
+    // common configuration source for all the codec locations.
+    switch (location) {
+      case types::CodecLocation::ADSP:
+        config.is_codec_in_controller = false;
+        config.data_path_id =
+            bluetooth::hci::iso_manager::kIsoDataPathPlatformDefault;
+        break;
+      case types::CodecLocation::HOST:
+        config.is_codec_in_controller = false;
+        config.data_path_id = bluetooth::hci::iso_manager::kIsoDataPathHci;
+        break;
+      case types::CodecLocation::CONTROLLER:
+        config.is_codec_in_controller = true;
+        config.data_path_id =
+            bluetooth::hci::iso_manager::kIsoDataPathPlatformDefault;
+        break;
+    }
+    return config;
   }
 
   static uint8_t ValidateTargetLatency(int flat_target_latency) {
@@ -313,7 +344,8 @@ struct AudioSetConfigurationProviderJson {
   AudioSetConfiguration AudioSetConfigurationFromFlat(
       const bluetooth::le_audio::AudioSetConfiguration* flat_cfg,
       std::vector<const bluetooth::le_audio::CodecConfiguration*>* codec_cfgs,
-      std::vector<const bluetooth::le_audio::QosConfiguration*>* qos_cfgs) {
+      std::vector<const bluetooth::le_audio::QosConfiguration*>* qos_cfgs,
+      types::CodecLocation location) {
     ASSERT_LOG(flat_cfg != nullptr, "flat_cfg cannot be null");
     std::string codec_config_key = flat_cfg->codec_config_name()->str();
     auto* qos_config_key_array = flat_cfg->qos_config_name();
@@ -395,13 +427,13 @@ struct AudioSetConfigurationProviderJson {
       /* Load subconfigurations */
       for (auto subconfig : *codec_cfg->subconfigurations()) {
         if (subconfig->direction() == le_audio::types::kLeAudioDirectionSink) {
-          processSubconfig(*subconfig, qos_sink,
-                           dual_dev_one_chan_stereo_sink_swb,
-                           single_dev_one_chan_stereo_sink_swb, subconfigs);
+          processSubconfig(
+              *subconfig, qos_sink, dual_dev_one_chan_stereo_sink_swb,
+              single_dev_one_chan_stereo_sink_swb, subconfigs, location);
         } else {
-          processSubconfig(*subconfig, qos_source,
-                           dual_dev_one_chan_stereo_source_swb,
-                           single_dev_one_chan_stereo_source_swb, subconfigs);
+          processSubconfig(
+              *subconfig, qos_source, dual_dev_one_chan_stereo_source_swb,
+              single_dev_one_chan_stereo_source_swb, subconfigs, location);
         }
       }
     } else {
@@ -414,7 +446,7 @@ struct AudioSetConfigurationProviderJson {
       }
     }
 
-    if (!dual_swb_bidirection_supported_) {
+    if (!dual_bidirection_swb_supported_) {
       if ((dual_dev_one_chan_stereo_sink_swb &&
            dual_dev_one_chan_stereo_source_swb) ||
           (single_dev_one_chan_stereo_sink_swb &&
@@ -430,9 +462,10 @@ struct AudioSetConfigurationProviderJson {
       const bluetooth::le_audio::AudioSetSubConfiguration& subconfig,
       const QosConfigSetting& qos_setting, bool& dual_dev_one_chan_stereo_swb,
       bool& single_dev_one_chan_stereo_swb,
-      std::vector<SetConfiguration>& subconfigs) {
+      std::vector<SetConfiguration>& subconfigs,
+      types::CodecLocation location) {
     subconfigs.push_back(
-        SetConfigurationFromFlatSubconfig(&subconfig, qos_setting));
+        SetConfigurationFromFlatSubconfig(&subconfig, qos_setting, location));
 
     if (subconfigs.back().codec.GetConfigSamplingFrequency() <
         le_audio::LeAudioCodecConfiguration::kSampleRate32000) {
@@ -448,7 +481,8 @@ struct AudioSetConfigurationProviderJson {
   }
 
   bool LoadConfigurationsFromFiles(const char* schema_file,
-                                   const char* content_file) {
+                                   const char* content_file,
+                                   types::CodecLocation location) {
     flatbuffers::Parser configurations_parser_;
     std::string configurations_schema_binary_content;
     bool ok = flatbuffers::LoadFile(schema_file, true,
@@ -502,9 +536,11 @@ struct AudioSetConfigurationProviderJson {
 
     LOG_DEBUG(": Updating %d config entries.", flat_configs->size());
     for (auto const& flat_cfg : *flat_configs) {
-      configurations_.insert(
-          {flat_cfg->name()->str(),
-           AudioSetConfigurationFromFlat(flat_cfg, &codec_cfgs, &qos_cfgs)});
+      auto configuration = AudioSetConfigurationFromFlat(flat_cfg, &codec_cfgs,
+                                                         &qos_cfgs, location);
+      if (!configuration.confs.empty()) {
+        configurations_.insert({flat_cfg->name()->str(), configuration});
+      }
     }
 
     return true;
@@ -580,9 +616,10 @@ struct AudioSetConfigurationProviderJson {
       std::vector<std::pair<const char* /*schema*/, const char* /*content*/>>
           config_files,
       std::vector<std::pair<const char* /*schema*/, const char* /*content*/>>
-          scenario_files) {
+          scenario_files,
+      types::CodecLocation location) {
     for (auto [schema, content] : config_files) {
-      if (!LoadConfigurationsFromFiles(schema, content)) return false;
+      if (!LoadConfigurationsFromFiles(schema, content, location)) return false;
     }
 
     for (auto [schema, content] : scenario_files) {
@@ -596,10 +633,10 @@ struct AudioSetConfigurationProvider::impl {
   impl(const AudioSetConfigurationProvider& config_provider)
       : config_provider_(config_provider) {}
 
-  void Initialize() {
+  void Initialize(types::CodecLocation location) {
     ASSERT_LOG(!config_provider_impl_, " Config provider not available.");
     config_provider_impl_ =
-        std::make_unique<AudioSetConfigurationProviderJson>();
+        std::make_unique<AudioSetConfigurationProviderJson>(location);
   }
 
   void Cleanup() {
@@ -652,13 +689,13 @@ std::mutex instance_mutex;
 AudioSetConfigurationProvider::AudioSetConfigurationProvider()
     : pimpl_(std::make_unique<AudioSetConfigurationProvider::impl>(*this)) {}
 
-void AudioSetConfigurationProvider::Initialize() {
+void AudioSetConfigurationProvider::Initialize(types::CodecLocation location) {
   std::scoped_lock<std::mutex> lock(instance_mutex);
   if (!config_provider)
     config_provider = std::make_unique<AudioSetConfigurationProvider>();
 
   if (!config_provider->pimpl_->IsRunning())
-    config_provider->pimpl_->Initialize();
+    config_provider->pimpl_->Initialize(location);
 }
 
 void AudioSetConfigurationProvider::DebugDump(int fd) {
@@ -714,6 +751,19 @@ AudioSetConfigurationProvider::GetConfigurations(
         content_type);
 
   return nullptr;
+}
+
+bool AudioSetConfigurationProvider::CheckConfigurationIsBiDirSwb(
+    const set_configurations::AudioSetConfiguration& set_configuration) const {
+  uint8_t dir = 0;
+
+  for (const auto& conf : set_configuration.confs) {
+    if (conf.codec.GetConfigSamplingFrequency() >=
+        le_audio::LeAudioCodecConfiguration::kSampleRate32000) {
+      dir |= conf.direction;
+    }
+  }
+  return dir == le_audio::types::kLeAudioDirectionBoth;
 }
 
 }  // namespace le_audio

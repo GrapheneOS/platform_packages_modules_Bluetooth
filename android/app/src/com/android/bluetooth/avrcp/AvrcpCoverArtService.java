@@ -68,7 +68,7 @@ public class AvrcpCoverArtService {
 
     public AvrcpCoverArtService(Context context) {
         mContext = context;
-        mNativeInterface = AvrcpNativeInterface.getInterface();
+        mNativeInterface = AvrcpNativeInterface.getInstance();
         mAcceptThread = new SocketAcceptor();
         mStorage = new AvrcpCoverArtStorage(COVER_ART_STORAGE_MAX_ITEMS);
     }

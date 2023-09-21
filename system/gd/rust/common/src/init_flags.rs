@@ -362,8 +362,6 @@ init_flags!(
         asha_phy_update_retry_limit: i32 = 5,
         always_send_services_if_gatt_disc_done = true,
         always_use_private_gatt_for_debugging,
-        asynchronously_start_l2cap_coc = true,
-        btaa_hci = true,
         bta_dm_clear_conn_id_on_client_close = true,
         btm_dm_flush_discovery_queue_on_search_cancel,
         bta_dm_stop_discovery_on_search_cancel,
@@ -372,12 +370,9 @@ init_flags!(
         delay_hidh_cleanup_until_hidh_ready_start = true,
         device_iot_config_logging,
         dynamic_avrcp_version_enhancement = true,
-        finite_att_timeout = true,
         gatt_robust_caching_client = true,
         gatt_robust_caching_server,
-        gd_core,
         gd_l2cap,
-        gd_link_policy,
         hci_adapter: i32,
         hfp_dynamic_version = true,
         irk_rotation,
@@ -387,10 +382,9 @@ init_flags!(
         pbap_pse_dynamic_version_upgrade = false,
         periodic_advertising_adi = true,
         private_gatt = true,
-        queue_l2cap_coc_while_encrypting = true,
         redact_log = true,
         rust_event_loop = true,
-        sco_codec_select_lc3,
+        sco_codec_select_lc3 = true,
         sco_codec_timeout_clear,
         sdp_serialization = true,
         sdp_skip_rnr_if_known = true,
@@ -402,6 +396,7 @@ init_flags!(
         sdp_return_classic_services_when_le_discovery_fails = true,
         use_rsi_from_cached_inqiry_results = false,
         att_mtu_default: i32 = 517,
+        encryption_in_busy_state = true,
     }
     // dynamic flags can be updated at runtime and should be accessed directly
     // to check.
@@ -470,10 +465,10 @@ mod tests {
     fn simple_flag() {
         let _guard = ASYNC_LOCK.lock().unwrap();
         test_load(vec![
-            "INIT_btaa_hci=false", //override a default flag
+            "INIT_private_gatt=false", //override a default flag
             "INIT_gatt_robust_caching_server=true",
         ]);
-        assert!(!btaa_hci_is_enabled());
+        assert!(!private_gatt_is_enabled());
         assert!(gatt_robust_caching_server_is_enabled());
     }
     #[test]
@@ -482,10 +477,10 @@ mod tests {
         test_load(vec![
             "foo=bar=?",                                // vec length
             "foo=bar",                                  // flag not save
-            "INIT_btaa_hci=not_false",                  // parse error but has default value
+            "INIT_private_gatt=not_false",              // parse error but has default value
             "INIT_gatt_robust_caching_server=not_true", // parse error
         ]);
-        assert!(btaa_hci_is_enabled());
+        assert!(private_gatt_is_enabled());
         assert!(!gatt_robust_caching_server_is_enabled());
     }
     #[test]
@@ -531,8 +526,8 @@ mod tests {
     #[test]
     fn test_runtime_update() {
         let _guard = ASYNC_LOCK.lock().unwrap();
-        test_load(vec!["INIT_btaa_hci=true", "INIT_default_log_level_str=LOG_WARN"]);
-        assert!(btaa_hci_is_enabled());
+        test_load(vec!["INIT_private_gatt=true", "INIT_default_log_level_str=LOG_WARN"]);
+        assert!(private_gatt_is_enabled());
         assert!(get_default_log_level() == LOG_TAG_WARN);
 
         update_default_log_level(LOG_TAG_DEBUG);

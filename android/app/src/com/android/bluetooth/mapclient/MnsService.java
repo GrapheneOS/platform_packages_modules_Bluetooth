@@ -27,7 +27,7 @@ import com.android.bluetooth.BluetoothObexTransport;
 import com.android.bluetooth.IObexConnectionHandler;
 import com.android.bluetooth.ObexServerSockets;
 import com.android.bluetooth.Utils;
-import com.android.bluetooth.sdp.SdpManager;
+import com.android.bluetooth.sdp.SdpManagerNativeInterface;
 import com.android.obex.ServerSession;
 
 import java.io.IOException;
@@ -61,14 +61,18 @@ public class MnsService {
         sContext = context;
         sAcceptThread = new SocketAcceptor();
         sServerSockets = ObexServerSockets.create(sAcceptThread);
-        SdpManager sdpManager = SdpManager.getDefaultManager();
-        if (sdpManager == null) {
-            Log.e(TAG, "SdpManager is null");
+        SdpManagerNativeInterface nativeInterface = SdpManagerNativeInterface.getInstance();
+        if (!nativeInterface.isAvailable()) {
+            Log.e(TAG, "SdpManagerNativeInterface is not available");
             return;
         }
-        mSdpHandle = sdpManager.createMapMnsRecord("MAP Message Notification Service",
-                sServerSockets.getRfcommChannel(), sServerSockets.getL2capPsm(), MNS_VERSION,
-                MasClient.MAP_SUPPORTED_FEATURES);
+        mSdpHandle =
+                nativeInterface.createMapMnsRecord(
+                        "MAP Message Notification Service",
+                        sServerSockets.getRfcommChannel(),
+                        sServerSockets.getL2capPsm(),
+                        MNS_VERSION,
+                        MasClient.MAP_SUPPORTED_FEATURES);
     }
 
     void stop() {
@@ -90,13 +94,17 @@ public class MnsService {
         }
         int sdpHandle = mSdpHandle;
         mSdpHandle = -1;
-        SdpManager sdpManager = SdpManager.getDefaultManager();
-        if (sdpManager == null) {
-            Log.e(TAG, "cleanUpSdpRecord failed, sdpManager is null, sdpHandle=" + sdpHandle);
+        SdpManagerNativeInterface nativeInterface = SdpManagerNativeInterface.getInstance();
+        if (!nativeInterface.isAvailable()) {
+            Log.e(
+                    TAG,
+                    "cleanUpSdpRecord failed, SdpManagerNativeInterface is not available,"
+                            + " sdpHandle="
+                            + sdpHandle);
             return;
         }
         Log.i(TAG, "cleanUpSdpRecord, mSdpHandle=" + sdpHandle);
-        if (!sdpManager.removeSdpRecord(sdpHandle)) {
+        if (!nativeInterface.removeSdpRecord(sdpHandle)) {
             Log.e(TAG, "cleanUpSdpRecord, removeSdpRecord failed, sdpHandle=" + sdpHandle);
         }
     }

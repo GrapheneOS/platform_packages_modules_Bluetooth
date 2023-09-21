@@ -51,7 +51,7 @@ static std::shared_timed_mutex callbacks_mutex;
 
 static void bta2dp_connection_state_callback(const RawAddress& bd_addr,
                                              btav_connection_state_t state,
-                                             const btav_error_t& error) {
+                                             const btav_error_t& /* error */) {
   ALOGI("%s", __func__);
 
   std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
@@ -191,50 +191,8 @@ static btav_source_callbacks_t sBluetoothA2dpCallbacks = {
     bta2dp_mandatory_codec_preferred_callback,
 };
 
-static void classInitNative(JNIEnv* env, jclass clazz) {
-  jclass jniBluetoothCodecConfigClass =
-      env->FindClass("android/bluetooth/BluetoothCodecConfig");
-  android_bluetooth_BluetoothCodecConfig.constructor =
-      env->GetMethodID(jniBluetoothCodecConfigClass, "<init>", "(IIIIIJJJJ)V");
-  android_bluetooth_BluetoothCodecConfig.getCodecType =
-      env->GetMethodID(jniBluetoothCodecConfigClass, "getCodecType", "()I");
-  android_bluetooth_BluetoothCodecConfig.getCodecPriority =
-      env->GetMethodID(jniBluetoothCodecConfigClass, "getCodecPriority", "()I");
-  android_bluetooth_BluetoothCodecConfig.getSampleRate =
-      env->GetMethodID(jniBluetoothCodecConfigClass, "getSampleRate", "()I");
-  android_bluetooth_BluetoothCodecConfig.getBitsPerSample =
-      env->GetMethodID(jniBluetoothCodecConfigClass, "getBitsPerSample", "()I");
-  android_bluetooth_BluetoothCodecConfig.getChannelMode =
-      env->GetMethodID(jniBluetoothCodecConfigClass, "getChannelMode", "()I");
-  android_bluetooth_BluetoothCodecConfig.getCodecSpecific1 = env->GetMethodID(
-      jniBluetoothCodecConfigClass, "getCodecSpecific1", "()J");
-  android_bluetooth_BluetoothCodecConfig.getCodecSpecific2 = env->GetMethodID(
-      jniBluetoothCodecConfigClass, "getCodecSpecific2", "()J");
-  android_bluetooth_BluetoothCodecConfig.getCodecSpecific3 = env->GetMethodID(
-      jniBluetoothCodecConfigClass, "getCodecSpecific3", "()J");
-  android_bluetooth_BluetoothCodecConfig.getCodecSpecific4 = env->GetMethodID(
-      jniBluetoothCodecConfigClass, "getCodecSpecific4", "()J");
-
-  method_onConnectionStateChanged =
-      env->GetMethodID(clazz, "onConnectionStateChanged", "([BI)V");
-
-  method_onAudioStateChanged =
-      env->GetMethodID(clazz, "onAudioStateChanged", "([BI)V");
-
-  method_onCodecConfigChanged =
-      env->GetMethodID(clazz, "onCodecConfigChanged",
-                       "([BLandroid/bluetooth/BluetoothCodecConfig;"
-                       "[Landroid/bluetooth/BluetoothCodecConfig;"
-                       "[Landroid/bluetooth/BluetoothCodecConfig;)V");
-
-  method_isMandatoryCodecPreferred =
-      env->GetMethodID(clazz, "isMandatoryCodecPreferred", "([B)Z");
-
-  ALOGI("%s: succeeds", __func__);
-}
-
 static std::vector<btav_a2dp_codec_config_t> prepareCodecPreferences(
-    JNIEnv* env, jobject object, jobjectArray codecConfigArray) {
+    JNIEnv* env, jobject /* object */, jobjectArray codecConfigArray) {
   std::vector<btav_a2dp_codec_config_t> codec_preferences;
 
   int numConfigs = env->GetArrayLength(codecConfigArray);
@@ -347,7 +305,7 @@ static void initNative(JNIEnv* env, jobject object,
   }
 }
 
-static void cleanupNative(JNIEnv* env, jobject object) {
+static void cleanupNative(JNIEnv* env, jobject /* object */) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
 
@@ -371,7 +329,7 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static jboolean connectA2dpNative(JNIEnv* env, jobject object,
+static jboolean connectA2dpNative(JNIEnv* env, jobject /* object */,
                                   jbyteArray address) {
   ALOGI("%s: sBluetoothA2dpInterface: %p", __func__, sBluetoothA2dpInterface);
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
@@ -396,7 +354,7 @@ static jboolean connectA2dpNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean disconnectA2dpNative(JNIEnv* env, jobject object,
+static jboolean disconnectA2dpNative(JNIEnv* env, jobject /* object */,
                                      jbyteArray address) {
   ALOGI("%s: sBluetoothA2dpInterface: %p", __func__, sBluetoothA2dpInterface);
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
@@ -421,7 +379,7 @@ static jboolean disconnectA2dpNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean setSilenceDeviceNative(JNIEnv* env, jobject object,
+static jboolean setSilenceDeviceNative(JNIEnv* env, jobject /* object */,
                                        jbyteArray address, jboolean silence) {
   ALOGI("%s: sBluetoothA2dpInterface: %p", __func__, sBluetoothA2dpInterface);
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
@@ -448,7 +406,7 @@ static jboolean setSilenceDeviceNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean setActiveDeviceNative(JNIEnv* env, jobject object,
+static jboolean setActiveDeviceNative(JNIEnv* env, jobject /* object */,
                                       jbyteArray address) {
   ALOGI("%s: sBluetoothA2dpInterface: %p", __func__, sBluetoothA2dpInterface);
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
@@ -501,24 +459,65 @@ static jboolean setCodecConfigPreferenceNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static JNINativeMethod sMethods[] = {
-    {"classInitNative", "()V", (void*)classInitNative},
-    {"initNative",
-     "(I[Landroid/bluetooth/BluetoothCodecConfig;[Landroid/bluetooth/BluetoothCodecConfig;)V",
-     (void*)initNative},
-    {"cleanupNative", "()V", (void*)cleanupNative},
-    {"connectA2dpNative", "([B)Z", (void*)connectA2dpNative},
-    {"disconnectA2dpNative", "([B)Z", (void*)disconnectA2dpNative},
-    {"setSilenceDeviceNative", "([BZ)Z", (void*)setSilenceDeviceNative},
-    {"setActiveDeviceNative", "([B)Z", (void*)setActiveDeviceNative},
-    {"setCodecConfigPreferenceNative",
-     "([B[Landroid/bluetooth/BluetoothCodecConfig;)Z",
-     (void*)setCodecConfigPreferenceNative},
-};
-
 int register_com_android_bluetooth_a2dp(JNIEnv* env) {
-  return jniRegisterNativeMethods(
-      env, "com/android/bluetooth/a2dp/A2dpNativeInterface", sMethods,
-      NELEM(sMethods));
+  const JNINativeMethod methods[] = {
+      {"initNative",
+       "(I[Landroid/bluetooth/BluetoothCodecConfig;"
+       "[Landroid/bluetooth/BluetoothCodecConfig;)V",
+       (void*)initNative},
+      {"cleanupNative", "()V", (void*)cleanupNative},
+      {"connectA2dpNative", "([B)Z", (void*)connectA2dpNative},
+      {"disconnectA2dpNative", "([B)Z", (void*)disconnectA2dpNative},
+      {"setSilenceDeviceNative", "([BZ)Z", (void*)setSilenceDeviceNative},
+      {"setActiveDeviceNative", "([B)Z", (void*)setActiveDeviceNative},
+      {"setCodecConfigPreferenceNative",
+       "([B[Landroid/bluetooth/BluetoothCodecConfig;)Z",
+       (void*)setCodecConfigPreferenceNative},
+  };
+  const int result = REGISTER_NATIVE_METHODS(
+      env, "com/android/bluetooth/a2dp/A2dpNativeInterface", methods);
+  if (result != 0) {
+    return result;
+  }
+
+  const JNIJavaMethod javaMethods[] = {
+      {"onConnectionStateChanged", "([BI)V", &method_onConnectionStateChanged},
+      {"onAudioStateChanged", "([BI)V", &method_onAudioStateChanged},
+      {"onCodecConfigChanged",
+       "([BLandroid/bluetooth/BluetoothCodecConfig;"
+       "[Landroid/bluetooth/BluetoothCodecConfig;"
+       "[Landroid/bluetooth/BluetoothCodecConfig;)V",
+       &method_onCodecConfigChanged},
+      {"isMandatoryCodecPreferred", "([B)Z", &method_isMandatoryCodecPreferred},
+  };
+  GET_JAVA_METHODS(env, "com/android/bluetooth/a2dp/A2dpNativeInterface",
+                   javaMethods);
+
+  const JNIJavaMethod codecConfigCallbacksMethods[] = {
+      {"<init>", "(IIIIIJJJJ)V",
+       &android_bluetooth_BluetoothCodecConfig.constructor},
+      {"getCodecType", "()I",
+       &android_bluetooth_BluetoothCodecConfig.getCodecType},
+      {"getCodecPriority", "()I",
+       &android_bluetooth_BluetoothCodecConfig.getCodecPriority},
+      {"getSampleRate", "()I",
+       &android_bluetooth_BluetoothCodecConfig.getSampleRate},
+      {"getBitsPerSample", "()I",
+       &android_bluetooth_BluetoothCodecConfig.getBitsPerSample},
+      {"getChannelMode", "()I",
+       &android_bluetooth_BluetoothCodecConfig.getChannelMode},
+      {"getCodecSpecific1", "()J",
+       &android_bluetooth_BluetoothCodecConfig.getCodecSpecific1},
+      {"getCodecSpecific2", "()J",
+       &android_bluetooth_BluetoothCodecConfig.getCodecSpecific2},
+      {"getCodecSpecific3", "()J",
+       &android_bluetooth_BluetoothCodecConfig.getCodecSpecific3},
+      {"getCodecSpecific4", "()J",
+       &android_bluetooth_BluetoothCodecConfig.getCodecSpecific4},
+  };
+  GET_JAVA_METHODS(env, "android/bluetooth/BluetoothCodecConfig",
+                   codecConfigCallbacksMethods);
+
+  return 0;
 }
 }

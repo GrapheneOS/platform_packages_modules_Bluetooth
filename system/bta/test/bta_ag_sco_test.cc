@@ -56,10 +56,10 @@ TEST_P(BtaAgScoParameterSelectionTest, create_sco_cvsd) {
   const auto [feature, peer_feature, is_local] = GetParam();
   tBTA_AG_SCB scb{
       .peer_addr = kRawAddress,
-      .inuse_codec = UUID_CODEC_CVSD,
       .features = feature,
       .peer_features = peer_feature,
       .sco_idx = BTM_INVALID_SCO_INDEX,
+      .inuse_codec = UUID_CODEC_CVSD,
   };
 
   this->codec = ESCO_CODEC_UNKNOWN;
@@ -78,10 +78,10 @@ TEST_P(BtaAgScoParameterSelectionTest, create_pending_sco_cvsd) {
   const auto [feature, peer_feature, is_local] = GetParam();
   tBTA_AG_SCB scb{
       .peer_addr = kRawAddress,
-      .inuse_codec = UUID_CODEC_CVSD,
       .features = feature,
       .peer_features = peer_feature,
       .sco_idx = BTM_INVALID_SCO_INDEX,
+      .inuse_codec = UUID_CODEC_CVSD,
   };
 
   this->codec = ESCO_CODEC_UNKNOWN;

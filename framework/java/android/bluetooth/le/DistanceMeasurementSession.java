@@ -115,7 +115,7 @@ public final class DistanceMeasurementSession {
         } catch (TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         } catch (RemoteException e) {
-            throw e.rethrowFromSystemServer();
+            throw e.rethrowAsRuntimeException();
         }
         return defaultValue;
     }

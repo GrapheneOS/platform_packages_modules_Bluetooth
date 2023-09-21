@@ -39,10 +39,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class SdpManager {
+    private static final String TAG = SdpManager.class.getSimpleName();
 
     private static final boolean D = true;
     private static final boolean V = false;
-    private static final String TAG = "SdpManager";
 
     // TODO: When changing PBAP to use this new API.
     //       Move the defines to the profile (PBAP already have the feature bits)
@@ -70,38 +70,8 @@ public class SdpManager {
     // This object is a singleton
     private static SdpManager sSdpManager = null;
 
-    static {
-        classInitNative();
-    }
-
-    private static native void classInitNative();
-
-    private native void initializeNative();
-
-    private native void cleanupNative();
-
-    private native boolean sdpSearchNative(byte[] address, byte[] uuid);
-
-    private native int sdpCreateMapMasRecordNative(String serviceName, int masId, int rfcommChannel,
-            int l2capPsm, int version, int msgTypes, int features);
-
-    private native int sdpCreateMapMnsRecordNative(String serviceName, int rfcommChannel,
-            int l2capPsm, int version, int features);
-
-    private native int sdpCreatePbapPceRecordNative(String serviceName,
-            int version);
-
-    private native int sdpCreatePbapPseRecordNative(String serviceName, int rfcommChannel,
-            int l2capPsm, int version, int repositories, int features);
-
-    private native int sdpCreateOppOpsRecordNative(String serviceName, int rfcommChannel,
-            int l2capPsm, int version, byte[] formatsList);
-
-    private native int sdpCreateSapsRecordNative(String serviceName, int rfcommChannel,
-            int version);
-
-    private native boolean sdpRemoveSdpRecordNative(int recordId);
-
+    private final SdpManagerNativeInterface mNativeInterface =
+            SdpManagerNativeInterface.getInstance();
 
     /* Inner class used for wrapping sdp search instance data */
     private class SdpSearchInstance {
@@ -212,7 +182,7 @@ public class SdpManager {
     private SdpManager(AdapterService adapterService) {
         sSdpSearchTracker = new SdpSearchTracker();
         sAdapterService = adapterService;
-        initializeNative();
+        mNativeInterface.init(this);
         sNativeAvailable = true;
     }
 
@@ -234,7 +204,7 @@ public class SdpManager {
         }
 
         if (sNativeAvailable) {
-            cleanupNative();
+            mNativeInterface.cleanup();
             sNativeAvailable = false;
         }
         sSdpManager = null;
@@ -249,7 +219,7 @@ public class SdpManager {
             SdpSearchInstance inst = sSdpSearchTracker.getSearchInstance(address, uuid);
             SdpMasRecord sdpRecord = null;
             if (inst == null) {
-                Log.e(TAG, "sdpRecordFoundCallback: Search instance is NULL");
+                Log.e(TAG, "sdpMasRecordFoundCallback: Search instance is NULL");
                 return;
             }
             inst.setStatus(status);
@@ -275,7 +245,7 @@ public class SdpManager {
             SdpSearchInstance inst = sSdpSearchTracker.getSearchInstance(address, uuid);
             SdpMnsRecord sdpRecord = null;
             if (inst == null) {
-                Log.e(TAG, "sdpRecordFoundCallback: Search instance is NULL");
+                Log.e(TAG, "sdpMnsRecordFoundCallback: Search instance is NULL");
                 return;
             }
             inst.setStatus(status);
@@ -300,7 +270,7 @@ public class SdpManager {
             SdpSearchInstance inst = sSdpSearchTracker.getSearchInstance(address, uuid);
             SdpPseRecord sdpRecord = null;
             if (inst == null) {
-                Log.e(TAG, "sdpRecordFoundCallback: Search instance is NULL");
+                Log.e(TAG, "sdpPseRecordFoundCallback: Search instance is NULL");
                 return;
             }
             inst.setStatus(status);
@@ -465,7 +435,8 @@ public class SdpManager {
 
             inst.startSearch(); // Trigger timeout message
 
-            sdpSearchNative(sAdapterService.getByteIdentityAddress(inst.getDevice()),
+            mNativeInterface.sdpSearch(
+                    sAdapterService.getByteIdentityAddress(inst.getDevice()),
                     Utils.uuidToByteArray(inst.getUuid()));
         } else { // Else queue is empty.
             if (D) {
@@ -517,182 +488,4 @@ public class SdpManager {
             }
         }
     };
-
-    /**
-     * Create a server side Message Access Profile Service Record.
-     * Create the record once, and reuse it for all connections.
-     * If changes to a record is needed remove the old record using {@link removeSdpRecord}
-     * and then create a new one.
-     * @param serviceName   The textual name of the service
-     * @param masId         The MAS ID to associate with this SDP record
-     * @param rfcommChannel The RFCOMM channel that clients can connect to
-     *                      (obtain from BluetoothServerSocket)
-     * @param l2capPsm      The L2CAP PSM channel that clients can connect to
-     *                      (obtain from BluetoothServerSocket)
-     *                      Supply -1 to omit the L2CAP PSM from the record.
-     * @param version       The Profile version number (As specified in the Bluetooth
-     *                      MAP specification)
-     * @param msgTypes      The supported message types bit mask (As specified in
-     *                      the Bluetooth MAP specification)
-     * @param features      The feature bit mask (As specified in the Bluetooth
-     *                       MAP specification)
-     * @return a handle to the record created. The record can be removed again
-     *          using {@link removeSdpRecord}(). The record is not linked to the
-     *          creation/destruction of BluetoothSockets, hence SDP record cleanup
-     *          is a separate process.
-     */
-    public int createMapMasRecord(String serviceName, int masId, int rfcommChannel, int l2capPsm,
-            int version, int msgTypes, int features) {
-        if (!sNativeAvailable) {
-            throw new RuntimeException(TAG + " sNativeAvailable == false - native not initialized");
-        }
-        return sdpCreateMapMasRecordNative(serviceName, masId, rfcommChannel, l2capPsm, version,
-                msgTypes, features);
-    }
-
-    /**
-     * Create a client side Message Access Profile Service Record.
-     * Create the record once, and reuse it for all connections.
-     * If changes to a record is needed remove the old record using {@link removeSdpRecord}
-     * and then create a new one.
-     * @param serviceName   The textual name of the service
-     * @param rfcommChannel The RFCOMM channel that clients can connect to
-     *                      (obtain from BluetoothServerSocket)
-     * @param l2capPsm      The L2CAP PSM channel that clients can connect to
-     *                      (obtain from BluetoothServerSocket)
-     *                      Supply -1 to omit the L2CAP PSM from the record.
-     * @param version       The Profile version number (As specified in the Bluetooth
-     *                      MAP specification)
-     * @param features      The feature bit mask (As specified in the Bluetooth
-     *                       MAP specification)
-     * @return a handle to the record created. The record can be removed again
-     *          using {@link removeSdpRecord}(). The record is not linked to the
-     *          creation/destruction of BluetoothSockets, hence SDP record cleanup
-     *          is a separate process.
-     */
-    public int createMapMnsRecord(String serviceName, int rfcommChannel, int l2capPsm, int version,
-            int features) {
-        if (!sNativeAvailable) {
-            throw new RuntimeException(TAG + " sNativeAvailable == false - native not initialized");
-        }
-        return sdpCreateMapMnsRecordNative(serviceName, rfcommChannel, l2capPsm, version, features);
-    }
-
-     /**
-     * Create a Client side Phone Book Access Profile Service Record.
-     * Create the record once, and reuse it for all connections.
-     * If changes to a record is needed remove the old record using {@link removeSdpRecord}
-     * and then create a new one.
-     * @param serviceName   The textual name of the service
-     * @param version       The Profile version number (As specified in the Bluetooth
-     *                      PBAP specification)
-     * @return a handle to the record created. The record can be removed again
-     *          using {@link removeSdpRecord}(). The record is not linked to the
-     *          creation/destruction of BluetoothSockets, hence SDP record cleanup
-     *          is a separate process.
-     */
-    public int createPbapPceRecord(String serviceName, int version) {
-        if (!sNativeAvailable) {
-            throw new RuntimeException(TAG + " sNativeAvailable == false - native not initialized");
-        }
-        return sdpCreatePbapPceRecordNative(serviceName, version);
-    }
-
-
-    /**
-     * Create a Server side Phone Book Access Profile Service Record.
-     * Create the record once, and reuse it for all connections.
-     * If changes to a record is needed remove the old record using {@link removeSdpRecord}
-     * and then create a new one.
-     * @param serviceName   The textual name of the service
-     * @param rfcommChannel The RFCOMM channel that clients can connect to
-     *                      (obtain from BluetoothServerSocket)
-     * @param l2capPsm      The L2CAP PSM channel that clients can connect to
-     *                      (obtain from BluetoothServerSocket)
-     *                      Supply -1 to omit the L2CAP PSM from the record.
-     * @param version       The Profile version number (As specified in the Bluetooth
-     *                      PBAP specification)
-     * @param repositories  The supported repositories bit mask (As specified in
-     *                      the Bluetooth PBAP specification)
-     * @param features      The feature bit mask (As specified in the Bluetooth
-     *                      PBAP specification)
-     * @return a handle to the record created. The record can be removed again
-     *          using {@link removeSdpRecord}(). The record is not linked to the
-     *          creation/destruction of BluetoothSockets, hence SDP record cleanup
-     *          is a separate process.
-     */
-    public int createPbapPseRecord(String serviceName, int rfcommChannel, int l2capPsm, int version,
-            int repositories, int features) {
-        if (!sNativeAvailable) {
-            throw new RuntimeException(TAG + " sNativeAvailable == false - native not initialized");
-        }
-        return sdpCreatePbapPseRecordNative(serviceName, rfcommChannel, l2capPsm, version,
-                repositories, features);
-    }
-
-    /**
-     * Create a Server side Object Push Profile Service Record.
-     * Create the record once, and reuse it for all connections.
-     * If changes to a record is needed remove the old record using {@link removeSdpRecord}
-     * and then create a new one.
-     * @param serviceName   The textual name of the service
-     * @param rfcommChannel The RFCOMM channel that clients can connect to
-     *                      (obtain from BluetoothServerSocket)
-     * @param l2capPsm      The L2CAP PSM channel that clients can connect to
-     *                      (obtain from BluetoothServerSocket)
-     *                      Supply -1 to omit the L2CAP PSM from the record.
-     * @param version       The Profile version number (As specified in the Bluetooth
-     *                      OPP specification)
-     * @param formatsList  A list of the supported formats (As specified in
-     *                      the Bluetooth OPP specification)
-     * @return a handle to the record created. The record can be removed again
-     *          using {@link removeSdpRecord}(). The record is not linked to the
-     *          creation/destruction of BluetoothSockets, hence SDP record cleanup
-     *          is a separate process.
-     */
-    public int createOppOpsRecord(String serviceName, int rfcommChannel, int l2capPsm, int version,
-            byte[] formatsList) {
-        if (!sNativeAvailable) {
-            throw new RuntimeException(TAG + " sNativeAvailable == false - native not initialized");
-        }
-        return sdpCreateOppOpsRecordNative(serviceName, rfcommChannel, l2capPsm, version,
-                formatsList);
-    }
-
-    /**
-     * Create a server side Sim Access Profile Service Record.
-     * Create the record once, and reuse it for all connections.
-     * If changes to a record is needed remove the old record using {@link removeSdpRecord}
-     * and then create a new one.
-     * @param serviceName   The textual name of the service
-     * @param rfcommChannel The RFCOMM channel that clients can connect to
-     *                      (obtain from BluetoothServerSocket)
-     * @param version       The Profile version number (As specified in the Bluetooth
-     *                      SAP specification)
-     * @return a handle to the record created. The record can be removed again
-     *          using {@link removeSdpRecord}(). The record is not linked to the
-     *          creation/destruction of BluetoothSockets, hence SDP record cleanup
-     *          is a separate process.
-     */
-    public int createSapsRecord(String serviceName, int rfcommChannel, int version) {
-        if (!sNativeAvailable) {
-            throw new RuntimeException(TAG + " sNativeAvailable == false - native not initialized");
-        }
-        return sdpCreateSapsRecordNative(serviceName, rfcommChannel, version);
-    }
-
-    /**
-     * Remove a SDP record.
-     * When Bluetooth is disabled all records will be deleted, hence there
-     * is no need to call this function when bluetooth is disabled.
-     * @param recordId The Id returned by on of the createXxxXxxRecord() functions.
-     * @return TRUE if the record removal was initiated successfully. FALSE if the record
-     *         handle is not known/have already been removed.
-     */
-    public boolean removeSdpRecord(int recordId) {
-        if (!sNativeAvailable) {
-            throw new RuntimeException(TAG + " sNativeAvailable == false - native not initialized");
-        }
-        return sdpRemoveSdpRecordNative(recordId);
-    }
 }

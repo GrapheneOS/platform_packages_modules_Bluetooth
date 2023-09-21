@@ -86,6 +86,21 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
 
     @avatar.asynchronous
     async def setup_test(self) -> None:
+        # TODO(b/296927588): Test should pass with a random identity address
+        # We have to update the config before the reset otherwise it'll be overridden
+        random_identity_address_type_list = [
+            "test_auto_connection(1,1)",
+            "test_advertising_advertisement_data(1,1)",
+            "test_advertising_scan_response",
+            "test_auto_connection_dual_device(1,1,0)",
+            "test_auto_connection_dual_device(1,1,1)",
+        ]
+        if self.current_test_info.name in random_identity_address_type_list:
+            self.ref_left._bumble.config.update({'server': {'identity_address_type': 'random'}})
+            self.ref_right._bumble.config.update({'server': {'identity_address_type': 'random'}})
+        else:
+            self.ref_left._bumble.config.update({'server': {'identity_address_type': 'public'}})
+            self.ref_right._bumble.config.update({'server': {'identity_address_type': 'public'}})
         await asyncio.gather(self.dut.reset(), self.ref_left.reset(), self.ref_right.reset())
 
         # ASHA hearing aid's IO capability is NO_OUTPUT_NO_INPUT
@@ -683,6 +698,9 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
            2. The disconnected peripheral starts sending ASHA advertisements.
            3. Verify that DUT auto-connects to the peripheral.
         """
+        # This tests need to be reactivated ASAP
+        if ref_address_type == PUBLIC:
+            raise signals.TestSkip('TODO: b/296927588')
 
         advertisement_left = await self.ref_advertise_asha(
             ref_device=self.ref_left, ref_address_type=ref_address_type, ear=Ear.LEFT
@@ -865,9 +883,6 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
         Verify that DUT sends a correct AudioControlPoint `Stop` command.
         """
 
-        # TODO(b/290204194) Re-activate this test ASAP
-        raise signals.TestSkip('TODO(b/290204194) Re-activate this test ASAP')
-
         async def ref_device_connect(ref_device: BumblePandoraDevice, ear: Ear) -> Tuple[Connection, Connection]:
             advertisement = await self.ref_advertise_asha(ref_device=ref_device, ref_address_type=RANDOM, ear=ear)
             ref = await self.dut_scan_for_asha(dut_address_type=RANDOM, ear=ear)
@@ -899,6 +914,9 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
 
         logging.info(f"stop_result:{stop_result}")
         assert_is_not_none(stop_result)
+
+        # Sleep 0.5 second to mitigate flaky test first.
+        await asyncio.sleep(0.5)
 
         audio_data = await self.get_audio_data(
             ref_asha=AioAsha(self.ref_left.aio.channel), connection=ref_dut, timeout=10
@@ -1064,9 +1082,6 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
         Verify Refs cannot recevice audio data after DUT stops media streaming.
         """
 
-        # TODO(b/290204194) Re-activate this test ASAP
-        raise signals.TestSkip('TODO(b/290204194) Re-activate this test ASAP')
-
         async def ref_device_connect(ref_device: BumblePandoraDevice, ear: Ear) -> Tuple[Connection, Connection]:
             advertisement = await self.ref_advertise_asha(ref_device=ref_device, ref_address_type=RANDOM, ear=ear)
             ref = await self.dut_scan_for_asha(dut_address_type=RANDOM, ear=ear)
@@ -1118,6 +1133,9 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
         logging.info(f"stop_result_right:{stop_result_right}")
         assert_is_not_none(stop_result_left)
         assert_is_not_none(stop_result_right)
+
+        # Sleep 0.5 second to mitigate flaky test first.
+        await asyncio.sleep(0.5)
 
         (audio_data_left, audio_data_right) = await asyncio.gather(
             self.get_audio_data(ref_asha=ref_left_asha, connection=ref_left_dut, timeout=10),

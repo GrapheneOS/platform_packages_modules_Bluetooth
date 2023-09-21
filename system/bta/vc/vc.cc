@@ -276,6 +276,11 @@ class VolumeControlImpl : public VolumeControl {
       return;
     }
 
+    if (!device->IsEncryptionEnabled()) {
+      LOG_WARN("Device not yet bonded - waiting for encryption");
+      return;
+    }
+
     bool success = device->UpdateHandles();
     if (!success) {
       LOG(ERROR) << "Incomplete service database";
@@ -615,8 +620,8 @@ class VolumeControlImpl : public VolumeControl {
       return;
     }
 
-    LOG(INFO) << __func__
-              << "Successfully register for indications: " << loghex(handle);
+    LOG_INFO("Successfully registered on ccc: 0x%04x, device: %s", handle,
+             ADDRESS_TO_LOGGABLE_CSTR(device->address));
 
     verify_device_ready(device, handle);
   }

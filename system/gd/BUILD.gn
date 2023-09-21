@@ -46,9 +46,9 @@ group("gd_default_deps") {
   deps = [
     "//bt/system:libbt-platform-protos-lite",
     "//bt/system/gd:BluetoothGeneratedDumpsysDataSchema_h",
-    "//bt/system/gd:BluetoothGeneratedPackets_h",
     "//bt/system/gd/dumpsys:libbluetooth-dumpsys",
     "//bt/system/gd/rust/shim:init_flags_bridge_header",
+    "//bt/system/pdl:BluetoothGeneratedPackets_h",
   ]
 }
 
@@ -64,12 +64,10 @@ static_library("libbluetooth_gd") {
     "//bt/system/gd/rust/common:libbt_keystore_cc",
     "//bt/system/gd/rust/topshim:libbluetooth_topshim",
     "//bt/system/gd/rust/shim:libbluetooth_rust_interop",
-    "//bt/system/gd:BluetoothGeneratedPackets_h",
     "//bt/system/gd/att:BluetoothAttSources",
     "//bt/system/gd/common:BluetoothCommonSources",
     "//bt/system/gd/crypto_toolbox:BluetoothCryptoToolboxSources",
     "//bt/system/gd/dumpsys:BluetoothDumpsysSources",
-    "//bt/system/gd/btaa:BluetoothBtaaSources_linux",
     "//bt/system/gd/hal:BluetoothHalSources",
     "//bt/system/gd/hal:BluetoothHalSources_hci_host",
     "//bt/system/gd/l2cap:BluetoothL2capSources",
@@ -79,12 +77,12 @@ static_library("libbluetooth_gd") {
     "//bt/system/gd/shim:BluetoothShimSources",
     "//bt/system/gd/storage:BluetoothStorageSources",
     "//bt/system/gd/sysprops:BluetoothSyspropsSources",
+    "//bt/system/pdl:BluetoothGeneratedPackets_h",
   ]
 }
 
 flatbuffer("BluetoothGeneratedDumpsysDataSchema_h") {
   sources = [
-    "btaa/activity_attribution.fbs",
     "common/init_flags.fbs",
     "dumpsys_data.fbs",
     "hci/hci_acl_manager.fbs",
@@ -97,7 +95,6 @@ flatbuffer("BluetoothGeneratedDumpsysDataSchema_h") {
 
 bt_flatc_binary_schema("BluetoothGeneratedDumpsysBinarySchema_bfbs") {
   sources = [
-    "btaa/activity_attribution.fbs",
     "common/init_flags.fbs",
     "dumpsys_data.fbs",
     "hci/hci_acl_manager.fbs",
@@ -108,27 +105,4 @@ bt_flatc_binary_schema("BluetoothGeneratedDumpsysBinarySchema_bfbs") {
   ]
 
   include_dir = "system/gd"
-}
-
-packetgen_py("BluetoothGeneratedPackets_python3_cc") {
-  sources = [
-    "hci/hci_packets.pdl",
-    "l2cap/l2cap_packets.pdl",
-    "security/smp_packets.pdl",
-  ]
-
-  include = "system/gd"
-  source_root = "../.."
-  shards = 10
-}
-
-packetgen_headers("BluetoothGeneratedPackets_h") {
-  sources = [
-    "hci/hci_packets.pdl",
-    "l2cap/l2cap_packets.pdl",
-    "security/smp_packets.pdl",
-  ]
-
-  include = "system/gd"
-  source_root = "../.."
 }

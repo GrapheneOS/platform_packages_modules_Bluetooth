@@ -203,7 +203,7 @@ impl<T: GattDatastore + ?Sized> RawGattDatastore for T {
     /// Execute or cancel any prepared writes
     async fn execute(&self, _: TransportIndex, _: TransactionDecision) -> Result<(), AttErrorCode> {
         // we never do prepared writes, so who cares
-        return Ok(());
+        Ok(())
     }
 }
 

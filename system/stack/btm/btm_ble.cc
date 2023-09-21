@@ -992,17 +992,11 @@ tL2CAP_LE_RESULT_CODE btm_ble_start_sec_check(const RawAddress& bd_addr,
       break;
   }
 
-  if (ble_sec_act == BTM_BLE_SEC_NONE) {
-    if (bluetooth::common::init_flags::queue_l2cap_coc_while_encrypting_is_enabled()) {
-      if (sec_act != BTM_SEC_ENC_PENDING) {
-        return result;
-      }
-    } else {
-      return result;
-    }
-  } else {
-    l2cble_update_sec_act(bd_addr, sec_act);
+  if (ble_sec_act == BTM_BLE_SEC_NONE && sec_act != BTM_SEC_ENC_PENDING) {
+    return result;
   }
+
+  l2cble_update_sec_act(bd_addr, sec_act);
 
   BTM_SetEncryption(bd_addr, BT_TRANSPORT_LE, p_callback, p_ref_data,
                     ble_sec_act);
@@ -1512,28 +1506,27 @@ void btm_ble_link_encrypted(const RawAddress& bd_addr, uint8_t encr_enable) {
   if (p_dev_rec->p_callback && enc_cback) {
     if (encr_enable)
       btm_sec_dev_rec_cback_event(p_dev_rec, BTM_SUCCESS, true);
-    else if (p_dev_rec->sec_flags & ~BTM_SEC_LE_LINK_KEY_KNOWN) {
-      btm_sec_dev_rec_cback_event(p_dev_rec, BTM_FAILED_ON_SECURITY, true);
-    }
     /* LTK missing on peripheral */
     else if (p_dev_rec->role_central && (p_dev_rec->sec_status == HCI_ERR_KEY_MISSING)) {
       btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_KEY_MISSING, true);
+    }
+    else if (!(p_dev_rec->sec_flags & BTM_SEC_LE_LINK_KEY_KNOWN)) {
+      btm_sec_dev_rec_cback_event(p_dev_rec, BTM_FAILED_ON_SECURITY, true);
     }
     else if (p_dev_rec->role_central)
       btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_PROCESSING, true);
   }
 
   if (encr_enable) {
-    uint8_t remote_lmp_version = 0;
-    if (!BTM_ReadRemoteVersion(p_dev_rec->ble.pseudo_addr, &remote_lmp_version,
+    uint8_t remote_ll_version = 0;
+    if (!BTM_ReadRemoteVersion(p_dev_rec->ble.pseudo_addr, &remote_ll_version,
                                nullptr, nullptr) ||
-        remote_lmp_version == 0) {
+        remote_ll_version == 0) {
       LOG_WARN("BLE Unable to determine remote version");
     }
 
-    if (remote_lmp_version == 0 ||
-        remote_lmp_version >= HCI_PROTO_VERSION_5_2) {
-      /* Link is encrypted, start EATT if remote LMP version is unknown, or 5.2
+    if (remote_ll_version == 0 || remote_ll_version >= HCI_PROTO_VERSION_5_0) {
+      /* Link is encrypted, start EATT if remote LMP version is unknown, or 5.0
        * or greater */
       bluetooth::eatt::EattExtension::GetInstance()->Connect(
           p_dev_rec->ble.pseudo_addr);
@@ -1698,11 +1691,11 @@ uint8_t btm_ble_br_keys_req(tBTM_SEC_DEV_REC* p_dev_rec,
   BTM_TRACE_DEBUG("%s", __func__);
   *p_data = tBTM_LE_IO_REQ{
       .io_cap = BTM_IO_CAP_UNKNOWN,
+      .oob_data = false,
       .auth_req = BTM_LE_AUTH_REQ_SC_MITM_BOND,
+      .max_key_size = BTM_BLE_MAX_KEY_SIZE,
       .init_keys = SMP_BR_SEC_DEFAULT_KEY,
       .resp_keys = SMP_BR_SEC_DEFAULT_KEY,
-      .max_key_size = BTM_BLE_MAX_KEY_SIZE,
-      .oob_data = false,
   };
 
   if (osi_property_get_bool(kPropertyCtkdDisableCsrkDistribution, false)) {
@@ -2029,9 +2022,6 @@ bool BTM_BleVerifySignature(const RawAddress& bd_addr, uint8_t* p_orig,
  *
  ******************************************************************************/
 void BTM_BleSirkConfirmDeviceReply(const RawAddress& bd_addr, uint8_t res) {
-  if (bluetooth::shim::is_gd_shim_enabled()) {
-    ASSERT_LOG(false, "This should not be invoked from code path");
-  }
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
   tSMP_STATUS res_smp = (res == BTM_SUCCESS) ? SMP_SUCCESS : SMP_FAIL;
 
