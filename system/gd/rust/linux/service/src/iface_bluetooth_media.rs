@@ -13,8 +13,7 @@ use dbus::strings::Path;
 
 use dbus_macros::{dbus_method, dbus_propmap, dbus_proxy_obj, generate_dbus_exporter};
 
-use dbus_projection::DisconnectWatcher;
-use dbus_projection::{dbus_generated, impl_dbus_arg_enum, impl_dbus_arg_from_into};
+use dbus_projection::prelude::*;
 
 use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
 
@@ -165,6 +164,10 @@ impl DBusArg for PlayerMetadata {
     ) -> Result<dbus::arg::PropMap, Box<dyn std::error::Error>> {
         Ok(std::collections::HashMap::new())
     }
+
+    fn log(metadata: &PlayerMetadata) -> String {
+        String::from(format!("{:?}", metadata))
+    }
 }
 
 #[generate_dbus_exporter(export_bluetooth_media_dbus_intf, "org.chromium.bluetooth.BluetoothMedia")]
@@ -204,7 +207,7 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
         dbus_generated!()
     }
 
-    #[dbus_method("SetHfpActiveDevice")]
+    #[dbus_method("SetHfpActiveDevice", DBusLog::Disable)]
     fn set_hfp_active_device(&mut self, address: String) {
         dbus_generated!()
     }
@@ -221,7 +224,7 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
         dbus_generated!()
     }
 
-    #[dbus_method("SetVolume")]
+    #[dbus_method("SetVolume", DBusLog::Disable)]
     fn set_volume(&mut self, volume: u8) {
         dbus_generated!()
     }
@@ -236,12 +239,12 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
         dbus_generated!()
     }
 
-    #[dbus_method("GetA2dpAudioStarted")]
+    #[dbus_method("GetA2dpAudioStarted", DBusLog::Disable)]
     fn get_a2dp_audio_started(&mut self, address: String) -> bool {
         dbus_generated!()
     }
 
-    #[dbus_method("StopAudioRequest")]
+    #[dbus_method("StopAudioRequest", DBusLog::Disable)]
     fn stop_audio_request(&mut self) {
         dbus_generated!()
     }
@@ -266,7 +269,7 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
         dbus_generated!()
     }
 
-    #[dbus_method("GetPresentationPosition")]
+    #[dbus_method("GetPresentationPosition", DBusLog::Disable)]
     fn get_presentation_position(&mut self) -> PresentationPosition {
         dbus_generated!()
     }
@@ -274,12 +277,12 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     // Temporary AVRCP-related meida DBUS APIs. The following APIs intercept between Chrome CRAS
     // and cras_server as an expedited solution for AVRCP implementation. The APIs are subject to
     // change when retiring Chrome CRAS.
-    #[dbus_method("SetPlayerPlaybackStatus")]
+    #[dbus_method("SetPlayerPlaybackStatus", DBusLog::Disable)]
     fn set_player_playback_status(&mut self, status: String) {
         dbus_generated!()
     }
 
-    #[dbus_method("SetPlayerPosition")]
+    #[dbus_method("SetPlayerPosition", DBusLog::Disable)]
     fn set_player_position(&mut self, position_us: i64) {
         dbus_generated!()
     }
