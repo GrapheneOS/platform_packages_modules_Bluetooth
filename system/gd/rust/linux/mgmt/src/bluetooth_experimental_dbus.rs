@@ -1,5 +1,5 @@
 use dbus_macros::{dbus_method, generate_dbus_exporter};
-use dbus_projection::dbus_generated;
+use dbus_projection::prelude::*;
 
 use crate::dbus_arg::DBusArg;
 use crate::iface_bluetooth_experimental::IBluetoothExperimental;

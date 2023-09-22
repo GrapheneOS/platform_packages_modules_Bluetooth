@@ -3,7 +3,7 @@ use btstack::battery_provider_manager::{IBatteryProviderCallback, IBatteryProvid
 use btstack::RPCProxy;
 use dbus::strings::Path;
 use dbus_macros::{dbus_method, dbus_proxy_obj, generate_dbus_exporter};
-use dbus_projection::{dbus_generated, DisconnectWatcher};
+use dbus_projection::prelude::*;
 
 use crate::dbus_arg::DBusArg;
 

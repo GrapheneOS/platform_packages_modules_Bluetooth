@@ -54,6 +54,13 @@ use dbus::strings::BusName;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
+pub mod prelude {
+    pub use super::{
+        ClientDBusProxy, DBusLog, DBusLogOptions, DBusLogVerbosity, DisconnectWatcher, dbus_generated,
+        impl_dbus_arg_enum, impl_dbus_arg_from_into,
+    };
+}
+
 /// A D-Bus "NameOwnerChanged" handler that continuously monitors client disconnects.
 ///
 /// When the watched bus address disconnects, all the callbacks associated with it are called with
@@ -270,6 +277,10 @@ macro_rules! impl_dbus_arg_enum {
             fn to_dbus(data: $enum_type) -> Result<u32, Box<dyn std::error::Error>> {
                 return Ok(data.to_u32().unwrap());
             }
+
+            fn log(data: &$enum_type) -> String {
+                String::from(format!("{:?}", data))
+            }
         }
     };
 }
@@ -308,6 +319,10 @@ macro_rules! impl_dbus_arg_from_into {
                     Ok(result) => Ok(result),
                 }
             }
+
+            fn log(data: &$rust_type) -> String {
+                String::from(format!("{:?}", data))
+            }
         }
     };
 }
@@ -320,4 +335,43 @@ macro_rules! dbus_generated {
         // return type.
         panic!("To be implemented by dbus_projection macros");
     };
+}
+
+pub enum DBusLogOptions {
+    LogAll,
+    LogMethodNameOnly,
+}
+
+pub enum DBusLogVerbosity {
+    Error,
+    Warn,
+    Info,
+    Verbose,
+}
+
+pub enum DBusLog {
+    Enable(DBusLogOptions, DBusLogVerbosity),
+    Disable,
+}
+
+impl DBusLog {
+    pub fn log(logging: DBusLog, prefix: &str, iface_name: &str, func_name: &str, param: &str) {
+        match logging {
+            Self::Enable(option, verbosity) => {
+                let part_before_param = format!("{}: {}: {}", prefix, iface_name, func_name);
+                let output = match option {
+                    DBusLogOptions::LogAll => format!("{}: {}", part_before_param, param),
+                    DBusLogOptions::LogMethodNameOnly => part_before_param,
+                };
+
+                match verbosity {
+                    DBusLogVerbosity::Error => log::error!("{}", output),
+                    DBusLogVerbosity::Warn => log::warn!("{}", output),
+                    DBusLogVerbosity::Info => log::info!("{}", output),
+                    DBusLogVerbosity::Verbose => log::debug!("{}", output),
+                }
+            }
+            Self::Disable => {}
+        }
+    }
 }
