@@ -1,0 +1,17 @@
+// Baseline format: 1.0
+UnflaggedApi: android.bluetooth.BluetoothHapClient#PRESET_INDEX_UNAVAILABLE:
+    New API must be flagged with @FlaggedApi: field android.bluetooth.BluetoothHapClient.PRESET_INDEX_UNAVAILABLE
+UnflaggedApi: android.bluetooth.BluetoothHapClient#getActivePresetIndex(android.bluetooth.BluetoothDevice):
+    New API must be flagged with @FlaggedApi: method android.bluetooth.BluetoothHapClient.getActivePresetIndex(android.bluetooth.BluetoothDevice)
+UnflaggedApi: android.bluetooth.BluetoothHapClient#getHapGroup(android.bluetooth.BluetoothDevice):
+    New API must be flagged with @FlaggedApi: method android.bluetooth.BluetoothHapClient.getHapGroup(android.bluetooth.BluetoothDevice)
+UnflaggedApi: android.bluetooth.BluetoothHapClient#getPresetInfo(android.bluetooth.BluetoothDevice, int):
+    New API must be flagged with @FlaggedApi: method android.bluetooth.BluetoothHapClient.getPresetInfo(android.bluetooth.BluetoothDevice,int)
+UnflaggedApi: android.bluetooth.BluetoothHapClient#switchToNextPreset(android.bluetooth.BluetoothDevice):
+    New API must be flagged with @FlaggedApi: method android.bluetooth.BluetoothHapClient.switchToNextPreset(android.bluetooth.BluetoothDevice)
+UnflaggedApi: android.bluetooth.BluetoothHapClient#switchToNextPresetForGroup(int):
+    New API must be flagged with @FlaggedApi: method android.bluetooth.BluetoothHapClient.switchToNextPresetForGroup(int)
+UnflaggedApi: android.bluetooth.BluetoothHapClient#switchToPreviousPreset(android.bluetooth.BluetoothDevice):
+    New API must be flagged with @FlaggedApi: method android.bluetooth.BluetoothHapClient.switchToPreviousPreset(android.bluetooth.BluetoothDevice)
+UnflaggedApi: android.bluetooth.BluetoothHapClient#switchToPreviousPresetForGroup(int):
+    New API must be flagged with @FlaggedApi: method android.bluetooth.BluetoothHapClient.switchToPreviousPresetForGroup(int)
