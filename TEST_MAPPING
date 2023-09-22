@@ -9,7 +9,8 @@
       "keywords": ["internal"]
     },
     {
-      "name": "GoogleBluetoothInstrumentationTests"
+      "name": "GoogleBluetoothInstrumentationTests",
+      "keywords": ["internal"]
     },
     {
       "name": "FrameworkBluetoothTests"
