@@ -146,8 +146,7 @@ TEST_F(LogCaptureTest, DISABLED_wait_until_log_contains) {
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   LOG_DEBUG("%s", kLogDebug);
-  std::promise<void> promise;
-  log_capture->WaitUntilLogContains(&promise, kLogDebug);
+  log_capture->WaitUntilLogContains(kLogDebug);
   bluetooth::common::InitFlags::Load(nullptr);
 }
 
