@@ -824,7 +824,7 @@ public final class BluetoothAdapter {
 
     /** @hide */
     public static final String BLUETOOTH_MANAGER_SERVICE = "bluetooth_manager";
-    private final IBinder mToken;
+    private final IBinder mToken = new Binder(DESCRIPTOR);
 
 
     /**
@@ -873,7 +873,7 @@ public final class BluetoothAdapter {
     private static final Object sServiceLock = new Object();
 
     private final Object mLock = new Object();
-    private final Map<LeScanCallback, ScanCallback> mLeScanClients;
+    private final Map<LeScanCallback, ScanCallback> mLeScanClients = new HashMap<>();
     private final Map<BluetoothDevice, List<Pair<OnMetadataChangedListener, Executor>>>
                 mMetadataListeners = new HashMap<>();
     private final Map<BluetoothConnectionCallback, Executor>
@@ -1066,8 +1066,6 @@ public final class BluetoothAdapter {
         } finally {
             mServiceLock.writeLock().unlock();
         }
-        mLeScanClients = new HashMap<LeScanCallback, ScanCallback>();
-        mToken = new Binder(DESCRIPTOR);
     }
 
     /**
@@ -3862,14 +3860,14 @@ public final class BluetoothAdapter {
                     mServiceLock.writeLock().lock();
                     try {
                         mService = null;
-                        if (mLeScanClients != null) {
-                            mLeScanClients.clear();
-                        }
-                        if (mBluetoothLeAdvertiser != null) {
-                            mBluetoothLeAdvertiser.cleanup();
-                        }
-                        if (mBluetoothLeScanner != null) {
-                            mBluetoothLeScanner.cleanup();
+                        mLeScanClients.clear();
+                        synchronized (mLock) {
+                            if (mBluetoothLeAdvertiser != null) {
+                                mBluetoothLeAdvertiser.cleanup();
+                            }
+                            if (mBluetoothLeScanner != null) {
+                                mBluetoothLeScanner.cleanup();
+                            }
                         }
                     } finally {
                         mServiceLock.writeLock().unlock();
@@ -4291,60 +4289,6 @@ public final class BluetoothAdapter {
          * @param scanRecord The content of the advertisement record offered by the remote device.
          */
         void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord);
-    }
-
-    /**
-     * Register a callback to receive events whenever the bluetooth stack goes down and back up,
-     * e.g. in the event the bluetooth is turned off/on via settings.
-     *
-     * If the bluetooth stack is currently up, there will not be an initial callback call.
-     * You can use the return value as an indication of this being the case.
-     *
-     * Callbacks will be delivered on a binder thread.
-     *
-     * @return whether bluetooth is already up currently
-     *
-     * @hide
-     */
-    @RequiresNoPermission
-    public boolean registerServiceLifecycleCallback(@NonNull ServiceLifecycleCallback callback) {
-        return getBluetoothService(callback.mRemote) != null;
-    }
-
-    /**
-     * Unregister a callback registered via {@link #registerServiceLifecycleCallback}
-     *
-     * @hide
-     */
-    @RequiresNoPermission
-    public void unregisterServiceLifecycleCallback(@NonNull ServiceLifecycleCallback callback) {
-        removeServiceStateCallback(callback.mRemote);
-    }
-
-    /**
-     * A callback for {@link #registerServiceLifecycleCallback}
-     *
-     * @hide
-     */
-    public abstract static class ServiceLifecycleCallback {
-
-        /** Called when the bluetooth stack is up */
-        public abstract void onBluetoothServiceUp();
-
-        /** Called when the bluetooth stack is down */
-        public abstract void onBluetoothServiceDown();
-
-        IBluetoothManagerCallback mRemote = new IBluetoothManagerCallback.Stub() {
-            @Override
-            public void onBluetoothServiceUp(IBluetooth bluetoothService) {
-                ServiceLifecycleCallback.this.onBluetoothServiceUp();
-            }
-
-            @Override
-            public void onBluetoothServiceDown() {
-                ServiceLifecycleCallback.this.onBluetoothServiceDown();
-            }
-        };
     }
 
     /**
