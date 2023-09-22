@@ -31,7 +31,7 @@ class LogCapture {
   LogCapture* Rewind();
   // Searches from filepointer to end of file for |to_find| string
   // Returns true if found, false otherwise
-  bool Find(std::string to_find);
+  bool Find(const std::string& to_find);
   // Reads and returns the entirety of the backing store into a string
   std::string Read();
   // Flushes contents of log capture back to |stderr|
@@ -43,7 +43,7 @@ class LogCapture {
   // Truncates and resets the file pointer discarding all logs up to this point
   void Reset();
   // Wait until the provided string shows up in the logs
-  void WaitUntilLogContains(std::promise<void>* promise, std::string text);
+  void WaitUntilLogContains(const std::string& text);
 
  private:
   std::pair<int, int> create_backing_store() const;
