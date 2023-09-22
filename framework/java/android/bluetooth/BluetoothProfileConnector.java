@@ -183,7 +183,6 @@ public abstract class BluetoothProfileConnector<T> {
                 logError("Failed to register state change callback. " + re);
             }
         }
-        doBind();
     }
 
     void disconnect() {
@@ -200,7 +199,6 @@ public abstract class BluetoothProfileConnector<T> {
                 logError("Failed to unregister state change callback" + re);
             }
         }
-        doUnbind();
     }
 
     T getService() {
