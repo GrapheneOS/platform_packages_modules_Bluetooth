@@ -42,6 +42,8 @@ class TestHciLayer : public HciLayer {
 
   CommandView GetCommand();
 
+  void AssertNoQueuedCommand();
+
   void RegisterEventHandler(EventCode event_code, common::ContextualCallback<void(EventView)> event_handler) override;
 
   void UnregisterEventHandler(EventCode event_code) override;
