@@ -610,6 +610,7 @@ public class AdapterService extends Service {
             })
     public void onCreate() {
         super.onCreate();
+        Config.init(this);
         if (mLooper == null) {
             mLooper = Looper.getMainLooper();
         }

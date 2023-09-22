@@ -45,7 +45,6 @@ public class AdapterApp extends Application {
         } catch (Exception e) {
             Log.e(TAG, "Migration failure: ", e);
         }
-        Config.init(this);
     }
 
     @Override
