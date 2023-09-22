@@ -2,7 +2,7 @@ use crate::dbus_arg::DBusArg;
 
 use btstack::bluetooth_logging::IBluetoothLogging;
 use dbus_macros::{dbus_method, generate_dbus_exporter};
-use dbus_projection::dbus_generated;
+use dbus_projection::prelude::*;
 
 struct IBluetoothLoggingDBus {}
 
