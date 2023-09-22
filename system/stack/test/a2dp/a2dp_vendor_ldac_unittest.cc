@@ -145,9 +145,7 @@ TEST_F(A2dpLdacTest, a2dp_source_read_underflow) {
   usleep(kA2dpTickUs);
   timestamp_us = bluetooth::common::time_gettimeofday_us();
   encoder_iface_->send_frames(timestamp_us);
-  std::promise<void> promise;
-  // log_capture_->WaitUntilLogContains(&promise,
-  //                                    "a2dp_ldac_encode_frames: underflow");
+  // log_capture_->WaitUntilLogContains("a2dp_ldac_encode_frames: underflow");
 }
 
 }  // namespace testing

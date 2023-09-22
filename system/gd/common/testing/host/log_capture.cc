@@ -71,7 +71,7 @@ LogCapture* LogCapture::Rewind() {
   return this;
 }
 
-bool LogCapture::Find(std::string to_find) {
+bool LogCapture::Find(const std::string& to_find) {
   std::string str = this->Read();
   return str.find(to_find) != std::string::npos;
 }
@@ -135,15 +135,11 @@ size_t LogCapture::Size() const {
   return size;
 }
 
-void LogCapture::WaitUntilLogContains(std::promise<void>* promise, std::string text) {
-  std::async([this, promise, text]() {
-    bool found = false;
-    do {
-      found = this->Rewind()->Find(text);
-    } while (!found);
-    promise->set_value();
-  });
-  promise->get_future().wait();
+void LogCapture::WaitUntilLogContains(const std::string& text) {
+  bool found = false;
+  do {
+    found = this->Rewind()->Find(text);
+  } while (!found);
 }
 
 std::pair<int, int> LogCapture::create_backing_store() const {

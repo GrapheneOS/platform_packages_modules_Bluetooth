@@ -287,9 +287,7 @@ TEST_F(A2dpSbcTest, effective_mtu_when_peer_does_not_support_3mbps) {
 TEST_F(A2dpSbcTest, debug_codec_dump) {
   log_capture_ = std::make_unique<LogCapture>();
   a2dp_codecs_->debug_codec_dump(2);
-  std::promise<void> promise;
-  log_capture_->WaitUntilLogContains(&promise,
-                                     "Current Codec: SBC");
+  log_capture_->WaitUntilLogContains("Current Codec: SBC");
 }
 
 TEST_F(A2dpSbcTest, codec_info_string) {
