@@ -20,8 +20,7 @@ use dbus::strings::Path;
 
 use dbus_macros::{dbus_method, dbus_propmap, dbus_proxy_obj, generate_dbus_exporter};
 
-use dbus_projection::DisconnectWatcher;
-use dbus_projection::{dbus_generated, impl_dbus_arg_enum};
+use dbus_projection::prelude::*;
 
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 
@@ -288,6 +287,10 @@ impl DBusArg for Uuid128Bit {
     fn to_dbus(data: [u8; 16]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         return Ok(data.to_vec());
     }
+
+    fn log(data: &[u8; 16]) -> String {
+        String::from(format!("{:?}", data))
+    }
 }
 
 #[allow(dead_code)]
@@ -464,6 +467,10 @@ impl DBusArg for ScanFilterCondition {
         }
         return Ok(map);
     }
+
+    fn log(condition: &ScanFilterCondition) -> String {
+        String::from(format!("{:?}", condition))
+    }
 }
 
 #[dbus_propmap(ScanFilter)]
@@ -614,12 +621,12 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         dbus_generated!()
     }
 
-    #[dbus_method("RegisterScanner")]
+    #[dbus_method("RegisterScanner", DBusLog::Disable)]
     fn register_scanner(&mut self, callback_id: u32) -> Uuid128Bit {
         dbus_generated!()
     }
 
-    #[dbus_method("UnregisterScanner")]
+    #[dbus_method("UnregisterScanner", DBusLog::Disable)]
     fn unregister_scanner(&mut self, scanner_id: u8) -> bool {
         dbus_generated!()
     }
@@ -679,7 +686,7 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         dbus_generated!()
     }
 
-    #[dbus_method("GetOwnAddress")]
+    #[dbus_method("GetOwnAddress", DBusLog::Disable)]
     fn get_own_address(&mut self, advertiser_id: i32) {
         dbus_generated!()
     }
@@ -784,27 +791,27 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         dbus_generated!()
     }
 
-    #[dbus_method("DiscoverServices")]
+    #[dbus_method("DiscoverServices", DBusLog::Disable)]
     fn discover_services(&self, client_id: i32, addr: String) {
         dbus_generated!()
     }
 
-    #[dbus_method("DiscoverServiceByUuid")]
+    #[dbus_method("DiscoverServiceByUuid", DBusLog::Disable)]
     fn discover_service_by_uuid(&self, client_id: i32, addr: String, uuid: String) {
         dbus_generated!()
     }
 
-    #[dbus_method("BtifGattcDiscoverServiceByUuid")]
+    #[dbus_method("BtifGattcDiscoverServiceByUuid", DBusLog::Disable)]
     fn btif_gattc_discover_service_by_uuid(&self, client_id: i32, addr: String, uuid: String) {
         dbus_generated!()
     }
 
-    #[dbus_method("ReadCharacteristic")]
+    #[dbus_method("ReadCharacteristic", DBusLog::Disable)]
     fn read_characteristic(&self, client_id: i32, addr: String, handle: i32, auth_req: i32) {
         dbus_generated!()
     }
 
-    #[dbus_method("ReadUsingCharacteristicUuid")]
+    #[dbus_method("ReadUsingCharacteristicUuid", DBusLog::Disable)]
     fn read_using_characteristic_uuid(
         &self,
         client_id: i32,
@@ -817,7 +824,7 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         dbus_generated!()
     }
 
-    #[dbus_method("WriteCharacteristic")]
+    #[dbus_method("WriteCharacteristic", DBusLog::Disable)]
     fn write_characteristic(
         &self,
         client_id: i32,
@@ -830,12 +837,12 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         dbus_generated!()
     }
 
-    #[dbus_method("ReadDescriptor")]
+    #[dbus_method("ReadDescriptor", DBusLog::Disable)]
     fn read_descriptor(&self, client_id: i32, addr: String, handle: i32, auth_req: i32) {
         dbus_generated!()
     }
 
-    #[dbus_method("WriteDescriptor")]
+    #[dbus_method("WriteDescriptor", DBusLog::Disable)]
     fn write_descriptor(
         &self,
         client_id: i32,
@@ -847,27 +854,27 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         dbus_generated!()
     }
 
-    #[dbus_method("RegisterForNotification")]
+    #[dbus_method("RegisterForNotification", DBusLog::Disable)]
     fn register_for_notification(&self, client_id: i32, addr: String, handle: i32, enable: bool) {
         dbus_generated!()
     }
 
-    #[dbus_method("BeginReliableWrite")]
+    #[dbus_method("BeginReliableWrite", DBusLog::Disable)]
     fn begin_reliable_write(&mut self, client_id: i32, addr: String) {
         dbus_generated!()
     }
 
-    #[dbus_method("EndReliableWrite")]
+    #[dbus_method("EndReliableWrite", DBusLog::Disable)]
     fn end_reliable_write(&mut self, client_id: i32, addr: String, execute: bool) {
         dbus_generated!()
     }
 
-    #[dbus_method("ReadRemoteRssi")]
+    #[dbus_method("ReadRemoteRssi", DBusLog::Disable)]
     fn read_remote_rssi(&self, client_id: i32, addr: String) {
         dbus_generated!()
     }
 
-    #[dbus_method("ConfigureMtu")]
+    #[dbus_method("ConfigureMtu", DBusLog::Disable)]
     fn configure_mtu(&self, client_id: i32, addr: String, mtu: i32) {
         dbus_generated!()
     }
@@ -952,7 +959,7 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         dbus_generated!()
     }
 
-    #[dbus_method("SendResponse")]
+    #[dbus_method("SendResponse", DBusLog::Disable)]
     fn send_response(
         &self,
         server_id: i32,
@@ -965,7 +972,7 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         dbus_generated!()
     }
 
-    #[dbus_method("SendNotification")]
+    #[dbus_method("SendNotification", DBusLog::Disable)]
     fn send_notification(
         &self,
         server_id: i32,

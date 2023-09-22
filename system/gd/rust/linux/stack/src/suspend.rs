@@ -100,7 +100,7 @@ fn notify_suspend_state(hci_index: u16, suspended: bool) {
     }
 }
 
-#[derive(FromPrimitive, ToPrimitive)]
+#[derive(Debug, FromPrimitive, ToPrimitive)]
 #[repr(u32)]
 pub enum SuspendType {
     NoWakesAllowed,
