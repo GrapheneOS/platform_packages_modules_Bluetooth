@@ -22,7 +22,6 @@
 
 #include <cstdint>
 #include <fstream>
-#include <future>
 #include <iomanip>
 #include <map>
 #include <string>
@@ -171,9 +170,7 @@ TEST_F(A2dpAacTest, a2dp_source_read_underflow) {
   usleep(kA2dpTickUs);
   timestamp_us = bluetooth::common::time_gettimeofday_us();
   encoder_iface_->send_frames(timestamp_us);
-  std::promise<void> promise;
-  log_capture_->WaitUntilLogContains(&promise,
-                                     "a2dp_aac_encode_frames: underflow");
+  log_capture_->WaitUntilLogContains("a2dp_aac_encode_frames: underflow");
 }
 
 TEST_F(A2dpAacTest, a2dp_enqueue_cb_is_invoked) {
@@ -193,8 +190,7 @@ TEST_F(A2dpAacTest, a2dp_enqueue_cb_is_invoked) {
   usleep(kA2dpTickUs);
   timestamp_us = bluetooth::common::time_gettimeofday_us();
   encoder_iface_->send_frames(timestamp_us);
-  std::promise<void> promise;
-  log_capture_->WaitUntilLogContains(&promise, kEnqueueCallbackIsInvoked);
+  log_capture_->WaitUntilLogContains(kEnqueueCallbackIsInvoked);
 }
 
 TEST_F(A2dpAacTest, decoded_data_cb_not_invoked_when_empty_packet) {
@@ -232,8 +228,7 @@ TEST_F(A2dpAacTest, decoded_data_cb_invoked) {
   timestamp_us = bluetooth::common::time_gettimeofday_us();
   encoder_iface_->send_frames(timestamp_us);
 
-  std::promise<void> promise;
-  log_capture_->WaitUntilLogContains(&promise, kEnqueueCallbackIsInvoked);
+  log_capture_->WaitUntilLogContains(kEnqueueCallbackIsInvoked);
   decoder_iface_->decode_packet(packet);
   osi_free(packet);
   ASSERT_TRUE(log_capture_->Find(kDecodedDataCallbackIsInvoked));
@@ -282,9 +277,7 @@ TEST_F(A2dpAacTest, effective_mtu_when_peer_does_not_support_3mbps) {
 TEST_F(A2dpAacTest, debug_codec_dump) {
   log_capture_ = std::make_unique<LogCapture>();
   a2dp_codecs_->debug_codec_dump(2);
-  std::promise<void> promise;
-  log_capture_->WaitUntilLogContains(&promise,
-                                     "Current Codec: AAC");
+  log_capture_->WaitUntilLogContains("Current Codec: AAC");
 }
 
 TEST_F(A2dpAacTest, codec_info_string) {
