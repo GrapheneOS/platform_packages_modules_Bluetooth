@@ -106,7 +106,8 @@ void bta_sys_notify_role_chg(const RawAddress& peer_addr, tHCI_ROLE new_role,
  * Returns          void
  *
  ******************************************************************************/
-void bta_sys_collision_register(uint8_t bta_id, tBTA_SYS_CONN_CBACK* p_cback) {
+void bta_sys_collision_register(tBTA_SYS_ID bta_id,
+                                tBTA_SYS_CONN_CBACK* p_cback) {
   uint8_t index;
 
   for (index = 0; index < MAX_COLLISION_REG; index++) {
@@ -180,7 +181,7 @@ void bta_sys_pm_register(tBTA_SYS_CONN_CBACK* p_cback) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_sys_conn_open(uint8_t id, uint8_t app_id,
+void bta_sys_conn_open(tBTA_SYS_ID id, uint8_t app_id,
                        const RawAddress& peer_addr) {
   if (bta_sys_cb.prm_cb) {
     bta_sys_cb.prm_cb(BTA_SYS_CONN_OPEN, id, app_id, peer_addr);
@@ -202,7 +203,7 @@ void bta_sys_conn_open(uint8_t id, uint8_t app_id,
  * Returns          void
  *
  ******************************************************************************/
-void bta_sys_conn_close(uint8_t id, uint8_t app_id,
+void bta_sys_conn_close(tBTA_SYS_ID id, uint8_t app_id,
                         const RawAddress& peer_addr) {
   if (bta_sys_cb.prm_cb) {
     bta_sys_cb.prm_cb(BTA_SYS_CONN_CLOSE, id, app_id, peer_addr);
@@ -224,7 +225,8 @@ void bta_sys_conn_close(uint8_t id, uint8_t app_id,
  * Returns          void
  *
  ******************************************************************************/
-void bta_sys_app_open(uint8_t id, uint8_t app_id, const RawAddress& peer_addr) {
+void bta_sys_app_open(tBTA_SYS_ID id, uint8_t app_id,
+                      const RawAddress& peer_addr) {
   if (bta_sys_cb.ppm_cb) {
     bta_sys_cb.ppm_cb(BTA_SYS_APP_OPEN, id, app_id, peer_addr);
   }
@@ -240,7 +242,7 @@ void bta_sys_app_open(uint8_t id, uint8_t app_id, const RawAddress& peer_addr) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_sys_app_close(uint8_t id, uint8_t app_id,
+void bta_sys_app_close(tBTA_SYS_ID id, uint8_t app_id,
                        const RawAddress& peer_addr) {
   if (bta_sys_cb.ppm_cb) {
     bta_sys_cb.ppm_cb(BTA_SYS_APP_CLOSE, id, app_id, peer_addr);
@@ -257,11 +259,12 @@ void bta_sys_app_close(uint8_t id, uint8_t app_id,
  * Returns          void
  *
  ******************************************************************************/
-void bta_sys_sco_open(uint8_t id, uint8_t app_id, const RawAddress& peer_addr) {
+void bta_sys_sco_open(tBTA_SYS_ID id, uint8_t app_id,
+                      const RawAddress& peer_addr) {
   /* AG triggers p_sco_cb by bta_sys_sco_use. */
   if ((id != BTA_ID_AG) && (bta_sys_cb.p_sco_cb)) {
     /* without querying BTM_GetNumScoLinks() */
-    bta_sys_cb.p_sco_cb(BTA_SYS_SCO_OPEN, 1, app_id, peer_addr);
+    bta_sys_cb.p_sco_cb(BTA_SYS_SCO_OPEN, id, app_id, peer_addr);
   }
 
   if (bta_sys_cb.ppm_cb) {
@@ -279,7 +282,7 @@ void bta_sys_sco_open(uint8_t id, uint8_t app_id, const RawAddress& peer_addr) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_sys_sco_close(uint8_t id, uint8_t app_id,
+void bta_sys_sco_close(tBTA_SYS_ID id, uint8_t app_id,
                        const RawAddress& peer_addr) {
   uint8_t num_sco_links;
 
@@ -303,7 +306,7 @@ void bta_sys_sco_close(uint8_t id, uint8_t app_id,
  * Returns          void
  *
  ******************************************************************************/
-void bta_sys_sco_use(UNUSED_ATTR uint8_t id, uint8_t app_id,
+void bta_sys_sco_use(UNUSED_ATTR tBTA_SYS_ID id, uint8_t app_id,
                      const RawAddress& peer_addr) {
   /* AV streaming need to be suspended before SCO is connected. */
   if (bta_sys_cb.p_sco_cb) {
@@ -356,7 +359,7 @@ void bta_sys_chg_ssr_config(uint8_t id, uint8_t app_id, uint16_t max_latency,
  * Returns          void
  *
  ******************************************************************************/
-void bta_sys_idle(uint8_t id, uint8_t app_id, const RawAddress& peer_addr) {
+void bta_sys_idle(tBTA_SYS_ID id, uint8_t app_id, const RawAddress& peer_addr) {
   if (bta_sys_cb.prm_cb) {
     bta_sys_cb.prm_cb(BTA_SYS_CONN_IDLE, id, app_id, peer_addr);
   }
@@ -376,7 +379,7 @@ void bta_sys_idle(uint8_t id, uint8_t app_id, const RawAddress& peer_addr) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_sys_busy(uint8_t id, uint8_t app_id, const RawAddress& peer_addr) {
+void bta_sys_busy(tBTA_SYS_ID id, uint8_t app_id, const RawAddress& peer_addr) {
   if (bta_sys_cb.prm_cb) {
     bta_sys_cb.prm_cb(BTA_SYS_CONN_BUSY, id, app_id, peer_addr);
   }
