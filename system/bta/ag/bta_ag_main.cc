@@ -346,8 +346,8 @@ bool bta_ag_scb_open(tBTA_AG_SCB* p_curr_scb) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_ag_collision_cback(UNUSED_ATTR tBTA_SYS_CONN_STATUS status, uint8_t id,
-                            UNUSED_ATTR uint8_t app_id,
+void bta_ag_collision_cback(UNUSED_ATTR tBTA_SYS_CONN_STATUS status,
+                            tBTA_SYS_ID id, UNUSED_ATTR uint8_t app_id,
                             const RawAddress& peer_addr) {
   /* Check if we have opening scb for the peer device. */
   uint16_t handle = bta_ag_idx_by_bdaddr(&peer_addr);

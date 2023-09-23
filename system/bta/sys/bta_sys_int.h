@@ -39,7 +39,7 @@
 #define MAX_COLLISION_REG 5
 
 typedef struct {
-  uint8_t id[MAX_COLLISION_REG];
+  tBTA_SYS_ID id[MAX_COLLISION_REG];
   tBTA_SYS_CONN_CBACK* p_coll_cback[MAX_COLLISION_REG];
 } tBTA_SYS_COLLISION;
 

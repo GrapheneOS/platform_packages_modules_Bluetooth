@@ -125,8 +125,8 @@ static void bta_dm_set_eir(char* local_name);
 
 static void bta_dm_search_timer_cback(void* data);
 static void bta_dm_disable_conn_down_timer_cback(void* data);
-void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id, uint8_t app_id,
-                     const RawAddress& peer_addr);
+static void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, tBTA_SYS_ID id,
+                            uint8_t app_id, const RawAddress& peer_addr);
 static void bta_dm_adjust_roles(bool delay_role_switch);
 static const char* bta_dm_get_remname(void);
 static void bta_dm_bond_cancel_complete_cback(tBTM_STATUS result);
@@ -2923,8 +2923,8 @@ static void bta_dm_disable_conn_down_timer_cback(UNUSED_ATTR void* data) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id, uint8_t app_id,
-                     const RawAddress& peer_addr) {
+static void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, tBTA_SYS_ID id,
+                            uint8_t app_id, const RawAddress& peer_addr) {
   uint8_t j;
   tBTA_PREF_ROLES role;
   tBTA_DM_PEER_DEVICE* p_dev;
