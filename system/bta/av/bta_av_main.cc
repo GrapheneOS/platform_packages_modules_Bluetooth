@@ -33,6 +33,7 @@
 #include "bta/include/bta_ar_api.h"
 #include "bta/include/bta_av_co.h"
 #include "bta/include/utl.h"
+#include "bta/sys/bta_sys.h"
 #include "btif/avrcp/avrcp_service.h"
 #include "btif/include/btif_av.h"
 #include "btif/include/btif_av_co.h"
