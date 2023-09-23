@@ -344,7 +344,7 @@ void bta_ag_sm_execute(tBTA_AG_SCB* p_scb, uint16_t event,
                        const tBTA_AG_DATA& data);
 void bta_ag_sm_execute_by_handle(uint16_t handle, uint16_t event,
                                  const tBTA_AG_DATA& data);
-void bta_ag_collision_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
+void bta_ag_collision_cback(tBTA_SYS_CONN_STATUS status, tBTA_SYS_ID id,
                             uint8_t app_id, const RawAddress& peer_addr);
 void bta_ag_resume_open(tBTA_AG_SCB* p_scb);
 
