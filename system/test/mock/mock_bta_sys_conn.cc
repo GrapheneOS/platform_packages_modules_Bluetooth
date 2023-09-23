@@ -92,11 +92,11 @@ void bta_sys_sco_open(uint8_t id, uint8_t app_id, const RawAddress& peer_addr) {
 void bta_sys_sco_register(tBTA_SYS_CONN_CBACK* p_cback) {
   inc_func_call_count(__func__);
 }
-void bta_sys_sco_unuse(uint8_t id, uint8_t app_id,
+void bta_sys_sco_unuse(tBTA_SYS_ID id, uint8_t app_id,
                        const RawAddress& peer_addr) {
   inc_func_call_count(__func__);
 }
-void bta_sys_sco_use(UNUSED_ATTR uint8_t id, uint8_t app_id,
+void bta_sys_sco_use(UNUSED_ATTR tBTA_SYS_ID id, uint8_t app_id,
                      const RawAddress& peer_addr) {
   inc_func_call_count(__func__);
 }
