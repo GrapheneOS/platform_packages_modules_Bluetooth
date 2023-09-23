@@ -1283,20 +1283,13 @@ class BluetoothManagerService {
     }
 
     boolean disable(String packageName, boolean persist) {
-        if (isSatelliteModeOn()) {
-            Log.d(TAG, "disable: not disabling - satellite mode is on.");
-            return false;
-        }
-
         if (DBG) {
             Log.d(
                     TAG,
-                    "disable(): mAdapter="
-                            + mAdapter
-                            + ", persist="
-                            + persist
-                            + ", isBinding="
-                            + isBinding());
+                    "disable():"
+                            + (" mAdapter=" + mAdapter)
+                            + (" persist=" + persist)
+                            + (" isBinding=" + isBinding()));
         }
 
         synchronized (mReceiver) {
