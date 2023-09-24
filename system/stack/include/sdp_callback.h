@@ -18,8 +18,6 @@
 
 #pragma once
 
-#include <cstdint>
-
 #include "stack/include/sdp_status.h"
 #include "types/raw_address.h"
 

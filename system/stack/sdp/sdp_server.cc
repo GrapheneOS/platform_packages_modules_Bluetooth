@@ -24,19 +24,10 @@
  ******************************************************************************/
 #define LOG_TAG "sdp_server"
 
-#include <base/location.h>
-#include <base/logging.h>
-#include <log/log.h>
 #include <string.h>  // memcpy
 
 #include <cstdint>
 
-// include before bta_hfp_api for pre-defined variable
-#include "btif/include/btif_storage.h"
-
-// remaining includes
-#include "bta/include/bta_hfp_api.h"
-#include "btif/include/btif_config.h"
 #include "btif/include/btif_profile_storage.h"
 #include "btif/include/btif_storage.h"
 #include "common/init_flags.h"
@@ -46,11 +37,8 @@
 #include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sco_hfp_hal.h"
-#include "stack/include/avrc_api.h"
-#include "stack/include/avrc_defs.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
-#include "stack/include/sdp_api.h"
 #include "stack/sdp/sdpint.h"
 
 /* Maximum number of bytes to reserve out of SDP MTU for response data */
