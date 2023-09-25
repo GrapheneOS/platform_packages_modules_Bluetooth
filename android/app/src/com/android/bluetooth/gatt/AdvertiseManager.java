@@ -71,12 +71,8 @@ public class AdvertiseManager {
         mNativeInterface = nativeInterface;
         mAdapterService = adapterService;
         mAdvertiserMap = advertiserMap;
-    }
 
-    /**
-     * Start a {@link HandlerThread} that handles advertising operations.
-     */
-    void start() {
+        // Start a HandlerThread that handles advertising operations
         mNativeInterface.init(this);
         HandlerThread thread = new HandlerThread("BluetoothAdvertiseManager");
         thread.start();
