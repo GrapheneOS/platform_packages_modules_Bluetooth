@@ -44,9 +44,22 @@ void PacketDef::GenParserDefinition(std::ostream& s, bool generate_fuzzing, bool
   if (parent_ != nullptr) {
     s << "static " << name_ << "View Create(" << parent_->name_ << "View parent)";
     s << "{ return " << name_ << "View(std::move(parent)); }";
+    // CreateOptional
+    s << "static std::optional<" << name_ << "View> CreateOptional(";
+    s << parent_->name_ << "View parent)";
+    s << "{ auto to_validate = " << name_ << "View::Create(std::move(parent));";
+    s << "if (to_validate.IsValid()) { return to_validate; }";
+    s << "else {return {};}}";
   } else {
-    s << "static " << name_ << "View Create(PacketView<" << (is_little_endian_ ? "" : "!") << "kLittleEndian> packet) ";
+    s << "static " << name_ << "View Create(PacketView<";
+    s << (is_little_endian_ ? "" : "!") << "kLittleEndian> packet)";
     s << "{ return " << name_ << "View(std::move(packet)); }";
+    // CreateOptional
+    s << "static std::optional<" << name_ << "View> CreateOptional(PacketView<";
+    s << (is_little_endian_ ? "" : "!") << "kLittleEndian> packet)";
+    s << "{ auto to_validate = " << name_ << "View::Create(std::move(packet));";
+    s << "if (to_validate.IsValid()) { return to_validate; }";
+    s << "else {return {};}}";
   }
 
   if (generate_fuzzing || generate_tests) {
