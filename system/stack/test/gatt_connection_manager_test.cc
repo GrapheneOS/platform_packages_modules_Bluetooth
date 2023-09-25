@@ -78,7 +78,6 @@ void BTM_LogHistory(const std::string& tag, const RawAddress& bd_addr,
 
 namespace bluetooth {
 namespace shim {
-bool is_gd_l2cap_enabled() { return false; }
 void set_target_announcements_filter(bool enable) {}
 }  // namespace shim
 }  // namespace bluetooth
