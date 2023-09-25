@@ -51,7 +51,7 @@ class Server(context: Context) {
                 MediaPlayer(context),
                 Rfcomm(context),
                 SecurityStorage(context),
-                AndroidInternal(context),
+                Os(context),
             ) +
                 mapOf(
                         BluetoothProfile.A2DP to ::A2dp,
@@ -65,6 +65,7 @@ class Server(context: Context) {
                         BluetoothProfile.PAN to ::Pan,
                         BluetoothProfile.PBAP to ::Pbap,
                         BluetoothProfile.OPP to ::Opp,
+                        BluetoothProfile.MAP to ::Map,
                     )
                     .filter { bluetoothAdapter.isEnabled }
                     .filter { bluetoothAdapter.getSupportedProfiles().contains(it.key) == true }
