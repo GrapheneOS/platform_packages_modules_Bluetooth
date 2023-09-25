@@ -62,6 +62,7 @@ class Opp(val context: Context) : OppImplBase(), Closeable {
     private val bluetoothAdapter = bluetoothManager.adapter
     private var uiDevice: UiDevice =
         UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+
     init {
         createImageFile()
 
