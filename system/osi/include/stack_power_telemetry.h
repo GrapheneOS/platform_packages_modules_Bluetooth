@@ -64,7 +64,6 @@ class PowerTelemetry {
 
   void Dumpsys(int32_t fd);
 
- protected:
   std::unique_ptr<PowerTelemetryImpl> pimpl_;
 };
 
