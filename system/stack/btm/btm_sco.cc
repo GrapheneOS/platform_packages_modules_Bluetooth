@@ -984,6 +984,8 @@ void btm_sco_connected(const RawAddress& bda, uint16_t hci_handle,
       BTM_LogHistory(kBtmLogTag, bda, "Connection success",
                      base::StringPrintf("handle:0x%04x %s", hci_handle,
                                         (spt) ? "listener" : "initiator"));
+      LOG_DEBUG("Connected SCO link handle:0x%04x peer:%s", hci_handle,
+                ADDRESS_TO_LOGGABLE_CSTR(bda));
 
       if (!btm_cb.sco_cb.esco_supported) {
         p->esco.data.link_type = BTM_LINK_TYPE_SCO;

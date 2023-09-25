@@ -56,6 +56,7 @@ class PowerTelemetry {
   void LogAclTxPowerLevel(uint16_t handle, uint8_t txPower);
   void LogInqScanStarted();
   void LogInqScanStopped();
+  void LogBleScan(uint16_t num_resps);
   void LogBleAdvStarted();
   void LogBleAdvStopped();
 

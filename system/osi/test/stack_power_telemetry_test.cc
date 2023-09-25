@@ -59,6 +59,13 @@ TEST_F(PowerTelemetryTest, test_LogInqScanDetails) {
   ASSERT_EQ(1, power_telemetry::GetInstance().pimpl_->inq_scan.count_);
 }
 
+TEST_F(PowerTelemetryTest, test_LogBleScan) {
+  reset();
+
+  power_telemetry::GetInstance().LogBleScan(10);
+  ASSERT_EQ(10, (int)power_telemetry::GetInstance().pimpl_->ble_scan.count_);
+}
+
 TEST_F(PowerTelemetryTest, test_LogBleAdvDetails) {
   reset();
 
@@ -339,6 +346,9 @@ TEST_F(PowerTelemetryTest, test_feature_flag) {
   dummy_res.tx_power = 100;
   power_telemetry::GetInstance().LogTxPower(p);
   ASSERT_EQ(0, ldc.acl.link_details_map[handle].tx_power_level);
+
+  power_telemetry::GetInstance().LogBleScan(10);
+  ASSERT_EQ(0, (int)power_telemetry::GetInstance().pimpl_->ble_scan.count_);
 
   power_telemetry::GetInstance().LogBleAdvStarted();
   ASSERT_EQ(0, (int)ldc.adv_list.size());

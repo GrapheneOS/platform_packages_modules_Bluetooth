@@ -127,7 +127,6 @@ class LogDataContainer {
  public:
   struct Duration lifetime;
   std::map<RawAddress, std::list<ChannelDetails>> channel_map;
-  std::list<ScanDetails> scan_le_list;
   DataTransfer l2c_data, rfc_data;
   std::map<uint16_t, SniffData> sniff_activity_map;
   struct {
@@ -135,7 +134,7 @@ class LogDataContainer {
     std::list<LinkDetails> link_details_list;
   } acl, sco;
   std::list<AdvDetails> adv_list;
-  ScanDetails scan_details, inq_scan_details;
+  ScanDetails scan_details, inq_scan_details, le_scan_details;
   AclPacketDetails acl_pkt_ds, hci_cmd_evt_ds;
 };
 
@@ -178,7 +177,7 @@ struct power_telemetry::PowerTelemetryImpl {
 
   struct {
     uint16_t count_;
-  } scan, inq_scan, ble_adv;
+  } scan, inq_scan, ble_adv, ble_scan;
 
   struct {
     uint32_t count_ = 0;
@@ -221,12 +220,16 @@ void power_telemetry::PowerTelemetryImpl::LogDataTransfer() {
   }
 
   if (scan.count_ != 0) {
-    ldc.scan_details.count = scan.count_;
+    ldc.scan_details = {
+        .count = scan.count_,
+    };
     scan.count_ = 0;
   }
 
   if (inq_scan.count_ != 0) {
-    ldc.inq_scan_details.count = inq_scan.count_;
+    ldc.inq_scan_details = {
+        .count = inq_scan.count_,
+    };
     inq_scan.count_ = 0;
   }
 
@@ -260,6 +263,13 @@ void power_telemetry::PowerTelemetryImpl::LogDataTransfer() {
     cmd.count_ = event.count_ = 0;
   }
 
+  if (ble_scan.count_ != 0) {
+    ldc.le_scan_details = {
+        .count = ble_scan.count_,
+    };
+    ble_scan.count_ = 0;
+  }
+
   ldc.lifetime.begin = traffic_logged_ts_;
   ldc.lifetime.end = get_current_time();
 
@@ -272,9 +282,13 @@ void power_telemetry::PowerTelemetryImpl::RecordLogDataContainer() {
 
   LogDataContainer& ldc = GetCurrentLogDataContainer();
 
-  LOG_INFO("bt_power: scan: %d, inqScan: %d, aclTx: %d, aclRx: %d",
-           ldc.scan_details.count, ldc.inq_scan_details.count,
-           ldc.acl_pkt_ds.tx.pkt_count, ldc.acl_pkt_ds.rx.pkt_count);
+  LOG_INFO(
+      "bt_power: scan: %d, inqScan: %d, aclTx: %d, aclRx: %d, hciCmd: %d, "
+      "hciEvt: %d, bleScan: %d",
+      ldc.scan_details.count, ldc.inq_scan_details.count,
+      ldc.acl_pkt_ds.tx.pkt_count, ldc.acl_pkt_ds.rx.pkt_count,
+      ldc.hci_cmd_evt_ds.tx.pkt_count, ldc.hci_cmd_evt_ds.rx.pkt_count,
+      ldc.le_scan_details.count);
 
   idx_containers++;
   if (idx_containers >= kLogEntriesSize) {
@@ -305,6 +319,14 @@ void power_telemetry::PowerTelemetry::LogInqScanStopped() {
   if (!power_telemerty_enabled_) return;
 
   std::lock_guard<std::mutex> lock(pimpl_->dumpsys_mutex_);
+  pimpl_->maybe_log_data();
+}
+
+void power_telemetry::PowerTelemetry::LogBleScan(uint16_t num_resps) {
+  if (!power_telemerty_enabled_) return;
+
+  std::lock_guard<std::mutex> lock(pimpl_->dumpsys_mutex_);
+  pimpl_->ble_scan.count_ += num_resps;
   pimpl_->maybe_log_data();
 }
 
@@ -667,6 +689,17 @@ void power_telemetry::PowerTelemetry::Dumpsys(int32_t fd) {
             GetTimeString(ldc.lifetime.begin).c_str(),
             GetTimeString(ldc.lifetime.end).c_str(),
             ldc.hci_cmd_evt_ds.tx.pkt_count, ldc.hci_cmd_evt_ds.rx.pkt_count);
+  }
+  dprintf(fd, "\nBLE Scan Details:\n");
+  dprintf(fd, "%-22s %-22s %-14s\n", "StartTimeStamp", "EndTimeStamp",
+          "Number of scans");
+  for (auto&& ldc : pimpl_->log_data_containers_) {
+    if (ldc.le_scan_details.count == 0) {
+      continue;
+    }
+    dprintf(fd, "%-22s %-22s %-14d\n",
+            GetTimeString(ldc.lifetime.begin).c_str(),
+            GetTimeString(ldc.lifetime.end).c_str(), ldc.le_scan_details.count);
   }
   dprintf(fd, "\nL2CAP/RFCOMM Channel Events:\n");
   dprintf(fd, "%-19s %-7s %-7s %-7s %-8s %-22s", "RemoteAddress", "Type",

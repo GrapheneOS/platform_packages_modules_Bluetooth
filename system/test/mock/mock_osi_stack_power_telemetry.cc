@@ -129,6 +129,9 @@ void power_telemetry::PowerTelemetry::LogSniffStopped(
     uint16_t handle, const RawAddress& bdaddr) {
   inc_func_call_count(__func__);
 }
+void power_telemetry::PowerTelemetry::LogBleScan(uint16_t num_resps) {
+  inc_func_call_count(__func__);
+}
 power_telemetry::PowerTelemetry& power_telemetry::GetInstance() {
   return test::mock::osi_stack_power_telemetry::fake_power_telemetry;
   // return fake_power_telemetry;
