@@ -27,12 +27,7 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 import android.bluetooth.le.BluetoothLeScanner;
-import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanFilter;
-import android.bluetooth.le.ScanResult;
-import android.bluetooth.le.ScanSettings;
 import android.content.Context;
-import android.os.ParcelUuid;
 import android.util.Log;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -48,23 +43,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.Invocation;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
-import pandora.HostProto;
 import pandora.HostProto.AdvertiseRequest;
 import pandora.HostProto.AdvertiseResponse;
+import pandora.HostProto.OwnAddressType;
 
 @RunWith(AndroidJUnit4.class)
 public class GattClientTest {
     private static final String TAG = "GattClientTest";
 
-    private static final String TEST_UUID_STRING = "00001805-0000-1000-8000-00805f9b34fb";
-
-    private static final int TIMEOUT_SCANNING_MS = 2000;
+    private static final String BUMBLE_RPA = "51:F7:A8:75:AC:5E";
 
     @ClassRule public static final AdoptShellPermissionsRule PERM = new AdoptShellPermissionsRule();
 
@@ -77,13 +66,10 @@ public class GattClientTest {
 
     @Test
     public void directConnectGattAfterClose() throws Exception {
-        advertiseWithBumble(TEST_UUID_STRING);
+        advertiseWithBumble();
 
-        List<ScanResult> results =
-                startScanning(TEST_UUID_STRING, ScanSettings.CALLBACK_TYPE_ALL_MATCHES).join();
-
-        BluetoothDevice device = results.get(0).getDevice();
-        assertThat(device).isNotNull();
+        BluetoothDevice device =
+            mAdapter.getRemoteLeDevice(BUMBLE_RPA, BluetoothDevice.ADDRESS_TYPE_RANDOM);
 
         for (int i = 0; i < 10; i++) {
             BluetoothGattCallback gattCallback = mock(BluetoothGattCallback.class);
@@ -111,13 +97,10 @@ public class GattClientTest {
 
     @Test
     public void fullGattClientLifecycle() throws Exception {
-        advertiseWithBumble(TEST_UUID_STRING);
+        advertiseWithBumble();
 
-        List<ScanResult> results =
-                startScanning(TEST_UUID_STRING, ScanSettings.CALLBACK_TYPE_ALL_MATCHES).join();
-
-        BluetoothDevice device = results.get(0).getDevice();
-        assertThat(device).isNotNull();
+        BluetoothDevice device =
+            mAdapter.getRemoteLeDevice(BUMBLE_RPA, BluetoothDevice.ADDRESS_TYPE_RANDOM);
 
         for (int i = 0; i < 10; i++) {
             BluetoothGattCallback gattCallback = mock(BluetoothGattCallback.class);
@@ -134,63 +117,12 @@ public class GattClientTest {
         }
     }
 
-    private CompletableFuture<List<ScanResult>> startScanning(
-            String serviceUuid, int callbackType) {
-        CompletableFuture<List<ScanResult>> future = new CompletableFuture<>();
-        List<ScanResult> scanResults = new ArrayList<>();
-
-        // Start scanning
-        ScanSettings scanSettings =
-                new ScanSettings.Builder()
-                        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                        .setCallbackType(callbackType)
-                        .build();
-
-        List<ScanFilter> scanFilters =
-                List.of(
-                        new ScanFilter.Builder()
-                                .setServiceUuid(ParcelUuid.fromString(serviceUuid))
-                                .build());
-
-        ScanCallback scanCallback =
-                new ScanCallback() {
-                    @Override
-                    public void onScanResult(int callbackType, ScanResult result) {
-                        Log.i(
-                                TAG,
-                                "onScanResult "
-                                        + "callbackType: "
-                                        + callbackType
-                                        + ", service uuids: "
-                                        + result.getScanRecord().getServiceUuids());
-                        scanResults.add(result);
-                        future.complete(scanResults);
-                    }
-
-                    @Override
-                    public void onScanFailed(int errorCode) {
-                        Log.i(TAG, "onScanFailed errorCode: " + errorCode);
-                        future.complete(null);
-                    }
-                };
-
-        mLeScanner.startScan(scanFilters, scanSettings, scanCallback);
-
-        // Make sure completableFuture object completes with null after some timeout
-        return future.completeOnTimeout(null, TIMEOUT_SCANNING_MS, TimeUnit.MILLISECONDS);
-    }
-
-    private void advertiseWithBumble(String serviceUuid) {
-        HostProto.DataTypes dataType =
-                HostProto.DataTypes.newBuilder()
-                        .addCompleteServiceClassUuids128(serviceUuid)
-                        .build();
-
+    private void advertiseWithBumble() {
         AdvertiseRequest request =
                 AdvertiseRequest.newBuilder()
                         .setLegacy(true)
-                        .setData(dataType)
                         .setConnectable(true)
+                        .setOwnAddressType(OwnAddressType.RANDOM)
                         .build();
 
         StreamObserver<AdvertiseResponse> responseObserver =
