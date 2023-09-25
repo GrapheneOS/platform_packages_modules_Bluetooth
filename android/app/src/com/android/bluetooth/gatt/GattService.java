@@ -355,18 +355,15 @@ public class GattService extends ProfileService {
                         AdvertiseManagerNativeInterface.getInstance(),
                         mAdapterService,
                         mAdvertiserMap);
-        mAdvertiseManager.start();
 
         mScanManager = GattObjectsFactory.getInstance()
                 .createScanManager(this, mAdapterService, mBluetoothAdapterProxy);
 
         mPeriodicScanManager = GattObjectsFactory.getInstance()
                 .createPeriodicScanManager(mAdapterService);
-        mPeriodicScanManager.start();
 
         mDistanceMeasurementManager = GattObjectsFactory.getInstance()
                 .createDistanceMeasurementManager(mAdapterService);
-        mDistanceMeasurementManager.start();
 
         mActivityManager = getSystemService(ActivityManager.class);
 
