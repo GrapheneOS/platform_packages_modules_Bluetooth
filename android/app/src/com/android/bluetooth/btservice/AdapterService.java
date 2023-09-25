@@ -175,6 +175,18 @@ public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
     private static final boolean DBG = true;
     private static final boolean VERBOSE = false;
+
+    static {
+        if (DBG) {
+            Log.d(TAG, "Loading JNI Library");
+        }
+        if (Utils.isInstrumentationTestMode()) {
+            Log.w(TAG, "App is instrumented. Skip loading the native");
+        } else {
+            System.loadLibrary("bluetooth_jni");
+        }
+    }
+
     private static final int MIN_ADVT_INSTANCES_FOR_MA = 5;
     private static final int MIN_OFFLOADED_FILTERS = 10;
     private static final int MIN_OFFLOADED_SCAN_STORAGE_BYTES = 1024;
@@ -600,6 +612,7 @@ public class AdapterService extends Service {
             })
     public void onCreate() {
         super.onCreate();
+        Config.init(this);
         if (mLooper == null) {
             mLooper = Looper.getMainLooper();
         }
