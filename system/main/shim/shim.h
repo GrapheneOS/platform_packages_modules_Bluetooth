@@ -33,20 +33,6 @@ namespace bluetooth {
 namespace shim {
 
 /**
- * Checks if the bluetooth stack is running in legacy or gd mode.
- *
- * This check is used throughout the legacy stack to determine which
- * methods, classes or functions to invoke.  The default (false) mode
- * is the legacy mode which runs the original legacy bluetooth stack.
- * When enabled (true) the core portion of the gd stack is invoked
- * at key points to execute equivalent functionality using the
- * gd core components.
- *
- * @return true if using gd shim core, false if using legacy.
- */
-bool is_gd_l2cap_enabled();
-
-/**
  * Checks if the bluetooth gd stack has been started up.
  *
  * @return true if bluetooth gd stack is started, false otherwise.

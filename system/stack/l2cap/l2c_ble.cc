@@ -89,12 +89,6 @@ bool L2CA_UpdateBleConnParams(const RawAddress& rem_bda, uint16_t min_int,
                               uint16_t max_int, uint16_t latency,
                               uint16_t timeout, uint16_t min_ce_len,
                               uint16_t max_ce_len) {
-  if (bluetooth::shim::is_gd_l2cap_enabled()) {
-    bluetooth::shim::L2CA_LeConnectionUpdate(rem_bda, min_int, max_int, latency,
-                                             timeout, min_ce_len, max_ce_len);
-    return true;
-  }
-
   tL2C_LCB* p_lcb;
 
   /* See if we have a link control block for the remote device */
@@ -140,10 +134,6 @@ bool L2CA_UpdateBleConnParams(const RawAddress& rem_bda, uint16_t min_int,
  *
  ******************************************************************************/
 bool L2CA_EnableUpdateBleConnParams(const RawAddress& rem_bda, bool enable) {
-  if (bluetooth::shim::is_gd_l2cap_enabled()) {
-    return bluetooth::shim::L2CA_EnableUpdateBleConnParams(rem_bda, enable);
-  }
-
   if (stack_config_get_interface()->get_pts_conn_updates_disabled())
     return false;
 
@@ -194,10 +184,6 @@ void L2CA_Consolidate(const RawAddress& identity_addr, const RawAddress& rpa) {
 }
 
 hci_role_t L2CA_GetBleConnRole(const RawAddress& bd_addr) {
-  if (bluetooth::shim::is_gd_l2cap_enabled()) {
-    return bluetooth::shim::L2CA_GetBleConnRole(bd_addr);
-  }
-
   tL2C_LCB* p_lcb = l2cu_find_lcb_by_bd_addr(bd_addr, BT_TRANSPORT_LE);
   if (p_lcb == nullptr) {
     return HCI_ROLE_UNKNOWN;
@@ -1202,10 +1188,6 @@ bool l2cble_create_conn(tL2C_LCB* p_lcb) {
  *
  ******************************************************************************/
 void l2c_link_processs_ble_num_bufs(uint16_t num_lm_ble_bufs) {
-  if (bluetooth::shim::is_gd_l2cap_enabled()) {
-    return;
-  }
-
   if (num_lm_ble_bufs == 0) {
     num_lm_ble_bufs = L2C_DEF_NUM_BLE_BUF_SHARED;
     l2cb.num_lm_acl_bufs -= L2C_DEF_NUM_BLE_BUF_SHARED;

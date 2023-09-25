@@ -701,13 +701,6 @@ tBTM_STATUS BTM_SetBleDataLength(const RawAddress& bd_addr,
     return BTM_WRONG_MODE;
   }
 
-  if (bluetooth::shim::is_gd_l2cap_enabled()) {
-    uint16_t handle = bluetooth::shim::L2CA_GetLeHandle(bd_addr);
-    btsnd_hcic_ble_set_data_length(handle, tx_pdu_length, tx_time);
-    p_dev_rec->set_suggested_tx_octect(tx_pdu_length);
-    return BTM_SUCCESS;
-  }
-
   uint16_t hci_handle = BTM_GetHCIConnHandle(bd_addr, BT_TRANSPORT_LE);
 
   if (!acl_peer_supports_ble_packet_extension(hci_handle)) {

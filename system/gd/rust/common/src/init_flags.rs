@@ -372,7 +372,6 @@ init_flags!(
         dynamic_avrcp_version_enhancement = true,
         gatt_robust_caching_client = true,
         gatt_robust_caching_server,
-        gd_l2cap,
         hci_adapter: i32,
         hfp_dynamic_version = true,
         irk_rotation,
