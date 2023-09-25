@@ -1,25 +1,32 @@
+// Copyright 2023 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 syntax = "proto3";
 
-option java_outer_classname = "AndroidProto";
+option java_outer_classname = "OsProto";
 
 package pandora;
 
 import "pandora/host.proto";
 import "google/protobuf/empty.proto";
 
-// This file contains Android-specific protos and rpcs that should not be part
-// of the general interface. They should not be invoked from MMIs directly since
-// this will couple them too tightly with Android.
-
-// Service for Android-specific operations.
-service Android {
+// Service for OS specific operations.
+service Os {
   // Log text (for utility only)
   rpc Log(LogRequest) returns (LogResponse);
   // Set Message, PhoneBook and SIM access permission
   rpc SetAccessPermission(SetAccessPermissionRequest) returns (google.protobuf.Empty);
-  // Send SMS
-  rpc SendSMS(google.protobuf.Empty) returns (google.protobuf.Empty);
-
   // Send ping
   rpc SendPing(SendPingRequest) returns (google.protobuf.Empty);
 }
