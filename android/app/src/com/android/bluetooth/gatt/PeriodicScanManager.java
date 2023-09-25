@@ -52,18 +52,13 @@ public class PeriodicScanManager {
     static int sTempRegistrationId = -1;
     private static final int PA_SOURCE_LOCAL = 1;
     private static final int PA_SOURCE_REMOTE = 2;
-    /**
-     * Constructor of {@link SyncManager}.
-     */
+    /** Constructor of {@link PeriodicScanManager}. */
     PeriodicScanManager(AdapterService adapterService) {
         if (DBG) {
-            Log.d(TAG, "advertise manager created");
+            Log.d(TAG, "periodic scan manager created");
         }
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mNativeInterface = PeriodicScanNativeInterface.getInstance();
-    }
-
-    void start() {
         mNativeInterface.init(this);
     }
 
