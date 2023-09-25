@@ -1,4 +1,4 @@
-package com.android.bluetooth.audio_util;
+package com.android.bluetooth.avrcp;
 
 import static com.google.common.truth.Truth.assertThat;
 
