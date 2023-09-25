@@ -21,7 +21,6 @@ import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 import android.annotation.IntDef;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
-import android.annotation.RequiresNoPermission;
 import android.annotation.RequiresPermission;
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
@@ -661,32 +660,6 @@ public final class BluetoothA2dp implements BluetoothProfile {
             try {
                 final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
                 service.getConnectionPolicy(device, mAttributionSource, recv);
-                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
-                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-            }
-        }
-        return defaultValue;
-    }
-
-    /**
-     * Checks if Avrcp device supports the absolute volume feature.
-     *
-     * @return true if device supports absolute volume
-     * @hide
-     */
-    @RequiresNoPermission
-    public boolean isAvrcpAbsoluteVolumeSupported() {
-        if (DBG) Log.d(TAG, "isAvrcpAbsoluteVolumeSupported");
-        final IBluetoothA2dp service = getService();
-        final boolean defaultValue = false;
-        if (service == null) {
-            Log.w(TAG, "Proxy not attached to service");
-            if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else if (isEnabled()) {
-            try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
-                service.isAvrcpAbsoluteVolumeSupported(recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
