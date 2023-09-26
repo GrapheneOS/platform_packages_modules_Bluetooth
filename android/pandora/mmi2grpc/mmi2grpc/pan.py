@@ -20,7 +20,7 @@ from mmi2grpc._proxy import ProfileProxy
 
 from pandora.host_grpc import Host
 from pandora_experimental.pan_grpc import PAN
-from pandora_experimental._android_grpc import Android
+from pandora_experimental.os_grpc import Os
 
 # IP address of PTS
 TSPX_PTS_IP_ADDRESS = "192.168.168.100"
@@ -32,7 +32,7 @@ class PANProxy(ProfileProxy):
         super().__init__(channel)
         self.host = Host(channel)
         self.pan = PAN(channel)
-        self._android = Android(channel)
+        self.os = Os(channel)
 
     def TSC_BNEP_mmi_iut_accept_transport(self, pts_addr: bytes, **kwargs):
         """
@@ -238,7 +238,7 @@ class PANProxy(ProfileProxy):
         Take action to send ICMP echo request
         """
 
-        self._android.SendPing(ip_address=TSPX_PTS_IP_ADDRESS)
+        self.os.SendPing(ip_address=TSPX_PTS_IP_ADDRESS)
 
         return "OK"
 

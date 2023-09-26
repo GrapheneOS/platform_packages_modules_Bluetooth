@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.audio_util;
+package com.android.bluetooth.avrcp;
 
 import android.bluetooth.BluetoothAvrcp;
 import android.view.KeyEvent;

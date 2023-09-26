@@ -59,12 +59,8 @@ public class DistanceMeasurementManager {
      */
     DistanceMeasurementManager(AdapterService adapterService) {
         mAdapterService = adapterService;
-    }
 
-    /**
-     * Start a {@link HandlerThread} that handles distnace measurement operations.
-     */
-    void start() {
+        // Start a HandlerThread that handles distance measurement operations
         mHandlerThread = new HandlerThread("DistanceMeasurementManager");
         mHandlerThread.start();
         mDistanceMeasurementNativeInterface = DistanceMeasurementNativeInterface.getInstance();

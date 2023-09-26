@@ -18,24 +18,11 @@ package com.android.bluetooth.btservice;
 import android.app.Application;
 import android.util.Log;
 
-import com.android.bluetooth.Utils;
-
 public class AdapterApp extends Application {
     private static final String TAG = "BluetoothAdapterApp";
     private static final boolean DBG = false;
     //For Debugging only
     private static int sRefCount = 0;
-
-    static {
-        if (DBG) {
-            Log.d(TAG, "Loading JNI Library");
-        }
-        if (Utils.isInstrumentationTestMode()) {
-            Log.w(TAG, "App is instrumented. Skip loading the native");
-        } else {
-            System.loadLibrary("bluetooth_jni");
-        }
-    }
 
     public AdapterApp() {
         super();
@@ -58,7 +45,6 @@ public class AdapterApp extends Application {
         } catch (Exception e) {
             Log.e(TAG, "Migration failure: ", e);
         }
-        Config.init(this);
     }
 
     @Override
