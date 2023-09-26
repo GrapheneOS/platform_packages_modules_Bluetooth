@@ -24,8 +24,10 @@
 
 #ifndef RFCDEFS_H
 #define RFCDEFS_H
-
-#define PORT_MAX_RFC_PORTS 31
+/*
+ *  Server Channel Numbers (SCN) range between 1 and 30, inclusive
+ */
+#define RFCOMM_MAX_SCN 30
 
 /*
  *  If nothing is negotiated MTU should be 127

@@ -34,29 +34,28 @@ extern tBTM_CB btm_cb;
 uint8_t BTM_AllocateSCN(void) {
   BTM_TRACE_DEBUG("BTM_AllocateSCN");
 
-  // stack reserves scn 1 for HFP, HSP we still do the correct way.
-  // SCN can be allocated in the range of [1, PORT_MAX_RFC_PORTS). Since (x + 1)
-  // is returned, we iterate to less than PORT_MAX_RFC_PORTS - 1.
-  for (uint8_t x = btm_cb.btm_available_index; x < PORT_MAX_RFC_PORTS - 1;
-       x++) {
-    if (!btm_cb.btm_scn[x]) {
-      btm_cb.btm_scn[x] = true;
-      btm_cb.btm_available_index = (x + 1);
-      return (x + 1);
+  // SCN can be allocated in the range of [1, RFCOMM_MAX_SCN]
+  // btm_scn uses indexes 0 to RFCOMM_MAX_SCN-1 to track RFC ports
+  for (uint8_t i = btm_cb.btm_available_index; i < RFCOMM_MAX_SCN; ++i) {
+    if (!btm_cb.btm_scn[i]) {
+      btm_cb.btm_scn[i] = true;
+      btm_cb.btm_available_index = (i + 1);
+      return (i + 1);  // allocated scn is index + 1
     }
   }
 
-  // In order to avoid OOB, btm_available_index must be less than
-  // PORT_MAX_RFC_PORTS.
+  // In order to avoid OOB, btm_available_index must be no more than
+  // RFCOMM_MAX_SCN.
   btm_cb.btm_available_index =
-      std::min(btm_cb.btm_available_index, (uint8_t)(PORT_MAX_RFC_PORTS - 1));
+      std::min(btm_cb.btm_available_index, (uint8_t)(RFCOMM_MAX_SCN));
 
+  // Start from index 1 because index 0 (scn 1) is reserved for HFP
   // If there's no empty SCN from _last_index to BTM_MAX_SCN.
-  for (uint8_t y = 1; y < btm_cb.btm_available_index; y++) {
-    if (!btm_cb.btm_scn[y]) {
-      btm_cb.btm_scn[y] = true;
-      btm_cb.btm_available_index = (y + 1);
-      return (y + 1);
+  for (uint8_t i = 1; i < btm_cb.btm_available_index; ++i) {
+    if (!btm_cb.btm_scn[i]) {
+      btm_cb.btm_scn[i] = true;
+      btm_cb.btm_available_index = (i + 1);
+      return (i + 1);  // allocated scn is index + 1
     }
   }
 
@@ -74,18 +73,18 @@ uint8_t BTM_AllocateSCN(void) {
  ******************************************************************************/
 
 bool BTM_TryAllocateSCN(uint8_t scn) {
-  /* Make sure we don't exceed max port range.
-   * Stack reserves scn 1 for HFP, HSP we still do the correct way.
+  /* Make sure we don't exceed max scn range.
+   * Stack reserves scn 1 for HFP and HSP
    */
-  if ((scn >= PORT_MAX_RFC_PORTS) || (scn == 1) || (scn == 0)) return false;
+  if ((scn > RFCOMM_MAX_SCN) || (scn == 1) || (scn == 0)) return false;
 
-  /* check if this port is available */
+  /* check if this scn is available */
   if (!btm_cb.btm_scn[scn - 1]) {
     btm_cb.btm_scn[scn - 1] = true;
     return true;
   }
 
-  return (false); /* Port was busy */
+  return (false); /* scn was busy */
 }
 
 /*******************************************************************************
@@ -99,7 +98,10 @@ bool BTM_TryAllocateSCN(uint8_t scn) {
  ******************************************************************************/
 bool BTM_FreeSCN(uint8_t scn) {
   BTM_TRACE_DEBUG("BTM_FreeSCN ");
-  if (scn <= PORT_MAX_RFC_PORTS && scn > 0) {
+  /* Since this isn't used by HFP, this function will only free valid SCNs
+   * that aren't reserved for HFP, which is range [2, RFCOMM_MAX_SCN].
+   */
+  if (scn < RFCOMM_MAX_SCN && scn > 1) {
     btm_cb.btm_scn[scn - 1] = false;
     return (true);
   } else {
