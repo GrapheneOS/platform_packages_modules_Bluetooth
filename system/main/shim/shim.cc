@@ -61,10 +61,6 @@ EXPORT_SYMBOL extern const module_t gd_shim_module = {
     .clean_up = kUnusedModuleApi,
     .dependencies = {kUnusedModuleDependencies}};
 
-bool bluetooth::shim::is_gd_l2cap_enabled() {
-  return bluetooth::common::init_flags::gd_l2cap_is_enabled();
-}
-
 bool bluetooth::shim::is_gd_stack_started_up() {
   return bluetooth::shim::Stack::GetInstance()->IsRunning();
 }
