@@ -106,8 +106,9 @@ static void bta_av_ci_data(tBTA_AV_DATA* p_data);
 static void bta_av_rpc_conn(tBTA_AV_DATA* p_data);
 static void bta_av_api_to_ssm(tBTA_AV_DATA* p_data);
 
-static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
-                                 uint8_t app_id, const RawAddress& peer_addr);
+static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status,
+                                 uint8_t num_sco_links, uint8_t app_id,
+                                 const RawAddress& peer_addr);
 static void bta_av_sys_rs_cback(tBTA_SYS_CONN_STATUS status, tHCI_ROLE new_role,
                                 tHCI_STATUS hci_status,
                                 const RawAddress& peer_addr);
@@ -1011,7 +1012,8 @@ static void bta_av_sys_rs_cback(UNUSED_ATTR tBTA_SYS_CONN_STATUS status,
  * Returns          void
  *
  ******************************************************************************/
-static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
+static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status,
+                                 uint8_t num_sco_links,
                                  UNUSED_ATTR uint8_t app_id,
                                  UNUSED_ATTR const RawAddress& peer_addr) {
   tBTA_AV_SCB* p_scb;
@@ -1019,8 +1021,8 @@ static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
   tBTA_AV_API_STOP stop;
 
   LOG(INFO) << __func__ << ": status=" << bta_sys_conn_status_text(status)
-            << ", num_links=" << +id;
-  if (id) {
+            << ", num_links=" << +num_sco_links;
+  if (num_sco_links) {
     bta_av_cb.sco_occupied = true;
     LOG_DEBUG("SCO occupied peer:%s status:%s", ADDRESS_TO_LOGGABLE_CSTR(peer_addr),
               bta_sys_conn_status_text(status).c_str());
