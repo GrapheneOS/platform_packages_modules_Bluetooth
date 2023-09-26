@@ -59,9 +59,6 @@ static BT_HDR* l2cu_get_next_buffer_to_send(tL2C_LCB* p_lcb);
 
 void l2c_link_hci_conn_comp(tHCI_STATUS status, uint16_t handle,
                             const RawAddress& p_bda) {
-  if (bluetooth::shim::is_gd_l2cap_enabled()) {
-    return;
-  }
   tL2C_CONN_INFO ci;
   tL2C_LCB* p_lcb;
   tL2C_CCB* p_ccb;
@@ -284,10 +281,6 @@ static void l2c_link_iot_store_disc_reason(RawAddress& bda, uint8_t reason) {
  *
  ******************************************************************************/
 bool l2c_link_hci_disc_comp(uint16_t handle, tHCI_REASON reason) {
-  if (bluetooth::shim::is_gd_l2cap_enabled()) {
-    return false;
-  }
-
   tL2C_LCB* p_lcb = l2cu_find_lcb_by_handle(handle);
   tL2C_CCB* p_ccb;
   bool status = true;
@@ -689,11 +682,6 @@ void l2c_link_adjust_chnl_allocation(void) {
 }
 
 void l2c_link_init(const uint16_t acl_buffer_count_classic) {
-  if (bluetooth::shim::is_gd_l2cap_enabled()) {
-    // GD L2cap gets this info through GD ACL
-    return;
-  }
-
   l2cb.num_lm_acl_bufs = acl_buffer_count_classic;
   l2cb.controller_xmit_window = acl_buffer_count_classic;
 }
@@ -1117,11 +1105,6 @@ void l2c_link_segments_xmitted(BT_HDR* p_msg) {
 }
 
 tBTM_STATUS l2cu_ConnectAclForSecurity(const RawAddress& bd_addr) {
-  if (bluetooth::shim::is_gd_l2cap_enabled()) {
-    bluetooth::shim::L2CA_ConnectForSecurity(bd_addr);
-    return BTM_SUCCESS;
-  }
-
   tL2C_LCB* p_lcb = l2cu_find_lcb_by_bd_addr(bd_addr, BT_TRANSPORT_BR_EDR);
   if (p_lcb && (p_lcb->link_state == LST_CONNECTED ||
                 p_lcb->link_state == LST_CONNECTING)) {
