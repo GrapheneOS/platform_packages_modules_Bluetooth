@@ -360,7 +360,9 @@ public class AdapterService extends Service {
     private UserManager mUserManager;
     private CompanionDeviceManager mCompanionDeviceManager;
 
-    private PhonePolicy mPhonePolicy;
+    // Phone Policy is not used on all devices. Ensure you null check before using it
+    @Nullable private PhonePolicy mPhonePolicy;
+
     private ActiveDeviceManager mActiveDeviceManager;
     private DatabaseManager mDatabaseManager;
     private SilenceDeviceManager mSilenceDeviceManager;
@@ -6920,7 +6922,9 @@ public class AdapterService extends Service {
 
     /** Update PhonePolicy when new {@link BluetoothDevice} creates an ACL connection. */
     public void updatePhonePolicyOnAclConnect(BluetoothDevice device) {
-        mPhonePolicy.handleAclConnected(device);
+        if (mPhonePolicy != null) {
+            mPhonePolicy.handleAclConnected(device);
+        }
     }
 
     /**
@@ -6943,14 +6947,18 @@ public class AdapterService extends Service {
      */
     public void handleProfileConnectionStateChange(
             int profile, BluetoothDevice device, int fromState, int toState) {
-        mPhonePolicy.profileConnectionStateChanged(profile, device, fromState, toState);
+        if (mPhonePolicy != null) {
+            mPhonePolicy.profileConnectionStateChanged(profile, device, fromState, toState);
+        }
     }
 
     /** Handle Bluetooth app state when active device changes for a given {@code profile}. */
     public void handleActiveDeviceChange(int profile, BluetoothDevice device) {
         mActiveDeviceManager.profileActiveDeviceChanged(profile, device);
         mSilenceDeviceManager.profileActiveDeviceChanged(profile, device);
-        mPhonePolicy.profileActiveDeviceChanged(profile, device);
+        if (mPhonePolicy != null) {
+            mPhonePolicy.profileActiveDeviceChanged(profile, device);
+        }
     }
 
     static int convertScanModeToHal(int mode) {
