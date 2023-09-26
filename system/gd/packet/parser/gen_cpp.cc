@@ -82,6 +82,7 @@ bool generate_cpp_headers_one_file(
 
 #include <cstdint>
 #include <functional>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <type_traits>
