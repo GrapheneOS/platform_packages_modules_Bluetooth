@@ -1933,23 +1933,39 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       }
 
       Uuid existing_uuids[BT_MAX_NUM_UUIDS] = {};
+
+      // Look up UUIDs using pseudo address (either RPA or static address)
       bt_status_t existing_lookup_result =
           btif_get_existing_uuids(&bd_addr, existing_uuids);
-      if (existing_lookup_result == BT_STATUS_FAIL &&
-          bd_addr != static_addr_copy) {
+
+      if (existing_lookup_result != BT_STATUS_FAIL) {
+        LOG_INFO("Got some existing UUIDs by address %s",
+                 ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+
+        for (int i = 0; i < BT_MAX_NUM_UUIDS; i++) {
+          Uuid uuid = existing_uuids[i];
+          if (uuid.IsEmpty()) {
+            continue;
+          }
+          uuids.insert(uuid);
+        }
+      }
+
+      if (bd_addr != static_addr_copy) {
+        // Look up UUID using static address, if different than sudo address
         existing_lookup_result =
             btif_get_existing_uuids(&static_addr_copy, existing_uuids);
         if (existing_lookup_result != BT_STATUS_FAIL) {
           LOG_INFO("Got some existing UUIDs by static address %s",
                    ADDRESS_TO_LOGGABLE_CSTR(static_addr_copy));
+          for (int i = 0; i < BT_MAX_NUM_UUIDS; i++) {
+            Uuid uuid = existing_uuids[i];
+            if (uuid.IsEmpty()) {
+              continue;
+            }
+            uuids.insert(uuid);
+          }
         }
-      }
-      for (int i = 0; i < BT_MAX_NUM_UUIDS; i++) {
-        Uuid uuid = existing_uuids[i];
-        if (uuid.IsEmpty()) {
-          continue;
-        }
-        uuids.insert(uuid);
       }
 
       for (auto& uuid : uuids) {
