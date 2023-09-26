@@ -43,6 +43,7 @@
 #include "stack/include/gap_api.h"
 #include "stack/include/l2cdefs.h"
 #include "stack/include/port_api.h"
+#include "stack/include/rfcdefs.h"
 #include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
@@ -769,7 +770,7 @@ void bta_jv_free_scn(int32_t type /* One of BTA_JV_CONN_TYPE_ */,
                      uint16_t scn) {
   switch (type) {
     case BTA_JV_CONN_TYPE_RFCOMM: {
-      if (scn > 0 && scn <= BTA_JV_MAX_SCN && bta_jv_cb.scn[scn - 1]) {
+      if (scn > 0 && scn <= RFCOMM_MAX_SCN && bta_jv_cb.scn[scn - 1]) {
         /* this scn is used by JV */
         bta_jv_cb.scn[scn - 1] = false;
         BTM_FreeSCN(scn);
