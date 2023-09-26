@@ -152,7 +152,7 @@ void bta_sys_notify_collision(const RawAddress& peer_addr) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_sys_sco_register(tBTA_SYS_CONN_CBACK* p_cback) {
+void bta_sys_sco_register(tBTA_SYS_CONN_SCO_CBACK* p_cback) {
   bta_sys_cb.p_sco_cb = p_cback;
 }
 
@@ -325,7 +325,7 @@ void bta_sys_sco_use(UNUSED_ATTR tBTA_SYS_ID id, uint8_t app_id,
  * Returns          void
  *
  ******************************************************************************/
-void bta_sys_sco_unuse(uint8_t id, uint8_t app_id,
+void bta_sys_sco_unuse(UNUSED_ATTR tBTA_SYS_ID id, uint8_t app_id,
                        const RawAddress& peer_addr) {
   if ((bta_sys_cb.p_sco_cb)) {
     uint8_t num_sco_links = BTM_GetNumScoLinks();
