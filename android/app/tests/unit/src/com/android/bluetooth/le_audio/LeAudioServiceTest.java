@@ -234,10 +234,10 @@ public class LeAudioServiceTest {
             return;
         }
 
+        mTargetContext.unregisterReceiver(mLeAudioIntentReceiver);
         mBondedDevices.clear();
         mGroupIntentQueue.clear();
         stopService();
-        mTargetContext.unregisterReceiver(mLeAudioIntentReceiver);
         mDeviceQueueMap.clear();
         TestUtils.clearAdapterService(mAdapterService);
         LeAudioNativeInterface.setInstance(null);
