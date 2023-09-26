@@ -1965,6 +1965,29 @@ TEST(GeneratedPacketTest, testToStringOneFixedTypesStruct) {
       view.ToString());
 }
 
+TEST(GeneratedPacketTest, testCreateOptional) {
+  auto packet = ChildTwoTwoThreeBuilder::Create();
+
+  ASSERT_EQ(child_two_two_three.size(), packet->size());
+
+  std::shared_ptr<std::vector<uint8_t>> packet_bytes = std::make_shared<std::vector<uint8_t>>();
+  BitInserter it(*packet_bytes);
+  packet->Serialize(it);
+
+  PacketView<kLittleEndian> packet_bytes_view(packet_bytes);
+  auto wrong_view = ParentView::CreateOptional(packet_bytes_view);
+  ASSERT_FALSE(wrong_view.has_value());
+
+  auto parent_view = ParentTwoView::CreateOptional(packet_bytes_view);
+  ASSERT_EQ(FourBits::TWO, parent_view->GetFourBits());
+
+  auto child_view = ChildTwoTwoView::CreateOptional(*parent_view);
+  ASSERT_EQ(FourBits::THREE, child_view->GetMoreBits());
+
+  auto grandchild_view = ChildTwoTwoThreeView::CreateOptional(*child_view);
+  ASSERT_TRUE(grandchild_view.has_value());
+}
+
 }  // namespace parser
 }  // namespace packet
 }  // namespace bluetooth
