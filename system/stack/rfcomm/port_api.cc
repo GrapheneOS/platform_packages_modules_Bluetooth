@@ -109,7 +109,7 @@ int RFCOMM_CreateConnectionWithSecurity(uint16_t uuid, uint8_t scn,
                                         uint16_t sec_mask) {
   *p_handle = 0;
 
-  if ((scn == 0) || (scn >= PORT_MAX_RFC_PORTS)) {
+  if ((scn == 0) || (scn > RFCOMM_MAX_SCN)) {
     // Server Channel Number (SCN) should be in range [1, 30]
     LOG(ERROR) << __func__ << ": Invalid SCN, bd_addr=" << bd_addr
                << ", scn=" << static_cast<int>(scn)
