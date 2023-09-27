@@ -52,8 +52,9 @@ class BasicModeDataController : public DataController {
 
   std::unique_ptr<packet::BasePacketBuilder> GetNextPacket() override;
 
-  void EnableFcs(bool enabled) override {}
-  void SetRetransmissionAndFlowControlOptions(const RetransmissionAndFlowControlConfigurationOption& option) override {}
+  void EnableFcs(bool /* enabled */) override {}
+  void SetRetransmissionAndFlowControlOptions(
+      const RetransmissionAndFlowControlConfigurationOption& /* option */) override {}
 
  private:
   Cid cid_;

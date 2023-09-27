@@ -131,12 +131,14 @@ Stage1ResultOrFailure PairingHandlerLe::DoSecureConnectionsStage1(const InitialI
   return SecureConnectionsPasskeyEntry(i, PKa, PKb, my_iocaps, remote_iocaps);
 }
 
-Stage2ResultOrFailure PairingHandlerLe::DoSecureConnectionsStage2(const InitialInformations& i,
-                                                                  const EcdhPublicKey& PKa, const EcdhPublicKey& PKb,
-                                                                  const PairingRequestView& pairing_request,
-                                                                  const PairingResponseView& pairing_response,
-                                                                  const Stage1Result stage1result,
-                                                                  const std::array<uint8_t, 32>& dhkey) {
+Stage2ResultOrFailure PairingHandlerLe::DoSecureConnectionsStage2(
+    const InitialInformations& i,
+    const EcdhPublicKey& /* PKa */,
+    const EcdhPublicKey& /* PKb */,
+    const PairingRequestView& pairing_request,
+    const PairingResponseView& pairing_response,
+    const Stage1Result stage1result,
+    const std::array<uint8_t, 32>& dhkey) {
   LOG_INFO("Authentication stage 2 started");
 
   auto [Na, Nb, ra, rb] = stage1result;

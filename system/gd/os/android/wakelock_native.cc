@@ -108,7 +108,7 @@ WakelockNative::StatusCode WakelockNative::Acquire(const std::string& lock_name)
   return StatusCode::SUCCESS;
 }
 
-WakelockNative::StatusCode WakelockNative::Release(const std::string& lock_name) {
+WakelockNative::StatusCode WakelockNative::Release(const std::string& /* lock_name */) {
   if (!pimpl_->current_wakelock) {
     LOG_WARN("no lock is currently acquired");
     return StatusCode::SUCCESS;

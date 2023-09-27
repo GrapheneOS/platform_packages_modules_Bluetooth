@@ -91,7 +91,10 @@ void SetLeData(storage::Mutation& mutation, std::shared_ptr<record::SecurityReco
   }
 }
 
-void SetAuthenticationData(storage::Mutation& mutation, std::shared_ptr<record::SecurityRecord> record, storage::Device& device) {
+void SetAuthenticationData(
+    storage::Mutation& /* mutation */,
+    std::shared_ptr<record::SecurityRecord> record,
+    storage::Device& device) {
   device.SetIsAuthenticated((record->IsAuthenticated() ? 1 : 0));
   device.SetIsEncryptionRequired((record->IsEncryptionRequired() ? 1 : 0));
   device.SetRequiresMitmProtection(record->RequiresMitmProtection() ? 1 : 0);

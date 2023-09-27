@@ -715,7 +715,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     }
 
     auto handle = request_view.GetConnectionHandle();
-    connections.execute(handle, [=](LeConnectionManagementCallbacks* callbacks) {
+    connections.execute(handle, [=](LeConnectionManagementCallbacks* /* callbacks */) {
       // TODO: this is blindly accepting any parameters, just so we don't hang connection
       // have proper parameter negotiation
       le_acl_connection_interface_->EnqueueCommand(
@@ -727,7 +727,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
               request_view.GetTimeout(),
               0,
               0),
-          handler_->BindOnce([](CommandCompleteView status) {}));
+          handler_->BindOnce([](CommandCompleteView /* status */) {}));
     });
   }
 
@@ -1120,7 +1120,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   void set_le_suggested_default_data_parameters(uint16_t length, uint16_t time) {
     auto packet = LeWriteSuggestedDefaultDataLengthBuilder::Create(length, time);
     le_acl_connection_interface_->EnqueueCommand(
-        std::move(packet), handler_->BindOnce([](CommandCompleteView complete) {}));
+        std::move(packet), handler_->BindOnce([](CommandCompleteView /* complete */) {}));
   }
 
   void LeSetDefaultSubrate(
