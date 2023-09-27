@@ -730,7 +730,8 @@ public class BassClientStateMachineTest {
         value[35] = 0; // set metaDataLength of subgroup #1 0
         PeriodicAdvertisementResult paResult = Mockito.mock(PeriodicAdvertisementResult.class);
         when(characteristic.getValue()).thenReturn(value);
-        when(mBassClientService.getPeriodicAdvertisementResult(any())).thenReturn(paResult);
+        when(mBassClientService.getPeriodicAdvertisementResult(any(), anyInt()))
+                .thenReturn(paResult);
         when(paResult.getSyncHandle()).thenReturn(100);
 
         Mockito.clearInvocations(callbacks);
@@ -746,7 +747,7 @@ public class BassClientStateMachineTest {
         for (int i = 0; i < BassConstants.BCAST_RCVR_STATE_SRC_ADDR_SIZE; ++i) {
             value[BassConstants.BCAST_RCVR_STATE_SRC_ADDR_START_IDX + i] = 0x00;
         }
-        when(mBassClientService.getPeriodicAdvertisementResult(any())).thenReturn(null);
+        when(mBassClientService.getPeriodicAdvertisementResult(any(), anyInt())).thenReturn(null);
         when(mBassClientService.isLocalBroadcast(any())).thenReturn(true);
         when(characteristic.getValue()).thenReturn(value);
 
@@ -1218,13 +1219,14 @@ public class BassClientStateMachineTest {
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
 
         BluetoothLeBroadcastMetadata metadata = createBroadcastMetadata();
-        when(mBassClientService.getPeriodicAdvertisementResult(any())).thenReturn(null);
+        when(mBassClientService.getPeriodicAdvertisementResult(any(), anyInt())).thenReturn(null);
 
         mBassClientStateMachine.sendMessage(UPDATE_BCAST_SOURCE, sourceId, paSync, metadata);
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
 
         PeriodicAdvertisementResult paResult = Mockito.mock(PeriodicAdvertisementResult.class);
-        when(mBassClientService.getPeriodicAdvertisementResult(any())).thenReturn(paResult);
+        when(mBassClientService.getPeriodicAdvertisementResult(any(), anyInt()))
+                .thenReturn(paResult);
         when(mBassClientService.getBase(anyInt())).thenReturn(null);
         Mockito.clearInvocations(callbacks);
 
@@ -1663,6 +1665,7 @@ public class BassClientStateMachineTest {
 
     @Test
     public void selectBcastSource_withSameBroadcastId() {
+        final int testSyncHandle = 1;
         initToConnectedState();
 
         byte[] scanRecord = new byte[]{
@@ -1680,6 +1683,7 @@ public class BassClientStateMachineTest {
         };
         ScanRecord record = ScanRecord.parseFromBytes(scanRecord);
         ScanResult scanResult = new ScanResult(mTestDevice, 0, 0, 0, 0, 0, 0, 0, record, 0);
+        // validate pending duplicated request will be skipped
         mBassClientStateMachine.mPendingSourceToAdd = createBroadcastMetadata();
 
         doNothing().when(mMethodProxy).periodicAdvertisingManagerRegisterSync(
@@ -1687,14 +1691,29 @@ public class BassClientStateMachineTest {
         mBassClientStateMachine.sendMessage(
                 SELECT_BCAST_SOURCE, BassConstants.AUTO, 0, scanResult);
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
-        // validate syncing to the same broadcast id will be skipped
         verify(mBassClientService, never()).updatePeriodicAdvertisementResultMap(
                 any(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
                 any(), any());
 
         mBassClientStateMachine.mPendingSourceToAdd = null;
-        mBassClientStateMachine.sendMessage(
-                SELECT_BCAST_SOURCE, BassConstants.AUTO, 0, scanResult);
+
+        List<Integer> activeSyncedSrc = new ArrayList<>();
+        activeSyncedSrc.add(testSyncHandle);
+        // need this to ensure expected mock behavior for getActiveSyncedSource
+        when(mBassClientService.getActiveSyncedSources(any())).thenReturn(activeSyncedSrc);
+        when(mBassClientService.getSyncHandleForBroadcastId(anyInt())).thenReturn(testSyncHandle);
+
+        mBassClientStateMachine.sendMessage(SELECT_BCAST_SOURCE, BassConstants.AUTO, 0, scanResult);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        // validate syncing to the same broadcast id will be skipped
+        verify(mBassClientService, never()).updatePeriodicAdvertisementResultMap(
+                any(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
+                any(), any());
+
+        // need this to ensure expected mock behavior for getActiveSyncedSource
+        when(mBassClientService.getActiveSyncedSources(any())).thenReturn(null);
+
+        mBassClientStateMachine.sendMessage(SELECT_BCAST_SOURCE, BassConstants.AUTO, 0, scanResult);
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
         verify(mBassClientService).updatePeriodicAdvertisementResultMap(
                 any(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
