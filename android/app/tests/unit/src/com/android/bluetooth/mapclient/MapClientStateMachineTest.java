@@ -847,6 +847,105 @@ public class MapClientStateMachineTest {
         Assert.assertNull(mIntentArgument.getValue().getPackage());
     }
 
+    @Test
+    public void testSdpBusyWhileConnecting_sdpRetried() {
+        // Perform first part of MAP connection logic.
+        verify(mMockMapClientService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
+                any(BroadcastOptions.class));
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING, mMceStateMachine.getState());
+
+        // Send SDP Failed with status "busy"
+        // Note: There's no way to validate the BluetoothDevice#sdpSearch call
+        mMceStateMachine.sendSdpResult(MceStateMachine.SDP_BUSY, null);
+
+        // Send successful SDP record, then send MAS Client connected
+        SdpMasRecord record = new SdpMasRecord(1, 1, 1, 1, 1, 1, "MasRecord");
+        mMceStateMachine.sendSdpResult(MceStateMachine.SDP_SUCCESS, record);
+        Message msg = Message.obtain(mHandler, MceStateMachine.MSG_MAS_CONNECTED);
+        mMceStateMachine.sendMessage(msg);
+
+        // Verify we move into the connected state
+        verify(mMockMapClientService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
+                any(BroadcastOptions.class));
+        assertThat(mMceStateMachine.getState()).isEqualTo(BluetoothProfile.STATE_CONNECTED);
+    }
+
+    @Test
+    public void testSdpBusyWhileConnectingAndRetryResultsReceivedAfterTimeout_resultsIgnored() {
+        // Perform first part of MAP connection logic.
+        verify(mMockMapClientService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
+                any(BroadcastOptions.class));
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING, mMceStateMachine.getState());
+
+        // Send SDP Failed with status "busy"
+        // Note: There's no way to validate the BluetoothDevice#sdpSearch call
+        mMceStateMachine.sendSdpResult(MceStateMachine.SDP_BUSY, null);
+
+        // Timeout waiting for record
+        Message msg = Message.obtain(mHandler, MceStateMachine.MSG_CONNECTING_TIMEOUT);
+        mMceStateMachine.sendMessage(msg);
+
+        // Verify we move into the disconnecting state
+        verify(mMockMapClientService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
+                any(BroadcastOptions.class));
+        assertThat(mMceStateMachine.getState()).isEqualTo(BluetoothProfile.STATE_DISCONNECTING);
+
+
+        // Send successful SDP record, then send MAS Client connected
+        SdpMasRecord record = new SdpMasRecord(1, 1, 1, 1, 1, 1, "MasRecord");
+        mMceStateMachine.sendSdpResult(MceStateMachine.SDP_SUCCESS, record);
+
+        // Verify nothing happens
+        verifyNoMoreInteractions(mMockMapClientService);
+    }
+
+    @Test
+    public void testSdpFailedWithNoRecordWhileConnecting_deviceDisconnected() {
+        // Perform first part of MAP connection logic.
+        verify(mMockMapClientService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
+                any(BroadcastOptions.class));
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING, mMceStateMachine.getState());
+
+        // Send SDP process success with no record found
+        mMceStateMachine.sendSdpResult(MceStateMachine.SDP_SUCCESS, null);
+
+        // Verify we move into the disconnecting state
+        verify(mMockMapClientService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
+                any(BroadcastOptions.class));
+        assertThat(mMceStateMachine.getState()).isEqualTo(BluetoothProfile.STATE_DISCONNECTING);
+    }
+
+    @Test
+    public void testSdpOrganicFailure_deviceDisconnected() {
+        // Perform first part of MAP connection logic.
+        verify(mMockMapClientService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
+                any(BroadcastOptions.class));
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING, mMceStateMachine.getState());
+
+        // Send SDP Failed entirely
+        mMceStateMachine.sendSdpResult(MceStateMachine.SDP_FAILED, null);
+
+        verify(mMockMapClientService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
+                any(BroadcastOptions.class));
+        assertThat(mMceStateMachine.getState()).isEqualTo(BluetoothProfile.STATE_DISCONNECTING);
+    }
+
     private void setupSdpRecordReceipt() {
         // Perform first part of MAP connection logic.
         verify(mMockMapClientService,
@@ -857,8 +956,7 @@ public class MapClientStateMachineTest {
 
         // Setup receipt of SDP record
         SdpMasRecord record = new SdpMasRecord(1, 1, 1, 1, 1, 1, "MasRecord");
-        Message msg = Message.obtain(mHandler, MceStateMachine.MSG_MAS_SDP_DONE, record);
-        mMceStateMachine.sendMessage(msg);
+        mMceStateMachine.sendSdpResult(MceStateMachine.SDP_SUCCESS, record);
     }
 
     private class MockSmsContentProvider extends MockContentProvider {
