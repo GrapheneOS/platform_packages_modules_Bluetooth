@@ -31,6 +31,7 @@ class MockCodecManager {
   virtual ~MockCodecManager() = default;
 
   MOCK_METHOD((le_audio::types::CodecLocation), GetCodecLocation, (), (const));
+  MOCK_METHOD((bool), IsOffloadDualBiDirSwbSupported, (), (const));
   MOCK_METHOD((void), UpdateActiveAudioConfig,
               (const le_audio::types::BidirectionalPair<
                    le_audio::stream_parameters>& stream_params,
