@@ -74,7 +74,7 @@ def match_description(f):
     """
 
     def normalize(desc):
-        return desc.replace("\n", " ").replace("\t", "    ").strip()
+        return re.sub('\s+', ' ', desc).strip()
 
     docstring = normalize(textwrap.dedent(f.__doc__))
     regex = re.compile(docstring)
