@@ -40,6 +40,7 @@ UUID_TO_SERVICE_NAME = {
     0x1203: "GenericAudio",
     # GATT Service
     0x1800: "Generic Access",
+    0x1801: "Generic Attribute service",
     0x1855: "TMAS",
     # Custom UUIDs
     0xc26cf572_3369_4cf2_b5cc_d2cd130f5b2c: "Android Auto Compatibility",
@@ -133,6 +134,7 @@ class SDPProxy(ProfileProxy):
 
         # yapf: disable
         expected_services = [
+            "Generic Attribute service",
             "Generic Access",
             "AudioSource",
             "A/V_RemoteControlTarget",
@@ -150,6 +152,7 @@ class SDPProxy(ProfileProxy):
             "Android Auto Compatibility",
         ]
         optional_services = [
+            "Generic Attribute service",
             "A/V_RemoteControlController",
             "Android Auto Compatibility",
         ]
