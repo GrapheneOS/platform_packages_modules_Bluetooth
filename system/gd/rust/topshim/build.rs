@@ -41,7 +41,7 @@ fn main() {
     }
 
     // "-x" and "c++" must be separate due to a bug
-    let clang_args: Vec<&str> = vec!["-x", "c++", "-std=c++17"];
+    let clang_args: Vec<&str> = vec!["-x", "c++", "-std=c++20"];
 
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for
