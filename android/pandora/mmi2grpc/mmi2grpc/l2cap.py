@@ -4,6 +4,7 @@ import sys
 from mmi2grpc._helpers import assert_description
 from mmi2grpc._helpers import match_description
 from mmi2grpc._proxy import ProfileProxy
+from mmi2grpc._rootcanal import Dongle
 
 from pandora.host_grpc import Host
 from pandora.host_pb2 import PUBLIC, RANDOM, Connection
@@ -20,14 +21,20 @@ class L2CAPProxy(ProfileProxy):
     LE_DATA_PACKET1 = "data: LE_PACKET1"
     connection: Optional[Connection] = None
 
-    def __init__(self, channel):
+    def __init__(self, channel, rootcanal):
         super().__init__(channel)
         self.l2cap = L2CAP(channel)
         self.host = Host(channel)
         self.security = Security(channel)
+        self.rootcanal = rootcanal
 
         self.connection = None
         self.pairing_events = None
+
+    def test_started(self, test: str, **kwargs):
+        self.rootcanal.select_pts_dongle(Dongle.CSR_RCK_PTS_DONGLE)
+
+        return "OK"
 
     @assert_description
     def MMI_IUT_SEND_LE_CREDIT_BASED_CONNECTION_REQUEST(self, test: str, pts_addr: bytes, **kwargs):
@@ -528,6 +535,16 @@ class L2CAPProxy(ProfileProxy):
     def MMI_IUT_SEND_L2CAP_CONNECTION_REQ(self, **kwargs):
         """
         Please send L2CAP Connection REQ to PTS.
+        """
+
+        return "OK"
+
+    @assert_description
+    def MMI_CONFIRM_UPPER_TESTER_DOES_NOT_RECEIVE_DATA(self, **kwargs):
+        """
+        Please confirm the IUT does not send the L2CAP Data to the Upper Tester.
+        Click Yes if the IUT is not sending data to the Upper Tester. Otherwise
+        click No if it is.
         """
 
         return "OK"

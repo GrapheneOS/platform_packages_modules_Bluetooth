@@ -19,6 +19,7 @@ import asyncio
 
 from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
+from mmi2grpc._rootcanal import Dongle
 
 from pandora.security_grpc import Security
 from pandora.security_pb2 import LE_LEVEL3, PairingEventAnswer
@@ -32,14 +33,20 @@ def debug(*args, **kwargs):
 
 class SMProxy(ProfileProxy):
 
-    def __init__(self, channel):
+    def __init__(self, channel, rootcanal):
         super().__init__(channel)
         self.security = Security(channel)
         self.host = Host(channel)
+        self.rootcanal = rootcanal
         self.connection = None
         self.pairing_stream = None
         self.passkey_queue = Queue()
         self._handle_pairing_requests()
+
+    def test_started(self, test: str, **kwargs):
+        self.rootcanal.select_pts_dongle(Dongle.CSR_RCK_PTS_DONGLE)
+
+        return "OK"
 
     @assert_description
     def MMI_IUT_ENABLE_CONNECTION_SM(self, pts_addr: bytes, **kwargs):
@@ -141,10 +148,10 @@ class SMProxy(ProfileProxy):
 
         return "OK"
 
-    @assert_description
+    @match_description
     def MMI_IUT_ABORT_PAIRING_PROCESS_DISCONNECT(self, **kwargs):
         """
-        Lower tester expects IUT aborts pairing process, and disconnect.
+        Lower tester expects IUT aborts pairing process(, and disconnect|. Click OK to confirm pairing is aborted).
         """
 
         return "OK"
@@ -186,6 +193,26 @@ class SMProxy(ProfileProxy):
     def MMI_ASK_IUT_PERFORM_FEATURE_EXCHANGE_OVER_BR(self, **kwargs):
         """
         Please start pairing feature exchange over BR/EDR.
+        """
+
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_INITIATES_ENCRYPTION(self, **kwargs):
+        """
+        Initiates encryption with the PTS.
+        """
+
+        return "OK"
+
+    @assert_description
+    def _mmi_20117(self, **kwargs):
+        """
+        Please start encryption using previously distributed key.
+
+        Description:
+        Verify that the Implementation Under Test (IUT) can successfully start
+        and complete encryption with previously distributed key.
         """
 
         return "OK"

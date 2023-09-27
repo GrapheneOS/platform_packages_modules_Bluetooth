@@ -3,6 +3,7 @@ Copied from tools/rootcanal/scripts/test_channel.py
 """
 
 import socket
+import enum
 from time import sleep
 
 
@@ -74,6 +75,12 @@ class TestChannel:
                 raise ValueError  # Size must be encodable in one octet.
 
 
+class Dongle(enum.Enum):
+    DEFAULT = "default"
+    LAIRD_BL654 = "laird_bl654"
+    CSR_RCK_PTS_DONGLE = "csr_rck_pts_dongle"
+
+
 class RootCanal:
 
     def __init__(self, port):
@@ -85,6 +92,19 @@ class RootCanal:
 
     def close(self):
         self.channel.close()
+
+    def select_pts_dongle(self, dongle: Dongle):
+        """Use the control port to dynamically reconfigure the controller
+        properties for the dongle used by the PTS tester.
+
+        This method will cause a Reset on the controller.
+        This method shall exclusively be called from the test_started
+        interaction."""
+        # The PTS is the device with the highest ID,
+        # Android is always first to connect to root-canal.
+        (devices, _) = self._read_device_list()
+        pts_id = max([id for (id, _) in devices])
+        self.channel.send_command("set_device_configuration", [pts_id, dongle.value])
 
     def move_out_of_range(self):
         """Space out the connected devices to generate a supervision
