@@ -52,7 +52,7 @@
 #define BTA_AG_FEAT_ECC 0x00000080    /* Enhanced Call Control */
 #define BTA_AG_FEAT_EXTERR 0x00000100 /* Extended error codes */
 #define BTA_AG_FEAT_CODEC 0x00000200  /* Codec Negotiation */
-#define BTA_AG_FEAT_SWB 0x00000400    /* Super Wide Band */
+#define BTA_AG_FEAT_SWB 0x00001000    /* Super Wide Band */
 
 /* AG SDP feature masks */
 #define BTA_AG_FEAT_WBS_SUPPORT 0x0020 /* Supports WBS */

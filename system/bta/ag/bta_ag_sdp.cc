@@ -160,7 +160,6 @@ bool bta_ag_add_record(uint16_t service_uuid, const char* p_service_name,
   uint8_t network;
   bool result = true;
   bool codec_supported = false;
-  bool swb_supported = false;
   uint8_t buf[2];
 
   APPL_TRACE_DEBUG("%s uuid: %x", __func__, service_uuid);
@@ -214,19 +213,16 @@ bool bta_ag_add_record(uint16_t service_uuid, const char* p_service_name,
         sdp_handle, ATTR_ID_DATA_STORES_OR_NETWORK, UINT_DESC_TYPE, 1,
         &network);
 
-    // check property for SWB support
-    if (hfp_hal_interface::get_swb_supported()) {
-      features |= BTA_AG_FEAT_SWB;
-    }
-
     if (features & BTA_AG_FEAT_CODEC) codec_supported = true;
-    if (features & BTA_AG_FEAT_SWB) swb_supported = true;
 
     features &= BTA_AG_SDP_FEAT_SPEC;
 
     /* Codec bit position is different in SDP and in BRSF */
     if (codec_supported) features |= BTA_AG_FEAT_WBS_SUPPORT;
-    if (swb_supported) features |= BTA_AG_FEAT_SWB_SUPPORT;
+    // check property for SWB support
+    if (hfp_hal_interface::get_swb_supported()) {
+      features |= BTA_AG_FEAT_SWB_SUPPORT;
+    }
 
     UINT16_TO_BE_FIELD(buf, features);
     result &= get_legacy_stack_sdp_api()->handle.SDP_AddAttribute(
