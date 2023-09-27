@@ -32,7 +32,10 @@ class AudioSetConfigurationProvider {
   static void Cleanup();
   virtual const set_configurations::AudioSetConfigurations* GetConfigurations(
       ::le_audio::types::LeAudioContextType content_type) const;
+  virtual bool IsDualBiDirSwbSupported(void) const;
   virtual bool CheckConfigurationIsBiDirSwb(
+      const set_configurations::AudioSetConfiguration& set_configuration) const;
+  virtual bool CheckConfigurationIsDualBiDirSwb(
       const set_configurations::AudioSetConfiguration& set_configuration) const;
 
  private:
