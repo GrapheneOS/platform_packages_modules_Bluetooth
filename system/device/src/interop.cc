@@ -905,8 +905,8 @@ static bool get_addr_lmp_ver(char* str, char* bdaddrstr, uint8_t* lmp_ver,
   return false;
 }
 
-bool load_to_database(int feature, const char* key, const char* value,
-                      interop_entry_type entry_type) {
+static bool load_to_database(int feature, const char* key, const char* value,
+                             interop_entry_type entry_type) {
   if (!strncasecmp(value, ADDR_BASED, strlen(ADDR_BASED))) {
     RawAddress addr;
     int len = 0;
