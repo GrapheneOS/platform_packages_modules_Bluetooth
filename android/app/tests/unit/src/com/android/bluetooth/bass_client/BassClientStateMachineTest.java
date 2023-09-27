@@ -36,6 +36,7 @@ import static com.android.bluetooth.bass_client.BassClientStateMachine.SET_BCAST
 import static com.android.bluetooth.bass_client.BassClientStateMachine.START_SCAN_OFFLOAD;
 import static com.android.bluetooth.bass_client.BassClientStateMachine.STOP_SCAN_OFFLOAD;
 import static com.android.bluetooth.bass_client.BassClientStateMachine.UPDATE_BCAST_SOURCE;
+import static com.android.bluetooth.bass_client.BassClientStateMachine.REACHED_MAX_SOURCE_LIMIT;
 import static com.android.bluetooth.bass_client.BassConstants.CLIENT_CHARACTERISTIC_CONFIG;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -1182,6 +1183,18 @@ public class BassClientStateMachineTest {
     }
 
     @Test
+    public void sendReachedMaxSourceLimitMessage_inConnectedState() {
+        initToConnectedState();
+        // need this to ensure expected mock behavior for getActiveSyncedSource
+        when(mBassClientService.getActiveSyncedSources(any())).thenReturn(null);
+
+        mBassClientStateMachine.sendMessage(REACHED_MAX_SOURCE_LIMIT);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        // verify getActiveSyncedSource got called in CancelActiveSync
+        verify(mBassClientService).getActiveSyncedSources(any());
+    }
+
+    @Test
     public void sendUpdateBcastSourceMessage_inConnectedState() {
         initToConnectedState();
         mBassClientStateMachine.connectGatt(true);
@@ -1578,6 +1591,11 @@ public class BassClientStateMachineTest {
         mBassClientStateMachine.sendMessage(PSYNC_ACTIVE_TIMEOUT);
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
         assertThat(mBassClientStateMachine.hasDeferredMessagesSuper(PSYNC_ACTIVE_TIMEOUT))
+                .isTrue();
+
+        mBassClientStateMachine.sendMessage(REACHED_MAX_SOURCE_LIMIT);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        assertThat(mBassClientStateMachine.hasDeferredMessagesSuper(REACHED_MAX_SOURCE_LIMIT))
                 .isTrue();
     }
 

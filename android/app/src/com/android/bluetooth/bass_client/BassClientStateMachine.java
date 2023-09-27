@@ -103,6 +103,7 @@ public class BassClientStateMachine extends StateMachine {
     static final int GATT_TXN_TIMEOUT = 13;
     static final int PSYNC_ACTIVE_TIMEOUT = 14;
     static final int CONNECT_TIMEOUT = 15;
+    static final int REACHED_MAX_SOURCE_LIMIT = 16;
 
     // NOTE: the value is not "final" - it is modified in the unit tests
     @VisibleForTesting
@@ -114,6 +115,8 @@ public class BassClientStateMachine extends StateMachine {
 
     static final int ATT_WRITE_CMD_HDR_LEN = 3;
 
+    private final Map<Integer, PeriodicAdvertisingCallback> mPeriodicAdvCallbacksMap =
+            new HashMap<>();
     /*key is combination of sourceId, Address and advSid for this hashmap*/
     private final Map<Integer, BluetoothLeBroadcastReceiveState>
             mBluetoothLeBroadcastReceiveStates =
@@ -172,6 +175,7 @@ public class BassClientStateMachine extends StateMachine {
     @VisibleForTesting
     BluetoothGattTestableWrapper mBluetoothGatt = null;
     BluetoothGattCallback mGattCallback = null;
+    PeriodicAdvertisingCallback mLocalPeriodicAdvCallback = new PACallback();
     int mMaxSingleAttributeWriteValueLen = 0;
 
     BassClientStateMachine(BluetoothDevice device, BassClientService svc, Looper looper,
@@ -242,6 +246,7 @@ public class BassClientStateMachine extends StateMachine {
         mPendingSourceToAdd = null;
         mCurrentMetadata.clear();
         mPendingRemove.clear();
+        mPeriodicAdvCallbacksMap.clear();
     }
 
     Boolean hasPendingSourceOperation() {
@@ -407,22 +412,24 @@ public class BassClientStateMachine extends StateMachine {
             String broadcastName = checkAndParseBroadcastName(scanRecord);
 
             // Avoid duplicated sync requests for the same broadcast BIG
-            // Either there is active sync to the same broadcast id or pending operation
-            // This is required because selectSource can be triggered from both scanning(user)
-            // and adding inactive source(auto)
             if (isDuplicatedSyncRequest(broadcastId)) {
                 log("Skip duplicated sync request to broadcast id: " + broadcastId);
                 return false;
             }
 
+            PeriodicAdvertisingCallback paCb = new PACallback();
+            // put temp sync handle and update in onSyncEstablished
+            int tempHandle = BassConstants.INVALID_SYNC_HANDLE;
+            mPeriodicAdvCallbacksMap.put(tempHandle, paCb);
             try {
                 BluetoothMethodProxy.getInstance().periodicAdvertisingManagerRegisterSync(
                         mPeriodicAdvManager, scanRes, 0, BassConstants.PSYNC_TIMEOUT,
-                        mPeriodicAdvCallback, null);
+                        paCb, null);
             } catch (IllegalArgumentException ex) {
                 Log.w(TAG, "registerSync:IllegalArgumentException");
                 Message message = obtainMessage(STOP_SCAN_OFFLOAD);
                 sendMessage(message);
+                mPeriodicAdvCallbacksMap.remove(tempHandle);
                 return false;
             }
 
@@ -440,6 +447,9 @@ public class BassClientStateMachine extends StateMachine {
     }
 
     private boolean isDuplicatedSyncRequest(int broadcastId) {
+        // Either there is active sync to the same broadcast id or pending operation
+        // This is required because selectSource can be triggered from both scanning(user)
+        // and adding inactive source(auto)
         List<Integer> activeSyncedSrc = mService.getActiveSyncedSources(mDevice);
         if ((mPendingSourceToAdd != null && broadcastId == mPendingSourceToAdd.getBroadcastId())
                 || (activeSyncedSrc != null
@@ -480,11 +490,16 @@ public class BassClientStateMachine extends StateMachine {
     }
 
     private boolean unsyncSource(int syncHandle) {
-        try {
-            mPeriodicAdvManager.unregisterSync(mPeriodicAdvCallback);
-        } catch (IllegalArgumentException ex) {
-            Log.w(TAG, "unregisterSync:IllegalArgumentException");
-            return false;
+        if (syncHandle != BassConstants.INVALID_SYNC_HANDLE
+                && mPeriodicAdvCallbacksMap.containsKey(syncHandle)) {
+            try {
+                mPeriodicAdvManager.unregisterSync(mPeriodicAdvCallbacksMap.get(syncHandle));
+            } catch (IllegalArgumentException ex) {
+                Log.w(TAG, "unregisterSync:IllegalArgumentException");
+                return false;
+            }
+        } else {
+            log("calling unregisterSync, not found syncHandle: " + syncHandle);
         }
         return true;
     }
@@ -593,106 +608,6 @@ public class BassClientStateMachine extends StateMachine {
         return metaData.build();
     }
 
-    /** Internal periodc Advertising manager callback */
-    private PeriodicAdvertisingCallback mPeriodicAdvCallback =
-            new PeriodicAdvertisingCallback() {
-                @Override
-                public void onSyncEstablished(
-                        int syncHandle,
-                        BluetoothDevice device,
-                        int advertisingSid,
-                        int skip,
-                        int timeout,
-                        int status) {
-                    log("onSyncEstablished syncHandle: " + syncHandle
-                            + ", device: " + device
-                            + ", advertisingSid: " + advertisingSid
-                            + ", skip: " + skip
-                            + ", timeout: " + timeout
-                            + ", status: " + status);
-                    if (status == BluetoothGatt.GATT_SUCCESS) {
-                        // updates syncHandle, advSid
-                        // set other fields as invalid or null
-                        mService.updatePeriodicAdvertisementResultMap(
-                                device,
-                                BassConstants.INVALID_ADV_ADDRESS_TYPE,
-                                syncHandle,
-                                advertisingSid,
-                                BassConstants.INVALID_ADV_INTERVAL,
-                                BassConstants.INVALID_BROADCAST_ID,
-                                null,
-                                null);
-                        removeMessages(PSYNC_ACTIVE_TIMEOUT);
-                        // Refresh sync timeout if another source synced
-                        sendMessageDelayed(
-                                PSYNC_ACTIVE_TIMEOUT, BassConstants.PSYNC_ACTIVE_TIMEOUT_MS);
-                        mService.addActiveSyncedSource(mDevice, syncHandle);
-                        mFirstTimeBisDiscoveryMap.put(syncHandle, true);
-                        if (mPendingSourceToAdd != null) {
-                            Message message = obtainMessage(ADD_BCAST_SOURCE);
-                            message.obj = mPendingSourceToAdd;
-                            sendMessage(message);
-                        }
-                    } else {
-                        log("failed to sync to PA: " + mPASyncRetryCounter);
-                        if (!mAutoTriggered) {
-                            Message message = obtainMessage(STOP_SCAN_OFFLOAD);
-                            sendMessage(message);
-                        }
-                        mAutoTriggered = false;
-                    }
-                    mPendingSourceToAdd = null;
-                }
-
-                @Override
-                public void onPeriodicAdvertisingReport(PeriodicAdvertisingReport report) {
-                    log("onPeriodicAdvertisingReport");
-                    Boolean first = mFirstTimeBisDiscoveryMap.get(report.getSyncHandle());
-                    // Parse the BIS indices from report's service data
-                    if (first != null && first.booleanValue() == true) {
-                        parseScanRecord(report.getSyncHandle(), report.getData());
-                        mFirstTimeBisDiscoveryMap.put(report.getSyncHandle(), false);
-                    }
-                }
-
-                @Override
-                public void onSyncLost(int syncHandle) {
-                    log("OnSyncLost" + syncHandle);
-                    cancelActiveSync(syncHandle);
-                }
-
-                @Override
-                public void onBigInfoAdvertisingReport(int syncHandle, boolean encrypted) {
-                    log("onBIGInfoAdvertisingReport: syncHandle=" + syncHandle +
-                            " ,encrypted =" + encrypted);
-                    BluetoothDevice srcDevice = mService.getDeviceForSyncHandle(syncHandle);
-                    if (srcDevice == null) {
-                        log("No device found.");
-                        return;
-                    }
-                    PeriodicAdvertisementResult result =
-                            mService.getPeriodicAdvertisementResult(
-                                    srcDevice, mService.getBroadcastIdForSyncHandle(syncHandle));
-                    if (result == null) {
-                        log("No PA record found");
-                        return;
-                    }
-                    if (!result.isNotified()) {
-                        result.setNotified(true);
-                        BaseData baseData = mService.getBase(syncHandle);
-                        if (baseData == null) {
-                            log("No BaseData found");
-                            return;
-                        }
-                        BluetoothLeBroadcastMetadata metaData =
-                                getBroadcastMetadataFromBaseData(
-                                        baseData, srcDevice, syncHandle, encrypted);
-                        log("Notify broadcast source found");
-                        mService.getCallbacks().notifySourceFound(metaData);
-                    }
-                }
-            };
-
     private void broadcastReceiverState(
             BluetoothLeBroadcastReceiveState state, int sourceId) {
         log("broadcastReceiverState: " + mDevice);
@@ -746,7 +661,7 @@ public class BassClientStateMachine extends StateMachine {
                             + ", serviceData: " + serviceData);
                     BluetoothMethodProxy.getInstance().periodicAdvertisingManagerTransferSetInfo(
                             mPeriodicAdvManager, mDevice, serviceData, advHandle,
-                            mPeriodicAdvCallback);
+                            mLocalPeriodicAdvCallback);
                 } else {
                     Log.e(TAG, "There is no valid sync handle for this Source");
                 }
@@ -1107,6 +1022,115 @@ public class BassClientStateMachine extends StateMachine {
             Message m = obtainMessage(GATT_TXN_PROCESSED);
             m.arg1 = status;
             sendMessage(m);
+        }
+    }
+
+    /** Internal periodc Advertising manager callback */
+    private final class PACallback extends PeriodicAdvertisingCallback {
+        @Override
+        public void onSyncEstablished(
+                int syncHandle,
+                BluetoothDevice device,
+                int advertisingSid,
+                int skip,
+                int timeout,
+                int status) {
+            log("onSyncEstablished syncHandle: " + syncHandle
+                    + ", device: " + device
+                    + ", advertisingSid: " + advertisingSid
+                    + ", skip: " + skip
+                    + ", timeout: " + timeout
+                    + ", status: " + status);
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                // updates syncHandle, advSid
+                // set other fields as invalid or null
+                mService.updatePeriodicAdvertisementResultMap(
+                        device,
+                        BassConstants.INVALID_ADV_ADDRESS_TYPE,
+                        syncHandle,
+                        advertisingSid,
+                        BassConstants.INVALID_ADV_INTERVAL,
+                        BassConstants.INVALID_BROADCAST_ID,
+                        null,
+                        null);
+                removeMessages(PSYNC_ACTIVE_TIMEOUT);
+                // Refresh sync timeout if another source synced
+                sendMessageDelayed(
+                        PSYNC_ACTIVE_TIMEOUT, BassConstants.PSYNC_ACTIVE_TIMEOUT_MS);
+                mService.addActiveSyncedSource(mDevice, syncHandle);
+
+                // update valid sync handle in mPeriodicAdvCallbacksMap
+                if (mPeriodicAdvCallbacksMap.containsKey(BassConstants.INVALID_SYNC_HANDLE)) {
+                    PeriodicAdvertisingCallback paCb =
+                            mPeriodicAdvCallbacksMap.get(BassConstants.INVALID_SYNC_HANDLE);
+                    mPeriodicAdvCallbacksMap.put(syncHandle, paCb);
+                    mPeriodicAdvCallbacksMap.remove(BassConstants.INVALID_SYNC_HANDLE);
+                }
+                mFirstTimeBisDiscoveryMap.put(syncHandle, true);
+                if (mPendingSourceToAdd != null) {
+                    Message message = obtainMessage(ADD_BCAST_SOURCE);
+                    message.obj = mPendingSourceToAdd;
+                    sendMessage(message);
+                }
+            } else {
+                log("failed to sync to PA: " + mPASyncRetryCounter);
+                if (!mAutoTriggered) {
+                    Message message = obtainMessage(STOP_SCAN_OFFLOAD);
+                    sendMessage(message);
+                }
+                mAutoTriggered = false;
+                // remove failed sync handle
+                mPeriodicAdvCallbacksMap.remove(BassConstants.INVALID_SYNC_HANDLE);
+            }
+            mPendingSourceToAdd = null;
+        }
+
+        @Override
+        public void onPeriodicAdvertisingReport(PeriodicAdvertisingReport report) {
+            log("onPeriodicAdvertisingReport");
+            Boolean first = mFirstTimeBisDiscoveryMap.get(report.getSyncHandle());
+            // Parse the BIS indices from report's service data
+            if (first != null && first.booleanValue() == true) {
+                parseScanRecord(report.getSyncHandle(), report.getData());
+                mFirstTimeBisDiscoveryMap.put(report.getSyncHandle(), false);
+            }
+        }
+
+        @Override
+        public void onSyncLost(int syncHandle) {
+            log("OnSyncLost" + syncHandle);
+            cancelActiveSync(syncHandle);
+        }
+
+        @Override
+        public void onBigInfoAdvertisingReport(int syncHandle, boolean encrypted) {
+            log("onBIGInfoAdvertisingReport: syncHandle=" + syncHandle +
+                    " ,encrypted =" + encrypted);
+            BluetoothDevice srcDevice = mService.getDeviceForSyncHandle(syncHandle);
+            if (srcDevice == null) {
+                log("No device found.");
+                return;
+            }
+            PeriodicAdvertisementResult result =
+                    mService.getPeriodicAdvertisementResult(
+                            srcDevice, mService.getBroadcastIdForSyncHandle(syncHandle));
+            if (result == null) {
+                log("No PA record found");
+                return;
+            }
+            if (!result.isNotified()) {
+                result.setNotified(true);
+                BaseData baseData = mService.getBase(syncHandle);
+                if (baseData == null) {
+                    log("No BaseData found");
+                    return;
+                }
+                BluetoothLeBroadcastMetadata metaData =
+                        getBroadcastMetadataFromBaseData(
+                                baseData, srcDevice, syncHandle, encrypted);
+                log("Notify broadcast source found");
+                mService.getCallbacks().notifySourceFound(metaData);
+            }
         }
     }
 
@@ -1642,6 +1666,10 @@ public class BassClientStateMachine extends StateMachine {
                     boolean auto = ((int) message.arg1) == BassConstants.AUTO;
                     selectSource(scanRes, auto);
                     break;
+                case REACHED_MAX_SOURCE_LIMIT:
+                    int handle = message.arg1;
+                    cancelActiveSync(handle);
+                    break;
                 case ADD_BCAST_SOURCE:
                     metaData = (BluetoothLeBroadcastMetadata) message.obj;
 
@@ -1937,6 +1965,7 @@ public class BassClientStateMachine extends StateMachine {
                 case ADD_BCAST_SOURCE:
                 case SET_BCAST_CODE:
                 case REMOVE_BCAST_SOURCE:
+                case REACHED_MAX_SOURCE_LIMIT:
                 case PSYNC_ACTIVE_TIMEOUT:
                     log("defer the message: "
                             + messageWhatToString(message.what)
@@ -2027,6 +2056,8 @@ public class BassClientStateMachine extends StateMachine {
                 return "SET_BCAST_CODE";
             case REMOVE_BCAST_SOURCE:
                 return "REMOVE_BCAST_SOURCE";
+            case REACHED_MAX_SOURCE_LIMIT:
+                return "REACHED_MAX_SOURCE_LIMIT";
             case PSYNC_ACTIVE_TIMEOUT:
                 return "PSYNC_ACTIVE_TIMEOUT";
             case CONNECT_TIMEOUT:

@@ -1120,7 +1120,13 @@ public class BassClientServiceTest {
         mBassClientService.selectSource(mCurrentDevice, scanResult1, false);
         mBassClientService.selectSource(mCurrentDevice1, scanResult1, false);
         for (BassClientStateMachine sm : mStateMachines.values()) {
-            verify(sm, never()).sendMessage(any());
+            ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
+            verify(sm, atLeast(1)).sendMessage(messageCaptor.capture());
+
+            Optional<Message> msg = messageCaptor.getAllValues().stream()
+                    .filter(m -> m.what == BassClientStateMachine.REACHED_MAX_SOURCE_LIMIT)
+                    .findFirst();
+            assertThat(msg.isPresent()).isEqualTo(true);
         }
 
         // Verify remove all active synced source
@@ -1167,7 +1173,8 @@ public class BassClientServiceTest {
 
         assertThat(mBassClientService.getPeriodicAdvertisementResult(testDevice, testBroadcastIdInvalid))
                 .isEqualTo(null);
-        PeriodicAdvertisementResult paResult = mBassClientService.getPeriodicAdvertisementResult(testDevice, testBroadcastId);
+        PeriodicAdvertisementResult paResult =
+                mBassClientService.getPeriodicAdvertisementResult(testDevice, testBroadcastId);
         assertThat(paResult.getAddressType()).isEqualTo(BluetoothDevice.ADDRESS_TYPE_RANDOM);
         assertThat(paResult.getSyncHandle()).isEqualTo(testSyncHandle);
         assertThat(paResult.getAdvSid()).isEqualTo(testAdvertiserSid);

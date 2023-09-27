@@ -1169,7 +1169,15 @@ public class BassClientService extends ProfileService {
         List<Integer> activeSyncedSrc = getActiveSyncedSources(sink);
         if (activeSyncedSrc != null && activeSyncedSrc.size() >= MAX_ACTIVE_SYNCED_SOURCES_NUM) {
             log("selectSource : reached max allowed active source");
-            return;
+            int syncHandle = activeSyncedSrc.get(0);
+            // removing the 1st synced source before proceeding to add new
+            synchronized (mStateMachines) {
+                BassClientStateMachine stateMachine = getOrCreateStateMachine(sink);
+                Message message =
+                        stateMachine.obtainMessage(BassClientStateMachine.REACHED_MAX_SOURCE_LIMIT);
+                message.arg1 = syncHandle;
+                stateMachine.sendMessage(message);
+            }
         }
 
         synchronized (mStateMachines) {
