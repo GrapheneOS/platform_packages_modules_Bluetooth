@@ -19,11 +19,13 @@ from threading import Thread
 
 from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
+from mmi2grpc._rootcanal import Dongle
 
 from pandora_experimental.gatt_grpc import GATT
 from pandora.host_grpc import Host
 from pandora.host_pb2 import PUBLIC, RANDOM
-from pandora.security_grpc import SecurityStorage
+from pandora.security_grpc import Security, SecurityStorage
+from pandora.security_pb2 import PairingEventAnswer
 from pandora_experimental.gatt_pb2 import (
     INVALID_HANDLE,
     READ_NOT_PERMITTED,
@@ -77,11 +79,13 @@ CUSTOM_CHARACTERISTIC_UUID = "0000FFF4-0000-1000-8000-00805F9B34FB"
 
 class GATTProxy(ProfileProxy):
 
-    def __init__(self, channel):
+    def __init__(self, channel, rootcanal):
         super().__init__(channel)
         self.gatt = GATT(channel)
         self.host = Host(channel)
+        self.security = Security(channel)
         self.security_storage = SecurityStorage(channel)
+        self.rootcanal = rootcanal
         self.connection = None
         self.services = None
         self.characteristics = None
@@ -92,6 +96,11 @@ class GATTProxy(ProfileProxy):
         self.handles = []
         self.written_over_length = False
         self.last_added_service = None
+
+    def test_started(self, test: str, **kwargs):
+        self.rootcanal.select_pts_dongle(Dongle.CSR_RCK_PTS_DONGLE)
+
+        return "OK"
 
     @assert_description
     def MMI_IUT_INITIATE_CONNECTION(self, test, pts_addr: bytes, **kwargs):
@@ -1000,6 +1009,7 @@ class GATTProxy(ProfileProxy):
             connectable=True,
             own_address_type=PUBLIC,
         )
+        self.pairing_events = self.security.OnPairing()
         time.sleep(1)
         self.gatt.RegisterService(service=GattServiceParams(
             uuid=BASE_READ_WRITE_SERVICE_UUID,
@@ -1307,12 +1317,44 @@ class GATTProxy(ProfileProxy):
         return "OK"
 
     @match_description
-    def _mmi_2004(self, passkey: str, **kwargs):
+    def _mmi_2004(self, pts_addr: bytes, passkey: str, **kwargs):
         """
         Please confirm that 6 digit number is matched with (?P<passkey>[0-9]+).
         """
 
+        for event in self.pairing_events:
+            if event.address == pts_addr and event.numeric_comparison == int(passkey):
+                self.pairing_events.send(PairingEventAnswer(
+                    event=event,
+                    confirm=True,
+                ))
+                return "OK"
+
+        assert False
+
+    @match_description
+    def MMI_CONFIRM_IUT_PRIMARY_SERVICE(self, services: str, **kwargs):
+        """
+        Please confirm IUT have following primary services UUID= (?P<services>.*?).
+        Click Yes if IUT have it, otherwise click No.
+        Description: Verify that the Implementation Under Test \(IUT\) can respond
+        Discover all primary services by UUID.
+        """
+
         return "OK"
+
+    @match_description
+    def MMI_CONFIRM_PASSKEY(self, pts_addr: bytes, passkey: str, **kwargs):
+        """
+        The secureId is (?P<passkey>[0-9]+).
+        """
+
+        for event in self.pairing_events:
+            if event.address == pts_addr and event.passkey_entry_request:
+                self.pairing_events.send(PairingEventAnswer(event=event, passkey=int(passkey)))
+                return "OK"
+
+        assert False
 
 
 def stringHandleToInt(handle: str):
