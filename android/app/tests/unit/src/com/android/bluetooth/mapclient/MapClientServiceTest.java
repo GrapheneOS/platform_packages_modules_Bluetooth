@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -28,6 +29,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
+import android.bluetooth.SdpMasRecord;
 import android.content.Intent;
 
 import androidx.test.filters.MediumTest;
@@ -322,15 +324,64 @@ public class MapClientServiceTest {
     }
 
     @Test
-    public void broadcastReceiver_withActionSdpRecord_withoutMasRecord_doesNothing() {
+    public void broadcastReceiver_withActionSdpRecord_receivedMasRecord_sdpSuccess() {
+        MceStateMachine sm = mock(MceStateMachine.class);
+        mService.getInstanceMap().put(mRemoteDevice, sm);
+        SdpMasRecord mockSdpRecord = mock(SdpMasRecord.class);
+
+        Intent intent = new Intent(BluetoothDevice.ACTION_SDP_RECORD);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+        intent.putExtra(BluetoothDevice.EXTRA_UUID, BluetoothUuid.MAS);
+        intent.putExtra(BluetoothDevice.EXTRA_SDP_SEARCH_STATUS, MceStateMachine.SDP_SUCCESS);
+        intent.putExtra(BluetoothDevice.EXTRA_SDP_RECORD, mockSdpRecord);
+        mService.mMapReceiver.onReceive(mService, intent);
+
+        verify(sm).sendSdpResult(eq(MceStateMachine.SDP_SUCCESS), eq(mockSdpRecord));
+    }
+
+    @Test
+    public void broadcastReceiver_withActionSdpRecord_withoutMasRecord_sdpFailed() {
         MceStateMachine sm = mock(MceStateMachine.class);
         mService.getInstanceMap().put(mRemoteDevice, sm);
 
         Intent intent = new Intent(BluetoothDevice.ACTION_SDP_RECORD);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-        intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED);
         intent.putExtra(BluetoothDevice.EXTRA_UUID, BluetoothUuid.MAS);
-        // No MasRecord / searchStatus is included in this intent
+        intent.putExtra(BluetoothDevice.EXTRA_SDP_SEARCH_STATUS, MceStateMachine.SDP_SUCCESS);
+        // No MasRecord is included in this intent
         mService.mMapReceiver.onReceive(mService, intent);
+
+        // Verify message: SDP was successfully complete, but no record was returned
+        verify(sm).sendSdpResult(eq(MceStateMachine.SDP_SUCCESS), eq(null));
+    }
+
+    @Test
+    public void broadcastReceiver_withActionSdpRecord_withSdpBusy_sdpFailed() {
+        MceStateMachine sm = mock(MceStateMachine.class);
+        mService.getInstanceMap().put(mRemoteDevice, sm);
+
+        Intent intent = new Intent(BluetoothDevice.ACTION_SDP_RECORD);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+        intent.putExtra(BluetoothDevice.EXTRA_UUID, BluetoothUuid.MAS);
+        intent.putExtra(BluetoothDevice.EXTRA_SDP_SEARCH_STATUS, MceStateMachine.SDP_BUSY);
+        mService.mMapReceiver.onReceive(mService, intent);
+
+        // Verify message: SDP was busy and no record was returned
+        verify(sm).sendSdpResult(eq(MceStateMachine.SDP_BUSY), eq(null));
+    }
+
+    @Test
+    public void broadcastReceiver_withActionSdpRecord_withSdpFailed_sdpFailed() {
+        MceStateMachine sm = mock(MceStateMachine.class);
+        mService.getInstanceMap().put(mRemoteDevice, sm);
+
+        Intent intent = new Intent(BluetoothDevice.ACTION_SDP_RECORD);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+        intent.putExtra(BluetoothDevice.EXTRA_UUID, BluetoothUuid.MAS);
+        intent.putExtra(BluetoothDevice.EXTRA_SDP_SEARCH_STATUS, MceStateMachine.SDP_FAILED);
+        mService.mMapReceiver.onReceive(mService, intent);
+
+        // Verify message: SDP was failed for some reason and no record was returned
+        verify(sm).sendSdpResult(eq(MceStateMachine.SDP_FAILED), eq(null));
     }
 }
