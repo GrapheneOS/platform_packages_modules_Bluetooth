@@ -120,7 +120,7 @@ typedef struct {
   tBTA_JV_PCB port_cb[MAX_RFC_PORTS];          /* index of this array is
                                                   the port_handle, */
   uint8_t sec_id[BTA_JV_NUM_SERVICE_ID];       /* service ID */
-  bool scn[BTA_JV_MAX_SCN];                    /* SCN allocated by java */
+  bool scn[RFCOMM_MAX_SCN];                    /* SCN allocated by java */
   uint16_t free_psm_list[BTA_JV_MAX_L2C_CONN]; /* PSMs freed by java
                                                 (can be reused) */
   uint8_t sdp_active;                          /* see BTA_JV_SDP_ACT_* */

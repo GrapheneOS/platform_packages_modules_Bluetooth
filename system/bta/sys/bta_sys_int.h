@@ -53,7 +53,7 @@ typedef struct {
   tBTA_SYS_CONN_CBACK* prm_cb; /* role management callback registered by DM */
   tBTA_SYS_CONN_CBACK*
       ppm_cb; /* low power management callback registered by DM */
-  tBTA_SYS_CONN_CBACK*
+  tBTA_SYS_CONN_SCO_CBACK*
       p_sco_cb; /* SCO connection change callback registered by AV */
   tBTA_SYS_ROLE_SWITCH_CBACK*
       p_role_cb;                  /* role change callback registered by AV */
