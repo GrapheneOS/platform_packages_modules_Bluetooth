@@ -3575,8 +3575,8 @@ static void InjectCisDisconnected(LeAudioDeviceGroup* group,
   bluetooth::hci::iso_manager::cis_disconnected_evt event;
 
   for (auto const ase : leAudioDevice->ases_) {
-    if (ase.data_path_state != types::AudioStreamDataPathState::CIS_ASSIGNED &&
-        ase.data_path_state != types::AudioStreamDataPathState::IDLE) {
+    if (ase.cis_state != types::CisState::ASSIGNED &&
+        ase.cis_state != types::CisState::IDLE) {
       event.reason = reason;
       event.cig_id = group->group_id_;
       event.cis_conn_hdl = ase.cis_conn_hdl;

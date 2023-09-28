@@ -771,15 +771,18 @@ uint8_t GetMaxCodecFramesPerSduFromPac(const acs_ac_record* pac) {
 }
 
 namespace types {
-std::ostream& operator<<(std::ostream& os,
-                         const AudioStreamDataPathState& state) {
-  static const char* char_value_[7] = {"IDLE",
-                                       "CIS_DISCONNECTING",
-                                       "CIS_ASSIGNED",
-                                       "CIS_PENDING",
-                                       "CIS_ESTABLISHED",
-                                       "DATA_PATH_ESTABLISHED",
-                                       "DATA_PATH_REMOVING"};
+std::ostream& operator<<(std::ostream& os, const CisState& state) {
+  static const char* char_value_[5] = {"IDLE", "ASSIGNED", "CONNECTING",
+                                       "CONNECTED", "DISCONNECTING"};
+
+  os << char_value_[static_cast<uint8_t>(state)] << " ("
+     << "0x" << std::setfill('0') << std::setw(2) << static_cast<int>(state)
+     << ")";
+  return os;
+}
+std::ostream& operator<<(std::ostream& os, const DataPathState& state) {
+  static const char* char_value_[4] = {"IDLE", "CONFIGURING", "CONFIGURED",
+                                       "REMOVING"};
 
   os << char_value_[static_cast<uint8_t>(state)] << " ("
      << "0x" << std::setfill('0') << std::setw(2) << static_cast<int>(state)
