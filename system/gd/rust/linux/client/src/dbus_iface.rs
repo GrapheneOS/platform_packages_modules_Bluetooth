@@ -929,6 +929,11 @@ impl IBluetooth for BluetoothDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("GetRemoteRSSI")]
+    fn get_remote_rssi(&self, device: BluetoothDevice) -> i8 {
+        dbus_generated!()
+    }
+
     #[dbus_method("GetConnectedDevices")]
     fn get_connected_devices(&self) -> Vec<BluetoothDevice> {
         dbus_generated!()
