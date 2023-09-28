@@ -90,8 +90,8 @@ using le_audio::types::ase;
 using le_audio::types::AseState;
 using le_audio::types::AudioContexts;
 using le_audio::types::AudioLocations;
-using le_audio::types::AudioStreamDataPathState;
 using le_audio::types::BidirectionalPair;
+using le_audio::types::DataPathState;
 using le_audio::types::hdl_pair;
 using le_audio::types::kDefaultScanDurationS;
 using le_audio::types::kLeAudioContextAllBidir;
@@ -3035,8 +3035,7 @@ class LeAudioClientImpl : public LeAudioClient {
   bool IsAseAcceptingAudioData(struct ase* ase) {
     if (ase == nullptr) return false;
     if (ase->state != AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) return false;
-    if (ase->data_path_state != AudioStreamDataPathState::DATA_PATH_ESTABLISHED)
-      return false;
+    if (ase->data_path_state != DataPathState::CONFIGURED) return false;
 
     return true;
   }
