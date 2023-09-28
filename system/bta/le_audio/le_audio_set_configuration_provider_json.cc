@@ -773,8 +773,8 @@ bool AudioSetConfigurationProvider::CheckConfigurationIsBiDirSwb(
 
 bool AudioSetConfigurationProvider::CheckConfigurationIsDualBiDirSwb(
     const set_configurations::AudioSetConfiguration& set_configuration) const {
-  bool single_dev_dual_bidir_swb = false;
-  bool dual_dev_dual_bidir_swb = false;
+  uint8_t single_dev_dual_bidir_swb = 0;
+  uint8_t dual_dev_dual_bidir_swb = 0;
 
   for (const auto& conf : set_configuration.confs) {
     if (conf.codec.GetConfigSamplingFrequency() <
