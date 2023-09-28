@@ -22,50 +22,15 @@
 #include <base/logging.h>
 #include <base/run_loop.h>
 #include <base/threading/thread.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "bta/sys/bta_sys.h"
-#include "btcore/include/module.h"
-#include "btif/include/btif_common.h"
-#include "btm_iso_api.h"
 #include "common/message_loop_thread.h"
-#include "osi/include/allocator.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
-#include "stack/include/acl_hci_link_interface.h"
-#include "stack/include/bt_hdr.h"
+#include "include/hardware/bluetooth.h"
+#include "os/log.h"
 #include "stack/include/btu.h"
-#include "stack/include/btu_hcif.h"
 
 using bluetooth::common::MessageLoopThread;
-using bluetooth::hci::IsoManager;
-
-/* Define BTU storage area */
-uint8_t btu_trace_level = HCI_INITIAL_TRACE_LEVEL;
 
 static MessageLoopThread main_thread("bt_main_thread");
-
-void btu_hci_msg_process(BT_HDR* p_msg) {
-  /* Determine the input message type. */
-  switch (p_msg->event & BT_EVT_MASK) {
-    case BT_EVT_TO_BTU_HCI_EVT:
-      btu_hcif_process_event((uint8_t)(p_msg->event & BT_SUB_EVT_MASK), p_msg);
-      osi_free(p_msg);
-      break;
-
-    case BT_EVT_TO_BTU_HCI_ISO:
-      IsoManager::GetInstance()->HandleIsoData(p_msg);
-      osi_free(p_msg);
-      break;
-
-    default:
-      osi_free(p_msg);
-      break;
-  }
-}
 
 bluetooth::common::MessageLoopThread* get_main_thread() { return &main_thread; }
 
