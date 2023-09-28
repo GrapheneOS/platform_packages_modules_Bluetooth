@@ -51,9 +51,10 @@ using le_audio::types::ase;
 using le_audio::types::AseState;
 using le_audio::types::AudioContexts;
 using le_audio::types::AudioLocations;
-using le_audio::types::AudioStreamDataPathState;
 using le_audio::types::BidirectionalPair;
+using le_audio::types::CisState;
 using le_audio::types::CisType;
+using le_audio::types::DataPathState;
 using le_audio::types::LeAudioCodecId;
 using le_audio::types::LeAudioContextType;
 using le_audio::types::LeAudioLc3Config;
@@ -467,18 +468,19 @@ LeAudioDevice* LeAudioDeviceGroup::GetNextActiveDevice(
   return (iter == leAudioDevices_.end()) ? nullptr : (iter->lock()).get();
 }
 
-LeAudioDevice* LeAudioDeviceGroup::GetFirstActiveDeviceByDataPathState(
-    AudioStreamDataPathState data_path_state) const {
-  auto iter = std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(),
-                           [&data_path_state](auto& d) {
-                             if (d.expired()) {
-                               return false;
-                             }
+LeAudioDevice* LeAudioDeviceGroup::GetFirstActiveDeviceByCisAndDataPathState(
+    CisState cis_state, DataPathState data_path_state) const {
+  auto iter =
+      std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(),
+                   [&data_path_state, &cis_state](auto& d) {
+                     if (d.expired()) {
+                       return false;
+                     }
 
-                             return (((d.lock()).get())
-                                         ->GetFirstActiveAseByDataPathState(
-                                             data_path_state) != nullptr);
-                           });
+                     return (((d.lock()).get())
+                                 ->GetFirstActiveAseByCisAndDataPathState(
+                                     cis_state, data_path_state) != nullptr);
+                   });
 
   if (iter == leAudioDevices_.end()) {
     return nullptr;
@@ -487,9 +489,9 @@ LeAudioDevice* LeAudioDeviceGroup::GetFirstActiveDeviceByDataPathState(
   return iter->lock().get();
 }
 
-LeAudioDevice* LeAudioDeviceGroup::GetNextActiveDeviceByDataPathState(
-    LeAudioDevice* leAudioDevice,
-    AudioStreamDataPathState data_path_state) const {
+LeAudioDevice* LeAudioDeviceGroup::GetNextActiveDeviceByCisAndDataPathState(
+    LeAudioDevice* leAudioDevice, CisState cis_state,
+    DataPathState data_path_state) const {
   auto iter = std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(),
                            [&leAudioDevice](auto& d) {
                              if (d.expired()) {
@@ -503,16 +505,16 @@ LeAudioDevice* LeAudioDeviceGroup::GetNextActiveDeviceByDataPathState(
     return nullptr;
   }
 
-  iter = std::find_if(
-      std::next(iter, 1), leAudioDevices_.end(), [&data_path_state](auto& d) {
-        if (d.expired()) {
-          return false;
-        }
+  iter = std::find_if(std::next(iter, 1), leAudioDevices_.end(),
+                      [&cis_state, &data_path_state](auto& d) {
+                        if (d.expired()) {
+                          return false;
+                        }
 
-        return (((d.lock()).get())
-                    ->GetFirstActiveAseByDataPathState(data_path_state) !=
-                nullptr);
-      });
+                        return (((d.lock()).get())
+                                    ->GetFirstActiveAseByCisAndDataPathState(
+                                        cis_state, data_path_state) != nullptr);
+                      });
 
   if (iter == leAudioDevices_.end()) {
     return nullptr;
@@ -1208,25 +1210,25 @@ void LeAudioDeviceGroup::CigAssignCisConnHandlesToAses(
 
   /* Assign all CIS connection handles to ases */
   struct le_audio::types::ase* ase =
-      leAudioDevice->GetFirstActiveAseByDataPathState(
-          AudioStreamDataPathState::IDLE);
+      leAudioDevice->GetFirstActiveAseByCisAndDataPathState(
+          CisState::IDLE, DataPathState::IDLE);
   if (!ase) {
-    LOG_WARN("No active ASE with AudioStreamDataPathState IDLE");
+    LOG_WARN("No active ASE with Cis and Data path state set to IDLE");
     return;
   }
 
-  for (; ase != nullptr; ase = leAudioDevice->GetFirstActiveAseByDataPathState(
-                             AudioStreamDataPathState::IDLE)) {
+  for (; ase != nullptr;
+       ase = leAudioDevice->GetFirstActiveAseByCisAndDataPathState(
+           CisState::IDLE, DataPathState::IDLE)) {
     auto ases_pair = leAudioDevice->GetAsesByCisId(ase->cis_id);
 
     if (ases_pair.sink && ases_pair.sink->active) {
       ases_pair.sink->cis_conn_hdl = cises_[ase->cis_id].conn_handle;
-      ases_pair.sink->data_path_state = AudioStreamDataPathState::CIS_ASSIGNED;
+      ases_pair.sink->cis_state = CisState::ASSIGNED;
     }
     if (ases_pair.source && ases_pair.source->active) {
       ases_pair.source->cis_conn_hdl = cises_[ase->cis_id].conn_handle;
-      ases_pair.source->data_path_state =
-          AudioStreamDataPathState::CIS_ASSIGNED;
+      ases_pair.source->cis_state = CisState::ASSIGNED;
     }
   }
 }
@@ -2470,12 +2472,14 @@ struct ase* LeAudioDevice::GetNextActiveAseWithDifferentDirection(
   return &(*iter);
 }
 
-struct ase* LeAudioDevice::GetFirstActiveAseByDataPathState(
-    types::AudioStreamDataPathState state) {
-  auto iter =
-      std::find_if(ases_.begin(), ases_.end(), [state](const auto& ase) {
-        return (ase.active && (ase.data_path_state == state));
-      });
+struct ase* LeAudioDevice::GetFirstActiveAseByCisAndDataPathState(
+    types::CisState cis_state, types::DataPathState data_path_state) {
+  auto iter = std::find_if(ases_.begin(), ases_.end(),
+                           [cis_state, data_path_state](const auto& ase) {
+                             return (ase.active &&
+                                     (ase.data_path_state == data_path_state) &&
+                                     (ase.cis_state == cis_state));
+                           });
 
   return (iter == ases_.end()) ? nullptr : &(*iter);
 }
@@ -2589,9 +2593,12 @@ bool LeAudioDevice::HaveAnyUnconfiguredAses(void) {
 }
 
 bool LeAudioDevice::HaveAllActiveAsesSameState(AseState state) {
-  auto iter = std::find_if(
-      ases_.begin(), ases_.end(),
-      [&state](const auto& ase) { return ase.active && (ase.state != state); });
+  auto iter =
+      std::find_if(ases_.begin(), ases_.end(), [&state](const auto& ase) {
+        LOG_INFO("id: %d, active: %d, state: %d", ase.id, ase.active,
+                 (int)ase.state);
+        return ase.active && (ase.state != state);
+      });
 
   return iter == ases_.end();
 }
@@ -2643,8 +2650,7 @@ bool LeAudioDevice::HaveAllActiveAsesCisEst(void) {
   }
 
   auto iter = std::find_if(ases_.begin(), ases_.end(), [](const auto& ase) {
-    return ase.active &&
-           (ase.data_path_state != AudioStreamDataPathState::CIS_ESTABLISHED);
+    return ase.active && (ase.cis_state != CisState::CONNECTED);
   });
 
   return iter == ases_.end();
@@ -2653,8 +2659,8 @@ bool LeAudioDevice::HaveAllActiveAsesCisEst(void) {
 bool LeAudioDevice::HaveAnyCisConnected(void) {
   /* Pending and Disconnecting is considered as connected in this function */
   for (auto const ase : ases_) {
-    if (ase.data_path_state != AudioStreamDataPathState::CIS_ASSIGNED &&
-        ase.data_path_state != AudioStreamDataPathState::IDLE) {
+    if (ase.cis_state != CisState::ASSIGNED &&
+        ase.cis_state != CisState::IDLE) {
       return true;
     }
   }
@@ -2788,7 +2794,9 @@ void LeAudioDevice::PrintDebugState(void) {
                 << (ase.direction == types::kLeAudioDirectionSink ? "sink"
                                                                   : "source")
                 << ", cis_id: " << +ase.cis_id
-                << ", cis_handle: " << +ase.cis_conn_hdl << ", state: "
+                << ", cis_handle: " << +ase.cis_conn_hdl
+                << ", state: " << bluetooth::common::ToString(ase.cis_state)
+                << ", data_path_state: "
                 << bluetooth::common::ToString(ase.data_path_state)
                 << "\n ase max_latency: " << +ase.max_transport_latency
                 << ", rtn: " << +ase.retrans_nb
@@ -2863,8 +2871,8 @@ void LeAudioDevice::Dump(int fd) {
 
   if (ases_.size() > 0) {
     stream << "\n\t== ASEs == \n\t";
-    stream
-        << "id  active dir     cis_id  cis_handle  sdu  latency rtn  state";
+    stream << "id  active dir     cis_id  cis_handle  sdu  latency rtn  "
+              "cis_state data_path_state";
     for (auto& ase : ases_) {
       stream << std::setfill('\x20') << "\n\t" << std::left << std::setw(4)
              << static_cast<int>(ase.id) << std::left << std::setw(7)
@@ -2875,7 +2883,8 @@ void LeAudioDevice::Dump(int fd) {
              << std::left << std::setw(12) << ase.cis_conn_hdl << std::left
              << std::setw(5) << ase.max_sdu_size << std::left << std::setw(8)
              << ase.max_transport_latency << std::left << std::setw(5)
-             << static_cast<int>(ase.retrans_nb) << std::left << std::setw(12)
+             << static_cast<int>(ase.retrans_nb) << std::left << std::setw(10)
+             << bluetooth::common::ToString(ase.cis_state) << std::setw(12)
              << bluetooth::common::ToString(ase.data_path_state);
     }
   }
@@ -2936,17 +2945,18 @@ bool LeAudioDevice::ActivateConfiguredAses(LeAudioContextType context_type) {
 
 void LeAudioDevice::DeactivateAllAses(void) {
   for (auto& ase : ases_) {
-    if (ase.active == false &&
-        ase.data_path_state != AudioStreamDataPathState::IDLE) {
+    if (ase.active == false && ase.cis_state != CisState::IDLE &&
+        ase.data_path_state != DataPathState::IDLE) {
       LOG_WARN(
           " %s, ase_id: %d, ase.cis_id: %d, cis_handle: 0x%02x, "
-          "ase.data_path=%s",
+          "ase.cis_state=%s, ase.data_path_state=%s",
           ADDRESS_TO_LOGGABLE_CSTR(address_), ase.id, ase.cis_id,
-          ase.cis_conn_hdl,
+          ase.cis_conn_hdl, bluetooth::common::ToString(ase.cis_state).c_str(),
           bluetooth::common::ToString(ase.data_path_state).c_str());
     }
     ase.state = AseState::BTA_LE_AUDIO_ASE_STATE_IDLE;
-    ase.data_path_state = AudioStreamDataPathState::IDLE;
+    ase.cis_state = CisState::IDLE;
+    ase.data_path_state = DataPathState::IDLE;
     ase.active = false;
     ase.cis_id = le_audio::kInvalidCisId;
     ase.cis_conn_hdl = 0;
