@@ -128,8 +128,7 @@ struct codec_manager_impl {
   CodecLocation GetCodecLocation(void) const { return codec_location_; }
 
   bool IsOffloadDualBiDirSwbSupported(void) const {
-    return codec_location_ == le_audio::types::CodecLocation::ADSP &&
-           offload_dual_bidirection_swb_supported_;
+    return offload_dual_bidirection_swb_supported_;
   }
 
   void UpdateActiveAudioConfig(
