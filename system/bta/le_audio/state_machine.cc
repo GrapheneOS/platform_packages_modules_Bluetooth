@@ -103,10 +103,11 @@ using le_audio::LeAudioGroupStateMachine;
 using le_audio::types::ase;
 using le_audio::types::AseState;
 using le_audio::types::AudioContexts;
-using le_audio::types::AudioStreamDataPathState;
 using le_audio::types::BidirectionalPair;
 using le_audio::types::CigState;
+using le_audio::types::CisState;
 using le_audio::types::CodecLocation;
+using le_audio::types::DataPathState;
 using le_audio::types::LeAudioContextType;
 
 namespace {
@@ -558,7 +559,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       FreeLinkQualityReports(leAudioDevice);
 
       for (auto& ase : leAudioDevice->ases_) {
-        ase.data_path_state = AudioStreamDataPathState::IDLE;
+        ase.cis_state = CisState::IDLE;
+        ase.data_path_state = DataPathState::IDLE;
       }
     } while ((leAudioDevice = group->GetNextDevice(leAudioDevice)));
   }
@@ -580,15 +582,15 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     }
 
     /* Update state for the given cis.*/
-    auto ase = leAudioDevice->GetFirstActiveAseByDataPathState(
-        AudioStreamDataPathState::CIS_ESTABLISHED);
+    auto ase = leAudioDevice->GetFirstActiveAseByCisAndDataPathState(
+        CisState::CONNECTED, DataPathState::CONFIGURING);
 
     if (!ase || ase->cis_conn_hdl != conn_handle) {
       LOG(ERROR) << __func__ << " Cannot find ase by handle " << +conn_handle;
       return;
     }
 
-    ase->data_path_state = AudioStreamDataPathState::DATA_PATH_ESTABLISHED;
+    ase->data_path_state = DataPathState::CONFIGURED;
 
     if (group->GetTargetState() != AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
       LOG(WARNING) << __func__ << " Group " << group->group_id_
@@ -598,11 +600,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     AddCisToStreamConfiguration(group, ase);
 
-    ase = leAudioDevice->GetFirstActiveAseByDataPathState(
-        AudioStreamDataPathState::CIS_ESTABLISHED);
+    ase = leAudioDevice->GetFirstActiveAseByCisAndDataPathState(
+        CisState::CONNECTED, DataPathState::IDLE);
     if (!ase) {
-      leAudioDevice = group->GetNextActiveDeviceByDataPathState(
-          leAudioDevice, AudioStreamDataPathState::CIS_ESTABLISHED);
+      leAudioDevice = group->GetNextActiveDeviceByCisAndDataPathState(
+          leAudioDevice, CisState::CONNECTED, DataPathState::IDLE);
 
       if (!leAudioDevice) {
         state_machine_callbacks_->StatusReportCb(group->group_id_,
@@ -610,8 +612,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         return;
       }
 
-      ase = leAudioDevice->GetFirstActiveAseByDataPathState(
-          AudioStreamDataPathState::CIS_ESTABLISHED);
+      ase = leAudioDevice->GetFirstActiveAseByCisAndDataPathState(
+          CisState::CONNECTED, DataPathState::IDLE);
     }
 
     ASSERT_LOG(ase, "shouldn't be called without an active ASE");
@@ -637,18 +639,24 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     bool do_disconnect = false;
 
     auto ases_pair = leAudioDevice->GetAsesByCisConnHdl(conn_hdl);
-    if (ases_pair.sink && (ases_pair.sink->data_path_state ==
-                           AudioStreamDataPathState::DATA_PATH_REMOVING)) {
-      ases_pair.sink->data_path_state =
-          AudioStreamDataPathState::CIS_DISCONNECTING;
-      do_disconnect = true;
+    if (ases_pair.sink &&
+        (ases_pair.sink->data_path_state == DataPathState::REMOVING)) {
+      ases_pair.sink->data_path_state = DataPathState::IDLE;
+
+      if (ases_pair.sink->cis_state == CisState::CONNECTED) {
+        ases_pair.sink->cis_state = CisState::DISCONNECTING;
+        do_disconnect = true;
+      }
     }
 
-    if (ases_pair.source && ases_pair.source->data_path_state ==
-                                AudioStreamDataPathState::DATA_PATH_REMOVING) {
-      ases_pair.source->data_path_state =
-          AudioStreamDataPathState::CIS_DISCONNECTING;
-      do_disconnect = true;
+    if (ases_pair.source &&
+        (ases_pair.source->data_path_state == DataPathState::REMOVING)) {
+      ases_pair.source->data_path_state = DataPathState::IDLE;
+
+      if (ases_pair.source->cis_state == CisState::CONNECTED) {
+        ases_pair.source->cis_state = CisState::DISCONNECTING;
+        do_disconnect = true;
+      }
     }
 
     if (do_disconnect) {
@@ -826,12 +834,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
             " STATUS=" + loghex(event->status));
 
     if (event->status) {
-      if (ases_pair.sink)
-        ases_pair.sink->data_path_state =
-            AudioStreamDataPathState::CIS_ASSIGNED;
-      if (ases_pair.source)
-        ases_pair.source->data_path_state =
-            AudioStreamDataPathState::CIS_ASSIGNED;
+      if (ases_pair.sink) ases_pair.sink->cis_state = CisState::ASSIGNED;
+      if (ases_pair.source) ases_pair.source->cis_state = CisState::ASSIGNED;
 
       /* CIS establishment failed. Remove CIG if no other CIS is already created
        * or pending. If CIS is established, this will be handled in disconnected
@@ -856,12 +860,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return;
     }
 
-    if (ases_pair.sink)
-      ases_pair.sink->data_path_state =
-          AudioStreamDataPathState::CIS_ESTABLISHED;
-    if (ases_pair.source)
-      ases_pair.source->data_path_state =
-          AudioStreamDataPathState::CIS_ESTABLISHED;
+    if (ases_pair.sink) ases_pair.sink->cis_state = CisState::CONNECTED;
+    if (ases_pair.source) ases_pair.source->cis_state = CisState::CONNECTED;
 
     if (osi_property_get_bool("persist.bluetooth.iso_link_quality_report",
                               false)) {
@@ -901,8 +901,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     /* Cis establishment may came after setting group state to streaming, e.g.
      * for autonomous scenario when ase is sink */
     if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING &&
-        group->GetFirstActiveDeviceByDataPathState(
-            AudioStreamDataPathState::CIS_ESTABLISHED)) {
+        group->GetFirstActiveDeviceByCisAndDataPathState(CisState::CONNECTED,
+                                                         DataPathState::IDLE)) {
       /* No more transition for group */
       cancel_watchdog_if_needed(group->group_id_);
       PrepareDataPath(group);
@@ -934,19 +934,16 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     auto ases_pair = leAudioDevice->GetAsesByCisConnHdl(cis_conn_hdl);
     uint8_t value = 0;
 
-    if (ases_pair.sink && ases_pair.sink->data_path_state ==
-                              AudioStreamDataPathState::DATA_PATH_ESTABLISHED) {
+    if (ases_pair.sink &&
+        ases_pair.sink->data_path_state == DataPathState::CONFIGURED) {
       value |= bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput;
-      ases_pair.sink->data_path_state =
-          AudioStreamDataPathState::DATA_PATH_REMOVING;
+      ases_pair.sink->data_path_state = DataPathState::REMOVING;
     }
 
     if (ases_pair.source &&
-        ases_pair.source->data_path_state ==
-            AudioStreamDataPathState::DATA_PATH_ESTABLISHED) {
+        ases_pair.source->data_path_state == DataPathState::CONFIGURED) {
       value |= bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionOutput;
-      ases_pair.source->data_path_state =
-          AudioStreamDataPathState::DATA_PATH_REMOVING;
+      ases_pair.source->data_path_state = DataPathState::REMOVING;
     }
 
     if (value == 0) {
@@ -975,28 +972,27 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         kLogCisDisconnectedOp + "cis_h:" + loghex(event->cis_conn_hdl) +
             " REASON=" + loghex(event->reason));
 
+    if (ases_pair.sink) {
+      ases_pair.sink->cis_state = CisState::ASSIGNED;
+    }
+    if (ases_pair.source) {
+      ases_pair.source->cis_state = CisState::ASSIGNED;
+    }
+
     /* If this is peer disconnecting CIS, make sure to clear data path */
     if (event->reason != HCI_ERR_CONN_CAUSE_LOCAL_HOST) {
       RemoveDataPathByCisHandle(leAudioDevice, event->cis_conn_hdl);
       // Make sure we won't stay in STREAMING state
       if (ases_pair.sink &&
           ases_pair.sink->state == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-        ases_pair.sink->state =
-            AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED;
+        SetAseState(leAudioDevice, ases_pair.sink,
+                    AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED);
       }
       if (ases_pair.source && ases_pair.source->state ==
                                   AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-        ases_pair.source->state =
-            AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED;
+        SetAseState(leAudioDevice, ases_pair.source,
+                    AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED);
       }
-    }
-
-    if (ases_pair.sink) {
-      ases_pair.sink->data_path_state = AudioStreamDataPathState::CIS_ASSIGNED;
-    }
-    if (ases_pair.source) {
-      ases_pair.source->data_path_state =
-          AudioStreamDataPathState::CIS_ASSIGNED;
     }
 
     group->RemoveCisFromStreamIfNeeded(leAudioDevice, event->cis_conn_hdl);
@@ -1113,8 +1109,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     }
 
     /* Tear down CIS's data paths within the group */
-    struct ase* ase = leAudioDevice->GetFirstActiveAseByDataPathState(
-        AudioStreamDataPathState::DATA_PATH_ESTABLISHED);
+    struct ase* ase = leAudioDevice->GetFirstActiveAseByCisAndDataPathState(
+        CisState::CONNECTED, DataPathState::CONFIGURED);
     if (!ase) {
       leAudioDevice = group->GetNextActiveDevice(leAudioDevice);
       /* No more ASEs to disconnect their CISes */
@@ -1124,8 +1120,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     }
 
     LOG_ASSERT(ase) << __func__ << " shouldn't be called without an active ASE";
-    if (ase->data_path_state ==
-        AudioStreamDataPathState::DATA_PATH_ESTABLISHED) {
+    if (ase->data_path_state == DataPathState::CONFIGURED) {
       RemoveDataPathByCisHandle(leAudioDevice, ase->cis_conn_hdl);
     }
   }
@@ -1401,14 +1396,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       auto ases_pair = leAudioDevice->GetAsesByCisConnHdl(ase->cis_conn_hdl);
 
       /* Already in pending state - bi-directional CIS */
-      if (ase->data_path_state == AudioStreamDataPathState::CIS_PENDING)
-        continue;
+      if (ase->cis_state == CisState::CONNECTING) continue;
 
-      if (ases_pair.sink)
-        ases_pair.sink->data_path_state = AudioStreamDataPathState::CIS_PENDING;
-      if (ases_pair.source)
-        ases_pair.source->data_path_state =
-            AudioStreamDataPathState::CIS_PENDING;
+      if (ases_pair.sink) ases_pair.sink->cis_state = CisState::CONNECTING;
+      if (ases_pair.source) ases_pair.source->cis_state = CisState::CONNECTING;
 
       uint16_t acl_handle =
           BTM_GetHCIConnHandle(leAudioDevice->address_, BT_TRANSPORT_LE);
@@ -1455,15 +1446,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         auto ases_pair = leAudioDevice->GetAsesByCisConnHdl(ase->cis_conn_hdl);
 
         /* Already in pending state - bi-directional CIS */
-        if (ase->data_path_state == AudioStreamDataPathState::CIS_PENDING)
-          continue;
+        if (ase->cis_state == CisState::CONNECTING) continue;
 
-        if (ases_pair.sink)
-          ases_pair.sink->data_path_state =
-              AudioStreamDataPathState::CIS_PENDING;
+        if (ases_pair.sink) ases_pair.sink->cis_state = CisState::CONNECTING;
         if (ases_pair.source)
-          ases_pair.source->data_path_state =
-              AudioStreamDataPathState::CIS_PENDING;
+          ases_pair.source->cis_state = CisState::CONNECTING;
 
         uint16_t acl_handle =
             BTM_GetHCIConnHandle(leAudioDevice->address_, BT_TRANSPORT_LE);
@@ -1481,7 +1468,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     return true;
   }
 
-  static void PrepareDataPath(int group_id, const struct ase* ase) {
+  static void PrepareDataPath(int group_id, struct ase* ase) {
     bluetooth::hci::iso_manager::iso_data_path_params param = {
         .data_path_dir =
             ase->direction == le_audio::types::kLeAudioDirectionSink
@@ -1502,18 +1489,19 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         kLogSetDataPathOp + "cis_h:" + loghex(ase->cis_conn_hdl),
         "direction: " + loghex(param.data_path_dir));
 
+    ase->data_path_state = DataPathState::CONFIGURING;
     IsoManager::GetInstance()->SetupIsoDataPath(ase->cis_conn_hdl,
                                                 std::move(param));
   }
 
   static inline void PrepareDataPath(LeAudioDeviceGroup* group) {
-    auto* leAudioDevice = group->GetFirstActiveDeviceByDataPathState(
-        AudioStreamDataPathState::CIS_ESTABLISHED);
+    auto* leAudioDevice = group->GetFirstActiveDeviceByCisAndDataPathState(
+        CisState::CONNECTED, DataPathState::IDLE);
     LOG_ASSERT(leAudioDevice)
         << __func__ << " Shouldn't be called without an active device.";
 
-    auto* ase = leAudioDevice->GetFirstActiveAseByDataPathState(
-        AudioStreamDataPathState::CIS_ESTABLISHED);
+    auto* ase = leAudioDevice->GetFirstActiveAseByCisAndDataPathState(
+        CisState::CONNECTED, DataPathState::IDLE);
     LOG_ASSERT(ase) << __func__ << " shouldn't be called without an active ASE";
     PrepareDataPath(group->group_id_, ase);
   }
@@ -1523,8 +1511,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     LOG_ASSERT(leAudioDevice)
         << __func__ << " Shouldn't be called without an active device.";
 
-    auto ase = leAudioDevice->GetFirstActiveAseByDataPathState(
-        AudioStreamDataPathState::DATA_PATH_ESTABLISHED);
+    auto ase = leAudioDevice->GetFirstActiveAseByCisAndDataPathState(
+        CisState::CONNECTED, DataPathState::CONFIGURED);
     LOG_ASSERT(ase) << __func__
                     << " Shouldn't be called without an active ASE.";
     RemoveDataPathByCisHandle(leAudioDevice, ase->cis_conn_hdl);
@@ -2477,7 +2465,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                     AseState::BTA_LE_AUDIO_ASE_STATE_ENABLING);
 
         if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-          if (ase->data_path_state < AudioStreamDataPathState::CIS_PENDING) {
+          if (ase->cis_state < CisState::CONNECTING) {
             /* We are here because of the reconnection of the single device. */
             if (!CisCreateForDevice(group, leAudioDevice)) {
               StopStream(group);
@@ -2587,13 +2575,13 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         /* This case may happen because of the reconnection device. */
         if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
           /* Not all CISes establish evens came */
-          if (group->GetFirstActiveDeviceByDataPathState(
-                  AudioStreamDataPathState::CIS_PENDING))
+          if (group->GetFirstActiveDeviceByCisAndDataPathState(
+                  CisState::CONNECTING, DataPathState::IDLE))
             return;
 
           /* Streaming status notification came after setting data path */
-          if (!group->GetFirstActiveDeviceByDataPathState(
-                  AudioStreamDataPathState::CIS_ESTABLISHED))
+          if (!group->GetFirstActiveDeviceByCisAndDataPathState(
+                  CisState::CONNECTED, DataPathState::IDLE))
             return;
           PrepareDataPath(group);
           return;
@@ -2696,17 +2684,17 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                              LeAudioDevice* leAudioDevice, struct ase* ase) {
     LOG_DEBUG(
         "Group id: %d, %s, ase id: %d, cis_handle: 0x%04x, direction: %s, "
-        "data_path_state: %s",
+        "data_path_state: %s, cis_state: %s",
         group->group_id_, ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
         ase->id, ase->cis_conn_hdl,
         ase->direction == le_audio::types::kLeAudioDirectionSink ? "sink"
                                                                  : "source",
-        bluetooth::common::ToString(ase->data_path_state).c_str());
+        bluetooth::common::ToString(ase->data_path_state).c_str(),
+        bluetooth::common::ToString(ase->cis_state).c_str());
 
     auto bidirection_ase = leAudioDevice->GetAseToMatchBidirectionCis(ase);
     if (bidirection_ase != nullptr &&
-        bidirection_ase->data_path_state ==
-            AudioStreamDataPathState::CIS_ESTABLISHED &&
+        bidirection_ase->cis_state == CisState::CONNECTED &&
         (bidirection_ase->state == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING ||
          bidirection_ase->state == AseState::BTA_LE_AUDIO_ASE_STATE_ENABLING)) {
       LOG_INFO("Still waiting for the bidirectional ase %d to be released (%s)",
@@ -2759,16 +2747,13 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                     AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING);
 
         /* Happens when bi-directional completive ASE releasing state came */
-        if (ase->data_path_state == AudioStreamDataPathState::CIS_DISCONNECTING)
-          break;
+        if (ase->cis_state == CisState::DISCONNECTING) break;
 
-        if (ase->data_path_state ==
-            AudioStreamDataPathState::DATA_PATH_ESTABLISHED) {
+        if (ase->data_path_state == DataPathState::CONFIGURED) {
           RemoveDataPathByCisHandle(leAudioDevice, ase->cis_conn_hdl);
-        } else if (ase->data_path_state ==
-                       AudioStreamDataPathState::CIS_ESTABLISHED ||
-                   ase->data_path_state ==
-                       AudioStreamDataPathState::CIS_PENDING) {
+        } else if ((ase->cis_state == CisState::CONNECTED ||
+                    ase->cis_state == CisState::CONNECTING) &&
+                   ase->data_path_state == DataPathState::IDLE) {
           DisconnectCisIfNeeded(group, leAudioDevice, ase);
         } else {
           DLOG(INFO) << __func__ << ", Nothing to do ase data path state: "

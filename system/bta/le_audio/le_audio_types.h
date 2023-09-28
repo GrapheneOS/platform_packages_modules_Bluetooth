@@ -344,14 +344,19 @@ enum class AseState : uint8_t {
   BTA_LE_AUDIO_ASE_STATE_RELEASING = 0x06,
 };
 
-enum class AudioStreamDataPathState {
+enum class CisState {
   IDLE,
-  CIS_DISCONNECTING,
-  CIS_ASSIGNED,
-  CIS_PENDING,
-  CIS_ESTABLISHED,
-  DATA_PATH_ESTABLISHED,
-  DATA_PATH_REMOVING,
+  ASSIGNED,
+  CONNECTING,
+  CONNECTED,
+  DISCONNECTING,
+};
+
+enum class DataPathState {
+  IDLE,
+  CONFIGURING,
+  CONFIGURED,
+  REMOVING,
 };
 
 enum class CisType {
@@ -704,7 +709,8 @@ struct ase {
         target_latency(types::kTargetLatencyBalancedLatencyReliability),
         active(false),
         reconfigure(false),
-        data_path_state(AudioStreamDataPathState::IDLE),
+        cis_state(CisState::IDLE),
+        data_path_state(DataPathState::IDLE),
         configured_for_context_type(LeAudioContextType::UNINITIALIZED),
         preferred_phy(0),
         is_codec_in_controller(false),
@@ -727,7 +733,8 @@ struct ase {
 
   bool active;
   bool reconfigure;
-  AudioStreamDataPathState data_path_state;
+  CisState cis_state;
+  DataPathState data_path_state;
   LeAudioContextType configured_for_context_type;
 
   /* Codec configuration */
@@ -772,8 +779,8 @@ std::ostream& operator<<(std::ostream& os, const CigState& state);
 std::ostream& operator<<(std::ostream& os, const LeAudioLc3Config& config);
 std::string contextTypeToStr(const LeAudioContextType& context);
 std::ostream& operator<<(std::ostream& os, const LeAudioContextType& context);
-std::ostream& operator<<(std::ostream& os,
-                         const AudioStreamDataPathState& state);
+std::ostream& operator<<(std::ostream& os, const DataPathState& state);
+std::ostream& operator<<(std::ostream& os, const CisState& state);
 std::ostream& operator<<(std::ostream& os, const AudioContexts& contexts);
 }  // namespace types
 
