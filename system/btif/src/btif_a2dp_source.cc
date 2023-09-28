@@ -185,6 +185,7 @@ class BtifA2dpSource {
   BtifA2dpSource()
       : tx_audio_queue(nullptr),
         tx_flush(false),
+        sw_audio_is_encoding(false),
         encoder_interface(nullptr),
         encoder_interval_ms(0),
         state_(kStateOff) {}
@@ -220,6 +221,7 @@ class BtifA2dpSource {
 
   fixed_queue_t* tx_audio_queue;
   bool tx_flush; /* Discards any outgoing data when true */
+  bool sw_audio_is_encoding;
   RepeatingTimer media_alarm;
   const tA2DP_ENCODER_INTERFACE* encoder_interface;
   uint64_t encoder_interval_ms; /* Local copy of the encoder interval */
@@ -723,6 +725,8 @@ void btif_a2dp_source_on_idle(void) {
 void btif_a2dp_source_on_stopped(tBTA_AV_SUSPEND* p_av_suspend) {
   LOG_INFO("%s: state=%s", __func__, btif_a2dp_source_cb.StateStr().c_str());
 
+  btif_a2dp_source_cb.sw_audio_is_encoding = false;
+
   // allow using this API for other (acknowledgement and stopping media task)
   // than suspend
   if (p_av_suspend != nullptr && p_av_suspend->status != BTA_AV_SUCCESS) {
@@ -822,6 +826,7 @@ static void btif_a2dp_source_audio_tx_start_event(void) {
       base::Milliseconds(
 #endif
           btif_a2dp_source_cb.encoder_interface->get_encoder_interval_ms()));
+  btif_a2dp_source_cb.sw_audio_is_encoding = true;
 
   btif_a2dp_source_cb.stats.Reset();
   // Assign session_start_us to 1 when
@@ -941,7 +946,7 @@ static uint32_t btif_a2dp_source_read_callback(uint8_t* p_buf, uint32_t len) {
     bytes_read = UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO, p_buf, len);
   }
 
-  if (bytes_read < len) {
+  if (btif_a2dp_source_cb.sw_audio_is_encoding && bytes_read < len) {
     LOG_WARN("%s: UNDERFLOW: ONLY READ %d BYTES OUT OF %d", __func__,
              bytes_read, len);
     btif_a2dp_source_cb.stats.media_read_total_underflow_bytes +=
