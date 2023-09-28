@@ -1212,6 +1212,14 @@ public class LeAudioService extends ProfileService {
                 this, intent, BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
     }
 
+    void sentActiveDeviceChangeIntent(BluetoothDevice device) {
+        Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.addFlags(
+                Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
+                        | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+        sendBroadcast(intent, BLUETOOTH_CONNECT);
+    }
     /**
      * Send broadcast intent about LeAudio active device.
      * This is called when AudioManager confirms, LeAudio device
@@ -1225,11 +1233,8 @@ public class LeAudioService extends ProfileService {
         }
 
         mAdapterService.handleActiveDeviceChange(BluetoothProfile.LE_AUDIO, device);
-        Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
-                | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-        sendBroadcast(intent, BLUETOOTH_CONNECT);
+        sentActiveDeviceChangeIntent(device);
+        mExposedActiveDevice = device;
     }
 
     boolean isScannerNeeded() {
@@ -1330,7 +1335,6 @@ public class LeAudioService extends ProfileService {
                     continue;
                 }
 
-                mExposedActiveDevice = device;
                 notifyActiveDeviceChanged(device);
                 return;
             }
@@ -1354,7 +1358,8 @@ public class LeAudioService extends ProfileService {
                     continue;
                 }
 
-                mExposedActiveDevice = null;
+                byte[] addressBytes = Utils.getBytesFromAddress(address);
+                BluetoothDevice device = mAdapterService.getDeviceFromByte(addressBytes);
 
                 if (DBG) {
                     Log.d(TAG, " onAudioDevicesRemoved: " + address + ", device type: "
@@ -1363,6 +1368,14 @@ public class LeAudioService extends ProfileService {
                             + ", mActiveAudioInDevice: " + mActiveAudioInDevice
                             + ", mActiveAudioOutDevice: " +  mActiveAudioOutDevice);
                 }
+
+                if (device != mExposedActiveDevice) {
+                    continue;
+                }
+
+                Log.i(TAG, "Audio manager disactivate LeAudio device " + mExposedActiveDevice);
+                mExposedActiveDevice = null;
+                setActiveDevice(null);
             }
         }
     }
@@ -1478,7 +1491,15 @@ public class LeAudioService extends ProfileService {
 
         if (groupId == currentlyActiveGroupId) {
             if (groupId != LE_AUDIO_GROUP_ID_INVALID) {
-                Log.w(TAG, "group is already active: device=" + device + ", groupId = " + groupId);
+                Log.w(
+                        TAG,
+                        "group is already active: device="
+                                + device
+                                + ", groupId = "
+                                + groupId
+                                + ", exposedDevice: "
+                                + mExposedActiveDevice);
+                sentActiveDeviceChangeIntent(mExposedActiveDevice);
             }
             return;
         }
@@ -3713,8 +3734,8 @@ public class LeAudioService extends ProfileService {
                     throw new IllegalStateException("service is null");
                 }
                 enforceBluetoothPrivilegedPermission(service);
-                service.setVolume(volume);
                 receiver.send(null);
+                service.setVolume(volume);
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
