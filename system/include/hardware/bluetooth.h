@@ -394,6 +394,13 @@ typedef enum {
    */
   BT_PROPERTY_REMOTE_MODEL_NUM,
 
+  /**
+   * Description - Address type of the remote device - PUBLIC or REMOTE
+   * Access mode - GET.
+   * Data Type - uint8_t.
+   */
+  BT_PROPERTY_REMOTE_ADDR_TYPE,
+
   BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP = 0xFF,
 } bt_property_type_t;
 
