@@ -1044,35 +1044,37 @@ public class BassClientServiceTest {
 
     @Test
     public void testActiveSyncedSource_AddRemoveGet() {
+        final int testSyncHandle = 1;
         prepareConnectedDeviceGroup();
         assertThat(mStateMachines.size()).isEqualTo(2);
 
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice)).isEqualTo(null);
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1)).isEqualTo(null);
 
-        BluetoothDevice testDevice =
-                mBluetoothAdapter.getRemoteLeDevice(
-                        TEST_MAC_ADDRESS, BluetoothDevice.ADDRESS_TYPE_RANDOM);
         // Verify add active synced source
-        mBassClientService.addActiveSyncedSource(mCurrentDevice, testDevice);
-        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testDevice);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice, testSyncHandle);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testSyncHandle);
         // Verify duplicated source won't be added
-        mBassClientService.addActiveSyncedSource(mCurrentDevice, testDevice);
-        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testDevice);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice, testSyncHandle);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testSyncHandle);
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice)).isNotEqualTo(null);
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1)).isNotEqualTo(null);
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice).size()).isEqualTo(1);
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1).size()).isEqualTo(1);
 
         // Verify remove active synced source
-        mBassClientService.removeActiveSyncedSource(mCurrentDevice, testDevice);
-        mBassClientService.removeActiveSyncedSource(mCurrentDevice1, testDevice);
+        mBassClientService.removeActiveSyncedSource(mCurrentDevice, testSyncHandle);
+        mBassClientService.removeActiveSyncedSource(mCurrentDevice1, testSyncHandle);
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice)).isEqualTo(null);
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1)).isEqualTo(null);
     }
 
     @Test
     public void testSelectSource_invalidActiveSource() {
+        final int testSyncHandle = 0;
+        final int testSyncHandle1 = 1;
+        final int testSyncHandle2 = 2;
+        final int testSyncHandle3 = 3;
         byte[] scanRecord = new byte[]{
                 0x02, 0x01, 0x1a, // advertising flags
                 0x05, 0x02, 0x52, 0x18, 0x0a, 0x11, // 16 bit service uuids
@@ -1091,37 +1093,21 @@ public class BassClientServiceTest {
         prepareConnectedDeviceGroup();
         assertThat(mStateMachines.size()).isEqualTo(2);
 
-        BluetoothDevice testDevice = mBluetoothAdapter.getRemoteLeDevice(
-                TEST_MAC_ADDRESS, BluetoothDevice.ADDRESS_TYPE_RANDOM);
-        BluetoothDevice testDevice1 = mBluetoothAdapter.getRemoteLeDevice(
-                "00:11:22:33:44:66", BluetoothDevice.ADDRESS_TYPE_RANDOM);
-        BluetoothDevice testDevice2 = mBluetoothAdapter.getRemoteLeDevice(
-                "00:11:22:33:44:77", BluetoothDevice.ADDRESS_TYPE_RANDOM);
-        BluetoothDevice testDevice3 = mBluetoothAdapter.getRemoteLeDevice(
-                "00:11:22:33:44:88", BluetoothDevice.ADDRESS_TYPE_RANDOM);
         // Verify add active synced source
-        mBassClientService.addActiveSyncedSource(mCurrentDevice, testDevice);
-        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testDevice);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice, testSyncHandle);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testSyncHandle);
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice)).isNotEqualTo(null);
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1)).isNotEqualTo(null);
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice).size()).isEqualTo(1);
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1).size()).isEqualTo(1);
 
-        // Verify selectSource with synced device should not proceed
-        ScanResult scanResult = new ScanResult(testDevice, 0, 0, 0, 0, 0, 0, 0, record, 0);
-        mBassClientService.selectSource(mCurrentDevice, scanResult, false);
-        mBassClientService.selectSource(mCurrentDevice1, scanResult, false);
-        for (BassClientStateMachine sm : mStateMachines.values()) {
-            verify(sm, never()).sendMessage(any());
-        }
-
         // Verify selectSource with max synced device should not proceed
-        mBassClientService.addActiveSyncedSource(mCurrentDevice, testDevice1);
-        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testDevice1);
-        mBassClientService.addActiveSyncedSource(mCurrentDevice, testDevice2);
-        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testDevice2);
-        mBassClientService.addActiveSyncedSource(mCurrentDevice, testDevice3);
-        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testDevice3);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice, testSyncHandle1);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testSyncHandle1);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice, testSyncHandle2);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testSyncHandle2);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice, testSyncHandle3);
+        mBassClientService.addActiveSyncedSource(mCurrentDevice1, testSyncHandle3);
 
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice)).isNotEqualTo(null);
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1)).isNotEqualTo(null);
@@ -1134,7 +1120,13 @@ public class BassClientServiceTest {
         mBassClientService.selectSource(mCurrentDevice, scanResult1, false);
         mBassClientService.selectSource(mCurrentDevice1, scanResult1, false);
         for (BassClientStateMachine sm : mStateMachines.values()) {
-            verify(sm, never()).sendMessage(any());
+            ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
+            verify(sm, atLeast(1)).sendMessage(messageCaptor.capture());
+
+            Optional<Message> msg = messageCaptor.getAllValues().stream()
+                    .filter(m -> m.what == BassClientStateMachine.REACHED_MAX_SOURCE_LIMIT)
+                    .findFirst();
+            assertThat(msg.isPresent()).isEqualTo(true);
         }
 
         // Verify remove all active synced source
@@ -1142,5 +1134,103 @@ public class BassClientServiceTest {
         mBassClientService.removeActiveSyncedSource(mCurrentDevice1, null);
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice)).isEqualTo(null);
         assertThat(mBassClientService.getActiveSyncedSources(mCurrentDevice1)).isEqualTo(null);
+    }
+
+    @Test
+    public void testPeriodicAdvertisementResultMap_updateGetAndModifyNotifiedFlag() {
+        final String testBroadcastName = "Test";
+        final int testSyncHandle = 1;
+        final int testBroadcastId = 42;
+        final int testBroadcastIdInvalid = 43;
+        final int testAdvertiserSid = 1234;
+        final int testAdvInterval = 100;
+
+        BluetoothDevice testDevice =
+                mBluetoothAdapter.getRemoteLeDevice(
+                        TEST_MAC_ADDRESS, BluetoothDevice.ADDRESS_TYPE_RANDOM);
+
+        // mock the update in selectSource
+        mBassClientService.updatePeriodicAdvertisementResultMap(
+                testDevice,
+                testDevice.getAddressType(),
+                BassConstants.INVALID_SYNC_HANDLE,
+                BassConstants.INVALID_ADV_SID,
+                testAdvInterval,
+                testBroadcastId,
+                null,
+                testBroadcastName);
+
+        // mock the update in onSyncEstablished
+        mBassClientService.updatePeriodicAdvertisementResultMap(
+                testDevice,
+                BassConstants.INVALID_ADV_ADDRESS_TYPE,
+                testSyncHandle,
+                testAdvertiserSid,
+                BassConstants.INVALID_ADV_INTERVAL,
+                BassConstants.INVALID_BROADCAST_ID,
+                null,
+                null);
+
+        assertThat(mBassClientService.getPeriodicAdvertisementResult(testDevice, testBroadcastIdInvalid))
+                .isEqualTo(null);
+        PeriodicAdvertisementResult paResult =
+                mBassClientService.getPeriodicAdvertisementResult(testDevice, testBroadcastId);
+        assertThat(paResult.getAddressType()).isEqualTo(BluetoothDevice.ADDRESS_TYPE_RANDOM);
+        assertThat(paResult.getSyncHandle()).isEqualTo(testSyncHandle);
+        assertThat(paResult.getAdvSid()).isEqualTo(testAdvertiserSid);
+        assertThat(paResult.getAdvInterval()).isEqualTo(testAdvInterval);
+        assertThat(paResult.getBroadcastName()).isEqualTo(testBroadcastName);
+
+        // validate modify notified flag
+        paResult.setNotified(true);
+        assertThat(paResult.isNotified()).isEqualTo(true);
+        mBassClientService.clearNotifiedFlags();
+        assertThat(paResult.isNotified()).isEqualTo(false);
+    }
+
+    @Test
+    public void testSyncHandleToBroadcastIdMap_getSyncHandleAndGetBroadcastId() {
+        final String testBroadcastName = "Test";
+        final int testSyncHandle = 1;
+        final int testSyncHandleInvalid = 2;
+        final int testBroadcastId = 42;
+        final int testBroadcastIdInvalid = 43;
+        final int testAdvertiserSid = 1234;
+        final int testAdvInterval = 100;
+
+        BluetoothDevice testDevice =
+                mBluetoothAdapter.getRemoteLeDevice(
+                        TEST_MAC_ADDRESS, BluetoothDevice.ADDRESS_TYPE_RANDOM);
+
+        // mock the update in selectSource
+        mBassClientService.updatePeriodicAdvertisementResultMap(
+                testDevice,
+                testDevice.getAddressType(),
+                BassConstants.INVALID_SYNC_HANDLE,
+                BassConstants.INVALID_ADV_SID,
+                testAdvInterval,
+                testBroadcastId,
+                null,
+                testBroadcastName);
+
+        // mock the update in onSyncEstablished
+        mBassClientService.updatePeriodicAdvertisementResultMap(
+                testDevice,
+                BassConstants.INVALID_ADV_ADDRESS_TYPE,
+                testSyncHandle,
+                testAdvertiserSid,
+                BassConstants.INVALID_ADV_INTERVAL,
+                BassConstants.INVALID_BROADCAST_ID,
+                null,
+                null);
+
+        assertThat(mBassClientService.getSyncHandleForBroadcastId(testBroadcastIdInvalid))
+                .isEqualTo(BassConstants.INVALID_SYNC_HANDLE);
+        assertThat(mBassClientService.getBroadcastIdForSyncHandle(testSyncHandleInvalid))
+                .isEqualTo(BassConstants.INVALID_BROADCAST_ID);
+        assertThat(mBassClientService.getSyncHandleForBroadcastId(testBroadcastId))
+                .isEqualTo(testSyncHandle);
+        assertThat(mBassClientService.getBroadcastIdForSyncHandle(testSyncHandle))
+                .isEqualTo(testBroadcastId);
     }
 }
