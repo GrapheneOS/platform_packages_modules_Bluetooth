@@ -1424,7 +1424,9 @@ bool LeAudioDeviceGroup::IsAudioSetConfigurationSupported(
       AudioSetConfigurationProvider::Get()->CheckConfigurationIsBiDirSwb(
           *audio_set_conf)) {
     if (!dual_bidirection_swb_supported_ ||
-        !CodecManager::GetInstance()->IsOffloadDualBiDirSwbSupported()) {
+        (CodecManager::GetInstance()->GetCodecLocation() ==
+             types::CodecLocation::ADSP &&
+         !CodecManager::GetInstance()->IsOffloadDualBiDirSwbSupported())) {
       /* two conditions
        * 1) dual bidirection swb is not supported for both software/offload
        * 2) offload not supported
