@@ -161,7 +161,7 @@ void ClassicSignallingManager::SendInformationRequest(InformationRequestInfoType
   }
 }
 
-void ClassicSignallingManager::SendEchoRequest(std::unique_ptr<packet::RawBuilder> payload) {
+void ClassicSignallingManager::SendEchoRequest(std::unique_ptr<packet::RawBuilder> /* payload */) {
   LOG_WARN("Not supported");
 }
 
@@ -242,8 +242,12 @@ void ClassicSignallingManager::on_security_result_for_incoming(
   link_->SendInitialConfigRequestOrQueue(new_channel->GetCid());
 }
 
-void ClassicSignallingManager::OnConnectionResponse(SignalId signal_id, Cid remote_cid, Cid cid,
-                                                    ConnectionResponseResult result, ConnectionResponseStatus status) {
+void ClassicSignallingManager::OnConnectionResponse(
+    SignalId signal_id,
+    Cid remote_cid,
+    Cid cid,
+    ConnectionResponseResult result,
+    ConnectionResponseStatus /* status */) {
   if (command_just_sent_.signal_id_ != signal_id ||
       command_just_sent_.command_code_ != CommandCode::CONNECTION_REQUEST) {
     LOG_WARN("Unexpected response: no pending request. Expected signal id %d type %s, got %d",
@@ -432,8 +436,8 @@ void ClassicSignallingManager::SendInitialConfigRequest(Cid local_cid) {
   send_configuration_request(channel->GetRemoteCid(), std::move(config));
 }
 
-void ClassicSignallingManager::negotiate_configuration(Cid cid, Continuation is_continuation,
-                                                       std::vector<std::unique_ptr<ConfigurationOption>> options) {
+void ClassicSignallingManager::negotiate_configuration(
+    Cid cid, Continuation, std::vector<std::unique_ptr<ConfigurationOption>> options) {
   auto channel = channel_allocator_->FindChannelByCid(cid);
   auto& configuration_state = channel_configuration_[channel->GetCid()];
   std::vector<std::unique_ptr<ConfigurationOption>> negotiation_config;
@@ -605,7 +609,8 @@ void ClassicSignallingManager::OnDisconnectionRequest(SignalId signal_id, Cid ci
   channel_configuration_.erase(cid);
 }
 
-void ClassicSignallingManager::OnDisconnectionResponse(SignalId signal_id, Cid remote_cid, Cid cid) {
+void ClassicSignallingManager::OnDisconnectionResponse(
+    SignalId signal_id, Cid /* remote_cid */, Cid cid) {
   if (command_just_sent_.signal_id_ != signal_id ||
       command_just_sent_.command_code_ != CommandCode::DISCONNECTION_REQUEST) {
     LOG_WARN("Unexpected response: no pending request. Expected signal id %d type %s, got %d",
@@ -641,7 +646,8 @@ void ClassicSignallingManager::OnEchoRequest(SignalId signal_id, const PacketVie
   enqueue_buffer_->Enqueue(std::move(builder), handler_);
 }
 
-void ClassicSignallingManager::OnEchoResponse(SignalId signal_id, const PacketView<kLittleEndian>& packet) {
+void ClassicSignallingManager::OnEchoResponse(
+    SignalId signal_id, const PacketView<kLittleEndian>& /* packet */) {
   if (command_just_sent_.signal_id_ != signal_id || command_just_sent_.command_code_ != CommandCode::ECHO_REQUEST) {
     LOG_WARN("Unexpected response: no pending request. Expected signal id %d type %s, got %d",
              command_just_sent_.signal_id_.Value(), CommandCodeText(command_just_sent_.command_code_).data(),

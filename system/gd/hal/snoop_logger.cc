@@ -643,7 +643,8 @@ bool SnoopLogger::ShouldFilterLog(bool is_received, uint8_t* packet) {
   return false;
 }
 
-void SnoopLogger::CalculateAclPacketLength(uint32_t& length, uint8_t* packet, bool is_received) {
+void SnoopLogger::CalculateAclPacketLength(
+    uint32_t& length, uint8_t* packet, bool /* is_received */) {
   uint32_t def_len =
       ((((uint16_t)packet[ACL_LENGTH_OFFSET + 1]) << 8) + packet[ACL_LENGTH_OFFSET]) +
       ACL_HEADER_LENGTH + PACKET_TYPE_LENGTH;
@@ -1309,7 +1310,7 @@ void SnoopLogger::DumpSnoozLogToFile(const std::vector<std::string>& data) const
   }
 }
 
-void SnoopLogger::ListDependencies(ModuleList* list) const {
+void SnoopLogger::ListDependencies(ModuleList* /* list */) const {
   // We have no dependencies
 }
 

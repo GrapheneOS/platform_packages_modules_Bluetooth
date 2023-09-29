@@ -503,7 +503,7 @@ struct classic_impl : public security::ISecurityManagerListener {
       return;
     }
     uint16_t handle = packet_type_changed.GetConnectionHandle();
-    connections.execute(handle, [=](ConnectionManagementCallbacks* callbacks) {
+    connections.execute(handle, [=](ConnectionManagementCallbacks* /* callbacks */) {
       // We don't handle this event; we didn't do this in legacy stack either.
     });
   }
@@ -780,9 +780,11 @@ struct classic_impl : public security::ISecurityManagerListener {
         std::move(builder), handler_->BindOnce(&check_command_status<RejectConnectionRequestStatusView>));
   }
 
-  void OnDeviceBonded(bluetooth::hci::AddressWithType device) override {}
-  void OnDeviceUnbonded(bluetooth::hci::AddressWithType device) override {}
-  void OnDeviceBondFailed(bluetooth::hci::AddressWithType device, security::PairingFailure status) override {}
+  void OnDeviceBonded(bluetooth::hci::AddressWithType /* device */) override {}
+  void OnDeviceUnbonded(bluetooth::hci::AddressWithType /* device */) override {}
+  void OnDeviceBondFailed(
+      bluetooth::hci::AddressWithType /* device */,
+      security::PairingFailure /* status */) override {}
 
   void set_security_module(security::SecurityModule* security_module) {
     security_manager_ = security_module->GetSecurityManager();

@@ -33,12 +33,12 @@ const ModuleFactory AttModule::Factory = ModuleFactory([]() { return new AttModu
 
 namespace {
 void OnAttRegistrationCompleteLe(
-    l2cap::le::FixedChannelManager::RegistrationResult result,
-    std::unique_ptr<l2cap::le::FixedChannelService> le_smp_service) {
+    l2cap::le::FixedChannelManager::RegistrationResult /* result */,
+    std::unique_ptr<l2cap::le::FixedChannelService> /* le_smp_service */) {
   LOG_INFO("ATT channel registration complete");
 }
 
-void OnAttConnectionOpenLe(std::unique_ptr<l2cap::le::FixedChannel> channel) {
+void OnAttConnectionOpenLe(std::unique_ptr<l2cap::le::FixedChannel> /* channel */) {
   LOG_INFO("ATT conneciton opened");
 }
 }  // namespace
