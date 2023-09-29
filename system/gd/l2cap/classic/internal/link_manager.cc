@@ -286,11 +286,11 @@ void LinkManager::OnConnectSuccess(std::unique_ptr<hci::acl_manager::ClassicAclC
   pending_links_.erase(device);
 }
 
-void LinkManager::OnConnectRequest(hci::Address device, hci::ClassOfDevice cod) {
+void LinkManager::OnConnectRequest(hci::Address /* device */, hci::ClassOfDevice /* cod */) {
   LOG_ERROR("Remote connect request unimplemented");
 }
 
-void LinkManager::OnConnectFail(hci::Address device, hci::ErrorCode reason, bool locally_initiated) {
+void LinkManager::OnConnectFail(hci::Address device, hci::ErrorCode reason, bool) {
   // Notify all pending links for this device
   auto pending_link = pending_links_.find(device);
   if (pending_link == pending_links_.end()) {
@@ -320,11 +320,13 @@ void LinkManager::OnConnectFail(hci::Address device, hci::ErrorCode reason, bool
   pending_links_.erase(pending_link);
 }
 
-void LinkManager::HACK_OnEscoConnectRequest(hci::Address device, hci::ClassOfDevice cod) {
+void LinkManager::HACK_OnEscoConnectRequest(
+    hci::Address /* device */, hci::ClassOfDevice /* cod */) {
   LOG_ERROR("Remote ESCO connect request unimplemented");
 }
 
-void LinkManager::HACK_OnScoConnectRequest(hci::Address device, hci::ClassOfDevice cod) {
+void LinkManager::HACK_OnScoConnectRequest(
+    hci::Address /* device */, hci::ClassOfDevice /* cod */) {
   LOG_ERROR("Remote SCO connect request unimplemented");
 }
 

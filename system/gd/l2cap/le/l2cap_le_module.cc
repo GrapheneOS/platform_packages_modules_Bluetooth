@@ -39,7 +39,10 @@ const ModuleFactory L2capLeModule::Factory = ModuleFactory([]() { return new L2c
  */
 class SecurityEnforcementRejectAllImpl : public SecurityEnforcementInterface {
  public:
-  void Enforce(hci::AddressWithType remote, SecurityPolicy policy, ResultCallback result_callback) override {
+  void Enforce(
+      hci::AddressWithType /* remote */,
+      SecurityPolicy policy,
+      ResultCallback result_callback) override {
     if (policy == SecurityPolicy::NO_SECURITY_WHATSOEVER_PLAINTEXT_TRANSPORT_OK) {
       result_callback.InvokeIfNotEmpty(true);
     } else {
