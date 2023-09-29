@@ -53,7 +53,7 @@ gatt_interface_t& get_gatt_interface();
 //
 // Appends a callback entry into GATT client API/callback history
 //
-void gatt_history_callback(const std::string entry);
+void gatt_history_callback(const std::string& entry);
 
 //
 // Dumps the GATT client API/callback history to dumpsys

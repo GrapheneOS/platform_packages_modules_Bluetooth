@@ -103,7 +103,7 @@ gatt_interface_t* gatt_interface = &default_gatt_interface;
 
 gatt_interface_t& get_gatt_interface() { return *gatt_interface; }
 
-void gatt_history_callback(const std::string entry) {
+void gatt_history_callback(const std::string& entry) {
   gatt_history_.Push(entry);
 }
 
