@@ -114,7 +114,8 @@ void SecurityManagerChannel::OnLinkDisconnected(hci::Address address) {
   listener_->OnConnectionClosed(address);
 }
 
-void SecurityManagerChannel::OnAuthenticationComplete(hci::ErrorCode hci_status, hci::Address remote) {
+void SecurityManagerChannel::OnAuthenticationComplete(
+    hci::ErrorCode /* hci_status */, hci::Address remote) {
   ASSERT_LOG(l2cap_security_interface_ != nullptr, "L2cap Security Interface is null!");
   auto entry = link_map_.find(remote);
   if (entry != link_map_.end()) {
@@ -123,8 +124,7 @@ void SecurityManagerChannel::OnAuthenticationComplete(hci::ErrorCode hci_status,
   }
 }
 
-void SecurityManagerChannel::OnEncryptionChange(hci::Address remote, bool encrypted) {
-}
+void SecurityManagerChannel::OnEncryptionChange(hci::Address /* remote */, bool /* encrypted */) {}
 
 }  // namespace channel
 }  // namespace security

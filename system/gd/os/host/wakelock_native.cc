@@ -31,12 +31,12 @@ void WakelockNative::Initialize() {
   LOG_INFO("Host native wakelock is not implemented");
 }
 
-WakelockNative::StatusCode WakelockNative::Acquire(const std::string& lock_name) {
+WakelockNative::StatusCode WakelockNative::Acquire(const std::string& /* lock_name */) {
   LOG_INFO("Host native wakelock is not implemented");
   return StatusCode::SUCCESS;
 }
 
-WakelockNative::StatusCode WakelockNative::Release(const std::string& lock_name) {
+WakelockNative::StatusCode WakelockNative::Release(const std::string& /* lock_name */) {
   LOG_INFO("Host native wakelock is not implemented");
   return StatusCode::SUCCESS;
 }

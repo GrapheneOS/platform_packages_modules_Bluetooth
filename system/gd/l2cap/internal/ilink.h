@@ -34,13 +34,13 @@ class ILink {
 
   // Used by sender to indicate whether there is any pending packet to be sent.
   // If there is pending packet, don't delete the link.
-  virtual void OnPendingPacketChange(Cid local_cid, bool has_packet) {}
 
+  virtual void OnPendingPacketChange(Cid /* local_cid */, bool /* has_packet */) {}
   // To be used by LE credit based channel data controller over LE link
-  virtual void SendLeCredit(Cid local_cid, uint16_t credit) {}
+  virtual void SendLeCredit(Cid /* local_cid */, uint16_t /* credit */) {}
 
   // Used by A2dp software encoding
-  virtual void SetChannelTxPriority(Cid local_cid, bool high_priority) {}
+  virtual void SetChannelTxPriority(Cid /* local_cid */, bool /* high_priority */) {}
 };
 }  // namespace internal
 }  // namespace l2cap

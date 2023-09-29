@@ -384,7 +384,7 @@ class HciHalHidl : public HciHal {
     if (aidl_hci_ != nullptr) {
       LOG_INFO("Using the AIDL interface");
       aidl_death_recipient_ =
-          ::ndk::ScopedAIBinder_DeathRecipient(AIBinder_DeathRecipient_new([](void* cookie) {
+          ::ndk::ScopedAIBinder_DeathRecipient(AIBinder_DeathRecipient_new([](void* /* cookie*/) {
             LOG_ERROR("The Bluetooth HAL service died. Dumping logs and crashing in 1 second.");
             common::StopWatch::DumpStopWatchLog();
             // At shutdown, sometimes the HAL service gets killed before Bluetooth.
