@@ -41,7 +41,7 @@ static uint64_t timespec_to_ms(const timespec* t) {
   return t->tv_sec * 1000 + t->tv_nsec / 1000000;
 }
 
-int fake_timerfd_create(int clockid, int flags) {
+int fake_timerfd_create(int /* clockid */, int /* flags */) {
   int fd = eventfd(0, EFD_SEMAPHORE);
   if (fd == -1) {
     return fd;
@@ -53,7 +53,11 @@ int fake_timerfd_create(int clockid, int flags) {
   return fd;
 }
 
-int fake_timerfd_settime(int fd, int flags, const struct itimerspec* new_value, struct itimerspec* old_value) {
+int fake_timerfd_settime(
+    int fd,
+    int /* flags */,
+    const struct itimerspec* new_value,
+    struct itimerspec* /* old_value */) {
   if (fake_timers.find(fd) == fake_timers.end()) {
     return -1;
   }

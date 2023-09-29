@@ -53,7 +53,7 @@ class TestModuleNoDependency : public Module {
   static const ModuleFactory Factory;
 
  protected:
-  void ListDependencies(ModuleList* list) const {}
+  void ListDependencies(ModuleList* /* list */) const {}
 
   void Start() override {
     // A module is not considered started until Start() finishes
@@ -116,7 +116,7 @@ class TestModuleNoDependencyTwo : public Module {
   static const ModuleFactory Factory;
 
  protected:
-  void ListDependencies(ModuleList* list) const {}
+  void ListDependencies(ModuleList* /* list */) const {}
 
   void Start() override {
     // A module is not considered started until Start() finishes
