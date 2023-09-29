@@ -958,44 +958,6 @@ void btm_read_remote_ext_features(uint16_t handle, uint8_t page_number) {
   btsnd_hcic_rmt_ext_features(handle, page_number);
 }
 
-void btm_read_remote_features_complete(uint16_t handle, uint8_t* features) {
-  tACL_CONN* p_acl_cb = internal_.acl_get_connection_from_handle(handle);
-  if (p_acl_cb == nullptr) {
-    LOG_WARN("Unable to find active acl");
-    return;
-  }
-
-  /* Copy the received features page */
-  STREAM_TO_ARRAY(p_acl_cb->peer_lmp_feature_pages[0], features,
-                  HCI_FEATURE_BYTES_PER_PAGE);
-  p_acl_cb->peer_lmp_feature_valid[0] = true;
-
-  /* save remote supported features to iot conf file */
-  std::string key = IOT_CONF_KEY_RT_SUPP_FEATURES "_" + std::to_string(0);
-
-  DEVICE_IOT_CONFIG_ADDR_SET_BIN(p_acl_cb->remote_addr, key,
-                                 p_acl_cb->peer_lmp_feature_pages[0],
-                                 BD_FEATURES_LEN);
-
-  if ((HCI_LMP_EXTENDED_SUPPORTED(p_acl_cb->peer_lmp_feature_pages[0])) &&
-      (controller_get_interface()
-           ->supports_reading_remote_extended_features())) {
-    /* if the remote controller has extended features and local controller
-       supports HCI_Read_Remote_Extended_Features command then start reading
-       these feature starting with extended features page 1 */
-    LOG_DEBUG("Start reading remote extended features");
-    btm_read_remote_ext_features(handle, 1);
-    return;
-  }
-
-  /* Remote controller has no extended features. Process remote controller
-     supported features (features page 0). */
-  btm_process_remote_ext_features(p_acl_cb, 0);
-
-  /* Continue with HCI connection establishment */
-  internal_.btm_establish_continue(p_acl_cb);
-}
-
 /*******************************************************************************
  *
  * Function         btm_read_remote_ext_features_complete
