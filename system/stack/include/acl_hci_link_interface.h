@@ -58,7 +58,6 @@ void btm_read_remote_ext_features_complete_raw(uint8_t* p, uint8_t evt_len);
 void btm_read_remote_ext_features_complete(uint16_t handle, uint8_t page_num,
                                            uint8_t max_page, uint8_t* features);
 void btm_read_remote_ext_features_failed(uint8_t status, uint16_t handle);
-void btm_read_remote_features_complete(uint16_t handle, uint8_t* features);
 void btm_read_remote_version_complete(tHCI_STATUS status, uint16_t handle,
                                       uint8_t lmp_version,
                                       uint16_t manufacturer,
