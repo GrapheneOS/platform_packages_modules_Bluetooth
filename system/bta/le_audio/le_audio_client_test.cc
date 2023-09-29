@@ -3770,9 +3770,10 @@ TEST_F(UnicastTest, DoubleResumeFromAF) {
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 
-  LocalAudioSourceResume(false, true);
+  // Additional resume shall be ignored.
+  LocalAudioSourceResume(false, false);
 
-  EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(1);
+  EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(0);
 
   do_in_main_thread(
       FROM_HERE,
@@ -3785,6 +3786,11 @@ TEST_F(UnicastTest, DoubleResumeFromAF) {
           group_id, base::Unretained(state_machine_callbacks_)));
   SyncOnMainLoop();
   Mock::VerifyAndClearExpectations(&mock_state_machine_);
+
+  // Verify Data transfer on one audio source cis
+  constexpr uint8_t cis_count_out = 1;
+  constexpr uint8_t cis_count_in = 0;
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
 }
 
 TEST_F(UnicastTest, RemoveNodeWhileStreaming) {
