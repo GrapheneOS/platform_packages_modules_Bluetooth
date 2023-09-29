@@ -85,7 +85,7 @@ struct AudioSetConfigurationProviderJson {
 
   AudioSetConfigurationProviderJson(types::CodecLocation location) {
     dual_bidirection_swb_supported_ = osi_property_get_bool(
-        "bluetooth.leaudio.dual_bidirection_swb.supported", true);
+        "bluetooth.leaudio.dual_bidirection_swb.supported", false);
     ASSERT_LOG(LoadContent(kLeAudioSetConfigs, kLeAudioSetScenarios, location),
                ": Unable to load le audio set configuration files.");
   }
@@ -167,6 +167,10 @@ struct AudioSetConfigurationProviderJson {
     return nullptr;
   };
 
+  bool IsDualBiDirSwbSupported(void) const {
+    return dual_bidirection_swb_supported_;
+  }
+
  private:
   /* Codec configurations */
   std::map<std::string, const AudioSetConfiguration> configurations_;
@@ -176,7 +180,8 @@ struct AudioSetConfigurationProviderJson {
       context_configurations_;
 
   /* property to check if bidirectional sampling frequency >= 32k dual mic is
-   * supported or not */
+   * supported or not
+   */
   bool dual_bidirection_swb_supported_;
 
   static const bluetooth::le_audio::CodecSpecificConfiguration*
@@ -764,6 +769,35 @@ bool AudioSetConfigurationProvider::CheckConfigurationIsBiDirSwb(
     }
   }
   return dir == le_audio::types::kLeAudioDirectionBoth;
+}
+
+bool AudioSetConfigurationProvider::CheckConfigurationIsDualBiDirSwb(
+    const set_configurations::AudioSetConfiguration& set_configuration) const {
+  uint8_t single_dev_dual_bidir_swb = 0;
+  uint8_t dual_dev_dual_bidir_swb = 0;
+
+  for (const auto& conf : set_configuration.confs) {
+    if (conf.codec.GetConfigSamplingFrequency() <
+        le_audio::LeAudioCodecConfiguration::kSampleRate32000) {
+      return false;
+    }
+    if (conf.device_cnt == 1 && conf.ase_cnt == 2) {
+      single_dev_dual_bidir_swb |= conf.direction;
+    } else if (conf.device_cnt == 2 && conf.ase_cnt == 2) {
+      dual_dev_dual_bidir_swb |= conf.direction;
+    }
+  }
+
+  return single_dev_dual_bidir_swb == le_audio::types::kLeAudioDirectionBoth ||
+         dual_dev_dual_bidir_swb == le_audio::types::kLeAudioDirectionBoth;
+}
+
+bool AudioSetConfigurationProvider::IsDualBiDirSwbSupported(void) const {
+  if (pimpl_->IsRunning()) {
+    return pimpl_->config_provider_impl_->IsDualBiDirSwbSupported();
+  }
+
+  return false;
 }
 
 }  // namespace le_audio

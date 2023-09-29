@@ -65,6 +65,7 @@ class CodecManager {
                  offloading_preference);
   void Stop(void);
   virtual types::CodecLocation GetCodecLocation(void) const;
+  virtual bool IsOffloadDualBiDirSwbSupported(void) const;
   virtual void UpdateCisConfiguration(
       const std::vector<struct types::cis>& cises,
       const stream_parameters& stream_params, uint8_t direction);
