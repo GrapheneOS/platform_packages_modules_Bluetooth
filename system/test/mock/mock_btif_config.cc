@@ -63,6 +63,7 @@ struct btif_config_get_bin_length btif_config_get_bin_length;
 struct btif_config_set_bin btif_config_set_bin;
 struct btif_config_get_paired_devices btif_config_get_paired_devices;
 struct btif_config_remove btif_config_remove;
+struct btif_config_remove_device btif_config_remove_device;
 struct btif_config_clear btif_config_clear;
 struct btif_debug_config_dump btif_debug_config_dump;
 

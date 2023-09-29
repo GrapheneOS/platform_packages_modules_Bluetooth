@@ -221,6 +221,17 @@ struct btif_config_remove {
   };
 };
 extern struct btif_config_remove btif_config_remove;
+// Name: btif_config_remove_device
+// Params: const std::string& section
+// Returns: void
+struct btif_config_remove_device {
+  std::function<void(const std::string& section)> body{
+      [](const std::string& section) { return; }};
+  void operator()(const std::string& section) {
+    return;
+  };
+};
+extern struct btif_config_remove_device btif_config_remove_device;
 // Name: btif_config_clear
 // Params: void
 // Returns: bool

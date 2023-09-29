@@ -881,27 +881,7 @@ bt_status_t btif_storage_remove_bonded_device(
   LOG_INFO("Removing bonded device addr:%s",
            ADDRESS_TO_LOGGABLE_CSTR(*remote_bd_addr));
 
-  btif_storage_remove_ble_bonding_keys(remote_bd_addr);
-
-  int ret = 1;
-  if (btif_config_exist(bdstr, "LinkKeyType"))
-    ret &= btif_config_remove(bdstr, "LinkKeyType");
-  if (btif_config_exist(bdstr, "PinLength"))
-    ret &= btif_config_remove(bdstr, "PinLength");
-  if (btif_config_exist(bdstr, "LinkKey"))
-    ret &= btif_config_remove(bdstr, "LinkKey");
-  if (btif_config_exist(bdstr, BTIF_STORAGE_PATH_REMOTE_ALIASE)) {
-    ret &= btif_config_remove(bdstr, BTIF_STORAGE_PATH_REMOTE_ALIASE);
-  }
-  if (btif_config_exist(bdstr, BTIF_STORAGE_KEY_GATT_CLIENT_SUPPORTED)) {
-    ret &= btif_config_remove(bdstr, BTIF_STORAGE_KEY_GATT_CLIENT_SUPPORTED);
-  }
-  if (btif_config_exist(bdstr, BTIF_STORAGE_KEY_GATT_CLIENT_DB_HASH)) {
-    ret &= btif_config_remove(bdstr, BTIF_STORAGE_KEY_GATT_CLIENT_DB_HASH);
-  }
-  if (btif_config_exist(bdstr, BTIF_STORAGE_KEY_GATT_SERVER_SUPPORTED)) {
-    ret &= btif_config_remove(bdstr, BTIF_STORAGE_KEY_GATT_SERVER_SUPPORTED);
-  }
+  btif_config_remove_device(bdstr);
 
   /* Check the length of the paired devices, and if 0 then reset IRK */
   auto paired_devices = btif_config_get_paired_devices();
@@ -910,7 +890,8 @@ bt_status_t btif_storage_remove_bonded_device(
     LOG_INFO("Last paired device removed, resetting IRK");
     BTA_DmBleResetId();
   }
-  return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
+
+  return BT_STATUS_SUCCESS;
 }
 
 /* Some devices hardcode sample LTK value from spec, instead of generating one.
