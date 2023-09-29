@@ -69,6 +69,12 @@ LeAudioTransport::LeAudioTransport(void (*flush)(void),
       start_request_state_(StartRequestState::IDLE){};
 
 BluetoothAudioCtrlAck LeAudioTransport::StartRequest(bool is_low_latency) {
+  // Check if operation is pending already
+  if (GetStartRequestState() == StartRequestState::PENDING_AFTER_RESUME) {
+    LOG_INFO("Start request is already pending. Ignore the request");
+    return BluetoothAudioCtrlAck::PENDING;
+  }
+
   SetStartRequestState(StartRequestState::PENDING_BEFORE_RESUME);
   if (stream_cb_.on_resume_(true)) {
     auto expected = StartRequestState::CONFIRMED;
