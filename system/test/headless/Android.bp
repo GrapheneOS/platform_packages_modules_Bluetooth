@@ -81,6 +81,7 @@ cc_binary {
         "libbt-audio-hal-interface",
         "libbt-bta",
         "libbt-bta-core",
+        "libbt-btu-main-thread",
         "libbt-common",
         "libbt-hci",
         "libbt-sbc-decoder",
