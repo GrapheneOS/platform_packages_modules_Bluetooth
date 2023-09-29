@@ -20,16 +20,9 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
-#include "bt_target.h"
 #include "bta/sys/bta_sys.h"
-#include "bta/sys/bta_sys_int.h"
-#include "main/shim/dumpsys.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"
-#include "stack/include/btm_api.h"
 #include "test/common/mock_functions.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
@@ -38,32 +31,34 @@
 #define UNUSED_ATTR
 #endif
 
-void bta_sys_app_close(uint8_t id, uint8_t app_id,
+void bta_sys_app_close(tBTA_SYS_ID id, uint8_t app_id,
                        const RawAddress& peer_addr) {
   inc_func_call_count(__func__);
 }
-void bta_sys_app_open(uint8_t id, uint8_t app_id, const RawAddress& peer_addr) {
+void bta_sys_app_open(tBTA_SYS_ID id, uint8_t app_id,
+                      const RawAddress& peer_addr) {
   inc_func_call_count(__func__);
 }
-void bta_sys_busy(uint8_t id, uint8_t app_id, const RawAddress& peer_addr) {
+void bta_sys_busy(tBTA_SYS_ID id, uint8_t app_id, const RawAddress& peer_addr) {
   inc_func_call_count(__func__);
 }
-void bta_sys_chg_ssr_config(uint8_t id, uint8_t app_id, uint16_t max_latency,
-                            uint16_t min_tout) {
+void bta_sys_chg_ssr_config(tBTA_SYS_ID id, uint8_t app_id,
+                            uint16_t max_latency, uint16_t min_tout) {
   inc_func_call_count(__func__);
 }
-void bta_sys_collision_register(uint8_t bta_id, tBTA_SYS_CONN_CBACK* p_cback) {
+void bta_sys_collision_register(tBTA_SYS_ID bta_id,
+                                tBTA_SYS_CONN_CBACK* p_cback) {
   inc_func_call_count(__func__);
 }
-void bta_sys_conn_close(uint8_t id, uint8_t app_id,
+void bta_sys_conn_close(tBTA_SYS_ID id, uint8_t app_id,
                         const RawAddress& peer_addr) {
   inc_func_call_count(__func__);
 }
-void bta_sys_conn_open(uint8_t id, uint8_t app_id,
+void bta_sys_conn_open(tBTA_SYS_ID id, uint8_t app_id,
                        const RawAddress& peer_addr) {
   inc_func_call_count(__func__);
 }
-void bta_sys_idle(uint8_t id, uint8_t app_id, const RawAddress& peer_addr) {
+void bta_sys_idle(tBTA_SYS_ID id, uint8_t app_id, const RawAddress& peer_addr) {
   inc_func_call_count(__func__);
 }
 void bta_sys_notify_collision(const RawAddress& peer_addr) {
@@ -82,11 +77,12 @@ void bta_sys_rm_register(tBTA_SYS_CONN_CBACK* p_cback) {
 void bta_sys_role_chg_register(tBTA_SYS_CONN_CBACK* p_cback) {
   inc_func_call_count(__func__);
 }
-void bta_sys_sco_close(uint8_t id, uint8_t app_id,
+void bta_sys_sco_close(tBTA_SYS_ID id, uint8_t app_id,
                        const RawAddress& peer_addr) {
   inc_func_call_count(__func__);
 }
-void bta_sys_sco_open(uint8_t id, uint8_t app_id, const RawAddress& peer_addr) {
+void bta_sys_sco_open(tBTA_SYS_ID id, uint8_t app_id,
+                      const RawAddress& peer_addr) {
   inc_func_call_count(__func__);
 }
 void bta_sys_sco_register(tBTA_SYS_CONN_SCO_CBACK* p_cback) {
