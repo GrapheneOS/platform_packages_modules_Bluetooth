@@ -37,7 +37,7 @@ struct SyspropsModule::impl {
   os::Handler* sysprops_handler_;
 };
 
-void SyspropsModule::ListDependencies(ModuleList* list) const {}
+void SyspropsModule::ListDependencies(ModuleList* /* list */) const {}
 
 void SyspropsModule::Start() {
   std::string file_path = os::ParameterProvider::SyspropsFilePath();

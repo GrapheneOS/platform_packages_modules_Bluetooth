@@ -58,7 +58,11 @@ bool LinkOptions::UpdateConnectionParameter(uint16_t conn_interval_min, uint16_t
   return true;
 }
 
-bool LinkOptions::SetPhy(uint8_t all_phys, uint8_t tx_phys, uint8_t rx_phys, uint16_t phy_options) {
+bool LinkOptions::SetPhy(
+    uint8_t /* all_phys */,
+    uint8_t /* tx_phys */,
+    uint8_t /* rx_phys */,
+    uint16_t /* phy_options */) {
   LOG_ERROR("Not implemented");
   return false;
 }

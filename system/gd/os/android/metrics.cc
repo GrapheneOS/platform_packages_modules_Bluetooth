@@ -177,8 +177,10 @@ void LogMetricA2dpPlaybackEvent(const Address& address, int playback_state, int 
 }
 
 void LogMetricHfpPacketLossStats(
-    const Address& address, int num_decoded_frames, double packet_loss_ratio, uint16_t codec_type) {
-}
+    const Address& /* address */,
+    int /* num_decoded_frames */,
+    double /* packet_loss_ratio */,
+    uint16_t /* codec_type */) {}
 
 void LogMetricReadRssiResult(const Address& address, uint16_t handle, uint32_t cmd_status, int8_t rssi) {
   int metric_id = 0;
