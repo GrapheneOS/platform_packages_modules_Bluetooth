@@ -110,9 +110,11 @@ void LeSignallingManager::SendCredit(Cid local_cid, uint16_t credits) {
   enqueue_buffer_->Enqueue(std::move(builder), handler_);
 }
 
-void LeSignallingManager::SendEnhancedConnectionRequest(Psm psm, std::vector<Cid> local_cid, Mtu mtu) {}
+void LeSignallingManager::SendEnhancedConnectionRequest(
+    Psm /* psm */, std::vector<Cid> /* local_cid */, Mtu /* mtu */) {}
 
-void LeSignallingManager::SendEnhancedReconfigureRequest(std::vector<Cid> local_cid, Mtu mtu) {}
+void LeSignallingManager::SendEnhancedReconfigureRequest(
+    std::vector<Cid> /* local_cid */, Mtu /* mtu */) {}
 
 void LeSignallingManager::CancelAlarm() {
   alarm_.Cancel();

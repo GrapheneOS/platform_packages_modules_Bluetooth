@@ -162,7 +162,7 @@ class Link : public l2cap::internal::ILink,
     return GetDevice().ToRedactedStringForLogging();
   }
 
-  void SendLeCredit(Cid local_cid, uint16_t credit) override {}
+  void SendLeCredit(Cid /* local_cid */, uint16_t /* credit */) override {}
 
   // ConnectionManagementCallbacks
   void OnConnectionPacketTypeChanged(uint16_t packet_type) override;

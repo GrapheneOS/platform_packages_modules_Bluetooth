@@ -185,7 +185,8 @@ class PeriodicSyncManager {
             connection_handle));
   }
 
-  void SyncTxParameters(const Address& address, uint8_t mode, uint16_t skip, uint16_t timeout, int reg_id) {
+  void SyncTxParameters(
+      const Address& /* address */, uint8_t mode, uint16_t skip, uint16_t timeout, int reg_id) {
     LOG_DEBUG("[PAST]: mode=%u, skip=%u, timeout=%u", mode, skip, timeout);
     auto sync_cte_type = static_cast<CteType>(
         static_cast<uint8_t>(PeriodicSyncCteType::AVOID_AOA_CONSTANT_TONE_EXTENSION) |

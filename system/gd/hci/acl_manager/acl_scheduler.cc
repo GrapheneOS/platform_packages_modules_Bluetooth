@@ -100,7 +100,7 @@ struct AclScheduler::impl {
           return entry_ptr != nullptr && entry_ptr->address == address;
         },
         [&]() { cancel_connection.Invoke(); },
-        [&](auto entry) { cancel_connection_completed.Invoke(); });
+        [&](auto /* entry */) { cancel_connection_completed.Invoke(); });
     if (!ok) {
       LOG_ERROR("Attempted to cancel connection to %s that does not exist",
                 ADDRESS_TO_LOGGABLE_CSTR(address));
@@ -116,7 +116,7 @@ struct AclScheduler::impl {
     try_dequeue_next_operation();
   }
 
-  void ReportRemoteNameRequestCompletion(Address address) {
+  void ReportRemoteNameRequestCompletion(Address /* address */) {
     if (!outgoing_entry_.has_value()) {
       LOG_ERROR("Remote name request completion reported, but none taking place!");
       return;
@@ -271,7 +271,7 @@ void AclScheduler::CancelRemoteNameRequest(Address address, common::ContextualOn
       &impl::CancelRemoteNameRequest, common::Unretained(pimpl_.get()), address, std::move(cancel_request));
 }
 
-void AclScheduler::ListDependencies(ModuleList* list) const {}
+void AclScheduler::ListDependencies(ModuleList* /* list */) const {}
 
 void AclScheduler::Start() {}
 

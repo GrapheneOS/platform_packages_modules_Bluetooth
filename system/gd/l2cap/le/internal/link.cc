@@ -35,15 +35,24 @@ namespace internal {
 static constexpr uint16_t kDefaultMinimumCeLength = 0x0002;
 static constexpr uint16_t kDefaultMaximumCeLength = 0x0C00;
 
-Link::Link(os::Handler* l2cap_handler, std::unique_ptr<hci::acl_manager::LeAclConnection> acl_connection,
-           l2cap::internal::ParameterProvider* parameter_provider,
-           DynamicChannelServiceManagerImpl* dynamic_service_manager,
-           FixedChannelServiceManagerImpl* fixed_service_manager, LinkManager* link_manager)
-    : l2cap_handler_(l2cap_handler), acl_connection_(std::move(acl_connection)),
+Link::Link(
+    os::Handler* l2cap_handler,
+    std::unique_ptr<hci::acl_manager::LeAclConnection> acl_connection,
+    l2cap::internal::ParameterProvider* parameter_provider,
+    DynamicChannelServiceManagerImpl* dynamic_service_manager,
+    FixedChannelServiceManagerImpl* /* fixed_service_manager */,
+    LinkManager* link_manager)
+    : l2cap_handler_(l2cap_handler),
+      acl_connection_(std::move(acl_connection)),
       data_pipeline_manager_(l2cap_handler, this, acl_connection_->GetAclQueueEnd()),
-      parameter_provider_(parameter_provider), dynamic_service_manager_(dynamic_service_manager),
-      signalling_manager_(l2cap_handler_, this, &data_pipeline_manager_, dynamic_service_manager_,
-                          &dynamic_channel_allocator_),
+      parameter_provider_(parameter_provider),
+      dynamic_service_manager_(dynamic_service_manager),
+      signalling_manager_(
+          l2cap_handler_,
+          this,
+          &data_pipeline_manager_,
+          dynamic_service_manager_,
+          &dynamic_channel_allocator_),
       link_manager_(link_manager) {
   ASSERT(l2cap_handler_ != nullptr);
   ASSERT(acl_connection_ != nullptr);
@@ -65,7 +74,7 @@ void Link::OnDisconnection(hci::ErrorCode status) {
 }
 
 void Link::OnConnectionUpdate(
-    hci::ErrorCode hci_status,
+    hci::ErrorCode /* hci_status */,
     uint16_t connection_interval,
     uint16_t connection_latency,
     uint16_t supervision_timeout) {
@@ -98,9 +107,11 @@ void Link::OnReadRemoteVersionInformationComplete(
       hci_status, GetDevice(), lmp_version, manufacturer_name, sub_version);
 }
 
-void Link::OnLeReadRemoteFeaturesComplete(hci::ErrorCode hci_status, uint64_t features) {}
+void Link::OnLeReadRemoteFeaturesComplete(hci::ErrorCode /* hci_status*/, uint64_t /* features */) {
+}
 
-void Link::OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy) {}
+void Link::OnPhyUpdate(
+    hci::ErrorCode /* hci_status */, uint8_t /* tx_phy */, uint8_t /* rx_phy */) {}
 
 void Link::OnLeSubrateChange(
     hci::ErrorCode hci_status,
@@ -169,7 +180,8 @@ void Link::SendConnectionParameterUpdate(uint16_t conn_interval_min, uint16_t co
   update_request_signal_id_ = kInvalidSignalId;
 }
 
-std::shared_ptr<FixedChannelImpl> Link::AllocateFixedChannel(Cid cid, SecurityPolicy security_policy) {
+std::shared_ptr<FixedChannelImpl> Link::AllocateFixedChannel(
+    Cid cid, SecurityPolicy /* security_policy */) {
   auto channel = fixed_channel_allocator_.AllocateChannel(cid);
   data_pipeline_manager_.AttachChannel(cid, channel, l2cap::internal::DataPipelineManager::ChannelMode::BASIC);
   return channel;
@@ -308,7 +320,7 @@ void Link::on_connection_update_complete(SignalId signal_id, hci::ErrorCode erro
   signalling_manager_.SendConnectionParameterUpdateResponse(SignalId(), result);
 }
 
-void Link::OnPendingPacketChange(Cid local_cid, bool has_packet) {
+void Link::OnPendingPacketChange(Cid /* local_cid */, bool has_packet) {
   if (has_packet) {
     remaining_packets_to_be_sent_++;
   } else {
