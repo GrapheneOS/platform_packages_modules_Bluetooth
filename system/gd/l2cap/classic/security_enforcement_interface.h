@@ -46,7 +46,10 @@ class SecurityEnforcementInterface {
  */
 class SecurityEnforcementRejectAllImpl : public SecurityEnforcementInterface {
  public:
-  void Enforce(hci::AddressWithType remote, SecurityPolicy policy, ResultCallback result_callback) override {
+  void Enforce(
+      hci::AddressWithType /* remote */,
+      SecurityPolicy policy,
+      ResultCallback result_callback) override {
     if (policy == SecurityPolicy::_SDP_ONLY_NO_SECURITY_WHATSOEVER_PLAINTEXT_TRANSPORT_OK) {
       result_callback.InvokeIfNotEmpty(true);
     } else {

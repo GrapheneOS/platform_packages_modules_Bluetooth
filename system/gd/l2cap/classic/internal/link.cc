@@ -408,7 +408,8 @@ void Link::OnReadFailedContactCounterComplete(uint16_t failed_contact_counter) {
 void Link::OnReadLinkQualityComplete(uint8_t link_quality) {
   LOG_INFO("UNIMPLEMENTED %s link_quality:%hhu", __func__, link_quality);
 }
-void Link::OnReadAfhChannelMapComplete(hci::AfhMode afh_mode, std::array<uint8_t, 10> afh_channel_map) {
+void Link::OnReadAfhChannelMapComplete(
+    hci::AfhMode afh_mode, std::array<uint8_t, 10> /* afh_channel_map */) {
   LOG_INFO("UNIMPLEMENTED %s afh_mode:%s", __func__, hci::AfhModeText(afh_mode).c_str());
 }
 void Link::OnReadRssiComplete(uint8_t rssi) {
@@ -457,7 +458,7 @@ void Link::AddEncryptionChangeListener(EncryptionChangeListener listener) {
   encryption_change_listener_.push_back(listener);
 }
 
-void Link::OnPendingPacketChange(Cid local_cid, bool has_packet) {
+void Link::OnPendingPacketChange(Cid /* local_cid */, bool has_packet) {
   if (has_packet) {
     remaining_packets_to_be_sent_++;
   } else {
