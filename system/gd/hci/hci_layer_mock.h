@@ -107,6 +107,12 @@ class MockHciLayer : public HciLayer {
       GetLeIsoInterface,
       (common::ContextualCallback<void(LeMetaEventView)> event_handler),
       (override));
+
+  MOCK_METHOD(
+      (DistanceMeasurementInterface*),
+      GetDistanceMeasurementInterface,
+      (common::ContextualCallback<void(LeMetaEventView)> event_handler),
+      (override));
 };
 
 }  // namespace testing

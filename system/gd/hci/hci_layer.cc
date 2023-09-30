@@ -657,6 +657,14 @@ LeIsoInterface* HciLayer::GetLeIsoInterface(ContextualCallback<void(LeMetaEventV
   return &le_iso_interface;
 }
 
+DistanceMeasurementInterface* HciLayer::GetDistanceMeasurementInterface(
+    ContextualCallback<void(LeMetaEventView)> event_handler) {
+  for (const auto subevent : DistanceMeasurementEvents) {
+    RegisterLeEventHandler(subevent, event_handler);
+  }
+  return &distance_measurement_interface;
+}
+
 const ModuleFactory HciLayer::Factory = ModuleFactory([]() { return new HciLayer(); });
 
 void HciLayer::ListDependencies(ModuleList* list) const {

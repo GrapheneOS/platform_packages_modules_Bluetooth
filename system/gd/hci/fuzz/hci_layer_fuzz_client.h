@@ -86,6 +86,7 @@ class HciLayerFuzzClient : public Module {
   LeAclConnectionInterface* le_acl_connection_interface_;
   LeAdvertisingInterface* le_advertising_interface_;
   LeScanningInterface* le_scanning_interface_;
+  DistanceMeasurementInterface* distance_measurement_interface_;
 };
 
 }  // namespace fuzz
