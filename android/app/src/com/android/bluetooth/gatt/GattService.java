@@ -209,6 +209,7 @@ public class GattService extends ProfileService {
         public ScanSettings settings;
         public List<ScanFilter> filters;
         public String callingPackage;
+        public int callingUid;
 
         @Override
         public boolean equals(Object other) {
@@ -3254,15 +3255,22 @@ public class GattService extends ProfileService {
         settings = enforceReportDelayFloor(settings);
         enforcePrivilegedPermissionIfNeeded(filters);
         UUID uuid = UUID.randomUUID();
-        if (DBG) {
-            Log.d(TAG, "startScan(PI) - UUID=" + uuid);
-        }
         String callingPackage = attributionSource.getPackageName();
+        int callingUid = attributionSource.getUid();
         PendingIntentInfo piInfo = new PendingIntentInfo();
         piInfo.intent = pendingIntent;
         piInfo.settings = settings;
         piInfo.filters = filters;
         piInfo.callingPackage = callingPackage;
+        piInfo.callingUid = callingUid;
+        if (DBG) {
+            Log.d(
+                    TAG,
+                    "startScan(PI) -"
+                            + (" UUID=" + uuid)
+                            + (" Package=" + callingPackage)
+                            + (" UID=" + callingUid));
+        }
 
         // Don't start scan if the Pi scan already in mScannerMap.
         if (mScannerMap.getByContextInfo(piInfo) != null) {
@@ -3313,7 +3321,7 @@ public class GattService extends ProfileService {
     void continuePiStartScan(int scannerId, ScannerMap.App app) {
         final PendingIntentInfo piInfo = app.info;
         final ScanClient scanClient =
-                new ScanClient(scannerId, piInfo.settings, piInfo.filters);
+                new ScanClient(scannerId, piInfo.settings, piInfo.filters, piInfo.callingUid);
         scanClient.hasLocationPermission = app.hasLocationPermission;
         scanClient.userHandle = app.mUserHandle;
         scanClient.isQApp = checkCallerTargetSdk(this, app.name, Build.VERSION_CODES.Q);
