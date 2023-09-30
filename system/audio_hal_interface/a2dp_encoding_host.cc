@@ -231,6 +231,7 @@ void cleanup() {
 
   if (a2dp_uipc != nullptr) {
     UIPC_Close(*a2dp_uipc, UIPC_CH_ID_ALL);
+    a2dp_uipc = nullptr;
   }
 }
 

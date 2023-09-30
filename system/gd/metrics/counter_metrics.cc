@@ -28,8 +28,7 @@ const int COUNTER_METRICS_PERDIOD_MINUTES = 360; // Drain counters every 6 hours
 
 const ModuleFactory CounterMetrics::Factory = ModuleFactory([]() { return new CounterMetrics(); });
 
-void CounterMetrics::ListDependencies(ModuleList* list) const {
-}
+void CounterMetrics::ListDependencies(ModuleList* /* list */) const {}
 
 void CounterMetrics::Start() {
   alarm_ = std::make_unique<os::RepeatingAlarm>(GetHandler());

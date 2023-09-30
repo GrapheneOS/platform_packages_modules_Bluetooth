@@ -33,7 +33,10 @@ constexpr int SEC_TAG_BLUETOOTH_CONNECTION = 210039;
 namespace bluetooth {
 namespace common {
 
-void LogConnectionAdminAuditEvent(const char* action, const hci::Address& address, hci::ErrorCode status) {
+void LogConnectionAdminAuditEvent(
+    [[maybe_unused]] const char* action,
+    [[maybe_unused]] const hci::Address& address,
+    [[maybe_unused]] hci::ErrorCode status) {
 #if defined(__ANDROID__) && !defined (FUZZ_TARGET)
 
   android_log_event_list(SEC_TAG_BLUETOOTH_CONNECTION)

@@ -34,11 +34,11 @@ namespace internal {
 
 /**
  * Handle the scheduling of packets through the l2cap stack.
- * For each attached channel, dequeue its outgoing packets and enqueue it to the given LinkQueueUpEnd, according to some
- * policy (cid).
+ * For each attached channel, dequeue its outgoing packets and enqueue it to the
+ * given LinkQueueUpEnd, according to some policy (cid).
  *
- * Note: If a channel cannot dequeue from ChannelQueueDownEnd so that the buffer for incoming packet is full, further
- * incoming packets will be dropped.
+ * Note: If a channel cannot dequeue from ChannelQueueDownEnd so that the buffer
+ * for incoming packet is full, further incoming packets will be dropped.
  */
 class Scheduler {
  public:
@@ -50,20 +50,22 @@ class Scheduler {
   using LowerQueueUpEnd = common::BidiQueueEnd<LowerEnqueue, LowerDequeue>;
 
   /**
-   * Callback from the sender to indicate that the scheduler could dequeue number_packets from it
+   * Callback from the sender to indicate that the scheduler could dequeue
+   * number_packets from it
    */
-  virtual void OnPacketsReady(Cid cid, int number_packets) {}
+  virtual void OnPacketsReady(Cid /* cid */, int /* number_packets */) {}
 
   /**
    * Let the scheduler send the specified cid first.
    * Used by A2dp software encoding.
    */
-  virtual void SetChannelTxPriority(Cid cid, bool high_priority) {}
+  virtual void SetChannelTxPriority(Cid /* cid */, bool /* high_priority */) {}
 
   /**
-   * Called by data controller to indicate that a channel is closed and packets should be dropped
+   * Called by data controller to indicate that a channel is closed and packets
+   * should be dropped
    */
-  virtual void RemoveChannel(Cid cid) {}
+  virtual void RemoveChannel(Cid /* cid */) {}
 
   virtual ~Scheduler() = default;
 };
