@@ -1006,6 +1006,7 @@ class GATTProxy(ProfileProxy):
         PTS.
         """
         self.advertise = self.host.Advertise(
+            legacy=True,
             connectable=True,
             own_address_type=PUBLIC,
         )
