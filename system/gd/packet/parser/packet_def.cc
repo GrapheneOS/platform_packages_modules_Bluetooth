@@ -436,6 +436,7 @@ void PacketDef::GenTestingFromView(std::ostream& s) const {
   s << "#if defined(PACKET_FUZZ_TESTING) || defined(PACKET_TESTING) || defined(FUZZ_TARGET)\n";
 
   s << "static std::unique_ptr<" << name_ << "Builder> FromView(" << name_ << "View view) {";
+  s << "if (!view.IsValid()) return nullptr;";
   s << "return " << name_ << "Builder::Create(";
   FieldList params = GetParamList().GetFieldsWithoutTypes({
       BodyField::kFieldType,
