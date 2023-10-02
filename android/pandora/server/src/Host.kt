@@ -28,13 +28,12 @@ import android.bluetooth.BluetoothProfile
 import android.bluetooth.BluetoothUuid
 import android.bluetooth.le.AdvertiseCallback
 import android.bluetooth.le.AdvertiseData
-import android.bluetooth.le.AdvertiseSettings
+import android.bluetooth.le.AdvertisingSet
+import android.bluetooth.le.AdvertisingSetCallback
 import android.bluetooth.le.AdvertisingSetParameters
 import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanRecord
 import android.bluetooth.le.ScanResult
-import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -64,7 +63,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import pandora.HostGrpc.HostImplBase
 import pandora.HostProto.*
 
@@ -437,7 +435,8 @@ class Host(
                         throw IllegalArgumentException("Request address field must be set")
                 }
             Log.i(TAG, "connectLE: $address")
-            val bluetoothDevice = bluetoothAdapter.getRemoteLeDevice(address.decodeAsMacAddressToString(), type)
+            val bluetoothDevice =
+                bluetoothAdapter.getRemoteLeDevice(address.decodeAsMacAddressToString(), type)
             initiatedConnection.add(bluetoothDevice)
             GattInstance(bluetoothDevice, TRANSPORT_LE, context)
                 .waitForState(BluetoothProfile.STATE_CONNECTED)
@@ -455,12 +454,16 @@ class Host(
         grpcServerStream(scope, responseObserver) {
             callbackFlow {
                 val callback =
-                    object : AdvertiseCallback() {
-                        override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
-                            Log.d(TAG, "advertising started")
-                        }
-                        override fun onStartFailure(errorCode: Int) {
-                            error("failed to start advertising: $errorCode")
+                    object : AdvertisingSetCallback() {
+                        override fun onAdvertisingSetStarted(
+                            advertisingSet: AdvertisingSet,
+                            txPower: Int,
+                            status: Int
+                        ) {
+                            Log.d(TAG, "advertising started with status " + status)
+                            if (status != 0) {
+                                error("failed to start advertisingSet: $status")
+                            }
                         }
                     }
                 val advertisingDataBuilder = AdvertiseData.Builder()
@@ -544,15 +547,21 @@ class Host(
                         OwnAddressType.RANDOM -> AdvertisingSetParameters.ADDRESS_TYPE_RANDOM
                         else -> AdvertisingSetParameters.ADDRESS_TYPE_DEFAULT
                     }
-                val advertiseSettings =
-                    AdvertiseSettings.Builder()
+
+                val advertisingSetParameters =
+                    AdvertisingSetParameters.Builder()
                         .setConnectable(request.connectable)
                         .setOwnAddressType(ownAddressType)
+                        .setLegacyMode(request.legacy)
+                        .setScannable(request.legacy && request.connectable)
                         .build()
 
-                bluetoothAdapter.bluetoothLeAdvertiser.startAdvertising(
-                    advertiseSettings,
+                bluetoothAdapter.bluetoothLeAdvertiser.startAdvertisingSet(
+                    advertisingSetParameters,
                     advertisingData,
+                    null, /* scanResponse */
+                    null, /* periodicParameters */
+                    null, /* periodicData */
                     callback,
                 )
 
@@ -570,7 +579,7 @@ class Host(
                     }
                 }
 
-                awaitClose { bluetoothAdapter.bluetoothLeAdvertiser.stopAdvertising(callback) }
+                awaitClose { bluetoothAdapter.bluetoothLeAdvertiser.stopAdvertisingSet(callback) }
             }
         }
     }
