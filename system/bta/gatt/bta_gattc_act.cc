@@ -822,41 +822,42 @@ void bta_gattc_start_discover(tBTA_GATTC_CLCB* p_clcb,
   {
     p_clcb->auto_update = BTA_GATTC_NO_SCHEDULE;
 
-    if (p_clcb->p_srcb != NULL) {
-      /* set all srcb related clcb into discovery ST */
-      bta_gattc_set_discover_st(p_clcb->p_srcb);
-
-      // Before clear mask, set is_svc_chg to
-      // 1. true, invoked by service changed indication
-      // 2. false, invoked by connect API
-      bool is_svc_chg = p_clcb->p_srcb->srvc_hdl_chg;
-
-      /* clear the service change mask */
-      p_clcb->p_srcb->srvc_hdl_chg = false;
-      p_clcb->p_srcb->update_count = 0;
-      p_clcb->p_srcb->state = BTA_GATTC_SERV_DISC_ACT;
-
-      if (GetRobustCachingSupport(p_clcb, p_clcb->p_srcb->gatt_database) ==
-          RobustCachingSupport::UNSUPPORTED) {
-        // Skip initial DB hash read if we have strong reason (due to interop,
-        // or a prior discovery) to believe that it is unsupported.
-        p_clcb->p_srcb->srvc_hdl_db_hash = false;
-      }
-
-      /* read db hash if db hash characteristic exists */
-      if (bta_gattc_is_robust_caching_enabled() &&
-          p_clcb->p_srcb->srvc_hdl_db_hash &&
-          bta_gattc_read_db_hash(p_clcb, is_svc_chg)) {
-        LOG(INFO) << __func__
-                  << ": pending service discovery, read db hash first";
-        p_clcb->p_srcb->srvc_hdl_db_hash = false;
-        return;
-      }
-
-      bta_gattc_start_discover_internal(p_clcb);
-    } else {
+    if (p_clcb->p_srcb == NULL) {
       LOG(ERROR) << "unknown device, can not start discovery";
+      return;
     }
+
+    /* set all srcb related clcb into discovery ST */
+    bta_gattc_set_discover_st(p_clcb->p_srcb);
+
+    // Before clear mask, set is_svc_chg to
+    // 1. true, invoked by service changed indication
+    // 2. false, invoked by connect API
+    bool is_svc_chg = p_clcb->p_srcb->srvc_hdl_chg;
+
+    /* clear the service change mask */
+    p_clcb->p_srcb->srvc_hdl_chg = false;
+    p_clcb->p_srcb->update_count = 0;
+    p_clcb->p_srcb->state = BTA_GATTC_SERV_DISC_ACT;
+
+    if (GetRobustCachingSupport(p_clcb, p_clcb->p_srcb->gatt_database) ==
+        RobustCachingSupport::UNSUPPORTED) {
+      // Skip initial DB hash read if we have strong reason (due to interop,
+      // or a prior discovery) to believe that it is unsupported.
+      p_clcb->p_srcb->srvc_hdl_db_hash = false;
+    }
+
+    /* read db hash if db hash characteristic exists */
+    if (bta_gattc_is_robust_caching_enabled() &&
+        p_clcb->p_srcb->srvc_hdl_db_hash &&
+        bta_gattc_read_db_hash(p_clcb, is_svc_chg)) {
+      LOG(INFO) << __func__
+                << ": pending service discovery, read db hash first";
+      p_clcb->p_srcb->srvc_hdl_db_hash = false;
+      return;
+    }
+
+    bta_gattc_start_discover_internal(p_clcb);
   }
   /* pending operation, wait until it finishes */
   else {
