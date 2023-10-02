@@ -32,10 +32,9 @@ import android.bluetooth.le.BluetoothLeScanner;
 import android.content.Context;
 
 import androidx.test.core.app.ApplicationProvider;
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.android.compatibility.common.util.AdoptShellPermissionsRule;
-
 
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -54,8 +53,6 @@ import pandora.HostProto.OwnAddressType;
 public class GattClientTest {
     private static final String TAG = "GattClientTest";
 
-    private static final String BUMBLE_RPA = "51:F7:A8:75:AC:5E";
-
     @ClassRule public static final AdoptShellPermissionsRule PERM = new AdoptShellPermissionsRule();
 
     @Rule public final PandoraDevice mBumble = new PandoraDevice();
@@ -70,7 +67,8 @@ public class GattClientTest {
         advertiseWithBumble();
 
         BluetoothDevice device =
-            mAdapter.getRemoteLeDevice(BUMBLE_RPA, BluetoothDevice.ADDRESS_TYPE_RANDOM);
+                mAdapter.getRemoteLeDevice(
+                        Utils.BUMBLE_RANDOM_ADDRESS, BluetoothDevice.ADDRESS_TYPE_RANDOM);
 
         for (int i = 0; i < 10; i++) {
             BluetoothGattCallback gattCallback = mock(BluetoothGattCallback.class);
@@ -101,7 +99,8 @@ public class GattClientTest {
         advertiseWithBumble();
 
         BluetoothDevice device =
-            mAdapter.getRemoteLeDevice(BUMBLE_RPA, BluetoothDevice.ADDRESS_TYPE_RANDOM);
+                mAdapter.getRemoteLeDevice(
+                        Utils.BUMBLE_RANDOM_ADDRESS, BluetoothDevice.ADDRESS_TYPE_RANDOM);
 
         for (int i = 0; i < 10; i++) {
             BluetoothGattCallback gattCallback = mock(BluetoothGattCallback.class);
@@ -123,7 +122,8 @@ public class GattClientTest {
         advertiseWithBumble();
 
         BluetoothDevice device =
-                mAdapter.getRemoteLeDevice(BUMBLE_RPA, BluetoothDevice.ADDRESS_TYPE_RANDOM);
+                mAdapter.getRemoteLeDevice(
+                        Utils.BUMBLE_RANDOM_ADDRESS, BluetoothDevice.ADDRESS_TYPE_RANDOM);
         BluetoothGattCallback gattCallback = mock(BluetoothGattCallback.class);
         InOrder inOrder = inOrder(gattCallback);
 
