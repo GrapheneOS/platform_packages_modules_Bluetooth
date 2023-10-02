@@ -22,12 +22,13 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+
 #include <cstdint>
 #include <mutex>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/include/bta_jv_api.h"
+#include "bta/include/bta_rfcomm_scn.h"
 #include "btif/include/btif_metrics_logging.h"
 /* The JV interface can have only one user, hence we need to call a few
  * L2CAP functions from this file. */
@@ -410,7 +411,7 @@ static void free_rfc_slot_scn(rfc_slot_t* slot) {
     slot->rfc_handle = 0;
   }
 
-  if (slot->f.server) BTM_FreeSCN(slot->scn);
+  if (slot->f.server) BTA_FreeSCN(slot->scn);
   slot->scn = 0;
 }
 
