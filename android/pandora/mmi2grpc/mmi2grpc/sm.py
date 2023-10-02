@@ -102,6 +102,7 @@ class SMProxy(ProfileProxy):
         Action: Place the IUT in connectable mode
         """
         self.advertise = self.host.Advertise(
+            legacy=True,
             connectable=True,
             own_address_type=PUBLIC,
         )

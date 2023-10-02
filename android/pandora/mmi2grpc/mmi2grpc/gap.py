@@ -113,6 +113,7 @@ class GAPProxy(ProfileProxy):
         """
 
         self.advertise = self.host.Advertise(
+            legacy=True,
             connectable=True,
             own_address_type=PUBLIC,
         )
@@ -245,6 +246,7 @@ class GAPProxy(ProfileProxy):
         """
 
         self.advertise = self.host.Advertise(
+            legacy=True,
             own_address_type=PUBLIC,
             data=DataTypes(complete_service_class_uuids128=["955798ce-3022-455c-b759-ee8edcd73d1a"],))
         return "OK"
@@ -256,6 +258,7 @@ class GAPProxy(ProfileProxy):
         """
 
         self.advertise = self.host.Advertise(own_address_type=PUBLIC,
+                                             legacy=True,
                                              data=DataTypes(
                                                  include_complete_local_name=True,
                                                  include_shortened_local_name=True,
@@ -270,6 +273,7 @@ class GAPProxy(ProfileProxy):
         """
 
         self.advertise = self.host.Advertise(
+            legacy=True,
             connectable=True,
             own_address_type=PUBLIC,
         )
@@ -286,6 +290,7 @@ class GAPProxy(ProfileProxy):
         """
 
         self.advertise = self.host.Advertise(own_address_type=PUBLIC,
+                                             legacy=True,
                                              data=DataTypes(manufacturer_specific_data=b"d0n't b3 3v1l!",))
 
         return "OK"
@@ -296,7 +301,9 @@ class GAPProxy(ProfileProxy):
         Please prepare IUT to send an advertising report with TX Power Level.
         """
 
-        self.advertise = self.host.Advertise(own_address_type=PUBLIC, data=DataTypes(include_tx_power_level=True,))
+        self.advertise = self.host.Advertise(legacy=True,
+                                             own_address_type=PUBLIC,
+                                             data=DataTypes(include_tx_power_level=True,))
 
         return "OK"
 
@@ -307,6 +314,7 @@ class GAPProxy(ProfileProxy):
         """
 
         self.advertise = self.host.Advertise(
+            legacy=True,
             own_address_type=PUBLIC,
             connectable=True,
         )
@@ -322,6 +330,7 @@ class GAPProxy(ProfileProxy):
         """
 
         self.advertise = self.host.Advertise(
+            legacy=True,
             own_address_type=PUBLIC,
             connectable=True,
         )
@@ -396,6 +405,7 @@ class GAPProxy(ProfileProxy):
         """
 
         self.advertise = self.host.Advertise(
+            legacy=True,
             data=DataTypes(le_discoverability_mode=DISCOVERABLE_GENERAL),
             own_address_type=PUBLIC,
             connectable=True,
@@ -414,6 +424,7 @@ class GAPProxy(ProfileProxy):
         """
 
         self.advertise = self.host.Advertise(
+            legacy=True,
             data=DataTypes(le_discoverability_mode=DISCOVERABLE_GENERAL),
             own_address_type=PUBLIC,
             connectable=True,
@@ -431,6 +442,7 @@ class GAPProxy(ProfileProxy):
         """
 
         self.advertise = self.host.Advertise(
+            legacy=True,
             data=DataTypes(le_discoverability_mode=NOT_DISCOVERABLE),
             own_address_type=PUBLIC,
             connectable=True,
@@ -445,6 +457,7 @@ class GAPProxy(ProfileProxy):
         """
 
         self.advertise = self.host.Advertise(
+            legacy=True,
             data=DataTypes(le_discoverability_mode=DISCOVERABLE_GENERAL),
             own_address_type=PUBLIC,
             connectable=True,
@@ -560,7 +573,10 @@ class GAPProxy(ProfileProxy):
         send an advertising report.
         """
 
-        self.advertise = self.host.Advertise(own_address_type=PUBLIC,)
+        self.advertise = self.host.Advertise(
+            legacy=True,
+            own_address_type=PUBLIC,
+        )
 
         return "OK"
 
@@ -676,6 +692,7 @@ class GAPProxy(ProfileProxy):
         self.host.SetDiscoverabilityMode(mode=DISCOVERABLE_GENERAL)
 
         self.advertise = self.host.Advertise(
+            legacy=True,
             data=DataTypes(le_discoverability_mode=DISCOVERABLE_GENERAL),
             own_address_type=PUBLIC,
             connectable=True,
@@ -792,6 +809,7 @@ class GAPProxy(ProfileProxy):
         """
 
         self.advertise = self.host.Advertise(
+            legacy=True,
             data=DataTypes(le_discoverability_mode=DISCOVERABLE_GENERAL),
             own_address_type=PUBLIC,
             connectable=False,
@@ -819,6 +837,7 @@ class GAPProxy(ProfileProxy):
         """
 
         self.advertise = self.host.Advertise(
+            legacy=True,
             data=DataTypes(le_discoverability_mode=DISCOVERABLE_GENERAL),
             own_address_type=PUBLIC,
             connectable=False,
@@ -834,6 +853,7 @@ class GAPProxy(ProfileProxy):
         """
 
         self.advertise = self.host.Advertise(
+            legacy=True,
             data=DataTypes(le_discoverability_mode=NOT_DISCOVERABLE),
             own_address_type=PUBLIC,
             connectable=True,
@@ -849,6 +869,7 @@ class GAPProxy(ProfileProxy):
         """
 
         self.advertise = self.host.Advertise(
+            legacy=True,
             data=DataTypes(le_discoverability_mode=DISCOVERABLE_GENERAL),
             own_address_type=PUBLIC,
             connectable=True,
