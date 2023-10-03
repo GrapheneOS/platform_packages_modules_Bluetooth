@@ -176,8 +176,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     switch (group->GetState()) {
       case AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED:
         if (group->IsConfiguredForContext(context_type)) {
-          if (group->Activate(context_type)) {
+          if (group->Activate(context_type, metadata_context_types,
+                              ccid_lists)) {
             SetTargetState(group, AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+
             if (CigCreate(group)) {
               return true;
             }
