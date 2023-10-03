@@ -24,9 +24,11 @@
 #ifndef BTA_SYS_H
 #define BTA_SYS_H
 
+#include <base/strings/stringprintf.h>
 #include <base/time/time.h>
 
 #include <cstdint>
+#include <string>
 
 #include "bt_target.h"  // Must be first to define build configuration
 #include "osi/include/alarm.h"
@@ -61,69 +63,95 @@ inline const T* Specialize(U* u) {
 #define BTA_DM_NUM_JV_ID 2
 #endif
 
-/* SW sub-systems */
-#define BTA_ID_SYS 0 /* system manager */
-/* BLUETOOTH PART - from 0 to BTA_ID_BLUETOOTH_MAX */
-#define BTA_ID_DM_SEARCH 2      /* device manager search */
-#define BTA_ID_DM_SEC 3         /* device manager security */
-#define BTA_ID_DG 4             /* data gateway */
-#define BTA_ID_AG 5             /* audio gateway */
-#define BTA_ID_OPC 6            /* object push client */
-#define BTA_ID_OPS 7            /* object push server */
-#define BTA_ID_FTS 8            /* file transfer server */
-#define BTA_ID_CT 9             /* cordless telephony terminal */
-#define BTA_ID_FTC 10           /* file transfer client */
-#define BTA_ID_SS 11            /* synchronization server */
-#define BTA_ID_PR 12            /* Printer client */
-#define BTA_ID_BIC 13           /* Basic Imaging Client */
-#define BTA_ID_PAN 14           /* Personal Area Networking */
-#define BTA_ID_BIS 15           /* Basic Imaging Server */
-#define BTA_ID_ACC 16           /* Advanced Camera Client */
-#define BTA_ID_SC 17            /* SIM Card Access server */
-#define BTA_ID_AV 18            /* Advanced audio/video */
-#define BTA_ID_AVK 19           /* Audio/video sink */
-#define BTA_ID_HD 20            /* HID Device */
-#define BTA_ID_CG 21            /* Cordless Gateway */
-#define BTA_ID_BP 22            /* Basic Printing Client */
-#define BTA_ID_HH 23            /* Human Interface Device Host */
-#define BTA_ID_PBS 24           /* Phone Book Access Server */
-#define BTA_ID_PBC 25           /* Phone Book Access Client */
-#define BTA_ID_JV 26            /* Java */
-#define BTA_ID_HS 27            /* Headset */
-#define BTA_ID_MSE 28           /* Message Server Equipment */
-#define BTA_ID_MCE 29           /* Message Client Equipment */
-#define BTA_ID_HL 30            /* Health Device Profile*/
-#define BTA_ID_GATTC 31         /* GATT Client */
-#define BTA_ID_GATTS 32         /* GATT Client */
-#define BTA_ID_SDP 33           /* SDP Client */
-#define BTA_ID_BLUETOOTH_MAX 34 /* last BT profile */
+typedef enum : uint8_t {
+  /* SW sub-systems */
+  BTA_ID_SYS = 0,       /* system manager */
+                        /* BLUETOOTH PART - from = 0, to BTA_ID_BLUETOOTH_MAX */
+  BTA_ID_DM_SEARCH = 2, /* device manager search */
+  BTA_ID_DM_SEC = 3,    /* device manager security */
+  BTA_ID_DG = 4,        /* data gateway */
+  BTA_ID_AG = 5,        /* audio gateway */
+  BTA_ID_OPC = 6,       /* object push client */
+  BTA_ID_OPS = 7,       /* object push server */
+  BTA_ID_FTS = 8,       /* file transfer server */
+  BTA_ID_CT = 9,        /* cordless telephony terminal */
+  BTA_ID_FTC = 10,      /* file transfer client */
+  BTA_ID_SS = 11,       /* synchronization server */
+  BTA_ID_PR = 12,       /* Printer client */
+  BTA_ID_BIC = 13,      /* Basic Imaging Client */
+  BTA_ID_PAN = 14,      /* Personal Area Networking */
+  BTA_ID_BIS = 15,      /* Basic Imaging Server */
+  BTA_ID_ACC = 16,      /* Advanced Camera Client */
+  BTA_ID_SC = 17,       /* SIM Card Access server */
+  BTA_ID_AV = 18,       /* Advanced audio/video */
+  BTA_ID_AVK = 19,      /* Audio/video sink */
+  BTA_ID_HD = 20,       /* HID Device */
+  BTA_ID_CG = 21,       /* Cordless Gateway */
+  BTA_ID_BP = 22,       /* Basic Printing Client */
+  BTA_ID_HH = 23,       /* Human Interface Device Host */
+  BTA_ID_PBS = 24,      /* Phone Book Access Server */
+  BTA_ID_PBC = 25,      /* Phone Book Access Client */
+  BTA_ID_JV = 26,       /* Java */
+  BTA_ID_HS = 27,       /* Headset */
+  BTA_ID_MSE = 28,      /* Message Server Equipment */
+  BTA_ID_MCE = 29,      /* Message Client Equipment */
+  BTA_ID_HL = 30,       /* Health Device Profile*/
+  BTA_ID_GATTC = 31,    /* GATT Client */
+  BTA_ID_GATTS = 32,    /* GATT Client */
+  BTA_ID_SDP = 33,      /* SDP Client */
+  BTA_ID_BLUETOOTH_MAX = 34, /* last BT profile */
 
-#define BTA_ID_MAX (44 + BTA_DM_NUM_JV_ID)
+  BTA_ID_MAX = (44 + BTA_DM_NUM_JV_ID),
+} tBTA_SYS_ID;
 
-typedef uint8_t tBTA_SYS_ID;
+#ifndef CASE_RETURN_TEXT
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code
+#endif
 
-inline std::string BtaIdSysText(tBTA_SYS_ID sys_id) {
+inline std::string BtaIdSysText(const tBTA_SYS_ID& sys_id) {
   switch (sys_id) {
-    case BTA_ID_DM_SEARCH:  // 2
-      return std::string("Scanner");
-    case BTA_ID_AG:  // 5
-      return std::string("Audio gateway");
-    case BTA_ID_PAN:  // 14
-      return std::string("PAN Personal area network");
-    case BTA_ID_AV:  // 18
-      return std::string("Advanced audio/video");
-    case BTA_ID_HD:  // 20
-      return std::string("HID Human interface device");
-    case BTA_ID_HH:  // 23
-      return std::string("HID Human interface host");
-    case BTA_ID_GATTC:  // 31
-      return std::string("GATT client");
-    case BTA_ID_GATTS:  // 32
-      return std::string("GATT server");
+    CASE_RETURN_TEXT(BTA_ID_SYS);
+    CASE_RETURN_TEXT(BTA_ID_DM_SEARCH);
+    CASE_RETURN_TEXT(BTA_ID_DM_SEC);
+    CASE_RETURN_TEXT(BTA_ID_DG);
+    CASE_RETURN_TEXT(BTA_ID_AG);
+    CASE_RETURN_TEXT(BTA_ID_OPC);
+    CASE_RETURN_TEXT(BTA_ID_OPS);
+    CASE_RETURN_TEXT(BTA_ID_FTS);
+    CASE_RETURN_TEXT(BTA_ID_CT);
+    CASE_RETURN_TEXT(BTA_ID_FTC);
+    CASE_RETURN_TEXT(BTA_ID_SS);
+    CASE_RETURN_TEXT(BTA_ID_PR);
+    CASE_RETURN_TEXT(BTA_ID_BIC);
+    CASE_RETURN_TEXT(BTA_ID_PAN);
+    CASE_RETURN_TEXT(BTA_ID_BIS);
+    CASE_RETURN_TEXT(BTA_ID_ACC);
+    CASE_RETURN_TEXT(BTA_ID_SC);
+    CASE_RETURN_TEXT(BTA_ID_AV);
+    CASE_RETURN_TEXT(BTA_ID_AVK);
+    CASE_RETURN_TEXT(BTA_ID_HD);
+    CASE_RETURN_TEXT(BTA_ID_CG);
+    CASE_RETURN_TEXT(BTA_ID_BP);
+    CASE_RETURN_TEXT(BTA_ID_HH);
+    CASE_RETURN_TEXT(BTA_ID_PBS);
+    CASE_RETURN_TEXT(BTA_ID_PBC);
+    CASE_RETURN_TEXT(BTA_ID_JV);
+    CASE_RETURN_TEXT(BTA_ID_HS);
+    CASE_RETURN_TEXT(BTA_ID_MSE);
+    CASE_RETURN_TEXT(BTA_ID_MCE);
+    CASE_RETURN_TEXT(BTA_ID_HL);
+    CASE_RETURN_TEXT(BTA_ID_GATTC);
+    CASE_RETURN_TEXT(BTA_ID_GATTS);
+    CASE_RETURN_TEXT(BTA_ID_SDP);
+    CASE_RETURN_TEXT(BTA_ID_BLUETOOTH_MAX);
     default:
-      return std::string("Unknown");
+      return base::StringPrintf("Unknown[%hhu]", sys_id);
   }
 }
+
+#undef CASE_RETURN_TEXT
 
 typedef enum : uint8_t {
   BTA_SYS_CONN_OPEN = 0x00,
