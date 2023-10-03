@@ -32,11 +32,13 @@ namespace fuzz {
 template <typename T>
 class FuzzCommandInterface : public CommandInterface<T> {
  public:
-  void EnqueueCommand(std::unique_ptr<T> command,
-                      common::ContextualOnceCallback<void(hci::CommandCompleteView)> on_complete) override {}
+  void EnqueueCommand(
+      std::unique_ptr<T> /* command */,
+      common::ContextualOnceCallback<void(hci::CommandCompleteView)> /* on_complete */) override {}
 
-  void EnqueueCommand(std::unique_ptr<T> command,
-                      common::ContextualOnceCallback<void(hci::CommandStatusView)> on_status) override {}
+  void EnqueueCommand(
+      std::unique_ptr<T> /* command */,
+      common::ContextualOnceCallback<void(hci::CommandStatusView)> /* on_status */) override {}
 };
 
 class FuzzHciLayer : public HciLayer {
@@ -50,7 +52,7 @@ class FuzzHciLayer : public HciLayer {
   }
 
   void EnqueueCommand(
-      std::unique_ptr<hci::CommandBuilder> command,
+      std::unique_ptr<hci::CommandBuilder> /* command */,
       common::ContextualOnceCallback<void(hci::CommandCompleteView)> on_complete) override {
     on_command_complete_ = std::move(on_complete);
     if (auto_reply_fdp != nullptr) {
@@ -59,7 +61,7 @@ class FuzzHciLayer : public HciLayer {
   }
 
   void EnqueueCommand(
-      std::unique_ptr<CommandBuilder> command,
+      std::unique_ptr<CommandBuilder> /* command */,
       common::ContextualOnceCallback<void(hci::CommandStatusView)> on_status) override {
     on_command_status_ = std::move(on_status);
     if (auto_reply_fdp != nullptr) {
@@ -141,7 +143,7 @@ class FuzzHciLayer : public HciLayer {
   static const ModuleFactory Factory;
 
  protected:
-  void ListDependencies(ModuleList* list) const override {}
+  void ListDependencies(ModuleList* /* list */) const override {}
   void Start() override;
   void Stop() override;
 
