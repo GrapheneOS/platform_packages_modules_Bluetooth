@@ -491,6 +491,7 @@ cc_test {
         "libbt_shim_bridge",
         "libbt_shim_ffi",
         "libchrome",
+        "libcutils",
         "libgmock",
         "libosi",
     ],
