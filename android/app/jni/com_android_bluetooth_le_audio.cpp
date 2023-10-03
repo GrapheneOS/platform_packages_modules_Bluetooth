@@ -648,47 +648,43 @@ static jlong getAudioLocationOrDefault(
     const std::map<uint8_t, std::vector<uint8_t>>& metadata,
     jlong default_location) {
   if (metadata.count(
-          bluetooth::le_audio::kLeAudioCodecLC3TypeAudioChannelAllocation) == 0)
+          bluetooth::le_audio::kLeAudioLtvTypeAudioChannelAllocation) == 0)
     return default_location;
 
-  auto& vec = metadata.at(
-      bluetooth::le_audio::kLeAudioCodecLC3TypeAudioChannelAllocation);
+  auto& vec =
+      metadata.at(bluetooth::le_audio::kLeAudioLtvTypeAudioChannelAllocation);
   return VEC_UINT8_TO_UINT32(vec);
 }
 
 static jint getSamplingFrequencyOrDefault(
     const std::map<uint8_t, std::vector<uint8_t>>& metadata,
     jint default_sampling_frequency) {
-  if (metadata.count(bluetooth::le_audio::kLeAudioCodecLC3TypeSamplingFreq) ==
-      0)
+  if (metadata.count(bluetooth::le_audio::kLeAudioLtvTypeSamplingFreq) == 0)
     return default_sampling_frequency;
 
-  auto& vec =
-      metadata.at(bluetooth::le_audio::kLeAudioCodecLC3TypeSamplingFreq);
+  auto& vec = metadata.at(bluetooth::le_audio::kLeAudioLtvTypeSamplingFreq);
   return (jint)(vec.data()[0]);
 }
 
 static jint getFrameDurationOrDefault(
     const std::map<uint8_t, std::vector<uint8_t>>& metadata,
     jint default_frame_duration) {
-  if (metadata.count(bluetooth::le_audio::kLeAudioCodecLC3TypeFrameDuration) ==
-      0)
+  if (metadata.count(bluetooth::le_audio::kLeAudioLtvTypeFrameDuration) == 0)
     return default_frame_duration;
 
-  auto& vec =
-      metadata.at(bluetooth::le_audio::kLeAudioCodecLC3TypeFrameDuration);
+  auto& vec = metadata.at(bluetooth::le_audio::kLeAudioLtvTypeFrameDuration);
   return (jint)(vec.data()[0]);
 }
 
 static jint getOctetsPerFrameOrDefault(
     const std::map<uint8_t, std::vector<uint8_t>>& metadata,
     jint default_octets_per_frame) {
-  if (metadata.count(bluetooth::le_audio::kLeAudioCodecLC3TypeOctetPerFrame) ==
+  if (metadata.count(bluetooth::le_audio::kLeAudioLtvTypeOctetsPerCodecFrame) ==
       0)
     return default_octets_per_frame;
 
   auto& vec =
-      metadata.at(bluetooth::le_audio::kLeAudioCodecLC3TypeOctetPerFrame);
+      metadata.at(bluetooth::le_audio::kLeAudioLtvTypeOctetsPerCodecFrame);
   return VEC_UINT8_TO_UINT16(vec);
 }
 
