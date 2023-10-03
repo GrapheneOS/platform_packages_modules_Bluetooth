@@ -431,6 +431,7 @@ tBTA_STATUS bta_hf_client_api_enable(tBTA_HF_CLIENT_CBACK* p_cback,
 
   bta_hf_client_cb_arr.p_cback = p_cback;
   bta_hf_client_cb_arr.features = features;
+  bta_hf_client_cb_arr.is_support_lc3 = features & BTA_HF_CLIENT_FEAT_SWB;
 
   /* create SDP records */
   bta_hf_client_create_record(&bta_hf_client_cb_arr, p_service_name);

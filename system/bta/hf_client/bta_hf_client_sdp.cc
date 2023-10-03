@@ -30,6 +30,7 @@
 #include "bta/include/bta_hf_client_api.h"
 #include "bta/include/bta_rfcomm_scn.h"
 #include "bta/sys/bta_sys.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_uuid16.h"
@@ -106,6 +107,7 @@ bool bta_hf_client_add_record(const char* p_service_name, uint8_t scn,
   uint16_t sdp_features = 0;
 
   LOG_VERBOSE("bta_hf_client_add_record");
+  LOG_INFO("features: %d", features);
 
   memset(proto_elem_list, 0,
          BTA_HF_CLIENT_NUM_PROTO_ELEMS * sizeof(tSDP_PROTOCOL_ELEM));
@@ -154,7 +156,12 @@ bool bta_hf_client_add_record(const char* p_service_name, uint8_t scn,
   if (features & BTA_HF_CLIENT_FEAT_VOL) sdp_features |= BTA_HF_CLIENT_FEAT_VOL;
 
   /* Codec bit position is different in SDP (bit 5) and in BRSF (bit 7) */
-  if (features & BTA_HF_CLIENT_FEAT_CODEC) sdp_features |= 0x0020;
+  if (features & BTA_HF_CLIENT_FEAT_CODEC)
+    sdp_features |= BTA_HF_CLIENT_WBS_SUPPORT;
+
+  /* Support swb */
+  if (features & BTA_HF_CLIENT_FEAT_SWB)
+    features |= BTA_HF_CLIENT_FEAT_SWB_SUPPORT;
 
   UINT16_TO_BE_FIELD(buf, sdp_features);
   result &= get_legacy_stack_sdp_api()->handle.SDP_AddAttribute(
