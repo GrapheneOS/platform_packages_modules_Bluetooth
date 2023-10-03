@@ -1270,14 +1270,18 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
     periodic_sync_manager_.CancelCreateSync(sid, address);
   }
 
-  void transfer_sync(const Address& address, uint16_t service_data, uint16_t sync_handle, int pa_source) {
+  void transfer_sync(
+      const Address& address,
+      uint16_t connection_handle,
+      uint16_t service_data,
+      uint16_t sync_handle,
+      int pa_source) {
     if (!is_periodic_advertising_sync_transfer_sender_supported_) {
       LOG_WARN("PAST sender not supported on this device");
       int status = static_cast<int>(ErrorCode::UNSUPPORTED_FEATURE_OR_PARAMETER_VALUE);
       scanning_callbacks_->OnPeriodicSyncTransferred(pa_source, status, address);
       return;
     }
-    uint16_t connection_handle = acl_manager_->HACK_GetLeHandle(address);
     if (connection_handle == 0xFFFF) {
       LOG_ERROR("[PAST]: Invalid connection handle or no LE ACL link");
       int status = static_cast<int>(ErrorCode::UNKNOWN_CONNECTION);
@@ -1287,14 +1291,18 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
     periodic_sync_manager_.TransferSync(address, service_data, sync_handle, pa_source, connection_handle);
   }
 
-  void transfer_set_info(const Address& address, uint16_t service_data, uint8_t adv_handle, int pa_source) {
+  void transfer_set_info(
+      const Address& address,
+      uint16_t connection_handle,
+      uint16_t service_data,
+      uint8_t adv_handle,
+      int pa_source) {
     if (!is_periodic_advertising_sync_transfer_sender_supported_) {
       LOG_WARN("PAST sender not supported on this device");
       int status = static_cast<int>(ErrorCode::UNSUPPORTED_FEATURE_OR_PARAMETER_VALUE);
       scanning_callbacks_->OnPeriodicSyncTransferred(pa_source, status, address);
       return;
     }
-    uint16_t connection_handle = acl_manager_->HACK_GetLeHandle(address);
     if (connection_handle == 0xFFFF) {
       LOG_ERROR("[PAST]:Invalid connection handle or no LE ACL link");
       int status = static_cast<int>(ErrorCode::UNKNOWN_CONNECTION);
@@ -1811,13 +1819,22 @@ void LeScanningManager::CancelCreateSync(uint8_t sid, const Address& address) {
 }
 
 void LeScanningManager::TransferSync(
-    const Address& address, uint16_t service_data, uint16_t sync_handle, int pa_source) {
-  CallOn(pimpl_.get(), &impl::transfer_sync, address, service_data, sync_handle, pa_source);
+    const Address& address,
+    uint16_t handle,
+    uint16_t service_data,
+    uint16_t sync_handle,
+    int pa_source) {
+  CallOn(pimpl_.get(), &impl::transfer_sync, address, handle, service_data, sync_handle, pa_source);
 }
 
 void LeScanningManager::TransferSetInfo(
-    const Address& address, uint16_t service_data, uint8_t adv_handle, int pa_source) {
-  CallOn(pimpl_.get(), &impl::transfer_set_info, address, service_data, adv_handle, pa_source);
+    const Address& address,
+    uint16_t handle,
+    uint16_t service_data,
+    uint8_t adv_handle,
+    int pa_source) {
+  CallOn(
+      pimpl_.get(), &impl::transfer_set_info, address, handle, service_data, adv_handle, pa_source);
 }
 
 void LeScanningManager::SyncTxParameters(
