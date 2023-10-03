@@ -1114,12 +1114,11 @@ TEST(LeAudioClientParserTest, testPrepareAseCtpCodecConfigSingle) {
                                  .vendor_codec_id = 0x0405};
   types::LeAudioLtvMap codec_conf =
       types::LeAudioLtvMap()
-          .Add(codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq, (uint8_t)0x10)
-          .Add(codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration,
-               (uint8_t)0x03)
-          .Add(codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation,
+          .Add(codec_spec_conf::kLeAudioLtvTypeSamplingFreq, (uint8_t)0x10)
+          .Add(codec_spec_conf::kLeAudioLtvTypeFrameDuration, (uint8_t)0x03)
+          .Add(codec_spec_conf::kLeAudioLtvTypeAudioChannelAllocation,
                (uint32_t)0x04050607)
-          .Add(codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame,
+          .Add(codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame,
                (uint16_t)0x0203);
 
   confs.push_back(ctp_codec_conf{
@@ -1175,12 +1174,11 @@ TEST(LeAudioClientParserTest, testPrepareAseCtpCodecConfigMultiple) {
                                  .vendor_codec_id = 0x0405};
   types::LeAudioLtvMap codec_conf =
       types::LeAudioLtvMap()
-          .Add(codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq, (uint8_t)0x10)
-          .Add(codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration,
-               (uint8_t)0x03)
-          .Add(codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation,
+          .Add(codec_spec_conf::kLeAudioLtvTypeSamplingFreq, (uint8_t)0x10)
+          .Add(codec_spec_conf::kLeAudioLtvTypeFrameDuration, (uint8_t)0x03)
+          .Add(codec_spec_conf::kLeAudioLtvTypeAudioChannelAllocation,
                (uint32_t)0x04050607)
-          .Add(codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame,
+          .Add(codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame,
                (uint16_t)0x0203);
 
   confs.push_back(ctp_codec_conf{
@@ -1231,12 +1229,11 @@ TEST(LeAudioClientParserTest, testPrepareAseCtpCodecConfigMultiple) {
                                   .vendor_codec_id = 0x1415};
   types::LeAudioLtvMap codec_conf2 =
       types::LeAudioLtvMap()
-          .Add(codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq, (uint8_t)0x11)
-          .Add(codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration,
-               (uint8_t)0x13)
-          .Add(codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation,
+          .Add(codec_spec_conf::kLeAudioLtvTypeSamplingFreq, (uint8_t)0x11)
+          .Add(codec_spec_conf::kLeAudioLtvTypeFrameDuration, (uint8_t)0x13)
+          .Add(codec_spec_conf::kLeAudioLtvTypeAudioChannelAllocation,
                (uint32_t)0x14151617)
-          .Add(codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame,
+          .Add(codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame,
                (uint16_t)0x1213);
 
   confs.push_back(ctp_codec_conf{
