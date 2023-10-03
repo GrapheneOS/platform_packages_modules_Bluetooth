@@ -18,6 +18,8 @@ use File::Basename;
 
 ## mockcify version
 ##
+## 0.6.2 Add tBTA_STATUS default value, Cpp type failure log
+##
 ## 0.6.1 Add tBTA_SDP_STATUS default value
 ##
 ## 0.6.0 Replace `extern` with `include` for mock_function_count_map
@@ -38,7 +40,7 @@ use File::Basename;
 ##
 ## 0.2.0 First version
 ##
-my $VERSION = "0.6.1";
+my $VERSION = "0.6.2";
 
 use strict;
 use warnings;
@@ -305,6 +307,10 @@ sub get_function_param_names {
         my $param_name = $function_param_names{$name}[$_];
         my $param_type = $function_param_types{$name}[$_];
 
+        if (!defined($param_type)) {
+          printf(STDERR "Unable to find param type def for $name\n");
+          next;
+        }
         if ($param_type =~ /unique_ptr/) {
             ## Wrap name in a move operation
             push(@param_names, "std::move($param_name)");
@@ -363,6 +369,7 @@ sub parse_function_into_components {
 
   ## Skip when void keyword used for no parameters
   if ($params ne "void") {
+    ## TODO Replace all comma types within angle brackets before split
     foreach (split ',', $params) {
       s/^\s+//;
       if (/\(/) {
@@ -565,6 +572,8 @@ sub get_default_return_value_from_type {
     return "BTAV_A2DP_CODEC_INDEX_SOURCE_MIN";
   } elsif(/tBTA_SDP_STATUS/) {
     return "BTA_SDP_SUCCESS";
+  } elsif(/tBTA_STATUS/) {
+    return "BTA_SUCCESS";
   } else {
     ## Decay to int type
     return "0";
