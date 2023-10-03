@@ -65,8 +65,18 @@ class MockLeScanningManager : public LeScanningManager {
   MOCK_METHOD(void, StartSync, (uint8_t, const AddressWithType&, uint16_t, uint16_t, int));
   MOCK_METHOD(void, StopSync, (uint16_t));
   MOCK_METHOD(void, CancelCreateSync, (uint8_t, const Address&));
-  MOCK_METHOD(void, TransferSync, (const Address&, uint16_t, uint16_t sync_handle, int pa_source));
-  MOCK_METHOD(void, TransferSetInfo, (const Address&, uint16_t, uint8_t, int));
+  MOCK_METHOD(
+      void,
+      TransferSync,
+      (const Address&,
+       uint16_t connection_handle,
+       uint16_t service_data,
+       uint16_t sync_handle,
+       int pa_source));
+  MOCK_METHOD(
+      void,
+      TransferSetInfo,
+      (const Address&, uint16_t connection_handle, uint16_t service_data, uint8_t, int));
   MOCK_METHOD(void, SyncTxParameters, (const Address&, uint8_t, uint16_t, uint16_t, int));
 };
 

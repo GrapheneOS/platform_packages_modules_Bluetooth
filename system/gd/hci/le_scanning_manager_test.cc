@@ -135,6 +135,14 @@ class TestController : public Controller {
     support_ble_extended_advertising_ = support;
   }
 
+  bool SupportsBlePeriodicAdvertisingSyncTransferSender() const override {
+    return support_ble_periodic_advertising_sync_transfer_;
+  }
+
+  void SetBlePeriodicAdvertisingSyncTransferSenderSupport(bool support) {
+    support_ble_periodic_advertising_sync_transfer_ = support;
+  }
+
  protected:
   void Start() override {}
   void Stop() override {}
@@ -143,6 +151,7 @@ class TestController : public Controller {
  private:
   std::set<OpCode> supported_opcodes_{};
   bool support_ble_extended_advertising_ = false;
+  bool support_ble_periodic_advertising_sync_transfer_ = false;
 };
 
 class TestLeAddressManager : public LeAddressManager {
@@ -319,6 +328,7 @@ class LeScanningManagerAndroidHciTest : public LeScanningManagerTest {
     test_controller_->AddSupported(OpCode::LE_EXTENDED_SCAN_PARAMS);
     test_controller_->AddSupported(OpCode::LE_ADV_FILTER);
     test_controller_->AddSupported(OpCode::LE_BATCH_SCAN);
+    test_controller_->SetBlePeriodicAdvertisingSyncTransferSenderSupport(true);
     start_le_scanning_manager();
     ASSERT_TRUE(fake_registry_.IsStarted(&HciLayer::Factory));
 
@@ -577,6 +587,72 @@ TEST_F(LeScanningManagerAndroidHciTest, read_batch_scan_result) {
   EXPECT_CALL(mock_callbacks_, OnBatchScanReports);
   test_hci_layer_->IncomingEvent(LeBatchScanReadResultParametersCompleteRawBuilder::Create(
       uint8_t{1}, ErrorCode::SUCCESS, BatchScanDataRead::FULL_MODE_DATA, 0, {}));
+}
+
+TEST_F(LeScanningManagerAndroidHciTest, start_sync_test) {
+  Address address;
+  const uint16_t handle = 0x0001;
+  const uint16_t service_data = 0x0000;
+  const uint16_t sync_handle = 0x0002;
+  const int pa_source = 3;
+
+  Address::FromString("12:34:56:78:9a:bc", address);
+
+  le_scanning_manager->TransferSync(address, handle, service_data, sync_handle, pa_source);
+  sync_client_handler();
+
+  ASSERT_EQ(
+      OpCode::LE_PERIODIC_ADVERTISING_SYNC_TRANSFER, test_hci_layer_->GetCommand().GetOpCode());
+}
+
+TEST_F(LeScanningManagerAndroidHciTest, start_sync_invalid_handle_test) {
+  Address address;
+  const uint16_t handle = 0xFFFF;
+  const uint16_t service_data = 0x0000;
+  const uint16_t sync_handle = 0x0002;
+  const int pa_source = 3;
+
+  Address::FromString("12:34:56:78:9a:bc", address);
+
+  EXPECT_CALL(
+      mock_callbacks_,
+      OnPeriodicSyncTransferred(
+          pa_source, static_cast<int>(ErrorCode::UNKNOWN_CONNECTION), address));
+  le_scanning_manager->TransferSync(address, handle, service_data, sync_handle, pa_source);
+  sync_client_handler();
+}
+
+TEST_F(LeScanningManagerAndroidHciTest, set_info_test) {
+  Address address;
+  const uint16_t handle = 0x0001;
+  const uint16_t service_data = 0x0000;
+  const uint16_t sync_handle = 0x0002;
+  const int pa_source = 3;
+
+  Address::FromString("12:34:56:78:9a:bc", address);
+
+  le_scanning_manager->TransferSetInfo(address, handle, service_data, sync_handle, pa_source);
+  sync_client_handler();
+
+  ASSERT_EQ(
+      OpCode::LE_PERIODIC_ADVERTISING_SET_INFO_TRANSFER, test_hci_layer_->GetCommand().GetOpCode());
+}
+
+TEST_F(LeScanningManagerAndroidHciTest, set_info_invalid_handle_test) {
+  Address address;
+  const uint16_t handle = 0xFFFF;
+  const uint16_t service_data = 0x0000;
+  const uint16_t sync_handle = 0x0002;
+  const int pa_source = 3;
+
+  Address::FromString("12:34:56:78:9a:bc", address);
+
+  EXPECT_CALL(
+      mock_callbacks_,
+      OnPeriodicSyncTransferred(
+          pa_source, static_cast<int>(ErrorCode::UNKNOWN_CONNECTION), address));
+  le_scanning_manager->TransferSetInfo(address, handle, service_data, sync_handle, pa_source);
+  sync_client_handler();
 }
 
 TEST_F(LeScanningManagerExtendedTest, startup_teardown) {}
