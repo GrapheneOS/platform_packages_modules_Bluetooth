@@ -84,9 +84,19 @@ class LeScanningManager : public bluetooth::Module {
 
   virtual void CancelCreateSync(uint8_t sid, const Address& address);
 
-  virtual void TransferSync(const Address& address, uint16_t service_data, uint16_t sync_handle, int pa_source);
+  virtual void TransferSync(
+      const Address& address,
+      uint16_t handle,
+      uint16_t service_data,
+      uint16_t sync_handle,
+      int pa_source);
 
-  virtual void TransferSetInfo(const Address& address, uint16_t service_data, uint8_t adv_handle, int pa_source);
+  virtual void TransferSetInfo(
+      const Address& address,
+      uint16_t handle,
+      uint16_t service_data,
+      uint8_t adv_handle,
+      int pa_source);
 
   virtual void SyncTxParameters(const Address& addr, uint8_t mode, uint16_t skip, uint16_t timeout, int reg_id);
 

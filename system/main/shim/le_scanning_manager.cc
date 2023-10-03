@@ -453,8 +453,10 @@ void BleScannerInterfaceImpl::TransferSync(RawAddress address,
         pa_source, BTM_MODE_UNSUPPORTED, address);
     return;
   }
-  bluetooth::shim::GetScanning()->TransferSync(
-      ToGdAddress(address), service_data, sync_handle, pa_source);
+
+  bluetooth::shim::GetScanning()->TransferSync(ToGdAddress(address),
+                                               p_acl->Handle(), service_data,
+                                               sync_handle, pa_source);
 }
 
 void BleScannerInterfaceImpl::TransferSetInfo(RawAddress address,
@@ -470,8 +472,10 @@ void BleScannerInterfaceImpl::TransferSetInfo(RawAddress address,
         pa_source, BTM_MODE_UNSUPPORTED, address);
     return;
   }
-  bluetooth::shim::GetScanning()->TransferSetInfo(
-      ToGdAddress(address), service_data, adv_handle, pa_source);
+
+  bluetooth::shim::GetScanning()->TransferSetInfo(ToGdAddress(address),
+                                                  p_acl->Handle(), service_data,
+                                                  adv_handle, pa_source);
 }
 
 void BleScannerInterfaceImpl::SyncTxParameters(RawAddress addr, uint8_t mode,
