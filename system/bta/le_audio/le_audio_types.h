@@ -101,11 +101,11 @@ static const bluetooth::Uuid kTelephonyMediaAudioProfileRoleCharacteristicUuid =
 
 namespace codec_spec_conf {
 /* LTV Types */
-constexpr uint8_t kLeAudioCodecLC3TypeSamplingFreq = 0x01;
-constexpr uint8_t kLeAudioCodecLC3TypeFrameDuration = 0x02;
-constexpr uint8_t kLeAudioCodecLC3TypeAudioChannelAllocation = 0x03;
-constexpr uint8_t kLeAudioCodecLC3TypeOctetPerFrame = 0x04;
-constexpr uint8_t kLeAudioCodecLC3TypeCodecFrameBlocksPerSdu = 0x05;
+constexpr uint8_t kLeAudioLtvTypeSamplingFreq = 0x01;
+constexpr uint8_t kLeAudioLtvTypeFrameDuration = 0x02;
+constexpr uint8_t kLeAudioLtvTypeAudioChannelAllocation = 0x03;
+constexpr uint8_t kLeAudioLtvTypeOctetsPerCodecFrame = 0x04;
+constexpr uint8_t kLeAudioLtvTypeCodecFrameBlocksPerSdu = 0x05;
 
 /* Sampling Frequencies */
 constexpr uint8_t kLeAudioSamplingFreq8000Hz = 0x01;
@@ -123,8 +123,8 @@ constexpr uint8_t kLeAudioSamplingFreq192000Hz = 0x0C;
 constexpr uint8_t kLeAudioSamplingFreq384000Hz = 0x0D;
 
 /* Frame Durations */
-constexpr uint8_t kLeAudioCodecLC3FrameDur7500us = 0x00;
-constexpr uint8_t kLeAudioCodecLC3FrameDur10000us = 0x01;
+constexpr uint8_t kLeAudioCodecFrameDur7500us = 0x00;
+constexpr uint8_t kLeAudioCodecFrameDur10000us = 0x01;
 
 /* Audio Allocations */
 constexpr uint32_t kLeAudioLocationNotAllowed = 0x00000000;
@@ -175,12 +175,12 @@ constexpr uint32_t kLeAudioLocationStereo =
     kLeAudioLocationFrontLeft | kLeAudioLocationFrontRight;
 
 /* Octets Per Frame */
-constexpr uint16_t kLeAudioCodecLC3FrameLen30 = 30;
-constexpr uint16_t kLeAudioCodecLC3FrameLen40 = 40;
-constexpr uint16_t kLeAudioCodecLC3FrameLen60 = 60;
-constexpr uint16_t kLeAudioCodecLC3FrameLen80 = 80;
-constexpr uint16_t kLeAudioCodecLC3FrameLen100 = 100;
-constexpr uint16_t kLeAudioCodecLC3FrameLen120 = 120;
+constexpr uint16_t kLeAudioCodecFrameLen30 = 30;
+constexpr uint16_t kLeAudioCodecFrameLen40 = 40;
+constexpr uint16_t kLeAudioCodecFrameLen60 = 60;
+constexpr uint16_t kLeAudioCodecFrameLen80 = 80;
+constexpr uint16_t kLeAudioCodecFrameLen100 = 100;
+constexpr uint16_t kLeAudioCodecFrameLen120 = 120;
 
 }  // namespace codec_spec_conf
 
@@ -211,16 +211,16 @@ inline uint8_t GetAudioChannelCounts(std::bitset<32> allocation) {
 /* LTV Types - same values as in Codec Specific Configurations but 0x03 is
  * named differently.
  */
-constexpr uint8_t kLeAudioCodecLC3TypeSamplingFreq =
-    codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq;
-constexpr uint8_t kLeAudioCodecLC3TypeFrameDuration =
-    codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration;
-constexpr uint8_t kLeAudioCodecLC3TypeAudioChannelCounts =
-    codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation;
-constexpr uint8_t kLeAudioCodecLC3TypeOctetPerFrame =
-    codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame;
-constexpr uint8_t kLeAudioCodecLC3TypeMaxCodecFramesPerSdu =
-    codec_spec_conf::kLeAudioCodecLC3TypeCodecFrameBlocksPerSdu;
+constexpr uint8_t kLeAudioLtvTypeSamplingFreq =
+    codec_spec_conf::kLeAudioLtvTypeSamplingFreq;
+constexpr uint8_t kLeAudioLtvTypeFrameDuration =
+    codec_spec_conf::kLeAudioLtvTypeFrameDuration;
+constexpr uint8_t kLeAudioLtvTypeAudioChannelCounts =
+    codec_spec_conf::kLeAudioLtvTypeAudioChannelAllocation;
+constexpr uint8_t kLeAudioLtvTypeOctetsPerCodecFrame =
+    codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame;
+constexpr uint8_t kLeAudioLtvTypeMaxCodecFramesPerSdu =
+    codec_spec_conf::kLeAudioLtvTypeCodecFrameBlocksPerSdu;
 
 /* Sampling Frequencies */
 constexpr uint16_t kLeAudioSamplingFreq8000Hz =
@@ -251,38 +251,38 @@ constexpr uint16_t kLeAudioSamplingFreq384000Hz = SamplingFreqConfig2Capability(
     codec_spec_conf::kLeAudioSamplingFreq384000Hz);
 
 /* Frame Durations */
-constexpr uint8_t kLeAudioCodecLC3FrameDur7500us =
-    FrameDurationConfig2Capability(
-        codec_spec_conf::kLeAudioCodecLC3FrameDur7500us);
-constexpr uint8_t kLeAudioCodecLC3FrameDur10000us =
-    FrameDurationConfig2Capability(
-        codec_spec_conf::kLeAudioCodecLC3FrameDur10000us);
-constexpr uint8_t kLeAudioCodecLC3FrameDurPrefer7500us = 0x10;
-constexpr uint8_t kLeAudioCodecLC3FrameDurPrefer10000us = 0x20;
+constexpr uint8_t kLeAudioCodecFrameDur7500us = FrameDurationConfig2Capability(
+    codec_spec_conf::kLeAudioCodecFrameDur7500us);
+constexpr uint8_t kLeAudioCodecFrameDur10000us = FrameDurationConfig2Capability(
+    codec_spec_conf::kLeAudioCodecFrameDur10000us);
+constexpr uint8_t kLeAudioCodecFrameDurPrefer7500us = 0x10;
+constexpr uint8_t kLeAudioCodecFrameDurPrefer10000us = 0x20;
 
 /* Audio Channel Counts */
 /* Each bit represents support for additional channel: bit 0 - one channel,
  * bit 1 - two, bit 3 - four channels. Multiple bits can be enabled at once.
  */
-constexpr uint8_t kLeAudioCodecLC3ChannelCountNone = 0x00;
-constexpr uint8_t kLeAudioCodecLC3ChannelCountSingleChannel = 0x01;
-constexpr uint8_t kLeAudioCodecLC3ChannelCountTwoChannel = 0x02;
-constexpr uint8_t kLeAudioCodecLC3ChannelCountThreeChannel = 0x04;
-constexpr uint8_t kLeAudioCodecLC3ChannelCountFourChannel = 0x08;
-constexpr uint8_t kLeAudioCodecLC3ChannelCountFiveChannel = 0x10;
-constexpr uint8_t kLeAudioCodecLC3ChannelCountSixChannel = 0x20;
-constexpr uint8_t kLeAudioCodecLC3ChannelCountSevenChannel = 0x40;
-constexpr uint8_t kLeAudioCodecLC3ChannelCountEightChannel = 0x40;
+constexpr uint8_t kLeAudioCodecChannelCountNone = 0x00;
+constexpr uint8_t kLeAudioCodecChannelCountSingleChannel = 0x01;
+constexpr uint8_t kLeAudioCodecChannelCountTwoChannel = 0x02;
+constexpr uint8_t kLeAudioCodecChannelCountThreeChannel = 0x04;
+constexpr uint8_t kLeAudioCodecChannelCountFourChannel = 0x08;
+constexpr uint8_t kLeAudioCodecChannelCountFiveChannel = 0x10;
+constexpr uint8_t kLeAudioCodecChannelCountSixChannel = 0x20;
+constexpr uint8_t kLeAudioCodecChannelCountSevenChannel = 0x40;
+constexpr uint8_t kLeAudioCodecChannelCountEightChannel = 0x40;
 
-/* Octets Per Frame - same as in Codec Specific Configurations but in
- * capabilities we get two values: min and max.
- */
-constexpr uint16_t kLeAudioCodecLC3FrameLen30 =
-    codec_spec_conf::kLeAudioCodecLC3FrameLen30;
-constexpr uint16_t kLeAudioCodecLC3FrameLen40 =
-    codec_spec_conf::kLeAudioCodecLC3FrameLen40;
-constexpr uint16_t kLeAudioCodecLC3FrameLen120 =
-    codec_spec_conf::kLeAudioCodecLC3FrameLen120;
+/* Octets Per Frame */
+constexpr uint16_t kLeAudioCodecFrameLen30 =
+    codec_spec_conf::kLeAudioCodecFrameLen30;
+constexpr uint16_t kLeAudioCodecFrameLen40 =
+    codec_spec_conf::kLeAudioCodecFrameLen40;
+constexpr uint16_t kLeAudioCodecFrameLen60 =
+    codec_spec_conf::kLeAudioCodecFrameLen60;
+constexpr uint16_t kLeAudioCodecFrameLen80 =
+    codec_spec_conf::kLeAudioCodecFrameLen80;
+constexpr uint16_t kLeAudioCodecFrameLen120 =
+    codec_spec_conf::kLeAudioCodecFrameLen120;
 
 };  // namespace codec_spec_caps
 
@@ -639,27 +639,27 @@ struct LeAudioLc3Config {
     std::map<uint8_t, std::vector<uint8_t>> values;
 
     if (sampling_frequency) {
-      values[codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq] =
+      values[codec_spec_conf::kLeAudioLtvTypeSamplingFreq] =
           UINT8_TO_VEC_UINT8(*sampling_frequency);
     }
 
     if (frame_duration) {
-      values[codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration] =
+      values[codec_spec_conf::kLeAudioLtvTypeFrameDuration] =
           UINT8_TO_VEC_UINT8(*frame_duration);
     }
 
     if (audio_channel_allocation) {
-      values[codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation] =
+      values[codec_spec_conf::kLeAudioLtvTypeAudioChannelAllocation] =
           UINT32_TO_VEC_UINT8(*audio_channel_allocation);
     }
 
     if (octets_per_codec_frame) {
-      values[codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame] =
+      values[codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame] =
           UINT16_TO_VEC_UINT8(*octets_per_codec_frame);
     }
 
     if (codec_frames_blocks_per_sdu) {
-      values[codec_spec_conf::kLeAudioCodecLC3TypeCodecFrameBlocksPerSdu] =
+      values[codec_spec_conf::kLeAudioLtvTypeCodecFrameBlocksPerSdu] =
           UINT8_TO_VEC_UINT8(*codec_frames_blocks_per_sdu);
     }
 
