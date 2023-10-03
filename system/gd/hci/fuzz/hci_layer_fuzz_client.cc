@@ -44,6 +44,8 @@ void HciLayerFuzzClient::Start() {
       GetHandler()->Bind([](hci::ErrorCode, uint16_t, uint8_t, uint16_t, uint16_t) {}));
   le_advertising_interface_ = hci_->GetLeAdvertisingInterface(GetHandler()->Bind([](LeMetaEventView) {}));
   le_scanning_interface_ = hci_->GetLeScanningInterface(GetHandler()->Bind([](LeMetaEventView) {}));
+  distance_measurement_interface_ =
+      hci_->GetDistanceMeasurementInterface(GetHandler()->Bind([](LeMetaEventView) {}));
 }
 
 void HciLayerFuzzClient::Stop() {

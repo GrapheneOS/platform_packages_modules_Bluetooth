@@ -129,6 +129,9 @@ class FuzzHciLayer : public HciLayer {
 
   hci::LeIsoInterface* GetLeIsoInterface(common::ContextualCallback<void(LeMetaEventView)> event_handler) override;
 
+  hci::DistanceMeasurementInterface* GetDistanceMeasurementInterface(
+      common::ContextualCallback<void(hci::LeMetaEventView)> event_handler) override;
+
   void injectArbitrary(FuzzedDataProvider& fdp);
 
   std::string ToString() const override {
@@ -179,6 +182,7 @@ class FuzzHciLayer : public HciLayer {
   FuzzCommandInterface<LeAdvertisingCommandBuilder> le_advertising_interface_{};
   FuzzCommandInterface<LeScanningCommandBuilder> le_scanning_interface_{};
   FuzzCommandInterface<LeIsoCommandBuilder> le_iso_interface_{};
+  FuzzCommandInterface<DistanceMeasurementCommandBuilder> distance_measurement_interface_{};
 
   common::ContextualOnceCallback<void(hci::CommandCompleteView)> on_command_complete_;
   common::ContextualOnceCallback<void(hci::CommandStatusView)> on_command_status_;
