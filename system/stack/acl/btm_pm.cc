@@ -42,6 +42,7 @@
 #include "main/shim/shim.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "osi/include/stack_power_telemetry.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_api_types.h"
@@ -726,6 +727,10 @@ void btm_pm_proc_mode_change(tHCI_STATUS hci_status, uint16_t hci_handle,
   if ((p_cb->state == BTM_PM_ST_ACTIVE) || (p_cb->state == BTM_PM_ST_SNIFF)) {
     l2c_OnHciModeChangeSendPendingPackets(p_cb->bda_);
   }
+
+  (mode != BTM_PM_ST_ACTIVE)
+      ? power_telemetry::GetInstance().LogSniffStarted(hci_handle, p_cb->bda_)
+      : power_telemetry::GetInstance().LogSniffStopped(hci_handle, p_cb->bda_);
 
   /* set req_mode  HOLD mode->ACTIVE */
   if ((mode == BTM_PM_MD_ACTIVE) && (p_cb->req_mode.mode == BTM_PM_MD_HOLD))

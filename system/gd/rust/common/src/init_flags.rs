@@ -362,6 +362,7 @@ init_flags!(
         asha_phy_update_retry_limit: i32 = 5,
         always_send_services_if_gatt_disc_done = true,
         always_use_private_gatt_for_debugging,
+        bluetooth_power_telemetry = false,
         bta_dm_clear_conn_id_on_client_close = true,
         btm_dm_flush_discovery_queue_on_search_cancel,
         bta_dm_stop_discovery_on_search_cancel,
