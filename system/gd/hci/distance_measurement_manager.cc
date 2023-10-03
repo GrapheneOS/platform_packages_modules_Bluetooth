@@ -20,6 +20,7 @@
 #include <unordered_map>
 
 #include "hci/acl_manager.h"
+#include "hci/distance_measurement_interface.h"
 #include "hci/hci_layer.h"
 #include "module.h"
 #include "os/handler.h"
@@ -43,6 +44,11 @@ struct DistanceMeasurementManager::impl {
     hci_layer_->RegisterLeEventHandler(
         hci::SubeventCode::TRANSMIT_POWER_REPORTING,
         handler_->BindOn(this, &impl::on_transmit_power_reporting));
+    distance_measurement_interface_ = hci_layer_->GetDistanceMeasurementInterface(
+        handler_->BindOn(this, &DistanceMeasurementManager::impl::handle_event));
+    distance_measurement_interface_->EnqueueCommand(
+        LeCsReadLocalSupportedCapabilitiesBuilder::Create(),
+        handler_->BindOnceOn(this, &impl::on_cs_read_local_supported_capabilities));
   }
 
   void stop() {
@@ -133,6 +139,41 @@ struct DistanceMeasurementManager::impl {
     rssi_trackers[address].alarm->Schedule(
         common::BindOnce(&impl::read_rssi_regularly, common::Unretained(this), address, frequency),
         std::chrono::milliseconds(rssi_trackers[address].frequency));
+  }
+
+  void handle_event(LeMetaEventView event) {
+    switch (event.GetSubeventCode()) {
+      case hci::SubeventCode::LE_CS_TEST_END_COMPLETE:
+      case hci::SubeventCode::LE_CS_SUBEVENT_RESULT_CONTINUE:
+      case hci::SubeventCode::LE_CS_SUBEVENT_RESULT:
+      case hci::SubeventCode::LE_CS_PROCEDURE_ENABLE_COMPLETE:
+      case hci::SubeventCode::LE_CS_CONFIG_COMPLETE:
+      case hci::SubeventCode::LE_CS_SECURITY_ENABLE_COMPLETE:
+      case hci::SubeventCode::LE_CS_READ_REMOTE_FAE_TABLE_COMPLETE:
+      case hci::SubeventCode::LE_CS_READ_REMOTE_SUPPORTED_CAPABILITIES_COMPLETE: {
+        LOG_WARN("Unhandled subevent %s", hci::SubeventCodeText(event.GetSubeventCode()).c_str());
+      } break;
+      default:
+        LOG_INFO("Unknown subevent %s", hci::SubeventCodeText(event.GetSubeventCode()).c_str());
+    }
+  }
+
+  void on_cs_read_local_supported_capabilities(CommandCompleteView view) {
+    auto complete_view = LeCsReadLocalSupportedCapabilitiesCompleteView::Create(view);
+    if (!complete_view.IsValid()) {
+      LOG_WARN("Invalid LeCsReadLocalSupportedCapabilitiesComplete event");
+      is_channel_sounding_supported_ = false;
+      return;
+    } else if (complete_view.GetStatus() != ErrorCode::SUCCESS) {
+      std::string error_code = ErrorCodeText(complete_view.GetStatus());
+      LOG_WARN(
+          "Received LeCsReadLocalSupportedCapabilitiesComplete with error code %s",
+          error_code.c_str());
+      is_channel_sounding_supported_ = false;
+      return;
+    }
+    is_channel_sounding_supported_ = true;
+    cs_subfeature_supported_ = complete_view.GetOptionalSubfeaturesSupported();
   }
 
   void on_read_remote_transmit_power_level_status(Address address, CommandStatusView view) {
@@ -282,8 +323,11 @@ struct DistanceMeasurementManager::impl {
   os::Handler* handler_;
   hci::HciLayer* hci_layer_;
   hci::AclManager* acl_manager_;
+  bool is_channel_sounding_supported_ = false;
+  hci::DistanceMeasurementInterface* distance_measurement_interface_;
   std::unordered_map<Address, RSSITracker> rssi_trackers;
   DistanceMeasurementCallbacks* distance_measurement_callbacks_;
+  CsOptionalSubfeaturesSupported cs_subfeature_supported_;
 };
 
 DistanceMeasurementManager::DistanceMeasurementManager() {
