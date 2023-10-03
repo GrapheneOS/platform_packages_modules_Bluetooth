@@ -788,7 +788,7 @@ packet LeScanningCommand : Command { _payload_, }
 packet LeConnectionManagementCommand : AclCommand { _payload_, }
 packet LeSecurityCommand : Command { _payload_, }
 packet LeIsoCommand : Command { _payload_, }
-packet LeCsCommand : Command { _payload_, }
+packet DistanceMeasurementCommand : Command { _payload_, }
 packet VendorCommand : Command { _payload_, }
 
 // HCI Event Packets
@@ -4867,7 +4867,7 @@ packet LeSubrateRequest : AclCommand (op_code = LE_SUBRATE_REQUEST) {
 packet LeSubrateRequestStatus : CommandStatus (command_op_code = LE_SUBRATE_REQUEST) {
 }
 
-packet LeCsReadLocalSupportedCapabilities : LeCsCommand (op_code = LE_CS_READ_LOCAL_SUPPORTED_CAPABILITIES) {
+packet LeCsReadLocalSupportedCapabilities : DistanceMeasurementCommand (op_code = LE_CS_READ_LOCAL_SUPPORTED_CAPABILITIES) {
 
 }
 
@@ -4976,7 +4976,7 @@ packet LeCsReadLocalSupportedCapabilitiesComplete : CommandComplete (command_op_
   t_sw_time_supported : 8,
 }
 
-packet LeCsReadRemoteSupportedCapabilities : LeCsCommand (op_code = LE_CS_READ_REMOTE_SUPPORTED_CAPABILITIES) {
+packet LeCsReadRemoteSupportedCapabilities : DistanceMeasurementCommand (op_code = LE_CS_READ_REMOTE_SUPPORTED_CAPABILITIES) {
   connection_handle: 12,
   _reserved_ : 4,
 }
@@ -4984,7 +4984,7 @@ packet LeCsReadRemoteSupportedCapabilities : LeCsCommand (op_code = LE_CS_READ_R
 packet LeCsReadRemoteSupportedCapabilitiesStatus : CommandStatus (command_op_code = LE_CS_READ_REMOTE_SUPPORTED_CAPABILITIES) {
 }
 
-packet LeCsWriteCachedRemoteSupportedCapabilities : LeCsCommand (op_code = LE_CS_WRITE_CACHED_REMOTE_SUPPORTED_CAPABILITIES) {
+packet LeCsWriteCachedRemoteSupportedCapabilities : DistanceMeasurementCommand (op_code = LE_CS_WRITE_CACHED_REMOTE_SUPPORTED_CAPABILITIES) {
   connection_handle: 12,
   _reserved_ : 4,
   num_config_supported: 8,
@@ -5014,7 +5014,7 @@ packet LeCsWriteCachedRemoteSupportedCapabilitiesComplete : CommandComplete (com
   _reserved_ : 4,
 }
 
-packet LeCsSecurityEnable : LeCsCommand (op_code = LE_CS_SECURITY_ENABLE) {
+packet LeCsSecurityEnable : DistanceMeasurementCommand (op_code = LE_CS_SECURITY_ENABLE) {
   connection_handle: 12,
   _reserved_ : 4,
 }
@@ -5031,7 +5031,7 @@ enum CsSyncAntennaSelection : 8 {
   NO_RECOMMENDATION = 0xFF,
 }
 
-packet LeCsSetDefaultSettings : LeCsCommand (op_code = LE_CS_SET_DEFAULT_SETTINGS) {
+packet LeCsSetDefaultSettings : DistanceMeasurementCommand (op_code = LE_CS_SET_DEFAULT_SETTINGS) {
   connection_handle: 12,
   _reserved_ : 4,
   role_enable : 8,
@@ -5045,7 +5045,7 @@ packet LeCsSetDefaultSettingsComplete : CommandComplete (command_op_code = LE_CS
   _reserved_ : 4,
 }
 
-packet LeCsReadRemoteFaeTable : LeCsCommand (op_code = LE_CS_READ_REMOTE_FAE_TABLE) {
+packet LeCsReadRemoteFaeTable : DistanceMeasurementCommand (op_code = LE_CS_READ_REMOTE_FAE_TABLE) {
   connection_handle: 12,
   _reserved_ : 4,
 }
@@ -5053,7 +5053,7 @@ packet LeCsReadRemoteFaeTable : LeCsCommand (op_code = LE_CS_READ_REMOTE_FAE_TAB
 packet LeCsReadRemoteFaeTableStatus : CommandStatus (command_op_code = LE_CS_READ_REMOTE_FAE_TABLE) {
 }
 
-packet LeCsWriteCachedRemoteFaeTable : LeCsCommand (op_code = LE_CS_WRITE_CACHED_REMOTE_FAE_TABLE) {
+packet LeCsWriteCachedRemoteFaeTable : DistanceMeasurementCommand (op_code = LE_CS_WRITE_CACHED_REMOTE_FAE_TABLE) {
   connection_handle: 12,
   _reserved_ : 4,
   remote_fae_table : 8[9],
@@ -5113,7 +5113,7 @@ enum CsCh3cShape : 8 {
   X_SHAPE = 0x01,
 }
 
-packet LeCsCreateConfig : LeCsCommand (op_code = LE_CS_CREATE_CONFIG) {
+packet LeCsCreateConfig : DistanceMeasurementCommand (op_code = LE_CS_CREATE_CONFIG) {
   connection_handle: 12,
   _reserved_ : 4,
   config_id : 2,
@@ -5142,7 +5142,7 @@ packet LeCsCreateConfigStatus : CommandStatus (command_op_code = LE_CS_CREATE_CO
 
 }
 
-packet LeCsRemoveConfig : LeCsCommand (op_code = LE_CS_REMOVE_CONFIG) {
+packet LeCsRemoveConfig : DistanceMeasurementCommand (op_code = LE_CS_REMOVE_CONFIG) {
   connection_handle: 12,
   _reserved_ : 4,
   config_id : 2,
@@ -5153,7 +5153,7 @@ packet LeCsRemoveConfigStatus : CommandStatus (command_op_code = LE_CS_REMOVE_CO
 
 }
 
-packet LeCsSetChannelClassification : LeCsCommand (op_code = LE_CS_SET_CHANNEL_CLASSIFICATION) {
+packet LeCsSetChannelClassification : DistanceMeasurementCommand (op_code = LE_CS_SET_CHANNEL_CLASSIFICATION) {
   channel_classification : 8[10],
 }
 
@@ -5173,7 +5173,7 @@ struct CsPreferredPeerAntenna {
   _reserved_ : 4,
 }
 
-packet LeCsSetProcedureParameters  : LeCsCommand (op_code = LE_CS_SET_PROCEDURE_PARAMETERS) {
+packet LeCsSetProcedureParameters  : DistanceMeasurementCommand (op_code = LE_CS_SET_PROCEDURE_PARAMETERS) {
   connection_handle: 12,
   _reserved_ : 4,
   config_id : 2,
@@ -5196,7 +5196,7 @@ packet LeCsSetProcedureParametersComplete : CommandComplete (command_op_code = L
   _reserved_ : 4,
 }
 
-packet LeCsProcedureEnable : LeCsCommand (op_code = LE_CS_PROCEDURE_ENABLE) {
+packet LeCsProcedureEnable : DistanceMeasurementCommand (op_code = LE_CS_PROCEDURE_ENABLE) {
   connection_handle: 12,
   _reserved_ : 4,
   procedure_enable : 8,
@@ -5207,7 +5207,7 @@ packet LeCsProcedureEnable : LeCsCommand (op_code = LE_CS_PROCEDURE_ENABLE) {
 packet LeCsProcedureEnableStatus : CommandStatus (command_op_code = LE_CS_PROCEDURE_ENABLE) {
 }
 
-packet LeCsTest : LeCsCommand (op_code = LE_CS_TEST) {
+packet LeCsTest : DistanceMeasurementCommand (op_code = LE_CS_TEST) {
   main_mode_type : 8,
   sub_mode_type : 8,
   main_mode_steps : 8,
@@ -5245,7 +5245,7 @@ packet LeCsTestComplete : CommandComplete (command_op_code = LE_CS_TEST) {
   status : ErrorCode,
 }
 
-packet LeCsTestEnd : LeCsCommand (op_code = LE_CS_TEST_END) {
+packet LeCsTestEnd : DistanceMeasurementCommand (op_code = LE_CS_TEST_END) {
 }
 
 packet LeCsTestEndStatus : CommandStatus (command_op_code = LE_CS_TEST_END) {
