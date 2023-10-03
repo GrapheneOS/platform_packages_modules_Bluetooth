@@ -42,6 +42,7 @@
 #include "main/shim/shim.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
+#include "osi/include/stack_power_telemetry.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
@@ -1375,6 +1376,8 @@ class CsisClientImpl : public CsisClient {
           if (instance == nullptr) return;
 
           if (event == BTA_DM_INQ_CMPL_EVT) {
+            power_telemetry::GetInstance().LogBleScan(
+                static_cast<int>(p_data->inq_cmpl.num_resps));
             LOG(INFO) << "BLE observe complete. Num Resp: "
                       << static_cast<int>(p_data->inq_cmpl.num_resps);
             csis_ad_type_filter_set(false);
@@ -1487,6 +1490,8 @@ class CsisClientImpl : public CsisClient {
           if (instance == nullptr) return;
 
           if (event == BTA_DM_INQ_CMPL_EVT) {
+            power_telemetry::GetInstance().LogBleScan(
+                static_cast<int>(p_data->inq_cmpl.num_resps));
             DLOG(INFO) << "BLE observe complete. Num Resp: "
                        << static_cast<int>(p_data->inq_cmpl.num_resps);
             return;
