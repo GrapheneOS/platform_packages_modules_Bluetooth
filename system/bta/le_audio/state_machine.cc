@@ -2741,7 +2741,35 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
         break;
 
-      case AseState::BTA_LE_AUDIO_ASE_STATE_ENABLING:
+      case AseState::BTA_LE_AUDIO_ASE_STATE_ENABLING: {
+        SetAseState(leAudioDevice, ase,
+                    AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING);
+
+        bool remove_cig = true;
+
+        /* Happens when bi-directional completive ASE releasing state came */
+        if (ase->cis_state == CisState::DISCONNECTING) break;
+        if ((ase->cis_state == CisState::CONNECTED ||
+             ase->cis_state == CisState::CONNECTING) &&
+            ase->data_path_state == DataPathState::IDLE) {
+          DisconnectCisIfNeeded(group, leAudioDevice, ase);
+          /* CISes are still there. CIG will be removed when CIS is down. */
+          remove_cig = false;
+        }
+
+        if (!group->HaveAllActiveDevicesAsesTheSameState(
+                AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING)) {
+          return;
+        }
+        group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING);
+
+        if (remove_cig) {
+          /* In the ENABLING state most probably there was no CISes created.
+           * Make sure group is destroyed here */
+          RemoveCigForGroup(group);
+        }
+        break;
+      }
       case AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING: {
         SetAseState(leAudioDevice, ase,
                     AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING);
