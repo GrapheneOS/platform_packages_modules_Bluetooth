@@ -220,11 +220,11 @@ constexpr uint8_t kLeAudioMetadataTypeLanguage = 0x04;
 constexpr uint8_t kLeAudioMetadataTypeCcidList = 0x05;
 
 /* Codec specific LTV Types */
-constexpr uint8_t kLeAudioCodecLC3TypeSamplingFreq = 0x01;
-constexpr uint8_t kLeAudioCodecLC3TypeFrameDuration = 0x02;
-constexpr uint8_t kLeAudioCodecLC3TypeAudioChannelAllocation = 0x03;
-constexpr uint8_t kLeAudioCodecLC3TypeOctetPerFrame = 0x04;
-constexpr uint8_t kLeAudioCodecLC3TypeCodecFrameBlocksPerSdu = 0x05;
+constexpr uint8_t kLeAudioLtvTypeSamplingFreq = 0x01;
+constexpr uint8_t kLeAudioLtvTypeFrameDuration = 0x02;
+constexpr uint8_t kLeAudioLtvTypeAudioChannelAllocation = 0x03;
+constexpr uint8_t kLeAudioLtvTypeOctetsPerCodecFrame = 0x04;
+constexpr uint8_t kLeAudioLtvTypeCodecFrameBlocksPerSdu = 0x05;
 
 /* Audio quality configuration in public broadcast announcement */
 constexpr uint8_t kLeAudioQualityStandard = 0x1 << 1;
