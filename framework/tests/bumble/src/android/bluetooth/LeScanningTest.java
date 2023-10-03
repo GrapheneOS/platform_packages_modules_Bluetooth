@@ -30,7 +30,6 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
-import io.grpc.stub.StreamObserver;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -146,23 +145,8 @@ public class LeScanningTest {
         AdvertiseRequest request =
                 AdvertiseRequest.newBuilder().setLegacy(true).setData(dataType).build();
 
-        StreamObserver<AdvertiseResponse> responseObserver =
-                new StreamObserver<>() {
-                    @Override
-                    public void onNext(AdvertiseResponse response) {
-                        Log.i(TAG, "advertise observer: onNext");
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.e(TAG, "advertise observer: on error " + e);
-                    }
-
-                    @Override
-                    public void onCompleted() {
-                        Log.i(TAG, "advertise observer: on completed");
-                    }
-                };
+        StreamObserverSpliterator<AdvertiseResponse> responseObserver =
+                new StreamObserverSpliterator<>();
 
         mBumble.host().advertise(request, responseObserver);
     }
