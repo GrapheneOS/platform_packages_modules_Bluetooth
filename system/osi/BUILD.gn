@@ -35,6 +35,7 @@ static_library("osi") {
     # dependencies are abstracted.
     "src/socket_utils/socket_local_client.cc",
     "src/socket_utils/socket_local_server.cc",
+    "src/stack_power_telemetry.cc",
     "src/thread.cc",
     "src/wakelock.cc",
 
