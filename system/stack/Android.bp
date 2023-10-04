@@ -2020,6 +2020,7 @@ cc_test {
         "libbt_shim_ffi",
         "libbtdevice",
         "libchrome",
+        "libcutils",
         "libevent",
         "libgmock",
         "liblog",

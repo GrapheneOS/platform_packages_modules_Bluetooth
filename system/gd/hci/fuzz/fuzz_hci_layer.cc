@@ -66,6 +66,11 @@ hci::LeIsoInterface* FuzzHciLayer::GetLeIsoInterface(ContextualCallback<void(hci
   return &le_iso_interface_;
 }
 
+hci::DistanceMeasurementInterface* FuzzHciLayer::GetDistanceMeasurementInterface(
+    ContextualCallback<void(hci::LeMetaEventView)> event_handler) {
+  return &distance_measurement_interface_;
+}
+
 void FuzzHciLayer::Start() {
   acl_dev_null_ = new os::fuzz::DevNullQueue<AclBuilder>(acl_queue_.GetDownEnd(), GetHandler());
   acl_dev_null_->Start();
