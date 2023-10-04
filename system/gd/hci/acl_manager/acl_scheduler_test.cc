@@ -68,16 +68,17 @@ class AclSchedulerTest : public ::testing::Test {
   }
 
   common::ContextualOnceCallback<void(std::string)> impossibleCallbackTakingString() {
-    return client_handler_->BindOnce([](std::string _) { ADD_FAILURE(); });
+    return client_handler_->BindOnce([](std::string /* _ */) { ADD_FAILURE(); });
   }
 
   common::ContextualOnceCallback<void(std::string)> emptyCallbackTakingString() {
-    return client_handler_->BindOnce([](std::string _) {});
+    return client_handler_->BindOnce([](std::string /* _ */) {});
   }
 
   common::ContextualOnceCallback<void(std::string)> promiseCallbackTakingString(std::promise<void> promise) {
     return client_handler_->BindOnce(
-        [](std::promise<void> promise, std::string _) { promise.set_value(); }, std::move(promise));
+        [](std::promise<void> promise, std::string /* _ */) { promise.set_value(); },
+        std::move(promise));
   }
 
   common::ContextualOnceCallback<void()> impossibleCallback() {
