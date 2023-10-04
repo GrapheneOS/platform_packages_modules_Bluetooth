@@ -9,8 +9,8 @@ namespace testing {
 
 class BarTestDataClass : public DumpsysTestDataClass {
  public:
-  TableAddFunction GetTable(flatbuffers::FlatBufferBuilder& fb_builder) override {
-    return [](DumpsysTestDataRootBuilder* builder) {};
+  TableAddFunction GetTable(flatbuffers::FlatBufferBuilder& /* fb_builder */) override {
+    return [](DumpsysTestDataRootBuilder* /* builder */) {};
   }
 };
 

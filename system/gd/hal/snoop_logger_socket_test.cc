@@ -233,15 +233,17 @@ TEST_F(SnoopLoggerSocketModuleTest, test_Write_fd_fail_on_Send_EINTR) {
   char data[10];
   int intr_count = 5;
 
-  ON_CALL(mock, Send).WillByDefault(Invoke([&](int fd, const void* buf, size_t n, int flags) {
-    if (intr_count > 0) {
-      intr_count--;
-      errno = EINTR;
-      return -1;
-    }
-    errno = 0;
-    return 0;
-  }));
+  ON_CALL(mock, Send)
+      .WillByDefault(
+          Invoke([&](int /* fd */, const void* /* buf */, size_t /* n */, int /* flags */) {
+            if (intr_count > 0) {
+              intr_count--;
+              errno = EINTR;
+              return -1;
+            }
+            errno = 0;
+            return 0;
+          }));
 
   EXPECT_CALL(mock, Send(Eq(fd), Eq(data), Eq(sizeof(data)), _)).Times(intr_count + 1);
 
@@ -313,7 +315,10 @@ TEST_F(SnoopLoggerSocketModuleTest, test_AcceptIncomingConnection_fail_on_accept
   int intr_count = 5;
 
   ON_CALL(mock, Accept(Eq(fd), _, _, _))
-      .WillByDefault(Invoke([&](int fd, struct sockaddr* addr, socklen_t* addr_len, int flags) {
+      .WillByDefault(Invoke([&](int /* fd */,
+                                struct sockaddr* /* addr */,
+                                socklen_t* /* addr_len */,
+                                int /* flags */) {
         if (intr_count > 0) {
           intr_count--;
           errno = EINTR;
@@ -356,7 +361,7 @@ TEST_F(SnoopLoggerSocketModuleTest, test_AcceptIncomingConnection_success) {
 TEST_F(SnoopLoggerSocketModuleTest, test_InitializeCommunications_fail_on_Pipe2) {
   int ret = -9;
 
-  ON_CALL(mock, Pipe2(_, _)).WillByDefault(Invoke([ret](int* fds, int) { return ret; }));
+  ON_CALL(mock, Pipe2(_, _)).WillByDefault(Invoke([ret](int* /* fds */, int) { return ret; }));
   EXPECT_CALL(mock, FDZero);
   EXPECT_CALL(mock, Pipe2(_, _));
 

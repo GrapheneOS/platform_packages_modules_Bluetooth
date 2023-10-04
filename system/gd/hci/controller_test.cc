@@ -76,8 +76,8 @@ class TestHciLayer : public HciLayer {
   }
 
   void EnqueueCommand(
-      std::unique_ptr<CommandBuilder> command,
-      common::ContextualOnceCallback<void(CommandStatusView)> on_status) override {
+      std::unique_ptr<CommandBuilder> /* command */,
+      common::ContextualOnceCallback<void(CommandStatusView)> /* on_status */) override {
     FAIL() << "Controller properties should not generate Command Status";
   }
 
@@ -250,7 +250,7 @@ class TestHciLayer : public HciLayer {
     number_of_completed_packets_callback_.Invoke(event);
   }
 
-  CommandView GetCommand(OpCode op_code) {
+  CommandView GetCommand(OpCode /* op_code */) {
     std::unique_lock<std::mutex> lock(mutex_);
     std::chrono::milliseconds time = std::chrono::milliseconds(3000);
 
@@ -268,7 +268,7 @@ class TestHciLayer : public HciLayer {
     return command;
   }
 
-  void ListDependencies(ModuleList* list) const {}
+  void ListDependencies(ModuleList* /* list */) const {}
   void Start() override {}
   void Stop() override {}
 

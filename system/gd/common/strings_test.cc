@@ -257,7 +257,7 @@ TEST(StringsTest, string_format_time_with_ms_test) {
 }
 
 class ExampleClass {};
-std::ostream& operator<<(std::ostream& os, const ExampleClass& obj) {
+std::ostream& operator<<(std::ostream& os, const ExampleClass& /* obj */) {
   os << "ExampleClass";
   return os;
 }
