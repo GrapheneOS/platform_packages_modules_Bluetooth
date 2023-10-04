@@ -47,7 +47,7 @@ use crate::bluetooth_media::{BluetoothMedia, IBluetoothMedia, MediaActions};
 use crate::callbacks::Callbacks;
 use crate::socket_manager::SocketActions;
 use crate::uuid::{Profile, UuidHelper, HOGP};
-use crate::{Message, RPCProxy, SuspendMode};
+use crate::{APIMessage, BluetoothAPI, Message, RPCProxy, SuspendMode};
 
 pub(crate) const FLOSS_VER: u16 = 0x0001;
 const DEFAULT_DISCOVERY_TIMEOUT_MS: u64 = 12800;
@@ -507,6 +507,7 @@ pub struct Bluetooth {
     sdp: Option<Sdp>,
     state: BtState,
     tx: Sender<Message>,
+    api_tx: Sender<APIMessage>,
     // Internal API members
     discoverable_timeout: Option<JoinHandle<()>>,
     cancelling_devices: HashSet<RawAddress>,
@@ -524,6 +525,7 @@ impl Bluetooth {
         adapter_index: i32,
         hci_index: i32,
         tx: Sender<Message>,
+        api_tx: Sender<APIMessage>,
         sig_notifier: Arc<SigData>,
         intf: Arc<Mutex<BluetoothInterface>>,
         bluetooth_admin: Arc<Mutex<Box<BluetoothAdmin>>>,
@@ -561,6 +563,7 @@ impl Bluetooth {
             sdp: None,
             state: BtState::Off,
             tx,
+            api_tx,
             // Internal API members
             discoverable_timeout: None,
             cancelling_devices: HashSet::new(),
@@ -1336,8 +1339,18 @@ impl BtifBluetoothCallbacks for Bluetooth {
 
                 // Inform the rest of the stack we're ready.
                 let txl = self.tx.clone();
+                let api_txl = self.api_tx.clone();
                 tokio::spawn(async move {
                     let _ = txl.send(Message::AdapterReady).await;
+                });
+                tokio::spawn(async move {
+                    let _ = api_txl.send(APIMessage::IsReady(BluetoothAPI::Adapter)).await;
+                    // TODO(b:300202052) make sure media interface is exposed after initialized
+                    let _ = api_txl.send(APIMessage::IsReady(BluetoothAPI::Media)).await;
+                    // TODO(b:300202055) make sure GATT interface is exposed after initialized
+                    let _ = api_txl.send(APIMessage::IsReady(BluetoothAPI::Gatt)).await;
+                    // TODO(b:300202503) make sure battery interface is exposed after initialized
+                    let _ = api_txl.send(APIMessage::IsReady(BluetoothAPI::Battery)).await;
                 });
             }
         }

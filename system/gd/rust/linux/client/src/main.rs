@@ -9,7 +9,7 @@ use dbus::message::MatchRule;
 use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
 use tokio::sync::mpsc;
-use tokio::time::timeout;
+use tokio::time::{sleep, timeout};
 
 use crate::bt_adv::AdvSet;
 use crate::bt_gatt::GattClientContext;
@@ -246,6 +246,9 @@ impl ClientContext {
         let fg = self.fg.clone();
         tokio::spawn(async move {
             let adapter = String::from(format!("adapter{}", idx));
+            // Floss won't export the interface until it is ready to be used.
+            // Wait 1 second before registering the callbacks.
+            sleep(Duration::from_millis(1000)).await;
             let _ = fg.send(ForegroundActions::RegisterAdapterCallback(adapter)).await;
         });
     }
