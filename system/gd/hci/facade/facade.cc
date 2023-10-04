@@ -69,9 +69,9 @@ class HciFacadeService : public HciFacade::Service {
   };
 
   ::grpc::Status SendCommand(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const ::blueberry::facade::Data* command,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     auto payload = std::vector<uint8_t>(command->payload().begin(), command->payload().end());
     auto packet = std::make_unique<TestCommandBuilder>(payload);
     auto opcode = static_cast<const bluetooth::hci::OpCode>(payload.at(1) << 8 | payload.at(0));
@@ -84,18 +84,18 @@ class HciFacadeService : public HciFacade::Service {
   }
 
   ::grpc::Status RequestEvent(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const ::blueberry::facade::hci::EventRequest* event,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     hci_layer_->RegisterEventHandler(
         static_cast<EventCode>(event->code()), facade_handler_->BindOn(this, &HciFacadeService::on_event));
     return ::grpc::Status::OK;
   }
 
   ::grpc::Status RequestLeSubevent(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const ::blueberry::facade::hci::EventRequest* event,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     hci_layer_->RegisterLeEventHandler(
         static_cast<SubeventCode>(event->code()), facade_handler_->BindOn(this, &HciFacadeService::on_le_subevent));
     return ::grpc::Status::OK;
@@ -103,14 +103,14 @@ class HciFacadeService : public HciFacade::Service {
 
   ::grpc::Status StreamEvents(
       ::grpc::ServerContext* context,
-      const ::google::protobuf::Empty* request,
+      const ::google::protobuf::Empty* /* request */,
       ::grpc::ServerWriter<::blueberry::facade::Data>* writer) override {
     return pending_events_.RunLoop(context, writer);
   };
 
   ::grpc::Status StreamLeSubevents(
       ::grpc::ServerContext* context,
-      const ::google::protobuf::Empty* request,
+      const ::google::protobuf::Empty* /* request */,
       ::grpc::ServerWriter<::blueberry::facade::Data>* writer) override {
     return pending_le_events_.RunLoop(context, writer);
   };
@@ -135,9 +135,9 @@ class HciFacadeService : public HciFacade::Service {
   };
 
   ::grpc::Status SendAcl(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const ::blueberry::facade::Data* acl,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     waiting_acl_packet_ =
         std::make_unique<TestAclBuilder>(std::vector<uint8_t>(acl->payload().begin(), acl->payload().end()));
     std::promise<void> enqueued;
@@ -157,7 +157,7 @@ class HciFacadeService : public HciFacade::Service {
 
   ::grpc::Status StreamAcl(
       ::grpc::ServerContext* context,
-      const ::google::protobuf::Empty* request,
+      const ::google::protobuf::Empty* /* request */,
       ::grpc::ServerWriter<::blueberry::facade::Data>* writer) override {
     hci_layer_->GetAclQueueEnd()->RegisterDequeue(
         facade_handler_, common::Bind(&HciFacadeService::on_acl_ready, common::Unretained(this)));
