@@ -80,13 +80,19 @@
     </string-array>
     <string name="group_locked">LOCKED</string>
     <string name="group_unlocked">UNLOCKED</string>
-    <string name="broadcast_state_idle">IDLE</string>
-    <string name="broadcast_state_set_source_failed">SET_SOURCE_FAILED</string>
-    <string name="broadcast_state_syncing">SYNCING</string>
-    <string name="broadcast_state_sync_pa_failed">SYNC_PA_FAILED</string>
-    <string name="broadcast_state_code_required">BROADCAST_CODE_REQUIRED</string>
-    <string name="broadcast_state_code_invalid">BROADCAST_CODE_INVALID</string>
-    <string name="broadcast_state_receiving_broadcast">RECEIVING_BROADCAST</string>
+    <string name="broadcast_pa_sync_state_pa_not_sync">PA NOT SYNC</string>
+    <string name="broadcast_pa_sync_state_syncinfo_req">SyncInfo REQ</string>
+    <string name="broadcast_pa_sync_state_pa_sync">PA SYNC</string>
+    <string name="broadcast_pa_sync_state_sync_pa_failed">SYNC PA FAILED</string>
+    <string name="broadcast_pa_sync_state_no_past">NO PAST</string>
+    <string name="broadcast_big_encryption_not_enc">NOT ENC</string>
+    <string name="broadcast_big_encryption_code_required">CODE REQUIRED</string>
+    <string name="broadcast_big_encryption_decrypting">DECRYPTING</string>
+    <string name="broadcast_big_encryption_bad_code">BAD CODE</string>
+    <string name="broadcast_bis_sync_state_bis_not_sync">BIS NOT SYNC</string>
+    <string name="broadcast_bis_sync_state_bis_sync">BIS SYNC</string>
+    <string name="broadcast_bis_sync_state_failed_to_sync">FAILED TO SYNC</string>
+    <string name="broadcast_state_rfu">RFU</string>
     <string-array name="tbs_call_states">
         <item>Incoming</item>
         <item>Dialing</item>
