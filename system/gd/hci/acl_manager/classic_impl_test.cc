@@ -130,7 +130,7 @@ namespace acl_manager {
 class MockAclScheduler : public AclScheduler {
  public:
   virtual void ReportAclConnectionCompletion(
-      Address address,
+      Address /* address */,
       common::ContextualOnceCallback<void()> handle_outgoing_connection,
       common::ContextualOnceCallback<void()> handle_incoming_connection,
       common::ContextualOnceCallback<void(std::string)> handle_unknown_connection) override {

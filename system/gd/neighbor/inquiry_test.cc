@@ -294,7 +294,7 @@ class TestHciLayer : public hci::HciLayer {
     inquiry_result_callback_.Invoke(std::move(view));
   }
 
-  void ListDependencies(ModuleList* list) const {}
+  void ListDependencies(ModuleList* /* list */) const {}
   void Start() override {}
   void Stop() override {}
 

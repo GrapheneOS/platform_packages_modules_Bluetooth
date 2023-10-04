@@ -105,7 +105,7 @@ class TestController : public Controller {
     return total_acl_buffers_;
   }
 
-  bool IsSupported(bluetooth::hci::OpCode op_code) const override {
+  bool IsSupported(bluetooth::hci::OpCode /* op_code */) const override {
     return false;
   }
 
@@ -119,7 +119,7 @@ class TestController : public Controller {
  protected:
   void Start() override {}
   void Stop() override {}
-  void ListDependencies(ModuleList* list) const {}
+  void ListDependencies(ModuleList* /* list */) const {}
 
  private:
   uint16_t acl_buffer_length_ = 1024;
@@ -165,7 +165,7 @@ class TestHciLayer : public HciLayer {
     return CommandView::Create(GetPacketView(std::move(last)));
   }
 
-  ConnectionManagementCommandView GetCommand(OpCode op_code) {
+  ConnectionManagementCommandView GetCommand(OpCode /* op_code */) {
     if (command_future_ != nullptr) {
       command_future_->wait_for(std::chrono::milliseconds(1000));
     }
@@ -180,7 +180,7 @@ class TestHciLayer : public HciLayer {
     return command;
   }
 
-  ConnectionManagementCommandView GetLastCommand(OpCode op_code) {
+  ConnectionManagementCommandView GetLastCommand(OpCode /* op_code */) {
     if (!command_queue_.empty() && command_future_ != nullptr) {
       command_future_.reset();
       hci_command_promise_.reset();
@@ -303,7 +303,7 @@ class TestHciLayer : public HciLayer {
     return acl_queue_.GetUpEnd();
   }
 
-  void ListDependencies(ModuleList* list) const {}
+  void ListDependencies(ModuleList* /* list */) const {}
   void Start() override {
     RegisterEventHandler(
         EventCode::COMMAND_COMPLETE, GetHandler()->BindOn(this, &TestHciLayer::CommandCompleteCallback));
@@ -371,7 +371,9 @@ class MockConnectionCallback : public ConnectionCallbacks {
 
 class MockLeConnectionCallbacks : public LeConnectionCallbacks {
  public:
-  void OnLeConnectSuccess(AddressWithType address_with_type, std::unique_ptr<LeAclConnection> connection) override {
+  void OnLeConnectSuccess(
+      AddressWithType /* address_with_type */,
+      std::unique_ptr<LeAclConnection> connection) override {
     le_connections_.push_back(std::move(connection));
     if (le_connection_promise_ != nullptr) {
       std::promise<void>* prom = le_connection_promise_.release();
