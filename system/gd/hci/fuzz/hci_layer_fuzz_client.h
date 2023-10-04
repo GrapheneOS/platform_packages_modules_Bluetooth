@@ -68,11 +68,13 @@ class HciLayerFuzzClient : public Module {
     }
 
     if (uses_command_status(commandPacket.GetOpCode())) {
-      interface->EnqueueCommand(TBUILDER::FromView(commandPacket),
-                                GetHandler()->BindOnce([](CommandStatusView status) {}));
+      interface->EnqueueCommand(
+          TBUILDER::FromView(commandPacket),
+          GetHandler()->BindOnce([](CommandStatusView /* status */) {}));
     } else {
-      interface->EnqueueCommand(TBUILDER::FromView(commandPacket),
-                                GetHandler()->BindOnce([](CommandCompleteView status) {}));
+      interface->EnqueueCommand(
+          TBUILDER::FromView(commandPacket),
+          GetHandler()->BindOnce([](CommandCompleteView /* status */) {}));
     }
   }
 
