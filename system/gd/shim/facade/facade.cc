@@ -45,9 +45,9 @@ class ShimFacadeService : public ShimFacade::Service {
   virtual ~ShimFacadeService() {}
 
   ::grpc::Status Dump(
-      ::grpc::ServerContext* context,
-      const ::google::protobuf::Empty* request,
-      ::grpc::ServerWriter<DumpsysMsg>* writer) override {
+      ::grpc::ServerContext* /* context */,
+      const ::google::protobuf::Empty* /* request */,
+      ::grpc::ServerWriter<DumpsysMsg>* /* writer */) override {
     dumpsys_layer_->Dump(0, nullptr);
     return ::grpc::Status::OK;
   }
