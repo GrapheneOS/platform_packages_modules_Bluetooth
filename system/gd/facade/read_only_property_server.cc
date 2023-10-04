@@ -25,8 +25,8 @@ class ReadOnlyPropertyService : public blueberry::facade::ReadOnlyProperty::Serv
  public:
   ReadOnlyPropertyService(hci::Controller* controller) : controller_(controller) {}
   ::grpc::Status ReadLocalAddress(
-      ::grpc::ServerContext* context,
-      const ::google::protobuf::Empty* request,
+      ::grpc::ServerContext* /* context */,
+      const ::google::protobuf::Empty* /* request */,
       ::blueberry::facade::BluetoothAddress* response) override {
     auto address = controller_->GetMacAddress().ToString();
     response->set_address(address);

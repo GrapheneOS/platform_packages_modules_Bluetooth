@@ -50,7 +50,9 @@ class LeInitiatorAddressFacadeService : public LeInitiatorAddressFacade::Service
   }
 
   ::grpc::Status SetPrivacyPolicyForInitiatorAddress(
-      ::grpc::ServerContext* context, const PrivacyPolicy* request, ::google::protobuf::Empty* writer) override {
+      ::grpc::ServerContext* /* context */,
+      const PrivacyPolicy* request,
+      ::google::protobuf::Empty* /* writer */) override {
     Address address = Address::kEmpty;
     LeAddressManager::AddressPolicy address_policy =
         static_cast<LeAddressManager::AddressPolicy>(request->address_policy());
@@ -76,8 +78,8 @@ class LeInitiatorAddressFacadeService : public LeInitiatorAddressFacade::Service
   }
 
   ::grpc::Status GetCurrentInitiatorAddress(
-      ::grpc::ServerContext* context,
-      const ::google::protobuf::Empty* request,
+      ::grpc::ServerContext* /* context */,
+      const ::google::protobuf::Empty* /* request */,
       ::blueberry::facade::BluetoothAddressWithType* response) override {
     AddressWithType current = address_manager_->GetInitiatorAddress();
     auto bluetooth_address = new ::blueberry::facade::BluetoothAddress();
@@ -88,8 +90,8 @@ class LeInitiatorAddressFacadeService : public LeInitiatorAddressFacade::Service
   }
 
   ::grpc::Status NewResolvableAddress(
-      ::grpc::ServerContext* context,
-      const ::google::protobuf::Empty* request,
+      ::grpc::ServerContext* /* context */,
+      const ::google::protobuf::Empty* /* request */,
       ::blueberry::facade::BluetoothAddressWithType* response) override {
     AddressWithType another = address_manager_->NewResolvableAddress();
     auto bluetooth_address = new ::blueberry::facade::BluetoothAddress();

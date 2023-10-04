@@ -42,9 +42,9 @@ class HciHalFacadeService : public blueberry::facade::hal::HciHalFacade::Service
   }
 
   ::grpc::Status SendCommand(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const ::blueberry::facade::Data* request,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     std::unique_lock<std::mutex> lock(mutex_);
     can_send_hci_command_ = false;
     std::string req_string = request->payload();
@@ -56,18 +56,18 @@ class HciHalFacadeService : public blueberry::facade::hal::HciHalFacade::Service
   }
 
   ::grpc::Status SendAcl(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const ::blueberry::facade::Data* request,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     std::string req_string = request->payload();
     hal_->sendAclData(std::vector<uint8_t>(req_string.begin(), req_string.end()));
     return ::grpc::Status::OK;
   }
 
   ::grpc::Status SendSco(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const ::blueberry::facade::Data* request,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     std::string req_string = request->payload();
     hal_->sendScoData(std::vector<uint8_t>(req_string.begin(), req_string.end()));
     return ::grpc::Status::OK;
@@ -75,28 +75,28 @@ class HciHalFacadeService : public blueberry::facade::hal::HciHalFacade::Service
 
   ::grpc::Status StreamEvents(
       ::grpc::ServerContext* context,
-      const ::google::protobuf::Empty* request,
+      const ::google::protobuf::Empty* /* request */,
       ::grpc::ServerWriter<::blueberry::facade::Data>* writer) override {
     return pending_hci_events_.RunLoop(context, writer);
   };
 
   ::grpc::Status StreamAcl(
       ::grpc::ServerContext* context,
-      const ::google::protobuf::Empty* request,
+      const ::google::protobuf::Empty* /* request */,
       ::grpc::ServerWriter<::blueberry::facade::Data>* writer) override {
     return pending_acl_events_.RunLoop(context, writer);
   };
 
   ::grpc::Status StreamSco(
       ::grpc::ServerContext* context,
-      const ::google::protobuf::Empty* request,
+      const ::google::protobuf::Empty* /* request */,
       ::grpc::ServerWriter<::blueberry::facade::Data>* writer) override {
     return pending_sco_events_.RunLoop(context, writer);
   };
 
   ::grpc::Status StreamIso(
       ::grpc::ServerContext* context,
-      const ::google::protobuf::Empty* request,
+      const ::google::protobuf::Empty* /* request */,
       ::grpc::ServerWriter<::blueberry::facade::Data>* writer) override {
     return pending_iso_events_.RunLoop(context, writer);
   };
