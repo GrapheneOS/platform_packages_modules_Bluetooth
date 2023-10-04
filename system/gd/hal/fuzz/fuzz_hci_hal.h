@@ -30,9 +30,9 @@ class FuzzHciHal : public HciHal {
   void unregisterIncomingPacketCallback() override;
 
   void sendHciCommand(HciPacket command) override;
-  void sendAclData(HciPacket packet) override {}
-  void sendScoData(HciPacket packet) override {}
-  void sendIsoData(HciPacket packet) override {}
+  void sendAclData(HciPacket /* packet */) override {}
+  void sendScoData(HciPacket /* packet */) override {}
+  void sendIsoData(HciPacket /* packet */) override {}
 
   void injectArbitrary(FuzzedDataProvider& fdp);
 
@@ -43,7 +43,7 @@ class FuzzHciHal : public HciHal {
   static const ModuleFactory Factory;
 
  protected:
-  void ListDependencies(ModuleList* list) const override {}
+  void ListDependencies(ModuleList* /* list */) const override {}
   void Start() override {}
   void Stop() override {}
 
