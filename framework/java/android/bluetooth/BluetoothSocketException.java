@@ -204,9 +204,9 @@ public class BluetoothSocketException extends IOException {
     @ErrorCode private final int mErrorCode;
 
     /**
-     * Create a {@link BluetoothSocketException} with a {@link ErrorCode} and custom error message.
+     * Create a {@link BluetoothSocketException} with an error code and custom error message.
      *
-     * @param code : {@link ErrorCode} representing the reason for failure.
+     * @param code : error code representing the reason for failure.
      * @param msg : Custom error message associated to the failure.
      */
     public BluetoothSocketException(@ErrorCode int code, @NonNull String msg) {
@@ -215,10 +215,10 @@ public class BluetoothSocketException extends IOException {
     }
 
     /**
-     * Create a {@link BluetoothSocketException} with an error {@link ErrorCode}. A generic error
-     * message is generated based on the {@code code} provided.
+     * Create a {@link BluetoothSocketException} with an error code. A generic error message is
+     * generated based on the {@code code} provided.
      *
-     * @param code : {@link ErrorCode} representing the reason for failure.
+     * @param code : error code representing the reason for failure.
      */
     public BluetoothSocketException(@ErrorCode int code) {
         this(code, getMessage(code));
