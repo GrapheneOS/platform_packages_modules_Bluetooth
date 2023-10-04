@@ -25,49 +25,59 @@ using bluetooth::common::ContextualCallback;
 using bluetooth::fuzz::GetArbitraryBytes;
 using bluetooth::fuzz::InvokeIfValid;
 
-hci::SecurityInterface* FuzzHciLayer::GetSecurityInterface(ContextualCallback<void(hci::EventView)> event_handler) {
+hci::SecurityInterface* FuzzHciLayer::GetSecurityInterface(
+    ContextualCallback<void(hci::EventView)> /* event_handler */) {
   return &security_interface_;
 }
 
 hci::LeSecurityInterface* FuzzHciLayer::GetLeSecurityInterface(
-    ContextualCallback<void(hci::LeMetaEventView)> event_handler) {
+    ContextualCallback<void(hci::LeMetaEventView)> /* event_handler */) {
   return &le_security_interface_;
 }
 
 hci::AclConnectionInterface* FuzzHciLayer::GetAclConnectionInterface(
-    ContextualCallback<void(hci::EventView)> event_handler,
-    ContextualCallback<void(uint16_t, hci::ErrorCode)> on_disconnect,
-    ContextualCallback<
-        void(hci::ErrorCode, uint16_t, uint8_t version, uint16_t manufacturer_name, uint16_t sub_version)>
-        on_read_remote_version) {
+    ContextualCallback<void(hci::EventView)> /* event_handler */,
+    ContextualCallback<void(uint16_t, hci::ErrorCode)> /* on_disconnect */,
+    ContextualCallback<void(
+        hci::ErrorCode,
+        uint16_t,
+        uint8_t version,
+        uint16_t manufacturer_name,
+        uint16_t sub_version)>
+    /* on_read_remote_version */) {
   return &acl_connection_interface_;
 }
 
 hci::LeAclConnectionInterface* FuzzHciLayer::GetLeAclConnectionInterface(
-    ContextualCallback<void(hci::LeMetaEventView)> event_handler,
-    ContextualCallback<void(uint16_t, hci::ErrorCode)> on_disconnect,
-    ContextualCallback<
-        void(hci::ErrorCode, uint16_t, uint8_t version, uint16_t manufacturer_name, uint16_t sub_version)>
-        on_read_remote_version) {
+    ContextualCallback<void(hci::LeMetaEventView)> /* event_handler */,
+    ContextualCallback<void(uint16_t, hci::ErrorCode)> /* on_disconnect */,
+    ContextualCallback<void(
+        hci::ErrorCode,
+        uint16_t,
+        uint8_t version,
+        uint16_t manufacturer_name,
+        uint16_t sub_version)>
+    /* on_read_remote_version */) {
   return &le_acl_connection_interface_;
 }
 
 hci::LeAdvertisingInterface* FuzzHciLayer::GetLeAdvertisingInterface(
-    ContextualCallback<void(hci::LeMetaEventView)> event_handler) {
+    ContextualCallback<void(hci::LeMetaEventView)> /* event_handler */) {
   return &le_advertising_interface_;
 }
 
 hci::LeScanningInterface* FuzzHciLayer::GetLeScanningInterface(
-    ContextualCallback<void(hci::LeMetaEventView)> event_handler) {
+    ContextualCallback<void(hci::LeMetaEventView)> /* event_handler */) {
   return &le_scanning_interface_;
 }
 
-hci::LeIsoInterface* FuzzHciLayer::GetLeIsoInterface(ContextualCallback<void(hci::LeMetaEventView)> event_handler) {
+hci::LeIsoInterface* FuzzHciLayer::GetLeIsoInterface(
+    ContextualCallback<void(hci::LeMetaEventView)> /* event_handler */) {
   return &le_iso_interface_;
 }
 
 hci::DistanceMeasurementInterface* FuzzHciLayer::GetDistanceMeasurementInterface(
-    ContextualCallback<void(hci::LeMetaEventView)> event_handler) {
+    ContextualCallback<void(hci::LeMetaEventView)> /* event_handler */) {
   return &distance_measurement_interface_;
 }
 
