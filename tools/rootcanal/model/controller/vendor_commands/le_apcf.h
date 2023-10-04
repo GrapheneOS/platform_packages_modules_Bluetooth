@@ -80,6 +80,9 @@ struct ApcfScanner {
   // from all tables.
   void ClearFilterIndex(uint8_t apcf_filter_index);
 
+  // Remove all entries in all tables.
+  void Clear();
+
   // Apply the requested modification to the selected
   // filter list.
   template <typename T>
