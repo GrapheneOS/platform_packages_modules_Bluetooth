@@ -52,7 +52,9 @@ class NeighborFacadeService : public NeighborFacade::Service {
         facade_handler_(facade_handler) {}
 
   ::grpc::Status SetConnectability(
-      ::grpc::ServerContext* context, const EnableMsg* request, ::google::protobuf::Empty* response) override {
+      ::grpc::ServerContext* /* context */,
+      const EnableMsg* request,
+      ::google::protobuf::Empty* /* response */) override {
     if (request->enabled()) {
       connectability_module_->StartConnectability();
     } else {
@@ -62,9 +64,9 @@ class NeighborFacadeService : public NeighborFacade::Service {
   }
 
   ::grpc::Status SetDiscoverability(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const DiscoverabilitiyMsg* request,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     switch (request->mode()) {
       case DiscoverabilityMode::OFF:
         discoverability_module_->StopDiscoverability();
@@ -116,9 +118,9 @@ class NeighborFacadeService : public NeighborFacade::Service {
   }
 
   ::grpc::Status ReadRemoteName(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const RemoteNameRequestMsg* request,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     hci::Address remote;
     ASSERT(hci::Address::FromString(request->address(), remote));
     hci::PageScanRepetitionMode mode;
@@ -143,21 +145,23 @@ class NeighborFacadeService : public NeighborFacade::Service {
             request->clock_offset(),
             request->clock_offset() != 0 ? hci::ClockOffsetValid::VALID
                                          : hci::ClockOffsetValid::INVALID),
-        facade_handler_->BindOnce([](hci::ErrorCode status) { /* ignore */ }),
-        facade_handler_->BindOnce([](uint64_t features) { /* ignore */ }),
+        facade_handler_->BindOnce([](hci::ErrorCode /* status */) { /* ignore */ }),
+        facade_handler_->BindOnce([](uint64_t /* features */) { /* ignore */ }),
         facade_handler_->BindOnceOn(this, &NeighborFacadeService::on_remote_name, remote));
     return ::grpc::Status::OK;
   }
 
   ::grpc::Status GetRemoteNameEvents(
       ::grpc::ServerContext* context,
-      const ::google::protobuf::Empty* request,
+      const ::google::protobuf::Empty* /* request */,
       ::grpc::ServerWriter<RemoteNameResponseMsg>* writer) override {
     return pending_remote_names_.RunLoop(context, writer);
   }
 
   ::grpc::Status EnableInquiryScan(
-      ::grpc::ServerContext* context, const EnableMsg* request, ::google::protobuf::Empty* response) override {
+      ::grpc::ServerContext* /* context */,
+      const EnableMsg* request,
+      ::google::protobuf::Empty* /* response */) override {
     if (request->enabled()) {
       scan_module_->SetInquiryScan();
     } else {
@@ -167,7 +171,9 @@ class NeighborFacadeService : public NeighborFacade::Service {
   }
 
   ::grpc::Status EnablePageScan(
-      ::grpc::ServerContext* context, const EnableMsg* request, ::google::protobuf::Empty* response) override {
+      ::grpc::ServerContext* /* context */,
+      const EnableMsg* request,
+      ::google::protobuf::Empty* /* response */) override {
     if (request->enabled()) {
       scan_module_->SetPageScan();
     } else {

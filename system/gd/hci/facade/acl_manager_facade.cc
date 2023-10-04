@@ -77,7 +77,9 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
   }
 
   ::grpc::Status Disconnect(
-      ::grpc::ServerContext* context, const HandleMsg* request, ::google::protobuf::Empty* response) override {
+      ::grpc::ServerContext* /* context */,
+      const HandleMsg* request,
+      ::google::protobuf::Empty* /* response */) override {
     LOG_INFO("handle=%d", request->handle());
     std::unique_lock<std::mutex> lock(acl_connections_mutex_);
     auto connection = acl_connections_.find(request->handle());
@@ -91,7 +93,9 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
   }
 
   ::grpc::Status AuthenticationRequested(
-      ::grpc::ServerContext* context, const HandleMsg* request, ::google::protobuf::Empty* response) override {
+      ::grpc::ServerContext* /* context */,
+      const HandleMsg* request,
+      ::google::protobuf::Empty* /* response */) override {
     LOG_INFO("handle=%d", request->handle());
     std::unique_lock<std::mutex> lock(acl_connections_mutex_);
     auto connection = acl_connections_.find(request->handle());
@@ -118,9 +122,9 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
   } while (0)
 
   ::grpc::Status ConnectionCommand(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const ConnectionCommandMsg* request,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     LOG_INFO("size=%zu", request->packet().size());
     auto command_view =
         ConnectionManagementCommandView::Create(AclCommandView::Create(CommandView::Create(PacketView<kLittleEndian>(
@@ -269,7 +273,7 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
 
   ::grpc::Status FetchIncomingConnection(
       ::grpc::ServerContext* context,
-      const google::protobuf::Empty* request,
+      const google::protobuf::Empty* /* request */,
       ::grpc::ServerWriter<ConnectionEvent>* writer) override {
     LOG_INFO("wait for one incoming connection");
     if (per_connection_events_.size() > current_connection_request_) {
@@ -281,7 +285,9 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
   }
 
   ::grpc::Status SendAclData(
-      ::grpc::ServerContext* context, const AclData* request, ::google::protobuf::Empty* response) override {
+      ::grpc::ServerContext* /* context */,
+      const AclData* request,
+      ::google::protobuf::Empty* /* response */) override {
     LOG_INFO("handle=%d, size=%zu", request->handle(), request->payload().size());
     std::promise<void> promise;
     auto future = promise.get_future();
@@ -376,11 +382,11 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
     current_connection_request_++;
   }
 
-  void OnConnectRequest(Address address, ClassOfDevice cod) override {
+  void OnConnectRequest(Address /* address */, ClassOfDevice /* cod */) override {
     LOG_ERROR("Remote connect request unimplemented");
   }
 
-  void OnConnectFail(Address address, ErrorCode reason, bool locally_initiated) override {
+  void OnConnectFail(Address address, ErrorCode reason, bool /* locally_initiated */) override {
     LOG_INFO("addr=%s, reason=%s",
              ADDRESS_TO_LOGGABLE_CSTR(address), ErrorCodeText(reason).c_str());
     std::unique_ptr<BasePacketBuilder> builder =
@@ -391,11 +397,11 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
     current_connection_request_++;
   }
 
-  void HACK_OnEscoConnectRequest(Address address, ClassOfDevice cod) override {
+  void HACK_OnEscoConnectRequest(Address /* address */, ClassOfDevice /* cod */) override {
     LOG_ERROR("Remote ESCO connect request unimplemented");
   }
 
-  void HACK_OnScoConnectRequest(Address address, ClassOfDevice cod) override {
+  void HACK_OnScoConnectRequest(Address /* address */, ClassOfDevice /* cod */) override {
     LOG_ERROR("Remote SCO connect request unimplemented");
   }
 
@@ -415,7 +421,7 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
       LOG_INFO("key_flag:%s", KeyFlagText(key_flag).c_str());
     }
 
-    void OnRoleChange(hci::ErrorCode hci_status, Role new_role) override {
+    void OnRoleChange(hci::ErrorCode /* hci_status */, Role new_role) override {
       LOG_INFO("new_role:%d", (uint8_t)new_role);
     }
 
@@ -427,7 +433,7 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
       LOG_INFO("OnConnectionPacketTypeChanged packet_type:%d", packet_type);
     }
 
-    void OnAuthenticationComplete(hci::ErrorCode hci_status) override {
+    void OnAuthenticationComplete(hci::ErrorCode /* hci_status */) override {
       LOG_INFO("OnAuthenticationComplete");
     }
 
@@ -443,12 +449,12 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
       LOG_INFO("OnReadClockOffsetComplete clock_offset:%d", clock_offset);
     };
 
-    void OnModeChange(ErrorCode status, Mode current_mode, uint16_t interval) override {
+    void OnModeChange(ErrorCode /* status */, Mode current_mode, uint16_t interval) override {
       LOG_INFO("OnModeChange Mode:%d, interval:%d", (uint8_t)current_mode, interval);
     };
 
     void OnSniffSubrating(
-        hci::ErrorCode hci_status,
+        hci::ErrorCode /* hci_status */,
         uint16_t maximum_transmit_latency,
         uint16_t maximum_receive_latency,
         uint16_t minimum_remote_timeout,
@@ -523,7 +529,8 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
       LOG_INFO("OnReadLinkQualityComplete link_quality:%d", link_quality);
     }
 
-    void OnReadAfhChannelMapComplete(AfhMode afh_mode, std::array<uint8_t, 10> afh_channel_map) override {
+    void OnReadAfhChannelMapComplete(
+        AfhMode afh_mode, std::array<uint8_t, 10> /* afh_channel_map */) override {
       LOG_INFO("OnReadAfhChannelMapComplete afh_mode:%d", (uint8_t)afh_mode);
     }
 
@@ -544,7 +551,10 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
       event_stream_->OnIncomingEvent(disconnection);
     }
     void OnReadRemoteVersionInformationComplete(
-        hci::ErrorCode error_status, uint8_t lmp_version, uint16_t manufacturer_name, uint16_t sub_version) override {
+        hci::ErrorCode /* error_status */,
+        uint8_t lmp_version,
+        uint16_t manufacturer_name,
+        uint16_t sub_version) override {
       LOG_INFO(
           "OnReadRemoteVersionInformationComplete lmp_version:%hhu manufacturer_name:%hu sub_version:%hu",
           lmp_version,

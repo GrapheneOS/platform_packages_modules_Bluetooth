@@ -50,18 +50,24 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
     ASSERT(facade_handler_ != nullptr);
   }
 
-  ::grpc::Status FetchConnectionComplete(::grpc::ServerContext* context, const ::google::protobuf::Empty* request,
-                                         ::grpc::ServerWriter<classic::ConnectionCompleteEvent>* writer) override {
+  ::grpc::Status FetchConnectionComplete(
+      ::grpc::ServerContext* context,
+      const ::google::protobuf::Empty* /* request */,
+      ::grpc::ServerWriter<classic::ConnectionCompleteEvent>* writer) override {
     return pending_connection_complete_.RunLoop(context, writer);
   }
 
-  ::grpc::Status FetchConnectionClose(::grpc::ServerContext* context, const ::google::protobuf::Empty* request,
-                                      ::grpc::ServerWriter<classic::ConnectionCloseEvent>* writer) override {
+  ::grpc::Status FetchConnectionClose(
+      ::grpc::ServerContext* context,
+      const ::google::protobuf::Empty* /* request */,
+      ::grpc::ServerWriter<classic::ConnectionCloseEvent>* writer) override {
     return pending_connection_close_.RunLoop(context, writer);
   }
 
-  ::grpc::Status SendDynamicChannelPacket(::grpc::ServerContext* context, const DynamicChannelPacket* request,
-                                          ::google::protobuf::Empty* response) override {
+  ::grpc::Status SendDynamicChannelPacket(
+      ::grpc::ServerContext* /* context */,
+      const DynamicChannelPacket* request,
+      ::google::protobuf::Empty* /* response */) override {
     std::unique_lock<std::mutex> lock(channel_map_mutex_);
     if (dynamic_channel_helper_map_.find(request->psm()) == dynamic_channel_helper_map_.end()) {
       return ::grpc::Status(::grpc::StatusCode::FAILED_PRECONDITION, "Psm not registered");
@@ -73,9 +79,10 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
     return ::grpc::Status::OK;
   }
 
-  ::grpc::Status OpenChannel(::grpc::ServerContext* context,
-                             const ::bluetooth::l2cap::classic::OpenChannelRequest* request,
-                             ::google::protobuf::Empty* response) override {
+  ::grpc::Status OpenChannel(
+      ::grpc::ServerContext* /* context */,
+      const ::bluetooth::l2cap::classic::OpenChannelRequest* request,
+      ::google::protobuf::Empty* /* response */) override {
     auto service_helper = dynamic_channel_helper_map_.find(request->psm());
     if (service_helper == dynamic_channel_helper_map_.end()) {
       return ::grpc::Status(::grpc::StatusCode::FAILED_PRECONDITION, "Psm not registered");
@@ -86,9 +93,10 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
     return ::grpc::Status::OK;
   }
 
-  ::grpc::Status CloseChannel(::grpc::ServerContext* context,
-                              const ::bluetooth::l2cap::classic::CloseChannelRequest* request,
-                              ::google::protobuf::Empty* response) override {
+  ::grpc::Status CloseChannel(
+      ::grpc::ServerContext* /* context */,
+      const ::bluetooth::l2cap::classic::CloseChannelRequest* request,
+      ::google::protobuf::Empty* /* response */) override {
     auto psm = request->psm();
     if (dynamic_channel_helper_map_.find(request->psm()) == dynamic_channel_helper_map_.end()) {
       return ::grpc::Status(::grpc::StatusCode::FAILED_PRECONDITION, "Psm not registered");
@@ -97,23 +105,29 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
     return ::grpc::Status::OK;
   }
 
-  ::grpc::Status FetchL2capData(::grpc::ServerContext* context, const ::google::protobuf::Empty* request,
-                                ::grpc::ServerWriter<classic::L2capPacket>* writer) override {
+  ::grpc::Status FetchL2capData(
+      ::grpc::ServerContext* context,
+      const ::google::protobuf::Empty* /* request */,
+      ::grpc::ServerWriter<classic::L2capPacket>* writer) override {
     auto status = pending_l2cap_data_.RunLoop(context, writer);
 
     return status;
   }
 
-  ::grpc::Status SetDynamicChannel(::grpc::ServerContext* context, const SetEnableDynamicChannelRequest* request,
-                                   google::protobuf::Empty* response) override {
+  ::grpc::Status SetDynamicChannel(
+      ::grpc::ServerContext* /* context */,
+      const SetEnableDynamicChannelRequest* request,
+      google::protobuf::Empty* /* response */) override {
     dynamic_channel_helper_map_.emplace(
         request->psm(), std::make_unique<L2capDynamicChannelHelper>(this, l2cap_layer_, facade_handler_, request->psm(),
                                                                     request->retransmission_mode()));
     return ::grpc::Status::OK;
   }
 
-  ::grpc::Status SetTrafficPaused(::grpc::ServerContext* context, const SetTrafficPausedRequest* request,
-                                  ::google::protobuf::Empty* response) override {
+  ::grpc::Status SetTrafficPaused(
+      ::grpc::ServerContext* /* context */,
+      const SetTrafficPausedRequest* request,
+      ::google::protobuf::Empty* /* response */) override {
     auto psm = request->psm();
     if (dynamic_channel_helper_map_.find(request->psm()) == dynamic_channel_helper_map_.end()) {
       return ::grpc::Status(::grpc::StatusCode::FAILED_PRECONDITION, "Psm not registered");
@@ -126,17 +140,19 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
     return ::grpc::Status::OK;
   }
 
-  ::grpc::Status GetChannelQueueDepth(::grpc::ServerContext* context, const ::google::protobuf::Empty* request,
-                                      GetChannelQueueDepthResponse* response) override {
+  ::grpc::Status GetChannelQueueDepth(
+      ::grpc::ServerContext* /* context */,
+      const ::google::protobuf::Empty* /* request */,
+      GetChannelQueueDepthResponse* response) override {
     // Use the value kChannelQueueSize (5) in internal/dynamic_channel_impl.h
     response->set_size(5);
     return ::grpc::Status::OK;
   }
 
   ::grpc::Status InitiateConnectionForSecurity(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const blueberry::facade::BluetoothAddress* request,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address(), peer));
     outgoing_pairing_remote_devices_.insert(peer);
@@ -145,7 +161,9 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
   }
 
   void SecurityConnectionEventOccurred(
-      hci::ErrorCode hci_status, hci::Address remote, LinkSecurityInterfaceCallbackEventType event_type) {
+      hci::ErrorCode /* hci_status */,
+      hci::Address remote,
+      LinkSecurityInterfaceCallbackEventType event_type) {
     LinkSecurityInterfaceCallbackEvent msg;
     msg.mutable_address()->set_address(remote.ToString());
     msg.set_event_type(event_type);
@@ -154,16 +172,16 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
 
   ::grpc::Status FetchSecurityConnectionEvents(
       ::grpc::ServerContext* context,
-      const ::google::protobuf::Empty* request,
+      const ::google::protobuf::Empty* /* request */,
       ::grpc::ServerWriter<LinkSecurityInterfaceCallbackEvent>* writer) override {
     security_interface_ = l2cap_layer_->GetSecurityInterface(facade_handler_, this);
     return security_connection_events_.RunLoop(context, writer);
   }
 
   ::grpc::Status SecurityLinkHold(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const blueberry::facade::BluetoothAddress* request,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address(), peer));
     auto entry = security_link_map_.find(peer);
@@ -176,9 +194,9 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
   }
 
   ::grpc::Status SecurityLinkEnsureAuthenticated(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const blueberry::facade::BluetoothAddress* request,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address(), peer));
     auto entry = security_link_map_.find(peer);
@@ -191,9 +209,9 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
   }
 
   ::grpc::Status SecurityLinkRelease(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const blueberry::facade::BluetoothAddress* request,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address(), peer));
     outgoing_pairing_remote_devices_.erase(peer);
@@ -207,9 +225,9 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
   }
 
   ::grpc::Status SecurityLinkDisconnect(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const blueberry::facade::BluetoothAddress* request,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address(), peer));
     outgoing_pairing_remote_devices_.erase(peer);
@@ -256,7 +274,7 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
         hci_status, remote, LinkSecurityInterfaceCallbackEventType::ON_AUTHENTICATION_COMPLETE);
   }
 
-  void OnEncryptionChange(hci::Address remote, bool encrypted) override {
+  void OnEncryptionChange(hci::Address remote, bool /* encrypted */) override {
     SecurityConnectionEventOccurred(
         hci::ErrorCode::SUCCESS, remote, LinkSecurityInterfaceCallbackEventType::ON_ENCRYPTION_CHANGE);
   }
@@ -312,8 +330,9 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
       channel_->Close();
     }
 
-    void on_l2cap_service_registration_complete(DynamicChannelManager::RegistrationResult registration_result,
-                                                std::unique_ptr<DynamicChannelService> service) {}
+    void on_l2cap_service_registration_complete(
+        DynamicChannelManager::RegistrationResult /* registration_result */,
+        std::unique_ptr<DynamicChannelService> /* service */) {}
 
     // invoked from Facade Handler
     void on_connection_open(std::unique_ptr<DynamicChannel> channel) {
@@ -363,7 +382,7 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
       }
     }
 
-    void on_connect_fail(DynamicChannelManager::ConnectionResult result) {}
+    void on_connect_fail(DynamicChannelManager::ConnectionResult /* result */) {}
 
     void on_incoming_packet() {
       auto packet = channel_->GetQueueUpEnd()->TryDequeue();
