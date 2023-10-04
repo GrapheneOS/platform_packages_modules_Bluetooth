@@ -68,11 +68,11 @@ class RepeatingAlarmTest : public ::testing::Test {
 
   void verify_delayed_tasks(
       int* counter,
-      std::chrono::steady_clock::time_point start_time,
+      std::chrono::steady_clock::time_point /* start_time */,
       int scheduled_tasks,
       std::promise<void>* promise,
-      int task_length_ms,
-      int interval_between_tasks_ms) {
+      int /* task_length_ms */,
+      int /* interval_between_tasks_ms */) {
     *counter = *counter + 1;
     if (*counter == scheduled_tasks) {
       promise->set_value();

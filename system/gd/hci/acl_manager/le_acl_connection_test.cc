@@ -65,17 +65,25 @@ namespace {
 
 class TestLeConnectionManagementCallbacks : public hci::acl_manager::LeConnectionManagementCallbacks {
   void OnConnectionUpdate(
-      hci::ErrorCode hci_status,
-      uint16_t connection_interval,
-      uint16_t connection_latency,
-      uint16_t supervision_timeout) override {}
-  virtual void OnDataLengthChange(uint16_t tx_octets, uint16_t tx_time, uint16_t rx_octets, uint16_t rx_time) override {
-  }
-  virtual void OnDisconnection(hci::ErrorCode reason) override {}
+      hci::ErrorCode /* hci_status */,
+      uint16_t /* connection_interval */,
+      uint16_t /* connection_latency */,
+      uint16_t /* supervision_timeout */) override {}
+  virtual void OnDataLengthChange(
+      uint16_t /* tx_octets */,
+      uint16_t /* tx_time */,
+      uint16_t /* rx_octets */,
+      uint16_t /* rx_time */) override {}
+  virtual void OnDisconnection(hci::ErrorCode /* reason */) override {}
   virtual void OnReadRemoteVersionInformationComplete(
-      hci::ErrorCode hci_status, uint8_t lmp_version, uint16_t manufacturer_name, uint16_t sub_version) override {}
-  virtual void OnLeReadRemoteFeaturesComplete(hci::ErrorCode hci_status, uint64_t features) override {}
-  virtual void OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy) override {}
+      hci::ErrorCode /* hci_status */,
+      uint8_t /* lmp_version */,
+      uint16_t /* manufacturer_name */,
+      uint16_t /* sub_version */) override {}
+  virtual void OnLeReadRemoteFeaturesComplete(
+      hci::ErrorCode /* hci_status */, uint64_t /* features */) override {}
+  virtual void OnPhyUpdate(
+      hci::ErrorCode /* hci_status */, uint8_t /* tx_phy */, uint8_t /* rx_phy */) override {}
   MOCK_METHOD(
       void,
       OnLeSubrateChange,

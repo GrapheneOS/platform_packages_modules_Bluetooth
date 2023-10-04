@@ -1542,7 +1542,7 @@ TEST_F(SnoopLoggerModuleTest, custom_socket_interface_register_logging_disabled_
     SnoopLoggerSocketMock() {
       write_called = false;
     }
-    virtual void Write(const void* data, size_t length) {
+    virtual void Write(const void* /* data */, size_t /* length */) {
       write_called = true;
     }
   };
@@ -1573,7 +1573,7 @@ TEST_F(SnoopLoggerModuleTest, custom_socket_interface_register_logging_enabled_t
     SnoopLoggerSocketMock() {
       write_called = false;
     }
-    virtual void Write(const void* data, size_t length) {
+    virtual void Write(const void* /* data */, size_t /* length */) {
       write_called = true;
     }
   };
