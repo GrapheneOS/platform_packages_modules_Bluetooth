@@ -484,7 +484,6 @@ cc_test {
         },
     },
     min_sdk_version: "30",
-    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_defaults {
