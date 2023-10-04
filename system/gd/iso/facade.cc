@@ -52,9 +52,9 @@ class IsoModuleFacadeService : public IsoModuleFacade::Service {
   }
 
   ::grpc::Status LeSetCigParameters(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const ::bluetooth::iso::LeSetCigParametersRequest* request,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     std::vector<hci::CisParametersConfig> cis_config;
 
     hci::CisParametersConfig cfg;
@@ -93,9 +93,9 @@ class IsoModuleFacadeService : public IsoModuleFacade::Service {
   }
 
   ::grpc::Status LeSetCigParametersTest(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const ::bluetooth::iso::LeSetCigParametersTestRequest* request,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     std::vector<hci::LeCisParametersTestConfig> cis_config;
 
     for (const auto& cc : request->cis_configs()) {
@@ -140,9 +140,9 @@ class IsoModuleFacadeService : public IsoModuleFacade::Service {
   }
 
   ::grpc::Status LeCreateCis(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const ::bluetooth::iso::LeCreateCisRequest* request,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     std::vector<std::pair<uint16_t, uint16_t>> create_cis_params;
     for (const auto& handle_pair : request->handle_pair()) {
       create_cis_params.push_back(
@@ -154,21 +154,23 @@ class IsoModuleFacadeService : public IsoModuleFacade::Service {
   }
 
   ::grpc::Status FetchIsoData(
-      ::grpc::ServerContext* context, const LeCisHandleMsg* request, ::grpc::ServerWriter<IsoPacket>* writer) override {
+      ::grpc::ServerContext* context,
+      const LeCisHandleMsg* /* request */,
+      ::grpc::ServerWriter<IsoPacket>* writer) override {
     return le_iso_data_.RunLoop(context, writer);
   }
 
   ::grpc::Status FetchIsoEvents(
       ::grpc::ServerContext* context,
-      const google::protobuf::Empty* request,
+      const google::protobuf::Empty* /* request */,
       ::grpc::ServerWriter<LeIsoEventsMsg>* writer) override {
     return le_iso_events_.RunLoop(context, writer);
   }
 
   ::grpc::Status SendIsoPacket(
-      ::grpc::ServerContext* context,
+      ::grpc::ServerContext* /* context */,
       const ::bluetooth::iso::IsoPacket* request,
-      ::google::protobuf::Empty* response) override {
+      ::google::protobuf::Empty* /* response */) override {
     std::vector<uint8_t> packet(request->payload().begin(), request->payload().end());
     iso_module_->GetIsoManager()->SendIsoPacket(request->handle(), packet);
     return ::grpc::Status::OK;

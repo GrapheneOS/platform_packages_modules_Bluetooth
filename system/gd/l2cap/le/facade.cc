@@ -59,13 +59,17 @@ class L2capLeModuleFacadeService : public L2capLeModuleFacade::Service {
     ASSERT(facade_handler_ != nullptr);
   }
 
-  ::grpc::Status FetchL2capData(::grpc::ServerContext* context, const ::google::protobuf::Empty* request,
-                                ::grpc::ServerWriter<::bluetooth::l2cap::le::L2capPacket>* writer) override {
+  ::grpc::Status FetchL2capData(
+      ::grpc::ServerContext* context,
+      const ::google::protobuf::Empty* /* request */,
+      ::grpc::ServerWriter<::bluetooth::l2cap::le::L2capPacket>* writer) override {
     return pending_l2cap_data_.RunLoop(context, writer);
   }
 
-  ::grpc::Status OpenDynamicChannel(::grpc::ServerContext* context, const OpenDynamicChannelRequest* request,
-                                    OpenDynamicChannelResponse* response) override {
+  ::grpc::Status OpenDynamicChannel(
+      ::grpc::ServerContext* /* context */,
+      const OpenDynamicChannelRequest* request,
+      OpenDynamicChannelResponse* response) override {
     auto service_helper = dynamic_channel_helper_map_.find(request->psm());
     if (service_helper == dynamic_channel_helper_map_.end()) {
       return ::grpc::Status(::grpc::StatusCode::FAILED_PRECONDITION, "Psm not registered");
@@ -80,8 +84,10 @@ class L2capLeModuleFacadeService : public L2capLeModuleFacade::Service {
     return ::grpc::Status::OK;
   }
 
-  ::grpc::Status CloseDynamicChannel(::grpc::ServerContext* context, const CloseDynamicChannelRequest* request,
-                                     ::google::protobuf::Empty* response) override {
+  ::grpc::Status CloseDynamicChannel(
+      ::grpc::ServerContext* /* context */,
+      const CloseDynamicChannelRequest* request,
+      ::google::protobuf::Empty* /* response */) override {
     auto service_helper = dynamic_channel_helper_map_.find(request->psm());
     if (service_helper == dynamic_channel_helper_map_.end()) {
       return ::grpc::Status(::grpc::StatusCode::FAILED_PRECONDITION, "Psm not registered");
@@ -99,9 +105,10 @@ class L2capLeModuleFacadeService : public L2capLeModuleFacade::Service {
     return ::grpc::Status::OK;
   }
 
-  ::grpc::Status SetDynamicChannel(::grpc::ServerContext* context,
-                                   const ::bluetooth::l2cap::le::SetEnableDynamicChannelRequest* request,
-                                   ::google::protobuf::Empty* response) override {
+  ::grpc::Status SetDynamicChannel(
+      ::grpc::ServerContext* /* context */,
+      const ::bluetooth::l2cap::le::SetEnableDynamicChannelRequest* request,
+      ::google::protobuf::Empty* /* response */) override {
     if (request->enable()) {
       dynamic_channel_helper_map_.emplace(request->psm(), std::make_unique<L2capDynamicChannelHelper>(
                                                               this, l2cap_layer_, facade_handler_, request->psm(),
@@ -117,9 +124,10 @@ class L2capLeModuleFacadeService : public L2capLeModuleFacade::Service {
     }
   }
 
-  ::grpc::Status SendDynamicChannelPacket(::grpc::ServerContext* context,
-                                          const ::bluetooth::l2cap::le::DynamicChannelPacket* request,
-                                          ::google::protobuf::Empty* response) override {
+  ::grpc::Status SendDynamicChannelPacket(
+      ::grpc::ServerContext* /* context */,
+      const ::bluetooth::l2cap::le::DynamicChannelPacket* request,
+      ::google::protobuf::Empty* /* response */) override {
     std::unique_lock<std::mutex> lock(channel_map_mutex_);
     if (dynamic_channel_helper_map_.find(request->psm()) == dynamic_channel_helper_map_.end()) {
       return ::grpc::Status(::grpc::StatusCode::FAILED_PRECONDITION, "Psm not registered");
@@ -184,7 +192,7 @@ class L2capLeModuleFacadeService : public L2capLeModuleFacade::Service {
           common::Bind(&L2capDynamicChannelHelper::on_incoming_packet, common::Unretained(this)));
     }
 
-    void on_close_callback(hci::ErrorCode error_code) {
+    void on_close_callback(hci::ErrorCode /* error_code */) {
       {
         std::unique_lock<std::mutex> lock(channel_open_cv_mutex_);
         channel_->GetQueueUpEnd()->UnregisterDequeue();
@@ -252,8 +260,10 @@ class L2capLeModuleFacadeService : public L2capLeModuleFacade::Service {
     std::mutex channel_open_cv_mutex_;
   };
 
-  ::grpc::Status SetFixedChannel(::grpc::ServerContext* context, const SetEnableFixedChannelRequest* request,
-                                 ::google::protobuf::Empty* response) override {
+  ::grpc::Status SetFixedChannel(
+      ::grpc::ServerContext* /* context */,
+      const SetEnableFixedChannelRequest* request,
+      ::google::protobuf::Empty* /* response */) override {
     if (request->enable()) {
       fixed_channel_helper_map_.emplace(request->cid(), std::make_unique<L2capFixedChannelHelper>(
                                                             this, l2cap_layer_, facade_handler_, request->cid()));
@@ -269,8 +279,10 @@ class L2capLeModuleFacadeService : public L2capLeModuleFacade::Service {
     }
   }
 
-  ::grpc::Status SendFixedChannelPacket(::grpc::ServerContext* context, const FixedChannelPacket* request,
-                                        ::google::protobuf::Empty* response) override {
+  ::grpc::Status SendFixedChannelPacket(
+      ::grpc::ServerContext* /* context */,
+      const FixedChannelPacket* request,
+      ::google::protobuf::Empty* /* response */) override {
     std::unique_lock<std::mutex> lock(channel_map_mutex_);
     if (fixed_channel_helper_map_.find(request->cid()) == fixed_channel_helper_map_.end()) {
       return ::grpc::Status(::grpc::StatusCode::FAILED_PRECONDITION, "Cid not registered");
@@ -335,7 +347,7 @@ class L2capLeModuleFacadeService : public L2capLeModuleFacade::Service {
           common::Bind(&L2capFixedChannelHelper::on_incoming_packet, common::Unretained(this)));
     }
 
-    void on_close_callback(hci::ErrorCode error_code) {
+    void on_close_callback(hci::ErrorCode /* error_code */) {
       {
         std::unique_lock<std::mutex> lock(channel_open_cv_mutex_);
         channel_->GetQueueUpEnd()->UnregisterDequeue();
@@ -343,7 +355,7 @@ class L2capLeModuleFacadeService : public L2capLeModuleFacade::Service {
       channel_ = nullptr;
     }
 
-    void on_connect_fail(FixedChannelManager::ConnectionResult result) {
+    void on_connect_fail(FixedChannelManager::ConnectionResult /* result */) {
       {
         std::unique_lock<std::mutex> lock(channel_open_cv_mutex_);
         channel_ = nullptr;
@@ -401,8 +413,10 @@ class L2capLeModuleFacadeService : public L2capLeModuleFacade::Service {
     std::mutex channel_open_cv_mutex_;
   };
 
-  ::grpc::Status SendConnectionParameterUpdate(::grpc::ServerContext* context, const ConnectionParameter* request,
-                                               ::google::protobuf::Empty* response) override {
+  ::grpc::Status SendConnectionParameterUpdate(
+      ::grpc::ServerContext* /* context */,
+      const ConnectionParameter* request,
+      ::google::protobuf::Empty* /* response */) override {
     if (dynamic_channel_helper_map_.empty()) {
       return ::grpc::Status(::grpc::StatusCode::FAILED_PRECONDITION, "Need to open at least one dynamic channel first");
     }

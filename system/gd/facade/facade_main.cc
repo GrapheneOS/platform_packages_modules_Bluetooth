@@ -70,7 +70,7 @@ void interrupt_handler(int signal_number) {
 }
 struct sigaction new_act = {.sa_handler = interrupt_handler};
 
-bool crash_callback(const void* crash_context, size_t crash_context_size, void* context) {
+bool crash_callback(const void* crash_context, size_t crash_context_size, void* /* context */) {
   std::optional<pid_t> tid;
   if (crash_context_size >= sizeof(google_breakpad::ExceptionHandler::CrashContext)) {
     auto* ctx = static_cast<const google_breakpad::ExceptionHandler::CrashContext*>(crash_context);
