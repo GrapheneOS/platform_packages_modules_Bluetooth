@@ -1348,8 +1348,10 @@ void BTM_ConfirmReqReply(tBTM_STATUS res, const RawAddress& bd_addr) {
   if ((btm_cb.pairing_state != BTM_PAIR_STATE_WAIT_NUMERIC_CONFIRM) ||
       (btm_cb.pairing_bda != bd_addr)) {
     LOG_WARN(
-        "Ignore confirm request reply as bonding has been canceled or timer "
-        "expired");
+        "Unexpected pairing confirm for %s, pairing_state: %s, pairing_bda: %s",
+        ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
+        btm_pair_state_descr(btm_cb.pairing_state),
+        ADDRESS_TO_LOGGABLE_CSTR(btm_cb.pairing_bda));
     return;
   }
 
