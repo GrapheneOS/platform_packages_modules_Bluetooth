@@ -43,13 +43,37 @@
             android:gravity="center_vertical"
             android:text="State:" />
 
-        <TextView
-            android:id="@+id/receiver_state_text"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
-            android:layout_weight="2"
-            android:text="IDLE" />
+            android:layout_weight="5"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/receiver_pa_state_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:layout_weight="2"
+                android:text="@string/broadcast_pa_sync_state_pa_not_sync" />
+
+            <TextView
+                android:id="@+id/receiver_enc_state_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:layout_weight="2"
+                android:text="@string/broadcast_big_encryption_not_enc" />
+
+            <TextView
+                android:id="@+id/receiver_bis_state_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:layout_weight="2"
+                android:text="@string/broadcast_bis_sync_state_bis_not_sync" />
+        </LinearLayout>
 
         <ImageButton
             android:id="@+id/broadcast_button"
