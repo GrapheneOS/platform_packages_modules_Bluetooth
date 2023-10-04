@@ -24,7 +24,7 @@ using ::grpc::ServerBuilder;
 namespace bluetooth {
 namespace grpc {
 
-void GrpcModule::ListDependencies(ModuleList* list) const {}
+void GrpcModule::ListDependencies(ModuleList* /* list */) const {}
 
 void GrpcModule::Start() {
   ASSERT(!started_);
