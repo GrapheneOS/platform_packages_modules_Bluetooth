@@ -35,7 +35,7 @@ class TestModuleNoDependency : public Module {
   static const ModuleFactory Factory;
 
  protected:
-  void ListDependencies(ModuleList* list) const {}
+  void ListDependencies(ModuleList* /* list */) const {}
   void Start() override {}
   void Stop() override {}
   std::string ToString() const override {

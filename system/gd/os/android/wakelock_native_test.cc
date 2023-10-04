@@ -106,7 +106,8 @@ class WakelockCallback : public BnWakelockCallback {
 
 class SuspendCallback : public BnSuspendCallback {
  public:
-  ScopedAStatus notifyWakeup(bool success, const std::vector<std::string>& wakeup_reasons) override {
+  ScopedAStatus notifyWakeup(
+      bool /* success */, const std::vector<std::string>& /* wakeup_reasons */) override {
     std::lock_guard<std::recursive_mutex> lock_guard(mutex);
     fprintf(stderr, "notifyWakeup\n");
     return ScopedAStatus::ok();
