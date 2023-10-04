@@ -56,6 +56,7 @@ impl_dbus_arg_from_into!(BtStatus, u32);
 
 /// A mixin of the several interfaces. The naming of the fields in the mixin must match
 /// what is listed in the `generate_dbus_exporter` invocation.
+#[derive(Clone)]
 pub struct BluetoothMixin {
     pub adapter: Arc<Mutex<Box<Bluetooth>>>,
     pub qa: Arc<Mutex<Box<Bluetooth>>>,
