@@ -4225,7 +4225,8 @@ class LeAudioClientImpl : public LeAudioClient {
         break;
       case AudioState::READY_TO_START:
         LOG_ERROR(
-            " called in wrong state. \n audio_receiver_state: %s \n"
+            " Double resume request, just ignore it.. \n audio_receiver_state: "
+            "%s \n"
             "audio_sender_state: %s \n isPendingConfiguration: %s \n "
             "Reconfiguring to %s",
             ToString(audio_receiver_state_).c_str(),
@@ -4233,7 +4234,6 @@ class LeAudioClientImpl : public LeAudioClient {
             (group->IsPendingConfiguration() ? "true" : "false"),
             ToString(configuration_context_type_).c_str());
         group->PrintDebugState();
-        CancelStreamingRequest();
         break;
       case AudioState::READY_TO_RELEASE:
         switch (audio_sender_state_) {
