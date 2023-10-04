@@ -84,7 +84,7 @@ class TestController : public testing::MockController {
     return total_acl_buffers_;
   }
 
-  bool IsSupported(bluetooth::hci::OpCode op_code) const override {
+  bool IsSupported(bluetooth::hci::OpCode /* op_code */) const override {
     return false;
   }
 
@@ -106,7 +106,7 @@ class TestController : public testing::MockController {
  protected:
   void Start() override {}
   void Stop() override {}
-  void ListDependencies(ModuleList* list) const {}
+  void ListDependencies(ModuleList* /* list */) const {}
 };
 
 class AclManagerNoCallbacksTest : public ::testing::Test {
@@ -379,7 +379,7 @@ class AclManagerWithLeConnectionTest : public AclManagerTest {
     auto first_connection = GetLeConnectionFuture();
     EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(remote_with_type_, _))
         .WillRepeatedly([this](
-                            hci::AddressWithType address_with_type,
+                            hci::AddressWithType /* address_with_type */,
                             std::unique_ptr<LeAclConnection> connection) {
           le_connections_.push_back(std::move(connection));
           if (le_connection_promise_ != nullptr) {
@@ -540,15 +540,15 @@ TEST_F(AclManagerTest, create_connection_with_fast_mode) {
 
   auto first_connection = GetLeConnectionFuture();
   EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(remote_with_type, _))
-      .WillRepeatedly(
-          [this](
-              hci::AddressWithType address_with_type, std::unique_ptr<LeAclConnection> connection) {
-            le_connections_.push_back(std::move(connection));
-            if (le_connection_promise_ != nullptr) {
-              le_connection_promise_->set_value();
-              le_connection_promise_.reset();
-            }
-          });
+      .WillRepeatedly([this](
+                          hci::AddressWithType /* address_with_type */,
+                          std::unique_ptr<LeAclConnection> connection) {
+        le_connections_.push_back(std::move(connection));
+        if (le_connection_promise_ != nullptr) {
+          le_connection_promise_->set_value();
+          le_connection_promise_.reset();
+        }
+      });
 
   test_hci_layer_->IncomingLeMetaEvent(LeConnectionCompleteBuilder::Create(
       ErrorCode::SUCCESS,
@@ -581,15 +581,15 @@ TEST_F(AclManagerTest, create_connection_with_slow_mode) {
   test_hci_layer_->IncomingEvent(LeCreateConnectionStatusBuilder::Create(ErrorCode::SUCCESS, 0x01));
   auto first_connection = GetLeConnectionFuture();
   EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(remote_with_type, _))
-      .WillRepeatedly(
-          [this](
-              hci::AddressWithType address_with_type, std::unique_ptr<LeAclConnection> connection) {
-            le_connections_.push_back(std::move(connection));
-            if (le_connection_promise_ != nullptr) {
-              le_connection_promise_->set_value();
-              le_connection_promise_.reset();
-            }
-          });
+      .WillRepeatedly([this](
+                          hci::AddressWithType /* address_with_type */,
+                          std::unique_ptr<LeAclConnection> connection) {
+        le_connections_.push_back(std::move(connection));
+        if (le_connection_promise_ != nullptr) {
+          le_connection_promise_->set_value();
+          le_connection_promise_.reset();
+        }
+      });
 
   test_hci_layer_->IncomingLeMetaEvent(LeConnectionCompleteBuilder::Create(
       ErrorCode::SUCCESS,

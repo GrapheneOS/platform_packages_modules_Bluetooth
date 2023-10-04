@@ -87,18 +87,19 @@ class RemoteNameRequestModuleTest : public ::testing::Test {
 
   template <typename... T>
   common::ContextualOnceCallback<void(T...)> impossibleCallback() {
-    return client_handler_->BindOnce([](T... args) { ADD_FAILURE(); });
+    return client_handler_->BindOnce([](T... /* args */) { ADD_FAILURE(); });
   }
 
   template <typename... T>
   common::ContextualOnceCallback<void(T...)> emptyCallback() {
-    return client_handler_->BindOnce([](T... args) {});
+    return client_handler_->BindOnce([](T... /* args */) {});
   }
 
   template <typename... T>
   common::ContextualOnceCallback<void(T...)> promiseCallback(std::promise<void> promise) {
     return client_handler_->BindOnce(
-        [](std::promise<void> promise, T... args) { promise.set_value(); }, std::move(promise));
+        [](std::promise<void> promise, T... /* args */) { promise.set_value(); },
+        std::move(promise));
   }
 
   template <typename... T>
