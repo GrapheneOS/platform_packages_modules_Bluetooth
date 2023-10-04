@@ -25,6 +25,7 @@ import static android.bluetooth.BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_F
 import static android.bluetooth.BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_IDLE;
 import static android.bluetooth.BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_SYNCHRONIZED;
 import static android.bluetooth.BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_SYNCINFO_REQUEST;
+import static android.bluetooth.BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_NO_PAST;
 
 import android.animation.ObjectAnimator;
 import android.bluetooth.BluetoothDevice;
@@ -598,8 +599,8 @@ public class LeAudioRecycleViewAdapter
                 .setValue(holder.outputFoldable.getVisibility() == View.GONE);
     }
 
-    private void setBassStateObservers(@NonNull ViewHolder holder,
-            LeAudioDeviceStateWrapper leAudioDeviceStateWrapper) {
+    private void setBassStateObservers(
+            @NonNull ViewHolder holder, LeAudioDeviceStateWrapper leAudioDeviceStateWrapper) {
         LeAudioDeviceStateWrapper.BassData bass_svc_data = leAudioDeviceStateWrapper.bassData;
         if (bass_svc_data != null) {
             if (bass_svc_data.isConnectedMutable.hasObservers())
@@ -612,18 +613,18 @@ public class LeAudioRecycleViewAdapter
                     holder.bassConnectionSwitch.setActivated(true);
                 }
 
-                if (is_connected) {
-                }
-
                 if (holder.itemView.findViewById(R.id.bass_layout)
                         .getVisibility() != (is_connected ? View.VISIBLE : View.GONE))
                     holder.itemView.findViewById(R.id.bass_layout)
                             .setVisibility(is_connected ? View.VISIBLE : View.GONE);
             });
 
-            holder.itemView.findViewById(R.id.bass_layout)
-                    .setVisibility(bass_svc_data.isConnectedMutable.getValue() != null
-                            && bass_svc_data.isConnectedMutable.getValue() ? View.VISIBLE
+            holder.itemView
+                    .findViewById(R.id.bass_layout)
+                    .setVisibility(
+                            bass_svc_data.isConnectedMutable.getValue() != null
+                                            && bass_svc_data.isConnectedMutable.getValue()
+                                    ? View.VISIBLE
                                     : View.GONE);
 
             if (bass_svc_data.receiverStatesMutable.hasActiveObservers())
@@ -663,78 +664,134 @@ public class LeAudioRecycleViewAdapter
         if (vData.selectedReceiverPositionMutable.hasObservers())
             vData.selectedReceiverPositionMutable.removeObservers(this.parent);
 
-        vData.selectedReceiverPositionMutable.observe(this.parent, aInteger -> {
-            int receiver_id = Integer.parseInt(holder.bassReceiverIdSpinner.getItemAtPosition(aInteger).toString());
-            bassInteractionListener.onReceiverSelected(leAudioDeviceStateWrapper, receiver_id);
+        vData.selectedReceiverPositionMutable.observe(
+                this.parent,
+                aInteger -> {
+                    int receiver_id =
+                            Integer.parseInt(
+                                    holder.bassReceiverIdSpinner
+                                            .getItemAtPosition(aInteger)
+                                            .toString());
+                    bassInteractionListener.onReceiverSelected(
+                            leAudioDeviceStateWrapper, receiver_id);
 
-            Map<Integer, BluetoothLeBroadcastReceiveState> states =
-                    leAudioDeviceStateWrapper.bassData.receiverStatesMutable.getValue();
+                    Map<Integer, BluetoothLeBroadcastReceiveState> states =
+                            leAudioDeviceStateWrapper.bassData.receiverStatesMutable.getValue();
 
-            Log.d("LeAudioRecycleViewAdapter",
-                    "BluetoothLeBroadcastReceiveState " + holder.bassReceiverIdSpinner.getSelectedItem());
-            if (states != null) {
-                if (states.containsKey(receiver_id)) {
-                    BluetoothLeBroadcastReceiveState state =
-                            states.get(holder.bassReceiverIdSpinner.getSelectedItem());
-                    int paSyncState = state.getPaSyncState();
-                    int bigEncryptionState = state.getBigEncryptionState();
+                    Log.d(
+                            "LeAudioRecycleViewAdapter",
+                            "BluetoothLeBroadcastReceiveState "
+                                    + holder.bassReceiverIdSpinner.getSelectedItem());
+                    if (states != null) {
+                        if (states.containsKey(receiver_id)) {
+                            BluetoothLeBroadcastReceiveState state =
+                                    states.get(holder.bassReceiverIdSpinner.getSelectedItem());
+                            int paSyncState = state.getPaSyncState();
+                            int bigEncryptionState = state.getBigEncryptionState();
+                            long bisSyncState = 0;
 
-                    Resources res = this.parent.getResources();
-                    String stateName = null;
+                            if (state.getNumSubgroups() == 1) {
+                                bisSyncState = state.getBisSyncState().get(0);
+                            } else if (state.getNumSubgroups() > 1) {
+                                // TODO: Add multiple subgroup support
+                                Log.w(
+                                        "LeAudioRecycleViewAdapter",
+                                        "There is more than one subgroup in " + "BIG");
+                                bisSyncState = state.getBisSyncState().get(0);
+                            }
 
-                    if (paSyncState == 0xffff) {// invalid sync state
-                        paSyncState = PA_SYNC_STATE_IDLE;
-                    }
-                    if (bigEncryptionState == 0xffff) {// invalid encryption state
-                        bigEncryptionState = BIG_ENCRYPTION_STATE_NOT_ENCRYPTED;
-                    }
-                    Log.d("LeAudioRecycleViewAdapter", "paSyncState " + paSyncState +
-                            " bigEncryptionState" + bigEncryptionState);
+                            Resources res = this.parent.getResources();
+                            String paStateStr = null;
+                            String encStateStr = null;
+                            String bisSyncStateStr = null;
 
-                    // Set the icon
-                    if (paSyncState == PA_SYNC_STATE_IDLE) {
-                        holder.bassScanButton.setImageResource(R.drawable.ic_cast_black_24dp);
-                        stateName = res.getString(R.string.broadcast_state_idle);
-                    } else if (paSyncState == PA_SYNC_STATE_FAILED_TO_SYNCHRONIZE) {
-                        holder.bassScanButton.setImageResource(R.drawable.ic_warning_black_24dp);
-                        stateName = res.getString(R.string.broadcast_state_sync_pa_failed);
-                    } else if (paSyncState == PA_SYNC_STATE_SYNCHRONIZED) {
-                        switch (bigEncryptionState) {
-                            case BIG_ENCRYPTION_STATE_NOT_ENCRYPTED:
-                            case BIG_ENCRYPTION_STATE_DECRYPTING:
+                            if (paSyncState == 0xffff) { // invalid sync state
+                                paSyncState = PA_SYNC_STATE_IDLE;
+                            }
+                            if (bigEncryptionState == 0xffff) { // invalid encryption state
+                                bigEncryptionState = BIG_ENCRYPTION_STATE_NOT_ENCRYPTED;
+                            }
+                            Log.d(
+                                    "LeAudioRecycleViewAdapter",
+                                    "paSyncState "
+                                            + paSyncState
+                                            + " bigEncryptionState"
+                                            + bigEncryptionState);
+
+                            /* PA Sync state */
+                            if (paSyncState == PA_SYNC_STATE_IDLE) {
                                 holder.bassScanButton.setImageResource(
-                                        R.drawable.ic_bluetooth_searching_black_24dp);
-                                stateName = res.getString(R.string.broadcast_state_receiving_broadcast);
-                                break;
-                            case BIG_ENCRYPTION_STATE_CODE_REQUIRED:
+                                        R.drawable.ic_cast_black_24dp);
+                                paStateStr =
+                                        res.getString(R.string.broadcast_pa_sync_state_pa_not_sync);
+                            } else if (paSyncState == PA_SYNC_STATE_SYNCINFO_REQUEST) {
+                                paStateStr =
+                                        res.getString(
+                                                R.string.broadcast_pa_sync_state_syncinfo_req);
+                            } else if (paSyncState == PA_SYNC_STATE_SYNCHRONIZED) {
+                                paStateStr =
+                                        res.getString(R.string.broadcast_pa_sync_state_pa_sync);
+                            } else if (paSyncState == PA_SYNC_STATE_FAILED_TO_SYNCHRONIZE) {
+                                holder.bassScanButton.setImageResource(
+                                        R.drawable.ic_warning_black_24dp);
+                                paStateStr =
+                                        res.getString(
+                                                R.string.broadcast_pa_sync_state_sync_pa_failed);
+                            } else if (paSyncState == PA_SYNC_STATE_NO_PAST) {
+                                holder.bassScanButton.setImageResource(
+                                        R.drawable.ic_warning_black_24dp);
+                                paStateStr =
+                                        res.getString(R.string.broadcast_pa_sync_state_no_past);
+                            } else {
+                                holder.bassScanButton.setImageResource(
+                                        R.drawable.ic_warning_black_24dp);
+                                paStateStr = res.getString(R.string.broadcast_state_rfu);
+                            }
+
+                            /* ENC state */
+                            if (bigEncryptionState == BIG_ENCRYPTION_STATE_NOT_ENCRYPTED) {
+                                encStateStr =
+                                        res.getString(R.string.broadcast_big_encryption_not_enc);
+                            } else if (bigEncryptionState == BIG_ENCRYPTION_STATE_CODE_REQUIRED) {
                                 holder.bassScanButton.setImageResource(
                                         R.drawable.ic_vpn_key_black_24dp);
-                                stateName = res.getString(R.string.broadcast_state_code_required);
-                                break;
-                            case BIG_ENCRYPTION_STATE_BAD_CODE:
-                                holder.bassScanButton.setImageResource(R.drawable.ic_warning_black_24dp);
-                                stateName = res.getString(R.string.broadcast_state_code_invalid);
-                                break;
+                                encStateStr =
+                                        res.getString(
+                                                R.string.broadcast_big_encryption_code_required);
+                            } else if (bigEncryptionState == BIG_ENCRYPTION_STATE_DECRYPTING) {
+                                encStateStr =
+                                        res.getString(R.string.broadcast_big_encryption_decrypting);
+                            } else if (bigEncryptionState == BIG_ENCRYPTION_STATE_BAD_CODE) {
+                                holder.bassScanButton.setImageResource(
+                                        R.drawable.ic_warning_black_24dp);
+                                encStateStr =
+                                        res.getString(R.string.broadcast_big_encryption_bad_code);
+                            } else {
+                                encStateStr = res.getString(R.string.broadcast_state_rfu);
+                            }
+
+                            /* BIS state */
+                            if (bisSyncState == 0x00000000) {
+                                bisSyncStateStr =
+                                        res.getString(
+                                                R.string.broadcast_bis_sync_state_bis_not_sync);
+                            } else if (bisSyncState == 0xffffffff) {
+                                bisSyncStateStr =
+                                        res.getString(
+                                                R.string.broadcast_bis_sync_state_bis_not_sync);
+                            } else {
+                                holder.bassScanButton.setImageResource(
+                                        R.drawable.ic_bluetooth_searching_black_24dp);
+                                bisSyncStateStr =
+                                        res.getString(R.string.broadcast_bis_sync_state_bis_sync);
+                            }
+
+                            holder.bassReceiverPaStateText.setText(paStateStr);
+                            holder.bassReceiverEncStateText.setText(encStateStr);
+                            holder.bassReceiverBisStateText.setText(bisSyncStateStr);
                         }
                     }
-
-                    // TODO: Seems no appropriate state matching exists for RECEIVER_STATE_SYNCING
-                    //       and RECEIVER_STATE_SET_SOURCE_FAILED.
-                    //       What does "receiver source configuration has failed" mean?
-//                    else if (state == BluetoothBroadcastAudioScan.RECEIVER_STATE_SYNCING) {
-//                        holder.bassScanButton.setImageResource(R.drawable.ic_bluetooth_dots_black);
-//                        stateName = res.getString(R.string.broadcast_state_syncing);
-//                    }
-//                    } else if (state == BluetoothBroadcastAudioScan.RECEIVER_STATE_SET_SOURCE_FAILED) {
-//                        holder.bassScanButton.setImageResource(R.drawable.ic_refresh_black_24dp);
-//                        stateName = res.getString(R.string.broadcast_state_set_source_failed);
-//                    }
-
-                    holder.bassReceiverStateText.setText(
-                            stateName != null ? stateName : res.getString(R.string.unknown));
-                }
-            }
-        });
+                });
     }
 
     @Override
@@ -994,7 +1051,9 @@ public class LeAudioRecycleViewAdapter
         // BASS View stuff
         private Switch bassConnectionSwitch;
         private Spinner bassReceiverIdSpinner;
-        private TextView bassReceiverStateText;
+        private TextView bassReceiverPaStateText;
+        private TextView bassReceiverEncStateText;
+        private TextView bassReceiverBisStateText;
         private ImageButton bassScanButton;
 
         public ViewHolder(@NonNull View itemView) {
@@ -1769,7 +1828,9 @@ public class LeAudioRecycleViewAdapter
             bassConnectionSwitch = itemView.findViewById(R.id.bass_switch);
             bassConnectionSwitch.setActivated(true);
             bassReceiverIdSpinner = itemView.findViewById(R.id.num_receiver_spinner);
-            bassReceiverStateText = itemView.findViewById(R.id.receiver_state_text);
+            bassReceiverPaStateText = itemView.findViewById(R.id.receiver_pa_state_text);
+            bassReceiverEncStateText = itemView.findViewById(R.id.receiver_enc_state_text);
+            bassReceiverBisStateText = itemView.findViewById(R.id.receiver_bis_state_text);
             bassScanButton = itemView.findViewById(R.id.broadcast_button);
 
             bassConnectionSwitch.setOnCheckedChangeListener((compoundButton, b) -> {
@@ -1799,129 +1860,178 @@ public class LeAudioRecycleViewAdapter
                 }
             });
 
-            bassScanButton.setOnClickListener(view -> {
-                Resources res =  view.getResources();
+            bassScanButton.setOnClickListener(
+                    view -> {
+                        /* Broadcast receiver is not selected */
+                        if (bassReceiverIdSpinner.getSelectedItem() == null) {
+                            Toast.makeText(
+                                            view.getContext(),
+                                            "Receiver not selected",
+                                            Toast.LENGTH_SHORT)
+                                    .show();
+                            return;
+                        }
 
-                // TODO: Do not sync on the string value, but instead sync on the actual state value.
-                if (bassReceiverStateText.getText().equals(res.getString(R.string.broadcast_state_idle))) {
-                    AlertDialog.Builder alert = new AlertDialog.Builder(itemView.getContext());
-                    alert.setTitle("Scan and add a source or remove the currently set one.");
+                        int receiver_id =
+                                Integer.parseInt(
+                                        bassReceiverIdSpinner.getSelectedItem().toString());
+                        LeAudioDeviceStateWrapper leAudioDeviceStateWrapper =
+                                devices.get(ViewHolder.this.getAdapterPosition());
+                        bassInteractionListener.onReceiverSelected(
+                                leAudioDeviceStateWrapper, receiver_id);
 
-                    BluetoothDevice device = devices.get(ViewHolder.this.getAdapterPosition()).device;
-                    int receiver_id = -1;
-                    if (bassReceiverIdSpinner.getSelectedItem() != null) {
-                        receiver_id = Integer.parseInt(bassReceiverIdSpinner.getSelectedItem().toString());
-                    }
+                        Map<Integer, BluetoothLeBroadcastReceiveState> states =
+                                leAudioDeviceStateWrapper.bassData.receiverStatesMutable.getValue();
 
-                    alert.setPositiveButton("Scan", (dialog, whichButton) -> {
-                        // Scan for new announcements
-                        Intent intent = new Intent(this.itemView.getContext(), BroadcastScanActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, devices.get(ViewHolder.this.getAdapterPosition()).device);
-                        parent.startActivityForResult(intent, 666);
+                        if (states != null) {
+                            if (states.containsKey(receiver_id)) {
+                                BluetoothLeBroadcastReceiveState state =
+                                        states.get(bassReceiverIdSpinner.getSelectedItem());
+                                int paSyncState = state.getPaSyncState();
+                                int bigEncryptionState = state.getBigEncryptionState();
+                                long bisSyncState = 0;
+
+                                if (state.getNumSubgroups() == 1) {
+                                    bisSyncState = state.getBisSyncState().get(0);
+                                } else if (state.getNumSubgroups() > 1) {
+                                    // TODO: Add multiple subgroup support
+                                    Log.w(
+                                            "LeAudioRecycleViewAdapter",
+                                            "There is more than one subgroup in " + "BIG");
+                                    bisSyncState = state.getBisSyncState().get(0);
+                                }
+
+                                /* Stop synchronization */
+                                if ((paSyncState != PA_SYNC_STATE_IDLE)
+                                        || (bisSyncState != 0x00000000)) {
+                                    AlertDialog.Builder alert =
+                                            new AlertDialog.Builder(itemView.getContext());
+                                    alert.setTitle("Stop the synchronization?");
+
+                                    BluetoothDevice device =
+                                            devices.get(ViewHolder.this.getAdapterPosition())
+                                                    .device;
+                                    if (bassReceiverIdSpinner.getSelectedItem() == null) {
+                                        Toast.makeText(
+                                                        view.getContext(),
+                                                        "Not available",
+                                                        Toast.LENGTH_SHORT)
+                                                .show();
+                                        return;
+                                    }
+
+                                    alert.setPositiveButton(
+                                            "Yes",
+                                            (dialog, whichButton) -> {
+                                                bassInteractionListener.onRemoveSourceReq(
+                                                        device, receiver_id);
+                                            });
+                                    // FIXME: To modify source we need the valid broadcaster_id
+                                    // context so
+                                    //        we should start scan here again
+                                    // alert.setNeutralButton("Modify", (dialog, whichButton) -> {
+                                    //
+                                    // TODO: Open the scan dialog to get the broadcast_id
+                                    //       bassInteractionListener.onStopSyncReq(device,
+                                    // receiver_id,
+                                    //       broadcast_id);
+                                    // });
+                                    alert.setNegativeButton(
+                                            "No",
+                                            (dialog, whichButton) -> {
+                                                // Do nothing
+                                            });
+                                    alert.show();
+                                } else if (bisSyncState == 0x00000000) {
+                                    /* Add or Remove source */
+                                    AlertDialog.Builder alert =
+                                            new AlertDialog.Builder(itemView.getContext());
+                                    alert.setTitle(
+                                            "Scan and add a source or remove the currently set "
+                                                    + "one.");
+
+                                    BluetoothDevice device =
+                                            devices.get(ViewHolder.this.getAdapterPosition())
+                                                    .device;
+
+                                    alert.setPositiveButton(
+                                            "Scan",
+                                            (dialog, whichButton) -> {
+                                                // Scan for new announcements
+                                                Intent intent =
+                                                        new Intent(
+                                                                this.itemView.getContext(),
+                                                                BroadcastScanActivity.class);
+                                                intent.addFlags(
+                                                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                                                intent.putExtra(
+                                                        BluetoothDevice.EXTRA_DEVICE,
+                                                        devices.get(
+                                                                        ViewHolder.this
+                                                                                .getAdapterPosition())
+                                                                .device);
+                                                parent.startActivityForResult(intent, 666);
+                                            });
+                                    alert.setNeutralButton(
+                                            "Cancel",
+                                            (dialog, whichButton) -> {
+                                                // Do nothing
+                                            });
+                                    if (receiver_id != -1) {
+                                        final int remove_receiver_id = receiver_id;
+                                        alert.setNegativeButton(
+                                                "Remove",
+                                                (dialog, whichButton) -> {
+                                                    bassInteractionListener.onRemoveSourceReq(
+                                                            device, remove_receiver_id);
+                                                });
+                                    }
+                                    alert.show();
+                                } else if ((bigEncryptionState == BIG_ENCRYPTION_STATE_BAD_CODE)
+                                        || (bigEncryptionState
+                                                == BIG_ENCRYPTION_STATE_CODE_REQUIRED)) {
+                                    /* Deliver broadcast key */
+                                    AlertDialog.Builder alert =
+                                            new AlertDialog.Builder(itemView.getContext());
+                                    alert.setTitle("Please enter broadcast encryption code...");
+                                    EditText pass_input_view = new EditText(itemView.getContext());
+                                    pass_input_view.setFilters(
+                                            new InputFilter[] {new InputFilter.LengthFilter(16)});
+                                    alert.setView(pass_input_view);
+
+                                    BluetoothDevice device =
+                                            devices.get(ViewHolder.this.getAdapterPosition())
+                                                    .device;
+                                    if (bassReceiverIdSpinner.getSelectedItem() == null) {
+                                        Toast.makeText(
+                                                        view.getContext(),
+                                                        "Not available",
+                                                        Toast.LENGTH_SHORT)
+                                                .show();
+                                        return;
+                                    }
+
+                                    alert.setPositiveButton(
+                                            "Set",
+                                            (dialog, whichButton) -> {
+                                                byte[] code =
+                                                        pass_input_view
+                                                                .getText()
+                                                                .toString()
+                                                                .getBytes();
+                                                bassInteractionListener.onBroadcastCodeEntered(
+                                                        device, receiver_id, code);
+                                            });
+                                    alert.setNegativeButton(
+                                            "Cancel",
+                                            (dialog, whichButton) -> {
+                                                // Do nothing
+                                            });
+                                    alert.show();
+                                }
+                            }
+                        }
                     });
-                    alert.setNeutralButton("Cancel", (dialog, whichButton) -> {
-                        // Do nothing
-                    });
-                    if (receiver_id != -1) {
-                        final int remove_receiver_id = receiver_id;
-                        alert.setNegativeButton("Remove", (dialog, whichButton) -> {
-                            bassInteractionListener.onRemoveSourceReq(device, remove_receiver_id);
-                        });
-                    }
-                    alert.show();
-
-                } else if (bassReceiverStateText.getText().equals(res.getString(R.string.broadcast_state_code_required))) {
-                    AlertDialog.Builder alert = new AlertDialog.Builder(itemView.getContext());
-                    alert.setTitle("Please enter broadcast encryption code...");
-                    EditText pass_input_view = new EditText(itemView.getContext());
-                    pass_input_view.setFilters(new InputFilter[] { new InputFilter.LengthFilter(16) });
-                    alert.setView(pass_input_view);
-
-                    BluetoothDevice device = devices.get(ViewHolder.this.getAdapterPosition()).device;
-                    if (bassReceiverIdSpinner.getSelectedItem() == null) {
-                        Toast.makeText(view.getContext(), "Not available",
-                                Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    int receiver_id = Integer.parseInt(bassReceiverIdSpinner.getSelectedItem().toString());
-
-                    alert.setPositiveButton("Set", (dialog, whichButton) -> {
-                        byte[] code = pass_input_view.getText().toString().getBytes();
-                        bassInteractionListener.onBroadcastCodeEntered(device, receiver_id, code);
-                    });
-                    alert.setNegativeButton("Cancel", (dialog, whichButton) -> {
-                        // Do nothing
-                    });
-                    alert.show();
-
-                } else if (bassReceiverStateText.getText().equals(res.getString(R.string.broadcast_state_receiving_broadcast))) {
-                    AlertDialog.Builder alert = new AlertDialog.Builder(itemView.getContext());
-                    alert.setTitle("Stop the synchronization?");
-
-                    BluetoothDevice device = devices.get(ViewHolder.this.getAdapterPosition()).device;
-                    if (bassReceiverIdSpinner.getSelectedItem() == null) {
-                        Toast.makeText(view.getContext(), "Not available",
-                                Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    int receiver_id = Integer.parseInt(bassReceiverIdSpinner.getSelectedItem().toString());
-
-                    alert.setPositiveButton("Yes", (dialog, whichButton) -> {
-                        bassInteractionListener.onRemoveSourceReq(device, receiver_id);
-                    });
-                    // FIXME: To modify source we need the valid broadcaster_id context so we should start scan here again
-                    // alert.setNeutralButton("Modify", (dialog, whichButton) -> {
-                    //     // TODO: Open the scan dialog to get the broadcast_id
-                    //     // bassInteractionListener.onStopSyncReq(device, receiver_id, broadcast_id);
-                    // });
-                    alert.setNegativeButton("No", (dialog, whichButton) -> {
-                        // Do nothing
-                    });
-                    alert.show();
-
-                } else if (bassReceiverStateText.getText().equals(res.getString(R.string.broadcast_state_set_source_failed))
-                        || bassReceiverStateText.getText().equals(res.getString(R.string.broadcast_state_sync_pa_failed))) {
-                    AlertDialog.Builder alert = new AlertDialog.Builder(itemView.getContext());
-                    alert.setTitle("Retry broadcast audio announcement scan?");
-
-                    alert.setPositiveButton("Yes", (dialog, whichButton) -> {
-                        // Scan for new announcements
-                        Intent intent = new Intent(view.getContext(), BroadcastScanActivity.class);
-                        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, devices.get(ViewHolder.this.getAdapterPosition()).device);
-                        parent.startActivityForResult(intent, 666);
-                    });
-                    alert.setNegativeButton("No", (dialog, whichButton) -> {
-                        // Do nothing
-                    });
-                    alert.show();
-
-                } else if (bassReceiverStateText.getText().equals(res.getString(R.string.broadcast_state_syncing))) {
-                    AlertDialog.Builder alert = new AlertDialog.Builder(itemView.getContext());
-                    alert.setTitle("Stop the synchronization?");
-
-                    BluetoothDevice device = devices.get(ViewHolder.this.getAdapterPosition()).device;
-                    if (bassReceiverIdSpinner.getSelectedItem() == null) {
-                        Toast.makeText(view.getContext(), "Not available",
-                                Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    int receiver_id = Integer.parseInt(bassReceiverIdSpinner.getSelectedItem().toString());
-
-                    alert.setPositiveButton("Yes", (dialog, whichButton) -> {
-                        bassInteractionListener.onRemoveSourceReq(device, receiver_id);
-                    });
-                    // FIXME: To modify source we need the valid broadcaster_id context so we should start scan here again
-                    // alert.setNeutralButton("Modify", (dialog, whichButton) -> {
-                    //     // TODO: Open the scan dialog to get the broadcast_id
-                    //     // bassInteractionListener.onStopSyncReq(device, receiver_id, broadcast_id);
-                    // });
-                    alert.setNegativeButton("No", (dialog, whichButton) -> {
-                        // Do nothing
-                    });
-                    alert.show();
-                }
-            });
         }
     }
 
