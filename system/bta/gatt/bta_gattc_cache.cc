@@ -164,6 +164,12 @@ RobustCachingSupport GetRobustCachingSupport(const tBTA_GATTC_CLCB* p_clcb,
     return RobustCachingSupport::UNSUPPORTED;
   }
 
+  if (p_clcb->transport == BT_TRANSPORT_LE &&
+      !BTM_IsRemoteVersionReceived(p_clcb->bda)) {
+    LOG_INFO("version info is not ready yet");
+    return RobustCachingSupport::W4_REMOTE_VERSION;
+  }
+
   // This is workaround for the embedded devices being already on the market
   // and having a serious problem with handle Read By Type with
   // GATT_UUID_DATABASE_HASH. With this workaround, Android will assume that

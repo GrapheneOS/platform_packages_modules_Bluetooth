@@ -420,6 +420,16 @@ bool BTM_IsRemoteNameKnown(const RawAddress& remote_bda,
 
 /*******************************************************************************
  *
+ * Function         BTM_IsRemoteVersionReceived
+ *
+ * Returns          Returns true if "LE Read remote version info" was already
+ *                  received on LE transport for this device.
+ *
+ ******************************************************************************/
+bool BTM_IsRemoteVersionReceived(const RawAddress& remote_bda);
+
+/*******************************************************************************
+ *
  * Function         BTM_ReadRemoteVersion
  *
  * Description      This function is called to read a remote device's version

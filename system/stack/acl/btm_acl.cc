@@ -830,6 +830,9 @@ void BTM_default_block_role_switch() {
                                         ~HCI_ENABLE_CENTRAL_PERIPHERAL_SWITCH);
 }
 
+extern void bta_gattc_continue_discovery_if_needed(const RawAddress& bd_addr,
+                                                   uint16_t acl_handle);
+
 /*******************************************************************************
  *
  * Function         btm_read_remote_version_complete
@@ -852,6 +855,8 @@ static void maybe_chain_more_commands_after_read_remote_version_complete(
     case BT_TRANSPORT_LE:
       l2cble_notify_le_connection(p_acl_cb->remote_addr);
       l2cble_use_preferred_conn_params(p_acl_cb->remote_addr);
+      bta_gattc_continue_discovery_if_needed(p_acl_cb->remote_addr,
+                                             p_acl_cb->Handle());
       break;
     case BT_TRANSPORT_BR_EDR:
       /**
@@ -879,6 +884,7 @@ void btm_process_remote_version_complete(uint8_t status, uint16_t handle,
     LOG_WARN("Received remote version complete for unknown acl");
     return;
   }
+  p_acl_cb->remote_version_received = true;
 
   if (status == HCI_SUCCESS) {
     p_acl_cb->remote_version_info.lmp_version = lmp_version;
@@ -1593,6 +1599,23 @@ uint16_t BTM_GetMaxPacketSize(const RawAddress& addr) {
   }
 
   return (pkt_size);
+}
+
+/*******************************************************************************
+ *
+ * Function         BTM_IsRemoteVersionReceived
+ *
+ * Returns          Returns true if "LE Read remote version info" was already
+ *                  received on LE transport for this device.
+ *
+ ******************************************************************************/
+bool BTM_IsRemoteVersionReceived(const RawAddress& addr) {
+  const tACL_CONN* p_acl = internal_.btm_bda_to_acl(addr, BT_TRANSPORT_LE);
+  if (p_acl == nullptr) {
+    return false;
+  }
+
+  return p_acl->remote_version_received;
 }
 
 /*******************************************************************************
