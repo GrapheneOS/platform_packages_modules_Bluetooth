@@ -665,7 +665,7 @@ impl From<bindings::bt_property_t> for BluetoothProperty {
             }
             BtPropertyType::Uuids => {
                 let count = len / mem::size_of::<Uuid>();
-                BluetoothProperty::Uuids(ptr_to_vec(prop.val as *mut Uuid, count))
+                BluetoothProperty::Uuids(ptr_to_vec(prop.val as *const Uuid, count))
             }
             BtPropertyType::ClassOfDevice => {
                 BluetoothProperty::ClassOfDevice(u32_from_bytes(slice))
@@ -674,7 +674,8 @@ impl From<bindings::bt_property_t> for BluetoothProperty {
                 BtDeviceType::from_u32(u32_from_bytes(slice)).unwrap_or(BtDeviceType::Unknown),
             ),
             BtPropertyType::ServiceRecord => {
-                let v = unsafe { *(prop.val as *const bindings::bt_service_record_t) };
+                let v =
+                    unsafe { (prop.val as *const bindings::bt_service_record_t).read_unaligned() };
                 BluetoothProperty::ServiceRecord(BtServiceRecord::from(v))
             }
             BtPropertyType::AdapterScanMode => BluetoothProperty::AdapterScanMode(
@@ -683,7 +684,7 @@ impl From<bindings::bt_property_t> for BluetoothProperty {
             BtPropertyType::AdapterBondedDevices => {
                 let count = len / mem::size_of::<RawAddress>();
                 BluetoothProperty::AdapterBondedDevices(ptr_to_vec(
-                    prop.val as *mut RawAddress,
+                    prop.val as *const RawAddress,
                     count,
                 ))
             }
@@ -695,11 +696,11 @@ impl From<bindings::bt_property_t> for BluetoothProperty {
             }
             BtPropertyType::RemoteRssi => BluetoothProperty::RemoteRssi(slice[0] as i8),
             BtPropertyType::RemoteVersionInfo => {
-                let v = unsafe { *(prop.val as *const BtRemoteVersion) };
+                let v = unsafe { (prop.val as *const BtRemoteVersion).read_unaligned() };
                 BluetoothProperty::RemoteVersionInfo(v.clone())
             }
             BtPropertyType::LocalLeFeatures => {
-                let v = unsafe { *(prop.val as *const BtLocalLeFeatures) };
+                let v = unsafe { (prop.val as *const BtLocalLeFeatures).read_unaligned() };
                 BluetoothProperty::LocalLeFeatures(v.clone())
             }
             BtPropertyType::LocalIoCaps => BluetoothProperty::LocalIoCaps(
@@ -713,7 +714,7 @@ impl From<bindings::bt_property_t> for BluetoothProperty {
             }
             BtPropertyType::Appearance => BluetoothProperty::Appearance(u16_from_bytes(slice)),
             BtPropertyType::VendorProductInfo => {
-                let v = unsafe { *(prop.val as *const BtVendorProductInfo) };
+                let v = unsafe { (prop.val as *const BtVendorProductInfo).read_unaligned() };
                 BluetoothProperty::VendorProductInfo(BtVendorProductInfo::from(v))
             }
 
@@ -1338,7 +1339,9 @@ pub fn get_btinterface() -> Option<BluetoothInterface> {
 
 // Turns C-array T[] to Vec<U>.
 pub(crate) fn ptr_to_vec<T: Copy, U: From<T>>(start: *const T, length: usize) -> Vec<U> {
-    unsafe { (0..length).map(|i| U::from(*start.offset(i as isize))).collect::<Vec<U>>() }
+    unsafe {
+        (0..length).map(|i| U::from(start.offset(i as isize).read_unaligned())).collect::<Vec<U>>()
+    }
 }
 
 #[cfg(test)]
