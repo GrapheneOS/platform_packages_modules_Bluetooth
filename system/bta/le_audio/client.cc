@@ -522,9 +522,9 @@ class LeAudioClientImpl : public LeAudioClient {
     bool group_conf_changed = group->ReloadAudioLocations();
     group_conf_changed |= group->ReloadAudioDirections();
     group_conf_changed |= group->UpdateAudioContextAvailability();
-    /* All the configurations should be recalculated for the new conditions */
-    group->InvalidateCachedConfigurations();
     if (group_conf_changed) {
+      /* All the configurations should be recalculated for the new conditions */
+      group->InvalidateCachedConfigurations();
       callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                               group->snk_audio_locations_.to_ulong(),
                               group->src_audio_locations_.to_ulong(),
