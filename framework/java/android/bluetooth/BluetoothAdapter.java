@@ -245,14 +245,6 @@ public final class BluetoothAdapter {
     public static final int STATE_BLE_TURNING_OFF = 16;
 
     /**
-     * UUID of the GATT Read Characteristics for LE_PSM value.
-     *
-     * @hide
-     */
-    public static final UUID LE_PSM_CHARACTERISTIC_UUID =
-            UUID.fromString("2d410339-82b6-42aa-b34e-e2e01df8cc1a");
-
-    /**
      * Used as an optional extra field for the {@link PendingIntent} provided to {@link
      * #startRfcommServer(String, UUID, PendingIntent)}. This is useful for when an
      * application registers multiple RFCOMM listeners, and needs a way to determine which service
