@@ -15,20 +15,20 @@ _BUMBLE_BTSNOOP_FMT = 'bumble_btsnoop_{pid}_{instance}.log'
 
 # Import test cases modules.
 import asha_test
-import cases.host_test
-import cases.le_host_test
-import cases.le_security_test
-import cases.security_test
+import avatar.cases.host_test
+import avatar.cases.le_host_test
+import avatar.cases.le_security_test
+import avatar.cases.security_test
 import gatt_test
 import hfpclient_test
 import sdp_test
 import smp_test
 
 _TEST_CLASSES_LIST = [
-    cases.host_test.HostTest,
-    cases.le_host_test.LeHostTest,
-    cases.security_test.SecurityTest,
-    cases.le_security_test.LeSecurityTest,
+    avatar.cases.host_test.HostTest,
+    avatar.cases.le_host_test.LeHostTest,
+    avatar.cases.security_test.SecurityTest,
+    avatar.cases.le_security_test.LeSecurityTest,
     sdp_test.SdpTest,
     smp_test.SmpTest,
     gatt_test.GattTest,

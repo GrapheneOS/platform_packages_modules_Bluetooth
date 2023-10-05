@@ -20,6 +20,7 @@ import logging
 from avatar import BumblePandoraDevice, PandoraDevice, PandoraDevices
 from bumble import pandora as bumble_server
 from bumble.gatt import Characteristic, Service
+from bumble.l2cap import L2CAP_Control_Frame
 from bumble.pairing import PairingConfig
 from bumble_experimental.gatt import GATTService
 from mobly import base_test, signals, test_runner
@@ -263,15 +264,17 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
         connection = self.ref.device.lookup_connection(int.from_bytes(ref_dut.cookie.value, 'big'))
         assert connection
 
-        connection_request = (
-            b"\x17"  # code of L2CAP_CREDIT_BASED_CONNECTION_REQ
-            b"\x01"  # identifier
-            b"\x0a\x00"  # data length
-            b"\x27\x00"  # psm(EATT)
-            b"\x64\x00"  # MTU
-            b"\x64\x00"  # MPS
-            b"\x64\x00"  # initial credit
-            b"\x40\x00"  # source cid[0]
+        connection_request = L2CAP_Control_Frame.from_bytes(
+            (
+                b"\x17"  # code of L2CAP_CREDIT_BASED_CONNECTION_REQ
+                b"\x01"  # identifier
+                b"\x0a\x00"  # data length
+                b"\x27\x00"  # psm(EATT)
+                b"\x64\x00"  # MTU
+                b"\x64\x00"  # MPS
+                b"\x64\x00"  # initial credit
+                b"\x40\x00"  # source cid[0]
+            )
         )
 
         fut = asyncio.get_running_loop().create_future()
