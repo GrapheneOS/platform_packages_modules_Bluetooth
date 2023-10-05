@@ -102,7 +102,7 @@ struct ControllerProperties {
   // Vendor Supported Commands.
   bool supports_le_get_vendor_capabilities_command{true};
   bool supports_csr_vendor_command{true};
-  bool supports_le_apcf_vendor_command{false};
+  bool supports_le_apcf_vendor_command{true};
 
   // Local Supported Features (Vol 4, Part E § 7.4.3) and
   // Local Extended Features (Vol 4, Part E § 7.4.3).
