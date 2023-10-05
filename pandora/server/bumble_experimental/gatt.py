@@ -23,6 +23,7 @@ from bumble.pandora import utils
 from pandora_experimental.gatt_grpc_aio import GATTServicer
 from pandora_experimental.gatt_pb2 import (
     SUCCESS,
+    AttStatusCode,
     AttValue,
     ClearCacheRequest,
     ClearCacheResponse,
@@ -92,9 +93,9 @@ class GATTService(GATTServicer):
 
         try:
             await peer.write_value(request.handle, request.value, with_response=True)  # type: ignore
-            status = SUCCESS
+            status: AttStatusCode = SUCCESS
         except ProtocolError as e:
-            status = e.error_code
+            status = e.error_code  # type: ignore
 
         return WriteResponse(handle=request.handle, status=status)
 
@@ -213,10 +214,10 @@ class GATTService(GATTServicer):
 
         try:
             value = await peer.read_value(request.handle)  # type: ignore
-            status = SUCCESS
+            status: AttStatusCode = SUCCESS
         except ProtocolError as e:
             value = bytes()
-            status = e.error_code
+            status = e.error_code  # type: ignore
 
         return ReadCharacteristicResponse(value=AttValue(value=value), status=status)
 
@@ -248,7 +249,7 @@ class GATTService(GATTServicer):
 
         except ProtocolError as e:
             return ReadCharacteristicsFromUuidResponse(
-                characteristics_read=[ReadCharacteristicResponse(status=e.error_code)]
+                characteristics_read=[ReadCharacteristicResponse(status=e.error_code)]  # type: ignore
             )
 
     @utils.rpc
@@ -264,9 +265,9 @@ class GATTService(GATTServicer):
 
         try:
             value = await peer.read_value(request.handle)  # type: ignore
-            status = SUCCESS
+            status: AttStatusCode = SUCCESS
         except ProtocolError as e:
             value = bytes()
-            status = e.error_code
+            status = e.error_code  # type: ignore
 
         return ReadCharacteristicDescriptorResponse(value=AttValue(value=value), status=status)
