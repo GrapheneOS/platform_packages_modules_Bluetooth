@@ -36,13 +36,10 @@ import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
-import android.bluetooth.IBluetoothManager;
-import android.bluetooth.IBluetoothStateChangeCallback;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelUuid;
-import android.os.RemoteException;
 import android.util.Log;
 import android.util.Pair;
 
@@ -810,11 +807,16 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
         }
     }
 
-    private final IBluetoothStateChangeCallback mBluetoothStateChangeCallback =
-            new IBluetoothStateChangeCallback.Stub() {
-                public void onBluetoothStateChange(boolean up) {
-                    if (DBG) Log.d(TAG, "onBluetoothStateChange: up=" + up);
-                    if (up) {
+    private final AdapterService.BluetoothStateCallback mBluetoothStateChangeCallback =
+            new AdapterService.BluetoothStateCallback() {
+                public void onBluetoothStateChange(int prevState, int newState) {
+                    if (DBG) {
+                        Log.d(
+                                TAG,
+                                "onBluetoothStateChange: state="
+                                        + BluetoothAdapter.nameForState(newState));
+                    }
+                    if (newState == BluetoothAdapter.STATE_ON) {
                         restoreCccValuesForStoredDevices();
                     }
                 }
@@ -1102,14 +1104,8 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
         mAdapterService =  Objects.requireNonNull(AdapterService.getAdapterService(),
                 "AdapterService shouldn't be null when creating MediaControlCattService");
 
-        IBluetoothManager mgr = BluetoothAdapter.getDefaultAdapter().getBluetoothManager();
-        if (mgr != null) {
-            try {
-                mgr.registerStateChangeCallback(mBluetoothStateChangeCallback);
-            } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
-            }
-        }
+        mAdapterService.registerBluetoothStateCallback(
+                mContext.getMainExecutor(), mBluetoothStateChangeCallback);
 
         mEventLogger =
                 new BluetoothEventLogger(
