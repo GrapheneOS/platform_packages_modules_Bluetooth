@@ -76,7 +76,7 @@ class TestHciHal : public hal::HciHal {
 
   void Stop() {}
 
-  void ListDependencies(ModuleList*) const {}
+  void ListDependencies(ModuleList* /* list */) const {}
 
   std::string ToString() const override {
     return std::string("TestHciHal");
