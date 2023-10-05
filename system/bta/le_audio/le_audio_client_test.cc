@@ -4909,9 +4909,23 @@ TEST_F(UnicastTest, TwoEarbudsStreaming) {
   // Verify Data transfer still works
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920, 40);
 
+  auto group = streaming_groups.at(group_id);
+
   // Stop
   StopStreaming(group_id, true);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+
+  // Check if cache configuration is still present
+  ASSERT_TRUE(group
+                  ->GetCachedCodecConfigurationByDirection(
+                      types::LeAudioContextType::CONVERSATIONAL,
+                      le_audio::types::kLeAudioDirectionSink)
+                  .has_value());
+  ASSERT_TRUE(group
+                  ->GetCachedCodecConfigurationByDirection(
+                      types::LeAudioContextType::CONVERSATIONAL,
+                      le_audio::types::kLeAudioDirectionSource)
+                  .has_value());
 
   // Release
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Stop()).Times(1);
@@ -4922,6 +4936,18 @@ TEST_F(UnicastTest, TwoEarbudsStreaming) {
   SyncOnMainLoop();
 
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+
+  // Setting group inactive, shall not change cached configuration
+  ASSERT_TRUE(group
+                  ->GetCachedCodecConfigurationByDirection(
+                      types::LeAudioContextType::CONVERSATIONAL,
+                      le_audio::types::kLeAudioDirectionSink)
+                  .has_value());
+  ASSERT_TRUE(group
+                  ->GetCachedCodecConfigurationByDirection(
+                      types::LeAudioContextType::CONVERSATIONAL,
+                      le_audio::types::kLeAudioDirectionSource)
+                  .has_value());
 }
 
 TEST_F(UnicastTest, UpdateActiveAudioConfigForLocalSinkSource) {
@@ -5913,6 +5939,8 @@ TEST_F(UnicastTest, StartStreamToSupportedContextTypeThenMixUnavailable) {
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 
+  auto group = streaming_groups.at(group_id);
+
   // Expect two iso channel to be fed with data
   uint8_t cis_count_out = 2;
   uint8_t cis_count_in = 0;
@@ -5962,6 +5990,12 @@ TEST_F(UnicastTest, StartStreamToSupportedContextTypeThenMixUnavailable) {
 
   SyncOnMainLoop();
 
+  // Verify cache has been removed due to available context change
+  ASSERT_FALSE(group
+                   ->GetCachedCodecConfigurationByDirection(
+                       types::LeAudioContextType::MEDIA,
+                       le_audio::types::kLeAudioDirectionSink)
+                   .has_value());
   /* Start Media again */
   contexts.sink = types::AudioContexts(types::LeAudioContextType::MEDIA);
   EXPECT_CALL(
@@ -5972,6 +6006,12 @@ TEST_F(UnicastTest, StartStreamToSupportedContextTypeThenMixUnavailable) {
   StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
 
   SyncOnMainLoop();
+
+  ASSERT_TRUE(group
+                  ->GetCachedCodecConfigurationByDirection(
+                      types::LeAudioContextType::MEDIA,
+                      le_audio::types::kLeAudioDirectionSink)
+                  .has_value());
 
   Mock::VerifyAndClearExpectations(&mock_state_machine_);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
