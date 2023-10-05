@@ -113,7 +113,19 @@ std::string Dumpsys::impl::PrintAsJson(std::string* dumpsys_data) const {
   }
 
   std::string jsongen;
+  // GenerateText was renamed to GenText in 23.5.26 because the return behavior was changed.
+  // https://github.com/google/flatbuffers/commit/950a71ab893e96147c30dd91735af6db73f72ae0
+#if FLATBUFFERS_VERSION_MAJOR < 23 ||   \
+    (FLATBUFFERS_VERSION_MAJOR == 23 && \
+     (FLATBUFFERS_VERSION_MINOR < 5 ||  \
+      (FLATBUFFERS_VERSION_MINOR == 5 && FLATBUFFERS_VERSION_REVISION < 26)))
   flatbuffers::GenerateText(parser, dumpsys_data->data(), &jsongen);
+#else
+  const char* error = flatbuffers::GenText(parser, dumpsys_data->data(), &jsongen);
+  if (error != nullptr) {
+    LOG_WARN("%s", error);
+  }
+#endif
   return jsongen;
 }
 
