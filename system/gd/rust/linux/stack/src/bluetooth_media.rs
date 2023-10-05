@@ -198,8 +198,10 @@ pub trait IBluetoothTelephony {
     /// Sets the device battery level, 0 to 5.
     fn set_battery_level(&mut self, battery_level: i32) -> bool;
     /// Enables/disables phone operations.
-    /// The call state is fully reset whenever this is called.
     fn set_phone_ops_enabled(&mut self, enable: bool);
+    /// Enables/disables phone operations for mps qualification.
+    /// The call state is fully reset whenever this is called.
+    fn set_mps_qualification_enabled(&mut self, enable: bool);
     /// Acts like the AG received an incoming call.
     fn incoming_call(&mut self, number: String) -> bool;
     /// Acts like dialing a call from the AG.
@@ -292,6 +294,7 @@ pub struct BluetoothMedia {
     phone_state: PhoneState,
     call_list: Vec<CallInfo>,
     phone_ops_enabled: bool,
+    mps_qualification_enabled: bool,
     memory_dialing_number: Option<String>,
     last_dialing_number: Option<String>,
     uhid: HashMap<RawAddress, UHidHfp>,
@@ -340,6 +343,7 @@ impl BluetoothMedia {
             phone_state: PhoneState { num_active: 0, num_held: 0, state: CallState::Idle },
             call_list: vec![],
             phone_ops_enabled: false,
+            mps_qualification_enabled: false,
             memory_dialing_number: None,
             last_dialing_number: None,
             uhid: HashMap::new(),
@@ -636,7 +640,10 @@ impl BluetoothMedia {
 
                 // Per MPS v1.0, on receiving a pause key through AVRCP,
                 // central should pause the A2DP stream with an AVDTP suspend command.
-                if self.phone_ops_enabled && key == AVRCP_ID_PAUSE && value == AVRCP_STATE_PRESS {
+                if self.mps_qualification_enabled
+                    && key == AVRCP_ID_PAUSE
+                    && value == AVRCP_STATE_PRESS
+                {
                     self.suspend_audio_request_impl();
                 }
             }
@@ -683,7 +690,7 @@ impl BluetoothMedia {
 
                         // Connect SCO if phone operations are enabled and an active call exists.
                         // This is only used for Bluetooth HFP qualification.
-                        if self.phone_ops_enabled && self.phone_state.num_active > 0 {
+                        if self.mps_qualification_enabled && self.phone_state.num_active > 0 {
                             debug!("[{}]: Connect SCO due to active call.", DisplayAddress(&addr));
                             self.start_sco_call_impl(
                                 addr.to_string(),
@@ -728,7 +735,9 @@ impl BluetoothMedia {
 
                         // Change the phone state only when it's currently managed by media stack
                         // (I.e., phone operations are not enabled).
-                        if !self.phone_ops_enabled && self.phone_state.num_active != 1 {
+                        if !(self.phone_ops_enabled || self.mps_qualification_enabled)
+                            && self.phone_state.num_active != 1
+                        {
                             // This triggers a +CIEV command to set the call status for HFP devices.
                             // It is required for some devices to provide sound.
                             self.phone_state.num_active = 1;
@@ -755,7 +764,9 @@ impl BluetoothMedia {
 
                         // Change the phone state only when it's currently managed by media stack
                         // (I.e., phone operations are not enabled).
-                        if !self.phone_ops_enabled && self.phone_state.num_active != 0 {
+                        if !(self.phone_ops_enabled || self.mps_qualification_enabled)
+                            && self.phone_state.num_active != 0
+                        {
                             self.phone_state.num_active = 0;
                             self.call_list = vec![];
                             self.phone_state_change("".into());
@@ -1567,7 +1578,7 @@ impl BluetoothMedia {
     }
 
     fn try_a2dp_resume(&mut self) {
-        if !self.phone_ops_enabled {
+        if !self.mps_qualification_enabled {
             return;
         }
         // Make sure there is no any SCO connection and then resume the A2DP stream.
@@ -1580,7 +1591,7 @@ impl BluetoothMedia {
     }
 
     fn try_a2dp_suspend(&mut self) {
-        if !self.phone_ops_enabled {
+        if !self.mps_qualification_enabled {
             return;
         }
         // Suspend the A2DP stream if there is any.
@@ -1705,7 +1716,9 @@ impl BluetoothMedia {
     }
 
     fn answer_call_impl(&mut self) -> bool {
-        if !self.phone_ops_enabled || self.phone_state.state == CallState::Idle {
+        if !(self.phone_ops_enabled || self.mps_qualification_enabled)
+            || self.phone_state.state == CallState::Idle
+        {
             return false;
         }
         // There must be exactly one incoming/dialing call in the list.
@@ -1724,7 +1737,7 @@ impl BluetoothMedia {
     }
 
     fn hangup_call_impl(&mut self) -> bool {
-        if !self.phone_ops_enabled {
+        if !(self.phone_ops_enabled || self.mps_qualification_enabled) {
             return false;
         }
         match self.phone_state.state {
@@ -1750,7 +1763,7 @@ impl BluetoothMedia {
     }
 
     fn dialing_call_impl(&mut self, number: String) -> bool {
-        if !self.phone_ops_enabled
+        if !(self.phone_ops_enabled || self.mps_qualification_enabled)
             || self.phone_state.state != CallState::Idle
             || self.phone_state.num_active > 0
         {
@@ -1767,7 +1780,9 @@ impl BluetoothMedia {
     }
 
     fn dialing_to_alerting(&mut self) -> bool {
-        if !self.phone_ops_enabled || self.phone_state.state != CallState::Dialing {
+        if !(self.phone_ops_enabled || self.mps_qualification_enabled)
+            || self.phone_state.state != CallState::Dialing
+        {
             return false;
         }
         for c in self.call_list.iter_mut() {
@@ -1781,7 +1796,9 @@ impl BluetoothMedia {
     }
 
     fn release_held_impl(&mut self) -> bool {
-        if !self.phone_ops_enabled || self.phone_state.state != CallState::Idle {
+        if !(self.phone_ops_enabled || self.mps_qualification_enabled)
+            || self.phone_state.state != CallState::Idle
+        {
             return false;
         }
         self.call_list.retain(|x| x.state != CallState::Held);
@@ -1790,7 +1807,9 @@ impl BluetoothMedia {
     }
 
     fn release_active_accept_held_impl(&mut self) -> bool {
-        if !self.phone_ops_enabled || self.phone_state.state != CallState::Idle {
+        if !(self.phone_ops_enabled || self.mps_qualification_enabled)
+            || self.phone_state.state != CallState::Idle
+        {
             return false;
         }
         self.call_list.retain(|x| x.state != CallState::Active);
@@ -1808,7 +1827,9 @@ impl BluetoothMedia {
     }
 
     fn hold_active_accept_held_impl(&mut self) -> bool {
-        if !self.phone_ops_enabled || self.phone_state.state != CallState::Idle {
+        if !(self.phone_ops_enabled || self.mps_qualification_enabled)
+            || self.phone_state.state != CallState::Idle
+        {
             return false;
         }
 
@@ -1834,9 +1855,9 @@ impl BluetoothMedia {
 
     // Per MPS v1.0 (Multi-Profile Specification), disconnecting or failing to connect
     // a profile should not affect the others.
-    // Allow partial profiles connection during qualification (phone operations are enabled).
+    // Allow partial profiles connection during qualification (MPS qualification mode is enabled).
     fn is_complete_profiles_required(&self) -> bool {
-        !self.phone_ops_enabled
+        !self.mps_qualification_enabled
     }
 
     // Force the media enters the FullyConnected state and then triggers a retry.
@@ -2587,6 +2608,7 @@ impl IBluetoothTelephony for BluetoothMedia {
     }
 
     fn set_phone_ops_enabled(&mut self, enable: bool) {
+        info!("Bluetooth HID telephony mode enabled");
         if self.phone_ops_enabled == enable {
             return;
         }
@@ -2615,8 +2637,38 @@ impl IBluetoothTelephony for BluetoothMedia {
         self.phone_state_change("".into());
     }
 
+    fn set_mps_qualification_enabled(&mut self, enable: bool) {
+        info!("MPS qualification mode enabled");
+        if self.mps_qualification_enabled == enable {
+            return;
+        }
+
+        self.call_list = vec![];
+        self.phone_state.num_active = 0;
+        self.phone_state.num_held = 0;
+        self.phone_state.state = CallState::Idle;
+        self.memory_dialing_number = None;
+        self.last_dialing_number = None;
+        self.a2dp_has_interrupted_stream = false;
+
+        if !enable {
+            if self.hfp_states.values().any(|x| x == &BthfConnectionState::SlcConnected) {
+                self.call_list.push(CallInfo {
+                    index: 1,
+                    dir_incoming: false,
+                    state: CallState::Active,
+                    number: "".into(),
+                });
+                self.phone_state.num_active = 1;
+            }
+        }
+
+        self.mps_qualification_enabled = enable;
+        self.phone_state_change("".into());
+    }
+
     fn incoming_call(&mut self, number: String) -> bool {
-        if !self.phone_ops_enabled
+        if !(self.phone_ops_enabled || self.mps_qualification_enabled)
             || self.phone_state.state != CallState::Idle
             || self.phone_state.num_active > 0
         {
@@ -2681,7 +2733,7 @@ impl IBluetoothTelephony for BluetoothMedia {
     }
 
     fn set_memory_call(&mut self, number: Option<String>) -> bool {
-        if !self.phone_ops_enabled {
+        if !(self.phone_ops_enabled || self.mps_qualification_enabled) {
             return false;
         }
         self.memory_dialing_number = number;
@@ -2689,7 +2741,7 @@ impl IBluetoothTelephony for BluetoothMedia {
     }
 
     fn set_last_call(&mut self, number: Option<String>) -> bool {
-        if !self.phone_ops_enabled {
+        if !(self.phone_ops_enabled || self.mps_qualification_enabled) {
             return false;
         }
         self.last_dialing_number = number;

@@ -2302,6 +2302,10 @@ impl IBluetoothTelephony for BluetoothTelephonyDBus {
     fn set_phone_ops_enabled(&mut self, enable: bool) {
         dbus_generated!()
     }
+    #[dbus_method("SetMpsQualificationEnabled")]
+    fn set_mps_qualification_enabled(&mut self, enable: bool) {
+        dbus_generated!()
+    }
     #[dbus_method("IncomingCall")]
     fn incoming_call(&mut self, number: String) -> bool {
         dbus_generated!()
