@@ -61,6 +61,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
+import com.android.bluetooth.hap.HapClientService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.mcp.McpService;
 import com.android.bluetooth.tbs.TbsService;
@@ -118,6 +119,7 @@ public class LeAudioServiceTest {
     @Mock private McpService mMcpService;
     @Mock private TbsService mTbsService;
     @Mock private VolumeControlService mVolumeControlService;
+    @Mock private HapClientService mHapClientService;
     @Mock private CsipSetCoordinatorService mCsipSetCoordinatorService;
     @Spy private LeAudioObjectsFactory mObjectsFactory = LeAudioObjectsFactory.getInstance();
     @Spy private ServiceFactory mServiceFactory = new ServiceFactory();
@@ -187,8 +189,10 @@ public class LeAudioServiceTest {
         mService.mAudioManager = mAudioManager;
         mService.mMcpService = mMcpService;
         mService.mTbsService = mTbsService;
+        mService.mHapClientService = mHapClientService;
         mService.mServiceFactory = mServiceFactory;
         when(mServiceFactory.getVolumeControlService()).thenReturn(mVolumeControlService);
+        when(mServiceFactory.getHapClientService()).thenReturn(mHapClientService);
         when(mServiceFactory.getCsipSetCoordinatorService()).thenReturn(mCsipSetCoordinatorService);
 
         LeAudioStackEvent stackEvent =
@@ -927,6 +931,7 @@ public class LeAudioServiceTest {
                 anyInt(), anyInt());
         when(mVolumeControlService.setConnectionPolicy(any(), anyInt())).thenReturn(true);
         when(mCsipSetCoordinatorService.setConnectionPolicy(any(), anyInt())).thenReturn(true);
+        when(mHapClientService.setConnectionPolicy(any(), anyInt())).thenReturn(true);
         when(mDatabaseManager.getProfileConnectionPolicy(mSingleDevice, BluetoothProfile.LE_AUDIO))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
 
@@ -937,6 +942,8 @@ public class LeAudioServiceTest {
         verify(mVolumeControlService, times(1)).setConnectionPolicy(
                 mSingleDevice, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         verify(mCsipSetCoordinatorService, times(1)).setConnectionPolicy(
+                mSingleDevice, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        verify(mHapClientService, times(1)).setConnectionPolicy(
                 mSingleDevice, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
 
         // Verify the connection state broadcast, and that we are in Connecting state
@@ -967,6 +974,8 @@ public class LeAudioServiceTest {
         verify(mVolumeControlService, times(1)).setConnectionPolicy(
                 mSingleDevice, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
         verify(mCsipSetCoordinatorService, times(1)).setConnectionPolicy(
+                mSingleDevice, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+        verify(mHapClientService, times(1)).setConnectionPolicy(
                 mSingleDevice, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
 
         // Verify the connection state broadcast, and that we are in Connecting state
