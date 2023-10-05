@@ -7,10 +7,10 @@ use crate::bluetooth_gatt::{
     BluetoothGatt, BluetoothGattService, IBluetoothGatt, IBluetoothGattCallback,
 };
 use crate::callbacks::Callbacks;
-use crate::uuid;
 use crate::uuid::UuidHelper;
 use crate::Message;
 use crate::RPCProxy;
+use crate::{uuid, APIMessage, BluetoothAPI};
 use bt_topshim::btif::BtTransport;
 use bt_topshim::profiles::gatt::{GattStatus, LePhy};
 use log::debug;
@@ -31,6 +31,8 @@ pub struct BatteryService {
     battery_provider_id: u32,
     /// Sender for callback communication with the main thread.
     tx: Sender<Message>,
+    /// Sender for callback communication with the api message thread.
+    api_tx: Sender<APIMessage>,
     callbacks: Callbacks<dyn IBatteryServiceCallback + Send>,
     /// The GATT client ID needed for GATT calls.
     client_id: Option<i32>,
@@ -98,6 +100,7 @@ impl BatteryService {
         gatt: Arc<Mutex<Box<BluetoothGatt>>>,
         battery_provider_manager: Arc<Mutex<Box<BatteryProviderManager>>>,
         tx: Sender<Message>,
+        api_tx: Sender<APIMessage>,
     ) -> BatteryService {
         let tx = tx.clone();
         let callbacks = Callbacks::new(tx.clone(), Message::BatteryServiceCallbackDisconnected);
@@ -113,6 +116,7 @@ impl BatteryService {
             battery_provider_manager,
             battery_provider_id,
             tx,
+            api_tx,
             callbacks,
             client_id,
             battery_sets,
@@ -129,6 +133,12 @@ impl BatteryService {
             Box::new(GattCallback::new(self.tx.clone())),
             false,
         );
+
+        // TODO(b:300202503) make sure battery interface is exposed after initialized
+        let api_tx = self.api_tx.clone();
+        tokio::spawn(async move {
+            let _ = api_tx.send(APIMessage::IsReady(BluetoothAPI::Battery)).await;
+        });
     }
 
     /// Handles all callback messages in a central location to avoid deadlocks.

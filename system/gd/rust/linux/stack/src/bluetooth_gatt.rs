@@ -25,7 +25,7 @@ use crate::bluetooth_adv::{
 };
 use crate::callbacks::Callbacks;
 use crate::uuid::UuidHelper;
-use crate::{Message, RPCProxy, SuspendMode};
+use crate::{APIMessage, BluetoothAPI, Message, RPCProxy, SuspendMode};
 use log::{debug, warn};
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
@@ -36,6 +36,7 @@ use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::sync::{Arc, Mutex, MutexGuard};
 use tokio::sync::mpsc::Sender;
+use tokio::time;
 
 struct Client {
     id: Option<i32>,
@@ -1389,7 +1390,12 @@ impl BluetoothGatt {
         }
     }
 
-    pub fn init_profiles(&mut self, tx: Sender<Message>, adapter: Arc<Mutex<Box<Bluetooth>>>) {
+    pub fn init_profiles(
+        &mut self,
+        tx: Sender<Message>,
+        api_tx: Sender<APIMessage>,
+        adapter: Arc<Mutex<Box<Bluetooth>>>,
+    ) {
         self.gatt = Gatt::new(&self.intf.lock().unwrap()).map(|gatt| Arc::new(Mutex::new(gatt)));
         self.adapter = Some(adapter);
 
@@ -1464,8 +1470,14 @@ impl BluetoothGatt {
 
         let gatt = self.gatt.clone();
         let gatt_async = self.gatt_async.clone();
+        let api_tx_clone = api_tx.clone();
         tokio::spawn(async move {
             gatt_async.lock().await.gatt = gatt;
+            // TODO(b/247093293): Gatt topshim api is only usable some
+            // time after init. Investigate why this delay is needed
+            // and make it a blocking part before removing this.
+            time::sleep(time::Duration::from_millis(500)).await;
+            let _ = api_tx_clone.send(APIMessage::IsReady(BluetoothAPI::Gatt)).await;
         });
     }
 
