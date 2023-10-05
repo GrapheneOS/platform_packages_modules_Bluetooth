@@ -1988,6 +1988,15 @@ TEST(GeneratedPacketTest, testCreateOptional) {
   ASSERT_TRUE(grandchild_view.has_value());
 }
 
+TEST(GeneratedPacketTest, testStructWithShadowedNames) {
+  uint32_t four_bytes = 0x01020304;
+  StructType struct_type = StructType::TWO_BYTE;
+  auto ebs = AtLeastFourByteStruct(four_bytes, struct_type);
+
+  ASSERT_EQ(ebs.four_bytes_, four_bytes);
+  ASSERT_EQ(ebs.struct_type_, struct_type);
+}
+
 }  // namespace parser
 }  // namespace packet
 }  // namespace bluetooth
