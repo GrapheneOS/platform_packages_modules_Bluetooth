@@ -262,12 +262,16 @@ void LeAudioDeviceGroup::SetCigState(le_audio::types::CigState state) {
   cig_state_ = state;
 }
 
-bool LeAudioDeviceGroup::Activate(LeAudioContextType context_type) {
+bool LeAudioDeviceGroup::Activate(
+    LeAudioContextType context_type,
+    const BidirectionalPair<AudioContexts>& metadata_context_types,
+    BidirectionalPair<std::vector<uint8_t>> ccid_lists) {
   bool is_activate = false;
   for (auto leAudioDevice : leAudioDevices_) {
     if (leAudioDevice.expired()) continue;
 
-    bool activated = leAudioDevice.lock()->ActivateConfiguredAses(context_type);
+    bool activated = leAudioDevice.lock()->ActivateConfiguredAses(
+        context_type, metadata_context_types, ccid_lists);
     LOG_INFO("Device %s is %s",
              ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice.lock().get()->address_),
              activated ? "activated" : " not activated");
@@ -1656,18 +1660,7 @@ bool LeAudioDevice::ConfigureAses(
       ase->retrans_nb = ent.qos.retransmission_number;
       ase->max_transport_latency = ent.qos.max_transport_latency;
 
-      /* Filter multidirectional audio context for each ase direction */
-      auto directional_audio_context =
-          metadata_context_types.get(ase->direction) &
-          GetAvailableContexts(ase->direction);
-      if (directional_audio_context.any()) {
-        ase->metadata = GetMetadata(directional_audio_context,
-                                    ccid_lists.get(ase->direction));
-      } else {
-        ase->metadata =
-            GetMetadata(AudioContexts(LeAudioContextType::UNSPECIFIED),
-                        std::vector<uint8_t>());
-      }
+      SetMetadataToAse(ase, metadata_context_types, ccid_lists);
     }
 
     LOG_DEBUG(
@@ -2921,7 +2914,26 @@ void LeAudioDevice::SetAvailableContexts(
   avail_contexts_.source = contexts.source;
 }
 
-bool LeAudioDevice::ActivateConfiguredAses(LeAudioContextType context_type) {
+void LeAudioDevice::SetMetadataToAse(
+    struct types::ase* ase,
+    const BidirectionalPair<AudioContexts>& metadata_context_types,
+    BidirectionalPair<std::vector<uint8_t>> ccid_lists) {
+  /* Filter multidirectional audio context for each ase direction */
+  auto directional_audio_context = metadata_context_types.get(ase->direction) &
+                                   GetAvailableContexts(ase->direction);
+  if (directional_audio_context.any()) {
+    ase->metadata =
+        GetMetadata(directional_audio_context, ccid_lists.get(ase->direction));
+  } else {
+    ase->metadata = GetMetadata(AudioContexts(LeAudioContextType::UNSPECIFIED),
+                                std::vector<uint8_t>());
+  }
+}
+
+bool LeAudioDevice::ActivateConfiguredAses(
+    LeAudioContextType context_type,
+    const BidirectionalPair<AudioContexts>& metadata_context_types,
+    BidirectionalPair<std::vector<uint8_t>> ccid_lists) {
   if (conn_id_ == GATT_INVALID_CONN_ID) {
     LOG_WARN(" Device %s is not connected ",
              ADDRESS_TO_LOGGABLE_CSTR(address_));
@@ -2939,6 +2951,8 @@ bool LeAudioDevice::ActivateConfiguredAses(LeAudioContextType context_type) {
           conn_id_, ase.id, ase.cis_id, ase.cis_conn_hdl);
       ase.active = true;
       ret = true;
+      /* update metadata */
+      SetMetadataToAse(&ase, metadata_context_types, ccid_lists);
     }
   }
 
