@@ -219,6 +219,7 @@ class BluetoothManagerService {
 
     private final BluetoothAirplaneModeListener mBluetoothAirplaneModeListener;
 
+    // TODO(b/303552318): remove BluetoothNotificationManager once airplane_ressources_in_app ship
     private BluetoothNotificationManager mBluetoothNotificationManager;
 
     // TODO(b/289584302): remove BluetoothSatelliteModeListener once use_new_satellite_mode ship
@@ -433,6 +434,15 @@ class BluetoothManagerService {
         } else {
             r.run();
         }
+    }
+
+    /** Send Intent to the Notification Service in the Bluetooth app */
+    Unit sendAirplaneModeNotification(String notificationState) {
+        Intent intent = new Intent("android.bluetooth.airplane.action.SEND_NOTIFICATION");
+        intent.setComponent(resolveSystemService(intent));
+        intent.putExtra("android.bluetooth.airplane.extra.NOTIFICATION_STATE", notificationState);
+        mContext.startService(intent);
+        return Unit.INSTANCE;
     }
 
     private static final Object ON_AIRPLANE_MODE_CHANGED_TOKEN = new Object();
@@ -667,7 +677,9 @@ class BluetoothManagerService {
         // Observe BLE scan only mode settings change.
         registerForBleScanModeChange();
 
-        mBluetoothNotificationManager = new BluetoothNotificationManager(mContext);
+        if (!mFeatureFlags.airplaneRessourcesInApp()) {
+            mBluetoothNotificationManager = new BluetoothNotificationManager(mContext);
+        }
 
         // Disable ASHA if BLE is not supported, overriding any system property
         if (!isBleSupported(mContext)) {
@@ -731,7 +743,7 @@ class BluetoothManagerService {
 
         mBluetoothAirplaneModeListener =
                 new BluetoothAirplaneModeListener(
-                        this, mLooper, mContext, mBluetoothNotificationManager);
+                        this, mLooper, mContext, mBluetoothNotificationManager, mFeatureFlags);
 
         // Caching is necessary to prevent caller requiring the READ_DEVICE_CONFIG permission
         mUseNewSatelliteMode = mFeatureFlags.useNewSatelliteMode();
@@ -2262,7 +2274,9 @@ class BluetoothManagerService {
                         Log.d(TAG, "MESSAGE_USER_SWITCHED");
                     }
                     mHandler.removeMessages(MESSAGE_USER_SWITCHED);
-                    mBluetoothNotificationManager.createNotificationChannels();
+                    if (!mFeatureFlags.airplaneRessourcesInApp()) {
+                        mBluetoothNotificationManager.createNotificationChannels();
+                    }
                     UserHandle userTo = (UserHandle) msg.obj;
 
                     /* disable and enable BT when detect a user switch */

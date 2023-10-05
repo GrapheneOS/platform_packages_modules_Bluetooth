@@ -206,6 +206,7 @@ android_app {
     srcs: [
         ":statslog-bluetooth-java-gen",
         ":statslog-bt-restricted-java-gen",
+        ":system-messages-proto-src",
         "proto/keystore.proto",
         "src/**/*.java",
     ],
