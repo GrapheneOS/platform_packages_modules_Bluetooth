@@ -21,7 +21,6 @@ python_test_host {
     main: "main.py",
     srcs: [
         "*.py",
-        ":avatar-cases",
     ],
     libs: [
         "bumble_services_experimental-python",

@@ -249,7 +249,7 @@ class AshaService(AshaServicer):
                         i * AshaService.DECODE_FRAME_LENGTH : i * AshaService.DECODE_FRAME_LENGTH
                         + AshaService.DECODE_FRAME_LENGTH
                     ]
-                    decoded_data = decoder.decode_frame(input_data)
+                    decoded_data = decoder.decode_frame(input_data)  # type: ignore
                     output_bytes.extend(decoded_data)
 
                 yield CaptureAudioResponse(data=bytes(output_bytes))
