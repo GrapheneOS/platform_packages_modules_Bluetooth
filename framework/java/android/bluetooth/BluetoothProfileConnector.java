@@ -16,26 +16,19 @@
 
 package android.bluetooth;
 
-import android.annotation.NonNull;
-import android.annotation.Nullable;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
-import android.os.UserHandle;
 import android.util.CloseGuard;
 import android.util.Log;
 
-import java.util.List;
 /**
  * Connector for Bluetooth profile proxies to bind manager service and
  * profile services
@@ -53,9 +46,6 @@ public abstract class BluetoothProfileConnector<T> {
     private final String mServiceName;
     private volatile T mService;
 
-    // -3 match with UserHandle.USER_CURRENT_OR_SELF
-    private static final UserHandle USER_HANDLE_CURRENT_OR_SELF = UserHandle.of(-3);
-
     private static final int MESSAGE_SERVICE_CONNECTED = 100;
     private static final int MESSAGE_SERVICE_DISCONNECTED = 101;
 
@@ -69,30 +59,6 @@ public abstract class BluetoothProfileConnector<T> {
             }
         }
     };
-
-    private @Nullable ComponentName resolveSystemService(@NonNull Intent intent,
-            @NonNull PackageManager pm) {
-        List<ResolveInfo> results = pm.queryIntentServices(intent,
-                PackageManager.ResolveInfoFlags.of(0));
-        if (results == null) {
-            return null;
-        }
-        ComponentName comp = null;
-        for (int i = 0; i < results.size(); i++) {
-            ResolveInfo ri = results.get(i);
-            if ((ri.serviceInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
-                continue;
-            }
-            ComponentName foundComp = new ComponentName(ri.serviceInfo.applicationInfo.packageName,
-                    ri.serviceInfo.name);
-            if (comp != null) {
-                throw new IllegalStateException("Multiple system services handle " + intent
-                        + ": " + comp + ", " + foundComp);
-            }
-            comp = foundComp;
-        }
-        return comp;
-    }
 
     private final IBluetoothProfileServiceConnection mConnection =
             new IBluetoothProfileServiceConnection.Stub() {
