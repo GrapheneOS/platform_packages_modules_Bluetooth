@@ -585,14 +585,18 @@ class LinkLayerController {
 
   ErrorCode LeApcfEnable(bool apcf_enable);
 
-  ErrorCode LeApcfSetFilteringParameters(
-      bluetooth::hci::ApcfAction apcf_action, uint8_t apcf_filter_index,
-      uint16_t apcf_feature_selection, uint16_t apcf_list_logic_type,
-      uint8_t apcf_filter_logic_type, uint8_t rssi_high_thresh,
-      bluetooth::hci::DeliveryMode delivery_mode, uint16_t onfound_timeout,
-      uint8_t onfound_timeout_cnt, uint8_t rssi_low_thresh,
-      uint16_t onlost_timeout, uint16_t num_of_tracking_entries,
-      uint8_t* apcf_available_spaces);
+  ErrorCode LeApcfAddFilteringParameters(
+      uint8_t apcf_filter_index, uint16_t apcf_feature_selection,
+      uint16_t apcf_list_logic_type, uint8_t apcf_filter_logic_type,
+      uint8_t rssi_high_thresh, bluetooth::hci::DeliveryMode delivery_mode,
+      uint16_t onfound_timeout, uint8_t onfound_timeout_cnt,
+      uint8_t rssi_low_thresh, uint16_t onlost_timeout,
+      uint16_t num_of_tracking_entries, uint8_t* apcf_available_spaces);
+
+  ErrorCode LeApcfDeleteFilteringParameters(uint8_t apcf_filter_index,
+                                            uint8_t* apcf_available_spaces);
+
+  ErrorCode LeApcfClearFilteringParameters(uint8_t* apcf_available_spaces);
 
   ErrorCode LeApcfBroadcasterAddress(
       bluetooth::hci::ApcfAction apcf_action, uint8_t apcf_filter_index,

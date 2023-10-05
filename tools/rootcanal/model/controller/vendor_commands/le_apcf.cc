@@ -74,6 +74,17 @@ void ApcfScanner::ClearFilterIndex(uint8_t apcf_filter_index) {
       std::end(ad_type_filters));
 }
 
+void ApcfScanner::Clear() {
+  filters.clear();
+  broadcaster_address_filters.clear();
+  service_uuid_filters.clear();
+  service_solicitation_uuid_filters.clear();
+  local_name_filters.clear();
+  manufacturer_data_filters.clear();
+  service_data_filters.clear();
+  ad_type_filters.clear();
+}
+
 template <typename T>
 ErrorCode ApcfScanner::UpdateFilterList(std::vector<T>& filter_list,
                                         size_t max_filter_list_size,
@@ -144,19 +155,16 @@ ErrorCode LinkLayerController::LeApcfEnable(bool apcf_enable) {
   return ErrorCode::SUCCESS;
 }
 
-ErrorCode LinkLayerController::LeApcfSetFilteringParameters(
-    ApcfAction apcf_action, uint8_t apcf_filter_index,
-    uint16_t apcf_feature_selection, uint16_t apcf_list_logic_type,
-    uint8_t apcf_filter_logic_type, uint8_t rssi_high_thresh,
-    bluetooth::hci::DeliveryMode delivery_mode, uint16_t onfound_timeout,
-    uint8_t onfound_timeout_cnt, uint8_t rssi_low_thresh,
-    uint16_t onlost_timeout, uint16_t num_of_tracking_entries,
-    uint8_t* apcf_available_spaces) {
+ErrorCode LinkLayerController::LeApcfAddFilteringParameters(
+    uint8_t apcf_filter_index, uint16_t apcf_feature_selection,
+    uint16_t apcf_list_logic_type, uint8_t apcf_filter_logic_type,
+    uint8_t rssi_high_thresh, bluetooth::hci::DeliveryMode delivery_mode,
+    uint16_t onfound_timeout, uint8_t onfound_timeout_cnt,
+    uint8_t rssi_low_thresh, uint16_t onlost_timeout,
+    uint16_t num_of_tracking_entries, uint8_t* apcf_available_spaces) {
   *apcf_available_spaces =
       properties_.le_apcf_filter_list_size - apcf_scanner_.filters.size();
 
-  switch (apcf_action) {
-    case ApcfAction::ADD: {
       if (apcf_scanner_.HasFilterIndex(apcf_filter_index)) {
         INFO(id_, "apcf filter index {} already configured", apcf_filter_index);
         return ErrorCode::INVALID_HCI_COMMAND_PARAMETERS;
@@ -183,9 +191,13 @@ ErrorCode LinkLayerController::LeApcfSetFilteringParameters(
 
       *apcf_available_spaces -= 1;
       return ErrorCode::SUCCESS;
-    }
+}
 
-    case ApcfAction::DELETE: {
+ErrorCode LinkLayerController::LeApcfDeleteFilteringParameters(
+    uint8_t apcf_filter_index, uint8_t* apcf_available_spaces) {
+      *apcf_available_spaces =
+          properties_.le_apcf_filter_list_size - apcf_scanner_.filters.size();
+
       if (!apcf_scanner_.HasFilterIndex(apcf_filter_index)) {
         INFO(id_, "apcf filter index {} is not configured", apcf_filter_index);
         return ErrorCode::UNKNOWN_CONNECTION;
@@ -201,24 +213,13 @@ ErrorCode LinkLayerController::LeApcfSetFilteringParameters(
       apcf_scanner_.ClearFilterIndex(apcf_filter_index);
       *apcf_available_spaces += 1;
       return ErrorCode::SUCCESS;
-    }
+}
 
-    case ApcfAction::CLEAR: {
-      if (!apcf_scanner_.HasFilterIndex(apcf_filter_index)) {
-        INFO(id_, "apcf filter index {} is not configured", apcf_filter_index);
-        return ErrorCode::UNKNOWN_CONNECTION;
-      }
-
-      apcf_scanner_.ClearFilterIndex(apcf_filter_index);
+ErrorCode LinkLayerController::LeApcfClearFilteringParameters(
+    uint8_t* apcf_available_spaces) {
+      apcf_scanner_.Clear();
+      *apcf_available_spaces = properties_.le_apcf_filter_list_size;
       return ErrorCode::SUCCESS;
-    }
-
-    default:
-      INFO(id_, "unknown apcf action {}", apcf_action);
-      break;
-  }
-
-  return ErrorCode::INVALID_HCI_COMMAND_PARAMETERS;
 }
 
 ErrorCode LinkLayerController::LeApcfBroadcasterAddress(
