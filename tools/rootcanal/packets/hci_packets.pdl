@@ -5865,6 +5865,10 @@ enum ApcfFeatureSelection : 8 {
 
 packet LeApcfSetFilteringParameters : LeApcf (apcf_opcode = SET_FILTERING_PARAMETERS) {
   apcf_action : ApcfAction,
+  _payload_,
+}
+
+packet LeApcfAddFilteringParameters : LeApcfSetFilteringParameters (apcf_action = ADD) {
   apcf_filter_index : 8,
   apcf_feature_selection : 16,
   apcf_list_logic_type : 16,
@@ -5876,6 +5880,13 @@ packet LeApcfSetFilteringParameters : LeApcf (apcf_opcode = SET_FILTERING_PARAME
   rssi_low_thresh : 8,
   onlost_timeout : 16,
   num_of_tracking_entries : 16,
+}
+
+packet LeApcfDeleteFilteringParameters : LeApcfSetFilteringParameters (apcf_action = DELETE) {
+  apcf_filter_index : 8,
+}
+
+packet LeApcfClearFilteringParameters : LeApcfSetFilteringParameters (apcf_action = CLEAR) {
 }
 
 packet LeApcfSetFilteringParametersComplete : LeApcfComplete (apcf_opcode = SET_FILTERING_PARAMETERS) {
@@ -5891,9 +5902,23 @@ enum ApcfApplicationAddressType : 8 {
 
 packet LeApcfBroadcasterAddress : LeApcf (apcf_opcode = BROADCASTER_ADDRESS) {
   apcf_action : ApcfAction,
+  _payload_,
+}
+
+packet LeApcfAddBroadcasterAddress : LeApcfBroadcasterAddress (apcf_action = ADD) {
   apcf_filter_index : 8,
   apcf_broadcaster_address : Address,
   apcf_application_address_type : ApcfApplicationAddressType,
+}
+
+packet LeApcfDeleteBroadcasterAddress : LeApcfBroadcasterAddress (apcf_action = DELETE) {
+  apcf_filter_index : 8,
+  apcf_broadcaster_address : Address,
+  apcf_application_address_type : ApcfApplicationAddressType,
+}
+
+packet LeApcfClearBroadcasterAddress : LeApcfBroadcasterAddress (apcf_action = CLEAR) {
+  apcf_filter_index : 8,
 }
 
 packet LeApcfBroadcasterAddressComplete : LeApcfComplete (apcf_opcode = BROADCASTER_ADDRESS) {
