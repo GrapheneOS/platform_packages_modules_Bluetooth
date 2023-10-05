@@ -34,6 +34,16 @@ namespace {
 const char kName[] = "Hello";
 }
 
+namespace bluetooth {
+namespace legacy {
+namespace testing {
+
+void bta_dm_sdp_result(tBTA_DM_MSG* p_data);
+
+}  // namespace testing
+}  // namespace legacy
+}  // namespace bluetooth
+
 class BtaSdpTest : public testing::Test {
  protected:
   void SetUp() override {
@@ -108,5 +118,5 @@ TEST_F(BtaSdpRegisteredTest, bta_dm_sdp_result_SDP_SUCCESS) {
       [](const RawAddress& bd_addr) -> const char* { return kName; };
   btm_client_interface.security.BTM_SecDeleteRmtNameNotifyCallback =
       [](tBTM_RMT_NAME_CALLBACK*) -> bool { return true; };
-  bta_dm_sdp_result(&msg);
+  bluetooth::legacy::testing::bta_dm_sdp_result(&msg);
 }
