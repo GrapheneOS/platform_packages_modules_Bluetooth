@@ -7,10 +7,10 @@ use tokio::sync::mpsc::{channel, Receiver, Sender};
 
 use btstack::{
     battery_manager::BatteryManager, battery_provider_manager::BatteryProviderManager,
-    bluetooth::Bluetooth, bluetooth_admin::BluetoothAdmin, bluetooth_gatt::BluetoothGatt,
-    bluetooth_logging::BluetoothLogging, bluetooth_media::BluetoothMedia,
-    bluetooth_qa::BluetoothQA, socket_manager::BluetoothSocketManager, suspend::Suspend,
-    APIMessage, BluetoothAPI,
+    battery_service::BatteryService, bluetooth::Bluetooth, bluetooth_admin::BluetoothAdmin,
+    bluetooth_gatt::BluetoothGatt, bluetooth_logging::BluetoothLogging,
+    bluetooth_media::BluetoothMedia, bluetooth_qa::BluetoothQA,
+    socket_manager::BluetoothSocketManager, suspend::Suspend, APIMessage, BluetoothAPI,
 };
 
 use crate::iface_battery_manager;
@@ -43,6 +43,7 @@ impl InterfaceManager {
         bluetooth: Arc<Mutex<Box<Bluetooth>>>,
         bluetooth_admin: Arc<Mutex<Box<BluetoothAdmin>>>,
         bluetooth_gatt: Arc<Mutex<Box<BluetoothGatt>>>,
+        battery_service: Arc<Mutex<Box<BatteryService>>>,
         battery_manager: Arc<Mutex<Box<BatteryManager>>>,
         battery_provider_manager: Arc<Mutex<Box<BatteryProviderManager>>>,
         bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
@@ -197,6 +198,13 @@ impl InterfaceManager {
                             &[gatt_iface],
                             bluetooth_gatt.clone(),
                         );
+
+                        // Battery service is on top of Gatt. Only initialize it after
+                        // GATT is ready.
+                        let bs = battery_service.clone();
+                        tokio::spawn(async move {
+                            bs.lock().unwrap().init();
+                        });
                     }
                     BluetoothAPI::Media => {
                         cr.lock().unwrap().insert(

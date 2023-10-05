@@ -1347,10 +1347,6 @@ impl BtifBluetoothCallbacks for Bluetooth {
                     let _ = api_txl.send(APIMessage::IsReady(BluetoothAPI::Adapter)).await;
                     // TODO(b:300202052) make sure media interface is exposed after initialized
                     let _ = api_txl.send(APIMessage::IsReady(BluetoothAPI::Media)).await;
-                    // TODO(b:300202055) make sure GATT interface is exposed after initialized
-                    let _ = api_txl.send(APIMessage::IsReady(BluetoothAPI::Gatt)).await;
-                    // TODO(b:300202503) make sure battery interface is exposed after initialized
-                    let _ = api_txl.send(APIMessage::IsReady(BluetoothAPI::Battery)).await;
                 });
             }
         }
