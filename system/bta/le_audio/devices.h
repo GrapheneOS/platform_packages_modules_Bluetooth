@@ -216,7 +216,16 @@ class LeAudioDevice {
       types::BidirectionalPair<types::AudioContexts> cont_val);
 
   void DeactivateAllAses(void);
-  bool ActivateConfiguredAses(types::LeAudioContextType context_type);
+  bool ActivateConfiguredAses(
+      types::LeAudioContextType context_type,
+      const types::BidirectionalPair<types::AudioContexts>&
+          metadata_context_types,
+      types::BidirectionalPair<std::vector<uint8_t>> ccid_lists);
+  void SetMetadataToAse(
+      struct types::ase* ase,
+      const types::BidirectionalPair<types::AudioContexts>&
+          metadata_context_types,
+      types::BidirectionalPair<std::vector<uint8_t>> ccid_lists);
 
   void PrintDebugState(void);
   void DumpPacsDebugState(std::stringstream& stream);
@@ -329,7 +338,10 @@ class LeAudioDeviceGroup {
   int Size(void) const;
   int NumOfConnected(types::LeAudioContextType context_type =
                          types::LeAudioContextType::RFU) const;
-  bool Activate(types::LeAudioContextType context_type);
+  bool Activate(types::LeAudioContextType context_type,
+                const types::BidirectionalPair<types::AudioContexts>&
+                    metadata_context_types,
+                types::BidirectionalPair<std::vector<uint8_t>> ccid_lists);
   void Deactivate(void);
   types::CigState GetCigState(void) const;
   void SetCigState(le_audio::types::CigState state);
