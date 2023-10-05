@@ -3307,10 +3307,11 @@ void btm_ble_read_remote_features_complete(uint8_t* p, uint8_t length) {
   }
 
   btsnd_hcic_rmt_ver_req(handle);
+
   return;
 
 err_out:
-  LOG_ERROR("bogus event packet, too short");
+  LOG_ERROR("Bogus event packet, too short");
 }
 
 /*******************************************************************************

@@ -3048,16 +3048,20 @@ public final class BluetoothAdapter {
         return STATE_DISCONNECTED;
     }
 
-    private static final IpcDataCache.QueryHandler<Pair<IBluetooth, Integer>, Integer>
+    private static final IpcDataCache
+            .QueryHandler<Pair<IBluetooth, Pair<AttributionSource, Integer>>, Integer>
             sBluetoothProfileQuery = new IpcDataCache.QueryHandler<>() {
                 @RequiresNoPermission
                 @Override
-                public Integer apply(Pair<IBluetooth, Integer> pairQuery) {
+                public Integer apply(Pair<IBluetooth, Pair<AttributionSource, Integer>> pairQuery) {
+                    IBluetooth service = pairQuery.first;
+                    AttributionSource source = pairQuery.second.first;
+                    Integer profile = pairQuery.second.second;
                     final int defaultValue = STATE_DISCONNECTED;
                     try {
                         final SynchronousResultReceiver<Integer> recv =
                                 SynchronousResultReceiver.get();
-                        pairQuery.first.getProfileConnectionState(pairQuery.second, recv);
+                        service.getProfileConnectionState(profile, source, recv);
                         return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
                     } catch (RemoteException | TimeoutException e) {
                         throw new RuntimeException(e);
@@ -3067,7 +3071,7 @@ public final class BluetoothAdapter {
 
     private static final String PROFILE_API = "BluetoothAdapter_getProfileConnectionState";
 
-    private static final IpcDataCache<Pair<IBluetooth, Integer>, Integer>
+    private static final IpcDataCache<Pair<IBluetooth, Pair<AttributionSource, Integer>>, Integer>
             sGetProfileConnectionStateCache = new BluetoothCache<>(PROFILE_API,
                     sBluetoothProfileQuery);
 
@@ -3097,7 +3101,6 @@ public final class BluetoothAdapter {
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    @SuppressLint("AndroidFrameworkRequiresPermission")
     public @ConnectionState int getProfileConnectionState(int profile) {
         if (getState() != STATE_ON) {
             return STATE_DISCONNECTED;
@@ -3105,7 +3108,8 @@ public final class BluetoothAdapter {
         mServiceLock.readLock().lock();
         try {
             if (mService != null) {
-                return sGetProfileConnectionStateCache.query(new Pair<>(mService, profile));
+                return sGetProfileConnectionStateCache.query(
+                        new Pair<>(mService, new Pair<>(mAttributionSource, profile)));
             }
         } catch (RuntimeException e) {
             if (!(e.getCause() instanceof TimeoutException)

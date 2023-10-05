@@ -16,6 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" msgid="2326164424236203271">"蓝牙"</string>
     <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"使用下载管理器。"</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"允许应用访问蓝牙共享 (BluetoothShare) 管理器并将其用于传输文件。"</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"将蓝牙设备加入许可名单。"</string>
@@ -119,11 +120,11 @@
     <string name="bluetooth_a2dp_sink_queue_name" msgid="7521243473328258997">"闻曲知音"</string>
     <string name="bluetooth_map_settings_save" msgid="8309113239113961550">"保存"</string>
     <string name="bluetooth_map_settings_cancel" msgid="3374494364625947793">"取消"</string>
-    <string name="bluetooth_map_settings_intro" msgid="4748160773998753325">"选择您要通过蓝牙共享的帐号。连接时，您仍必须接受所有帐号访问请求。"</string>
+    <string name="bluetooth_map_settings_intro" msgid="4748160773998753325">"选择您要通过蓝牙共享的账号。连接时，您仍必须接受所有账号访问请求。"</string>
     <string name="bluetooth_map_settings_count" msgid="183013143617807702">"剩余空档数："</string>
     <string name="bluetooth_map_settings_app_icon" msgid="3501432663809664982">"应用图标"</string>
     <string name="bluetooth_map_settings_title" msgid="4226030082708590023">"蓝牙消息共享设置"</string>
-    <string name="bluetooth_map_settings_no_account_slots_left" msgid="755024228476065757">"无法选择帐号，目前没有任何空档"</string>
+    <string name="bluetooth_map_settings_no_account_slots_left" msgid="755024228476065757">"无法选择账号，目前没有任何空档"</string>
     <string name="bluetooth_connected" msgid="5687474377090799447">"蓝牙音频已连接"</string>
     <string name="bluetooth_disconnected" msgid="6841396291728343534">"蓝牙音频已断开连接"</string>
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"蓝牙音频"</string>

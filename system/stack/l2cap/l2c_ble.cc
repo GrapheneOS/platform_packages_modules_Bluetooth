@@ -501,6 +501,13 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
   switch (cmd_code) {
     case L2CAP_CMD_REJECT: {
       uint16_t reason;
+
+      if (p + 2 > p_pkt_end) {
+        LOG(ERROR) << "invalid L2CAP_CMD_REJECT packet,"
+                   << " not containing enough data for `reason` field";
+        return;
+      }
+
       STREAM_TO_UINT16(reason, p);
 
       if (reason == L2CAP_CMD_REJ_NOT_UNDERSTOOD &&

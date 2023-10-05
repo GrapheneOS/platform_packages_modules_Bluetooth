@@ -36,7 +36,7 @@
 #include "device/include/device_iot_config.h"
 #include "include/hardware/bt_av.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
-#include "osi/include/allocator.h"
+#include "osi/include/allocator.h"  // UNUSED_ATTR
 #include "stack/include/a2dp_codec_api.h"
 #include "stack/include/a2dp_error_codes.h"
 #include "stack/include/avdt_api.h"
@@ -1387,7 +1387,6 @@ BT_HDR* BtaAvCo::GetNextSourceDataPacket(const uint8_t* p_codec_info,
     APPL_TRACE_ERROR("No space for timestamp in packet, dropped");
     return nullptr;
   }
-
   /*
    * Retrieve the timestamp information from the media packet,
    * and set up the packet header.
@@ -1405,8 +1404,10 @@ BT_HDR* BtaAvCo::GetNextSourceDataPacket(const uint8_t* p_codec_info,
     return nullptr;
   }
 
+  // if offset is 0, the decremental operation may result in
+  // underflow and OOB access
   if (ContentProtectEnabled() && (active_peer_ != nullptr) &&
-      active_peer_->ContentProtectActive()) {
+      active_peer_->ContentProtectActive() && p_buf->offset > 0) {
     p_buf->len++;
     p_buf->offset--;
     uint8_t* p = (uint8_t*)(p_buf + 1) + p_buf->offset;

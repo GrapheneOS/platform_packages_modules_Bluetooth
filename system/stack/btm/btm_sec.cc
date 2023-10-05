@@ -3124,7 +3124,7 @@ void btm_read_local_oob_complete(uint8_t* p, uint16_t evt_len) {
   if (status == HCI_SUCCESS) {
     evt_data.status = BTM_SUCCESS;
 
-    if (evt_len < 1 + 32) {
+    if (evt_len < 32 + 1) {
       goto err_out;
     }
 
@@ -3142,7 +3142,7 @@ void btm_read_local_oob_complete(uint8_t* p, uint16_t evt_len) {
   return;
 
 err_out:
-  BTM_TRACE_ERROR("%s malformatted event packet, too short", __func__);
+  BTM_TRACE_ERROR("%s: bogus event packet, too short", __func__);
 }
 
 /*******************************************************************************

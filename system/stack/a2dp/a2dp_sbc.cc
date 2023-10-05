@@ -695,7 +695,7 @@ bool A2DP_BuildCodecHeaderSbc(UNUSED_ATTR const uint8_t* p_codec_info,
     return false;
   }
 
-  // there is an 4-byte timestamp right following p_buf
+  // there is a 4-byte timestamp right following p_buf
   if (p_buf->offset < 4 + A2DP_SBC_MPL_HDR_LEN) {
     return false;
   }
