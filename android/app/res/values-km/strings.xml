@@ -16,6 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" msgid="2326164424236203271">"ប៊្លូធូស"</string>
     <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"ចូល​ដំណើរ​ការ​កម្មវិធី​គ្រប់គ្រង​ការ​ទាញ​យក​។"</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"អនុញ្ញាត​ឲ្យ​កម្មវិធី​ត្រូវ​​ចូល​ដំណើរការ​កម្មវិធី​គ្រប់គ្រង BluetoothShare ហើយ​​ប្រើ​វា​ដើម្បី​ផ្ទេរ​ឯកសារ។"</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"សិទ្ធិ​ចូលប្រើ​ឧបករណ៍​ប៊្លូធូស​ក្នុងបញ្ជី​អនុញ្ញាត​។"</string>

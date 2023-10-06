@@ -924,7 +924,7 @@ impl BluetoothSocketManager {
                                                         Ok(None)
                                                     }
                                                 }
-                                                Err(_e) => Ok(None),
+                                                Err(e) => Ok(None),
                                             };
                                         }
 

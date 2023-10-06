@@ -16,6 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" msgid="2326164424236203271">"블루투스"</string>
     <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"다운로드 관리자에 액세스합니다."</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"앱에서 BluetoothShare 관리자에 액세스하고 이를 사용하여 파일을 전송할 수 있도록 합니다."</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"블루투스 기기 액세스 허용"</string>

@@ -16,6 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" msgid="2326164424236203271">"Bluetooth"</string>
     <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"Доступ до менедж. завантаж."</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"Дозволяє програмі отримувати доступ до менеджера BluetoothShare і використовувати його для передавання файлів."</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"Доступ до дозволеного пристрою з Bluetooth."</string>

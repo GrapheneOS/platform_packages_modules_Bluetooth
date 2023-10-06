@@ -16,6 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" msgid="2326164424236203271">"බ්ලූටූත්"</string>
     <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"බාගැනීම් කළමනාකරු ප්‍රවේශ වන්න."</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"යෙදුමට බ්ලූටූත් බෙදා ගැනීම් කළමනාකරු වෙත ප්‍රවේශ වීමට ඉඩ දී එය ගොනු මාරු කිරීමට භාවිතා කරන්න."</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"පිළිගත් ලැයිස්තු බ්ලූටූත් උපාංග ප්‍රවේශය."</string>
