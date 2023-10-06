@@ -388,7 +388,10 @@ tBNEP_RESULT BNEP_WriteBuf(uint16_t handle, const RawAddress& p_dest_addr,
         protocol = 0;
       else {
         new_len += 4;
-        if (new_len > org_len) return BNEP_IGNORE_CMD;
+        if (new_len > org_len) {
+          osi_free(p_buf);
+          return BNEP_IGNORE_CMD;
+        }
         p_data[2] = 0;
         p_data[3] = 0;
       }
