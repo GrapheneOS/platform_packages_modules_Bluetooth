@@ -96,6 +96,7 @@ using bluetooth::Uuid;
 #define BTIF_STORAGE_PATH_VERSION "ProductVersion"
 
 #define BTIF_STORAGE_KEY_RESTRICTED "Restricted"
+#define BTIF_STORAGE_KEY_ADDR_TYPE "AddrType"
 
 /* This is a local property to add a device found */
 #define BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP 0xFF
@@ -394,6 +395,15 @@ static int cfg2prop(const RawAddress* remote_bd_addr, bt_property_t* prop) {
       else {
         prop->len = 0;
         ret = false;
+      }
+    } break;
+
+    case BT_PROPERTY_REMOTE_ADDR_TYPE: {
+      int val;
+
+      if (prop->len >= (int)sizeof(uint8_t)) {
+        ret = btif_config_get_int(bdstr, BTIF_STORAGE_KEY_ADDR_TYPE, &val);
+        *(uint8_t*)prop->val = (uint8_t)val;
       }
     } break;
 
@@ -1154,6 +1164,15 @@ bt_status_t btif_storage_load_bonded_devices(void) {
               &remote_properties[num_props]) == BT_STATUS_SUCCESS) {
         num_props++;
       }
+
+      // Floss needs address type for diagnosis API
+      uint8_t addr_type;
+      if (btif_storage_get_remote_prop(
+              p_remote_addr, BT_PROPERTY_REMOTE_ADDR_TYPE, &addr_type,
+              sizeof(addr_type),
+              &remote_properties[num_props]) == BT_STATUS_SUCCESS) {
+        num_props++;
+      }
 #endif
 
       btif_storage_get_remote_prop(p_remote_addr, BT_PROPERTY_REMOTE_MODEL_NUM,
@@ -1431,10 +1450,26 @@ bt_status_t btif_in_fetch_bonded_ble_device(
   return BT_STATUS_FAIL;
 }
 
+void btif_storage_invoke_addr_type_update(const RawAddress& remote_bd_addr,
+                                          const tBLE_ADDR_TYPE& addr_type) {
+  bt_property_t prop;
+  prop.type = BT_PROPERTY_REMOTE_ADDR_TYPE;
+  prop.val = (tBLE_ADDR_TYPE*)&addr_type;
+  prop.len = sizeof(tBLE_ADDR_TYPE);
+  GetInterfaceToProfiles()->events->invoke_remote_device_properties_cb(
+      BT_STATUS_SUCCESS, remote_bd_addr, 1, &prop);
+}
+
 bt_status_t btif_storage_set_remote_addr_type(const RawAddress* remote_bd_addr,
                                               tBLE_ADDR_TYPE addr_type) {
   int ret = btif_config_set_int(remote_bd_addr->ToString(), "AddrType",
                                 (int)addr_type);
+
+#if TARGET_FLOSS
+  // Floss needs to get address type for diagnosis API.
+  btif_storage_invoke_addr_type_update(*remote_bd_addr, addr_type);
+#endif
+
   return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
 
@@ -1443,6 +1478,12 @@ void btif_storage_set_remote_addr_type(const RawAddress& remote_bd_addr,
   if (!btif_config_set_int(remote_bd_addr.ToString(), "AddrType",
                            static_cast<int>(addr_type)))
     LOG_ERROR("Unable to set storage property");
+  else {
+#if TARGET_FLOSS
+    // Floss needs to get address type for diagnosis API.
+    btif_storage_invoke_addr_type_update(remote_bd_addr, addr_type);
+#endif
+  }
 }
 
 void btif_storage_set_remote_device_type(const RawAddress& remote_bd_addr,
