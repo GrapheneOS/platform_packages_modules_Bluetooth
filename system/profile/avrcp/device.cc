@@ -1862,6 +1862,11 @@ void Device::DeviceDisconnected() {
   // remove these conditionals.
   if (volume_interface_ != nullptr)
     volume_interface_->DeviceDisconnected(GetAddress());
+  // The volume at connection is set by the remote device when indicating
+  // that it supports absolute volume, in case it's not, we need
+  // to reset the local volume var to be sure we send the correct value
+  // to the remote device on the next connection.
+  volume_ = VOL_NOT_SUPPORTED;
 }
 
 static std::string volumeToStr(int8_t volume) {
