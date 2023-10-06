@@ -44,13 +44,6 @@ struct btm_client_interface_t btm_client_interface = {
             .BTM_reset_complete = BTM_reset_complete,
         },
 
-    .scn =
-        {
-            .BTM_AllocateSCN = BTM_AllocateSCN,
-            .BTM_TryAllocateSCN = BTM_TryAllocateSCN,
-            .BTM_FreeSCN = BTM_FreeSCN,
-        },
-
     // Acl peer and lifecycle
     .peer =
         {
