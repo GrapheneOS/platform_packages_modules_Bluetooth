@@ -96,6 +96,7 @@ static_library("bta") {
     "le_audio/codec_interface.cc",
     "le_audio/codec_manager.cc",
     "le_audio/content_control_id_keeper.cc",
+    "le_audio/device_groups.cc",
     "le_audio/devices.cc",
     "le_audio/hal_verifier_linux.cc",
     "le_audio/le_audio_health_status.cc",

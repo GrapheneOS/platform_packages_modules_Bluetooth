@@ -21,6 +21,7 @@
 #include <gtest/gtest.h>
 
 #include "btm_api_mock.h"
+#include "device_groups.h"
 #include "le_audio_set_configuration_provider.h"
 #include "le_audio_types.h"
 #include "mock_controller.h"
