@@ -50,13 +50,6 @@ struct btm_client_interface_t {
     void (*BTM_reset_complete)();
   } lifecycle;
 
-  struct {
-    // Server channel number
-    uint8_t (*BTM_AllocateSCN)(void);
-    bool (*BTM_TryAllocateSCN)(uint8_t scn);
-    bool (*BTM_FreeSCN)(uint8_t scn);
-  } scn;
-
   // Acl peer and lifecycle
   struct {
     struct {
