@@ -63,12 +63,12 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
     boolean mAbsoluteVolumeSupported = false;
 
     static int avrcpToSystemVolume(int avrcpVolume) {
-        return (int) Math.floor((double) avrcpVolume * sDeviceMaxVolume / AVRCP_MAX_VOL);
+        return (int) Math.round((double) avrcpVolume * sDeviceMaxVolume / AVRCP_MAX_VOL);
     }
 
     static int systemToAvrcpVolume(int deviceVolume) {
-        int avrcpVolume = (int) Math.ceil((double) deviceVolume
-                * AVRCP_MAX_VOL / sDeviceMaxVolume);
+        int avrcpVolume =
+                (int) Math.round((double) deviceVolume * AVRCP_MAX_VOL / sDeviceMaxVolume);
         if (avrcpVolume > 127) avrcpVolume = 127;
         return avrcpVolume;
     }
@@ -178,8 +178,7 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
     }
 
     void setVolume(@NonNull BluetoothDevice device, int avrcpVolume) {
-        int deviceVolume =
-                (int) Math.round((double) avrcpVolume * sDeviceMaxVolume / AVRCP_MAX_VOL);
+        int deviceVolume = avrcpToSystemVolume(avrcpVolume);
         mVolumeEventLogger.logd(DEBUG, TAG, "setVolume:"
                         + " device=" + device
                         + " avrcpVolume=" + avrcpVolume
@@ -196,9 +195,7 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
             d("sendVolumeChanged: Skipping update volume to same as current.");
             return;
         }
-        int avrcpVolume =
-                (int) Math.round((double) deviceVolume * AVRCP_MAX_VOL / sDeviceMaxVolume);
-        if (avrcpVolume > 127) avrcpVolume = 127;
+        int avrcpVolume = systemToAvrcpVolume(deviceVolume);
         mVolumeEventLogger.logd(DEBUG, TAG, "sendVolumeChanged:"
                         + " device=" + device
                         + " avrcpVolume=" + avrcpVolume
