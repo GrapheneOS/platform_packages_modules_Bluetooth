@@ -21,6 +21,7 @@
 
 #include "btm_iso_api.h"
 #include "btm_iso_api_types.h"
+#include "device_groups.h"
 #include "devices.h"
 #include "hardware/bt_le_audio.h"
 #include "le_audio_types.h"
