@@ -60,10 +60,10 @@ class SmpTest(base_test.BaseTestClass):  # type: ignore[misc]
         ref_pairing_stream = self.ref.aio.security.OnPairing()
         try:
             while True:
-                dut_pairing_event = await (anext(dut_pairing_stream))
+                dut_pairing_event = await anext(dut_pairing_stream)
 
                 if dut_pairing_event.method_variant() == 'passkey_entry_notification':
-                    ref_pairing_event = await (anext(ref_pairing_stream))
+                    ref_pairing_event = await anext(ref_pairing_stream)
 
                     assert_equal(ref_pairing_event.method_variant(), 'passkey_entry_request')
                     assert_is_not_none(dut_pairing_event.passkey_entry_notification)
@@ -75,16 +75,20 @@ class SmpTest(base_test.BaseTestClass):  # type: ignore[misc]
                     )
                     ref_pairing_stream.send_nowait(ref_ev_answer)
                 else:
-                    dut_pairing_stream.send_nowait(PairingEventAnswer(
-                        event=dut_pairing_event,
-                        confirm=True,
-                    ))
-                    ref_pairing_event = await (anext(ref_pairing_stream))
+                    dut_pairing_stream.send_nowait(
+                        PairingEventAnswer(
+                            event=dut_pairing_event,
+                            confirm=True,
+                        )
+                    )
+                    ref_pairing_event = await anext(ref_pairing_stream)
 
-                    ref_pairing_stream.send_nowait(PairingEventAnswer(
-                        event=ref_pairing_event,
-                        confirm=True,
-                    ))
+                    ref_pairing_stream.send_nowait(
+                        PairingEventAnswer(
+                            event=ref_pairing_event,
+                            confirm=True,
+                        )
+                    )
 
         finally:
             dut_pairing_stream.cancel()
@@ -138,7 +142,6 @@ class SmpTest(base_test.BaseTestClass):  # type: ignore[misc]
             raise signals.TestSkip('Test require Bumble as reference device(s)')
 
         class Session(smp.Session):
-
             # Hack to send same identity address from ref during both pairing
             def send_command(self: smp.Session, command: smp.SMP_Command) -> None:
                 if isinstance(command, smp.SMP_Identity_Address_Information_Command):
@@ -171,9 +174,11 @@ class SmpTest(base_test.BaseTestClass):  # type: ignore[misc]
 
     @asynchronous
     async def test_mitm_sec_req_on_enc(self) -> None:
-        if isinstance(self.ref, BumblePandoraDevice):
-            io_capability = PairingDelegate.IoCapability.DISPLAY_OUTPUT_AND_KEYBOARD_INPUT
-            self.ref.server_config.io_capability = io_capability
+        if not isinstance(self.ref, BumblePandoraDevice):
+            raise signals.TestSkip('Test require Bumble as reference device(s)')
+
+        io_capability = PairingDelegate.IoCapability.DISPLAY_OUTPUT_AND_KEYBOARD_INPUT
+        self.ref.server_config.io_capability = io_capability
 
         advertisement = self.ref.aio.host.Advertise(
             legacy=True,
@@ -231,8 +236,13 @@ class SmpTest(base_test.BaseTestClass):  # type: ignore[misc]
 
         # Wait for the link to get encrypted
         connection = self.ref.device.lookup_connection(int.from_bytes(ref_dut.cookie.value, 'big'))
+        assert_is_not_none(connection)
+        assert connection
 
-        def on_connection_encryption_change():
+        self.ref.device.smp_manager.request_pairing(connection)
+
+        def on_connection_encryption_change() -> None:
+            assert isinstance(self.ref, BumblePandoraDevice)
             self.ref.device.smp_manager.request_pairing(connection)
 
         connection.on('connection_encryption_change', on_connection_encryption_change)
@@ -241,7 +251,6 @@ class SmpTest(base_test.BaseTestClass):  # type: ignore[misc]
         fut = asyncio.get_running_loop().create_future()
 
         class Session(smp.Session):
-
             def on_smp_pairing_request_command(self, command: smp.SMP_Pairing_Request_Command) -> None:
                 nonlocal fut
                 fut.set_result(False)
@@ -249,7 +258,7 @@ class SmpTest(base_test.BaseTestClass):  # type: ignore[misc]
         self.ref.device.smp_session_proxy = Session
 
         # Pass if the link is encrypted again
-        def on_connection_encryption_key_refresh():
+        def on_connection_encryption_key_refresh() -> None:
             nonlocal fut
             fut.set_result(True)
 
