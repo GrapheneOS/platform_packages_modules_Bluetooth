@@ -75,10 +75,14 @@ public class AvrcpVolumeManagerTest {
     }
 
     @Test
-    public void avrcpToSystemVolume() {
+    public void avrcpVolumeConversion() {
         assertThat(AvrcpVolumeManager.avrcpToSystemVolume(0)).isEqualTo(0);
         assertThat(AvrcpVolumeManager.avrcpToSystemVolume(AVRCP_MAX_VOL))
                 .isEqualTo(TEST_DEVICE_MAX_VOUME);
+
+        assertThat(AvrcpVolumeManager.systemToAvrcpVolume(0)).isEqualTo(0);
+        assertThat(AvrcpVolumeManager.systemToAvrcpVolume(TEST_DEVICE_MAX_VOUME))
+                .isEqualTo(AVRCP_MAX_VOL);
     }
 
     @Test
