@@ -27,12 +27,10 @@ import android.os.ParcelUuid;
 import android.util.Log;
 
 import androidx.test.core.app.ApplicationProvider;
-import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.compatibility.common.util.AdoptShellPermissionsRule;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,23 +49,11 @@ public class LeScanningTest {
     private static final String TAG = "LeScanningTest";
     private static final int TIMEOUT_SCANNING_MS = 2000;
 
+    @Rule public final AdoptShellPermissionsRule mPermissionRule = new AdoptShellPermissionsRule();
+
     @Rule public final PandoraDevice mBumble = new PandoraDevice();
 
     private final String TEST_UUID_STRING = "00001805-0000-1000-8000-00805f9b34fb";
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-        InstrumentationRegistry.getInstrumentation()
-                .getUiAutomation()
-                .adoptShellPermissionIdentity();
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-        InstrumentationRegistry.getInstrumentation()
-                .getUiAutomation()
-                .dropShellPermissionIdentity();
-    }
 
     @Test
     public void startBleScan_withCallbackTypeAllMatches() {
