@@ -357,7 +357,7 @@ void StructDef::GenConstructor(std::ostream& s) const {
   // Initialize remaining fields.
   add_comma = parent_ != nullptr;
   for (auto const& field : params) {
-    if (parent_params.GetField(field->GetName()) != nullptr) {
+    if (fields_.GetField(field->GetName()) == nullptr) {
       continue;
     }
     if (add_comma) {

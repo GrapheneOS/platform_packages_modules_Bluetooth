@@ -17,15 +17,12 @@
 
 /*
  * Generated mock file from original source file
- *   Functions generated:3
+ *   Functions generated:2
  *
- *  mockcify.pl ver 0.5.0
+ *  mockcify.pl ver 0.6.1
  */
 
-#include <cstdint>
 #include <functional>
-#include <map>
-#include <string>
 
 // Original included files, if any
 // NOTE: Since this is a mock file with mock definitions some number of
@@ -33,9 +30,7 @@
 //       still applies, but crafting proper inclusion is out of scope
 //       for this effort.  This compilation unit may compile as-is, or
 //       may need attention to prune from (or add to ) the inclusion set.
-#include <base/logging.h>
-
-#include <cstring>
+#include "audio_a2dp_hw/include/audio_a2dp_hw.h"
 
 // Original usings
 
@@ -43,44 +38,31 @@
 
 namespace test {
 namespace mock {
-namespace stack_btm_hfp_lc3_decoder {
+namespace audio_a2dp_hw_utils {
 
 // Shared state between mocked functions and tests
-// Name: hfp_lc3_decoder_cleanup
-// Params: void
-// Return: void
-struct hfp_lc3_decoder_cleanup {
-  std::function<void(void)> body{[](void) {}};
-  void operator()(void) { body(); };
+// Name: audio_a2dp_hw_dump_ctrl_event
+// Params: tA2DP_CTRL_CMD event
+// Return: const char*
+struct audio_a2dp_hw_dump_ctrl_event {
+  static const char* return_value;
+  std::function<const char*(tA2DP_CTRL_CMD event)> body{
+      [](tA2DP_CTRL_CMD event) { return return_value; }};
+  const char* operator()(tA2DP_CTRL_CMD event) { return body(event); };
 };
-extern struct hfp_lc3_decoder_cleanup hfp_lc3_decoder_cleanup;
+extern struct audio_a2dp_hw_dump_ctrl_event audio_a2dp_hw_dump_ctrl_event;
 
-// Name: hfp_lc3_decoder_decode_packet
-// Params: const uint8_t* i_buf, int16_t* o_buf, size_t out_len
-// Return: bool
-struct hfp_lc3_decoder_decode_packet {
-  static bool return_value;
-  std::function<bool(const uint8_t* i_buf, int16_t* o_buf, size_t out_len)>
-      body{[](const uint8_t* i_buf, int16_t* o_buf, size_t out_len) {
-        return return_value;
-      }};
-  bool operator()(const uint8_t* i_buf, int16_t* o_buf, size_t out_len) {
-    return body(i_buf, o_buf, out_len);
-  };
-};
-extern struct hfp_lc3_decoder_decode_packet hfp_lc3_decoder_decode_packet;
-
-// Name: hfp_lc3_decoder_init
+// Name: delay_reporting_enabled
 // Params:
 // Return: bool
-struct hfp_lc3_decoder_init {
+struct delay_reporting_enabled {
   static bool return_value;
   std::function<bool()> body{[]() { return return_value; }};
   bool operator()() { return body(); };
 };
-extern struct hfp_lc3_decoder_init hfp_lc3_decoder_init;
+extern struct delay_reporting_enabled delay_reporting_enabled;
 
-}  // namespace stack_btm_hfp_lc3_decoder
+}  // namespace audio_a2dp_hw_utils
 }  // namespace mock
 }  // namespace test
 

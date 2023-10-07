@@ -3842,7 +3842,7 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    /* Check if the device resume is expected */
+    /* Check if the device resume is allowed */
     if (!group->GetCodecConfigurationByDirection(
             configuration_context_type_,
             le_audio::types::kLeAudioDirectionSink)) {
@@ -4098,8 +4098,8 @@ class LeAudioClientImpl : public LeAudioClient {
                                 le_audio::types::kLeAudioDirectionSource);
     }
 
-    /* Check if the device resume is expected */
-    if (!group->GetCachedCodecConfigurationByDirection(
+    /* Check if the device resume is allowed */
+    if (!group->GetCodecConfigurationByDirection(
             configuration_context_type_,
             le_audio::types::kLeAudioDirectionSource)) {
       LOG(ERROR) << __func__ << ", invalid resume request for context type: "

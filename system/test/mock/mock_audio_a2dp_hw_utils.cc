@@ -15,17 +15,16 @@
  */
 /*
  * Generated mock file from original source file
- *   Functions generated:3
+ *   Functions generated:2
  *
- *  mockcify.pl ver 0.5.0
+ *  mockcify.pl ver 0.6.1
  */
 
-#include <cstdint>
-
 // Mock include file to share data between tests and mock
-#include "hfp_lc3_decoder.h"
+#include "test/mock/mock_audio_a2dp_hw_utils.h"
+
+#include "audio_a2dp_hw/include/audio_a2dp_hw.h"
 #include "test/common/mock_functions.h"
-#include "test/mock/mock_stack_btm_hfp_lc3_decoder.h"
 
 // Original usings
 
@@ -33,43 +32,36 @@
 
 namespace test {
 namespace mock {
-namespace stack_btm_hfp_lc3_decoder {
+namespace audio_a2dp_hw_utils {
 
 // Function state capture and return values, if needed
-struct hfp_lc3_decoder_cleanup hfp_lc3_decoder_cleanup;
-struct hfp_lc3_decoder_decode_packet hfp_lc3_decoder_decode_packet;
-struct hfp_lc3_decoder_init hfp_lc3_decoder_init;
+struct audio_a2dp_hw_dump_ctrl_event audio_a2dp_hw_dump_ctrl_event;
+struct delay_reporting_enabled delay_reporting_enabled;
 
-}  // namespace stack_btm_hfp_lc3_decoder
+}  // namespace audio_a2dp_hw_utils
 }  // namespace mock
 }  // namespace test
 
 // Mocked function return values, if any
 namespace test {
 namespace mock {
-namespace stack_btm_hfp_lc3_decoder {
+namespace audio_a2dp_hw_utils {
 
-bool hfp_lc3_decoder_decode_packet::return_value = false;
-bool hfp_lc3_decoder_init::return_value = false;
+const char* audio_a2dp_hw_dump_ctrl_event::return_value = nullptr;
+bool delay_reporting_enabled::return_value = false;
 
-}  // namespace stack_btm_hfp_lc3_decoder
+}  // namespace audio_a2dp_hw_utils
 }  // namespace mock
 }  // namespace test
 
 // Mocked functions, if any
-void hfp_lc3_decoder_cleanup(void) {
+const char* audio_a2dp_hw_dump_ctrl_event(tA2DP_CTRL_CMD event) {
   inc_func_call_count(__func__);
-  test::mock::stack_btm_hfp_lc3_decoder::hfp_lc3_decoder_cleanup();
+  return test::mock::audio_a2dp_hw_utils::audio_a2dp_hw_dump_ctrl_event(event);
 }
-bool hfp_lc3_decoder_decode_packet(const uint8_t* i_buf, int16_t* o_buf,
-                                   size_t out_len) {
+bool delay_reporting_enabled() {
   inc_func_call_count(__func__);
-  return test::mock::stack_btm_hfp_lc3_decoder::hfp_lc3_decoder_decode_packet(
-      i_buf, o_buf, out_len);
-}
-bool hfp_lc3_decoder_init() {
-  inc_func_call_count(__func__);
-  return test::mock::stack_btm_hfp_lc3_decoder::hfp_lc3_decoder_init();
+  return test::mock::audio_a2dp_hw_utils::delay_reporting_enabled();
 }
 // Mocked functions complete
 // END mockcify generation

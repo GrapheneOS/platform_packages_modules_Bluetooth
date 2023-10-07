@@ -21,26 +21,27 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import android.bluetooth.le.BluetoothLeScanner;
 import android.content.Context;
-import android.util.Log;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.compatibility.common.util.AdoptShellPermissionsRule;
 
-import io.grpc.stub.StreamObserver;
 
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.invocation.Invocation;
 
 import java.util.Collection;
@@ -117,6 +118,31 @@ public class GattClientTest {
         }
     }
 
+    @Test
+    public void reconnectExistingClient() throws Exception {
+        advertiseWithBumble();
+
+        BluetoothDevice device =
+                mAdapter.getRemoteLeDevice(BUMBLE_RPA, BluetoothDevice.ADDRESS_TYPE_RANDOM);
+        BluetoothGattCallback gattCallback = mock(BluetoothGattCallback.class);
+        InOrder inOrder = inOrder(gattCallback);
+
+        BluetoothGatt gatt = device.connectGatt(mContext, false, gattCallback);
+        inOrder.verify(gattCallback, timeout(1000))
+                .onConnectionStateChange(any(), anyInt(), eq(BluetoothProfile.STATE_CONNECTED));
+
+        gatt.disconnect();
+        inOrder.verify(gattCallback, timeout(1000))
+                .onConnectionStateChange(any(), anyInt(), eq(BluetoothProfile.STATE_DISCONNECTED));
+
+        gatt.connect();
+        inOrder.verify(gattCallback, timeout(1000))
+                .onConnectionStateChange(any(), anyInt(), eq(BluetoothProfile.STATE_CONNECTED));
+
+        gatt.close();
+        verifyNoMoreInteractions(gattCallback);
+    }
+
     private void advertiseWithBumble() {
         AdvertiseRequest request =
                 AdvertiseRequest.newBuilder()
@@ -125,23 +151,8 @@ public class GattClientTest {
                         .setOwnAddressType(OwnAddressType.RANDOM)
                         .build();
 
-        StreamObserver<AdvertiseResponse> responseObserver =
-                new StreamObserver<>() {
-                    @Override
-                    public void onNext(AdvertiseResponse response) {
-                        Log.i(TAG, "advertise observer: onNext");
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.e(TAG, "advertise observer: on error " + e);
-                    }
-
-                    @Override
-                    public void onCompleted() {
-                        Log.i(TAG, "advertise observer: on completed");
-                    }
-                };
+        StreamObserverSpliterator<AdvertiseResponse> responseObserver =
+                new StreamObserverSpliterator<>();
 
         mBumble.host().advertise(request, responseObserver);
     }

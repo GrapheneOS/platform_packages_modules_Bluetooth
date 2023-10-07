@@ -197,7 +197,6 @@ cc_library {
     ],
     min_sdk_version: "31",
     static_libs: ["libchrome"],
-    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_library {
@@ -236,7 +235,6 @@ cc_library {
     ],
     cflags: [
         "-DUSE_FAKE_TIMERS",
-        "-Wno-unused-parameter",
     ],
     static_libs: [
         "libbluetooth-types",
@@ -330,7 +328,6 @@ cc_binary {
         address: true,
         cfi: true,
     },
-    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -435,7 +432,6 @@ cc_test {
         address: true,
     },
     min_sdk_version: "Tiramisu",
-    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_test {
@@ -484,7 +480,6 @@ cc_test {
         },
     },
     min_sdk_version: "30",
-    cflags: ["-Wno-unused-parameter"],
 }
 
 cc_defaults {
