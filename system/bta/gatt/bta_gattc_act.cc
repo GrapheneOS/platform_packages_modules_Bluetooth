@@ -552,7 +552,7 @@ void bta_gattc_conn(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
       if (!db.IsEmpty()) p_clcb->p_srcb->gatt_database = db;
 
       if (db.IsEmpty() ||
-          robust_caching_support == RobustCachingSupport::SUPPORTED) {
+          robust_caching_support != RobustCachingSupport::UNSUPPORTED) {
         // If the peer device is expected to support robust caching, or if we
         // don't know its services yet, then we should do discovery (which may
         // short-circuit through a hash match, but might also do the full
