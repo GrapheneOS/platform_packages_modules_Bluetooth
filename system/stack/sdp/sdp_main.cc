@@ -29,6 +29,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_psm_types.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/l2c_api.h"

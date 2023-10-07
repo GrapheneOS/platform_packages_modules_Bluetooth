@@ -24,6 +24,7 @@
 
 #define LOG_TAG "bluetooth"
 
+#include <base/logging.h>
 #include <string.h>
 
 #include "bnep_api.h"
@@ -38,9 +39,8 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_psm_types.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 /******************************************************************************/
 /*                     G L O B A L    B N E P       D A T A                   */
