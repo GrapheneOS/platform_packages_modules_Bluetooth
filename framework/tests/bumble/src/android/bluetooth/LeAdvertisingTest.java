@@ -27,12 +27,12 @@ import android.util.Log;
 
 import androidx.core.util.Pair;
 import androidx.test.core.app.ApplicationProvider;
-import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
+
+import com.android.compatibility.common.util.AdoptShellPermissionsRule;
 
 import io.grpc.Deadline;
 
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,14 +51,9 @@ public class LeAdvertisingTest {
 
     private static final int TIMEOUT_ADVERTISING_MS = 1000;
 
-    @Rule public final PandoraDevice mBumble = new PandoraDevice();
+    @Rule public final AdoptShellPermissionsRule mPermissionRule = new AdoptShellPermissionsRule();
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-        InstrumentationRegistry.getInstrumentation()
-                .getUiAutomation()
-                .adoptShellPermissionIdentity();
-    }
+    @Rule public final PandoraDevice mBumble = new PandoraDevice();
 
     @Test
     public void advertisingSet() throws Exception {
