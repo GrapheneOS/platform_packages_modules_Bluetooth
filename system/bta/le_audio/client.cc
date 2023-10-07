@@ -1918,7 +1918,8 @@ class LeAudioClientImpl : public LeAudioClient {
 
     leAudioDevice->conn_id_ = conn_id;
     leAudioDevice->mtu_ = mtu;
-
+    /* Check if the device is in allow list and update the flag */
+    leAudioDevice->UpdateDeviceAllowlistFlag();
     if (BTM_SecIsSecurityPending(address)) {
       /* if security collision happened, wait for encryption done
        * (BTA_GATTC_ENC_CMPL_CB_EVT) */
