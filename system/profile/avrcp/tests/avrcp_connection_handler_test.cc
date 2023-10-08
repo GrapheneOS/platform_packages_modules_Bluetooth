@@ -19,6 +19,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "sdpdefs.h"
 #include "avrcp_internal.h"
 #include "avrcp_test_helper.h"
 #include "connection_handler.h"
@@ -55,7 +56,7 @@ class AvrcpConnectionHandlerTest : public testing::Test {
     fake_features = {
         .p_next_attr = nullptr,
         .attr_id = 0,
-        .attr_len_type = 0,
+        .attr_len_type = (UINT_DESC_TYPE<<12) | 2,
         .attr_value = {.v = {.u16 = 0}},
     };
 
