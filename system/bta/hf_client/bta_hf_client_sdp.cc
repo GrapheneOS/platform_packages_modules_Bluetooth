@@ -250,7 +250,9 @@ bool bta_hf_client_sdp_find_attr(tBTA_HF_CLIENT_CB* client_cb) {
 
     /* get features */
     p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_FEATURES);
-    if (p_attr != NULL) {
+    if (p_attr != NULL &&
+        SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
       /* Found attribute. Get value. */
       /* There might be race condition between SDP and BRSF.  */
       /* Do not update if we already received BRSF.           */
@@ -265,7 +267,9 @@ bool bta_hf_client_sdp_find_attr(tBTA_HF_CLIENT_CB* client_cb) {
 
         /* get network for ability to reject calls */
         p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_NETWORK);
-        if (p_attr != NULL) {
+        if (p_attr != NULL &&
+            SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
+            SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
           if (p_attr->attr_value.v.u16 == 0x01) {
             client_cb->peer_features |= BTA_HF_CLIENT_PEER_REJECT;
           }
