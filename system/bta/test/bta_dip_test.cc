@@ -92,7 +92,7 @@ class BtaDipTest : public ::testing::Test {
 
     g_attr_vendor_product_primary_record.p_next_attr = &g_attr_vendor_product_primary_record;
     g_attr_vendor_product_primary_record.attr_id = ATTR_ID_PRIMARY_RECORD;
-    g_attr_vendor_product_primary_record.attr_len_type = (BOOLEAN_DESC_TYPE<<12);
+    g_attr_vendor_product_primary_record.attr_len_type = (BOOLEAN_DESC_TYPE<<12)|1;
     g_attr_vendor_product_primary_record.attr_value.v.u8 = 1;
 
     g_rec.p_first_attr = &g_attr_service_class_id_list;
