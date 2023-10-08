@@ -88,13 +88,18 @@ void hidh_get_str_attr(tSDP_DISC_REC* p_rec, uint16_t attr_id, uint16_t max_len,
 
   p_attr = SDP_FindAttributeInRec(p_rec, attr_id);
   if (p_attr != NULL) {
-    name_len = SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
-    if (name_len < max_len) {
-      memcpy(str, (char*)p_attr->attr_value.v.array, name_len);
-      str[name_len] = '\0';
+    if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == TEXT_STR_DESC_TYPE) {
+      name_len = SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
+      if (name_len < max_len) {
+        memcpy(str, (char*)p_attr->attr_value.v.array, name_len);
+        str[name_len] = '\0';
+      } else {
+        memcpy(str, (char*)p_attr->attr_value.v.array, max_len - 1);
+        str[max_len - 1] = '\0';
+      }
     } else {
-      memcpy(str, (char*)p_attr->attr_value.v.array, max_len - 1);
-      str[max_len - 1] = '\0';
+      str[0] = '\0';
+      LOG_ERROR("attr type not str!!");
     }
   } else
     str[0] = '\0';
@@ -144,36 +149,48 @@ static void hidh_search_callback(tSDP_RESULT sdp_result) {
 
   if (((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_HID_VIRTUAL_CABLE)) !=
        NULL) &&
+      SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == BOOLEAN_DESC_TYPE &&
+      SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 1 &&
       (p_attr->attr_value.v.u8)) {
     attr_mask |= HID_VIRTUAL_CABLE;
   }
 
   if (((p_attr = SDP_FindAttributeInRec(
             p_rec, ATTR_ID_HID_RECONNECT_INITIATE)) != NULL) &&
+      SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == BOOLEAN_DESC_TYPE &&
+      SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 1 &&
       (p_attr->attr_value.v.u8)) {
     attr_mask |= HID_RECONN_INIT;
   }
 
   if (((p_attr = SDP_FindAttributeInRec(
             p_rec, ATTR_ID_HID_NORMALLY_CONNECTABLE)) != NULL) &&
+      SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == BOOLEAN_DESC_TYPE &&
+      SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 1 &&
       (p_attr->attr_value.v.u8)) {
     attr_mask |= HID_NORMALLY_CONNECTABLE;
   }
 
   if (((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_HID_SDP_DISABLE)) !=
        NULL) &&
+      SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == BOOLEAN_DESC_TYPE &&
+      SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 1 &&
       (p_attr->attr_value.v.u8)) {
     attr_mask |= HID_SDP_DISABLE;
   }
 
   if (((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_HID_BATTERY_POWER)) !=
        NULL) &&
+      SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == BOOLEAN_DESC_TYPE &&
+      SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 1 &&
       (p_attr->attr_value.v.u8)) {
     attr_mask |= HID_BATTERY_POWER;
   }
 
   if (((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_HID_REMOTE_WAKE)) !=
        NULL) &&
+      SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == BOOLEAN_DESC_TYPE &&
+      SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 1 &&
       (p_attr->attr_value.v.u8)) {
     attr_mask |= HID_REMOTE_WAKE;
   }
@@ -186,40 +203,54 @@ static void hidh_search_callback(tSDP_RESULT sdp_result) {
                     p_nvi->prov_name);
 
   if (((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_HID_DEVICE_RELNUM)) !=
-       NULL)) {
+       NULL) &&
+      SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
+      SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
     p_nvi->rel_num = p_attr->attr_value.v.u16;
   }
 
   if (((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_HID_COUNTRY_CODE)) !=
-       NULL)) {
+       NULL) &&
+      SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
+      SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 1) {
     p_nvi->ctry_code = p_attr->attr_value.v.u8;
   }
 
   if (((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_HID_DEVICE_SUBCLASS)) !=
-       NULL)) {
+       NULL) &&
+      SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
+      SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 1) {
     p_nvi->sub_class = p_attr->attr_value.v.u8;
   }
 
   if (((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_HID_PARSER_VERSION)) !=
-       NULL)) {
+       NULL) &&
+      SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
+      SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
     p_nvi->hpars_ver = p_attr->attr_value.v.u16;
   }
 
   if (((p_attr = SDP_FindAttributeInRec(
-            p_rec, ATTR_ID_HID_LINK_SUPERVISION_TO)) != NULL)) {
+            p_rec, ATTR_ID_HID_LINK_SUPERVISION_TO)) != NULL) &&
+      SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
+      SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
     attr_mask |= HID_SUP_TOUT_AVLBL;
     p_nvi->sup_timeout = p_attr->attr_value.v.u16;
   }
 
   if (((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_HID_SSR_HOST_MAX_LAT)) !=
-       NULL)) {
+       NULL) &&
+      SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
+      SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
     attr_mask |= HID_SSR_MAX_LATENCY;
     p_nvi->ssr_max_latency = p_attr->attr_value.v.u16;
   } else
     p_nvi->ssr_max_latency = HID_SSR_PARAM_INVALID;
 
   if (((p_attr = SDP_FindAttributeInRec(
-            p_rec, ATTR_ID_HID_SSR_HOST_MIN_TOUT)) != NULL)) {
+            p_rec, ATTR_ID_HID_SSR_HOST_MIN_TOUT)) != NULL) &&
+      SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
+      SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {
     attr_mask |= HID_SSR_MIN_TOUT;
     p_nvi->ssr_min_tout = p_attr->attr_value.v.u16;
   } else
