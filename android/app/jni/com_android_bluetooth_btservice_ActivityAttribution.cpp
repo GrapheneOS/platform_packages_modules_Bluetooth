@@ -185,7 +185,7 @@ static void notifyActivityAttributionInfoNative(JNIEnv* env, jobject object,
   env->ReleaseStringUTFChars(deviceAddress, nativeAddress);
 }
 
-static JNINativeMethod sMethods[] = {
+static const JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "()V", (void*)initNative},
     {"cleanupNative", "()V", (void*)cleanupNative},
