@@ -27,12 +27,12 @@
 #include <string.h>
 
 #include "bt_target.h"
+#include "gd/common/init_flags.h"
 #include "gd/hal/snoop_logger.h"
 #include "hcimsgs.h"  // HCID_GET_
-#include "main/shim/shim.h"
+#include "main/shim/entry.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_psm_types.h"
 #include "stack/include/l2c_api.h"

@@ -18,6 +18,8 @@
 
 #define LOG_TAG "bt_btu_task"
 
+#include "stack/include/btu_task.h"
+
 #include <base/functional/bind.h>
 #include <base/logging.h>
 #include <base/run_loop.h>
@@ -26,7 +28,6 @@
 #include "common/message_loop_thread.h"
 #include "include/hardware/bluetooth.h"
 #include "os/log.h"
-#include "stack/include/btu.h"
 
 using bluetooth::common::MessageLoopThread;
 
