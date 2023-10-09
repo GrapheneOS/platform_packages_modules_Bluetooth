@@ -307,25 +307,6 @@ impl HidHost {
     }
 
     #[profile_enabled_or(BtStatus::NotReady)]
-    pub fn get_report_reply(
-        &self,
-        addr: &mut RawAddress,
-        status: BthhStatus,
-        report: &mut [u8],
-        size: u16,
-    ) -> BtStatus {
-        let addr_ptr = LTCheckedPtrMut::from_ref(addr);
-        BtStatus::from(ccall!(
-            self,
-            get_report_reply,
-            addr_ptr.into(),
-            status as bindings::bthh_status_t,
-            report.as_mut_ptr() as *mut std::os::raw::c_char,
-            size
-        ))
-    }
-
-    #[profile_enabled_or(BtStatus::NotReady)]
     pub fn set_report(
         &self,
         addr: &mut RawAddress,
