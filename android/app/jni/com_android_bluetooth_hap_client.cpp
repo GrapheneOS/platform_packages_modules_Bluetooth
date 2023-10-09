@@ -616,7 +616,7 @@ static void groupSetPresetNameNative(JNIEnv* env, jobject object, jint group_id,
                                      std::move(name_str));
 }
 
-static JNINativeMethod sMethods[] = {
+static const JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "()V", (void*)initNative},
     {"cleanupNative", "()V", (void*)cleanupNative},
