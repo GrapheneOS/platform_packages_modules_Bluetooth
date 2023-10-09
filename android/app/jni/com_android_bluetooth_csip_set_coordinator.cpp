@@ -279,7 +279,7 @@ static void groupLockSetNative(JNIEnv* env, jobject object, jint group_id,
   sCsisClientInterface->LockGroup(group_id, lock);
 }
 
-static JNINativeMethod sMethods[] = {
+static const JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "()V", (void*)initNative},
     {"cleanupNative", "()V", (void*)cleanupNative},

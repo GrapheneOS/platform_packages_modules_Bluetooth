@@ -155,7 +155,7 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static JNINativeMethod sMethods[] = {
+static const JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "()V", (void*)initNative},
     {"cleanupNative", "()V", (void*)cleanupNative},
