@@ -232,6 +232,9 @@ typedef struct {
   uint16_t attr_index;  /* cahce NV saving/loading attribute index */
 
   uint16_t mtu;
+
+  bool disc_blocked_waiting_on_version;
+  uint16_t blocked_conn_id;
 } tBTA_GATTC_SERV;
 
 #ifndef BTA_GATTC_NOTIF_REG_MAX
@@ -480,6 +483,7 @@ enum class RobustCachingSupport {
   UNSUPPORTED,
   SUPPORTED,
   UNKNOWN,
+  W4_REMOTE_VERSION
 };
 RobustCachingSupport GetRobustCachingSupport(const tBTA_GATTC_CLCB* p_clcb,
                                              const gatt::Database& db);
