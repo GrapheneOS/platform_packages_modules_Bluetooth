@@ -2591,6 +2591,12 @@ bool BtifAvStateMachine::StateStarted::ProcessEvent(uint32_t event,
                ADDRESS_TO_LOGGABLE_CSTR(peer_.PeerAddress()),
                BtifAvEvent::EventName(event).c_str(),
                peer_.FlagsToString().c_str());
+
+      // There is a pending LocalSuspend already, ignore.
+      if (peer_.CheckFlags(BtifAvPeer::kFlagLocalSuspendPending)) {
+        break;
+      }
+
       // Set pending flag to ensure the BTIF task is not trying to restart
       // the stream while suspend is in progress.
       peer_.SetFlags(BtifAvPeer::kFlagLocalSuspendPending);
