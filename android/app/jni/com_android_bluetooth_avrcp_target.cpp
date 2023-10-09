@@ -1096,7 +1096,7 @@ static void sendPlayerSettingsNative(JNIEnv* env, jobject object,
                                                values_vector);
 }
 
-static JNINativeMethod sMethods[] = {
+static const JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "()V", (void*)initNative},
     {"registerBipServerNative", "(I)V", (void*)registerBipServerNative},
