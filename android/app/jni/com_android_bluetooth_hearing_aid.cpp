@@ -216,7 +216,7 @@ static void setVolumeNative(JNIEnv* env, jclass clazz, jint volume) {
   sHearingAidInterface->SetVolume(volume);
 }
 
-static JNINativeMethod sMethods[] = {
+static const JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "()V", (void*)initNative},
     {"cleanupNative", "()V", (void*)cleanupNative},
