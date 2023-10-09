@@ -69,6 +69,7 @@ static_library("btif") {
     "src/btif_hf_client.cc",
     "src/btif_hh.cc",
     "src/btif_iot_config.cc",
+    "src/btif_jni_task.cc",
     "src/btif_keystore.cc",
     "src/btif_le_audio.cc",
     "src/btif_metrics_logging.cc",
