@@ -180,6 +180,9 @@ struct tACL_CONN {
   BD_FEATURES peer_lmp_feature_pages[HCI_EXT_FEATURES_PAGE_MAX + 1];
   bool peer_lmp_feature_valid[HCI_EXT_FEATURES_PAGE_MAX + 1];
 
+  /* Whether "Read Remote Version Information Complete" was received */
+  bool remote_version_received{false};
+
   RawAddress active_remote_addr;
   tBLE_ADDR_TYPE active_remote_addr_type;
 

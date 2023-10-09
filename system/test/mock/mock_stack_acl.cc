@@ -53,6 +53,7 @@ struct BTM_IsAclConnectionUpFromHandle BTM_IsAclConnectionUpFromHandle;
 struct BTM_IsBleConnection BTM_IsBleConnection;
 struct BTM_IsPhy2mSupported BTM_IsPhy2mSupported;
 struct BTM_ReadRemoteConnectionAddr BTM_ReadRemoteConnectionAddr;
+struct BTM_IsRemoteVersionReceived BTM_IsRemoteVersionReceived;
 struct BTM_ReadRemoteVersion BTM_ReadRemoteVersion;
 struct BTM_is_sniff_allowed_for BTM_is_sniff_allowed_for;
 struct acl_create_le_connection acl_create_le_connection;
@@ -215,6 +216,10 @@ bool BTM_ReadRemoteConnectionAddr(const RawAddress& pseudo_addr,
   inc_func_call_count(__func__);
   return test::mock::stack_acl::BTM_ReadRemoteConnectionAddr(
       pseudo_addr, conn_addr, p_addr_type, ota_address);
+}
+bool BTM_IsRemoteVersionReceived(const RawAddress& addr) {
+  inc_func_call_count(__func__);
+  return test::mock::stack_acl::BTM_IsRemoteVersionReceived(addr);
 }
 bool BTM_ReadRemoteVersion(const RawAddress& addr, uint8_t* lmp_version,
                            uint16_t* manufacturer, uint16_t* lmp_sub_version) {

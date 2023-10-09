@@ -808,6 +808,10 @@ void bta_gattc_start_discover_internal(tBTA_GATTC_CLCB* p_clcb) {
     p_clcb->disc_active = true;
 }
 
+static void bta_gattc_continue_with_version_and_cache_known(
+    tBTA_GATTC_CLCB* p_clcb, RobustCachingSupport cache_support,
+    bool is_svc_chg);
+
 /** Start a discovery on server */
 void bta_gattc_start_discover(tBTA_GATTC_CLCB* p_clcb,
                               UNUSED_ATTR const tBTA_GATTC_DATA* p_data) {
@@ -839,25 +843,21 @@ void bta_gattc_start_discover(tBTA_GATTC_CLCB* p_clcb,
     p_clcb->p_srcb->srvc_hdl_chg = false;
     p_clcb->p_srcb->update_count = 0;
     p_clcb->p_srcb->state = BTA_GATTC_SERV_DISC_ACT;
+    p_clcb->p_srcb->disc_blocked_waiting_on_version = false;
 
-    if (GetRobustCachingSupport(p_clcb, p_clcb->p_srcb->gatt_database) ==
-        RobustCachingSupport::UNSUPPORTED) {
-      // Skip initial DB hash read if we have strong reason (due to interop,
-      // or a prior discovery) to believe that it is unsupported.
-      p_clcb->p_srcb->srvc_hdl_db_hash = false;
-    }
-
-    /* read db hash if db hash characteristic exists */
-    if (bta_gattc_is_robust_caching_enabled() &&
-        p_clcb->p_srcb->srvc_hdl_db_hash &&
-        bta_gattc_read_db_hash(p_clcb, is_svc_chg)) {
-      LOG(INFO) << __func__
-                << ": pending service discovery, read db hash first";
-      p_clcb->p_srcb->srvc_hdl_db_hash = false;
+    auto cache_support =
+        GetRobustCachingSupport(p_clcb, p_clcb->p_srcb->gatt_database);
+    if (cache_support == RobustCachingSupport::W4_REMOTE_VERSION) {
+      LOG_INFO(
+          "Pausing service discovery till remote version is read conn_id:%d",
+          p_clcb->bta_conn_id);
+      p_clcb->p_srcb->disc_blocked_waiting_on_version = true;
+      p_clcb->p_srcb->blocked_conn_id = p_clcb->bta_conn_id;
       return;
     }
 
-    bta_gattc_start_discover_internal(p_clcb);
+    bta_gattc_continue_with_version_and_cache_known(p_clcb, cache_support,
+                                                    is_svc_chg);
   }
   /* pending operation, wait until it finishes */
   else {
@@ -866,6 +866,58 @@ void bta_gattc_start_discover(tBTA_GATTC_CLCB* p_clcb,
     if (p_clcb->p_srcb->state == BTA_GATTC_SERV_IDLE)
       p_clcb->state = BTA_GATTC_CONN_ST; /* set clcb state */
   }
+}
+
+void bta_gattc_continue_discovery_if_needed(const RawAddress& bd_addr,
+                                            uint16_t acl_handle) {
+  tBTA_GATTC_SERV* p_srcb = bta_gattc_find_srvr_cache(bd_addr);
+  if (!p_srcb || !p_srcb->disc_blocked_waiting_on_version) {
+    return;
+  }
+
+  uint16_t conn_id = p_srcb->blocked_conn_id;
+
+  p_srcb->disc_blocked_waiting_on_version = false;
+  p_srcb->blocked_conn_id = 0;
+
+  LOG_INFO("Received remote version, continue service discovery for %s",
+           ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+
+  tBTA_GATTC_CLCB* p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
+
+  if (!p_clcb) {
+    LOG_ERROR("Can't find CLCB to continue service discovery, id:%d", conn_id);
+    return;
+  }
+
+  bool is_svc_chg = p_clcb->p_srcb->srvc_hdl_chg;
+
+  auto cache_support =
+      GetRobustCachingSupport(p_clcb, p_clcb->p_srcb->gatt_database);
+  bta_gattc_continue_with_version_and_cache_known(p_clcb, cache_support,
+                                                  is_svc_chg);
+}
+
+void bta_gattc_continue_with_version_and_cache_known(
+    tBTA_GATTC_CLCB* p_clcb, RobustCachingSupport cache_support,
+    bool is_svc_chg) {
+  if (cache_support == RobustCachingSupport::UNSUPPORTED) {
+    // Skip initial DB hash read if we have strong reason (due to interop,
+    // or a prior discovery) to believe that it is unsupported.
+    p_clcb->p_srcb->srvc_hdl_db_hash = false;
+  }
+
+  /* read db hash if db hash characteristic exists */
+  if (bta_gattc_is_robust_caching_enabled() &&
+      p_clcb->p_srcb->srvc_hdl_db_hash &&
+      bta_gattc_read_db_hash(p_clcb, is_svc_chg)) {
+    LOG(INFO) << __func__
+              << ": pending service discovery, read db hash first conn_id:"
+              << loghex(p_clcb->bta_conn_id);
+    p_clcb->p_srcb->srvc_hdl_db_hash = false;
+    return;
+  }
+  bta_gattc_start_discover_internal(p_clcb);
 }
 
 /** discovery on server is finished */
