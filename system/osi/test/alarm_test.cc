@@ -204,7 +204,7 @@ TEST_F(AlarmTest, test_set_short_short) {
                        alarm_new("alarm_test.test_set_short_short_1")};
 
   alarm_set(alarm[0], 10, cb, NULL);
-  alarm_set(alarm[1], 20, cb, NULL);
+  alarm_set(alarm[1], 200, cb, NULL);
 
   EXPECT_EQ(cb_counter, 0);
   EXPECT_TRUE(is_wake_lock_acquired);
