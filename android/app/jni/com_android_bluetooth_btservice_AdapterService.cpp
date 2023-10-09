@@ -660,6 +660,7 @@ static void callback_thread_event(bt_cb_thread_evt event) {
     }
     vm->DetachCurrentThread();
     sHaveCallbackThread = false;
+    callbackEnv = NULL;
   }
 }
 
