@@ -25,12 +25,15 @@
 
 #define LOG_TAG "bt_btm_ble"
 
+#include <base/logging.h>
+
 #include <cstdint>
 
 #include "device/include/controller.h"
 #include "main/shim/btm_api.h"
 #include "main/shim/l2c_api.h"
 #include "main/shim/shim.h"
+#include "openssl/mem.h"
 #include "osi/include/allocator.h"
 #include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
@@ -47,8 +50,6 @@
 #include "stack/include/l2cdefs.h"
 #include "stack/include/smp_api.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 extern tBTM_CB btm_cb;
 
@@ -2061,7 +2062,7 @@ bool BTM_BleVerifySignature(const RawAddress& bd_addr, uint8_t* p_orig,
 
     crypto_toolbox::aes_cmac(p_rec->ble.keys.pcsrk, p_orig, len,
                              BTM_CMAC_TLEN_SIZE, p_mac);
-    if (memcmp(p_mac, p_comp, BTM_CMAC_TLEN_SIZE) == 0) {
+    if (CRYPTO_memcmp(p_mac, p_comp, BTM_CMAC_TLEN_SIZE) == 0) {
       btm_ble_increment_sign_ctr(bd_addr, false);
       verified = true;
     }
