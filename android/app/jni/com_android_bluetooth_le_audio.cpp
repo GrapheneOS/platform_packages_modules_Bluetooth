@@ -576,7 +576,7 @@ static void sendAudioProfilePreferencesNative(
       groupId, isOutputPreferenceLeAudio, isDuplexPreferenceLeAudio);
 }
 
-static JNINativeMethod sMethods[] = {
+static const JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "([Landroid/bluetooth/BluetoothLeAudioCodecConfig;)V",
      (void*)initNative},
@@ -1394,7 +1394,7 @@ static void getBroadcastMetadataNative(JNIEnv* env, jobject object,
   sLeAudioBroadcasterInterface->GetBroadcastMetadata(broadcast_id);
 }
 
-static JNINativeMethod sBroadcasterMethods[] = {
+static const JNINativeMethod sBroadcasterMethods[] = {
     {"classInitNative", "()V", (void*)BroadcasterClassInitNative},
     {"initNative", "()V", (void*)BroadcasterInitNative},
     {"stopNative", "()V", (void*)BroadcasterStopNative},

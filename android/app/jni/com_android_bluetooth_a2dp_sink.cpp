@@ -260,7 +260,7 @@ static jboolean setActiveDeviceNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static JNINativeMethod sMethods[] = {
+static const JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "(I)V", (void*)initNative},
     {"cleanupNative", "()V", (void*)cleanupNative},

@@ -495,7 +495,7 @@ static jboolean disconnectNative(JNIEnv* env, jobject thiz) {
   return result;
 }
 
-static JNINativeMethod sMethods[] = {
+static const JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "()V", (void*)initNative},
     {"cleanupNative", "()V", (void*)cleanupNative},

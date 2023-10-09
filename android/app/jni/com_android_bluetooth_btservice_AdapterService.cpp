@@ -2179,7 +2179,7 @@ static jboolean pbapPseDynamicVersionUpgradeIsEnabledNative(JNIEnv* env,
              : JNI_FALSE;
 }
 
-static JNINativeMethod sMethods[] = {
+static const JNINativeMethod sMethods[] = {
     /* name, signature, funcPtr */
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "(ZZI[Ljava/lang/String;ZLjava/lang/String;)Z",
