@@ -171,3 +171,7 @@ void BTA_GATTC_WriteCharValue(uint16_t conn_id, uint16_t handle,
                               GATT_WRITE_OP_CB callback, void* cb_data) {
   inc_func_call_count(__func__);
 }
+void bta_gattc_continue_discovery_if_needed(const RawAddress& bd_addr,
+                                            uint16_t acl_handle) {
+  inc_func_call_count(__func__);
+}
