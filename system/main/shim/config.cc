@@ -143,6 +143,10 @@ bool BtifConfigInterface::RemoveProperty(const std::string& section,
   return GetStorage()->RemoveProperty(section, property);
 }
 
+void BtifConfigInterface::RemoveSection(const std::string& section) {
+  GetStorage()->RemoveSection(section);
+}
+
 std::vector<std::string> BtifConfigInterface::GetPersistentDevices() {
   return GetStorage()->GetPersistentSections();
 }
