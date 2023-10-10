@@ -121,7 +121,7 @@ public class PlayerSettingsManager {
         MediaControllerCompat.TransportControls controls;
         try {
             controls = mActivePlayerController.getTransportControls();
-        } catch (SecurityException e) {
+        } catch (Exception e) {
             Log.e(TAG, e.toString());
             return false;
         }
@@ -155,7 +155,7 @@ public class PlayerSettingsManager {
         MediaControllerCompat.TransportControls controls;
         try {
             controls = mActivePlayerController.getTransportControls();
-        } catch (SecurityException e) {
+        } catch (Exception e) {
             Log.e(TAG, e.toString());
             return false;
         }
@@ -186,7 +186,7 @@ public class PlayerSettingsManager {
         int mediaFwkMode;
         try {
             mediaFwkMode = mActivePlayerController.getRepeatMode();
-        } catch (SecurityException e) {
+        } catch (Exception e) {
             Log.e(TAG, e.toString());
             return PlayerSettingsValues.STATE_REPEAT_OFF;
         }
@@ -217,7 +217,7 @@ public class PlayerSettingsManager {
         int mediaFwkMode;
         try {
             mediaFwkMode = mActivePlayerController.getShuffleMode();
-        } catch (SecurityException e) {
+        } catch (Exception e) {
             Log.e(TAG, e.toString());
             return PlayerSettingsValues.STATE_SHUFFLE_OFF;
         }
@@ -243,7 +243,7 @@ public class PlayerSettingsManager {
             MediaControllerCompat controller, MediaControllerCallback callback) {
         try {
             controller.registerCallback(callback);
-        } catch (SecurityException e) {
+        } catch (Exception e) {
             Log.e(TAG, e.toString());
             return false;
         }
@@ -258,7 +258,7 @@ public class PlayerSettingsManager {
             MediaControllerCompat controller, MediaControllerCallback callback) {
         try {
             controller.unregisterCallback(callback);
-        } catch (SecurityException e) {
+        } catch (Exception e) {
             Log.e(TAG, e.toString());
             return false;
         }
