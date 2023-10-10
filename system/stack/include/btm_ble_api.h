@@ -641,8 +641,6 @@ void BTM_BleReadPhy(
 void BTM_BleSetPhy(const RawAddress& bd_addr, uint8_t tx_phys, uint8_t rx_phys,
                    uint16_t phy_options);
 
-void btm_ble_multi_adv_cleanup(void);
-
 /*******************************************************************************
  *
  * Function         btm_ble_get_acl_remote_addr
