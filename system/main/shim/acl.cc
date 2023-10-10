@@ -64,7 +64,6 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_status.h"
-#include "stack/include/gatt_api.h"
 #include "stack/include/pan_api.h"
 #include "stack/include/sec_hci_link_interface.h"
 #include "stack/l2cap/l2c_int.h"
@@ -826,10 +825,9 @@ class LeShimAclConnection
 
   void OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy,
                    uint8_t rx_phy) override {
-    TRY_POSTING_ON_MAIN(
-        interface_.on_phy_update,
-        static_cast<tGATT_STATUS>(ToLegacyHciErrorCode(hci_status)), handle_,
-        tx_phy, rx_phy);
+    TRY_POSTING_ON_MAIN(interface_.on_phy_update,
+                        ToLegacyHciErrorCode(hci_status), handle_, tx_phy,
+                        rx_phy);
   }
 
   void OnDisconnection(hci::ErrorCode reason) {
