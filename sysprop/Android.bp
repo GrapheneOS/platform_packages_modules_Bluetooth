@@ -8,6 +8,7 @@ sysprop_library {
     srcs: [
         "a2dp.sysprop",
         "avrcp.sysprop",
+        "ble.sysprop",
         "bta.sysprop",
         "hfp.sysprop",
         "pan.sysprop",
