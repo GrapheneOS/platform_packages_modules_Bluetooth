@@ -20,6 +20,7 @@
 
 #include "hci/acl_manager.h"
 #include "hci/controller.h"
+#include "hci/event_checkers.h"
 #include "hci/hci_layer.h"
 #include "hci/hci_packets.h"
 #include "hci/le_periodic_sync_manager.h"
@@ -590,13 +591,14 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
         le_scanning_interface_->EnqueueCommand(
             LeSetExtendedScanEnableBuilder::Create(
                 Enable::ENABLED, FilterDuplicates::DISABLED /* filter duplicates */, 0, 0),
-            module_handler_->BindOnce(impl::check_status));
+            module_handler_->BindOnce(check_complete<LeSetExtendedScanEnableCompleteView>));
         break;
       case ScanApiType::ANDROID_HCI:
       case ScanApiType::LEGACY:
         le_scanning_interface_->EnqueueCommand(
-            LeSetScanEnableBuilder::Create(Enable::ENABLED, Enable::DISABLED /* filter duplicates */),
-            module_handler_->BindOnce(impl::check_status));
+            LeSetScanEnableBuilder::Create(
+                Enable::ENABLED, Enable::DISABLED /* filter duplicates */),
+            module_handler_->BindOnce(check_complete<LeSetScanEnableCompleteView>));
         break;
     }
   }
@@ -613,13 +615,14 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
         le_scanning_interface_->EnqueueCommand(
             LeSetExtendedScanEnableBuilder::Create(
                 Enable::DISABLED, FilterDuplicates::DISABLED /* filter duplicates */, 0, 0),
-            module_handler_->BindOnce(impl::check_status));
+            module_handler_->BindOnce(check_complete<LeSetExtendedScanEnableCompleteView>));
         break;
       case ScanApiType::ANDROID_HCI:
       case ScanApiType::LEGACY:
         le_scanning_interface_->EnqueueCommand(
-            LeSetScanEnableBuilder::Create(Enable::DISABLED, Enable::DISABLED /* filter duplicates */),
-            module_handler_->BindOnce(impl::check_status));
+            LeSetScanEnableBuilder::Create(
+                Enable::DISABLED, Enable::DISABLED /* filter duplicates */),
+            module_handler_->BindOnce(check_complete<LeSetScanEnableCompleteView>));
         break;
     }
   }
@@ -1678,29 +1681,6 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
   std::unordered_map<uint8_t, ScannerId> tracker_id_map_;
   uint16_t total_num_of_advt_tracked_ = 0x00;
   int8_t le_rx_path_loss_comp_ = 0;
-
-  static void check_status(CommandCompleteView view) {
-    switch (view.GetCommandOpCode()) {
-      case (OpCode::LE_SET_SCAN_ENABLE): {
-        auto status_view = LeSetScanEnableCompleteView::Create(view);
-        ASSERT(status_view.IsValid());
-        ASSERT_LOG(
-            status_view.GetStatus() == ErrorCode::SUCCESS,
-            "Receive set scan enable with error code %s",
-            ErrorCodeText(status_view.GetStatus()).c_str());
-      } break;
-      case (OpCode::LE_SET_EXTENDED_SCAN_ENABLE): {
-        auto status_view = LeSetExtendedScanEnableCompleteView::Create(view);
-        ASSERT(status_view.IsValid());
-        ASSERT_LOG(
-            status_view.GetStatus() == ErrorCode::SUCCESS,
-            "Receive set extended scan enable with error code %s",
-            ErrorCodeText(status_view.GetStatus()).c_str());
-      } break;
-      default:
-        LOG_ALWAYS_FATAL("Unhandled event %s", OpCodeText(view.GetCommandOpCode()).c_str());
-    }
-  }
 };
 
 LeScanningManager::LeScanningManager() {
