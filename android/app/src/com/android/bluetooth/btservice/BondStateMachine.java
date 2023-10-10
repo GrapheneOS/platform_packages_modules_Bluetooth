@@ -343,6 +343,14 @@ final class BondStateMachine extends StateMachine {
                 return true;
             }
         }
+
+        Log.w(
+                TAG,
+                dev.getAddressForLogging()
+                        + " cannot be removed since "
+                        + ((devProp == null)
+                                ? "properties are empty"
+                                : "bond state is " + devProp.getBondState()));
         return false;
     }
 
