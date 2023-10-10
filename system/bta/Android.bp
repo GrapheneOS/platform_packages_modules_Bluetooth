@@ -405,6 +405,7 @@ cc_test {
         "test/bta_ag_sco_test.cc",
         "test/bta_api_test.cc",
         "test/bta_av_test.cc",
+        "test/bta_disc_test.cc",
         "test/bta_dm_cust_uuid_test.cc",
         "test/bta_dm_test.cc",
         "test/bta_gatt_test.cc",
