@@ -34,7 +34,6 @@ import static com.android.bluetooth.Utils.getBytesFromAddress;
 import static com.android.bluetooth.Utils.hasBluetoothPrivilegedPermission;
 import static com.android.bluetooth.Utils.isDualModeAudioEnabled;
 import static com.android.bluetooth.Utils.isPackageNameAccurate;
-
 import static java.util.Objects.requireNonNull;
 
 import android.annotation.NonNull;
@@ -2801,6 +2800,13 @@ public class AdapterService extends Service {
 
             DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
             if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDED) {
+                Log.w(
+                        TAG,
+                        device.getAddressForLogging()
+                                + " cannot be removed since "
+                                + ((deviceProp == null)
+                                        ? "properties are empty"
+                                        : "bond state is " + deviceProp.getBondState()));
                 return false;
             }
             service.mBondAttemptCallerInfo.remove(device.getAddress());
