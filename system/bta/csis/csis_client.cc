@@ -1314,6 +1314,18 @@ class CsisClientImpl : public CsisClient {
       return;
     }
 
+    /* Make sure device is not already bonded which could
+     * be a case for dual mode devices where
+     */
+    tBTM_SEC_DEV_REC* p_dev = btm_find_dev(result->bd_addr);
+    if (p_dev && p_dev->is_le_link_key_known()) {
+      LOG_VERBOSE(
+          "Device %s already bonded. Identity address: %s",
+          ADDRESS_TO_LOGGABLE_CSTR(result->bd_addr),
+          ADDRESS_TO_LOGGABLE_CSTR(p_dev->ble.identity_address_with_type));
+      return;
+    }
+
     auto all_rsi = GetAllRsiFromAdvertising(result);
     if (all_rsi.empty()) return;
 
@@ -1451,6 +1463,18 @@ class CsisClientImpl : public CsisClient {
     if (csis_device) {
       LOG_DEBUG("Drop known device %s",
                 ADDRESS_TO_LOGGABLE_CSTR(result->bd_addr));
+      return;
+    }
+
+    /* Make sure device is not already bonded which could
+     * be a case for dual mode devices where
+     */
+    tBTM_SEC_DEV_REC* p_dev = btm_find_dev(result->bd_addr);
+    if (p_dev && p_dev->is_le_link_key_known()) {
+      LOG_VERBOSE(
+          "Device %s already bonded. Identity address: %s",
+          ADDRESS_TO_LOGGABLE_CSTR(result->bd_addr),
+          ADDRESS_TO_LOGGABLE_CSTR(p_dev->ble.identity_address_with_type));
       return;
     }
 
