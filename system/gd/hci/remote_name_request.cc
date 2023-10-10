@@ -22,7 +22,7 @@
 #include <variant>
 
 #include "hci/acl_manager/acl_scheduler.h"
-#include "hci/acl_manager/event_checkers.h"
+#include "hci/event_checkers.h"
 #include "hci/hci_layer.h"
 
 namespace bluetooth {
@@ -150,8 +150,7 @@ struct RemoteNameRequestModule::impl {
     LOG_INFO("Cancelling remote name request to %s", address.ToRedactedStringForLogging().c_str());
     hci_layer_->EnqueueCommand(
         RemoteNameRequestCancelBuilder::Create(address),
-        handler_->BindOnce(
-            &acl_manager::check_command_complete<RemoteNameRequestCancelCompleteView>));
+        handler_->BindOnce(check_complete<RemoteNameRequestCancelCompleteView>));
   }
 
   void on_remote_host_supported_features_notification(EventView view) {
