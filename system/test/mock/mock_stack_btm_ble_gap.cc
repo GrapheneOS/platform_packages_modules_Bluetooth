@@ -64,6 +64,10 @@ using SyncReportCb = base::Callback<void(
 using SyncLostCb = base::Callback<void(uint16_t /*sync_handle*/)>;
 using SyncTransferCb = base::Callback<void(uint8_t /*status*/, RawAddress)>;
 
+bool ble_vnd_is_included() {
+  inc_func_call_count(__func__);
+  return false;
+}
 bool BTM_BleConfigPrivacy(bool privacy_mode) {
   inc_func_call_count(__func__);
   return false;

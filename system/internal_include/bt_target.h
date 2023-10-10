@@ -499,14 +499,6 @@
 #define LOCAL_BLE_CONTROLLER_ID 1
 #endif
 
-/*
- * Toggles support for vendor specific extensions such as RPA offloading,
- * feature discovery, multi-adv etc.
- */
-#ifndef BLE_VND_INCLUDED
-#define BLE_VND_INCLUDED TRUE
-#endif
-
 /* The maximum number of simultaneous applications that can register with LE
  * L2CAP. */
 #ifndef BLE_MAX_L2CAP_CLIENTS
