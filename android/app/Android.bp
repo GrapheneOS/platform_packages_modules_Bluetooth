@@ -55,7 +55,12 @@ java_library {
 
 cc_library_shared {
     name: "libbluetooth_jni",
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "latest_android_hardware_audio_common_ndk_static",
+        "latest_android_hardware_bluetooth_audio_ndk_static",
+        "latest_android_media_audio_common_types_ndk_static",
+    ],
     srcs: ["jni/**/*.cpp"],
     version_script: "libbluetooth_jni.map",
     header_libs: [
@@ -77,16 +82,13 @@ cc_library_shared {
     // is required to maintain FIPS compliance.
     stl: "libc++_static",
     static_libs: [
-        "android.hardware.audio.common-V2-ndk",
         "android.hardware.audio.common@5.0",
-        "android.hardware.bluetooth.audio-V3-ndk",
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
         "android.hardware.common-V2-ndk",
         "android.hardware.common.fmq-V1-ndk",
-        "android.media.audio.common.types-V2-ndk",
         "android.system.suspend-V1-ndk",
         "android.system.suspend.control-V1-ndk",
         "avrcp-target-service",
