@@ -514,10 +514,10 @@ void power_telemetry::PowerTelemetry::LogChannelConnected(
   ChannelDetails channel_details = {
       .bd_addr = bd_addr,
       .psm = psm,
-      .channel_type = channel_type,
       .src.cid = static_cast<uint16_t>(src_id),
       .dst.cid = static_cast<uint16_t>(dst_id),
       .state = State::kConnected,
+      .channel_type = channel_type,
       .data_transfer = {},
       .duration.begin = get_current_time(),
       .rx = {},
