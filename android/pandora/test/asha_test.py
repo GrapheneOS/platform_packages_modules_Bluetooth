@@ -1018,6 +1018,10 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
         assert_is_not_none(start_result_left['volume'])
         assert_equal(start_result_left['otherstate'], 0)
 
+        # Start playing audio before connecting to ref_right
+        generated_audio = self.generate_sine(connection=dut_ref_left)
+        dut_asha.PlaybackAudio(generated_audio)
+
         # connect ref_right
         dut_ref_right, ref_right_dut = await ref_device_connect(self.ref_right, Ear.RIGHT)
         le_psm_future_right = self.get_le_psm_future(self.ref_right)
