@@ -337,6 +337,11 @@ bool btif_config_remove(const std::string& section, const std::string& key) {
   return bluetooth::shim::BtifConfigInterface::RemoveProperty(section, key);
 }
 
+void btif_config_remove_device(const std::string& section) {
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  bluetooth::shim::BtifConfigInterface::RemoveSection(section);
+}
+
 bool btif_config_clear(void) {
   CHECK(bluetooth::shim::is_gd_stack_started_up());
   bluetooth::shim::BtifConfigInterface::Clear();
