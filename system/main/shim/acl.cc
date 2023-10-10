@@ -826,15 +826,10 @@ class LeShimAclConnection
 
   void OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy,
                    uint8_t rx_phy) override {
-    if (common::init_flags::pass_phy_update_callback_is_enabled()) {
-      TRY_POSTING_ON_MAIN(
-          interface_.on_phy_update,
-          static_cast<tGATT_STATUS>(ToLegacyHciErrorCode(hci_status)), handle_,
-          tx_phy, rx_phy);
-    } else {
-      LOG_WARN("Not posting OnPhyUpdate callback since it is disabled: (tx:%x, rx:%x, status:%s)",
-               tx_phy, rx_phy, hci::ErrorCodeText(hci_status).c_str());
-    }
+    TRY_POSTING_ON_MAIN(
+        interface_.on_phy_update,
+        static_cast<tGATT_STATUS>(ToLegacyHciErrorCode(hci_status)), handle_,
+        tx_phy, rx_phy);
   }
 
   void OnDisconnection(hci::ErrorCode reason) {
