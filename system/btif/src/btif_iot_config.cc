@@ -110,9 +110,9 @@ void btif_iot_update_remote_info(tBTA_DM_AUTH_CMPL* p_auth_cmpl, bool is_ble,
 
   // save remote dev type to iot conf file
   bt_device_type_t dev_type;
-  uint8_t remote_dev_type;
+  uint32_t remote_dev_type;
   BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
-                             BT_PROPERTY_TYPE_OF_DEVICE, sizeof(uint8_t),
+                             BT_PROPERTY_TYPE_OF_DEVICE, sizeof(uint32_t),
                              &remote_dev_type);
   if (btif_storage_get_remote_device_property(&p_auth_cmpl->bd_addr,
                                               &properties[num_properties]) ==
