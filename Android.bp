@@ -73,6 +73,8 @@ cc_defaults {
         "-Wall",
         "-Werror",
         "-Wextra",
+        // Override global.go that demote the error to a warning
+        "-Werror=reorder-init-list",
     ],
     c_std: "c99",
     cpp_std: "c++17",
