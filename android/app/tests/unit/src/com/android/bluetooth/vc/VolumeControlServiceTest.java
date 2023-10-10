@@ -677,6 +677,43 @@ public class VolumeControlServiceTest {
         Assert.assertEquals(volume, mService.getGroupVolume(groupId));
     }
 
+    /** Test Active Group change */
+    @Test
+    public void testActiveGroupChange() throws Exception {
+        int groupId_1 = 1;
+        int volume_groupId_1 = 6;
+
+        int groupId_2 = 2;
+        int volume_groupId_2 = 20;
+
+        Assert.assertEquals(-1, mService.getGroupVolume(groupId_1));
+        Assert.assertEquals(-1, mService.getGroupVolume(groupId_2));
+        SynchronousResultReceiver<Void> voidRecv = SynchronousResultReceiver.get();
+        mServiceBinder.setGroupVolume(groupId_1, volume_groupId_1, mAttributionSource, voidRecv);
+        voidRecv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS));
+
+        voidRecv = SynchronousResultReceiver.get();
+        mServiceBinder.setGroupVolume(groupId_2, volume_groupId_2, mAttributionSource, voidRecv);
+        voidRecv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS));
+
+        voidRecv = SynchronousResultReceiver.get();
+        mServiceBinder.setGroupActive(groupId_1, true, mAttributionSource, voidRecv);
+        voidRecv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS));
+
+        // Expected index for STREAM_MUSIC
+        int expectedVol =
+                (int) Math.round((double) (volume_groupId_1 * MEDIA_MAX_VOL) / BT_LE_AUDIO_MAX_VOL);
+        verify(mAudioManager, times(1)).setStreamVolume(anyInt(), eq(expectedVol), anyInt());
+
+        voidRecv = SynchronousResultReceiver.get();
+        mServiceBinder.setGroupActive(groupId_2, true, mAttributionSource, voidRecv);
+
+        expectedVol =
+                (int) Math.round((double) (volume_groupId_2 * MEDIA_MAX_VOL) / BT_LE_AUDIO_MAX_VOL);
+        verify(mAudioManager, times(1)).setStreamVolume(anyInt(), eq(expectedVol), anyInt());
+        voidRecv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS));
+    }
+
     /**
      * Test Volume Control Mute cache.
      */
