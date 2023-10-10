@@ -49,7 +49,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
-import android.hardware.radio.V1_0.ISap;
+import com.android.bluetooth.x.android.hardware.radio.V1_0.ISap;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
