@@ -22,6 +22,7 @@
 #include "common/callback.h"
 #include "common/init_flags.h"
 #include "hci/address_with_type.h"
+#include "hci/event_checkers.h"
 #include "hci/hci_packets.h"
 #include "hci/le_scanning_callback.h"
 #include "hci/le_scanning_interface.h"
@@ -118,14 +119,13 @@ class PeriodicSyncManager {
       LOG_ERROR("[PSync]: invalid index for handle %u", handle);
       le_scanning_interface_->EnqueueCommand(
           hci::LePeriodicAdvertisingTerminateSyncBuilder::Create(handle),
-          handler_->BindOnceOn(
-              this, &PeriodicSyncManager::check_status<LePeriodicAdvertisingTerminateSyncCompleteView>));
+          handler_->BindOnce(check_complete<LePeriodicAdvertisingTerminateSyncCompleteView>));
       return;
     };
     periodic_syncs_.erase(periodic_sync);
     le_scanning_interface_->EnqueueCommand(
         hci::LePeriodicAdvertisingTerminateSyncBuilder::Create(handle),
-        handler_->BindOnceOn(this, &PeriodicSyncManager::check_status<LePeriodicAdvertisingTerminateSyncCompleteView>));
+        handler_->BindOnce(check_complete<LePeriodicAdvertisingTerminateSyncCompleteView>));
   }
 
   void CancelCreateSync(uint8_t adv_sid, Address address) {
@@ -198,9 +198,8 @@ class PeriodicSyncManager {
     le_scanning_interface_->EnqueueCommand(
         hci::LeSetDefaultPeriodicAdvertisingSyncTransferParametersBuilder::Create(
             static_cast<SyncTransferMode>(mode), skip, timeout, sync_cte_type),
-        handler_->BindOnceOn(
-            this,
-            &PeriodicSyncManager::check_status<LeSetDefaultPeriodicAdvertisingSyncTransferParametersCompleteView>));
+        handler_->BindOnce(
+            check_complete<LeSetDefaultPeriodicAdvertisingSyncTransferParametersCompleteView>));
   }
 
   void HandlePeriodicAdvertisingCreateSyncStatus(CommandStatusView) {}
@@ -235,24 +234,6 @@ class PeriodicSyncManager {
     callbacks_->OnPeriodicSyncTransferred(
         periodic_sync_transfer->pa_source, (uint16_t)status_view.GetStatus(), periodic_sync_transfer->addr);
     periodic_sync_transfers_.erase(periodic_sync_transfer);
-  }
-
-  template <class View>
-  void check_status(CommandCompleteView view) {
-    ASSERT(view.IsValid());
-    auto status_view = View::Create(view);
-    ASSERT(status_view.IsValid());
-    if (status_view.GetStatus() != ErrorCode::SUCCESS) {
-      LOG_WARN(
-          "Got a Command complete %s, status %s",
-          OpCodeText(view.GetCommandOpCode()).c_str(),
-          ErrorCodeText(status_view.GetStatus()).c_str());
-    } else {
-      LOG_DEBUG(
-          "Got a Command complete %s, status %s",
-          OpCodeText(view.GetCommandOpCode()).c_str(),
-          ErrorCodeText(status_view.GetStatus()).c_str());
-    }
   }
 
   void HandleLePeriodicAdvertisingSyncEstablished(LePeriodicAdvertisingSyncEstablishedView event_view) {
@@ -296,8 +277,7 @@ class PeriodicSyncManager {
         LOG_WARN("Terminate sync");
         le_scanning_interface_->EnqueueCommand(
             hci::LePeriodicAdvertisingTerminateSyncBuilder::Create(event_view.GetSyncHandle()),
-            handler_->BindOnceOn(
-                this, &PeriodicSyncManager::check_status<LePeriodicAdvertisingTerminateSyncCompleteView>));
+            handler_->BindOnce(check_complete<LePeriodicAdvertisingTerminateSyncCompleteView>));
       }
       AdvanceRequest();
       return;
