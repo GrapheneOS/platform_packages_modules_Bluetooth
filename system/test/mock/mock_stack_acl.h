@@ -144,6 +144,15 @@ struct BTM_ReadRemoteConnectionAddr {
   };
 };
 extern struct BTM_ReadRemoteConnectionAddr BTM_ReadRemoteConnectionAddr;
+// Name: BTM_IsRemoteVersionReceived
+// Params: const RawAddress& addr
+// Returns: bool
+struct BTM_IsRemoteVersionReceived {
+  std::function<bool(const RawAddress& addr)> body{
+      [](const RawAddress& addr) { return false; }};
+  bool operator()(const RawAddress& addr) { return body(addr); };
+};
+extern struct BTM_IsRemoteVersionReceived BTM_IsRemoteVersionReceived;
 // Name: BTM_ReadRemoteVersion
 // Params: const RawAddress& addr, uint8_t* lmp_version, uint16_t*
 // manufacturer, uint16_t* lmp_sub_version

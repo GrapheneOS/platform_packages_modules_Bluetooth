@@ -22,6 +22,7 @@
 #include "types/raw_address.h"
 
 void tACL_CONN::Reset() {
+  remote_version_received = false;
   memset(peer_le_features, 0, sizeof(peer_le_features));
   peer_le_features_valid = false;
   memset(peer_lmp_feature_pages, 0, sizeof(peer_lmp_feature_pages));
