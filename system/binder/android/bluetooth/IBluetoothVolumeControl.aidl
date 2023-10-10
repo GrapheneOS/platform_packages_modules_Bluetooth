@@ -56,6 +56,9 @@ oneway interface IBluetoothVolumeControl {
     void setGroupVolume(int group_id, int volume, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     void getGroupVolume(int group_id, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+    @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
+    void setGroupActive(int group_id, boolean active, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+
 
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     void mute(in BluetoothDevice device, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
