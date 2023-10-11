@@ -19,16 +19,13 @@
 #include "main/shim/controller.h"
 
 #include "btcore/include/module.h"
-#include "gd/common/contextual_callback.h"
-#include "gd/common/init_flags.h"
 #include "gd/hci/controller.h"
 #include "hci/controller.h"
 #include "main/shim/entry.h"
 #include "main/shim/helpers.h"
 #include "main/shim/shim.h"
-#include "main/shim/stack.h"
 #include "osi/include/future.h"
-#include "osi/include/log.h"
+#include "stack/include/btm_status.h"
 #include "types/raw_address.h"
 
 using ::bluetooth::shim::GetController;
