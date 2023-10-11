@@ -83,30 +83,6 @@
 #define BT_ISO_HDR_CONTAINS_TS (0x0001)
 #define BT_ISO_HDR_OFFSET_POINTS_DATA (0x0002)
 
-enum {
-  BT_PSM_SDP = 0x0001,
-  BT_PSM_RFCOMM = 0x0003,
-  BT_PSM_TCS = 0x0005,
-  BT_PSM_CTP = 0x0007,
-  BT_PSM_BNEP = 0x000F,
-  BT_PSM_HIDC = 0x0011,
-  HID_PSM_CONTROL = 0x0011,
-  BT_PSM_HIDI = 0x0013,
-  HID_PSM_INTERRUPT = 0x0013,
-  BT_PSM_UPNP = 0x0015,
-  BT_PSM_AVCTP = 0x0017,
-  BT_PSM_AVDTP = 0x0019,
-  BT_PSM_AVCTP_13 = 0x001B, /* Advanced Control - Browsing */
-  BT_PSM_UDI_CP =
-      0x001D,          /* Unrestricted Digital Information Profile C-Plane  */
-  BT_PSM_ATT = 0x001F, /* Attribute Protocol  */
-  BT_PSM_EATT = 0x0027,
-  /* We will not allocate a PSM in the reserved range to 3rd party apps
-   */
-  BRCM_RESERVED_PSM_START = 0x5AE1,
-  BRCM_RESERVED_PSM_END = 0x5AFF,
-};
-
 /*******************************************************************************
  * Macros to get and put bytes to and from a stream (Little Endian format).
  */
