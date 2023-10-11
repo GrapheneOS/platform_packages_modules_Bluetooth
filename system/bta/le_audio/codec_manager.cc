@@ -389,8 +389,8 @@ struct codec_manager_impl {
   }
 
   bool IsLc3ConfigMatched(
-      const set_configurations::CodecCapabilitySetting& adsp_config,
-      const set_configurations::CodecCapabilitySetting& target_config) {
+      const set_configurations::CodecConfigSetting& adsp_config,
+      const set_configurations::CodecConfigSetting& target_config) {
     if (adsp_config.id.coding_format != types::kLeAudioCodingFormatLC3 ||
         target_config.id.coding_format != types::kLeAudioCodingFormatLC3) {
       return false;

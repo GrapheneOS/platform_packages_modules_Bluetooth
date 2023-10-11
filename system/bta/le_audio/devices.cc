@@ -26,7 +26,7 @@
 using bluetooth::hci::kIsoCigPhy1M;
 using bluetooth::hci::kIsoCigPhy2M;
 using le_audio::DeviceConnectState;
-using le_audio::set_configurations::CodecCapabilitySetting;
+using le_audio::set_configurations::CodecConfigSetting;
 using le_audio::types::ase;
 using le_audio::types::AseState;
 using le_audio::types::AudioContexts;
@@ -673,7 +673,7 @@ uint8_t LeAudioDevice::GetLc3SupportedChannelCount(uint8_t direction) {
 
 const struct types::acs_ac_record*
 LeAudioDevice::GetCodecConfigurationSupportedPac(
-    uint8_t direction, const CodecCapabilitySetting& codec_capability_setting) {
+    uint8_t direction, const CodecConfigSetting& codec_capability_setting) {
   auto& pacs =
       direction == types::kLeAudioDirectionSink ? snk_pacs_ : src_pacs_;
 
@@ -689,7 +689,7 @@ LeAudioDevice::GetCodecConfigurationSupportedPac(
     auto& pac_recs = std::get<1>(pac_tuple);
 
     for (const auto& pac : pac_recs) {
-      if (!IsCodecCapabilitySettingSupported(pac, codec_capability_setting))
+      if (!IsCodecConfigSettingSupported(pac, codec_capability_setting))
         continue;
 
       return &pac;

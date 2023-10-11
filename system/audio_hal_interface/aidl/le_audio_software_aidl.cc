@@ -465,7 +465,7 @@ std::unordered_map<AudioLocation, uint32_t> audio_location_map{
 
 bool hal_ucast_capability_to_stack_format(
     const UnicastCapability& hal_capability,
-    CodecCapabilitySetting& stack_capability) {
+    CodecConfigSetting& stack_capability) {
   if (hal_capability.codecType != CodecType::LC3) {
     LOG(WARNING) << "Unsupported codecType: "
                  << toString(hal_capability.codecType);
@@ -513,7 +513,7 @@ bool hal_ucast_capability_to_stack_format(
 
 bool hal_bcast_capability_to_stack_format(
     const BroadcastCapability& hal_bcast_capability,
-    CodecCapabilitySetting& stack_capability) {
+    CodecConfigSetting& stack_capability) {
   if (hal_bcast_capability.codecType != CodecType::LC3) {
     LOG(WARNING) << "Unsupported codecType: "
                  << toString(hal_bcast_capability.codecType);
@@ -574,7 +574,7 @@ std::vector<AudioSetConfiguration> get_offload_capabilities() {
   std::string str_capability_log;
 
   for (auto hal_cap : le_audio_hal_capabilities) {
-    CodecCapabilitySetting encode_cap, decode_cap, bcast_cap;
+    CodecConfigSetting encode_cap, decode_cap, bcast_cap;
     UnicastCapability hal_encode_cap =
         hal_cap.get<AudioCapabilities::leAudioCapabilities>()
             .unicastEncodeCapability;

@@ -37,7 +37,7 @@ using types::acs_ac_record;
 using types::LeAudioContextType;
 
 namespace set_configurations {
-using set_configurations::CodecCapabilitySetting;
+using set_configurations::CodecConfigSetting;
 using types::CodecLocation;
 using types::kLeAudioCodingFormatLC3;
 using types::kLeAudioDirectionSink;
@@ -365,9 +365,9 @@ static bool IsCodecConfigurationSupported(
   return true;
 }
 
-bool IsCodecCapabilitySettingSupported(
+bool IsCodecConfigSettingSupported(
     const acs_ac_record& pac,
-    const CodecCapabilitySetting& codec_capability_setting) {
+    const CodecConfigSetting& codec_capability_setting) {
   const auto& codec_id = codec_capability_setting.id;
 
   if (codec_id != pac.codec_id) return false;
@@ -384,7 +384,7 @@ bool IsCodecCapabilitySettingSupported(
   }
 }
 
-uint32_t CodecCapabilitySetting::GetConfigSamplingFrequency() const {
+uint32_t CodecConfigSetting::GetConfigSamplingFrequency() const {
   switch (id.coding_format) {
     case kLeAudioCodingFormatLC3:
       return std::get<types::LeAudioCoreCodecConfig>(config)
@@ -395,7 +395,7 @@ uint32_t CodecCapabilitySetting::GetConfigSamplingFrequency() const {
   }
 };
 
-uint32_t CodecCapabilitySetting::GetConfigDataIntervalUs() const {
+uint32_t CodecConfigSetting::GetConfigDataIntervalUs() const {
   switch (id.coding_format) {
     case kLeAudioCodingFormatLC3:
       return std::get<types::LeAudioCoreCodecConfig>(config)
@@ -406,7 +406,7 @@ uint32_t CodecCapabilitySetting::GetConfigDataIntervalUs() const {
   }
 };
 
-uint8_t CodecCapabilitySetting::GetConfigBitsPerSample() const {
+uint8_t CodecConfigSetting::GetConfigBitsPerSample() const {
   switch (id.coding_format) {
     case kLeAudioCodingFormatLC3:
       /* XXX LC3 supports 16, 24, 32 */
@@ -417,7 +417,7 @@ uint8_t CodecCapabilitySetting::GetConfigBitsPerSample() const {
   }
 };
 
-uint8_t CodecCapabilitySetting::GetConfigChannelCount() const {
+uint8_t CodecConfigSetting::GetConfigChannelCount() const {
   switch (id.coding_format) {
     case kLeAudioCodingFormatLC3:
       LOG_DEBUG(

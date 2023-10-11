@@ -396,8 +396,7 @@ class PublishedAudioCapabilitiesBuilder {
                        .metadata = std::vector<uint8_t>(0)}));
   }
 
-  void Add(const CodecCapabilitySetting& setting,
-           uint8_t audio_channel_counts) {
+  void Add(const CodecConfigSetting& setting, uint8_t audio_channel_counts) {
     if (setting.id != LeAudioCodecIdLc3) return;
 
     const LeAudioCoreCodecConfig config =
