@@ -23,6 +23,8 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
+
 #include <cstdint>
 
 #include "main/shim/dumpsys.h"
@@ -30,12 +32,11 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_psm_types.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/l2c_api.h"
 #include "stack/rfcomm/port_int.h"
 #include "stack/rfcomm/rfc_int.h"
-
-#include <base/logging.h>
 
 #define L2CAP_SUCCESS 0
 #define L2CAP_ERROR 1
