@@ -1248,6 +1248,14 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                                                         ase->direction);
   }
 
+  static bool isIntervalAndLatencyProperlySet(uint32_t sdu_interval_us,
+                                              uint16_t max_latency_ms) {
+    if (sdu_interval_us == 0) {
+      return max_latency_ms == le_audio::types::kMaxTransportLatencyMin;
+    }
+    return ((1000 * max_latency_ms) > sdu_interval_us);
+  }
+
   bool CigCreate(LeAudioDeviceGroup* group) {
     uint32_t sdu_interval_mtos, sdu_interval_stom;
     uint16_t max_trans_lat_mtos, max_trans_lat_stom;
@@ -1279,6 +1287,15 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         group->GetPhyBitmask(le_audio::types::kLeAudioDirectionSink);
     uint8_t phy_stom =
         group->GetPhyBitmask(le_audio::types::kLeAudioDirectionSource);
+
+    if (!isIntervalAndLatencyProperlySet(sdu_interval_mtos,
+                                         max_trans_lat_mtos) ||
+        !isIntervalAndLatencyProperlySet(sdu_interval_stom,
+                                         max_trans_lat_stom)) {
+      LOG_ERROR("Latency and interval not properly set");
+      group->PrintDebugState();
+      return false;
+    }
 
     // Use 1M Phy for the ACK packet from remote device to phone for better
     // sensitivity
