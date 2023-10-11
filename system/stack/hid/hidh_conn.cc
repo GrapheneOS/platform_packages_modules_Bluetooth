@@ -40,6 +40,7 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_psm_types.h"
 #include "stack/include/btm_api.h"  // BTM_LogHistory
 #include "stack/include/stack_metrics_logging.h"
 #include "types/raw_address.h"
