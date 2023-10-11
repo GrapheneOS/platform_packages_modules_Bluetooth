@@ -15,8 +15,9 @@
  */
 
 #include "hci/acl_manager/classic_acl_connection.h"
-#include "hci/acl_manager/event_checkers.h"
+
 #include "hci/address.h"
+#include "hci/event_checkers.h"
 #include "os/metrics.h"
 
 using bluetooth::hci::Address;
@@ -369,71 +370,73 @@ void ClassicAclConnection::RegisterCallbacks(ConnectionManagementCallbacks* call
 bool ClassicAclConnection::Disconnect(DisconnectReason reason) {
   acl_connection_interface_->EnqueueCommand(
       DisconnectBuilder::Create(handle_, reason),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_status<DisconnectStatusView>));
+      pimpl_->tracker.client_handler_->BindOnce(check_status<DisconnectStatusView>));
   return true;
 }
 
 bool ClassicAclConnection::ChangeConnectionPacketType(uint16_t packet_type) {
   acl_connection_interface_->EnqueueCommand(
       ChangeConnectionPacketTypeBuilder::Create(handle_, packet_type),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_status<ChangeConnectionPacketTypeStatusView>));
+      pimpl_->tracker.client_handler_->BindOnce(
+          check_status<ChangeConnectionPacketTypeStatusView>));
   return true;
 }
 
 bool ClassicAclConnection::AuthenticationRequested() {
   acl_connection_interface_->EnqueueCommand(
       AuthenticationRequestedBuilder::Create(handle_),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_status<AuthenticationRequestedStatusView>));
+      pimpl_->tracker.client_handler_->BindOnce(check_status<AuthenticationRequestedStatusView>));
   return true;
 }
 
 bool ClassicAclConnection::SetConnectionEncryption(Enable enable) {
   acl_connection_interface_->EnqueueCommand(
       SetConnectionEncryptionBuilder::Create(handle_, enable),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_status<SetConnectionEncryptionStatusView>));
+      pimpl_->tracker.client_handler_->BindOnce(check_status<SetConnectionEncryptionStatusView>));
   return true;
 }
 
 bool ClassicAclConnection::ChangeConnectionLinkKey() {
   acl_connection_interface_->EnqueueCommand(
       ChangeConnectionLinkKeyBuilder::Create(handle_),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_status<ChangeConnectionLinkKeyStatusView>));
+      pimpl_->tracker.client_handler_->BindOnce(check_status<ChangeConnectionLinkKeyStatusView>));
   return true;
 }
 
 bool ClassicAclConnection::ReadClockOffset() {
   acl_connection_interface_->EnqueueCommand(
       ReadClockOffsetBuilder::Create(handle_),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_status<ReadClockOffsetStatusView>));
+      pimpl_->tracker.client_handler_->BindOnce(check_status<ReadClockOffsetStatusView>));
   return true;
 }
 
 bool ClassicAclConnection::HoldMode(uint16_t max_interval, uint16_t min_interval) {
   acl_connection_interface_->EnqueueCommand(
       HoldModeBuilder::Create(handle_, max_interval, min_interval),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_status<HoldModeStatusView>));
+      pimpl_->tracker.client_handler_->BindOnce(check_status<HoldModeStatusView>));
   return true;
 }
 
 bool ClassicAclConnection::SniffMode(uint16_t max_interval, uint16_t min_interval, uint16_t attempt, uint16_t timeout) {
   acl_connection_interface_->EnqueueCommand(
       SniffModeBuilder::Create(handle_, max_interval, min_interval, attempt, timeout),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_status<SniffModeStatusView>));
+      pimpl_->tracker.client_handler_->BindOnce(check_status<SniffModeStatusView>));
   return true;
 }
 
 bool ClassicAclConnection::ExitSniffMode() {
   acl_connection_interface_->EnqueueCommand(
       ExitSniffModeBuilder::Create(handle_),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_status<ExitSniffModeStatusView>));
+      pimpl_->tracker.client_handler_->BindOnce(check_status<ExitSniffModeStatusView>));
   return true;
 }
 
 bool ClassicAclConnection::QosSetup(ServiceType service_type, uint32_t token_rate, uint32_t peak_bandwidth,
                                     uint32_t latency, uint32_t delay_variation) {
   acl_connection_interface_->EnqueueCommand(
-      QosSetupBuilder::Create(handle_, service_type, token_rate, peak_bandwidth, latency, delay_variation),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_status<QosSetupStatusView>));
+      QosSetupBuilder::Create(
+          handle_, service_type, token_rate, peak_bandwidth, latency, delay_variation),
+      pimpl_->tracker.client_handler_->BindOnce(check_status<QosSetupStatusView>));
   return true;
 }
 
@@ -455,7 +458,8 @@ bool ClassicAclConnection::ReadLinkPolicySettings() {
 bool ClassicAclConnection::WriteLinkPolicySettings(uint16_t link_policy_settings) {
   acl_connection_interface_->EnqueueCommand(
       WriteLinkPolicySettingsBuilder::Create(handle_, link_policy_settings),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_complete<WriteLinkPolicySettingsCompleteView>));
+      pimpl_->tracker.client_handler_->BindOnce(
+          check_complete<WriteLinkPolicySettingsCompleteView>));
   return true;
 }
 
@@ -463,24 +467,31 @@ bool ClassicAclConnection::FlowSpecification(FlowDirection flow_direction, Servi
                                              uint32_t token_rate, uint32_t token_bucket_size, uint32_t peak_bandwidth,
                                              uint32_t access_latency) {
   acl_connection_interface_->EnqueueCommand(
-      FlowSpecificationBuilder::Create(handle_, flow_direction, service_type, token_rate, token_bucket_size,
-                                       peak_bandwidth, access_latency),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_status<FlowSpecificationStatusView>));
+      FlowSpecificationBuilder::Create(
+          handle_,
+          flow_direction,
+          service_type,
+          token_rate,
+          token_bucket_size,
+          peak_bandwidth,
+          access_latency),
+      pimpl_->tracker.client_handler_->BindOnce(check_status<FlowSpecificationStatusView>));
   return true;
 }
 
 bool ClassicAclConnection::SniffSubrating(uint16_t maximum_latency, uint16_t minimum_remote_timeout,
                                           uint16_t minimum_local_timeout) {
   acl_connection_interface_->EnqueueCommand(
-      SniffSubratingBuilder::Create(handle_, maximum_latency, minimum_remote_timeout, minimum_local_timeout),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_complete<SniffSubratingCompleteView>));
+      SniffSubratingBuilder::Create(
+          handle_, maximum_latency, minimum_remote_timeout, minimum_local_timeout),
+      pimpl_->tracker.client_handler_->BindOnce(check_complete<SniffSubratingCompleteView>));
   return true;
 }
 
 bool ClassicAclConnection::Flush() {
   acl_connection_interface_->EnqueueCommand(
       FlushBuilder::Create(handle_),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_complete<FlushCompleteView>));
+      pimpl_->tracker.client_handler_->BindOnce(check_complete<FlushCompleteView>));
   return true;
 }
 
@@ -495,7 +506,8 @@ bool ClassicAclConnection::ReadAutomaticFlushTimeout() {
 bool ClassicAclConnection::WriteAutomaticFlushTimeout(uint16_t flush_timeout) {
   acl_connection_interface_->EnqueueCommand(
       WriteAutomaticFlushTimeoutBuilder::Create(handle_, flush_timeout),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_complete<WriteAutomaticFlushTimeoutCompleteView>));
+      pimpl_->tracker.client_handler_->BindOnce(
+          check_complete<WriteAutomaticFlushTimeoutCompleteView>));
   return true;
 }
 
@@ -518,7 +530,8 @@ bool ClassicAclConnection::ReadLinkSupervisionTimeout() {
 bool ClassicAclConnection::WriteLinkSupervisionTimeout(uint16_t link_supervision_timeout) {
   acl_connection_interface_->EnqueueCommand(
       WriteLinkSupervisionTimeoutBuilder::Create(handle_, link_supervision_timeout),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_complete<WriteLinkSupervisionTimeoutCompleteView>));
+      pimpl_->tracker.client_handler_->BindOnce(
+          check_complete<WriteLinkSupervisionTimeoutCompleteView>));
   return true;
 }
 
@@ -533,7 +546,8 @@ bool ClassicAclConnection::ReadFailedContactCounter() {
 bool ClassicAclConnection::ResetFailedContactCounter() {
   acl_connection_interface_->EnqueueCommand(
       ResetFailedContactCounterBuilder::Create(handle_),
-      pimpl_->tracker.client_handler_->BindOnce(&check_command_complete<ResetFailedContactCounterCompleteView>));
+      pimpl_->tracker.client_handler_->BindOnce(
+          check_complete<ResetFailedContactCounterCompleteView>));
   return true;
 }
 

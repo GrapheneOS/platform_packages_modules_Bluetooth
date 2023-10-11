@@ -21,6 +21,7 @@
 
 #include "hci/acl_manager.h"
 #include "hci/distance_measurement_interface.h"
+#include "hci/event_checkers.h"
 #include "hci/hci_layer.h"
 #include "module.h"
 #include "os/handler.h"
@@ -104,8 +105,7 @@ struct DistanceMeasurementManager::impl {
           hci_layer_->EnqueueCommand(
               LeSetTransmitPowerReportingEnableBuilder::Create(
                   rssi_trackers[address].handle, 0x00, 0x00),
-              handler_->BindOnceOn(
-                  this, &impl::check_status<LeSetTransmitPowerReportingEnableCompleteView>));
+              handler_->BindOnce(check_complete<LeSetTransmitPowerReportingEnableCompleteView>));
           rssi_trackers[address].alarm->Cancel();
           rssi_trackers[address].alarm.reset();
           rssi_trackers.erase(address);
@@ -297,19 +297,6 @@ struct DistanceMeasurementManager::impl {
         -1,
         -1,
         DistanceMeasurementMethod::METHOD_RSSI);
-  }
-
-  template <class View>
-  void check_status(CommandCompleteView view) {
-    auto status_view = View::Create(view);
-    if (!status_view.IsValid()) {
-      LOG_WARN("Get invalid command complete event");
-    } else if (status_view.GetStatus() != ErrorCode::SUCCESS) {
-      LOG_INFO(
-          "Got a Command complete %s, status %s",
-          OpCodeText(view.GetCommandOpCode()).c_str(),
-          ErrorCodeText(status_view.GetStatus()).c_str());
-    }
   }
 
   struct RSSITracker {
