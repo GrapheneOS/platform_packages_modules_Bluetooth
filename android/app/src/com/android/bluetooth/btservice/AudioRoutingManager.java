@@ -334,12 +334,12 @@ public class AudioRoutingManager extends ActiveDeviceManager {
                 return;
             }
             mHearingAidConnectedDevices.add(device);
-            // New connected device: select it as active
-            if (setHearingAidActiveDevice(device)) {
-                setA2dpActiveDevice(null, true);
-                setHfpActiveDevice(null);
-                setLeAudioActiveDevice(null, true);
-            }
+        }
+        // New connected device: select it as active
+        if (setHearingAidActiveDevice(device)) {
+            setA2dpActiveDevice(null, true);
+            setHfpActiveDevice(null);
+            setLeAudioActiveDevice(null, true);
         }
     }
 
@@ -675,11 +675,11 @@ public class AudioRoutingManager extends ActiveDeviceManager {
                             hearingAidService.getConnectedPeerDevices(hiSyncId));
                 }
             }
-            if (device != null) {
-                setA2dpActiveDevice(null, true);
-                setHfpActiveDevice(null);
-                setLeAudioActiveDevice(null, true);
-            }
+        }
+        if (device != null) {
+            setA2dpActiveDevice(null, true);
+            setHfpActiveDevice(null);
+            setLeAudioActiveDevice(null, true);
         }
     }
 
@@ -854,27 +854,29 @@ public class AudioRoutingManager extends ActiveDeviceManager {
 
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     private boolean setHfpActiveDevice(BluetoothDevice device) {
+        if (DBG) {
+            Log.d(TAG, "setHfpActiveDevice(" + device + ")");
+        }
         synchronized (mLock) {
-            if (DBG) {
-                Log.d(TAG, "setHfpActiveDevice(" + device + ")");
-            }
             if (mPendingActiveDevice != null) {
                 mHandler.removeCallbacksAndMessages(mPendingActiveDevice);
                 mPendingActiveDevice = null;
             }
-            final HeadsetService headsetService = mFactory.getHeadsetService();
-            if (headsetService == null) {
-                return false;
-            }
-            BluetoothSinkAudioPolicy audioPolicy = headsetService.getHfpCallAudioPolicy(device);
-            if (audioPolicy != null
-                    && audioPolicy.getActiveDevicePolicyAfterConnection()
-                            == BluetoothSinkAudioPolicy.POLICY_NOT_ALLOWED) {
-                return false;
-            }
-            if (!headsetService.setActiveDevice(device)) {
-                return false;
-            }
+        }
+        final HeadsetService headsetService = mFactory.getHeadsetService();
+        if (headsetService == null) {
+            return false;
+        }
+        BluetoothSinkAudioPolicy audioPolicy = headsetService.getHfpCallAudioPolicy(device);
+        if (audioPolicy != null
+                && audioPolicy.getActiveDevicePolicyAfterConnection()
+                        == BluetoothSinkAudioPolicy.POLICY_NOT_ALLOWED) {
+            return false;
+        }
+        if (!headsetService.setActiveDevice(device)) {
+            return false;
+        }
+        synchronized (mLock) {
             mHfpActiveDevice = device;
         }
         return true;
@@ -938,22 +940,22 @@ public class AudioRoutingManager extends ActiveDeviceManager {
                             + ")"
                             + (device == null ? " hasFallbackDevice=" + hasFallbackDevice : ""));
         }
+        final LeAudioService leAudioService = mFactory.getLeAudioService();
+        if (leAudioService == null) {
+            return false;
+        }
+        boolean success;
+        if (device == null) {
+            success = leAudioService.removeActiveDevice(hasFallbackDevice);
+        } else {
+            success = leAudioService.setActiveDevice(device);
+        }
+
+        if (!success) {
+            return false;
+        }
+
         synchronized (mLock) {
-            final LeAudioService leAudioService = mFactory.getLeAudioService();
-            if (leAudioService == null) {
-                return false;
-            }
-            boolean success;
-            if (device == null) {
-                success = leAudioService.removeActiveDevice(hasFallbackDevice);
-            } else {
-                success = leAudioService.setActiveDevice(device);
-            }
-
-            if (!success) {
-                return false;
-            }
-
             mLeAudioActiveDevice = device;
             if (device == null) {
                 mLeHearingAidActiveDevice = null;
@@ -1025,45 +1027,33 @@ public class AudioRoutingManager extends ActiveDeviceManager {
             }
         }
 
-        A2dpService a2dpService = mFactory.getA2dpService();
-        BluetoothDevice a2dpFallbackDevice = null;
-        if (a2dpService != null) {
-            a2dpFallbackDevice = a2dpService.getFallbackDevice();
-        }
+        List<BluetoothDevice> hfpFallbackCandidates = removeWatchDevices(mHfpConnectedDevices);
+        List<BluetoothDevice> fallbackCandidates = new ArrayList<>();
+        fallbackCandidates.addAll(mLeAudioConnectedDevices);
 
         HeadsetService headsetService = mFactory.getHeadsetService();
-        BluetoothDevice headsetFallbackDevice = null;
-        if (headsetService != null) {
-            headsetFallbackDevice = headsetService.getFallbackDevice();
-        }
-
-        List<BluetoothDevice> connectedDevices = new ArrayList<>();
-        connectedDevices.addAll(mLeAudioConnectedDevices);
         switch (mAudioManager.getMode()) {
             case AudioManager.MODE_NORMAL:
-                if (a2dpFallbackDevice != null) {
-                    connectedDevices.add(a2dpFallbackDevice);
-                }
+                fallbackCandidates.addAll(mA2dpConnectedDevices);
                 break;
             case AudioManager.MODE_RINGTONE:
-                if (headsetFallbackDevice != null && headsetService.isInbandRingingEnabled()) {
-                    connectedDevices.add(headsetFallbackDevice);
+                if (headsetService.isInbandRingingEnabled()) {
+                    fallbackCandidates.addAll(hfpFallbackCandidates);
                 }
                 break;
             default:
-                if (headsetFallbackDevice != null) {
-                    connectedDevices.add(headsetFallbackDevice);
-                }
+                fallbackCandidates.addAll(hfpFallbackCandidates);
         }
-        BluetoothDevice device = mDbManager.getMostRecentlyConnectedDevicesInList(connectedDevices);
+        BluetoothDevice device =
+                mDbManager.getMostRecentlyConnectedDevicesInList(fallbackCandidates);
         if (device != null) {
             if (mAudioManager.getMode() == AudioManager.MODE_NORMAL) {
-                if (Objects.equals(a2dpFallbackDevice, device)) {
+                if (mA2dpConnectedDevices.contains(device)) {
                     if (DBG) {
                         Log.d(TAG, "Found an A2DP fallback device: " + device);
                     }
                     setA2dpActiveDevice(device);
-                    if (Objects.equals(headsetFallbackDevice, device)) {
+                    if (hfpFallbackCandidates.contains(device)) {
                         setHfpActiveDevice(device);
                     } else {
                         setHfpActiveDevice(null);
@@ -1089,13 +1079,13 @@ public class AudioRoutingManager extends ActiveDeviceManager {
                     setHearingAidActiveDevice(null, true);
                 }
             } else {
-                if (Objects.equals(headsetFallbackDevice, device)) {
+                if (hfpFallbackCandidates.contains(device)) {
                     if (DBG) {
                         Log.d(TAG, "Found a HFP fallback device: " + device);
                     }
                     setHfpActiveDevice(device);
-                    if (Objects.equals(a2dpFallbackDevice, device)) {
-                        setA2dpActiveDevice(a2dpFallbackDevice);
+                    if (mA2dpConnectedDevices.contains(device)) {
+                        setA2dpActiveDevice(device);
                     } else {
                         setA2dpActiveDevice(null, true);
                     }
@@ -1142,6 +1132,31 @@ public class AudioRoutingManager extends ActiveDeviceManager {
             mLeHearingAidActiveDevice = null;
             mPendingLeHearingAidActiveDevice.clear();
         }
+    }
+
+    @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
+    List<BluetoothDevice> removeWatchDevices(List<BluetoothDevice> devices) {
+        List<BluetoothDevice> fallbackCandidates;
+        synchronized (mLock) {
+            fallbackCandidates = new ArrayList<>(devices);
+        }
+        List<BluetoothDevice> uninterestedCandidates = new ArrayList<>();
+        for (BluetoothDevice device : fallbackCandidates) {
+            byte[] deviceType =
+                    mDbManager.getCustomMeta(device, BluetoothDevice.METADATA_DEVICE_TYPE);
+            BluetoothClass deviceClass = device.getBluetoothClass();
+            if ((deviceClass != null
+                            && deviceClass.getMajorDeviceClass()
+                                    == BluetoothClass.Device.WEARABLE_WRIST_WATCH)
+                    || (deviceType != null
+                            && BluetoothDevice.DEVICE_TYPE_WATCH.equals(new String(deviceType)))) {
+                uninterestedCandidates.add(device);
+            }
+        }
+        for (BluetoothDevice device : uninterestedCandidates) {
+            fallbackCandidates.remove(device);
+        }
+        return fallbackCandidates;
     }
 
     @VisibleForTesting
