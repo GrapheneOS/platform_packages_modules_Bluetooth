@@ -31,16 +31,15 @@
 #include "bt_trace.h"   // Legacy trace logging
 #include "bta/ag/bta_ag_int.h"
 #include "btif/include/btif_config.h"
-#include "common/init_flags.h"
 #include "device/include/interop.h"
 #include "device/include/interop_config.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_sco_hfp_hal.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/main_thread.h"
-#include "stack/include/port_api.h"
 #include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
 

@@ -31,6 +31,7 @@
 #include "bt_target.h"
 #include "osi/include/osi.h"  // PTR_TO_UINT
 #include "stack/include/bt_types.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/sdp_api.h"
 #include "stack/sdp/internal/sdp_api.h"
 #include "stack/sdp/sdpint.h"

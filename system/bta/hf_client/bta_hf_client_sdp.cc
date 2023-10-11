@@ -27,15 +27,12 @@
 #include <cstdint>
 
 #include "bta/hf_client/bta_hf_client_int.h"
-#include "bta/include/bta_ag_api.h"
 #include "bta/include/bta_hf_client_api.h"
 #include "bta/sys/bta_sys.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
-#include "osi/include/properties.h"
-#include "stack/btm/btm_sec.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/btm_api.h"
-#include "stack/include/port_api.h"
 #include "stack/include/sdp_api.h"
 #include "stack/include/sdpdefs.h"
 #include "types/bluetooth/uuid.h"

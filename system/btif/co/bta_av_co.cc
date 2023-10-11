@@ -35,13 +35,13 @@
 #include "btif/include/btif_av.h"
 #include "device/include/device_iot_config.h"
 #include "include/hardware/bt_av.h"
+#include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
-#include "osi/include/allocator.h"  // UNUSED_ATTR
 #include "stack/include/a2dp_codec_api.h"
 #include "stack/include/a2dp_error_codes.h"
 #include "stack/include/avdt_api.h"
 #include "stack/include/bt_hdr.h"
-#include "types/bluetooth/uuid.h"
+#include "stack/include/bt_uuid16.h"
 #include "types/raw_address.h"
 
 // Macro to retrieve the number of elements in a statically allocated array

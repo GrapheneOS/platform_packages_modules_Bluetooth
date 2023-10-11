@@ -18,15 +18,17 @@
 #define BT_STACK_FUZZ_A2DP_FUNCTIONS_H_
 
 #include <fuzzer/FuzzedDataProvider.h>
-#include <vector>
-#include "a2dp_api.h"
-#include "osi/include/allocator.h"
-#include "raw_address.h"
-#include "stack/a2dp/a2dp_int.h"
 
+#include <vector>
+
+#include "a2dp_api.h"
 #include "fuzzers/a2dp/a2dpFuzzHelpers.h"
 #include "fuzzers/common/commonFuzzHelpers.h"
 #include "fuzzers/sdp/sdpFuzzFunctions.h"
+#include "osi/include/allocator.h"
+#include "raw_address.h"
+#include "stack/a2dp/a2dp_int.h"
+#include "stack/include/bt_uuid16.h"
 
 #define MAX_STR_LEN 4096
 
