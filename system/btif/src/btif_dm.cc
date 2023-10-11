@@ -95,6 +95,10 @@
 #include "stack_config.h"
 #include "types/raw_address.h"
 
+#ifdef OS_ANDROID
+#include <android/sysprop/BluetoothProperties.sysprop.h>
+#endif
+
 bool btif_get_device_type(const RawAddress& bda, int* p_device_type);
 
 using bluetooth::Uuid;
@@ -2934,8 +2938,31 @@ void btif_dm_get_local_class_of_device(DEV_CLASS device_class) {
     LOG_ERROR("%s: COD malformed, fewer than three numbers", __func__);
   }
 
-  LOG_DEBUG("%s: Using class of device '0x%x, 0x%x, 0x%x'", __func__,
+  LOG_DEBUG("Using class of device '0x%x, 0x%x, 0x%x' from CoD system property",
             device_class[0], device_class[1], device_class[2]);
+
+#ifdef OS_ANDROID
+  // Per BAP 1.0.1, 8.2.3. Device discovery, the stack needs to set Class of
+  // Device (CoD) field Major Service Class bit 14 to 0b1 when Unicast Server,
+  // Unicast Client, Broadcast Source, Broadcast Sink, Scan Delegator, or
+  // Broadcast Assistant is supported on this device
+  if (android::sysprop::BluetoothProperties::isProfileBapUnicastClientEnabled()
+          .value_or(false) ||
+      android::sysprop::BluetoothProperties::
+          isProfileBapBroadcastAssistEnabled()
+              .value_or(false) ||
+      android::sysprop::BluetoothProperties::
+          isProfileBapBroadcastSourceEnabled()
+              .value_or(false)) {
+    device_class[1] |= 0x01 << 6;
+  } else {
+    device_class[1] &= ~(0x01 << 6);
+  }
+  LOG_DEBUG(
+      "Check LE audio enabled status, update class of device to '0x%x, 0x%x, "
+      "0x%x'",
+      device_class[0], device_class[1], device_class[2]);
+#endif
 }
 
 /*******************************************************************************
