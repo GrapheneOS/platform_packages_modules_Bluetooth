@@ -66,6 +66,7 @@ std::string SyspropsModule::ToString() const {
 void SyspropsModule::parse_config(std::string file_path) {
   const std::list<std::string> supported_sysprops = {
       // General
+      "bluetooth.btm.sec.delay_auth_ms.value",
       "bluetooth.device.default_name",
       "bluetooth.core.gap.le.privacy.enabled",
       "bluetooth.core.gap.le.conn.only_init_1m_phy.enabled",
