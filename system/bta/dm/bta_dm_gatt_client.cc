@@ -19,11 +19,11 @@
 #include <base/strings/stringprintf.h>
 
 #include <cstdint>
-#include <cstring>
+#include <string>
+#include <vector>
 
 #include "bta/include/bta_gatt_api.h"
 #include "gd/common/strings.h"
-#include "osi/include/log.h"
 #include "stack/btm/btm_int_types.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
@@ -121,3 +121,16 @@ void DumpsysBtaDmGattClient(int fd) {
 void bluetooth::testing::set_gatt_interface(const gatt_interface_t& interface) {
   *gatt_interface = interface;
 }
+
+namespace bluetooth {
+namespace legacy {
+namespace testing {
+
+std::vector<bluetooth::common::TimestampedEntry<std::string>>
+PullCopyOfGattHistory() {
+  return gatt_history_.Pull();
+}
+
+}  // namespace testing
+}  // namespace legacy
+}  // namespace bluetooth
