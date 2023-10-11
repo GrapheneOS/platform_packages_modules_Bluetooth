@@ -1528,9 +1528,9 @@ void shim::legacy::Acl::OnClassicLinkDisconnected(HciHandle handle,
       kBtmLogTag, ToRawAddress(remote_address), "Disconnected",
       base::StringPrintf("classic reason:%s", ErrorCodeText(reason).c_str()));
   pimpl_->connection_history_.Push(
-      std::move(std::make_unique<ClassicConnectionDescriptor>(
+      std::make_unique<ClassicConnectionDescriptor>(
           remote_address, creation_time, teardown_time, handle,
-          is_locally_initiated, reason)));
+          is_locally_initiated, reason));
 }
 
 bluetooth::hci::AddressWithType shim::legacy::Acl::GetConnectionLocalAddress(
@@ -1602,10 +1602,9 @@ void shim::legacy::Acl::OnLeLinkDisconnected(HciHandle handle,
       kBtmLogTag, ToLegacyAddressWithType(remote_address_with_type),
       "Disconnected",
       base::StringPrintf("Le reason:%s", ErrorCodeText(reason).c_str()));
-  pimpl_->connection_history_.Push(
-      std::move(std::make_unique<LeConnectionDescriptor>(
-          remote_address_with_type, creation_time, teardown_time, handle,
-          is_locally_initiated, reason)));
+  pimpl_->connection_history_.Push(std::make_unique<LeConnectionDescriptor>(
+      remote_address_with_type, creation_time, teardown_time, handle,
+      is_locally_initiated, reason));
 }
 
 void shim::legacy::Acl::OnConnectSuccess(
