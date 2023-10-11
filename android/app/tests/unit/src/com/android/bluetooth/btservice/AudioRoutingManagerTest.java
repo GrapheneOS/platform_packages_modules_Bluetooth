@@ -62,7 +62,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
@@ -146,31 +145,6 @@ public class AudioRoutingManagerTest {
         when(mHearingAidService.getHiSyncId(mHearingAidDevice)).thenReturn(mHearingAidHiSyncId);
         when(mHearingAidService.getConnectedPeerDevices(mHearingAidHiSyncId))
                 .thenReturn(connectedHearingAidDevices);
-
-        when(mA2dpService.getFallbackDevice())
-                .thenAnswer(
-                        invocation -> {
-                            if (!mDeviceConnectionStack.isEmpty()
-                                    && Objects.equals(
-                                            mA2dpDevice,
-                                            mDeviceConnectionStack.get(
-                                                    mDeviceConnectionStack.size() - 1))) {
-                                return mA2dpDevice;
-                            }
-                            return null;
-                        });
-        when(mHeadsetService.getFallbackDevice())
-                .thenAnswer(
-                        invocation -> {
-                            if (!mDeviceConnectionStack.isEmpty()
-                                    && Objects.equals(
-                                            mHeadsetDevice,
-                                            mDeviceConnectionStack.get(
-                                                    mDeviceConnectionStack.size() - 1))) {
-                                return mHeadsetDevice;
-                            }
-                            return null;
-                        });
     }
 
     @After
