@@ -175,6 +175,7 @@ public class LeAudioService extends ProfileService {
         LeAudioGroupDescriptor(boolean isInbandRingtonEnabled) {
             mIsConnected = false;
             mIsActive = false;
+            mHasFallbackDeviceWhenGettingInactive = false;
             mDirection = AUDIO_DIRECTION_NONE;
             mCodecStatus = null;
             mLostLeadDeviceWhileStreaming = null;
@@ -185,6 +186,7 @@ public class LeAudioService extends ProfileService {
 
         public Boolean mIsConnected;
         public Boolean mIsActive;
+        public Boolean mHasFallbackDeviceWhenGettingInactive;
         public Integer mDirection;
         public BluetoothLeAudioCodecStatus mCodecStatus;
         /* This can be non empty only for the streaming time */
@@ -1529,6 +1531,15 @@ public class LeAudioService extends ProfileService {
             return;
         }
 
+        if (currentlyActiveGroupId != LE_AUDIO_GROUP_ID_INVALID
+                        && groupId != LE_AUDIO_GROUP_ID_INVALID
+                || hasFallbackDevice) {
+            Log.i(TAG, "Remember that device has FallbackDevice when become inactive active");
+
+            LeAudioGroupDescriptor descriptor = getGroupDescriptor(currentlyActiveGroupId);
+            descriptor.mHasFallbackDeviceWhenGettingInactive = true;
+        }
+
         if (!mLeAudioNativeIsInitialized) {
             Log.e(TAG, "Le Audio not initialized properly.");
             return;
@@ -1539,7 +1550,7 @@ public class LeAudioService extends ProfileService {
              * However we would like to notify audio framework that LeAudio is not
              * active anymore and does not want to get more audio data.
              */
-            handleGroupTransitToInactive(currentlyActiveGroupId, hasFallbackDevice);
+            handleGroupTransitToInactive(currentlyActiveGroupId);
         }
     }
 
@@ -1762,7 +1773,7 @@ public class LeAudioService extends ProfileService {
         }
     }
 
-    private void handleGroupTransitToInactive(int groupId, boolean hasFallbackDevice) {
+    private void handleGroupTransitToInactive(int groupId) {
         synchronized (mGroupLock) {
             LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
             if (descriptor == null || !descriptor.mIsActive) {
@@ -1772,10 +1783,15 @@ public class LeAudioService extends ProfileService {
             }
 
             descriptor.mIsActive = false;
-            updateActiveDevices(groupId, descriptor.mDirection, AUDIO_DIRECTION_NONE,
-                    descriptor.mIsActive, hasFallbackDevice);
+            updateActiveDevices(
+                    groupId,
+                    descriptor.mDirection,
+                    AUDIO_DIRECTION_NONE,
+                    descriptor.mIsActive,
+                    descriptor.mHasFallbackDeviceWhenGettingInactive);
             /* Clear lost devices */
             if (DBG) Log.d(TAG, "Clear for group: " + groupId);
+            descriptor.mHasFallbackDeviceWhenGettingInactive = false;
             clearLostDevicesWhileStreaming(descriptor);
             notifyGroupStatusChanged(groupId, LeAudioStackEvent.GROUP_STATUS_INACTIVE);
             updateInbandRingtoneForTheGroup(groupId);
@@ -2162,8 +2178,7 @@ public class LeAudioService extends ProfileService {
                     break;
                 }
                 case LeAudioStackEvent.GROUP_STATUS_INACTIVE: {
-                    handleGroupTransitToInactive(groupId, false);
-
+                    handleGroupTransitToInactive(groupId);
                     if (!mCreateBroadcastQueue.isEmpty()) {
                         mUnicastGroupIdDeactivatedForBroadcastTransition = groupId;
                         BluetoothLeBroadcastSettings settings = mCreateBroadcastQueue.remove();
@@ -3013,7 +3028,7 @@ public class LeAudioService extends ProfileService {
                  */
                 if (Objects.equals(device, mActiveAudioOutDevice)
                         || Objects.equals(device, mActiveAudioInDevice)) {
-                    handleGroupTransitToInactive(groupId, false);
+                    handleGroupTransitToInactive(groupId);
                 }
                 mGroupDescriptors.remove(groupId);
 
