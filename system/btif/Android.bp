@@ -214,6 +214,9 @@ cc_library_static {
     ],
     target: {
         android: {
+            whole_static_libs: [
+                "libPlatformProperties",
+            ],
             srcs: ["src/btif_avrcp_audio_track.cc"],
             shared_libs: ["libaaudio"],
         },
