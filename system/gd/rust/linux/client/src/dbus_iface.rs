@@ -1,8 +1,8 @@
 //! D-Bus proxy implementations of the APIs.
 
 use bt_topshim::btif::{
-    BtBondState, BtConnectionState, BtDeviceType, BtDiscMode, BtPropertyType, BtSspVariant,
-    BtStatus, BtTransport, BtVendorProductInfo, Uuid, Uuid128Bit,
+    BtAddrType, BtBondState, BtConnectionState, BtDeviceType, BtDiscMode, BtPropertyType,
+    BtSspVariant, BtStatus, BtTransport, BtVendorProductInfo, Uuid, Uuid128Bit,
 };
 use bt_topshim::profiles::a2dp::{
     A2dpCodecBitsPerSample, A2dpCodecChannelMode, A2dpCodecConfig, A2dpCodecIndex,
@@ -78,6 +78,7 @@ impl_dbus_arg_enum!(AdvertisingStatus);
 impl_dbus_arg_enum!(BtBondState);
 impl_dbus_arg_enum!(BtConnectionState);
 impl_dbus_arg_enum!(BtDeviceType);
+impl_dbus_arg_enum!(BtAddrType);
 impl_dbus_arg_enum!(BtPropertyType);
 impl_dbus_arg_enum!(BtSspVariant);
 impl_dbus_arg_enum!(BtStatus);
@@ -920,6 +921,11 @@ impl IBluetooth for BluetoothDBus {
 
     #[dbus_method("GetRemoteVendorProductInfo")]
     fn get_remote_vendor_product_info(&self, _device: BluetoothDevice) -> BtVendorProductInfo {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetRemoteAddressType")]
+    fn get_remote_address_type(&self, device: BluetoothDevice) -> BtAddrType {
         dbus_generated!()
     }
 

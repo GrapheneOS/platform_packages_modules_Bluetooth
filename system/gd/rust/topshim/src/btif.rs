@@ -153,6 +153,12 @@ pub enum BtPropertyType {
     RemoteIsCoordinatedSetMember,
     Appearance,
     VendorProductInfo,
+    // Unimplemented:
+    //  BT_PROPERTY_WL_MEDIA_PLAYERS_LIST,
+    //  BT_PROPERTY_REMOTE_ASHA_CAPABILITY,
+    //  BT_PROPERTY_REMOTE_ASHA_TRUNCATED_HISYNCID,
+    //  BT_PROPERTY_REMOTE_MODEL_NUM,
+    RemoteAddrType = 0x18,
 
     Unknown = 0xFE,
     RemoteDeviceTimestamp = 0xFF,
@@ -361,6 +367,29 @@ impl From<bindings::bt_io_cap_t> for BtIoCap {
     }
 }
 
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
+pub enum BtAddrType {
+    Public,
+    Random,
+    PublicId,
+    RandomId,
+    Unknown = 0xfe,
+    Anonymous = 0xff,
+}
+
+impl From<u32> for BtAddrType {
+    fn from(num: u32) -> Self {
+        BtAddrType::from_u32(num).unwrap_or(BtAddrType::Unknown)
+    }
+}
+
+impl Into<u32> for BtAddrType {
+    fn into(self) -> u32 {
+        self.to_u32().unwrap_or(0)
+    }
+}
+
 pub type BtHciErrorCode = u8;
 pub type BtLocalLeFeatures = bindings::bt_local_le_features_t;
 pub type BtPinCode = bindings::bt_pin_code_t;
@@ -467,6 +496,7 @@ pub enum BluetoothProperty {
     RemoteIsCoordinatedSetMember(bool),
     Appearance(u16),
     VendorProductInfo(BtVendorProductInfo),
+    RemoteAddrType(BtAddrType),
     RemoteDeviceTimestamp(),
 
     Unknown(),
@@ -503,6 +533,7 @@ impl BluetoothProperty {
             BluetoothProperty::Appearance(_) => BtPropertyType::Appearance,
             BluetoothProperty::VendorProductInfo(_) => BtPropertyType::VendorProductInfo,
             BluetoothProperty::RemoteDeviceTimestamp() => BtPropertyType::RemoteDeviceTimestamp,
+            BluetoothProperty::RemoteAddrType(_) => BtPropertyType::RemoteAddrType,
             BluetoothProperty::Unknown() => BtPropertyType::Unknown,
         }
     }
@@ -533,6 +564,7 @@ impl BluetoothProperty {
             BluetoothProperty::RemoteIsCoordinatedSetMember(_) => mem::size_of::<bool>(),
             BluetoothProperty::Appearance(_) => mem::size_of::<u16>(),
             BluetoothProperty::VendorProductInfo(_) => mem::size_of::<BtVendorProductInfo>(),
+            BluetoothProperty::RemoteAddrType(_) => mem::size_of::<BtAddrType>(),
 
             // TODO(abps) - Figure out sizes for these
             BluetoothProperty::DynamicAudioBuffer() => 0,
@@ -641,6 +673,11 @@ impl BluetoothProperty {
                 };
                 data.copy_from_slice(&slice);
             }
+            BluetoothProperty::RemoteAddrType(addr_type) => {
+                data.copy_from_slice(
+                    &BtAddrType::to_u32(addr_type).unwrap_or_default().to_ne_bytes(),
+                );
+            }
 
             BluetoothProperty::DynamicAudioBuffer() => (),
             BluetoothProperty::RemoteDeviceTimestamp() => (),
@@ -717,7 +754,9 @@ impl From<bindings::bt_property_t> for BluetoothProperty {
                 let v = unsafe { (prop.val as *const BtVendorProductInfo).read_unaligned() };
                 BluetoothProperty::VendorProductInfo(BtVendorProductInfo::from(v))
             }
-
+            BtPropertyType::RemoteAddrType => BluetoothProperty::RemoteAddrType(
+                BtAddrType::from_u32(u32_from_bytes(slice)).unwrap_or(BtAddrType::Unknown),
+            ),
             // TODO(abps) - Figure out if these values should actually have contents
             BtPropertyType::DynamicAudioBuffer => BluetoothProperty::DynamicAudioBuffer(),
             BtPropertyType::RemoteDeviceTimestamp => BluetoothProperty::RemoteDeviceTimestamp(),
