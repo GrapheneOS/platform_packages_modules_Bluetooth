@@ -34,14 +34,13 @@
 #include "hidh_int.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"
-#include "stack/btm/btm_sec.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_psm_types.h"
-#include "stack/include/btm_api.h"  // BTM_LogHistory
+#include "stack/include/btm_log_history.h"
 #include "stack/include/stack_metrics_logging.h"
 #include "types/raw_address.h"
 
