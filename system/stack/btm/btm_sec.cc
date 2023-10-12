@@ -4720,6 +4720,10 @@ static void btm_sec_auth_timer_timeout(void* data) {
     LOG_INFO("%s: invalid device or not found", __func__);
   } else if (btm_dev_authenticated(p_dev_rec)) {
     LOG_INFO("%s: device is already authenticated", __func__);
+    if (p_dev_rec->p_callback) {
+      (*p_dev_rec->p_callback)(&p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR,
+                               p_dev_rec->p_ref_data, BTM_SUCCESS);
+    }
   } else if (p_dev_rec->sec_state == BTM_SEC_STATE_AUTHENTICATING) {
     LOG_INFO("%s: device is in the process of authenticating", __func__);
   } else {
