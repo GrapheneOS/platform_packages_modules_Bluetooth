@@ -121,6 +121,24 @@ public class VolumeControlService extends ProfileService {
             return true;
         }
 
+        int getFirstOffsetValue() {
+            if (size() == 0) {
+                return 0;
+            }
+            Descriptor[] descriptors = mVolumeOffsets.values().toArray(new Descriptor[size()]);
+
+            if (DBG) {
+                Log.d(
+                        TAG,
+                        "Number of offsets: "
+                                + size()
+                                + ", first offset value: "
+                                + descriptors[0].mValue);
+            }
+
+            return descriptors[0].mValue;
+        }
+
         int getValue(int id) {
             Descriptor d = mVolumeOffsets.get(id);
             if (d == null) {
@@ -320,6 +338,7 @@ public class VolumeControlService extends ProfileService {
 
         if (mCallbacks != null) {
             mCallbacks.kill();
+            mCallbacks = null;
         }
 
         return true;
@@ -699,6 +718,63 @@ public class VolumeControlService extends ProfileService {
         mVolumeControlNativeInterface.unmuteGroup(groupId);
     }
 
+    void notifyNewCallbackOfKnownVolumeOffsets(IBluetoothVolumeControlCallback callback) {
+        if (DBG) {
+            Log.d(TAG, "notifyNewCallbackOfKnownVolumeOffsets");
+        }
+
+        RemoteCallbackList<IBluetoothVolumeControlCallback> tempCallbackList =
+                new RemoteCallbackList<>();
+        if (tempCallbackList == null) {
+            Log.w(TAG, "notifyNewCallbackOfKnownVolumeOffsets: tempCallbackList not available");
+            return;
+        }
+
+        /* Register callback on temporary list just to execute it now. */
+        tempCallbackList.register(callback);
+
+        int n = tempCallbackList.beginBroadcast();
+        if (n != 1) {
+            /* There should be only one calback in this place. */
+            Log.e(TAG, "notifyNewCallbackOfKnownVolumeOffsets: Shall be 1 but it is " + n);
+        }
+
+        for (int i = 0; i < n; i++) {
+            for (Map.Entry<BluetoothDevice, VolumeControlOffsetDescriptor> entry :
+                    mAudioOffsets.entrySet()) {
+                VolumeControlOffsetDescriptor descriptor = entry.getValue();
+                if (descriptor.size() == 0) {
+                    continue;
+                }
+
+                BluetoothDevice device = entry.getKey();
+                int offset = descriptor.getFirstOffsetValue();
+
+                if (DBG) {
+                    Log.d(TAG, "notifyNewCallbackOfKnownVolumeOffsets: " + device + ", " + offset);
+                }
+
+                try {
+                    tempCallbackList.getBroadcastItem(i).onVolumeOffsetChanged(device, offset);
+                } catch (RemoteException e) {
+                    continue;
+                }
+            }
+        }
+
+        tempCallbackList.finishBroadcast();
+
+        /* User is notified, remove callback from temporary list */
+        tempCallbackList.unregister(callback);
+    }
+
+    void registerCallback(IBluetoothVolumeControlCallback callback) {
+        /* Here we keep all the user callbacks */
+        mCallbacks.register(callback);
+
+        notifyNewCallbackOfKnownVolumeOffsets(callback);
+    }
+
     /**
      * {@hide}
      */
@@ -963,6 +1039,9 @@ public class VolumeControlService extends ProfileService {
     }
 
     void messageFromNative(VolumeControlStackEvent stackEvent) {
+        if (DBG) {
+            Log.d(TAG, "messageFromNative: " + stackEvent);
+        }
 
         if (stackEvent.type == VolumeControlStackEvent.EVENT_TYPE_VOLUME_STATE_CHANGED) {
             handleVolumeControlChanged(stackEvent.device, stackEvent.valueInt1,
@@ -1511,8 +1590,7 @@ public class VolumeControlService extends ProfileService {
                 }
 
                 enforceBluetoothPrivilegedPermission(service);
-
-                service.mCallbacks.register(callback);
+                service.registerCallback(callback);
                 receiver.send(null);
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
