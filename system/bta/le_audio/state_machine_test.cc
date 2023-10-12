@@ -183,6 +183,9 @@ class StateMachineTestBase : public Test {
   uint8_t overwrite_cis_status_idx_;
   std::vector<uint8_t> cis_status_;
 
+  /* Keep ASE in releasing state */
+  bool stay_in_releasing_state_;
+
   virtual void SetUp() override {
     bluetooth::common::InitFlags::Load(test_flags);
     reset_mock_function_count_map();
@@ -194,6 +197,7 @@ class StateMachineTestBase : public Test {
     overwrite_cis_status_idx_ = 0;
     overwrite_cis_status_ = false;
     do_not_send_cis_establish_event_ = false;
+    stay_in_releasing_state_ = false;
     cis_status_.clear();
 
     LeAudioGroupStateMachine::Initialize(&mock_callbacks_);
@@ -1254,6 +1258,10 @@ class StateMachineTestBase : public Test {
 
             InjectAseStateNotification(ase, device, group,
                                        ascs::kAseStateReleasing, nullptr);
+
+            if (stay_in_releasing_state_) {
+              continue;
+            }
 
             /* Check if codec configuration is cached */
             if (cached_codec_configuration_map_.count(ase_id) > 0) {
@@ -3498,6 +3506,91 @@ TEST_F(StateMachineTest, testAseAutonomousRelease2Devices) {
                                &codec_configured_state_params);
     InjectAseStateNotification(&ase, device, group, ascs::kAseStateIdle,
                                &codec_configured_state_params);
+  }
+}
+
+TEST_F(StateMachineTest, testHandlingCachedCodecConfig2Devices) {
+  const auto context_type = kContextTypeConversational;
+  const int leaudio_group_id = 4;
+  const int num_of_devices = 2;
+
+  // Prepare fake connected device group
+  auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type,
+                                             num_of_devices);
+
+  auto* firstDevice = group->GetFirstDevice();
+  auto* secondDevice = group->GetNextDevice(firstDevice);
+
+  /* Since we prepared device with Conversional context in mind, Sink and Source
+   * ASEs should have been configured.
+   */
+  PrepareConfigureCodecHandler(group, 0, true);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group);
+  PrepareDisableHandler(group);
+  PrepareReceiverStartReady(group);
+  PrepareReceiverStopReady(group);
+  PrepareReleaseHandler(group);
+
+  stay_in_releasing_state_ = true;
+
+  /* Number of control point calls
+   * 1. Codec Config
+   * 2. QoS Config
+   * 3. Enable
+   * 4. Receiver Start Ready
+   * 5. Release*/
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(firstDevice->conn_id_,
+                                              firstDevice->ctp_hdls_.val_hdl, _,
+                                              GATT_WRITE_NO_RSP, _, _))
+      .Times(5);
+
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(secondDevice->conn_id_,
+                                              secondDevice->ctp_hdls_.val_hdl,
+                                              _, GATT_WRITE_NO_RSP, _, _))
+      .Times(5);
+
+  InjectInitialIdleNotification(group);
+
+  // Validate initial GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+
+  // Start the configuration and stream Media content
+  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
+      group, context_type,
+      {.sink = types::AudioContexts(context_type),
+       .source = types::AudioContexts(context_type)}));
+
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+
+  /* Single disconnect as it is bidirectional Cis*/
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(2);
+
+  LOG_ERROR("STOP");
+  // Stop the stream
+  LeAudioGroupStateMachine::Get()->StopStream(group);
+
+  for (auto& ase : firstDevice->ases_) {
+    LOG_ERROR("%s , %d, %s", ADDRESS_TO_LOGGABLE_CSTR(firstDevice->address_),
+              ase.id, bluetooth::common::ToString(ase.state).c_str());
+    ASSERT_EQ(ase.state, types::AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING);
+    // Simulate autonomus configured state.
+    InjectAseStateNotification(&ase, firstDevice, group,
+                               ascs::kAseStateCodecConfigured,
+                               &cached_codec_configuration_map_[ase.id]);
+  }
+
+  for (auto& ase : secondDevice->ases_) {
+    LOG_ERROR("%s , %d, %s", ADDRESS_TO_LOGGABLE_CSTR(firstDevice->address_),
+              ase.id, bluetooth::common::ToString(ase.state).c_str());
+    ASSERT_EQ(ase.state, types::AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING);
+    // Simulate autonomus configured state.
+    InjectAseStateNotification(&ase, secondDevice, group,
+                               ascs::kAseStateCodecConfigured,
+                               &cached_codec_configuration_map_[ase.id]);
   }
 }
 
