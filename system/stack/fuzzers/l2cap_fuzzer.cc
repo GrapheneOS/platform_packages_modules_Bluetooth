@@ -18,7 +18,6 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include <cstdint>
-#include <functional>
 #include <string>
 #include <vector>
 

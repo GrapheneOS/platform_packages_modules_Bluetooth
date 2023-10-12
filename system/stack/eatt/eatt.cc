@@ -20,7 +20,6 @@
 #include "eatt_impl.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_psm_types.h"
-#include "stack/l2cap/l2c_int.h"
 #include "types/raw_address.h"
 
 using bluetooth::eatt::eatt_impl;
