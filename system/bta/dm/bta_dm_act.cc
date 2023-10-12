@@ -36,6 +36,8 @@
 #include "bta/dm/bta_dm_disc.h"
 #include "bta/dm/bta_dm_gatt_client.h"
 #include "bta/dm/bta_dm_int.h"
+#include "bta/include/bta_api.h"
+#include "bta/include/bta_sdp_api.h"
 #include "bta/dm/bta_dm_sec.h"
 #include "bta/sys/bta_sys.h"
 #include "btif/include/btif_config.h"
