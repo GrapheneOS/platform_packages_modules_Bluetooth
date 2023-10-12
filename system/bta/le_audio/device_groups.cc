@@ -537,18 +537,24 @@ static uint16_t find_max_transport_latency(const LeAudioDeviceGroup* group,
          ase = leAudioDevice->GetNextActiveAseWithSameDirection(ase)) {
       if (!ase) break;
 
-      if (!max_transport_latency)
+      if (max_transport_latency == 0) {
         // first assignment
         max_transport_latency = ase->max_transport_latency;
-      else if (ase->max_transport_latency < max_transport_latency)
-        max_transport_latency = ase->max_transport_latency;
+      } else if (ase->max_transport_latency < max_transport_latency) {
+        if (ase->max_transport_latency != 0) {
+          max_transport_latency = ase->max_transport_latency;
+        } else {
+          LOG_WARN("Trying to set latency back to 0, ASE ID %d", ase->id);
+        }
+      }
     }
   }
 
-  if (max_transport_latency < types::kMaxTransportLatencyMin)
+  if (max_transport_latency < types::kMaxTransportLatencyMin) {
     max_transport_latency = types::kMaxTransportLatencyMin;
-  else if (max_transport_latency > types::kMaxTransportLatencyMax)
+  } else if (max_transport_latency > types::kMaxTransportLatencyMax) {
     max_transport_latency = types::kMaxTransportLatencyMax;
+  }
 
   return max_transport_latency;
 }
