@@ -664,7 +664,7 @@ static void btif_update_remote_properties(const RawAddress& bdaddr,
   bt_property_t properties[3];
   bt_status_t status = BT_STATUS_UNHANDLED;
   uint32_t cod;
-  bt_device_type_t dev_type;
+  uint32_t dev_type;
 
   memset(properties, 0, sizeof(properties));
 
@@ -708,14 +708,14 @@ static void btif_update_remote_properties(const RawAddress& bdaddr,
 
   /* device type */
   bt_property_t prop_name;
-  uint8_t remote_dev_type;
+  uint32_t remote_dev_type;
   BTIF_STORAGE_FILL_PROPERTY(&prop_name, BT_PROPERTY_TYPE_OF_DEVICE,
-                             sizeof(uint8_t), &remote_dev_type);
+                             sizeof(uint32_t), &remote_dev_type);
   if (btif_storage_get_remote_device_property(&bdaddr, &prop_name) ==
       BT_STATUS_SUCCESS) {
-    dev_type = (bt_device_type_t)(remote_dev_type | device_type);
+    dev_type = remote_dev_type | device_type;
   } else {
-    dev_type = (bt_device_type_t)device_type;
+    dev_type = device_type;
   }
 
   BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
@@ -1452,7 +1452,7 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
 
       {
         bt_property_t properties[10];  // increase when properties are added
-        bt_device_type_t dev_type;
+        uint32_t dev_type;
         uint32_t num_properties = 0;
         bt_status_t status;
         tBLE_ADDR_TYPE addr_type = BLE_ADDR_PUBLIC;
@@ -3498,9 +3498,11 @@ static void btif_dm_ble_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
       }
     }
   } else {
-    /*Map the HCI fail reason  to  bt status  */
+    /* Map the HCI fail reason  to  bt status  */
     // TODO This is not a proper use of the type
     uint8_t fail_reason = static_cast<uint8_t>(p_auth_cmpl->fail_reason);
+    LOG_ERROR("LE authentication for %s failed with reason %d",
+              ADDRESS_TO_LOGGABLE_CSTR(bd_addr), p_auth_cmpl->fail_reason);
     switch (fail_reason) {
       case BTA_DM_AUTH_SMP_PAIR_AUTH_FAIL:
       case BTA_DM_AUTH_SMP_CONFIRM_VALUE_FAIL:

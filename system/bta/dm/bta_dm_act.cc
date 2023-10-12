@@ -64,9 +64,9 @@
 using namespace bluetooth::legacy::stack::sdp;
 using bluetooth::Uuid;
 
+bool ble_vnd_is_included();
 void BTIF_dm_disable();
 void BTIF_dm_enable();
-void btm_ble_adv_init(void);
 void btm_ble_scanner_init(void);
 
 static uint8_t bta_dm_pin_cback(const RawAddress& bd_addr, DEV_CLASS dev_class,
@@ -103,9 +103,7 @@ static void bta_dm_ble_id_key_cback(uint8_t key_type,
                                     tBTM_BLE_LOCAL_KEYS* p_key);
 static uint8_t bta_dm_sirk_verifiction_cback(const RawAddress& bd_addr);
 tBTM_CONTRL_STATE bta_dm_pm_obtain_controller_state(void);
-#if (BLE_VND_INCLUDED == TRUE)
 static void bta_dm_ctrl_features_rd_cmpl_cback(tHCI_STATUS result);
-#endif
 
 #ifndef BTA_DM_BLE_ADV_CHNL_MAP
 #define BTA_DM_BLE_ADV_CHNL_MAP \
@@ -353,17 +351,13 @@ void BTA_dm_on_hw_on() {
   BTM_WritePageTimeout(osi_property_get_int32(PROPERTY_PAGE_TIMEOUT,
                                               p_bta_dm_cfg->page_timeout));
 
-#if (BLE_VND_INCLUDED == TRUE)
-  BTM_BleReadControllerFeatures(bta_dm_ctrl_features_rd_cmpl_cback);
-#else
-  /* If VSC multi adv commands are available, advertising will be initialized
-   * when capabilities are read. If they are not available, initialize
-   * advertising here */
-  btm_ble_adv_init();
-  /* Set controller features even if vendor support is not included */
-  if (bta_dm_cb.p_sec_cback)
-    bta_dm_cb.p_sec_cback(BTA_DM_LE_FEATURES_READ, NULL);
-#endif
+  if (ble_vnd_is_included()) {
+    BTM_BleReadControllerFeatures(bta_dm_ctrl_features_rd_cmpl_cback);
+  } else {
+    /* Set controller features even if vendor support is not included */
+    if (bta_dm_cb.p_sec_cback)
+      bta_dm_cb.p_sec_cback(BTA_DM_LE_FEATURES_READ, NULL);
+  }
 
   btm_ble_scanner_init();
 
@@ -2738,7 +2732,6 @@ void bta_dm_ble_reset_id(void) {
   bluetooth::shim::BTM_BleResetId();
 }
 
-#if (BLE_VND_INCLUDED == TRUE)
 /*******************************************************************************
  *
  * Function         bta_dm_ctrl_features_rd_cmpl_cback
@@ -2758,7 +2751,6 @@ static void bta_dm_ctrl_features_rd_cmpl_cback(tHCI_STATUS result) {
                      result);
   }
 }
-#endif /* BLE_VND_INCLUDED */
 
 /*******************************************************************************
  *

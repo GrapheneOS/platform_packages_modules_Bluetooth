@@ -108,8 +108,6 @@ void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& p_dev_rec);
 void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC* p_dev_rec);
 void btm_ble_resolving_list_init(uint8_t max_irk_list_sz);
 
-void btm_ble_adv_init(void);
-void btm_ble_multi_adv_cleanup(void);
 void btm_ble_batchscan_init(void);
 void btm_ble_adv_filter_init(void);
 bool btm_ble_topology_check(tBTM_BLE_STATE_MASK request);
