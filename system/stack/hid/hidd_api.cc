@@ -30,16 +30,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "btm_api.h"
 #include "hidd_int.h"
 #include "hiddefs.h"
 #include "osi/include/allocator.h"
-#include "stack/btm/btm_sec.h"
 #include "stack/include/bt_psm_types.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/sdp_api.h"
 #include "stack/include/stack_metrics_logging.h"
-#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 using namespace bluetooth::legacy::stack::sdp;
