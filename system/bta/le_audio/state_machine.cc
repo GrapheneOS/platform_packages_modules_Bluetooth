@@ -1923,7 +1923,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         /* TODO: Config Codec */
         break;
       case AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING:
-        LeAudioDevice* leAudioDeviceNext;
         SetAseState(leAudioDevice, ase,
                     AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED);
         ase->active = false;
@@ -1946,35 +1945,27 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           return;
         }
 
-        leAudioDeviceNext = group->GetNextActiveDevice(leAudioDevice);
+        /* Last node is in releasing state*/
+        group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED);
+        /* Remote device has cache and keep staying in configured state after
+         * release. Therefore, we assume this is a target state requested by
+         * remote device.
+         */
+        group->SetTargetState(group->GetState());
 
-        /* Configure ASEs for next device in group */
-        if (leAudioDeviceNext) {
-          PrepareAndSendRelease(leAudioDeviceNext);
-        } else {
-          /* Last node is in releasing state*/
-
-          group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED);
-          /* Remote device has cache and keep staying in configured state after
-           * release. Therefore, we assume this is a target state requested by
-           * remote device.
-           */
-          group->SetTargetState(group->GetState());
-
-          if (!group->HaveAllCisesDisconnected()) {
-            LOG_WARN(
-                "Not all CISes removed before going to IDLE for group %d, "
-                "waiting...",
-                group->group_id_);
-            group->PrintDebugState();
-            return;
-          }
-
-          cancel_watchdog_if_needed(group->group_id_);
-
-          state_machine_callbacks_->StatusReportCb(
-              group->group_id_, GroupStreamStatus::CONFIGURED_AUTONOMOUS);
+        if (!group->HaveAllCisesDisconnected()) {
+          LOG_WARN(
+              "Not all CISes removed before going to IDLE for group %d, "
+              "waiting...",
+              group->group_id_);
+          group->PrintDebugState();
+          return;
         }
+
+        cancel_watchdog_if_needed(group->group_id_);
+
+        state_machine_callbacks_->StatusReportCb(
+            group->group_id_, GroupStreamStatus::CONFIGURED_AUTONOMOUS);
         break;
       default:
         LOG(ERROR) << __func__ << ", invalid state transition, from: "
