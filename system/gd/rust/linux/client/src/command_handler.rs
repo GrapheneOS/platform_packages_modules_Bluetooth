@@ -755,6 +755,7 @@ impl CommandHandler {
                     name,
                     alias,
                     device_type,
+                    addr_type,
                     class,
                     appearance,
                     bonded,
@@ -767,6 +768,7 @@ impl CommandHandler {
 
                     let name = adapter.get_remote_name(device.clone());
                     let device_type = adapter.get_remote_type(device.clone());
+                    let addr_type = adapter.get_remote_address_type(device.clone());
                     let alias = adapter.get_remote_alias(device.clone());
                     let class = adapter.get_remote_class(device.clone());
                     let appearance = adapter.get_remote_appearance(device.clone());
@@ -783,6 +785,7 @@ impl CommandHandler {
                         name,
                         alias,
                         device_type,
+                        addr_type,
                         class,
                         appearance,
                         bonded,
@@ -795,7 +798,8 @@ impl CommandHandler {
                 print_info!("Address: {}", &device.address);
                 print_info!("Name: {}", name);
                 print_info!("Alias: {}", alias);
-                print_info!("Type: {:?}", device_type);
+                print_info!("Device Type: {:?}", device_type);
+                print_info!("Address Type: {:?}", addr_type);
                 print_info!("Class: {}", class);
                 print_info!("Appearance: {}", appearance);
                 print_info!("Wake Allowed: {}", wake_allowed);
