@@ -1061,13 +1061,9 @@ public class BluetoothMapService extends ProfileService {
     }
 
     private void sendShutdownMessage() {
-        // Pending messages are no longer valid. To speed up things, simply delete them.
+        // We should close the Setting's permission dialog if one is open.
         if (mRemoveTimeoutMsg) {
-            Intent timeoutIntent = new Intent(USER_CONFIRM_TIMEOUT_ACTION);
-            Utils.sendBroadcast(this, timeoutIntent, null,
-                    Utils.getTempAllowlistBroadcastOptions());
-            mIsWaitingAuthorization = false;
-            cancelUserTimeoutAlarm();
+            sendConnectTimeoutMessage();
         }
         if (mSessionStatusHandler == null) {
             Log.w(TAG, "mSessionStatusHandler is null");
