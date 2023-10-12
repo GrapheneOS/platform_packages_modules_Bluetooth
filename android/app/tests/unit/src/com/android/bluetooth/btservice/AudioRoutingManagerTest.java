@@ -42,7 +42,6 @@ import android.util.SparseIntArray;
 import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.Flags;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
@@ -97,9 +96,6 @@ public class AudioRoutingManagerTest {
 
     @Before
     public void setUp() throws Exception {
-        if (!Flags.audioRoutingCentralization()) {
-            return;
-        }
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
@@ -149,9 +145,6 @@ public class AudioRoutingManagerTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!Flags.audioRoutingCentralization()) {
-            return;
-        }
         mAudioRoutingManager.cleanup();
         TestUtils.clearAdapterService(mAdapterService);
         Utils.setDualModeAudioStateForTesting(mOriginalDualModeAudioState);
@@ -163,14 +156,12 @@ public class AudioRoutingManagerTest {
     /** One A2DP is connected. */
     @Test
     public void onlyA2dpConnected_setA2dpActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         a2dpConnected(mA2dpDevice, false);
         verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpDevice);
     }
 
     @Test
     public void a2dpHeadsetConnected_setA2dpActiveShouldBeCalledAfterHeadsetConnected() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_IN_CALL);
 
         a2dpConnected(mA2dpHeadsetDevice, true);
@@ -183,7 +174,6 @@ public class AudioRoutingManagerTest {
     /** Two A2DP are connected. Should set the second one active. */
     @Test
     public void secondA2dpConnected_setSecondA2dpActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         a2dpConnected(mA2dpDevice, false);
         verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpDevice);
 
@@ -194,7 +184,6 @@ public class AudioRoutingManagerTest {
     /** One A2DP is connected and disconnected later. Should then set active device to null. */
     @Test
     public void lastA2dpDisconnected_clearA2dpActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         a2dpConnected(mA2dpDevice, false);
         verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpDevice);
 
@@ -205,7 +194,6 @@ public class AudioRoutingManagerTest {
     /** Two A2DP are connected and active device is explicitly set. */
     @Test
     public void a2dpActiveDeviceSelected_setActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         a2dpConnected(mA2dpDevice, false);
         verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpDevice);
 
@@ -225,7 +213,6 @@ public class AudioRoutingManagerTest {
      */
     @Test
     public void a2dpSecondDeviceDisconnected_fallbackDeviceActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         a2dpConnected(mA2dpDevice, false);
         verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpDevice);
 
@@ -240,7 +227,6 @@ public class AudioRoutingManagerTest {
     /** One Headset is connected. */
     @Test
     public void onlyHeadsetConnected_setHeadsetActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         headsetConnected(mHeadsetDevice, false);
         verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mHeadsetDevice);
     }
@@ -248,7 +234,6 @@ public class AudioRoutingManagerTest {
     /** Two Headset are connected. Should set the second one active. */
     @Test
     public void secondHeadsetConnected_setSecondHeadsetActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         headsetConnected(mHeadsetDevice, false);
         verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mHeadsetDevice);
 
@@ -259,7 +244,6 @@ public class AudioRoutingManagerTest {
     /** One Headset is connected and disconnected later. Should then set active device to null. */
     @Test
     public void lastHeadsetDisconnected_clearHeadsetActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         headsetConnected(mHeadsetDevice, false);
         verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mHeadsetDevice);
 
@@ -270,7 +254,6 @@ public class AudioRoutingManagerTest {
     /** Two Headset are connected and active device is explicitly set. */
     @Test
     public void headsetActiveDeviceSelected_setActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         headsetConnected(mHeadsetDevice, false);
         verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mHeadsetDevice);
 
@@ -290,7 +273,6 @@ public class AudioRoutingManagerTest {
      */
     @Test
     public void headsetSecondDeviceDisconnected_fallbackDeviceActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_IN_CALL);
 
         headsetConnected(mHeadsetDevice, false);
@@ -306,7 +288,6 @@ public class AudioRoutingManagerTest {
 
     @Test
     public void a2dpConnectedButHeadsetNotConnected_setA2dpActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_IN_CALL);
 
         a2dpConnected(mA2dpHeadsetDevice, true);
@@ -316,7 +297,6 @@ public class AudioRoutingManagerTest {
 
     @Test
     public void headsetConnectedButA2dpNotConnected_setHeadsetActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
 
         headsetConnected(mA2dpHeadsetDevice, true);
@@ -326,7 +306,6 @@ public class AudioRoutingManagerTest {
 
     @Test
     public void hfpActivatedAfterA2dpActivated_shouldNotActivateA2dpAgain() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         a2dpConnected(mA2dpHeadsetDevice, true);
         a2dpConnected(mSecondaryAudioDevice, true);
         headsetConnected(mA2dpHeadsetDevice, true);
@@ -352,7 +331,6 @@ public class AudioRoutingManagerTest {
 
     @Test
     public void hfpActivatedAfterTimeout_shouldActivateA2dpAgain() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         a2dpConnected(mA2dpHeadsetDevice, true);
         headsetConnected(mA2dpHeadsetDevice, true);
         a2dpActiveDeviceChanged(null);
@@ -377,7 +355,6 @@ public class AudioRoutingManagerTest {
 
     @Test
     public void a2dpHeadsetActivated_whileActivatingAnotherA2dpHeadset() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         a2dpConnected(mA2dpHeadsetDevice, true);
         a2dpConnected(mSecondaryAudioDevice, true);
         headsetConnected(mA2dpHeadsetDevice, true);
@@ -449,7 +426,6 @@ public class AudioRoutingManagerTest {
 
     @Test
     public void hfpActivated_whileActivatingA2dpHeadset() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         headsetConnected(mHeadsetDevice, false);
         a2dpConnected(mA2dpHeadsetDevice, true);
         headsetConnected(mA2dpHeadsetDevice, true);
@@ -482,7 +458,6 @@ public class AudioRoutingManagerTest {
 
     @Test
     public void a2dpActivated_whileActivatingA2dpHeadset() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         a2dpConnected(mA2dpDevice, false);
         a2dpConnected(mA2dpHeadsetDevice, true);
         headsetConnected(mA2dpHeadsetDevice, true);
@@ -516,7 +491,6 @@ public class AudioRoutingManagerTest {
     /** A headset device with connecting audio policy set to NOT ALLOWED. */
     @Test
     public void notAllowedConnectingPolicyHeadsetConnected_noSetActiveDevice() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         // setting connecting policy to NOT ALLOWED
         when(mHeadsetService.getHfpCallAudioPolicy(mHeadsetDevice))
                 .thenReturn(
@@ -533,7 +507,6 @@ public class AudioRoutingManagerTest {
 
     @Test
     public void twoHearingAidDevicesConnected_WithTheSameHiSyncId() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         Assume.assumeTrue(
                 "Ignore test when HearingAidService is not enabled", HearingAidService.isEnabled());
 
@@ -553,7 +526,6 @@ public class AudioRoutingManagerTest {
     /** A combo (A2DP + Headset) device is connected. Then a Hearing Aid is connected. */
     @Test
     public void hearingAidActive_clearA2dpAndHeadsetActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         a2dpConnected(mA2dpHeadsetDevice, true);
         headsetConnected(mA2dpHeadsetDevice, true);
         verify(mA2dpService, timeout(TIMEOUT_MS).atLeastOnce()).setActiveDevice(mA2dpHeadsetDevice);
@@ -568,7 +540,6 @@ public class AudioRoutingManagerTest {
     /** A Hearing Aid is connected. Then a combo (A2DP + Headset) device is connected. */
     @Test
     public void hearingAidActive_dontSetA2dpAndHeadsetActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         hearingAidActiveDeviceChanged(mHearingAidDevice);
         a2dpConnected(mA2dpHeadsetDevice, true);
         headsetConnected(mA2dpHeadsetDevice, true);
@@ -581,7 +552,6 @@ public class AudioRoutingManagerTest {
     /** A Hearing Aid is connected. Then an A2DP active device is explicitly set. */
     @Test
     public void hearingAidActive_setA2dpActiveExplicitly() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         when(mHearingAidService.removeActiveDevice(anyBoolean())).thenReturn(true);
 
         hearingAidActiveDeviceChanged(mHearingAidDevice);
@@ -599,7 +569,6 @@ public class AudioRoutingManagerTest {
     /** A Hearing Aid is connected. Then a Headset active device is explicitly set. */
     @Test
     public void hearingAidActive_setHeadsetActiveExplicitly() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         when(mHearingAidService.removeActiveDevice(anyBoolean())).thenReturn(true);
 
         hearingAidActiveDeviceChanged(mHearingAidDevice);
@@ -617,7 +586,6 @@ public class AudioRoutingManagerTest {
     /** One LE Audio is connected. */
     @Test
     public void onlyLeAudioConnected_setHeadsetActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         leAudioConnected(mLeAudioDevice);
         verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
     }
@@ -625,7 +593,6 @@ public class AudioRoutingManagerTest {
     /** Two LE Audio are connected. Should set the second one active. */
     @Test
     public void secondLeAudioConnected_setSecondLeAudioActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         leAudioConnected(mLeAudioDevice);
         verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
 
@@ -636,7 +603,6 @@ public class AudioRoutingManagerTest {
     /** One LE Audio is connected and disconnected later. Should then set active device to null. */
     @Test
     public void lastLeAudioDisconnected_clearLeAudioActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         leAudioConnected(mLeAudioDevice);
         verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
 
@@ -647,7 +613,6 @@ public class AudioRoutingManagerTest {
     /** Two LE Audio are connected and active device is explicitly set. */
     @Test
     public void leAudioActiveDeviceSelected_setActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         leAudioConnected(mLeAudioDevice);
         verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
 
@@ -668,7 +633,6 @@ public class AudioRoutingManagerTest {
      */
     @Test
     public void leAudioSecondDeviceDisconnected_fallbackDeviceActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         leAudioConnected(mLeAudioDevice);
         verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
 
@@ -683,7 +647,6 @@ public class AudioRoutingManagerTest {
     /** A combo (A2DP + Headset) device is connected. Then an LE Audio is connected. */
     @Test
     public void leAudioActive_clearA2dpAndHeadsetActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         a2dpConnected(mA2dpHeadsetDevice, true);
         headsetConnected(mA2dpHeadsetDevice, true);
         verify(mA2dpService, timeout(TIMEOUT_MS).atLeastOnce()).setActiveDevice(mA2dpHeadsetDevice);
@@ -698,7 +661,6 @@ public class AudioRoutingManagerTest {
     /** An LE Audio is connected. Then a combo (A2DP + Headset) device is connected. */
     @Test
     public void leAudioActive_setA2dpAndHeadsetActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         leAudioActiveDeviceChanged(mLeAudioDevice);
         a2dpConnected(mA2dpHeadsetDevice, true);
         headsetConnected(mA2dpHeadsetDevice, true);
@@ -711,7 +673,6 @@ public class AudioRoutingManagerTest {
     /** An LE Audio is connected. Then an A2DP active device is explicitly set. */
     @Test
     public void leAudioActive_setA2dpActiveExplicitly() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         leAudioActiveDeviceChanged(mLeAudioDevice);
         a2dpConnected(mA2dpDevice, false);
         a2dpActiveDeviceChanged(mA2dpDevice);
@@ -726,7 +687,6 @@ public class AudioRoutingManagerTest {
     /** An LE Audio is connected. Then a Headset active device is explicitly set. */
     @Test
     public void leAudioActive_setHeadsetActiveExplicitly() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         leAudioActiveDeviceChanged(mLeAudioDevice);
         headsetConnected(mHeadsetDevice, false);
         headsetActiveDeviceChanged(mHeadsetDevice);
@@ -744,7 +704,6 @@ public class AudioRoutingManagerTest {
      */
     @Test
     public void leAudioAndA2dpConnectedThenA2dpDisconnected_fallbackToLeAudio() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
 
         leAudioConnected(mLeAudioDevice);
@@ -765,7 +724,6 @@ public class AudioRoutingManagerTest {
      */
     @Test
     public void leAudioSetConnectedThenNotActiveOneDisconnected_noFallback() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
 
         leAudioConnected(mLeAudioDevice);
@@ -790,7 +748,6 @@ public class AudioRoutingManagerTest {
      */
     @Test
     public void leAudioSetConnectedThenActiveOneDisconnected_noFallback() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
 
         leAudioConnected(mLeAudioDevice);
@@ -818,7 +775,6 @@ public class AudioRoutingManagerTest {
      */
     @Test
     public void leAudioSetConnectedThenActiveOneDisconnected_hasFallback() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
 
         leAudioConnected(mLeAudioDevice);
@@ -841,7 +797,6 @@ public class AudioRoutingManagerTest {
      */
     @Test
     public void a2dpAndLeAudioConnectedThenLeAudioDisconnected_fallbackToA2dp() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
 
         a2dpConnected(mA2dpDevice, false);
@@ -862,7 +817,6 @@ public class AudioRoutingManagerTest {
      */
     @Test
     public void hearingAidSecondDeviceDisconnected_fallbackDeviceActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         hearingAidConnected(mHearingAidDevice);
         verify(mHearingAidService, timeout(TIMEOUT_MS)).setActiveDevice(mHearingAidDevice);
 
@@ -887,7 +841,6 @@ public class AudioRoutingManagerTest {
      */
     @Test
     public void activeDeviceDisconnected_fallbackToHearingAid() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
         when(mA2dpService.setActiveDevice(any())).thenReturn(true);
         when(mLeAudioService.setActiveDevice(any())).thenReturn(true);
@@ -915,7 +868,6 @@ public class AudioRoutingManagerTest {
     /** One LE Hearing Aid is connected. */
     @Test
     public void onlyLeHearingAidConnected_setLeAudioActive() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         leHearingAidConnected(mLeHearingAidDevice);
         TestUtils.waitForLooperToFinishScheduledTask(mAudioRoutingManager.getHandlerLooper());
         verify(mLeAudioService, never()).setActiveDevice(mLeHearingAidDevice);
@@ -927,7 +879,6 @@ public class AudioRoutingManagerTest {
     /** LE audio is connected after LE Hearing Aid device. Keep LE hearing Aid active. */
     @Test
     public void leAudioConnectedAfterLeHearingAid_setLeAudioActiveShouldNotBeCalled() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         leHearingAidConnected(mLeHearingAidDevice);
         leAudioConnected(mLeHearingAidDevice);
         verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeHearingAidDevice);
@@ -943,7 +894,6 @@ public class AudioRoutingManagerTest {
      */
     @Test
     public void activeDeviceChange_withHearingAidLeHearingAidAndA2dpDevices() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
         when(mHearingAidService.removeActiveDevice(anyBoolean())).thenReturn(true);
 
@@ -974,7 +924,6 @@ public class AudioRoutingManagerTest {
      */
     @Test
     public void dualModeAudioDeviceConnected_withDualModeFeatureDisabled() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         // Turn off the dual mode audio flag
         Utils.setDualModeAudioStateForTesting(false);
 
@@ -1003,7 +952,6 @@ public class AudioRoutingManagerTest {
      */
     @Test
     public void dualModeAudioDeviceConnected_withDualModeFeatureEnabled() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         // Turn on the dual mode audio flag
         Utils.setDualModeAudioStateForTesting(true);
         reset(mLeAudioService);
@@ -1046,7 +994,6 @@ public class AudioRoutingManagerTest {
      */
     @Test
     public void setActiveDeviceFailsUponConnection() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         Utils.setDualModeAudioStateForTesting(false);
         when(mHeadsetService.setActiveDevice(any())).thenReturn(false);
         when(mA2dpService.setActiveDevice(any())).thenReturn(false);
@@ -1100,7 +1047,6 @@ public class AudioRoutingManagerTest {
     /** A wired audio device is connected. Then all active devices are set to null. */
     @Test
     public void wiredAudioDeviceConnected_setAllActiveDevicesNull() {
-        Assume.assumeTrue(Flags.audioRoutingCentralization());
         a2dpConnected(mA2dpDevice, false);
         headsetConnected(mHeadsetDevice, false);
         verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpDevice);
