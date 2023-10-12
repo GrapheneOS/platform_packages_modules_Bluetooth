@@ -35,6 +35,8 @@ const ModuleFactory DistanceMeasurementManager::Factory =
 static constexpr uint16_t kIllegalConnectionHandle = 0xffff;
 static constexpr uint8_t kTxPowerNotAvailable = 0xfe;
 static constexpr int8_t kRSSIDropOffAt1M = 41;
+static constexpr uint8_t kCsMaxTxPower = 12;
+static constexpr CsSyncAntennaSelection kCsSyncAntennaSelection = CsSyncAntennaSelection::ANTENNA_2;
 
 struct DistanceMeasurementManager::impl {
   ~impl() {}
@@ -67,7 +69,7 @@ struct DistanceMeasurementManager::impl {
 
     // Remove this check if we support any connection less method
     if (connection_handle == kIllegalConnectionHandle) {
-      LOG_WARN("Can not find any LE connection");
+      LOG_WARN("Can't find any LE connection for %s", ADDRESS_TO_LOGGABLE_CSTR(address));
       distance_measurement_callbacks_->OnDistanceMeasurementStartFail(
           address, REASON_NO_LE_CONNECTION, method);
       return;
@@ -91,6 +93,35 @@ struct DistanceMeasurementManager::impl {
           rssi_trackers[address].frequency = frequency;
         }
       } break;
+      case METHOD_CS: {
+        start_distance_measurement_with_cs(address, connection_handle);
+      } break;
+    }
+  }
+
+  void start_distance_measurement_with_cs(
+      const Address& cs_remote_address, uint16_t connection_handle) {
+    LOG_INFO(
+        "connection_handle: %d, address: %s",
+        connection_handle,
+        ADDRESS_TO_LOGGABLE_CSTR(cs_remote_address));
+    if (cs_trackers_.find(connection_handle) != cs_trackers_.end() &&
+        cs_trackers_[connection_handle].address != cs_remote_address) {
+      LOG_WARN("Remove old tracker for %s ", ADDRESS_TO_LOGGABLE_CSTR(cs_remote_address));
+      cs_trackers_.erase(connection_handle);
+    }
+
+    if (cs_trackers_.find(connection_handle) == cs_trackers_.end()) {
+      // Create a cs tracker with role initiator
+      cs_trackers_[connection_handle].address = cs_remote_address;
+      // TODO: Check ROLE via CS config. (b/304295768)
+      cs_trackers_[connection_handle].role = CsRole::INITIATOR;
+    }
+
+    if (!cs_trackers_[connection_handle].setup_complete) {
+      send_le_cs_read_remote_supported_capabilities(connection_handle);
+      send_le_cs_set_default_settings(connection_handle);
+      send_le_cs_security_enable(connection_handle);
     }
   }
 
@@ -109,6 +140,14 @@ struct DistanceMeasurementManager::impl {
           rssi_trackers[address].alarm->Cancel();
           rssi_trackers[address].alarm.reset();
           rssi_trackers.erase(address);
+        }
+      } break;
+      case METHOD_CS: {
+        uint16_t connection_handle = acl_manager_->HACK_GetLeHandle(address);
+        if (cs_trackers_.find(connection_handle) == cs_trackers_.end()) {
+          LOG_WARN("Can't find CS tracker for %s ", ADDRESS_TO_LOGGABLE_CSTR(address));
+        } else {
+          cs_trackers_.erase(connection_handle);
         }
       } break;
     }
@@ -142,20 +181,59 @@ struct DistanceMeasurementManager::impl {
   }
 
   void handle_event(LeMetaEventView event) {
+    if (!event.IsValid()) {
+      LOG_ERROR("Received invalid LeMetaEventView");
+      return;
+    }
     switch (event.GetSubeventCode()) {
       case hci::SubeventCode::LE_CS_TEST_END_COMPLETE:
       case hci::SubeventCode::LE_CS_SUBEVENT_RESULT_CONTINUE:
       case hci::SubeventCode::LE_CS_SUBEVENT_RESULT:
       case hci::SubeventCode::LE_CS_PROCEDURE_ENABLE_COMPLETE:
       case hci::SubeventCode::LE_CS_CONFIG_COMPLETE:
-      case hci::SubeventCode::LE_CS_SECURITY_ENABLE_COMPLETE:
-      case hci::SubeventCode::LE_CS_READ_REMOTE_FAE_TABLE_COMPLETE:
-      case hci::SubeventCode::LE_CS_READ_REMOTE_SUPPORTED_CAPABILITIES_COMPLETE: {
+      case hci::SubeventCode::LE_CS_READ_REMOTE_FAE_TABLE_COMPLETE: {
         LOG_WARN("Unhandled subevent %s", hci::SubeventCodeText(event.GetSubeventCode()).c_str());
+      } break;
+      case hci::SubeventCode::LE_CS_SECURITY_ENABLE_COMPLETE: {
+        on_cs_security_enable_complete(LeCsSecurityEnableCompleteView::Create(event));
+      } break;
+      case hci::SubeventCode::LE_CS_READ_REMOTE_SUPPORTED_CAPABILITIES_COMPLETE: {
+        on_cs_read_remote_supported_capabilities_complete(
+            LeCsReadRemoteSupportedCapabilitiesCompleteView::Create(event));
       } break;
       default:
         LOG_INFO("Unknown subevent %s", hci::SubeventCodeText(event.GetSubeventCode()).c_str());
     }
+  }
+
+  void send_le_cs_read_local_supported_capabilities() {
+    hci_layer_->EnqueueCommand(
+        LeCsReadLocalSupportedCapabilitiesBuilder::Create(),
+        handler_->BindOnceOn(this, &impl::on_cs_read_local_supported_capabilities));
+  }
+
+  void send_le_cs_read_remote_supported_capabilities(uint16_t connection_handle) {
+    hci_layer_->EnqueueCommand(
+        LeCsReadRemoteSupportedCapabilitiesBuilder::Create(connection_handle),
+        handler_->BindOnce(check_status<LeCsReadRemoteSupportedCapabilitiesStatusView>));
+  }
+
+  void send_le_cs_security_enable(uint16_t connection_handle) {
+    hci_layer_->EnqueueCommand(
+        LeCsSecurityEnableBuilder::Create(connection_handle),
+        handler_->BindOnce(check_status<LeCsSecurityEnableStatusView>));
+  }
+
+  void send_le_cs_set_default_settings(uint16_t connection_handle) {
+    uint8_t role_enable = ((uint8_t)CsRole::INITIATOR) | ((uint8_t)CsRole::INITIATOR);
+    hci_layer_->EnqueueCommand(
+        LeCsSetDefaultSettingsBuilder::Create(
+            connection_handle,
+            role_enable,
+            kCsSyncAntennaSelection,
+            kCsMaxTxPower  // max_tx_power
+            ),
+        handler_->BindOnceOn(this, &impl::on_cs_set_default_settings_complete));
   }
 
   void on_cs_read_local_supported_capabilities(CommandCompleteView view) {
@@ -174,6 +252,56 @@ struct DistanceMeasurementManager::impl {
     }
     is_channel_sounding_supported_ = true;
     cs_subfeature_supported_ = complete_view.GetOptionalSubfeaturesSupported();
+  }
+
+  void on_cs_read_remote_supported_capabilities_complete(
+      LeCsReadRemoteSupportedCapabilitiesCompleteView event_view) {
+    if (!event_view.IsValid()) {
+      LOG_INFO("Get invalid LeCsReadRemoteSupportedCapabilitiesCompleteView");
+      return;
+    }
+    uint16_t connection_handle = event_view.GetConnectionHandle();
+
+    if (cs_trackers_.find(connection_handle) == cs_trackers_.end()) {
+      // Create a cs tracker with role reflector
+      // TODO: Check ROLE via CS config. (b/304295768)
+      cs_trackers_[connection_handle].role = CsRole::REFLECTOR;
+      send_le_cs_set_default_settings(event_view.GetConnectionHandle());
+    }
+
+    if (event_view.GetOptionalSubfeaturesSupported().phase_based_ranging_ == 0x01) {
+      cs_trackers_[connection_handle].remote_support_phase_based_ranging = true;
+    }
+  }
+
+  void on_cs_set_default_settings_complete(CommandCompleteView view) {
+    auto complete_view = LeCsSetDefaultSettingsCompleteView::Create(view);
+    if (!complete_view.IsValid()) {
+      LOG_WARN("Invalid LeCsSetDefaultSettingsComplete event");
+      return;
+    } else if (complete_view.GetStatus() != ErrorCode::SUCCESS) {
+      std::string error_code = ErrorCodeText(complete_view.GetStatus());
+      LOG_WARN("Received LeCsSetDefaultSettingsComplete with error code %s", error_code.c_str());
+      return;
+    }
+  }
+
+  void on_cs_security_enable_complete(LeCsSecurityEnableCompleteView event_view) {
+    if (!event_view.IsValid()) {
+      LOG_INFO("get invalid LeCsSecurityEnableCompleteView");
+      return;
+    }
+
+    uint16_t connection_handle = event_view.GetConnectionHandle();
+    if (cs_trackers_.find(connection_handle) == cs_trackers_.end()) {
+      LOG_WARN("Can't find cs tracker for connection_handle %d", connection_handle);
+      return;
+    }
+    cs_trackers_[connection_handle].setup_complete = true;
+    LOG_INFO(
+        "Setup phase complete, connection_handle: %d, address: %s",
+        connection_handle,
+        ADDRESS_TO_LOGGABLE_CSTR(cs_trackers_[connection_handle].address));
   }
 
   void on_read_remote_transmit_power_level_status(Address address, CommandStatusView view) {
@@ -307,12 +435,26 @@ struct DistanceMeasurementManager::impl {
     std::unique_ptr<os::Alarm> alarm;
   };
 
+  struct CsTracker {
+    Address address;
+    uint16_t local_counter;
+    uint16_t remote_counter;
+    CsRole role;
+    bool setup_complete = false;
+    bool config_set = false;
+    uint8_t main_mode_type;
+    uint8_t sub_mode_type;
+    CsRttType rtt_type;
+    bool remote_support_phase_based_ranging = false;
+  };
+
   os::Handler* handler_;
   hci::HciLayer* hci_layer_;
   hci::AclManager* acl_manager_;
   bool is_channel_sounding_supported_ = false;
   hci::DistanceMeasurementInterface* distance_measurement_interface_;
   std::unordered_map<Address, RSSITracker> rssi_trackers;
+  std::unordered_map<uint16_t, CsTracker> cs_trackers_;
   DistanceMeasurementCallbacks* distance_measurement_callbacks_;
   CsOptionalSubfeaturesSupported cs_subfeature_supported_;
 };
