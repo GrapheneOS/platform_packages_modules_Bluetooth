@@ -186,6 +186,9 @@ class StateMachineTestBase : public Test {
   /* Keep ASE in releasing state */
   bool stay_in_releasing_state_;
 
+  /* Use for single test to simulate late ASE notifications */
+  bool stop_inject_configured_ase_after_first_ase_configured_;
+
   virtual void SetUp() override {
     bluetooth::common::InitFlags::Load(test_flags);
     reset_mock_function_count_map();
@@ -198,6 +201,7 @@ class StateMachineTestBase : public Test {
     overwrite_cis_status_ = false;
     do_not_send_cis_establish_event_ = false;
     stay_in_releasing_state_ = false;
+    stop_inject_configured_ase_after_first_ase_configured_ = false;
     cis_status_.clear();
 
     LeAudioGroupStateMachine::Initialize(&mock_callbacks_);
@@ -935,6 +939,10 @@ class StateMachineTestBase : public Test {
             InjectAseStateNotification(ase, device, group,
                                        ascs::kAseStateCodecConfigured,
                                        &codec_configured_state_params);
+
+            if (stop_inject_configured_ase_after_first_ase_configured_) {
+              return;
+            }
           }
         };
   }
@@ -4552,6 +4560,113 @@ TEST_F(StateMachineTest, StartStreamCachedConfig) {
 
   testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
   ASSERT_EQ(1, get_func_call_count("alarm_cancel"));
+}
+
+TEST_F(StateMachineTest, StartStreamCachedConfigReconfigInvalidBehavior) {
+  const auto context_type = kContextTypeConversational;
+  const auto leaudio_group_id = 6;
+  const auto num_devices = 1;
+  channel_count_ = kLeAudioCodecChannelCountSingleChannel |
+                   kLeAudioCodecChannelCountTwoChannel;
+
+  /* Scenario
+   * 1. Start stream and stop stream so ASEs stays in Configured State
+   * 2. Reconfigure ASEs localy, so the QoS parameters are zeroed
+   * 3. Inject one ASE 2 to be in Releasing state
+   * 4. Start stream and Incject ASE 1 to go into Codec Configured state
+   * 5. IN such case CIG shall not be created and fallback to Release and
+   * Configure stream should happen. Before fix CigCreate with invalid
+   * parameters were called */
+  ContentControlIdKeeper::GetInstance()->SetCcid(call_context, call_ccid);
+
+  // Prepare multiple fake connected devices in a group
+  auto* group =
+      PrepareSingleTestDeviceGroup(leaudio_group_id, context_type, num_devices);
+  ASSERT_EQ(group->Size(), num_devices);
+
+  PrepareConfigureCodecHandler(group, 0, true);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group);
+  PrepareDisableHandler(group);
+  PrepareReceiverStartReady(group);
+  PrepareReleaseHandler(group);
+
+  InjectInitialIdleNotification(group);
+
+  // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+
+  EXPECT_CALL(*mock_iso_manager_, CreateCig).Times(1);
+
+  // Start the configuration and stream call content
+  LeAudioGroupStateMachine::Get()->StartStream(
+      group, context_type,
+      {.sink = types::AudioContexts(context_type),
+       .source = types::AudioContexts(context_type)});
+
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+
+  ASSERT_EQ(1, get_func_call_count("alarm_cancel"));
+  reset_mock_function_count_map();
+
+  // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::RELEASING));
+
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(
+          leaudio_group_id,
+          bluetooth::le_audio::GroupStreamStatus::CONFIGURED_AUTONOMOUS));
+  // Start the configuration and stream Media content
+  LeAudioGroupStateMachine::Get()->StopStream(group);
+
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+  testing::Mock::VerifyAndClearExpectations(&mock_iso_manager_);
+
+  ASSERT_EQ(1, get_func_call_count("alarm_cancel"));
+  reset_mock_function_count_map();
+
+  stop_inject_configured_ase_after_first_ase_configured_ = true;
+
+  auto device = group->GetFirstDevice();
+  int i = 0;
+  for (auto& ase : device->ases_) {
+    if (i++ == 0) continue;
+
+    // Simulate autonomus release for one ASE - this is invalid behaviour
+    InjectAseStateNotification(&ase, device, group, ascs::kAseStateReleasing,
+                               nullptr);
+  }
+
+  // Restart stream and expect it will not be created.
+  EXPECT_CALL(mock_callbacks_,
+              StatusReportCb(leaudio_group_id,
+                             bluetooth::le_audio::GroupStreamStatus::STREAMING))
+      .Times(0);
+  EXPECT_CALL(mock_callbacks_,
+              StatusReportCb(leaudio_group_id,
+                             bluetooth::le_audio::GroupStreamStatus::RELEASING))
+      .Times(1);
+
+  EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(0);
+
+  // Block the fallback Release which will happen when CreateCig will faile
+  stay_in_releasing_state_ = true;
+
+  // Start the configuration and stream Live content
+  LeAudioGroupStateMachine::Get()->StartStream(
+      group, kContextTypeLive,
+      {.sink = types::AudioContexts(kContextTypeLive),
+       .source = types::AudioContexts(kContextTypeLive)});
+
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+  testing::Mock::VerifyAndClearExpectations(&mock_iso_manager_);
 }
 
 TEST_F(StateMachineTest, BoundedHeadphonesConversationalToMediaChannelCount_2) {
