@@ -24,6 +24,7 @@ namespace hci {
 enum DistanceMeasurementMethod {
   METHOD_AUTO,
   METHOD_RSSI,
+  METHOD_CS,
 };
 
 enum DistanceMeasurementErrorCode {
