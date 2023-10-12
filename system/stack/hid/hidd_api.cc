@@ -35,6 +35,7 @@
 #include "hiddefs.h"
 #include "osi/include/allocator.h"
 #include "stack/btm/btm_sec.h"
+#include "stack/include/bt_psm_types.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/sdp_api.h"
 #include "stack/include/stack_metrics_logging.h"
