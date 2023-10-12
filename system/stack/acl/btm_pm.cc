@@ -38,9 +38,9 @@
 #include "bt_target.h"
 #include "device/include/controller.h"
 #include "device/include/interop.h"
+#include "gd/common/init_flags.h"
 #include "main/shim/dumpsys.h"
-#include "main/shim/shim.h"
-#include "osi/include/log.h"
+#include "os/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "osi/include/stack_power_telemetry.h"
 #include "stack/btm/btm_int_types.h"
