@@ -198,5 +198,59 @@ TEST(LeAudioLtvMapTest, test_serialization_ltv_len_is_invalid) {
   ASSERT_FALSE(success);
 }
 
+TEST(LeAudioLtvMapTest, test_configuration_valid) {
+  // clang-format off
+  const std::vector<uint8_t> config_ltv_vec{
+      // SamplingFreq = 48000
+      0x02, 0x01, 0x08,
+      // FrameDuration = 10000us
+      0x02, 0x02, 0x01,
+      // AudioChannelAllocation = kLeAudioLocationFrontLeft |
+      //                              kLeAudioLocationFrontRight
+      0x05, 0x03, 0x03, 0x00, 0x00, 0x00,
+      // OctetsPerCodecFrame = 40
+      0x03, 0x04, 40, 0x00,
+      // Unknown type entry to ignore
+      0x05, 0x06, 0x11, 0x22, 0x33, 0x44,
+      // CodecFrameBlocksPerSdu = 1
+      0x02, 0x05, 1,
+  };
+  // clang-format on
+
+  // Parse
+  bool success = true;
+  LeAudioLtvMap ltv_map = LeAudioLtvMap::Parse(config_ltv_vec.data(),
+                                               config_ltv_vec.size(), success);
+  ASSERT_TRUE(success);
+
+  // Verify the codec configuration values
+  auto config = ltv_map.GetAsCoreCodecConfig();
+
+  // SamplingFreq = 48000
+  ASSERT_TRUE(config.sampling_frequency.has_value());
+  ASSERT_EQ(0x08, config.sampling_frequency.value());
+  ASSERT_EQ(48000u, config.GetSamplingFrequencyHz());
+
+  // FrameDuration = 10000us
+  ASSERT_TRUE(config.frame_duration.has_value());
+  ASSERT_EQ(0x01, config.frame_duration.value());
+  ASSERT_EQ(10000u, config.GetFrameDurationUs());
+
+  // AudioChannelAllocation = kLeAudioLocationFrontLeft |
+  //                            kLeAudioLocationFrontRight
+  ASSERT_TRUE(config.audio_channel_allocation.has_value());
+  ASSERT_EQ(0x00000003u, config.audio_channel_allocation.value());
+  // Check if allocated channel count matches the number of allocation bits
+  ASSERT_EQ(2u, config.GetChannelCountPerIsoStream());
+
+  // OctetsPerCodecFrame = 40
+  ASSERT_TRUE(config.octets_per_codec_frame.has_value());
+  ASSERT_EQ(0x0028u, config.octets_per_codec_frame.value());
+
+  // CodecFrameBlocksPerSdu = 1
+  ASSERT_TRUE(config.codec_frames_blocks_per_sdu.has_value());
+  ASSERT_EQ(0x01u, config.codec_frames_blocks_per_sdu.value());
+}
+
 }  // namespace types
 }  // namespace le_audio
