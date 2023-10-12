@@ -17,7 +17,6 @@
 #define LOG_TAG "bt_shim_advertiser"
 
 #include "le_advertising_manager.h"
-#include "utils.h"
 
 #include <base/logging.h>
 #include <hardware/bluetooth.h>
@@ -37,8 +36,9 @@
 #include "stack/include/ble_advertiser.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_log_history.h"
-#include "stack/include/btu.h"  // do_in_main_thread
+#include "stack/include/main_thread.h"
 #include "types/raw_address.h"
+#include "utils.h"
 
 using bluetooth::hci::Address;
 using bluetooth::hci::AddressType;

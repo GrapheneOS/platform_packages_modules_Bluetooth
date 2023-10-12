@@ -40,7 +40,7 @@
 #include "stack/btm/btm_sco_hfp_hal.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/btm_api.h"
-#include "stack/include/btu.h"  // do_in_main_thread
+#include "stack/include/main_thread.h"
 #include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;

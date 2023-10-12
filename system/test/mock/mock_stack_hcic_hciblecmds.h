@@ -40,7 +40,6 @@
 #include <bitset>
 
 #include "bt_target.h"
-#include "btu.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
 #include "osi/include/allocator.h"

@@ -21,7 +21,6 @@
 #include <string>
 
 #include "bt_target.h"
-#include "btu.h"
 #include "hcimsgs.h"
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/bt_octets.h"

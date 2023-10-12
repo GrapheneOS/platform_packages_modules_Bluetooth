@@ -31,7 +31,7 @@
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_psm_types.h"
-#include "types/raw_address.h"
+#include "stack/include/main_thread.h"
 
 namespace bluetooth {
 namespace eatt {

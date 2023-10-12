@@ -32,12 +32,11 @@
 
 #include <base/logging.h>
 #include <ctype.h>
+#include <hardware/bt_av.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <hardware/bt_av.h>
 
 #include "avrc_defs.h"
 #include "bta_ag_api.h"
@@ -48,7 +47,6 @@
 #include "bta_hh_api.h"
 #include "btif_common.h"
 #include "btif_dm.h"
-#include "btu.h"
 
 /*******************************************************************************
  *  Constants & Macros
