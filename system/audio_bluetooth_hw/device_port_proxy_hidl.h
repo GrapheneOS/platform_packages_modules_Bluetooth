@@ -55,8 +55,7 @@ class BluetoothAudioPortHidl : public BluetoothAudioPort {
   bool GetPresentationPosition(uint64_t* delay_ns, uint64_t* bytes,
                                timespec* timestamp) const override;
 
-  void UpdateSourceMetadata(
-      const source_metadata* source_metadata) const override;
+  void UpdateTracksMetadata(const source_metadata* source_metadata) const;
 
   BluetoothStreamState GetState() const override;
 
