@@ -24,6 +24,7 @@
 
 #include "bnep_api.h"
 
+#include <base/logging.h>
 #include <string.h>
 
 #include "bnep_int.h"
@@ -31,10 +32,9 @@
 #include "osi/include/allocator.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_psm_types.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 using bluetooth::Uuid;
 
