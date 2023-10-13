@@ -32,7 +32,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
-#include "stack/include/btu.h"
+#include "stack/include/main_thread.h"
 #include "types/raw_address.h"
 
 /*****************************************************************************

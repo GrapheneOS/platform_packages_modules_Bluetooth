@@ -39,7 +39,6 @@
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
-#include "stack/include/btu.h"
 #include "stack/include/pan_api.h"
 #include "types/raw_address.h"
 

@@ -31,7 +31,7 @@
 #include "common/time_util.h"
 #include "osi/include/log.h"
 #include "osi/include/wakelock.h"
-#include "stack/include/btu.h"  // get_main_thread
+#include "stack/include/main_thread.h"
 #include "udrv/include/uipc.h"
 
 using base::FilePath;

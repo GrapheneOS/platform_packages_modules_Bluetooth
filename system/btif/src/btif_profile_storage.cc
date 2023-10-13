@@ -52,7 +52,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/bt_octets.h"
-#include "stack/include/btu.h"
+#include "stack/include/main_thread.h"
 #include "stack_manager.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"

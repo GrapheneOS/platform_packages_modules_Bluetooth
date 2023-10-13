@@ -31,7 +31,7 @@
 #include "btif_dm.h"
 #include "device.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/btu.h"
+#include "stack/include/main_thread.h"
 #include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"

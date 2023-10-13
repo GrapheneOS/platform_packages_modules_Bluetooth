@@ -39,7 +39,6 @@
 #include <string.h>
 
 #include "bt_target.h"
-#include "btu.h"
 #include "device/include/esco_parameters.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
