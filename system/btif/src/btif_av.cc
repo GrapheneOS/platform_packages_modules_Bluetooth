@@ -725,6 +725,8 @@ class BtifAvSink {
       // cannot set promise but need to be handled within restart_session
       return false;
     }
+    LOG(INFO) << "Setting the active peer to peer address %s"
+              << ADDRESS_TO_LOGGABLE_STR(peer_address);
     active_peer_ = peer_address;
     return true;
   }
@@ -1508,9 +1510,6 @@ BtifAvPeer* BtifAvSink::FindOrCreatePeer(const RawAddress& peer_address,
   peer = new BtifAvPeer(peer_address, AVDT_TSEP_SRC, bta_handle, peer_id);
   peers_.insert(std::make_pair(peer_address, peer));
   peer->Init();
-  if (active_peer_.IsEmpty()) {
-    active_peer_ = peer_address;
-  }
   return peer;
 }
 
@@ -3591,10 +3590,11 @@ static void set_active_peer_int(uint8_t peer_sep,
   if (peer_sep == AVDT_TSEP_SRC) {
     if (!btif_av_src_sink_coexist_enabled() || (btif_av_src_sink_coexist_enabled() &&
       btif_av_both_enable() && (btif_av_source.FindPeer(peer_address) == nullptr))) {
-      btif_av_sink.SetActivePeer(peer_address,
-                                    std::move(peer_ready_promise));
-      BTIF_TRACE_ERROR("%s: Error setting %s as active Source peer", __func__,
-                       ADDRESS_TO_LOGGABLE_CSTR(peer_address));
+      if (!btif_av_sink.SetActivePeer(peer_address,
+                                      std::move(peer_ready_promise))) {
+        BTIF_TRACE_ERROR("%s: Error setting %s as active Source peer", __func__,
+                         ADDRESS_TO_LOGGABLE_CSTR(peer_address));
+      }
     }
     return;
   }
