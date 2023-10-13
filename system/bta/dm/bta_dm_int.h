@@ -378,7 +378,6 @@ typedef struct {
 
 #endif
 
-  tBTA_DM_ENCRYPT_CBACK* p_encrypt_cback;
   alarm_t* switch_delay_timer;
 } tBTA_DM_CB;
 
