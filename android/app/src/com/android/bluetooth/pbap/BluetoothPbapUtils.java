@@ -182,18 +182,22 @@ class BluetoothPbapUtils {
         return new VCardComposer(ctx, vType, true);
     }
 
-    public static String getProfileName(Context context) {
-        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(
-                context.getContentResolver(), Profile.CONTENT_URI,
-                new String[]{Profile.DISPLAY_NAME}, null, null, null);
-        String ownerName = null;
-        if (c != null && c.moveToFirst()) {
-            ownerName = c.getString(0);
+    public static synchronized String getProfileName(Context context) {
+        try (Cursor c =
+                BluetoothMethodProxy.getInstance()
+                        .contentResolverQuery(
+                                context.getContentResolver(),
+                                Profile.CONTENT_URI,
+                                new String[] {Profile.DISPLAY_NAME},
+                                null,
+                                null,
+                                null)) {
+            String ownerName = null;
+            if (c != null && c.moveToFirst()) {
+                ownerName = c.getString(0);
+            }
+            return ownerName;
         }
-        if (c != null) {
-            c.close();
-        }
-        return ownerName;
     }
 
     static String createProfileVCard(Context ctx, final int vcardType, final byte[] filter) {
@@ -271,7 +275,7 @@ class BluetoothPbapUtils {
         handler.sendMessage(handler.obtainMessage(BluetoothPbapService.CONTACTS_LOADED));
     }
 
-    static void updateSecondaryVersionCounter(Context context, Handler handler) {
+    static synchronized void updateSecondaryVersionCounter(Context context, Handler handler) {
             /* updatedList stores list of contacts which are added/updated after
              * the time when contacts were last updated. (contactsLastUpdated
              * indicates the time when contact/contacts were last updated and
@@ -280,23 +284,31 @@ class BluetoothPbapUtils {
         HashSet<String> currentContactSet = new HashSet<>();
 
         String[] projection = {Contacts._ID, Contacts.CONTACT_LAST_UPDATED_TIMESTAMP};
-        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(
-                context.getContentResolver(), Contacts.CONTENT_URI, projection, null, null, null);
+        int currentContactCount = 0;
+        try (Cursor c =
+                BluetoothMethodProxy.getInstance()
+                        .contentResolverQuery(
+                                context.getContentResolver(),
+                                Contacts.CONTENT_URI,
+                                projection,
+                                null,
+                                null,
+                                null)) {
 
-        if (c == null) {
-            Log.d(TAG, "Failed to fetch data from contact database");
-            return;
-        }
-        while (c.moveToNext()) {
-            String contactId = c.getString(0);
-            long lastUpdatedTime = c.getLong(1);
-            if (lastUpdatedTime > sContactsLastUpdated) {
-                updatedList.add(contactId);
+            if (c == null) {
+                Log.d(TAG, "Failed to fetch data from contact database");
+                return;
             }
-            currentContactSet.add(contactId);
+            while (c.moveToNext()) {
+                String contactId = c.getString(0);
+                long lastUpdatedTime = c.getLong(1);
+                if (lastUpdatedTime > sContactsLastUpdated) {
+                    updatedList.add(contactId);
+                }
+                currentContactSet.add(contactId);
+            }
+            currentContactCount = c.getCount();
         }
-        int currentContactCount = c.getCount();
-        c.close();
 
         if (V) {
             Log.v(TAG, "updated list =" + updatedList);
@@ -333,23 +345,29 @@ class BluetoothPbapUtils {
             for (String deletedContact : deletedContacts) {
                 sContactSet.remove(deletedContact);
                 String[] selectionArgs = {deletedContact};
-                Cursor dataCursor = BluetoothMethodProxy.getInstance().contentResolverQuery(
-                        context.getContentResolver(), Data.CONTENT_URI, dataProjection, whereClause,
-                        selectionArgs, null);
+                try (Cursor dataCursor =
+                        BluetoothMethodProxy.getInstance()
+                                .contentResolverQuery(
+                                        context.getContentResolver(),
+                                        Data.CONTENT_URI,
+                                        dataProjection,
+                                        whereClause,
+                                        selectionArgs,
+                                        null)) {
 
-                if (dataCursor == null) {
-                    Log.d(TAG, "Failed to fetch data from contact database");
-                    return;
-                }
-
-                while (dataCursor.moveToNext()) {
-                    if (svcFields.contains(
-                            dataCursor.getString(dataCursor.getColumnIndex(Data.MIMETYPE)))) {
-                        sTotalSvcFields--;
+                    if (dataCursor == null) {
+                        Log.d(TAG, "Failed to fetch data from contact database");
+                        return;
                     }
-                    sTotalFields--;
+
+                    while (dataCursor.moveToNext()) {
+                        if (svcFields.contains(
+                                dataCursor.getString(dataCursor.getColumnIndex(Data.MIMETYPE)))) {
+                            sTotalSvcFields--;
+                        }
+                        sTotalFields--;
+                    }
                 }
-                dataCursor.close();
             }
 
                 /* When contacts are updated. i.e. Fields of existing contacts are
@@ -364,39 +382,45 @@ class BluetoothPbapUtils {
                 boolean updated = false;
 
                 String[] selectionArgs = {contact};
-                Cursor dataCursor = BluetoothMethodProxy.getInstance().contentResolverQuery(
-                        context.getContentResolver(), Data.CONTENT_URI, dataProjection, whereClause,
-                        selectionArgs, null);
+                try (Cursor dataCursor =
+                        BluetoothMethodProxy.getInstance()
+                                .contentResolverQuery(
+                                        context.getContentResolver(),
+                                        Data.CONTENT_URI,
+                                        dataProjection,
+                                        whereClause,
+                                        selectionArgs,
+                                        null)) {
 
-                if (dataCursor == null) {
-                    Log.d(TAG, "Failed to fetch data from contact database");
-                    return;
-                }
-                // fetch all updated contacts and compare with cached copy of contacts
-                int indexData = dataCursor.getColumnIndex(Data.DATA1);
-                int indexMimeType = dataCursor.getColumnIndex(Data.MIMETYPE);
-                String data;
-                String mimeType;
-                while (dataCursor.moveToNext()) {
-                    data = dataCursor.getString(indexData);
-                    mimeType = dataCursor.getString(indexMimeType);
-                    switch (mimeType) {
-                        case Email.CONTENT_ITEM_TYPE:
-                            emailTmp.add(data);
-                            break;
-                        case Phone.CONTENT_ITEM_TYPE:
-                            phoneTmp.add(data);
-                            break;
-                        case StructuredPostal.CONTENT_ITEM_TYPE:
-                            addressTmp.add(data);
-                            break;
-                        case StructuredName.CONTENT_ITEM_TYPE:
-                            nameTmp = data;
-                            break;
+                    if (dataCursor == null) {
+                        Log.d(TAG, "Failed to fetch data from contact database");
+                        return;
+                    }
+                    // fetch all updated contacts and compare with cached copy of contacts
+                    int indexData = dataCursor.getColumnIndex(Data.DATA1);
+                    int indexMimeType = dataCursor.getColumnIndex(Data.MIMETYPE);
+                    String data;
+                    String mimeType;
+                    while (dataCursor.moveToNext()) {
+                        data = dataCursor.getString(indexData);
+                        mimeType = dataCursor.getString(indexMimeType);
+                        switch (mimeType) {
+                            case Email.CONTENT_ITEM_TYPE:
+                                emailTmp.add(data);
+                                break;
+                            case Phone.CONTENT_ITEM_TYPE:
+                                phoneTmp.add(data);
+                                break;
+                            case StructuredPostal.CONTENT_ITEM_TYPE:
+                                addressTmp.add(data);
+                                break;
+                            case StructuredName.CONTENT_ITEM_TYPE:
+                                nameTmp = data;
+                                break;
+                        }
                     }
                 }
                 ContactData cData = new ContactData(nameTmp, phoneTmp, emailTmp, addressTmp);
-                dataCursor.close();
 
                 ContactData currentContactData = sContactDataset.get(contact);
                 if (currentContactData == null) {
@@ -468,62 +492,73 @@ class BluetoothPbapUtils {
      * isLoad = true indicates its loading all contacts
      * isLoad = false indiacates its caching recently added contact in database*/
     @VisibleForTesting
-    static int fetchAndSetContacts(Context context, Handler handler, String[] projection,
-            String whereClause, String[] selectionArgs, boolean isLoad) {
+    static synchronized int fetchAndSetContacts(
+            Context context,
+            Handler handler,
+            String[] projection,
+            String whereClause,
+            String[] selectionArgs,
+            boolean isLoad) {
         long currentTotalFields = 0, currentSvcFieldCount = 0;
-        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(
-                context.getContentResolver(), Data.CONTENT_URI, projection, whereClause,
-                selectionArgs, null);
+        try (Cursor c =
+                BluetoothMethodProxy.getInstance()
+                        .contentResolverQuery(
+                                context.getContentResolver(),
+                                Data.CONTENT_URI,
+                                projection,
+                                whereClause,
+                                selectionArgs,
+                                null)) {
 
-        /* send delayed message to loadContact when ContentResolver is unable
-         * to fetch data from contact database using the specified URI at that
-         * moment (Case: immediate Pbap connect on system boot with BT ON)*/
-        if (c == null) {
-            Log.d(TAG, "Failed to fetch contacts data from database..");
-            if (isLoad) {
-                handler.sendMessageDelayed(
-                        handler.obtainMessage(BluetoothPbapService.LOAD_CONTACTS),
-                        QUERY_CONTACT_RETRY_INTERVAL);
+            /* send delayed message to loadContact when ContentResolver is unable
+             * to fetch data from contact database using the specified URI at that
+             * moment (Case: immediate Pbap connect on system boot with BT ON)*/
+            if (c == null) {
+                Log.d(TAG, "Failed to fetch contacts data from database..");
+                if (isLoad) {
+                    handler.sendMessageDelayed(
+                            handler.obtainMessage(BluetoothPbapService.LOAD_CONTACTS),
+                            QUERY_CONTACT_RETRY_INTERVAL);
+                }
+                return -1;
             }
-            return -1;
+
+            int indexCId = c.getColumnIndex(Data.CONTACT_ID);
+            int indexData = c.getColumnIndex(Data.DATA1);
+            int indexMimeType = c.getColumnIndex(Data.MIMETYPE);
+            String contactId, data, mimeType;
+
+            while (c.moveToNext()) {
+                if (c.isNull(indexCId)) {
+                    Log.w(TAG, "_id column is null. Row was deleted during iteration, skipping");
+                    continue;
+                }
+                contactId = c.getString(indexCId);
+                data = c.getString(indexData);
+                mimeType = c.getString(indexMimeType);
+                /* fetch phone/email/address/name information of the contact */
+                switch (mimeType) {
+                    case Phone.CONTENT_ITEM_TYPE:
+                        setContactFields(TYPE_PHONE, contactId, data);
+                        currentSvcFieldCount++;
+                        break;
+                    case Email.CONTENT_ITEM_TYPE:
+                        setContactFields(TYPE_EMAIL, contactId, data);
+                        currentSvcFieldCount++;
+                        break;
+                    case StructuredPostal.CONTENT_ITEM_TYPE:
+                        setContactFields(TYPE_ADDRESS, contactId, data);
+                        currentSvcFieldCount++;
+                        break;
+                    case StructuredName.CONTENT_ITEM_TYPE:
+                        setContactFields(TYPE_NAME, contactId, data);
+                        currentSvcFieldCount++;
+                        break;
+                }
+                sContactSet.add(contactId);
+                currentTotalFields++;
+            }
         }
-
-        int indexCId = c.getColumnIndex(Data.CONTACT_ID);
-        int indexData = c.getColumnIndex(Data.DATA1);
-        int indexMimeType = c.getColumnIndex(Data.MIMETYPE);
-        String contactId, data, mimeType;
-
-        while (c.moveToNext()) {
-            if (c.isNull(indexCId)) {
-                Log.w(TAG, "_id column is null. Row was deleted during iteration, skipping");
-                continue;
-            }
-            contactId = c.getString(indexCId);
-            data = c.getString(indexData);
-            mimeType = c.getString(indexMimeType);
-            /* fetch phone/email/address/name information of the contact */
-            switch (mimeType) {
-                case Phone.CONTENT_ITEM_TYPE:
-                    setContactFields(TYPE_PHONE, contactId, data);
-                    currentSvcFieldCount++;
-                    break;
-                case Email.CONTENT_ITEM_TYPE:
-                    setContactFields(TYPE_EMAIL, contactId, data);
-                    currentSvcFieldCount++;
-                    break;
-                case StructuredPostal.CONTENT_ITEM_TYPE:
-                    setContactFields(TYPE_ADDRESS, contactId, data);
-                    currentSvcFieldCount++;
-                    break;
-                case StructuredName.CONTENT_ITEM_TYPE:
-                    setContactFields(TYPE_NAME, contactId, data);
-                    currentSvcFieldCount++;
-                    break;
-            }
-            sContactSet.add(contactId);
-            currentTotalFields++;
-        }
-        c.close();
 
         /* This code checks if there is any update in contacts after last pbap
          * disconnect has happenned (even if BT is turned OFF during this time)*/
