@@ -62,7 +62,7 @@
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
 #include <a2dp.sysprop.h>
 #endif
 
@@ -3400,7 +3400,7 @@ bool btif_av_both_enable(void) {
 }
 
 bool btif_av_src_sink_coexist_enabled(void) {
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
   return android::sysprop::bluetooth::A2dp::src_sink_coexist().value_or(false);
 #else
   return false;
