@@ -33,16 +33,12 @@
 #endif
 
 #include "bt_target.h"
-#include "bta/include/bta_hearing_aid_api.h"
 #include "btif/include/core_callbacks.h"
 #include "btif/include/stack_manager.h"
 #include "device/include/controller.h"
 #include "main/shim/acl_api.h"
-#include "main/shim/l2c_api.h"
-#include "main/shim/shim.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"

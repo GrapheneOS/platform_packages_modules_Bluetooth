@@ -30,10 +30,8 @@
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_psm_types.h"
-#include "stack/include/bt_types.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/l2c_api.h"
-#include "stack/include/sdp_api.h"
 #include "stack/sdp/sdpint.h"
 #include "types/raw_address.h"
 
