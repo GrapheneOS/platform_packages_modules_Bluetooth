@@ -142,7 +142,7 @@ typedef struct {
 } tSSR_PARAMS;
 
 #define BTM_PM_REC_NOT_USED 0
-typedef struct {
+typedef struct tBTM_PM_RCB {
   tBTM_PM_STATUS_CBACK* cback =
       nullptr;      /* to notify the registered party of mode change event */
   uint8_t mask = 0; /* registered request mask. 0, if this entry is not used */

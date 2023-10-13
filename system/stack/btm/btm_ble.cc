@@ -60,7 +60,7 @@ extern tBTM_CB btm_cb;
 
 bool btm_ble_init_pseudo_addr(tBTM_SEC_DEV_REC* p_dev_rec,
                               const RawAddress& new_pseudo_addr);
-void gatt_notify_phy_updated(tGATT_STATUS status, uint16_t handle,
+void gatt_notify_phy_updated(tHCI_STATUS status, uint16_t handle,
                              uint8_t tx_phy, uint8_t rx_phy);
 
 #ifndef PROPERTY_BLE_PRIVACY_ENABLED
@@ -803,14 +803,16 @@ void BTM_BleSetPhy(const RawAddress& bd_addr, uint8_t tx_phys, uint8_t rx_phys,
   if (!controller_get_interface()->supports_ble_2m_phy() &&
       !controller_get_interface()->supports_ble_coded_phy()) {
     LOG_INFO("Local controller unable to support setting of le phy parameters");
-    gatt_notify_phy_updated(GATT_REQ_NOT_SUPPORTED, handle, tx_phys, rx_phys);
+    gatt_notify_phy_updated(static_cast<tHCI_STATUS>(GATT_REQ_NOT_SUPPORTED),
+                            handle, tx_phys, rx_phys);
     return;
   }
 
   if (!acl_peer_supports_ble_2m_phy(handle) &&
       !acl_peer_supports_ble_coded_phy(handle)) {
     LOG_INFO("Remote device unable to support setting of le phy parameter");
-    gatt_notify_phy_updated(GATT_REQ_NOT_SUPPORTED, handle, tx_phys, rx_phys);
+    gatt_notify_phy_updated(static_cast<tHCI_STATUS>(GATT_REQ_NOT_SUPPORTED),
+                            handle, tx_phys, rx_phys);
     return;
   }
 

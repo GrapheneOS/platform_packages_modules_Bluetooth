@@ -21,31 +21,11 @@
 #include <base/functional/callback.h>
 #include <base/logging.h>
 
-#include <mutex>
-
-#include "common/metric_id_allocator.h"
-#include "common/time_util.h"
-#include "gd/common/callback.h"
-#include "gd/os/log.h"
-#include "gd/security/security_module.h"
-#include "gd/security/ui.h"
 #include "main/shim/btm.h"
 #include "main/shim/controller.h"
 #include "main/shim/helpers.h"
-#include "main/shim/metric_id_api.h"
-#include "main/shim/shim.h"
 #include "main/shim/stack.h"
-#include "osi/include/allocator.h"
-#include "osi/include/osi.h"  // UNUSED_ATTR
-#include "osi/include/properties.h"
 #include "stack/btm/btm_ble_int.h"
-#include "stack/btm/btm_int_types.h"
-#include "stack/btm/btm_sec.h"
-#include "stack/include/bt_hdr.h"
-#include "stack/include/bt_octets.h"
-#include "stack/include/hci_error_code.h"
-#include "types/ble_address_with_type.h"
-#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 uint16_t bluetooth::shim::BTM_GetHCIConnHandle(const RawAddress& remote_bda,

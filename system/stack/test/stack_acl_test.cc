@@ -17,20 +17,14 @@
 #include <gtest/gtest.h>
 
 #include <cstdint>
-#include <deque>
 
 #include "common/init_flags.h"
-#include "osi/include/log.h"
 #include "stack/acl/acl.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/security_device_record.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/acl_hci_link_interface.h"
-#include "stack/include/hci_error_code.h"
 #include "test/common/mock_functions.h"
-#include "test/mock/mock_main_shim_acl_api.h"
-#include "test/mock/mock_stack_btm_sec.h"
-#include "types/ble_address_with_type.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
 
