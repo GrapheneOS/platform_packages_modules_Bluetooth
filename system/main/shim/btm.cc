@@ -20,14 +20,12 @@
 
 #include <base/logging.h>
 
-#include <algorithm>
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <mutex>
 
-#include "bta/include/bta_api.h"
 #include "gd/hci/le_advertising_manager.h"
 #include "gd/hci/le_scanning_manager.h"
 #include "gd/neighbor/connectability.h"
@@ -38,11 +36,9 @@
 #include "main/shim/controller.h"
 #include "main/shim/entry.h"
 #include "main/shim/helpers.h"
-#include "main/shim/shim.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
 #include "types/ble_address_with_type.h"
-#include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 

@@ -97,8 +97,6 @@ int start_scan([[maybe_unused]] unsigned int num_loops) {
 
 }  // namespace
 
-extern uint8_t btu_trace_level;
-
 int bluetooth::test::headless::Scan::Run() {
   if (options_.loop_ < 1) {
     LOG_CONSOLE("This test requires at least a single loop");
@@ -108,7 +106,6 @@ int bluetooth::test::headless::Scan::Run() {
   return RunOnHeadlessStack<int>([this]() {
     btif_trace_level = BT_TRACE_LEVEL_DEBUG;
     appl_trace_level = BT_TRACE_LEVEL_DEBUG;
-    btu_trace_level = BT_TRACE_LEVEL_DEBUG;
     return start_scan(options_.loop_);
   });
 }

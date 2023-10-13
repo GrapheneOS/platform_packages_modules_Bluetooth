@@ -253,28 +253,6 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 #define BT_TRACE(l, t, ...) \
   LogMsg((TRACE_CTRL_GENERAL | (l) | TRACE_ORG_STACK | (t)), __FILE__, __LINE__, __func__, ##__VA_ARGS__)
 
-/* Define tracing for the HCI unit */
-#define HCI_TRACE_ERROR(...)                                      \
-  {                                                               \
-    if (btu_trace_level >= BT_TRACE_LEVEL_ERROR)                  \
-      BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_ERROR, ##__VA_ARGS__); \
-  }
-#define HCI_TRACE_WARNING(...)                                      \
-  {                                                                 \
-    if (btu_trace_level >= BT_TRACE_LEVEL_WARNING)                  \
-      BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, ##__VA_ARGS__); \
-  }
-#define HCI_TRACE_EVENT(...)                                      \
-  {                                                               \
-    if (btu_trace_level >= BT_TRACE_LEVEL_EVENT)                  \
-      BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, ##__VA_ARGS__); \
-  }
-#define HCI_TRACE_DEBUG(...)                                      \
-  {                                                               \
-    if (btu_trace_level >= BT_TRACE_LEVEL_DEBUG)                  \
-      BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_DEBUG, ##__VA_ARGS__); \
-  }
-
 /* Define tracing for BTM */
 #define BTM_TRACE_ERROR(...)                                      \
   {                                                               \

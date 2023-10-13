@@ -27,7 +27,6 @@
 std::chrono::system_clock::time_point _prev = std::chrono::system_clock::now();
 
 extern uint8_t appl_trace_level;
-extern uint8_t btu_trace_level;
 extern tBTM_CB btm_cb;
 
 bluetooth::common::TimestamperInMilliseconds timestamper_in_ms;
@@ -37,12 +36,10 @@ void enable_logging() {
   btm_cb.trace_level = BT_TRACE_LEVEL_DEBUG;
   btif_trace_level = BT_TRACE_LEVEL_DEBUG;
   appl_trace_level = BT_TRACE_LEVEL_DEBUG;
-  btu_trace_level = BT_TRACE_LEVEL_DEBUG;
 }
 
 void log_logging() {
   LOG_INFO(
-      "btm_cb.trace_level:%hhu btif_trace_level:%hhu appl_trace_level:%hhu "
-      "btu_trace_level:%hhu",
-      btm_cb.trace_level, btif_trace_level, appl_trace_level, btu_trace_level);
+      "btm_cb.trace_level:%hhu btif_trace_level:%hhu appl_trace_level:%hhu ",
+      btm_cb.trace_level, btif_trace_level, appl_trace_level);
 }
