@@ -233,6 +233,9 @@ android_app {
         "framework-statsd.stubs.module_lib",
         "framework-tethering.stubs.module_lib",
         "unsupportedappusage",
+
+        // Need to link the class at runtime
+        "framework-bluetooth",
     ],
     static_libs: [
         "BluetoothApiShims",
@@ -255,7 +258,6 @@ android_app {
         "modules-utils-backgroundthread",
         "modules-utils-bytesmatcher",
         "modules-utils-statemachine",
-        "modules-utils-synchronous-result-receiver",
         "net-utils-services-common",
         "networkstack-client",
         "sap-api-java-static",

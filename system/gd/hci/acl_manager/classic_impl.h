@@ -24,9 +24,9 @@
 #include "common/init_flags.h"
 #include "hci/acl_manager/acl_scheduler.h"
 #include "hci/acl_manager/assembler.h"
-#include "hci/acl_manager/event_checkers.h"
 #include "hci/acl_manager/round_robin_scheduler.h"
 #include "hci/controller.h"
+#include "hci/event_checkers.h"
 #include "hci/remote_name_request.h"
 #include "os/metrics.h"
 #include "security/security_manager_listener.h"
@@ -470,7 +470,7 @@ struct classic_impl : public security::ISecurityManagerListener {
   void actually_cancel_connect(Address address) {
     std::unique_ptr<CreateConnectionCancelBuilder> packet = CreateConnectionCancelBuilder::Create(address);
     acl_connection_interface_->EnqueueCommand(
-        std::move(packet), handler_->BindOnce(&check_command_complete<CreateConnectionCancelCompleteView>));
+        std::move(packet), handler_->BindOnce(check_complete<CreateConnectionCancelCompleteView>));
   }
 
   static constexpr bool kRemoveConnectionAfterwards = true;
@@ -754,20 +754,21 @@ struct classic_impl : public security::ISecurityManagerListener {
   void central_link_key(KeyFlag key_flag) {
     std::unique_ptr<CentralLinkKeyBuilder> packet = CentralLinkKeyBuilder::Create(key_flag);
     acl_connection_interface_->EnqueueCommand(
-        std::move(packet), handler_->BindOnce(&check_command_status<CentralLinkKeyStatusView>));
+        std::move(packet), handler_->BindOnce(check_status<CentralLinkKeyStatusView>));
   }
 
   void switch_role(Address address, Role role) {
     std::unique_ptr<SwitchRoleBuilder> packet = SwitchRoleBuilder::Create(address, role);
     acl_connection_interface_->EnqueueCommand(
-        std::move(packet), handler_->BindOnce(&check_command_status<SwitchRoleStatusView>));
+        std::move(packet), handler_->BindOnce(check_status<SwitchRoleStatusView>));
   }
 
   void write_default_link_policy_settings(uint16_t default_link_policy_settings) {
     std::unique_ptr<WriteDefaultLinkPolicySettingsBuilder> packet =
         WriteDefaultLinkPolicySettingsBuilder::Create(default_link_policy_settings);
     acl_connection_interface_->EnqueueCommand(
-        std::move(packet), handler_->BindOnce(&check_command_complete<WriteDefaultLinkPolicySettingsCompleteView>));
+        std::move(packet),
+        handler_->BindOnce(check_complete<WriteDefaultLinkPolicySettingsCompleteView>));
   }
 
   void accept_connection(Address address) {
@@ -779,7 +780,7 @@ struct classic_impl : public security::ISecurityManagerListener {
 
   void reject_connection(std::unique_ptr<RejectConnectionRequestBuilder> builder) {
     acl_connection_interface_->EnqueueCommand(
-        std::move(builder), handler_->BindOnce(&check_command_status<RejectConnectionRequestStatusView>));
+        std::move(builder), handler_->BindOnce(check_status<RejectConnectionRequestStatusView>));
   }
 
   void OnDeviceBonded(bluetooth::hci::AddressWithType /* device */) override {}

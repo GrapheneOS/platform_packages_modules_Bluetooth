@@ -18,6 +18,7 @@
 
 #include "mock_btm_layer.h"
 
+#include "stack/include/bt_psm_types.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack/include/rfcdefs.h"
 #include "types/raw_address.h"

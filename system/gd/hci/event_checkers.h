@@ -18,42 +18,40 @@
 
 namespace bluetooth {
 namespace hci {
-namespace acl_manager {
 
 template <class T>
-void check_command_complete(CommandCompleteView view) {
+void check_complete(CommandCompleteView view) {
   ASSERT(view.IsValid());
   auto status_view = T::Create(view);
   if (!status_view.IsValid()) {
-    LOG_ERROR("Received command complete with invalid packet, opcode 0x%02hx", view.GetCommandOpCode());
+    LOG_ERROR("Invalid packet, opcode 0x%02hx", view.GetCommandOpCode());
     return;
   }
   ErrorCode status = status_view.GetStatus();
   OpCode op_code = status_view.GetCommandOpCode();
   if (status != ErrorCode::SUCCESS) {
     std::string error_code = ErrorCodeText(status);
-    LOG_ERROR("Received command complete with error code %s, opcode 0x%02hx", error_code.c_str(), op_code);
+    LOG_ERROR("Error code %s, opcode 0x%02hx", error_code.c_str(), op_code);
     return;
   }
 }
 
 template <class T>
-void check_command_status(CommandStatusView view) {
+void check_status(CommandStatusView view) {
   ASSERT(view.IsValid());
   auto status_view = T::Create(view);
   if (!status_view.IsValid()) {
-    LOG_ERROR("Received command status with invalid packet, opcode 0x%02hx", view.GetCommandOpCode());
+    LOG_ERROR("Invalid packet, opcode 0x%02hx", view.GetCommandOpCode());
     return;
   }
   ErrorCode status = status_view.GetStatus();
   OpCode op_code = status_view.GetCommandOpCode();
   if (status != ErrorCode::SUCCESS) {
     std::string error_code = ErrorCodeText(status);
-    LOG_ERROR("Received command status with error code %s, opcode 0x%02hx", error_code.c_str(), op_code);
+    LOG_ERROR("Error code %s, opcode 0x%02hx", error_code.c_str(), op_code);
     return;
   }
 }
 
-}  // namespace acl_manager
 }  // namespace hci
 }  // namespace bluetooth
