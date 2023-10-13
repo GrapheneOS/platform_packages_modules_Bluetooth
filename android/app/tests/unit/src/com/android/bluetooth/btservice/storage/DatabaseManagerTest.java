@@ -484,7 +484,7 @@ public final class DatabaseManagerTest {
         Assert.assertNull(mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
 
         // Set the first device's connection
-        mDatabaseManager.setConnection(mTestDevice, true);
+        mDatabaseManager.setConnection(mTestDevice, BluetoothProfile.A2DP);
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         Assert.assertTrue(mDatabaseManager
@@ -496,7 +496,7 @@ public final class DatabaseManagerTest {
         Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(0));
 
         // Setting the second device's connection
-        mDatabaseManager.setConnection(mTestDevice2, true);
+        mDatabaseManager.setConnection(mTestDevice2, BluetoothProfile.A2DP);
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         Assert.assertFalse(mDatabaseManager
@@ -511,7 +511,7 @@ public final class DatabaseManagerTest {
         Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(1));
 
         // Connect first test device again
-        mDatabaseManager.setConnection(mTestDevice, true);
+        mDatabaseManager.setConnection(mTestDevice, BluetoothProfile.A2DP);
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         Assert.assertTrue(mDatabaseManager
@@ -526,7 +526,7 @@ public final class DatabaseManagerTest {
         Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(1));
 
         // Disconnect first test device's connection
-        mDatabaseManager.setDisconnection(mTestDevice);
+        mDatabaseManager.setDisconnection(mTestDevice, BluetoothProfile.A2DP);
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         Assert.assertFalse(mDatabaseManager
@@ -541,7 +541,7 @@ public final class DatabaseManagerTest {
         Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(1));
 
         // Connect third test device (non-a2dp device)
-        mDatabaseManager.setConnection(mTestDevice3, false);
+        mDatabaseManager.setConnection(mTestDevice3, BluetoothProfile.HEADSET);
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         Assert.assertFalse(mDatabaseManager
@@ -559,7 +559,7 @@ public final class DatabaseManagerTest {
         Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(2));
 
         // Connect first test device again
-        mDatabaseManager.setConnection(mTestDevice, true);
+        mDatabaseManager.setConnection(mTestDevice, BluetoothProfile.A2DP);
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         Assert.assertTrue(mDatabaseManager
@@ -577,7 +577,7 @@ public final class DatabaseManagerTest {
         Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(2));
 
         // Connect third test device again and ensure it doesn't reset active a2dp device
-        mDatabaseManager.setConnection(mTestDevice3, false);
+        mDatabaseManager.setConnection(mTestDevice3, BluetoothProfile.HEADSET);
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         Assert.assertTrue(mDatabaseManager
@@ -595,7 +595,7 @@ public final class DatabaseManagerTest {
         Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(2));
 
         // Disconnect second test device
-        mDatabaseManager.setDisconnection(mTestDevice2);
+        mDatabaseManager.setDisconnection(mTestDevice2, BluetoothProfile.A2DP);
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         Assert.assertTrue(mDatabaseManager
@@ -613,7 +613,7 @@ public final class DatabaseManagerTest {
         Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(2));
 
         // Disconnect first test device
-        mDatabaseManager.setDisconnection(mTestDevice);
+        mDatabaseManager.setDisconnection(mTestDevice, BluetoothProfile.A2DP);
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         Assert.assertFalse(mDatabaseManager
@@ -631,7 +631,7 @@ public final class DatabaseManagerTest {
         Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(2));
 
         // Disconnect third test device
-        mDatabaseManager.setDisconnection(mTestDevice3);
+        mDatabaseManager.setDisconnection(mTestDevice3, BluetoothProfile.A2DP);
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         Assert.assertFalse(mDatabaseManager

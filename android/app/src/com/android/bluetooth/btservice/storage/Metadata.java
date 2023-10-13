@@ -454,18 +454,18 @@ public class Metadata {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append(getAnonymizedAddress())
-            .append(" last_active_time=" + last_active_time)
-            .append(" {profile connection policy(")
-            .append(profileConnectionPolicies)
-            .append("), optional codec(support=")
-            .append(a2dpSupportsOptionalCodecs)
-            .append("|enabled=")
-            .append(a2dpOptionalCodecsEnabled)
-            .append("), custom metadata(")
-            .append(publicMetadata)
-            .append("), hfp client audio policy(")
-            .append(audioPolicyMetadata)
-            .append(")}");
+                .append(" last_active_time=" + last_active_time)
+                .append(" {profile connection policy(")
+                .append(profileConnectionPolicies)
+                .append("), optional codec(support=")
+                .append(a2dpSupportsOptionalCodecs)
+                .append("|enabled=")
+                .append(a2dpOptionalCodecsEnabled)
+                .append("), custom metadata(")
+                .append(publicMetadata)
+                .append("), hfp client audio policy(")
+                .append(audioPolicyMetadata)
+                .append(")}");
 
         return builder.toString();
     }

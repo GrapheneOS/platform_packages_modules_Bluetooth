@@ -585,89 +585,123 @@ public class DatabaseManager {
         }
     }
 
+    @GuardedBy("mMetadataCache")
+    private void setConnection(BluetoothDevice device, boolean isActiveA2dp) {
+        if (device == null) {
+            Log.e(TAG, "setConnection: device is null");
+            return;
+        }
+        String address = device.getAddress();
+
+        if (!mMetadataCache.containsKey(address)) {
+            createMetadata(address, isActiveA2dp);
+            return;
+        }
+        // Updates last_active_time to the current counter value and increments the counter
+        Metadata metadata = mMetadataCache.get(address);
+        synchronized (MetadataDatabase.class) {
+            metadata.last_active_time = MetadataDatabase.sCurrentConnectionNumber++;
+        }
+
+        // Only update is_active_a2dp_device if an a2dp device is connected
+        if (isActiveA2dp) {
+            metadata.is_active_a2dp_device = true;
+        }
+
+        Log.d(
+                TAG,
+                "Updating last connected time for device: "
+                        + device
+                        + " to "
+                        + metadata.last_active_time);
+        updateDatabase(metadata);
+    }
+
     /**
      * Updates the time this device was last connected
      *
      * @param device is the remote bluetooth device for which we are setting the connection time
      */
-    public void setConnection(BluetoothDevice device, boolean isA2dpDevice) {
+    public void setConnection(BluetoothDevice device) {
         synchronized (mMetadataCache) {
-            Log.d(TAG, "setConnection: device " + device.getAnonymizedAddress()
-                    + " and isA2dpDevice=" + isA2dpDevice);
-            if (device == null) {
-                Log.e(TAG, "setConnection: device is null");
-                return;
-            }
-
-            if (isA2dpDevice) {
-                resetActiveA2dpDevice();
-            }
-
-            String address = device.getAddress();
-
-            if (!mMetadataCache.containsKey(address)) {
-                Log.d(TAG, "setConnection: Creating new metadata entry for device: " + device);
-                createMetadata(address, isA2dpDevice);
-                return;
-            }
-            // Updates last_active_time to the current counter value and increments the counter
-            Metadata metadata = mMetadataCache.get(address);
-            synchronized (MetadataDatabase.class) {
-                metadata.last_active_time = MetadataDatabase.sCurrentConnectionNumber++;
-            }
-
-            // Only update is_active_a2dp_device if an a2dp device is connected
-            if (isA2dpDevice) {
-                metadata.is_active_a2dp_device = true;
-            }
-
-            Log.d(TAG, "Updating last connected time for device: " + device.getAnonymizedAddress()
-                    + " to " + metadata.last_active_time);
-            updateDatabase(metadata);
+            setConnection(device, false);
         }
     }
 
     /**
-     * Sets is_active_device to false if currently true for device
+     * Updates the time this device was last connected with its profile information
      *
-     * @param device is the remote bluetooth device with which we have disconnected a2dp
+     * @param device is the remote bluetooth device for which we are setting the connection time
+     * @param profileId see {@link BluetoothProfile}
      */
-    public void setDisconnection(BluetoothDevice device) {
+    public void setConnection(BluetoothDevice device, int profileId) {
+        boolean isA2dpDevice = profileId == BluetoothProfile.A2DP;
+
         synchronized (mMetadataCache) {
-            if (device == null) {
-                Log.e(TAG, "setDisconnection: device is null");
-                return;
+            if (isA2dpDevice) {
+                resetActiveA2dpDevice();
             }
 
-            String address = device.getAddress();
+            setConnection(device, isA2dpDevice);
+        }
+    }
 
+    /**
+     * Sets device profileId's active status to false if currently true
+     *
+     * @param device is the remote bluetooth device with which we have disconnected
+     * @param profileId see {@link BluetoothProfile}
+     */
+    public void setDisconnection(BluetoothDevice device, int profileId) {
+        if (device == null) {
+            Log.e(
+                    TAG,
+                    "setDisconnection: device is null, "
+                            + "profileId: "
+                            + BluetoothProfile.getProfileName(profileId));
+            return;
+        }
+        Log.d(
+                TAG,
+                "setDisconnection: device "
+                        + device
+                        + "profileId: "
+                        + BluetoothProfile.getProfileName(profileId));
+
+        if (profileId != BluetoothProfile.A2DP) {
+            // there is no change on metadata when profile is not A2DP
+            return;
+        }
+
+        String address = device.getAddress();
+
+        synchronized (mMetadataCache) {
             if (!mMetadataCache.containsKey(address)) {
                 return;
             }
-            // Updates last connected time to either current time if connected or -1 if disconnected
             Metadata metadata = mMetadataCache.get(address);
-            if (metadata.is_active_a2dp_device) {
+
+            if (profileId == BluetoothProfile.A2DP && metadata.is_active_a2dp_device) {
                 metadata.is_active_a2dp_device = false;
-                Log.d(TAG, "setDisconnection: Updating is_active_device to false for device: "
-                        + device);
+                Log.d(
+                        TAG,
+                        "setDisconnection: Updating is_active_device to false for device: "
+                                + device);
                 updateDatabase(metadata);
             }
         }
     }
 
-    /**
-     * Remove a2dpActiveDevice from the current active device in the connection order table
-     */
+    /** Remove a2dpActiveDevice from the current active device in the connection order table */
+    @GuardedBy("mMetadataCache")
     private void resetActiveA2dpDevice() {
-        synchronized (mMetadataCache) {
-            Log.d(TAG, "resetActiveA2dpDevice()");
-            for (Map.Entry<String, Metadata> entry : mMetadataCache.entrySet()) {
-                Metadata metadata = entry.getValue();
-                if (metadata.is_active_a2dp_device) {
-                    Log.d(TAG, "resetActiveA2dpDevice");
-                    metadata.is_active_a2dp_device = false;
-                    updateDatabase(metadata);
-                }
+        Log.d(TAG, "resetActiveA2dpDevice()");
+        for (Map.Entry<String, Metadata> entry : mMetadataCache.entrySet()) {
+            Metadata metadata = entry.getValue();
+            if (metadata.is_active_a2dp_device) {
+                Log.d(TAG, "resetActiveA2dpDevice");
+                metadata.is_active_a2dp_device = false;
+                updateDatabase(metadata);
             }
         }
     }
@@ -988,6 +1022,11 @@ public class DatabaseManager {
         }
 
         Metadata data = dataBuilder.build();
+        Log.d(
+                TAG,
+                "createMetadata: "
+                        + (" address=" + data.getAnonymizedAddress())
+                        + (" isActiveA2dpDevice=" + isActiveA2dpDevice));
         mMetadataCache.put(address, data);
         updateDatabase(data);
         logMetadataChange(data, "Metadata created");
