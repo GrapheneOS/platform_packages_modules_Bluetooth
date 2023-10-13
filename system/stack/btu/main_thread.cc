@@ -16,9 +16,9 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_btu_task"
+#define LOG_TAG "bt_main_thread"
 
-#include "stack/include/btu_task.h"
+#include "stack/include/main_thread.h"
 
 #include <base/functional/bind.h>
 #include <base/logging.h>

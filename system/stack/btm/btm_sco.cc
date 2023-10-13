@@ -54,8 +54,8 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_api_types.h"
-#include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/hci_error_code.h"
+#include "stack/include/main_thread.h"
 #include "stack/include/sdpdefs.h"
 #include "stack/include/stack_metrics_logging.h"
 #include "types/class_of_device.h"

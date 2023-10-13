@@ -40,7 +40,7 @@
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
 #include "stack/include/acl_api.h"
-#include "stack/include/btu.h"  // do_in_main_thread
+#include "stack/include/main_thread.h"
 #include "types/raw_address.h"
 
 static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, const tBTA_SYS_ID id,
