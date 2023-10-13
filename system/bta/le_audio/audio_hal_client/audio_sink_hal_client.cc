@@ -21,10 +21,10 @@
 #include "audio_hal_client.h"
 #include "audio_hal_interface/le_audio_software.h"
 #include "bta/le_audio/codec_manager.h"
-#include "btu.h"
 #include "common/time_util.h"
 #include "osi/include/log.h"
 #include "osi/include/wakelock.h"
+#include "stack/include/main_thread.h"
 
 using bluetooth::audio::le_audio::LeAudioClientInterface;
 

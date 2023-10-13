@@ -30,7 +30,6 @@
 
 #include "bt_target.h"
 #include "btm_ble_api.h"
-#include "btu.h"
 #include "device/include/controller.h"
 #include "stack/btm/btm_int_types.h"
 #include "test/common/mock_functions.h"

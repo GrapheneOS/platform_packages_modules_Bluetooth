@@ -53,7 +53,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/btu.h"  // do_in_main_thread
+#include "stack/include/main_thread.h"
 #include "stack/include/pan_api.h"
 #include "types/raw_address.h"
 

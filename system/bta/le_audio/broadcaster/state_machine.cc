@@ -32,7 +32,6 @@
 #include "osi/include/properties.h"
 #include "stack/include/ble_advertiser.h"
 #include "stack/include/btm_iso_api.h"
-#include "stack/include/btu.h"
 
 using bluetooth::common::ToString;
 using bluetooth::hci::IsoManager;
