@@ -24,7 +24,7 @@
 #include "bta_le_audio_api.h"
 #include "btif_common.h"
 #include "btif_profile_storage.h"
-#include "stack/include/btu.h"
+#include "stack/include/main_thread.h"
 
 using base::Bind;
 using base::Unretained;

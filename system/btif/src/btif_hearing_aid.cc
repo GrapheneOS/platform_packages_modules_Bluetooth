@@ -27,7 +27,7 @@
 #include "bta_hearing_aid_api.h"
 #include "btif_common.h"
 #include "btif_profile_storage.h"
-#include "stack/include/btu.h"
+#include "stack/include/main_thread.h"
 #include "types/raw_address.h"
 
 using base::Bind;

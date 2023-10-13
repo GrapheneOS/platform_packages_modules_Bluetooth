@@ -22,6 +22,7 @@
 
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/main_thread.h"
 #include "stack/test/common/mock_eatt.h"
 #undef LOG_TAG
 #include "stack/gatt/gatt_sr.cc"

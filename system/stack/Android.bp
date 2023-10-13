@@ -33,7 +33,7 @@ cc_test_library {
 cc_library_static {
     name: "libbt-btu-main-thread",
     defaults: ["fluoride_defaults"],
-    srcs: ["btu/btu_task.cc"],
+    srcs: ["btu/main_thread.cc"],
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
@@ -1746,7 +1746,7 @@ cc_test {
         ":TestMockStackSmp",
         "btu/btu_event.cc",
         "btu/btu_hcif.cc",
-        "btu/btu_task.cc",
+        "btu/main_thread.cc",
         "test/stack_btu_test.cc",
     ],
     static_libs: [
