@@ -30,12 +30,9 @@
 #include <string>
 #include <unordered_set>
 
-#include "btif/include/btif_hh.h"
 #include "common/interfaces/ILoggable.h"
 #include "device/include/controller.h"
-#include "gd/common/bidi_queue.h"
 #include "gd/common/bind.h"
-#include "gd/common/init_flags.h"
 #include "gd/common/strings.h"
 #include "gd/common/sync_map_count.h"
 #include "gd/hci/acl_manager.h"
@@ -50,8 +47,6 @@
 #include "gd/hci/class_of_device.h"
 #include "gd/hci/controller.h"
 #include "gd/os/handler.h"
-#include "gd/os/queue.h"
-#include "main/shim/btm.h"
 #include "main/shim/dumpsys.h"
 #include "main/shim/entry.h"
 #include "main/shim/helpers.h"
@@ -59,14 +54,7 @@
 #include "osi/include/allocator.h"
 #include "stack/acl/acl.h"
 #include "stack/btm/btm_int_types.h"
-#include "stack/include/acl_hci_link_interface.h"
-#include "stack/include/ble_acl_interface.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/btm_api.h"
-#include "stack/include/btm_status.h"
-#include "stack/include/gatt_api.h"
-#include "stack/include/pan_api.h"
-#include "stack/include/sec_hci_link_interface.h"
 #include "stack/l2cap/l2c_int.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
@@ -826,15 +814,9 @@ class LeShimAclConnection
 
   void OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy,
                    uint8_t rx_phy) override {
-    if (common::init_flags::pass_phy_update_callback_is_enabled()) {
-      TRY_POSTING_ON_MAIN(
-          interface_.on_phy_update,
-          static_cast<tGATT_STATUS>(ToLegacyHciErrorCode(hci_status)), handle_,
-          tx_phy, rx_phy);
-    } else {
-      LOG_WARN("Not posting OnPhyUpdate callback since it is disabled: (tx:%x, rx:%x, status:%s)",
-               tx_phy, rx_phy, hci::ErrorCodeText(hci_status).c_str());
-    }
+    TRY_POSTING_ON_MAIN(interface_.on_phy_update,
+                        ToLegacyHciErrorCode(hci_status), handle_, tx_phy,
+                        rx_phy);
   }
 
   void OnDisconnection(hci::ErrorCode reason) {
@@ -1535,9 +1517,9 @@ void shim::legacy::Acl::OnClassicLinkDisconnected(HciHandle handle,
       kBtmLogTag, ToRawAddress(remote_address), "Disconnected",
       base::StringPrintf("classic reason:%s", ErrorCodeText(reason).c_str()));
   pimpl_->connection_history_.Push(
-      std::move(std::make_unique<ClassicConnectionDescriptor>(
+      std::make_unique<ClassicConnectionDescriptor>(
           remote_address, creation_time, teardown_time, handle,
-          is_locally_initiated, reason)));
+          is_locally_initiated, reason));
 }
 
 bluetooth::hci::AddressWithType shim::legacy::Acl::GetConnectionLocalAddress(
@@ -1609,10 +1591,9 @@ void shim::legacy::Acl::OnLeLinkDisconnected(HciHandle handle,
       kBtmLogTag, ToLegacyAddressWithType(remote_address_with_type),
       "Disconnected",
       base::StringPrintf("Le reason:%s", ErrorCodeText(reason).c_str()));
-  pimpl_->connection_history_.Push(
-      std::move(std::make_unique<LeConnectionDescriptor>(
-          remote_address_with_type, creation_time, teardown_time, handle,
-          is_locally_initiated, reason)));
+  pimpl_->connection_history_.Push(std::make_unique<LeConnectionDescriptor>(
+      remote_address_with_type, creation_time, teardown_time, handle,
+      is_locally_initiated, reason));
 }
 
 void shim::legacy::Acl::OnConnectSuccess(

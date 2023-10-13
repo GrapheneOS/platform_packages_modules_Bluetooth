@@ -96,7 +96,7 @@ void gatt_notify_conn_update(const RawAddress& remote, uint16_t interval,
                              tHCI_STATUS status) {
   inc_func_call_count(__func__);
 }
-void gatt_notify_phy_updated(tGATT_STATUS status, uint16_t handle,
+void gatt_notify_phy_updated(tHCI_STATUS status, uint16_t handle,
                              uint8_t tx_phy, uint8_t rx_phy) {
   inc_func_call_count(__func__);
 }

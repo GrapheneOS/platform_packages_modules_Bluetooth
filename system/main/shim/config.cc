@@ -21,7 +21,6 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
-#include <memory>
 
 #include "gd/os/log.h"
 #include "gd/storage/storage_module.h"

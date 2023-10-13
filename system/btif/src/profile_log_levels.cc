@@ -29,7 +29,6 @@
 #include "avrc_api.h"
 #include "bta_api.h"
 #include "btm_api.h"
-#include "btu.h"
 #include "l2c_api.h"
 #include "osi/include/config.h"
 #include "osi/include/log.h"
@@ -58,7 +57,7 @@
 
 static uint8_t BTAPP_SetTraceLevel(uint8_t new_level);
 static uint8_t BTIF_SetTraceLevel(uint8_t new_level);
-static uint8_t BTU_SetTraceLevel(uint8_t new_level);
+static uint8_t BTU_SetTraceLevel(uint8_t new_level) { return new_level; }
 
 /* make sure list is order by increasing layer id!!! */
 static tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
@@ -119,12 +118,6 @@ static uint8_t BTIF_SetTraceLevel(uint8_t new_level) {
   if (new_level != 0xFF) btif_trace_level = new_level;
 
   return btif_trace_level;
-}
-
-static uint8_t BTU_SetTraceLevel(uint8_t new_level) {
-  if (new_level != 0xFF) btu_trace_level = new_level;
-
-  return btu_trace_level;
 }
 
 void load_levels_from_config(const config_t* config) {

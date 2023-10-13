@@ -165,8 +165,6 @@ int start_discovery([[maybe_unused]] unsigned int num_loops,
 
 }  // namespace
 
-// extern uint8_t btu_trace_level;
-
 int bluetooth::test::headless::Discovery::Run() {
   if (options_.loop_ < 1) {
     LOG_CONSOLE("This test requires at least a single loop");
