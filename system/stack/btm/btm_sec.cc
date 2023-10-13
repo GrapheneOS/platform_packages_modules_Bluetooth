@@ -51,8 +51,8 @@
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_psm_types.h"
 #include "stack/include/btm_status.h"
-#include "stack/include/btu_task.h"
 #include "stack/include/l2cap_security_interface.h"
+#include "stack/include/main_thread.h"
 #include "stack/include/stack_metrics_logging.h"
 #include "types/raw_address.h"
 

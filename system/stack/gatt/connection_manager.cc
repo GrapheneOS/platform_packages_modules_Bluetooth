@@ -37,8 +37,8 @@
 #include "stack/btm/btm_ble_bgconn.h"
 #include "stack/include/advertise_data_parser.h"
 #include "stack/include/btm_ble_api.h"
-#include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/l2c_api.h"
+#include "stack/include/main_thread.h"
 #include "types/raw_address.h"
 
 #define DIRECT_CONNECT_TIMEOUT (30 * 1000) /* 30 seconds */
