@@ -723,7 +723,6 @@ public class DatabaseManager {
                     mostRecentLastActiveTime = metadata.last_active_time;
                     mostRecentDevice = device;
                 }
-
             }
         }
         return mostRecentDevice;
@@ -776,20 +775,20 @@ public class DatabaseManager {
     }
 
     /**
-     * Sets the preferred profile for the supplied audio modes. See
-     * {@link BluetoothAdapter#setPreferredAudioProfiles(BluetoothDevice, Bundle)} for more details.
+     * Sets the preferred profile for the supplied audio modes. See {@link
+     * BluetoothAdapter#setPreferredAudioProfiles(BluetoothDevice, Bundle)} for more details.
      *
-     * If a device in the group has been designated to store the preference for the group, this will
-     * update its database preferences. If there is not one designated, the first device from the
-     * group list will be chosen for this purpose. From then on, any preferred audio profile changes
-     * for this group will be stored on that device.
+     * <p>If a device in the group has been designated to store the preference for the group, this
+     * will update its database preferences. If there is not one designated, the first device from
+     * the group list will be chosen for this purpose. From then on, any preferred audio profile
+     * changes for this group will be stored on that device.
      *
      * @param groupDevices is the CSIP group for which we are setting the preferred audio profiles
      * @param modeToProfileBundle contains the preferred profile
      * @return whether the new preferences were saved in the database
      */
-    public int setPreferredAudioProfiles(List<BluetoothDevice> groupDevices,
-            Bundle modeToProfileBundle) {
+    public int setPreferredAudioProfiles(
+            List<BluetoothDevice> groupDevices, Bundle modeToProfileBundle) {
         Objects.requireNonNull(groupDevices, "groupDevices must not be null");
         Objects.requireNonNull(modeToProfileBundle, "modeToProfileBundle must not be null");
         if (groupDevices.isEmpty()) {
@@ -801,7 +800,7 @@ public class DatabaseManager {
         boolean isPreferenceSet = false;
 
         synchronized (mMetadataCache) {
-            for (BluetoothDevice device: groupDevices) {
+            for (BluetoothDevice device : groupDevices) {
                 if (device == null) {
                     Log.e(TAG, "setPreferredAudioProfiles: device is null");
                     throw new IllegalArgumentException("setPreferredAudioProfiles: device is null");
@@ -894,8 +893,8 @@ public class DatabaseManager {
 
             Bundle modeToProfileBundle = new Bundle();
             if (outputOnlyProfile != 0) {
-                modeToProfileBundle.putInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY,
-                        outputOnlyProfile);
+                modeToProfileBundle.putInt(
+                        BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY, outputOnlyProfile);
             }
             if (duplexProfile != 0) {
                 modeToProfileBundle.putInt(BluetoothAdapter.AUDIO_MODE_DUPLEX, duplexProfile);
@@ -982,8 +981,13 @@ public class DatabaseManager {
     }
 
     void createMetadata(String address, boolean isActiveA2dpDevice) {
-        Metadata data = new Metadata(address);
-        data.is_active_a2dp_device = isActiveA2dpDevice;
+        Metadata.Builder dataBuilder = new Metadata.Builder(address);
+
+        if (isActiveA2dpDevice) {
+            dataBuilder.setActiveA2dp();
+        }
+
+        Metadata data = dataBuilder.build();
         mMetadataCache.put(address, data);
         updateDatabase(data);
         logMetadataChange(data, "Metadata created");

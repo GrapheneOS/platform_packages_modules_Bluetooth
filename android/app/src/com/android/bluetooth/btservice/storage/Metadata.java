@@ -78,6 +78,10 @@ public class Metadata {
     public int preferred_duplex_profile;
 
     Metadata(String address) {
+        this(address, false);
+    }
+
+    private Metadata(String address, boolean isActiveA2dp) {
         this.address = address;
         migrated = false;
         profileConnectionPolicies = new ProfilePrioritiesEntity();
@@ -85,10 +89,28 @@ public class Metadata {
         a2dpSupportsOptionalCodecs = BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN;
         a2dpOptionalCodecsEnabled = BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
         last_active_time = MetadataDatabase.sCurrentConnectionNumber++;
-        is_active_a2dp_device = true;
+        is_active_a2dp_device = isActiveA2dp;
         audioPolicyMetadata = new AudioPolicyEntity();
         preferred_output_only_profile = 0;
         preferred_duplex_profile = 0;
+    }
+
+    static final class Builder {
+        final String mAddress;
+        boolean mIsActiveA2dpDevice = false;
+
+        Builder(String address) {
+            mAddress = address;
+        }
+
+        Builder setActiveA2dp() {
+            mIsActiveA2dpDevice = true;
+            return this;
+        }
+
+        Metadata build() {
+            return new Metadata(mAddress, mIsActiveA2dpDevice);
+        }
     }
 
     /**
