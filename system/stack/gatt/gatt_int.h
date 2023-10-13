@@ -31,7 +31,6 @@
 
 #include "bt_target.h"
 #include "btm_ble_api.h"
-#include "btu.h"
 #include "common/init_flags.h"
 #include "gatt_api.h"
 #include "osi/include/fixed_queue.h"

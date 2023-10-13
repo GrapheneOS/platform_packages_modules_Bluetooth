@@ -30,7 +30,7 @@
 
 #include "bta/ag/bta_ag_int.h"
 #include "osi/include/osi.h"
-#include "stack/include/btu.h"  // do_in_main_thread
+#include "stack/include/main_thread.h"
 #include "stack/include/port_api.h"
 #include "types/raw_address.h"
 

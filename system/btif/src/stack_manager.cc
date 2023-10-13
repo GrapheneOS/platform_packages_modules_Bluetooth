@@ -36,7 +36,7 @@
 #include "osi/include/osi.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/btm_client_interface.h"
-#include "stack/include/btu.h"
+#include "stack/include/main_thread.h"
 
 // Temp includes
 #include "bta/sys/bta_sys.h"
