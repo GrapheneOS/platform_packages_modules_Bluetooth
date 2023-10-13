@@ -1,4 +1,5 @@
 {
-  "advertising_interval": 200,
-  "address": "51:F7:A8:75:AC:5E"
+    "advertising_interval": 200,
+    "address": "51:F7:A8:75:AC:5E",
+    "classic_enabled": true
 }
