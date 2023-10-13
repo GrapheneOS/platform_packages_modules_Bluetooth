@@ -31,7 +31,4 @@
 
 #include "stack/include/btu_task.h"
 
-/* Global BTU data */
-extern uint8_t btu_trace_level;
-
 #endif
