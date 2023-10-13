@@ -346,6 +346,10 @@ extern tBTA_DM_CONNECTED_SRVCS bta_dm_conn_srvcs;
 
 #define BTA_DM_NUM_PM_TIMER 7
 
+typedef struct {
+  tBTA_DM_ACL_CBACK* p_acl_cback;
+} tBTA_DM_ACL_CB;
+
 /* DM control block */
 typedef struct {
   tBTA_DM_ACTIVE_LINK device_list;
@@ -516,12 +520,16 @@ extern const tBTA_DM_EIR_CONF* p_bta_dm_eir_cfg;
 /* DM control block */
 extern tBTA_DM_CB bta_dm_cb;
 
+/* DM control block for ACL management */
+extern tBTA_DM_ACL_CB bta_dm_acl_cb;
+
 /* DM search control block */
 extern tBTA_DM_SEARCH_CB bta_dm_search_cb;
 
 /* DI control block */
 extern tBTA_DM_DI_CB bta_dm_di_cb;
 
+void bta_dm_enable(tBTA_DM_SEC_CBACK*, tBTA_DM_ACL_CBACK*);
 void bta_dm_disable();
 void bta_dm_set_dev_name(const std::vector<uint8_t>&);
 void bta_dm_remove_device(const RawAddress& bd_addr);

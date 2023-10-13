@@ -104,7 +104,7 @@ void btm_dm_sec_init() {
 }
 
 /** Initialises the BT device security manager */
-void bta_dm_enable(tBTA_DM_SEC_CBACK* p_sec_cback) {
+void bta_dm_sec_enable(tBTA_DM_SEC_CBACK* p_sec_cback) {
   /* make sure security callback is saved - if no callback, do not erase the
   previous one,
   it could be an error recovery mechanism */
