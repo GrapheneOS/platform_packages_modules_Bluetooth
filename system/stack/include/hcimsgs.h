@@ -23,9 +23,8 @@
 
 #include <cstdint>
 
-#include "bt_target.h"
 #include "device/include/esco_parameters.h"
-#include "stack/include/bt_hdr.h"
+#include "stack/include/bt_lap.h"
 #include "stack/include/bt_name.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btm_api_types.h"

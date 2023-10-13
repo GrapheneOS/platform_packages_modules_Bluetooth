@@ -23,23 +23,20 @@
  *
  ******************************************************************************/
 
+#include <base/functional/bind.h>
 #include <base/functional/callback_forward.h>
-#include <stddef.h>
 #include <string.h>
 
 #include "bt_target.h"
-#include "device/include/device_iot_config.h"
 #include "device/include/esco_parameters.h"
-#include "gd/common/init_flags.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
 #include "main/shim/acl_api.h"
 #include "osi/include/allocator.h"
-#include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_lap.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btu_hcif.h"
-#include "stack/include/main_thread.h"
 #include "types/raw_address.h"
 
 /* Message by message.... */

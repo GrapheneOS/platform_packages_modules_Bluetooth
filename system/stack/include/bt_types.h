@@ -298,9 +298,6 @@
 
 /* Common Bluetooth field definitions */
 
-#define LAP_LEN 3
-typedef uint8_t LAP[LAP_LEN];     /* IAC as passed to Inquiry (LAP) */
-
 #define BT_1SEC_TIMEOUT_MS (1 * 1000) /* 1 second */
 
 #endif
