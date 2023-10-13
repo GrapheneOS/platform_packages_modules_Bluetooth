@@ -7,11 +7,10 @@ use std::io::Write;
 use crate::engine::{Rule, RuleGroup, Signal};
 use crate::parser::{Packet, PacketChild};
 use bt_packets::hci::{
-    Acl, AclCommandChild, Address, AuthenticatedPayloadTimeoutExpired, CommandChild, CommandStatus,
-    ConnectionManagementCommandChild, DisconnectReason, ErrorCode, Event, EventChild,
+    Acl, AclCommandChild, Address, AuthenticatedPayloadTimeoutExpired, CommandChild,
+    ConnectionManagementCommandChild, DisconnectReason, ErrorCode, EventChild,
     InitiatorFilterPolicy, LeConnectionManagementCommandChild, LeMetaEventChild,
     NumberOfCompletedPackets, OpCode, ScoConnectionCommandChild, SecurityCommandChild,
-    SubeventCode,
 };
 
 enum ConnectionSignal {
@@ -34,9 +33,6 @@ impl Into<&'static str> for ConnectionSignal {
 
 /// Valid values are in the range 0x0000-0x0EFF.
 pub type ConnectionHandle = u16;
-
-/// Arbitrary invalid connection handle.
-pub const INVALID_CONN_HANDLE: u16 = 0xfffeu16;
 
 /// When we attempt to create a sco connection on an unknown handle, use this address as
 /// a placeholder.
@@ -108,26 +104,9 @@ impl OddDisconnectionsRule {
         }
     }
 
-    fn process_classic_connection(
-        &mut self,
-        conn: &ConnectionManagementCommandChild,
-        packet: &Packet,
-    ) {
-        let has_existing = match conn {
-            ConnectionManagementCommandChild::CreateConnection(cc) => {
-                self.last_connection_attempt = Some(cc.get_bd_addr());
-                self.connection_attempt.insert(cc.get_bd_addr(), packet.clone())
-            }
-
-            ConnectionManagementCommandChild::AcceptConnectionRequest(ac) => {
-                self.last_connection_attempt = Some(ac.get_bd_addr());
-                self.connection_attempt.insert(ac.get_bd_addr(), packet.clone())
-            }
-
-            _ => None,
-        };
-
-        if let Some(p) = has_existing {
+    fn process_classic_connection(&mut self, address: Address, packet: &Packet) {
+        self.last_connection_attempt = Some(address);
+        if let Some(p) = self.connection_attempt.insert(address, packet.clone()) {
             self.reportable.push((
                 p.ts,
                 format!("Dangling connection attempt at {:?} replaced with {:?}", p, packet),
@@ -135,46 +114,16 @@ impl OddDisconnectionsRule {
         }
     }
 
-    fn process_sco_connection(&mut self, sco_conn: &ScoConnectionCommandChild, packet: &Packet) {
-        let handle = match sco_conn {
-            ScoConnectionCommandChild::SetupSynchronousConnection(ssc) => {
-                ssc.get_connection_handle()
-            }
+    fn convert_sco_handle_to_address(&self, handle: ConnectionHandle) -> Address {
+        match self.active_handles.get(&handle).as_ref() {
+            Some((_ts, address)) => address.clone(),
+            None => Address::from(&UNKNOWN_SCO_ADDRESS),
+        }
+    }
 
-            ScoConnectionCommandChild::EnhancedSetupSynchronousConnection(essc) => {
-                essc.get_connection_handle()
-            }
-
-            _ => INVALID_CONN_HANDLE,
-        };
-
-        let unknown_address = Address::from(&UNKNOWN_SCO_ADDRESS);
-        let address = match self.active_handles.get(&handle).as_ref() {
-            Some((_ts, address)) => address,
-            None => &unknown_address,
-        };
-
-        let has_existing = match sco_conn {
-            ScoConnectionCommandChild::SetupSynchronousConnection(_)
-            | ScoConnectionCommandChild::EnhancedSetupSynchronousConnection(_) => {
-                self.last_sco_connection_attempt = Some(address.clone());
-                self.sco_connection_attempt.insert(address.clone(), packet.clone())
-            }
-
-            ScoConnectionCommandChild::AcceptSynchronousConnection(asc) => {
-                self.last_sco_connection_attempt = Some(asc.get_bd_addr());
-                self.sco_connection_attempt.insert(asc.get_bd_addr(), packet.clone())
-            }
-
-            ScoConnectionCommandChild::EnhancedAcceptSynchronousConnection(easc) => {
-                self.last_sco_connection_attempt = Some(easc.get_bd_addr());
-                self.sco_connection_attempt.insert(easc.get_bd_addr(), packet.clone())
-            }
-
-            _ => None,
-        };
-
-        if let Some(p) = has_existing {
+    fn process_sync_connection(&mut self, address: Address, packet: &Packet) {
+        self.last_sco_connection_attempt = Some(address);
+        if let Some(p) = self.sco_connection_attempt.insert(address, packet.clone()) {
             self.reportable.push((
                 p.ts,
                 format!("Dangling sco connection attempt at {:?} replaced with {:?}", p, packet),
@@ -182,49 +131,15 @@ impl OddDisconnectionsRule {
         }
     }
 
-    fn process_le_conn_connection(
+    fn process_le_create_connection(
         &mut self,
-        le_conn: &LeConnectionManagementCommandChild,
+        address: Address,
+        policy: InitiatorFilterPolicy,
         packet: &Packet,
     ) {
-        match le_conn {
-            LeConnectionManagementCommandChild::LeAddDeviceToFilterAcceptList(add_accept) => {
-                self.accept_list.insert(add_accept.get_address());
-                return;
-            }
-
-            LeConnectionManagementCommandChild::LeRemoveDeviceFromFilterAcceptList(rem_accept) => {
-                self.accept_list.remove(&rem_accept.get_address());
-                return;
-            }
-
-            LeConnectionManagementCommandChild::LeClearFilterAcceptList(_clear_accept) => {
-                self.accept_list.clear();
-                return;
-            }
-
-            _ => {}
-        }
-
-        let has_existing = match le_conn {
-            LeConnectionManagementCommandChild::LeCreateConnection(create) => {
-                self.last_le_connection_attempt = Some(create.get_peer_address());
-                self.last_le_connection_filter_policy = Some(create.get_initiator_filter_policy());
-                self.le_connection_attempt.insert(create.get_peer_address().clone(), packet.clone())
-            }
-
-            LeConnectionManagementCommandChild::LeExtendedCreateConnection(extcreate) => {
-                self.last_le_connection_attempt = Some(extcreate.get_peer_address());
-                self.last_le_connection_filter_policy =
-                    Some(extcreate.get_initiator_filter_policy());
-                self.le_connection_attempt
-                    .insert(extcreate.get_peer_address().clone(), packet.clone())
-            }
-
-            _ => None,
-        };
-
-        if let Some(p) = has_existing {
+        self.last_le_connection_attempt = Some(address);
+        self.last_le_connection_filter_policy = Some(policy);
+        if let Some(p) = self.le_connection_attempt.insert(address, packet.clone()) {
             self.reportable.push((
                 p.ts,
                 format!("Dangling LE connection attempt at {:?} replaced with {:?}", p, packet),
@@ -232,9 +147,34 @@ impl OddDisconnectionsRule {
         }
     }
 
-    fn process_command_status(&mut self, cs: &CommandStatus, packet: &Packet) {
+    fn process_add_accept_list(&mut self, address: Address, _packet: &Packet) {
+        self.accept_list.insert(address);
+    }
+
+    fn process_remove_accept_list(&mut self, address: Address, _packet: &Packet) {
+        self.accept_list.remove(&address);
+    }
+
+    fn process_clear_accept_list(&mut self, _packet: &Packet) {
+        self.accept_list.clear();
+    }
+
+    fn process_disconnect_cmd(
+        &mut self,
+        reason: DisconnectReason,
+        handle: ConnectionHandle,
+        _packet: &Packet,
+    ) {
+        // If reason is power off, the host might not wait for connection complete event
+        if reason == DisconnectReason::RemoteDeviceTerminatedConnectionPowerOff {
+            self.active_handles.remove(&handle);
+            self.nocp_by_handle.remove(&handle);
+        }
+    }
+
+    fn process_command_status(&mut self, status: ErrorCode, opcode: OpCode, packet: &Packet) {
         // Clear last connection attempt since it was successful.
-        let last_address = match cs.get_command_op_code() {
+        let last_address = match opcode {
             OpCode::CreateConnection | OpCode::AcceptConnectionRequest => {
                 self.last_connection_attempt.take()
             }
@@ -250,18 +190,19 @@ impl OddDisconnectionsRule {
                 self.last_le_connection_attempt.take()
             }
 
-            _ => None,
+            // Not interested about the rest of the opcodes
+            _ => return,
         };
 
         if let Some(address) = last_address {
-            if cs.get_status() != ErrorCode::Success {
+            if status != ErrorCode::Success {
                 self.reportable.push((
                     packet.ts,
-                    format!("Failing command status on [{}]: {:?}", address, cs),
+                    format!("Failing command status on [{}]: {:?}", address, opcode),
                 ));
 
                 // Also remove the connection attempt.
-                match cs.get_command_op_code() {
+                match opcode {
                     OpCode::CreateConnection | OpCode::AcceptConnectionRequest => {
                         self.connection_attempt.remove(&address);
                     }
@@ -282,180 +223,151 @@ impl OddDisconnectionsRule {
                 }
             }
         } else {
-            if cs.get_status() != ErrorCode::Success {
+            if status != ErrorCode::Success {
                 self.reportable.push((
                     packet.ts,
-                    format!("Failing command status on unknown address: {:?}", cs),
+                    format!("Failing command status on unknown address: {:?}", opcode),
                 ));
             }
         }
     }
 
-    fn process_event(&mut self, ev: &Event, packet: &Packet) {
-        match ev.specialize() {
-            EventChild::ConnectionComplete(cc) => {
-                match self.connection_attempt.remove(&cc.get_bd_addr()) {
-                    Some(_) => {
-                        if cc.get_status() == ErrorCode::Success {
-                            self.active_handles
-                                .insert(cc.get_connection_handle(), (packet.ts, cc.get_bd_addr()));
-                        } else {
-                            self.reportable.push((
-                                packet.ts,
-                                format!(
-                                    "ConnectionComplete error {:?} for addr {} (handle={})",
-                                    cc.get_status(),
-                                    cc.get_bd_addr(),
-                                    cc.get_connection_handle()
-                                ),
-                            ));
-                        }
-                    }
-                    None => {
-                        self.reportable.push((
-                            packet.ts,
-                            format!(
-                            "ConnectionComplete with status {:?} for unknown addr {} (handle={})",
-                            cc.get_status(),
-                            cc.get_bd_addr(),
-                            cc.get_connection_handle()
-                        ),
-                        ));
-                    }
+    fn process_conn_complete_ev(
+        &mut self,
+        status: ErrorCode,
+        handle: ConnectionHandle,
+        address: Address,
+        packet: &Packet,
+    ) {
+        if let Some(_) = self.connection_attempt.remove(&address) {
+            if status == ErrorCode::Success {
+                self.active_handles.insert(handle, (packet.ts, address));
+            } else {
+                self.reportable.push((
+                    packet.ts,
+                    format!(
+                        "ConnectionComplete error {:?} for addr {} (handle={})",
+                        status, address, handle
+                    ),
+                ));
+            }
+        } else {
+            self.reportable.push((
+                packet.ts,
+                format!(
+                    "ConnectionComplete with status {:?} for unknown addr {} (handle={})",
+                    status, address, handle
+                ),
+            ));
+        }
+    }
+
+    fn process_disconn_complete_ev(&mut self, handle: ConnectionHandle, packet: &Packet) {
+        self.active_handles.remove(&handle);
+
+        // Check if this is a NOCP type disconnection and flag it.
+        if let Some(nocp_data) = self.nocp_by_handle.get_mut(&handle) {
+            if let Some(acl_front_ts) = nocp_data.inflight_acl_ts.pop_front() {
+                let duration_since_acl = packet.ts.signed_duration_since(acl_front_ts);
+                if duration_since_acl.num_milliseconds() > NOCP_CORRELATION_TIME_MS {
+                    self.signals.push(Signal {
+                        index: packet.index,
+                        ts: packet.ts,
+                        tag: ConnectionSignal::NocpDisconnect.into(),
+                    });
+
+                    self.reportable.push((
+                        packet.ts,
+                        format!("DisconnectionComplete for handle({}) showed incomplete in-flight ACL at {}",
+                        handle, acl_front_ts)));
                 }
             }
+        }
+        // Remove nocp information for handles that were removed.
+        self.nocp_by_handle.remove(&handle);
 
-            EventChild::DisconnectionComplete(dsc) => {
-                let handle = dsc.get_connection_handle();
-                self.active_handles.remove(&handle);
+        // Check if auth payload timeout happened.
+        if let Some(apte_count) = self.apte_by_handle.remove(&handle) {
+            self.signals.push(Signal {
+                index: packet.index,
+                ts: packet.ts,
+                tag: ConnectionSignal::ApteDisconnect.into(),
+            });
 
-                // Check if this is a NOCP type disconnection and flag it.
-                if let Some(nocp_data) = self.nocp_by_handle.get_mut(&handle) {
-                    if let Some(acl_front_ts) = nocp_data.inflight_acl_ts.pop_front() {
-                        let duration_since_acl = packet.ts.signed_duration_since(acl_front_ts);
-                        if duration_since_acl.num_milliseconds() > NOCP_CORRELATION_TIME_MS {
-                            self.signals.push(Signal {
-                                index: packet.index,
-                                ts: packet.ts.clone(),
-                                tag: ConnectionSignal::NocpDisconnect.into(),
-                            });
+            self.reportable.push((
+                packet.ts,
+                format!("DisconnectionComplete with {} Authenticated Payload Timeout Expired (handle={})",
+                apte_count, handle))
+            );
+        }
+    }
 
-                            self.reportable.push((
-                                        packet.ts,
-                                        format!("DisconnectionComplete for handle({}) showed incomplete in-flight ACL at {}",
-                                        handle, acl_front_ts)));
-                        }
-                    }
-                }
-
-                // Remove nocp information for handles that were removed.
-                self.nocp_by_handle.remove(&handle);
-
-                // Check if auth payload timeout happened.
-                match self.apte_by_handle.get_mut(&handle) {
-                    Some(apte_count) => {
-                        self.signals.push(Signal {
-                            index: packet.index,
-                            ts: packet.ts.clone(),
-                            tag: ConnectionSignal::ApteDisconnect.into(),
-                        });
-
-                        self.reportable.push((
-                            packet.ts,
-                            format!("DisconnectionComplete with {} Authenticated Payload Timeout Expired (handle={})",
-                            apte_count, handle)));
-                    }
-                    None => (),
-                }
-
-                // Remove apte information for handles that were removed.
-                self.apte_by_handle.remove(&handle);
+    fn process_sync_conn_complete_ev(
+        &mut self,
+        status: ErrorCode,
+        handle: ConnectionHandle,
+        address: Address,
+        packet: &Packet,
+    ) {
+        if let Some(_) = self.sco_connection_attempt.remove(&address) {
+            if status == ErrorCode::Success {
+                self.active_handles.insert(handle, (packet.ts, address));
+            } else {
+                self.reportable.push((
+                    packet.ts,
+                    format!(
+                        "SynchronousConnectionComplete error {:?} for addr {} (handle={})",
+                        status, address, handle
+                    ),
+                ));
             }
+        } else {
+            self.reportable.push((
+                packet.ts,
+                format!(
+                    "SynchronousConnectionComplete with status {:?} for unknown addr {} (handle={})",
+                    status,
+                    address,
+                    handle
+                ),
+            ));
+        }
+    }
 
-            EventChild::SynchronousConnectionComplete(scc) => {
-                match self.sco_connection_attempt.remove(&scc.get_bd_addr()) {
-                    Some(_) => {
-                        if scc.get_status() == ErrorCode::Success {
-                            self.active_handles.insert(
-                                scc.get_connection_handle(),
-                                (packet.ts, scc.get_bd_addr()),
-                            );
-                        } else {
-                            self.reportable.push((
-                                packet.ts,
-                                format!(
-                                    "SynchronousConnectionComplete error {:?} for addr {} (handle={})",
-                                    scc.get_status(),
-                                    scc.get_bd_addr(),
-                                    scc.get_connection_handle()
-                                ),
-                            ));
-                        }
-                    }
-                    None => {
-                        self.reportable.push((
-                            packet.ts,
-                            format!(
-                            "SynchronousConnectionComplete with status {:?} for unknown addr {} (handle={})",
-                            scc.get_status(),
-                            scc.get_bd_addr(),
-                            scc.get_connection_handle()
-                        ),
-                        ));
-                    }
-                }
-            }
+    fn process_le_conn_complete_ev(
+        &mut self,
+        status: ErrorCode,
+        handle: ConnectionHandle,
+        address: Address,
+        packet: &Packet,
+    ) {
+        let use_accept_list = self
+            .last_le_connection_filter_policy
+            .map_or(false, |policy| policy == InitiatorFilterPolicy::UseFilterAcceptList);
+        let addr_to_remove = if use_accept_list { bt_packets::hci::EMPTY_ADDRESS } else { address };
 
-            EventChild::LeMetaEvent(lme) => {
-                let details = match lme.specialize() {
-                    LeMetaEventChild::LeConnectionComplete(lcc) => Some((
-                        lcc.get_status(),
-                        lcc.get_connection_handle(),
-                        lcc.get_peer_address(),
-                    )),
-                    LeMetaEventChild::LeEnhancedConnectionComplete(lecc) => Some((
-                        lecc.get_status(),
-                        lecc.get_connection_handle(),
-                        lecc.get_peer_address(),
-                    )),
-                    _ => None,
+        if let Some(_) = self.le_connection_attempt.remove(&addr_to_remove) {
+            if status == ErrorCode::Success {
+                self.active_handles.insert(handle, (packet.ts, address));
+            } else {
+                let message = if use_accept_list {
+                    format!("LeConnectionComplete error {:?} for accept list", status)
+                } else {
+                    format!(
+                        "LeConnectionComplete error {:?} for addr {} (handle={})",
+                        status, address, handle
+                    )
                 };
-
-                if let Some((status, handle, address)) = details {
-                    let use_accept_list =
-                        self.last_le_connection_filter_policy.map_or(false, |policy| {
-                            policy == InitiatorFilterPolicy::UseFilterAcceptList
-                        });
-                    let addr_to_remove =
-                        if use_accept_list { bt_packets::hci::EMPTY_ADDRESS } else { address };
-
-                    match self.le_connection_attempt.remove(&addr_to_remove) {
-                        Some(_) => {
-                            if status == ErrorCode::Success {
-                                self.active_handles.insert(handle, (packet.ts, address));
-                            } else {
-                                let message = if use_accept_list {
-                                    format!(
-                                        "LeConnectionComplete error {:?} for accept list",
-                                        status,
-                                    )
-                                } else {
-                                    format!(
-                                        "LeConnectionComplete error {:?} for addr {} (handle={})",
-                                        status, address, handle
-                                    )
-                                };
-                                self.reportable.push((packet.ts, message));
-                            }
-                        }
-                        None => {
-                            self.reportable.push((packet.ts, format!("LeConnectionComplete with status {:?} for unknown addr {} (handle={})", status, address, handle)));
-                        }
-                    }
-                }
+                self.reportable.push((packet.ts, message));
             }
-
-            _ => (),
+        } else {
+            self.reportable.push((
+                packet.ts,
+                format!(
+                    "LeConnectionComplete with status {:?} for unknown addr {} (handle={})",
+                    status, address, handle
+                ),
+            ));
         }
     }
 
@@ -468,7 +380,7 @@ impl OddDisconnectionsRule {
         }
 
         if let Some(nocp_data) = self.nocp_by_handle.get_mut(&handle) {
-            nocp_data.inflight_acl_ts.push_back(packet.ts.clone());
+            nocp_data.inflight_acl_ts.push_back(packet.ts);
         }
     }
 
@@ -486,7 +398,7 @@ impl OddDisconnectionsRule {
                     if duration_since_acl.num_milliseconds() > NOCP_CORRELATION_TIME_MS {
                         self.signals.push(Signal {
                             index: packet.index,
-                            ts: packet.ts.clone(),
+                            ts: packet.ts,
                             tag: ConnectionSignal::NocpTimeout.into(),
                         });
                         self.reportable.push((
@@ -528,76 +440,137 @@ impl Rule for OddDisconnectionsRule {
         match &packet.inner {
             PacketChild::HciCommand(cmd) => match cmd.specialize() {
                 CommandChild::AclCommand(aclpkt) => match aclpkt.specialize() {
-                    AclCommandChild::ConnectionManagementCommand(conn) => {
-                        self.process_classic_connection(&conn.specialize(), packet);
-                    }
-                    AclCommandChild::ScoConnectionCommand(sco_conn) => {
-                        self.process_sco_connection(&sco_conn.specialize(), packet);
-                    }
-                    AclCommandChild::LeConnectionManagementCommand(le_conn) => {
-                        self.process_le_conn_connection(&le_conn.specialize(), packet);
-                    }
-                    AclCommandChild::Disconnect(dc_conn) => {
-                        // If reason is power off, the host might not wait for connection complete event
-                        if dc_conn.get_reason()
-                            == DisconnectReason::RemoteDeviceTerminatedConnectionPowerOff
-                        {
-                            let handle = dc_conn.get_connection_handle();
-                            self.active_handles.remove(&handle);
-                            self.nocp_by_handle.remove(&handle);
+                    AclCommandChild::ConnectionManagementCommand(conn) => match conn.specialize() {
+                        ConnectionManagementCommandChild::CreateConnection(cc) => {
+                            self.process_classic_connection(cc.get_bd_addr(), packet);
                         }
+                        ConnectionManagementCommandChild::AcceptConnectionRequest(ac) => {
+                            self.process_classic_connection(ac.get_bd_addr(), packet);
+                        }
+                        // End ConnectionManagementCommand.specialize()
+                        _ => {}
+                    },
+                    AclCommandChild::ScoConnectionCommand(sco_con) => match sco_con.specialize() {
+                        ScoConnectionCommandChild::SetupSynchronousConnection(ssc) => {
+                            let address =
+                                self.convert_sco_handle_to_address(ssc.get_connection_handle());
+                            self.process_sync_connection(address, packet);
+                        }
+                        ScoConnectionCommandChild::EnhancedSetupSynchronousConnection(esc) => {
+                            let address =
+                                self.convert_sco_handle_to_address(esc.get_connection_handle());
+                            self.process_sync_connection(address, packet);
+                        }
+                        ScoConnectionCommandChild::AcceptSynchronousConnection(asc) => {
+                            self.process_sync_connection(asc.get_bd_addr(), packet);
+                        }
+                        ScoConnectionCommandChild::EnhancedAcceptSynchronousConnection(easc) => {
+                            self.process_sync_connection(easc.get_bd_addr(), packet);
+                        }
+                        // End ScoConnectionCommand.specialize()
+                        _ => {}
+                    },
+                    AclCommandChild::LeConnectionManagementCommand(le_conn) => match le_conn
+                        .specialize()
+                    {
+                        LeConnectionManagementCommandChild::LeCreateConnection(lcc) => {
+                            self.process_le_create_connection(
+                                lcc.get_peer_address(),
+                                lcc.get_initiator_filter_policy(),
+                                packet,
+                            );
+                        }
+                        LeConnectionManagementCommandChild::LeExtendedCreateConnection(lecc) => {
+                            self.process_le_create_connection(
+                                lecc.get_peer_address(),
+                                lecc.get_initiator_filter_policy(),
+                                packet,
+                            );
+                        }
+                        LeConnectionManagementCommandChild::LeAddDeviceToFilterAcceptList(laac) => {
+                            self.process_add_accept_list(laac.get_address(), packet);
+                        }
+                        LeConnectionManagementCommandChild::LeRemoveDeviceFromFilterAcceptList(
+                            lrac,
+                        ) => {
+                            self.process_remove_accept_list(lrac.get_address(), packet);
+                        }
+                        LeConnectionManagementCommandChild::LeClearFilterAcceptList(_lcac) => {
+                            self.process_clear_accept_list(packet);
+                        }
+                        // End LeConnectionManagementCommand.specialize()
+                        _ => {}
+                    },
+                    AclCommandChild::Disconnect(dc_conn) => {
+                        self.process_disconnect_cmd(
+                            dc_conn.get_reason(),
+                            dc_conn.get_connection_handle(),
+                            packet,
+                        );
                     }
 
-                    // end acl pkt
+                    // End AclCommand.specialize()
                     _ => (),
                 },
                 CommandChild::Reset(_) => {
                     self.process_reset();
                 }
 
-                // end hci command
+                // End HciCommand.specialize()
                 _ => (),
             },
 
             PacketChild::HciEvent(ev) => match ev.specialize() {
-                EventChild::CommandStatus(cs) => match cs.get_command_op_code() {
-                    OpCode::CreateConnection
-                    | OpCode::AcceptConnectionRequest
-                    | OpCode::SetupSynchronousConnection
-                    | OpCode::AcceptSynchronousConnection
-                    | OpCode::EnhancedSetupSynchronousConnection
-                    | OpCode::EnhancedAcceptSynchronousConnection
-                    | OpCode::LeCreateConnection
-                    | OpCode::LeExtendedCreateConnection => {
-                        self.process_command_status(&cs, packet);
-                    }
-
-                    // end command status
-                    _ => (),
-                },
-
-                EventChild::ConnectionComplete(_)
-                | EventChild::DisconnectionComplete(_)
-                | EventChild::SynchronousConnectionComplete(_) => {
-                    self.process_event(&ev, packet);
+                EventChild::CommandStatus(cs) => {
+                    self.process_command_status(cs.get_status(), cs.get_command_op_code(), packet);
                 }
-
-                EventChild::LeMetaEvent(lme) => match lme.get_subevent_code() {
-                    SubeventCode::ConnectionComplete | SubeventCode::EnhancedConnectionComplete => {
-                        self.process_event(&ev, packet);
-                    }
-                    _ => (),
-                },
-
+                EventChild::ConnectionComplete(cc) => {
+                    self.process_conn_complete_ev(
+                        cc.get_status(),
+                        cc.get_connection_handle(),
+                        cc.get_bd_addr(),
+                        packet,
+                    );
+                }
+                EventChild::DisconnectionComplete(dsc) => {
+                    self.process_disconn_complete_ev(dsc.get_connection_handle(), packet);
+                }
+                EventChild::SynchronousConnectionComplete(scc) => {
+                    self.process_sync_conn_complete_ev(
+                        scc.get_status(),
+                        scc.get_connection_handle(),
+                        scc.get_bd_addr(),
+                        packet,
+                    );
+                }
                 EventChild::NumberOfCompletedPackets(nocp) => {
                     self.process_nocp(&nocp, packet);
                 }
-
                 EventChild::AuthenticatedPayloadTimeoutExpired(apte) => {
                     self.process_apte(&apte, packet);
                 }
+                EventChild::LeMetaEvent(lme) => match lme.specialize() {
+                    LeMetaEventChild::LeConnectionComplete(lcc) => {
+                        self.process_le_conn_complete_ev(
+                            lcc.get_status(),
+                            lcc.get_connection_handle(),
+                            lcc.get_peer_address(),
+                            packet,
+                        );
+                    }
+                    LeMetaEventChild::LeEnhancedConnectionComplete(lecc) => {
+                        self.process_le_conn_complete_ev(
+                            lecc.get_status(),
+                            lecc.get_connection_handle(),
+                            lecc.get_peer_address(),
+                            packet,
+                        );
+                    }
+                    // End LeMetaEvent.specialize()
+                    _ => {}
+                },
 
-                // end hci event
+                // End HciEvent.specialize()
                 _ => (),
             },
 
@@ -661,7 +634,7 @@ impl LinkKeyMismatchRule {
         if let Some(LinkKeyMismatchState::Replied) = self.states.get(address) {
             self.signals.push(Signal {
                 index: packet.index,
-                ts: packet.ts.clone(),
+                ts: packet.ts,
                 tag: ConnectionSignal::LinkKeyMismatch.into(),
             });
 
