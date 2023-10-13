@@ -63,7 +63,7 @@ import java.util.Objects;
 // 2. When the profile connection-state changes: At this point if a new profile gets CONNECTED we
 // will try to connect other profiles on the same device. This is to avoid collision if devices
 // somehow end up trying to connect at same time or general connection issues.
-class PhonePolicy implements AdapterService.BluetoothStateCallback {
+public class PhonePolicy implements AdapterService.BluetoothStateCallback {
     private static final boolean DBG = true;
     private static final String TAG = "BluetoothPhonePolicy";
 
@@ -82,6 +82,13 @@ class PhonePolicy implements AdapterService.BluetoothStateCallback {
     @VisibleForTesting
     static boolean sIsHfpAutoConnectEnabled =
             DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, HFP_AUTO_CONNECT, false);
+
+    /** flag for multi auto connect */
+    public static boolean sIsHfpMultiAutoConnectEnabled =
+            DeviceConfig.getBoolean(
+                    DeviceConfig.NAMESPACE_BLUETOOTH,
+                    "com.android.bluetooth.hfp_multi_auto_connect",
+                    false);
 
     // Timeouts
     @VisibleForTesting static int sConnectOtherProfilesTimeoutMillis = 6000; // 6s
@@ -622,6 +629,20 @@ class PhonePolicy implements AdapterService.BluetoothStateCallback {
             debugLog("HFP auto connect is not enabled");
             return;
         }
+
+        if (sIsHfpMultiAutoConnectEnabled) {
+            final List<BluetoothDevice> mostRecentlyConnectedHfpDevices =
+                    mDatabaseManager.getMostRecentlyActiveHfpDevices();
+            for (BluetoothDevice hfpDevice : mostRecentlyConnectedHfpDevices) {
+                debugLog("autoConnect: Headset device: " + hfpDevice);
+                autoConnectHeadset(hfpDevice);
+            }
+            if (mostRecentlyConnectedHfpDevices.size() == 0) {
+                Log.i(TAG, "autoConnect: No device to reconnect to");
+            }
+            return;
+        }
+        debugLog("HFP multi auto connect is not enabled");
 
         // Try to autoConnect with Hfp only if there was no a2dp valid device
         final BluetoothDevice mostRecentlyConnectedHfpDevice =
