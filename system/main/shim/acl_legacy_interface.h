@@ -20,7 +20,6 @@
 
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
-#include "stack/include/gatt_api.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/hci_mode.h"
 #include "stack/include/hcidefs.h"
@@ -127,7 +126,7 @@ typedef struct {
   void (*on_read_remote_version_information_complete)(
       tHCI_STATUS status, uint16_t handle, uint8_t lmp_version,
       uint16_t manufacturer_name, uint16_t sub_version);
-  void (*on_phy_update)(tGATT_STATUS status, uint16_t handle, uint8_t tx_phy,
+  void (*on_phy_update)(tHCI_STATUS status, uint16_t handle, uint8_t tx_phy,
                         uint8_t rx_phy);
 
   void (*on_le_subrate_change)(uint16_t handle, uint16_t subrate_factor,
