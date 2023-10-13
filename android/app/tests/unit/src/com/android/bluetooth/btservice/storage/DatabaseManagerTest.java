@@ -476,6 +476,58 @@ public final class DatabaseManagerTest {
     }
 
     @Test
+    public void testSetConnectionHeadset() {
+        // Verify pre-conditions to ensure a fresh test
+        Assert.assertEquals(0, mDatabaseManager.mMetadataCache.size());
+        Assert.assertNotNull(mTestDevice);
+        Assert.assertNotNull(mTestDevice2);
+        Assert.assertNull(mDatabaseManager.getMostRecentlyActiveHfpDevice());
+
+        // Set the first device's connection
+        mDatabaseManager.setConnection(mTestDevice, BluetoothProfile.HEADSET);
+        // Wait for database update
+        TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+        Assert.assertTrue(
+                mDatabaseManager.mMetadataCache.get(mTestDevice.getAddress()).isActiveHfpDevice);
+        List<BluetoothDevice> mostRecentlyConnectedDevicesOrdered =
+                mDatabaseManager.getMostRecentlyConnectedDevices();
+        Assert.assertEquals(mTestDevice, mDatabaseManager.getMostRecentlyActiveHfpDevice());
+        Assert.assertEquals(1, mostRecentlyConnectedDevicesOrdered.size());
+        Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(0));
+
+        // Setting the second device's connection
+        mDatabaseManager.setConnection(mTestDevice2, BluetoothProfile.HEADSET);
+        // Wait for database update
+        TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+        Assert.assertFalse(
+                mDatabaseManager.mMetadataCache.get(mTestDevice.getAddress()).isActiveHfpDevice);
+        Assert.assertTrue(
+                mDatabaseManager.mMetadataCache.get(mTestDevice2.getAddress()).isActiveHfpDevice);
+        Assert.assertEquals(mTestDevice2, mDatabaseManager.getMostRecentlyActiveHfpDevice());
+        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        Assert.assertEquals(2, mostRecentlyConnectedDevicesOrdered.size());
+        Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(0));
+        Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(1));
+
+        // Disconnect first test device's connection
+        mDatabaseManager.setDisconnection(mTestDevice, BluetoothProfile.HEADSET);
+        // Wait for database update
+        TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+        Assert.assertFalse(
+                mDatabaseManager.mMetadataCache.get(mTestDevice.getAddress()).isActiveHfpDevice);
+        Assert.assertNotNull(mDatabaseManager.getMostRecentlyActiveHfpDevice());
+        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        Assert.assertEquals(2, mostRecentlyConnectedDevicesOrdered.size());
+        Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(1));
+        Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(0));
+
+        mDatabaseManager.factoryReset();
+        mDatabaseManager.mMetadataCache.clear();
+        // Wait for clear database
+        TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+    }
+
+    @Test
     public void testSetConnection() {
         // Verify pre-conditions to ensure a fresh test
         Assert.assertEquals(0, mDatabaseManager.mMetadataCache.size());
@@ -1334,6 +1386,30 @@ public final class DatabaseManagerTest {
             // Check the new columns was added with default value
             assertColumnBlobData(cursor, "gmcs_cccd", null);
             assertColumnBlobData(cursor, "gtbs_cccd", null);
+        }
+    }
+
+    @Test
+    public void testDatabaseMigration_117_118() throws IOException {
+        // Create a database with version 117
+        SupportSQLiteDatabase db = testHelper.createDatabase(DB_NAME, 117);
+        // insert a device to the database
+        ContentValues device = new ContentValues();
+        device.put("address", TEST_BT_ADDR);
+        device.put("migrated", false);
+        assertThat(
+                db.insert("metadata", SQLiteDatabase.CONFLICT_IGNORE, device),
+                CoreMatchers.not(-1));
+        // Migrate database from 117 to 118
+        db.close();
+        db =
+                testHelper.runMigrationsAndValidate(
+                        DB_NAME, 118, true, MetadataDatabase.MIGRATION_117_118);
+        Cursor cursor = db.query("SELECT * FROM metadata");
+        assertHasColumn(cursor, "isActiveHfpDevice", true);
+        while (cursor.moveToNext()) {
+            // Check the new columns was added with default value
+            assertColumnIntData(cursor, "isActiveHfpDevice", 0);
         }
     }
 
