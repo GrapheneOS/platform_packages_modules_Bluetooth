@@ -3,6 +3,7 @@ use chrono::NaiveDateTime;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::convert::Into;
 use std::io::Write;
+use std::slice::Iter;
 
 use crate::engine::{Rule, RuleGroup, Signal};
 use crate::parser::{Packet, PacketChild};
@@ -14,10 +15,12 @@ use bt_packets::hci::{
 };
 
 enum ConnectionSignal {
-    LinkKeyMismatch, // Peer forgets the link key or it mismatches ours
-    NocpDisconnect,  // Peer is disconnected when NOCP packet isn't yet received
-    NocpTimeout,     // Host doesn't receive NOCP packet 5 seconds after ACL is sent
-    ApteDisconnect,  // Host doesn't receive a packet with valid MIC for a while.
+    LinkKeyMismatch,      // Peer forgets the link key or it mismatches ours
+    NocpDisconnect,       // Peer is disconnected when NOCP packet isn't yet received
+    NocpTimeout,          // Host doesn't receive NOCP packet 5 seconds after ACL is sent
+    ApteDisconnect,       // Host doesn't receive a packet with valid MIC for a while.
+    RemoteFeatureNoReply, // Host doesn't receive a response for a remote feature request.
+    RemoteFeatureError,   // Controller replies error for remote feature request.
 }
 
 impl Into<&'static str> for ConnectionSignal {
@@ -27,6 +30,8 @@ impl Into<&'static str> for ConnectionSignal {
             ConnectionSignal::NocpDisconnect => "Nocp",
             ConnectionSignal::NocpTimeout => "Nocp",
             ConnectionSignal::ApteDisconnect => "AuthenticatedPayloadTimeoutExpired",
+            ConnectionSignal::RemoteFeatureError => "RemoteFeatureError",
+            ConnectionSignal::RemoteFeatureNoReply => "RemoteFeatureNoReply",
         }
     }
 }
@@ -38,9 +43,9 @@ pub type ConnectionHandle = u16;
 /// a placeholder.
 pub const UNKNOWN_SCO_ADDRESS: [u8; 6] = [0xdeu8, 0xad, 0xbe, 0xef, 0x00, 0x00];
 
-/// Any outstanding NOCP or disconnection that is more than 5s away from the sent ACL packet should
-/// result in an NOCP signal being generated.
-pub const NOCP_CORRELATION_TIME_MS: i64 = 5000;
+/// The tolerance duration of not receiving an expected reply. If 5s elapsed and timeout occurs,
+/// we blame the pending event for causing timeout. This is used to detect NOCP and others.
+pub const TIMEOUT_TOLERANCE_TIME_MS: i64 = 5000;
 
 pub(crate) struct NocpData {
     /// Number of in-flight packets without a corresponding NOCP.
@@ -50,6 +55,24 @@ pub(crate) struct NocpData {
 impl NocpData {
     fn new() -> Self {
         Self { inflight_acl_ts: VecDeque::new() }
+    }
+}
+
+#[derive(Debug, Eq, PartialEq, Hash)]
+enum PendingRemoteFeature {
+    Supported,
+    Extended,
+    Le,
+}
+
+impl PendingRemoteFeature {
+    fn iterate_all() -> Iter<'static, PendingRemoteFeature> {
+        static FEATS: [PendingRemoteFeature; 3] = [
+            PendingRemoteFeature::Supported,
+            PendingRemoteFeature::Extended,
+            PendingRemoteFeature::Le,
+        ];
+        FEATS.iter()
     }
 }
 
@@ -78,6 +101,12 @@ struct OddDisconnectionsRule {
     /// Number of |Authenticated Payload Timeout Expired| events hapened.
     apte_by_handle: HashMap<ConnectionHandle, u32>,
 
+    /// Pending handles for read remote features.
+    pending_supported_feat: HashMap<ConnectionHandle, NaiveDateTime>,
+    pending_extended_feat: HashMap<ConnectionHandle, NaiveDateTime>,
+    pending_le_feat: HashMap<ConnectionHandle, NaiveDateTime>,
+    last_feat_handle: HashMap<PendingRemoteFeature, ConnectionHandle>,
+
     /// Pre-defined signals discovered in the logs.
     signals: Vec<Signal>,
 
@@ -99,6 +128,10 @@ impl OddDisconnectionsRule {
             accept_list: HashSet::new(),
             nocp_by_handle: HashMap::new(),
             apte_by_handle: HashMap::new(),
+            pending_supported_feat: HashMap::new(),
+            pending_extended_feat: HashMap::new(),
+            pending_le_feat: HashMap::new(),
+            last_feat_handle: HashMap::new(),
             signals: vec![],
             reportable: vec![],
         }
@@ -159,6 +192,27 @@ impl OddDisconnectionsRule {
         self.accept_list.clear();
     }
 
+    fn get_feature_pending_map(
+        &mut self,
+        pending_type: &PendingRemoteFeature,
+    ) -> &mut HashMap<ConnectionHandle, NaiveDateTime> {
+        match pending_type {
+            PendingRemoteFeature::Supported => &mut self.pending_supported_feat,
+            PendingRemoteFeature::Extended => &mut self.pending_extended_feat,
+            PendingRemoteFeature::Le => &mut self.pending_le_feat,
+        }
+    }
+
+    fn process_remote_feat_cmd(
+        &mut self,
+        feat_type: PendingRemoteFeature,
+        handle: &ConnectionHandle,
+        packet: &Packet,
+    ) {
+        self.get_feature_pending_map(&feat_type).insert(*handle, packet.ts);
+        self.last_feat_handle.insert(feat_type, *handle);
+    }
+
     fn process_disconnect_cmd(
         &mut self,
         reason: DisconnectReason,
@@ -173,6 +227,29 @@ impl OddDisconnectionsRule {
     }
 
     fn process_command_status(&mut self, status: ErrorCode, opcode: OpCode, packet: &Packet) {
+        match opcode {
+            OpCode::CreateConnection
+            | OpCode::AcceptConnectionRequest
+            | OpCode::SetupSynchronousConnection
+            | OpCode::AcceptSynchronousConnection
+            | OpCode::EnhancedSetupSynchronousConnection
+            | OpCode::EnhancedAcceptSynchronousConnection
+            | OpCode::LeCreateConnection
+            | OpCode::LeExtendedCreateConnection => {
+                self.process_command_status_conn(status, opcode, packet);
+            }
+
+            OpCode::ReadRemoteSupportedFeatures
+            | OpCode::ReadRemoteExtendedFeatures
+            | OpCode::LeReadRemoteFeatures => {
+                self.process_command_status_feat(status, opcode, packet);
+            }
+
+            _ => {}
+        }
+    }
+
+    fn process_command_status_conn(&mut self, status: ErrorCode, opcode: OpCode, packet: &Packet) {
         // Clear last connection attempt since it was successful.
         let last_address = match opcode {
             OpCode::CreateConnection | OpCode::AcceptConnectionRequest => {
@@ -190,7 +267,6 @@ impl OddDisconnectionsRule {
                 self.last_le_connection_attempt.take()
             }
 
-            // Not interested about the rest of the opcodes
             _ => return,
         };
 
@@ -232,6 +308,28 @@ impl OddDisconnectionsRule {
         }
     }
 
+    fn process_command_status_feat(&mut self, status: ErrorCode, opcode: OpCode, packet: &Packet) {
+        let feat_type = match opcode {
+            OpCode::ReadRemoteSupportedFeatures => PendingRemoteFeature::Supported,
+            OpCode::ReadRemoteExtendedFeatures => PendingRemoteFeature::Extended,
+            OpCode::LeReadRemoteFeatures => PendingRemoteFeature::Le,
+            _ => return,
+        };
+
+        // If handle is not known, probably the request comes before btsnoop starts. In any case,
+        // the command complete event will still complain. So let's just return here.
+        let handle = match self.last_feat_handle.remove(&feat_type) {
+            Some(handle) => handle,
+            None => return,
+        };
+
+        // If failed, there won't be a following command complete event. So treat this as the
+        // command complete.
+        if status != ErrorCode::Success {
+            self.process_remote_feat_ev(feat_type, status, handle, packet);
+        }
+    }
+
     fn process_conn_complete_ev(
         &mut self,
         status: ErrorCode,
@@ -269,7 +367,7 @@ impl OddDisconnectionsRule {
         if let Some(nocp_data) = self.nocp_by_handle.get_mut(&handle) {
             if let Some(acl_front_ts) = nocp_data.inflight_acl_ts.pop_front() {
                 let duration_since_acl = packet.ts.signed_duration_since(acl_front_ts);
-                if duration_since_acl.num_milliseconds() > NOCP_CORRELATION_TIME_MS {
+                if duration_since_acl.num_milliseconds() > TIMEOUT_TOLERANCE_TIME_MS {
                     self.signals.push(Signal {
                         index: packet.index,
                         ts: packet.ts,
@@ -299,6 +397,30 @@ impl OddDisconnectionsRule {
                 format!("DisconnectionComplete with {} Authenticated Payload Timeout Expired (handle={})",
                 apte_count, handle))
             );
+        }
+
+        // Check if remote feature request is pending
+        for feat_type in PendingRemoteFeature::iterate_all() {
+            if let Some(ts) = self.get_feature_pending_map(feat_type).remove(&handle) {
+                let elapsed_time_ms = packet.ts.signed_duration_since(ts).num_milliseconds();
+                if elapsed_time_ms > TIMEOUT_TOLERANCE_TIME_MS {
+                    self.signals.push(Signal {
+                        index: packet.index,
+                        ts: packet.ts,
+                        tag: ConnectionSignal::RemoteFeatureNoReply.into(),
+                    });
+
+                    self.reportable.push((
+                        packet.ts,
+                        format!(
+                            "Handle {} doesn't respond to {:?} feature request at {}.",
+                            handle,
+                            feat_type,
+                            ts.time()
+                        ),
+                    ));
+                }
+            }
         }
     }
 
@@ -395,7 +517,7 @@ impl OddDisconnectionsRule {
             if let Some(nocp_data) = self.nocp_by_handle.get_mut(&handle) {
                 if let Some(acl_front_ts) = nocp_data.inflight_acl_ts.pop_front() {
                     let duration_since_acl = ts.signed_duration_since(acl_front_ts);
-                    if duration_since_acl.num_milliseconds() > NOCP_CORRELATION_TIME_MS {
+                    if duration_since_acl.num_milliseconds() > TIMEOUT_TOLERANCE_TIME_MS {
                         self.signals.push(Signal {
                             index: packet.index,
                             ts: packet.ts,
@@ -420,6 +542,36 @@ impl OddDisconnectionsRule {
         *self.apte_by_handle.entry(handle).or_insert(0) += 1;
     }
 
+    fn process_remote_feat_ev(
+        &mut self,
+        feat_type: PendingRemoteFeature,
+        status: ErrorCode,
+        handle: ConnectionHandle,
+        packet: &Packet,
+    ) {
+        let feat_map = self.get_feature_pending_map(&feat_type);
+
+        if feat_map.remove(&handle) == None {
+            self.reportable.push((
+                packet.ts,
+                format!("Got remote {:?} for unknown handle {}", feat_type, handle),
+            ));
+        }
+
+        if status != ErrorCode::Success {
+            self.signals.push(Signal {
+                index: packet.index,
+                ts: packet.ts,
+                tag: ConnectionSignal::RemoteFeatureError.into(),
+            });
+
+            self.reportable.push((
+                packet.ts,
+                format!("Got {:?} for remote {:?} feature, handle {}", status, feat_type, handle),
+            ));
+        }
+    }
+
     fn process_reset(&mut self) {
         self.active_handles.clear();
         self.connection_attempt.clear();
@@ -432,6 +584,10 @@ impl OddDisconnectionsRule {
         self.accept_list.clear();
         self.nocp_by_handle.clear();
         self.apte_by_handle.clear();
+        self.pending_supported_feat.clear();
+        self.pending_extended_feat.clear();
+        self.pending_le_feat.clear();
+        self.last_feat_handle.clear();
     }
 }
 
@@ -446,6 +602,20 @@ impl Rule for OddDisconnectionsRule {
                         }
                         ConnectionManagementCommandChild::AcceptConnectionRequest(ac) => {
                             self.process_classic_connection(ac.get_bd_addr(), packet);
+                        }
+                        ConnectionManagementCommandChild::ReadRemoteSupportedFeatures(rrsf) => {
+                            self.process_remote_feat_cmd(
+                                PendingRemoteFeature::Supported,
+                                &rrsf.get_connection_handle(),
+                                packet,
+                            );
+                        }
+                        ConnectionManagementCommandChild::ReadRemoteExtendedFeatures(rref) => {
+                            self.process_remote_feat_cmd(
+                                PendingRemoteFeature::Extended,
+                                &rref.get_connection_handle(),
+                                packet,
+                            );
                         }
                         // End ConnectionManagementCommand.specialize()
                         _ => {}
@@ -498,6 +668,13 @@ impl Rule for OddDisconnectionsRule {
                         LeConnectionManagementCommandChild::LeClearFilterAcceptList(_lcac) => {
                             self.process_clear_accept_list(packet);
                         }
+                        LeConnectionManagementCommandChild::LeReadRemoteFeatures(lrrf) => {
+                            self.process_remote_feat_cmd(
+                                PendingRemoteFeature::Le,
+                                &lrrf.get_connection_handle(),
+                                packet,
+                            );
+                        }
                         // End LeConnectionManagementCommand.specialize()
                         _ => {}
                     },
@@ -549,6 +726,22 @@ impl Rule for OddDisconnectionsRule {
                 EventChild::AuthenticatedPayloadTimeoutExpired(apte) => {
                     self.process_apte(&apte, packet);
                 }
+                EventChild::ReadRemoteSupportedFeaturesComplete(rsfc) => {
+                    self.process_remote_feat_ev(
+                        PendingRemoteFeature::Supported,
+                        rsfc.get_status(),
+                        rsfc.get_connection_handle(),
+                        packet,
+                    );
+                }
+                EventChild::ReadRemoteExtendedFeaturesComplete(refc) => {
+                    self.process_remote_feat_ev(
+                        PendingRemoteFeature::Extended,
+                        refc.get_status(),
+                        refc.get_connection_handle(),
+                        packet,
+                    );
+                }
                 EventChild::LeMetaEvent(lme) => match lme.specialize() {
                     LeMetaEventChild::LeConnectionComplete(lcc) => {
                         self.process_le_conn_complete_ev(
@@ -563,6 +756,14 @@ impl Rule for OddDisconnectionsRule {
                             lecc.get_status(),
                             lecc.get_connection_handle(),
                             lecc.get_peer_address(),
+                            packet,
+                        );
+                    }
+                    LeMetaEventChild::LeReadRemoteFeaturesComplete(lrrfc) => {
+                        self.process_remote_feat_ev(
+                            PendingRemoteFeature::Le,
+                            lrrfc.get_status(),
+                            lrrfc.get_connection_handle(),
                             packet,
                         );
                     }
