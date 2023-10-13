@@ -108,12 +108,8 @@ void a2dp_vendor_opus_encoder_cleanup(void) {
       bluetooth::common::time_get_os_boottime_us();
 
   a2dp_opus_encoder_cb.timestamp = 0;
-
-#if (BTA_AV_CO_CP_SCMS_T == TRUE)
-  a2dp_opus_encoder_cb.use_SCMS_T = true;
-#else
   a2dp_opus_encoder_cb.use_SCMS_T = false;
-#endif
+
   return;
 }
 

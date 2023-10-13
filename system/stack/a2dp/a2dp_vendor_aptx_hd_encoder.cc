@@ -43,11 +43,7 @@ static const tAPTX_HD_API aptx_hd_api = {
 };
 
 // offset
-#if (BTA_AV_CO_CP_SCMS_T == TRUE)
-#define A2DP_APTX_HD_OFFSET (AVDT_MEDIA_OFFSET + 1)
-#else
 #define A2DP_APTX_HD_OFFSET AVDT_MEDIA_OFFSET
-#endif
 
 #define A2DP_APTX_HD_MAX_PCM_BYTES_PER_READ 4096
 
@@ -139,10 +135,7 @@ void a2dp_vendor_aptx_hd_encoder_init(
   a2dp_aptx_hd_encoder_cb.timestamp = 0;
 
   /* aptX-HD encoder config */
-  a2dp_aptx_hd_encoder_cb.use_SCMS_T = false;  // TODO: should be a parameter
-#if (BTA_AV_CO_CP_SCMS_T == TRUE)
-  a2dp_aptx_hd_encoder_cb.use_SCMS_T = true;
-#endif
+  a2dp_aptx_hd_encoder_cb.use_SCMS_T = false;
 
   a2dp_aptx_hd_encoder_cb.aptx_hd_encoder_state =
       osi_malloc(aptx_hd_api.sizeof_params_func());

@@ -52,11 +52,7 @@
 // Length of the Opus Media Payload header
 #define A2DP_OPUS_MPL_HDR_LEN 1
 
-#if (BTA_AV_CO_CP_SCMS_T == TRUE)
-#define A2DP_OPUS_OFFSET (AVDT_MEDIA_OFFSET + A2DP_OPUS_MPL_HDR_LEN + 1)
-#else
 #define A2DP_OPUS_OFFSET (AVDT_MEDIA_OFFSET + A2DP_OPUS_MPL_HDR_LEN)
-#endif
 
 #define A2DP_OPUS_HDR_F_MSK 0x80
 #define A2DP_OPUS_HDR_S_MSK 0x40

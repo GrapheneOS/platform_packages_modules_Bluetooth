@@ -622,14 +622,6 @@ bool A2DP_VendorInitCodecConfigLdac(AvdtpSepConfig* p_cfg) {
     return false;
   }
 
-#if (BTA_AV_CO_CP_SCMS_T == TRUE)
-  /* Content protection info - support SCMS-T */
-  uint8_t* p = p_cfg->protect_info;
-  *p++ = AVDT_CP_LOSC;
-  UINT16_TO_STREAM(p, AVDT_CP_SCMS_T_ID);
-  p_cfg->num_protect = 1;
-#endif
-
   return true;
 }
 

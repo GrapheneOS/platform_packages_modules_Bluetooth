@@ -705,11 +705,7 @@ class BtaAvCo {
 const uint8_t bta_av_co_cp_scmst[AVDT_CP_INFO_LEN] = {0x02, 0x02, 0x00};
 
 // Control block instance
-#if (BTA_AV_CO_CP_SCMS_T == TRUE)
-static const bool kContentProtectEnabled = true;
-#else
 static const bool kContentProtectEnabled = false;
-#endif
 static BtaAvCo bta_av_co_cb(kContentProtectEnabled);
 
 void BtaAvCoPeer::Init(
