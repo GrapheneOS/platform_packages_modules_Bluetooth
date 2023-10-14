@@ -24,8 +24,9 @@
 
 #define LOG_TAG "bt_l2cap"
 
-#include "main/shim/l2c_api.h"
+#include "stack/include/l2c_api.h"
 
+#include <base/location.h>
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
 
@@ -35,18 +36,15 @@
 #include "device/include/controller.h"  // TODO Remove
 #include "gd/common/init_flags.h"
 #include "gd/hal/snoop_logger.h"
-#include "gd/os/metrics.h"
 #include "gd/os/system_properties.h"
-#include "hci/include/btsnoop.h"
-#include "main/shim/metrics_api.h"
-#include "main/shim/shim.h"
+#include "main/shim/entry.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_psm_types.h"
-#include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/l2c_api.h"
+#include "stack/include/main_thread.h"
 #include "stack/l2cap/l2c_int.h"
 #include "types/raw_address.h"
 

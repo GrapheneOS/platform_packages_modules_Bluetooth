@@ -41,9 +41,9 @@
 #include "stack/include/ble_acl_interface.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
-#include "stack/include/btu.h"
 #include "stack/include/btu_hcif.h"
 #include "stack/include/gatt_api.h"
+#include "stack/include/main_thread.h"
 #include "stack/include/sco_hci_link_interface.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
@@ -51,7 +51,7 @@
 void gatt_notify_conn_update(const RawAddress& remote, uint16_t interval,
                              uint16_t latency, uint16_t timeout,
                              tHCI_STATUS status);
-void gatt_notify_phy_updated(tGATT_STATUS status, uint16_t handle,
+void gatt_notify_phy_updated(tHCI_STATUS status, uint16_t handle,
                              uint8_t tx_phy, uint8_t rx_phy);
 
 void process_ssr_event(tHCI_STATUS status, uint16_t handle, uint16_t max_tx_lat,
@@ -607,7 +607,7 @@ struct LeLinkPropertyListenerShim
 
   void OnPhyUpdate(hci::AddressWithType remote, uint8_t tx_phy,
                    uint8_t rx_phy) override {
-    gatt_notify_phy_updated(GATT_SUCCESS, info_[remote.GetAddress()].handle,
+    gatt_notify_phy_updated(HCI_SUCCESS, info_[remote.GetAddress()].handle,
                             tx_phy, rx_phy);
   }
 

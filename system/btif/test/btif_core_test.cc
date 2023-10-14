@@ -39,7 +39,6 @@ void set_hal_cbacks(bt_callbacks_t* callbacks);
 
 uint8_t appl_trace_level = BT_TRACE_LEVEL_DEBUG;
 uint8_t btif_trace_level = BT_TRACE_LEVEL_DEBUG;
-uint8_t btu_trace_level = BT_TRACE_LEVEL_DEBUG;
 
 const tBTA_AG_RES_DATA tBTA_AG_RES_DATA::kEmpty = {};
 

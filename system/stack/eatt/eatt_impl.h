@@ -18,25 +18,20 @@
 #include <base/logging.h>
 
 #include <map>
-#include <queue>
 
-#include "acl_api.h"
 #include "bind_helpers.h"
 #include "device/include/controller.h"
 #include "eatt.h"
-#include "gd/common/init_flags.h"
-#include "gd/common/strings.h"
 #include "internal_include/stack_config.h"
 #include "l2c_api.h"
+#include "os/log.h"
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_psm_types.h"
-#include "stack/include/btu.h"  // do_in_main_thread
-#include "stack/l2cap/l2c_int.h"
-#include "types/raw_address.h"
+#include "stack/include/main_thread.h"
 
 namespace bluetooth {
 namespace eatt {

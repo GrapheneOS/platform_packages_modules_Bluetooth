@@ -50,7 +50,6 @@
 #include "types/raw_address.h"
 
 using namespace bluetooth::legacy::stack::sdp;
-using bluetooth::Uuid;
 
 tBTA_JV_CB bta_jv_cb;
 std::unordered_set<uint16_t> used_l2cap_classic_dynamic_psm;

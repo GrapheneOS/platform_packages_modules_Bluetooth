@@ -19,14 +19,12 @@
 #include <base/functional/bind.h>
 
 #include <iterator>
-#include <unordered_map>
 
-#include "common/init_flags.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "stack/gatt/gatt_int.h"
-#include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/l2c_api.h"
+#include "stack/include/main_thread.h"
 
 namespace bluetooth {
 namespace shim {

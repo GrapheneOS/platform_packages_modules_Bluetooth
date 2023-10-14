@@ -56,8 +56,8 @@ use std::sync::{Arc, Mutex};
 
 pub mod prelude {
     pub use super::{
-        ClientDBusProxy, DBusLog, DBusLogOptions, DBusLogVerbosity, DisconnectWatcher, dbus_generated,
-        impl_dbus_arg_enum, impl_dbus_arg_from_into,
+        dbus_generated, impl_dbus_arg_enum, impl_dbus_arg_from_into, ClientDBusProxy, DBusLog,
+        DBusLogOptions, DBusLogVerbosity, DisconnectWatcher,
     };
 }
 

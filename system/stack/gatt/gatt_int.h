@@ -31,7 +31,6 @@
 
 #include "bt_target.h"
 #include "btm_ble_api.h"
-#include "btu.h"
 #include "common/init_flags.h"
 #include "gatt_api.h"
 #include "osi/include/fixed_queue.h"
@@ -590,7 +589,7 @@ void gatt_sr_send_req_callback(uint16_t conn_id, uint32_t trans_id,
 uint32_t gatt_sr_enqueue_cmd(tGATT_TCB& tcb, uint16_t cid, uint8_t op_code,
                              uint16_t handle);
 bool gatt_cancel_open(tGATT_IF gatt_if, const RawAddress& bda);
-void gatt_notify_phy_updated(tGATT_STATUS status, uint16_t handle,
+void gatt_notify_phy_updated(tHCI_STATUS status, uint16_t handle,
                              uint8_t tx_phy, uint8_t rx_phy);
 void gatt_notify_subrate_change(uint16_t handle, uint16_t subrate_factor,
                                 uint16_t latency, uint16_t cont_num,

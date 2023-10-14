@@ -1,6 +1,4 @@
 // Signature format: 2.0
-// - add-additional-overrides=no
-// - migrating=Migration in progress see b/299366704
 package android.bluetooth {
 
   public final class BluetoothA2dp implements android.bluetooth.BluetoothProfile {
@@ -32,13 +30,17 @@ package android.bluetooth {
 
   public final class BluetoothA2dpSink implements android.bluetooth.BluetoothProfile {
     method public void finalize();
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getConnectionState(android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getDevicesMatchingConnectionStates(int[]);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean isAudioPlaying(@NonNull android.bluetooth.BluetoothDevice);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice, int);
     field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_CONNECTION_STATE_CHANGED = "android.bluetooth.a2dp-sink.profile.action.CONNECTION_STATE_CHANGED";
   }
 
   public final class BluetoothActivityEnergyInfo implements android.os.Parcelable {
+    method public int describeContents();
     method public int getBluetoothStackState();
     method public long getControllerEnergyUsed();
     method public long getControllerIdleTimeMillis();
@@ -47,6 +49,7 @@ package android.bluetooth {
     method public long getTimestampMillis();
     method @NonNull public java.util.List<android.bluetooth.UidTraffic> getUidTraffic();
     method public boolean isValid();
+    method public void writeToParcel(android.os.Parcel, int);
     field public static final int BT_STACK_STATE_INVALID = 0; // 0x0
     field public static final int BT_STACK_STATE_STATE_ACTIVE = 1; // 0x1
     field public static final int BT_STACK_STATE_STATE_IDLE = 3; // 0x3
@@ -290,6 +293,8 @@ package android.bluetooth {
   }
 
   public final class BluetoothHapClient implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
+    method public void close();
+    method protected void finalize();
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getActivePresetIndex(@NonNull android.bluetooth.BluetoothDevice);
     method @Nullable @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public android.bluetooth.BluetoothHapPresetInfo getActivePresetInfo(@NonNull android.bluetooth.BluetoothDevice);
     method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothHapPresetInfo> getAllPresetInfo(@NonNull android.bluetooth.BluetoothDevice);
@@ -333,6 +338,7 @@ package android.bluetooth {
   }
 
   public final class BluetoothHapPresetInfo implements android.os.Parcelable {
+    method public int describeContents();
     method public int getIndex();
     method @NonNull public String getName();
     method public boolean isAvailable();
@@ -358,6 +364,8 @@ package android.bluetooth {
   }
 
   public final class BluetoothHeadsetClient implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
+    method public void close();
+    method protected void finalize();
     method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionState(@NonNull android.bluetooth.BluetoothDevice);
@@ -370,11 +378,13 @@ package android.bluetooth {
   }
 
   public static final class BluetoothHeadsetClient.NetworkServiceState implements android.os.Parcelable {
+    method public int describeContents();
     method @NonNull public android.bluetooth.BluetoothDevice getDevice();
     method @Nullable public String getNetworkOperatorName();
     method @IntRange(from=0, to=5) public int getSignalStrength();
     method public boolean isRoaming();
     method public boolean isServiceAvailable();
+    method public void writeToParcel(@NonNull android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothHeadsetClient.NetworkServiceState> CREATOR;
   }
 
@@ -397,6 +407,7 @@ package android.bluetooth {
   }
 
   public static final class BluetoothHearingAid.AdvertisementServiceData implements android.os.Parcelable {
+    method public int describeContents();
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_SCAN, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getDeviceMode();
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_SCAN, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getDeviceSide();
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_SCAN, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getTruncatedHiSyncId();
@@ -414,6 +425,7 @@ package android.bluetooth {
     method @NonNull @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getConnectionState(@NonNull android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getDevicesMatchingConnectionStates(int[]);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice, int);
     field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_CONNECTION_STATE_CHANGED = "android.bluetooth.input.profile.action.CONNECTION_STATE_CHANGED";
   }
@@ -469,12 +481,14 @@ package android.bluetooth {
   }
 
   public final class BluetoothLeAudioCodecConfigMetadata implements android.os.Parcelable {
+    method public int describeContents();
     method @NonNull public static android.bluetooth.BluetoothLeAudioCodecConfigMetadata fromRawBytes(@NonNull byte[]);
     method public long getAudioLocation();
     method public int getFrameDuration();
     method public int getOctetsPerFrame();
     method @NonNull public byte[] getRawMetadata();
     method public int getSampleRate();
+    method public void writeToParcel(android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeAudioCodecConfigMetadata> CREATOR;
   }
 
@@ -489,10 +503,12 @@ package android.bluetooth {
   }
 
   public final class BluetoothLeAudioContentMetadata implements android.os.Parcelable {
+    method public int describeContents();
     method @NonNull public static android.bluetooth.BluetoothLeAudioContentMetadata fromRawBytes(@NonNull byte[]);
     method @Nullable public String getLanguage();
     method @Nullable public String getProgramInfo();
     method @NonNull public byte[] getRawMetadata();
+    method public void writeToParcel(android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeAudioContentMetadata> CREATOR;
   }
 
@@ -505,7 +521,12 @@ package android.bluetooth {
   }
 
   public final class BluetoothLeBroadcast implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
+    method public void close();
+    method protected void finalize();
     method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothLeBroadcastMetadata> getAllBroadcastMetadata();
+    method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionState(@NonNull android.bluetooth.BluetoothDevice);
+    method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[]);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED) public int getMaximumNumberOfBroadcasts();
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED) public int getMaximumStreamsPerBroadcast();
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED) public int getMaximumSubgroupsPerBroadcast();
@@ -533,6 +554,8 @@ package android.bluetooth {
 
   public final class BluetoothLeBroadcastAssistant implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void addSource(@NonNull android.bluetooth.BluetoothDevice, @NonNull android.bluetooth.BluetoothLeBroadcastMetadata, boolean);
+    method public void close();
+    method protected void finalize();
     method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothLeBroadcastReceiveState> getAllSources(@NonNull android.bluetooth.BluetoothDevice);
     method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice);
@@ -566,9 +589,11 @@ package android.bluetooth {
   }
 
   public final class BluetoothLeBroadcastChannel implements android.os.Parcelable {
+    method public int describeContents();
     method public int getChannelIndex();
     method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata getCodecMetadata();
     method public boolean isSelected();
+    method public void writeToParcel(android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeBroadcastChannel> CREATOR;
   }
 
@@ -582,6 +607,7 @@ package android.bluetooth {
   }
 
   public final class BluetoothLeBroadcastMetadata implements android.os.Parcelable {
+    method public int describeContents();
     method public int getAudioConfigQuality();
     method @Nullable public byte[] getBroadcastCode();
     method public int getBroadcastId();
@@ -595,6 +621,7 @@ package android.bluetooth {
     method @NonNull public java.util.List<android.bluetooth.BluetoothLeBroadcastSubgroup> getSubgroups();
     method public boolean isEncrypted();
     method public boolean isPublicBroadcast();
+    method public void writeToParcel(android.os.Parcel, int);
     field public static final int AUDIO_CONFIG_QUALITY_HIGH = 2; // 0x2
     field public static final int AUDIO_CONFIG_QUALITY_NONE = 0; // 0x0
     field public static final int AUDIO_CONFIG_QUALITY_STANDARD = 1; // 0x1
@@ -622,6 +649,7 @@ package android.bluetooth {
   }
 
   public final class BluetoothLeBroadcastReceiveState implements android.os.Parcelable {
+    method public int describeContents();
     method @Nullable public byte[] getBadCode();
     method public int getBigEncryptionState();
     method @NonNull public java.util.List<java.lang.Long> getBisSyncState();
@@ -633,6 +661,7 @@ package android.bluetooth {
     method @NonNull public android.bluetooth.BluetoothDevice getSourceDevice();
     method @IntRange(from=0, to=255) public int getSourceId();
     method @NonNull public java.util.List<android.bluetooth.BluetoothLeAudioContentMetadata> getSubgroupMetadata();
+    method public void writeToParcel(android.os.Parcel, int);
     field public static final int BIG_ENCRYPTION_STATE_BAD_CODE = 3; // 0x3
     field public static final int BIG_ENCRYPTION_STATE_CODE_REQUIRED = 1; // 0x1
     field public static final int BIG_ENCRYPTION_STATE_DECRYPTING = 2; // 0x2
@@ -646,11 +675,13 @@ package android.bluetooth {
   }
 
   public final class BluetoothLeBroadcastSettings implements android.os.Parcelable {
+    method public int describeContents();
     method @Nullable public byte[] getBroadcastCode();
     method @Nullable public String getBroadcastName();
     method @Nullable public android.bluetooth.BluetoothLeAudioContentMetadata getPublicBroadcastMetadata();
     method @NonNull public java.util.List<android.bluetooth.BluetoothLeBroadcastSubgroupSettings> getSubgroupSettings();
     method public boolean isPublicBroadcast();
+    method public void writeToParcel(android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeBroadcastSettings> CREATOR;
   }
 
@@ -667,11 +698,13 @@ package android.bluetooth {
   }
 
   public final class BluetoothLeBroadcastSubgroup implements android.os.Parcelable {
+    method public int describeContents();
     method @NonNull public java.util.List<android.bluetooth.BluetoothLeBroadcastChannel> getChannels();
     method public long getCodecId();
     method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata getCodecSpecificConfig();
     method @NonNull public android.bluetooth.BluetoothLeAudioContentMetadata getContentMetadata();
     method public boolean hasChannelPreference();
+    method public void writeToParcel(android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeBroadcastSubgroup> CREATOR;
   }
 
@@ -687,8 +720,10 @@ package android.bluetooth {
   }
 
   public final class BluetoothLeBroadcastSubgroupSettings implements android.os.Parcelable {
+    method public int describeContents();
     method @NonNull public android.bluetooth.BluetoothLeAudioContentMetadata getContentMetadata();
     method public int getPreferredQuality();
+    method public void writeToParcel(android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeBroadcastSubgroupSettings> CREATOR;
     field public static final int QUALITY_HIGH = 1; // 0x1
     field public static final int QUALITY_STANDARD = 0; // 0x0
@@ -707,11 +742,15 @@ package android.bluetooth {
     method protected void finalize();
     method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getConnectionState(android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getDevicesMatchingConnectionStates(int[]);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice, int);
     field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_CONNECTION_STATE_CHANGED = "android.bluetooth.map.profile.action.CONNECTION_STATE_CHANGED";
   }
 
   public final class BluetoothMapClient implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
+    method public void close();
+    method protected void finalize();
     method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionState(@NonNull android.bluetooth.BluetoothDevice);
@@ -722,8 +761,10 @@ package android.bluetooth {
   }
 
   public final class BluetoothPan implements android.bluetooth.BluetoothProfile {
+    method protected void finalize();
     method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionState(@NonNull android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothDevice> getDevicesMatchingConnectionStates(int[]);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean isTetheringOn();
     method @Deprecated @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED, android.Manifest.permission.TETHER_PRIVILEGED}) public void setBluetoothTethering(boolean);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice, int);
@@ -741,12 +782,16 @@ package android.bluetooth {
   }
 
   public class BluetoothPbap implements android.bluetooth.BluetoothProfile {
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionState(@NonNull android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getDevicesMatchingConnectionStates(int[]);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice, int);
     field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_CONNECTION_STATE_CHANGED = "android.bluetooth.pbap.profile.action.CONNECTION_STATE_CHANGED";
   }
 
   public final class BluetoothPbapClient implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
+    method public void close();
+    method protected void finalize();
     method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionState(@NonNull android.bluetooth.BluetoothDevice);
@@ -779,6 +824,7 @@ package android.bluetooth {
   }
 
   public final class BluetoothQualityReport implements android.os.Parcelable {
+    method public int describeContents();
     method @Nullable public android.bluetooth.BluetoothClass getBluetoothClass();
     method @Nullable public android.bluetooth.BluetoothQualityReport.BqrCommon getBqrCommon();
     method @Nullable public android.os.Parcelable getBqrEvent();
@@ -800,6 +846,7 @@ package android.bluetooth {
 
   public static final class BluetoothQualityReport.BqrCommon implements android.os.Parcelable {
     method @NonNull public static String connectionRoleToString(int);
+    method public int describeContents();
     method public int getAfhSelectUnidealChannelCount();
     method public int getCalFailedItemCount();
     method public int getConnectionHandle();
@@ -828,6 +875,7 @@ package android.bluetooth {
 
   public static final class BluetoothQualityReport.BqrConnectFail implements android.os.Parcelable {
     method @NonNull public static String connectFailIdToString(int);
+    method public int describeContents();
     method public int getFailReason();
     method public void writeToParcel(@NonNull android.os.Parcel, int);
     field public static final int CONNECT_FAIL_ID_ACL_ALREADY_EXIST = 11; // 0xb
@@ -839,6 +887,7 @@ package android.bluetooth {
   }
 
   public static final class BluetoothQualityReport.BqrVsA2dpChoppy implements android.os.Parcelable {
+    method public int describeContents();
     method public int getAclTxQueueLength();
     method public long getArrivalTime();
     method public int getGlitchCount();
@@ -853,6 +902,7 @@ package android.bluetooth {
 
   public static final class BluetoothQualityReport.BqrVsLsto implements android.os.Parcelable {
     method @Nullable public static String connStateToString(int);
+    method public int describeContents();
     method public long getBasebandStats();
     method public int getConnState();
     method public int getCxmDenials();
@@ -867,6 +917,7 @@ package android.bluetooth {
 
   public static final class BluetoothQualityReport.BqrVsScoChoppy implements android.os.Parcelable {
     method @Nullable public static String airFormatToString(int);
+    method public int describeContents();
     method public int getAirFormat();
     method public int getGlitchCount();
     method public int getGoodRxFrameCount();
@@ -901,12 +952,18 @@ package android.bluetooth {
   }
 
   public final class BluetoothSap implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
+    method public void close();
+    method protected void finalize();
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getConnectionState(android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getDevicesMatchingConnectionStates(int[]);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice, int);
     field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_CONNECTION_STATE_CHANGED = "android.bluetooth.sap.profile.action.CONNECTION_STATE_CHANGED";
   }
 
   public final class BluetoothSinkAudioPolicy implements android.os.Parcelable {
+    method public int describeContents();
     method public int getActiveDevicePolicyAfterConnection();
     method public int getCallEstablishPolicy();
     method public int getInBandRingtonePolicy();
@@ -1021,6 +1078,8 @@ package android.bluetooth {
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED) protected void finalize();
     method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getConnectionState(android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getDevicesMatchingConnectionStates(int[]);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean isVolumeOffsetAvailable(@NonNull android.bluetooth.BluetoothDevice);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void registerCallback(@NonNull java.util.concurrent.Executor, @NonNull android.bluetooth.BluetoothVolumeControl.Callback);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice, int);
@@ -1053,6 +1112,7 @@ package android.bluetooth {
   }
 
   public final class OobData implements android.os.Parcelable {
+    method public int describeContents();
     method @NonNull public byte[] getClassOfDevice();
     method @NonNull public byte[] getClassicLength();
     method @NonNull public byte[] getConfirmationHash();
@@ -1063,6 +1123,7 @@ package android.bluetooth {
     method @NonNull public int getLeFlags();
     method @Nullable public byte[] getLeTemporaryKey();
     method @NonNull public byte[] getRandomizerHash();
+    method public void writeToParcel(@NonNull android.os.Parcel, int);
     field public static final int CLASS_OF_DEVICE_OCTETS = 3; // 0x3
     field public static final int CONFIRMATION_OCTETS = 16; // 0x10
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.OobData> CREATOR;
@@ -1102,9 +1163,12 @@ package android.bluetooth {
   }
 
   public final class UidTraffic implements java.lang.Cloneable android.os.Parcelable {
+    method public android.bluetooth.UidTraffic clone();
+    method public int describeContents();
     method public long getRxBytes();
     method public long getTxBytes();
     method public int getUid();
+    method public void writeToParcel(android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.UidTraffic> CREATOR;
   }
 
@@ -1152,9 +1216,11 @@ package android.bluetooth.le {
   }
 
   public final class DistanceMeasurementMethod implements android.os.Parcelable {
+    method public int describeContents();
     method public double getId();
     method public boolean isAltitudeAngleSupported();
     method public boolean isAzimuthAngleSupported();
+    method public void writeToParcel(android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.le.DistanceMeasurementMethod> CREATOR;
     field public static final int DISTANCE_MEASUREMENT_METHOD_AUTO = 0; // 0x0
     field public static final int DISTANCE_MEASUREMENT_METHOD_RSSI = 1; // 0x1
@@ -1168,12 +1234,14 @@ package android.bluetooth.le {
   }
 
   public final class DistanceMeasurementParams implements android.os.Parcelable {
+    method public int describeContents();
     method public static int getDefaultDurationSeconds();
     method @NonNull public android.bluetooth.BluetoothDevice getDevice();
     method @IntRange(from=0) public int getDurationSeconds();
     method public int getFrequency();
     method public static int getMaxDurationSeconds();
     method public int getMethodId();
+    method public void writeToParcel(android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.le.DistanceMeasurementParams> CREATOR;
     field public static final int REPORT_FREQUENCY_HIGH = 2; // 0x2
     field public static final int REPORT_FREQUENCY_LOW = 0; // 0x0
@@ -1189,12 +1257,14 @@ package android.bluetooth.le {
   }
 
   public final class DistanceMeasurementResult implements android.os.Parcelable {
+    method public int describeContents();
     method @FloatRange(from=-90.0, to=90.0) public double getAltitudeAngle();
     method @FloatRange(from=0.0, to=360.0) public double getAzimuthAngle();
     method public double getErrorAltitudeAngle();
     method public double getErrorAzimuthAngle();
     method @FloatRange(from=0.0) public double getErrorMeters();
     method public double getResultMeters();
+    method public void writeToParcel(android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.le.DistanceMeasurementResult> CREATOR;
   }
 
@@ -1256,6 +1326,7 @@ package android.bluetooth.le {
   }
 
   public final class TransportBlockFilter implements android.os.Parcelable {
+    method public int describeContents();
     method public int getOrgId();
     method public int getTdsFlags();
     method public int getTdsFlagsMask();

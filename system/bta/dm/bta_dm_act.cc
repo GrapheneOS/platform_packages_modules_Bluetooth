@@ -52,7 +52,7 @@
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/btm_client_interface.h"
-#include "stack/include/btu.h"  // do_in_main_thread
+#include "stack/include/main_thread.h"
 #include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
@@ -711,13 +711,13 @@ void bta_dm_bond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
   tBTA_DM_SEC sec_event;
   const char* p_name;
 
-  tBTM_STATUS status =
-      BTM_SecBond(bd_addr, addr_type, transport, device_type, 0, NULL);
+  tBTM_STATUS status = get_btm_client_interface().security.BTM_SecBond(
+      bd_addr, addr_type, transport, device_type, 0, NULL);
 
   if (bta_dm_cb.p_sec_cback && (status != BTM_CMD_STARTED)) {
     memset(&sec_event, 0, sizeof(tBTA_DM_SEC));
     sec_event.auth_cmpl.bd_addr = bd_addr;
-    p_name = BTM_SecReadDevName(bd_addr);
+    p_name = get_btm_client_interface().security.BTM_SecReadDevName(bd_addr);
     if (p_name != NULL) {
       memcpy(sec_event.auth_cmpl.bd_name, p_name, BD_NAME_LEN);
       sec_event.auth_cmpl.bd_name[BD_NAME_LEN] = 0;
@@ -745,7 +745,7 @@ void bta_dm_bond_cancel(const RawAddress& bd_addr) {
 
   APPL_TRACE_EVENT(" bta_dm_bond_cancel ");
 
-  status = BTM_SecBondCancel(bd_addr);
+  status = get_btm_client_interface().security.BTM_SecBondCancel(bd_addr);
 
   if (bta_dm_cb.p_sec_cback &&
       (status != BTM_CMD_STARTED && status != BTM_SUCCESS)) {
@@ -758,21 +758,25 @@ void bta_dm_bond_cancel(const RawAddress& bd_addr) {
 /** Send the pin_reply to a request from BTM */
 void bta_dm_pin_reply(std::unique_ptr<tBTA_DM_API_PIN_REPLY> msg) {
   if (msg->accept) {
-    BTM_PINCodeReply(msg->bd_addr, BTM_SUCCESS, msg->pin_len, msg->p_pin);
+    get_btm_client_interface().security.BTM_PINCodeReply(
+        msg->bd_addr, BTM_SUCCESS, msg->pin_len, msg->p_pin);
   } else {
-    BTM_PINCodeReply(msg->bd_addr, BTM_NOT_AUTHORIZED, 0, NULL);
+    get_btm_client_interface().security.BTM_PINCodeReply(
+        msg->bd_addr, BTM_NOT_AUTHORIZED, 0, NULL);
   }
 }
 
 /** Send the user confirm request reply in response to a request from BTM */
 void bta_dm_confirm(const RawAddress& bd_addr, bool accept) {
-  BTM_ConfirmReqReply(accept ? BTM_SUCCESS : BTM_NOT_AUTHORIZED, bd_addr);
+  get_btm_client_interface().security.BTM_ConfirmReqReply(
+      accept ? BTM_SUCCESS : BTM_NOT_AUTHORIZED, bd_addr);
 }
 
 /** respond to the OOB data request for the remote device from BTM */
 void bta_dm_ci_rmt_oob_act(std::unique_ptr<tBTA_DM_CI_RMT_OOB> msg) {
-  BTM_RemoteOobDataReply(msg->accept ? BTM_SUCCESS : BTM_NOT_AUTHORIZED,
-                         msg->bd_addr, msg->c, msg->r);
+  get_btm_client_interface().security.BTM_RemoteOobDataReply(
+      msg->accept ? BTM_SUCCESS : BTM_NOT_AUTHORIZED, msg->bd_addr, msg->c,
+      msg->r);
 }
 
 /*******************************************************************************
@@ -856,8 +860,9 @@ static uint8_t bta_dm_pin_cback(const RawAddress& bd_addr, DEV_CLASS dev_class,
     bta_dm_cb.pin_evt = BTA_DM_PIN_REQ_EVT;
     bta_dm_cb.pin_bd_addr = bd_addr;
     BTA_COPY_DEVICE_CLASS(bta_dm_cb.pin_dev_class, dev_class);
-    if ((BTM_ReadRemoteDeviceName(bd_addr, bta_dm_pinname_cback,
-                                  BT_TRANSPORT_BR_EDR)) == BTM_CMD_STARTED)
+    if ((get_btm_client_interface().peer.BTM_ReadRemoteDeviceName(
+            bd_addr, bta_dm_pinname_cback, BT_TRANSPORT_BR_EDR)) ==
+        BTM_CMD_STARTED)
       return BTM_CMD_STARTED;
 
     APPL_TRACE_WARNING(
@@ -910,8 +915,8 @@ static uint8_t bta_dm_new_link_key_cback(const RawAddress& bd_addr,
   sec_event.auth_cmpl.fail_reason = HCI_SUCCESS;
 
   // Report the BR link key based on the BR/EDR address and type
-  BTM_ReadDevInfo(bd_addr, &sec_event.auth_cmpl.dev_type,
-                  &sec_event.auth_cmpl.addr_type);
+  get_btm_client_interface().peer.BTM_ReadDevInfo(
+      bd_addr, &sec_event.auth_cmpl.dev_type, &sec_event.auth_cmpl.addr_type);
   if (bta_dm_cb.p_sec_cback) bta_dm_cb.p_sec_cback(event, &sec_event);
 
   // Setting remove_dev_pending flag to false, where it will avoid deleting
@@ -949,8 +954,9 @@ static void bta_dm_authentication_complete_cback(
       sec_event.auth_cmpl.bd_name[BD_NAME_LEN] = 0;
 
       // Report the BR link key based on the BR/EDR address and type
-      BTM_ReadDevInfo(bd_addr, &sec_event.auth_cmpl.dev_type,
-                      &sec_event.auth_cmpl.addr_type);
+      get_btm_client_interface().peer.BTM_ReadDevInfo(
+          bd_addr, &sec_event.auth_cmpl.dev_type,
+          &sec_event.auth_cmpl.addr_type);
       sec_event.auth_cmpl.fail_reason = reason;
 
       bta_dm_cb.p_sec_cback(BTA_DM_AUTH_CMPL_EVT, &sec_event);
@@ -1055,9 +1061,10 @@ static tBTM_STATUS bta_dm_sp_cback(tBTM_SP_EVT event,
 
           dev_class_copy(bta_dm_cb.pin_dev_class, p_data->cfm_req.dev_class);
           {
-            const tBTM_STATUS btm_status = BTM_ReadRemoteDeviceName(
-                p_data->cfm_req.bd_addr, bta_dm_pinname_cback,
-                BT_TRANSPORT_BR_EDR);
+            const tBTM_STATUS btm_status =
+                get_btm_client_interface().peer.BTM_ReadRemoteDeviceName(
+                    p_data->cfm_req.bd_addr, bta_dm_pinname_cback,
+                    BT_TRANSPORT_BR_EDR);
             switch (btm_status) {
               case BTM_CMD_STARTED:
                 return btm_status;
@@ -1078,7 +1085,7 @@ static tBTM_STATUS bta_dm_sp_cback(tBTM_SP_EVT event,
           bta_dm_cb.pin_bd_addr = p_data->key_notif.bd_addr;
           BTA_COPY_DEVICE_CLASS(bta_dm_cb.pin_dev_class,
                                 p_data->key_notif.dev_class);
-          if ((BTM_ReadRemoteDeviceName(
+          if ((get_btm_client_interface().peer.BTM_ReadRemoteDeviceName(
                   p_data->key_notif.bd_addr, bta_dm_pinname_cback,
                   BT_TRANSPORT_BR_EDR)) == BTM_CMD_STARTED)
             return BTM_CMD_STARTED;
@@ -1558,12 +1565,15 @@ static void bta_dm_reset_sec_dev_pending(const RawAddress& remote_bd_addr) {
  *
  ******************************************************************************/
 static void bta_dm_remove_sec_dev_entry(const RawAddress& remote_bd_addr) {
-  if (BTM_IsAclConnectionUp(remote_bd_addr, BT_TRANSPORT_LE) ||
-      BTM_IsAclConnectionUp(remote_bd_addr, BT_TRANSPORT_BR_EDR)) {
+  if (get_btm_client_interface().peer.BTM_IsAclConnectionUp(remote_bd_addr,
+                                                            BT_TRANSPORT_LE) ||
+      get_btm_client_interface().peer.BTM_IsAclConnectionUp(
+          remote_bd_addr, BT_TRANSPORT_BR_EDR)) {
     APPL_TRACE_DEBUG(
         "%s ACL is not down. Schedule for  Dev Removal when ACL closes",
         __func__);
-    BTM_SecClearSecurityFlags(remote_bd_addr);
+    get_btm_client_interface().security.BTM_SecClearSecurityFlags(
+        remote_bd_addr);
     for (int i = 0; i < bta_dm_cb.device_list.count; i++) {
       auto& dev = bta_dm_cb.device_list.peer_device[i];
       if (dev.peer_bdaddr == remote_bd_addr) {
@@ -2155,8 +2165,9 @@ void bta_dm_set_encryption(const RawAddress& bd_addr, tBT_TRANSPORT transport,
     return;
   }
 
-  if (BTM_SetEncryption(bd_addr, transport, bta_dm_encrypt_cback, NULL,
-                        sec_act) == BTM_CMD_STARTED) {
+  if (get_btm_client_interface().security.BTM_SetEncryption(
+          bd_addr, transport, bta_dm_encrypt_cback, NULL, sec_act) ==
+      BTM_CMD_STARTED) {
     device->p_encrypt_cback = p_callback;
     LOG_DEBUG("Started encryption peer:%s transport:%s",
               ADDRESS_TO_LOGGABLE_CSTR(bd_addr), bt_transport_text(transport).c_str());
@@ -2251,7 +2262,7 @@ static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, const RawAddress& bda,
 
     case BTM_LE_CONSENT_REQ_EVT:
       sec_event.ble_req.bd_addr = bda;
-      p_name = BTM_SecReadDevName(bda);
+      p_name = get_btm_client_interface().security.BTM_SecReadDevName(bda);
       if (p_name != NULL)
         strlcpy((char*)sec_event.ble_req.bd_name, p_name, BD_NAME_LEN);
       else
@@ -2261,7 +2272,7 @@ static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, const RawAddress& bda,
 
     case BTM_LE_SEC_REQUEST_EVT:
       sec_event.ble_req.bd_addr = bda;
-      p_name = BTM_SecReadDevName(bda);
+      p_name = get_btm_client_interface().security.BTM_SecReadDevName(bda);
       if (p_name != NULL)
         strlcpy((char*)sec_event.ble_req.bd_name, p_name, BD_NAME_LEN + 1);
       else
@@ -2271,7 +2282,7 @@ static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, const RawAddress& bda,
 
     case BTM_LE_KEY_NOTIF_EVT:
       sec_event.key_notif.bd_addr = bda;
-      p_name = BTM_SecReadDevName(bda);
+      p_name = get_btm_client_interface().security.BTM_SecReadDevName(bda);
       if (p_name != NULL)
         strlcpy((char*)sec_event.key_notif.bd_name, p_name, BD_NAME_LEN + 1);
       else
@@ -2328,7 +2339,7 @@ static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, const RawAddress& bda,
       sec_event.auth_cmpl.bd_addr = bda;
       BTM_ReadDevInfo(bda, &sec_event.auth_cmpl.dev_type,
                       &sec_event.auth_cmpl.addr_type);
-      p_name = BTM_SecReadDevName(bda);
+      p_name = get_btm_client_interface().security.BTM_SecReadDevName(bda);
       if (p_name != NULL)
         strlcpy((char*)sec_event.auth_cmpl.bd_name, p_name, (BD_NAME_LEN + 1));
       else
@@ -2454,7 +2465,8 @@ static uint8_t bta_dm_sirk_verifiction_cback(const RawAddress& bd_addr) {
  ******************************************************************************/
 void bta_dm_add_blekey(const RawAddress& bd_addr, tBTA_LE_KEY_VALUE blekey,
                        tBTM_LE_KEY_TYPE key_type) {
-  BTM_SecAddBleKey(bd_addr, (tBTM_LE_KEY_VALUE*)&blekey, key_type);
+  get_btm_client_interface().security.BTM_SecAddBleKey(
+      bd_addr, (tBTM_LE_KEY_VALUE*)&blekey, key_type);
 }
 
 /*******************************************************************************
@@ -2471,7 +2483,8 @@ void bta_dm_add_blekey(const RawAddress& bd_addr, tBTA_LE_KEY_VALUE blekey,
  ******************************************************************************/
 void bta_dm_add_ble_device(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
                            tBT_DEVICE_TYPE dev_type) {
-  BTM_SecAddBleDevice(bd_addr, dev_type, addr_type);
+  get_btm_client_interface().security.BTM_SecAddBleDevice(bd_addr, dev_type,
+                                                          addr_type);
 }
 
 /*******************************************************************************
@@ -2488,14 +2501,15 @@ void bta_dm_add_ble_device(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
  ******************************************************************************/
 void bta_dm_ble_passkey_reply(const RawAddress& bd_addr, bool accept,
                               uint32_t passkey) {
-  BTM_BlePasskeyReply(bd_addr, accept ? BTM_SUCCESS : BTM_NOT_AUTHORIZED,
-                      passkey);
+  get_btm_client_interface().ble.BTM_BlePasskeyReply(
+      bd_addr, accept ? BTM_SUCCESS : BTM_NOT_AUTHORIZED, passkey);
 }
 
 /** This is response to SM numeric comparison request submitted to application.
  */
 void bta_dm_ble_confirm_reply(const RawAddress& bd_addr, bool accept) {
-  BTM_BleConfirmReply(bd_addr, accept ? BTM_SUCCESS : BTM_NOT_AUTHORIZED);
+  get_btm_client_interface().ble.BTM_BleConfirmReply(
+      bd_addr, accept ? BTM_SUCCESS : BTM_NOT_AUTHORIZED);
 }
 
 /** This function set the preferred connection parameters */
@@ -2506,8 +2520,9 @@ void bta_dm_ble_set_conn_params(const RawAddress& bd_addr,
   L2CA_AdjustConnectionIntervals(&conn_int_min, &conn_int_max,
                                  BTM_BLE_CONN_INT_MIN);
 
-  BTM_BleSetPrefConnParams(bd_addr, conn_int_min, conn_int_max,
-                           peripheral_latency, supervision_tout);
+  get_btm_client_interface().ble.BTM_BleSetPrefConnParams(
+      bd_addr, conn_int_min, conn_int_max, peripheral_latency,
+      supervision_tout);
 }
 
 /** This function update LE connection parameters */

@@ -17,7 +17,6 @@
 #include <cstdint>
 
 // tLEGACY_TRACE_LEVEL
-uint8_t btu_trace_level = 6;
 uint8_t appl_trace_level = 6;
 uint8_t btif_trace_level = 6;
 

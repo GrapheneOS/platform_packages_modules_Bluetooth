@@ -47,13 +47,13 @@
 #include "stack/include/ble_hci_link_interface.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_iso_api.h"
-#include "stack/include/btu.h"
 #include "stack/include/dev_hci_link_interface.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/hci_evt_length.h"
 #include "stack/include/inq_hci_link_interface.h"
 #include "stack/include/l2cap_hci_link_interface.h"
+#include "stack/include/main_thread.h"
 #include "stack/include/sco_hci_link_interface.h"
 #include "stack/include/sec_hci_link_interface.h"
 #include "stack/include/stack_metrics_logging.h"
@@ -209,8 +209,8 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
 
   // validate event size
   if (hci_evt_len < hci_event_parameters_minimum_length[hci_evt_code]) {
-    HCI_TRACE_WARNING("%s: evt:0x%2X, malformed event of size %hhd", __func__,
-                      hci_evt_code, hci_evt_len);
+    LOG_WARN("%s: evt:0x%2X, malformed event of size %hhd", __func__,
+             hci_evt_code, hci_evt_len);
     return;
   }
 
@@ -733,8 +733,8 @@ static void btu_hcif_command_complete_evt_with_cb_on_task(BT_HDR* event,
   btu_hcif_log_command_complete_metrics(opcode, stream);
 
   cmd_with_cb_data* cb_wrapper = (cmd_with_cb_data*)context;
-  HCI_TRACE_DEBUG("command complete for: %s",
-                  cb_wrapper->posted_from.ToString().c_str());
+  LOG_VERBOSE("command complete for: %s",
+              cb_wrapper->posted_from.ToString().c_str());
   // 2 for event header: event code (1) + parameter length (1)
   // 3 for command complete header: num_hci_pkt (1) + opcode (2)
   uint16_t param_len = static_cast<uint16_t>(event->len - 5);
@@ -767,8 +767,8 @@ static void btu_hcif_command_status_evt_with_cb_on_task(uint8_t status,
 
   // report command status error
   cmd_with_cb_data* cb_wrapper = (cmd_with_cb_data*)context;
-  HCI_TRACE_DEBUG("command status for: %s",
-                  cb_wrapper->posted_from.ToString().c_str());
+  LOG_VERBOSE("command status for: %s",
+              cb_wrapper->posted_from.ToString().c_str());
   std::move(cb_wrapper->cb).Run(&status, sizeof(uint16_t));
   cmd_with_cb_data_cleanup(cb_wrapper);
   osi_free(cb_wrapper);
@@ -1579,7 +1579,7 @@ static void btu_ble_data_length_change_evt(uint8_t* p, uint16_t evt_len) {
   uint16_t rx_data_len;
 
   if (!controller_get_interface()->supports_ble_packet_extension()) {
-    HCI_TRACE_WARNING("%s, request not supported", __func__);
+    LOG_WARN("%s, request not supported", __func__);
     return;
   }
 

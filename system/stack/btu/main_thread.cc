@@ -16,7 +16,9 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_btu_task"
+#define LOG_TAG "bt_main_thread"
+
+#include "stack/include/main_thread.h"
 
 #include <base/functional/bind.h>
 #include <base/logging.h>
@@ -26,7 +28,6 @@
 #include "common/message_loop_thread.h"
 #include "include/hardware/bluetooth.h"
 #include "os/log.h"
-#include "stack/include/btu.h"
 
 using bluetooth::common::MessageLoopThread;
 

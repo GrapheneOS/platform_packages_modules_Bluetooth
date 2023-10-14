@@ -130,7 +130,7 @@ source_set("stack") {
     "btm/hfp_msbc_decoder.cc",
     "btu/btu_event.cc",
     "btu/btu_hcif.cc",
-    "btu/btu_task.cc",
+    "btu/main_thread.cc",
     "eatt/eatt.cc",
     "gap/gap_ble.cc",
     "gap/gap_conn.cc",

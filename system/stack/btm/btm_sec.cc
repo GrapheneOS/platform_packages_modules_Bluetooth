@@ -26,6 +26,8 @@
 
 #include "stack/btm/btm_sec.h"
 
+#include <base/functional/bind.h>
+#include <base/location.h>
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
@@ -40,22 +42,17 @@
 #include "device/include/controller.h"
 #include "device/include/device_iot_config.h"
 #include "l2c_api.h"
-#include "main/shim/btm_api.h"
-#include "main/shim/dumpsys.h"
-#include "main/shim/shim.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/security_device_record.h"
 #include "stack/include/acl_api.h"
-#include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/bt_psm_types.h"
 #include "stack/include/btm_status.h"
-#include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/l2cap_security_interface.h"
+#include "stack/include/main_thread.h"
 #include "stack/include/stack_metrics_logging.h"
 #include "types/raw_address.h"
 

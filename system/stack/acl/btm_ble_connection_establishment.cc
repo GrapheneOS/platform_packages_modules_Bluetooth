@@ -16,25 +16,14 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/hci/enums.pb.h>
 
-#include <bitset>
-
-#include "common/metrics.h"
-#include "device/include/controller.h"
-#include "main/shim/shim.h"
-#include "osi/include/log.h"
 #include "stack/btm/btm_ble_int.h"
-#include "stack/gatt/connection_manager.h"
 #include "stack/include/acl_api.h"
-#include "stack/include/ble_acl_interface.h"
 #include "stack/include/ble_hci_link_interface.h"
-#include "stack/include/l2cap_hci_link_interface.h"
-#include "stack/include/stack_metrics_logging.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 extern tBTM_CB btm_cb;
 

@@ -16,14 +16,14 @@
 
 #include "main/shim/acl_api.h"
 
-#include <cstddef>
+#include <base/location.h>
+
 #include <cstdint>
 #include <future>
 #include <optional>
 
 #include "gd/hci/acl_manager.h"
 #include "gd/hci/remote_name_request.h"
-#include "main/shim/dumpsys.h"
 #include "main/shim/entry.h"
 #include "main/shim/helpers.h"
 #include "main/shim/stack.h"
@@ -31,8 +31,8 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/btm/security_device_record.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/inq_hci_link_interface.h"
+#include "stack/include/main_thread.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 

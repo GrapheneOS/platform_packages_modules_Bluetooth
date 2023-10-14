@@ -378,7 +378,6 @@ typedef struct {
 
 #endif
 
-  tBTA_DM_ENCRYPT_CBACK* p_encrypt_cback;
   alarm_t* switch_delay_timer;
 } tBTA_DM_CB;
 
@@ -532,9 +531,6 @@ void bta_dm_ble_sirk_sec_cb_register(tBTA_DM_SEC_CBACK*);
 void bta_dm_ble_sirk_confirm_device_reply(const RawAddress& bd_addr,
                                           bool accept);
 void bta_dm_set_dev_name(const std::vector<uint8_t>&);
-void bta_dm_set_visibility(tBTA_DM_DISC, tBTA_DM_CONN);
-void bta_dm_set_scan_config(tBTA_DM_MSG* p_data);
-void bta_dm_vendor_spec_command(tBTA_DM_MSG* p_data);
 void bta_dm_bond(const RawAddress&, tBLE_ADDR_TYPE, tBT_TRANSPORT,
                  tBT_DEVICE_TYPE);
 void bta_dm_bond_cancel(const RawAddress&);
@@ -546,7 +542,6 @@ void bta_dm_close_acl(const RawAddress&, bool, tBT_TRANSPORT);
 void bta_dm_pm_btm_status(const RawAddress&, tBTM_PM_STATUS, uint16_t,
                           tHCI_STATUS);
 void bta_dm_pm_timer(const RawAddress&, tBTA_DM_PM_ACTION);
-void bta_dm_add_ampkey(tBTA_DM_MSG* p_data);
 
 void bta_dm_add_blekey(const RawAddress& bd_addr, tBTA_LE_KEY_VALUE blekey,
                        tBTM_LE_KEY_TYPE key_type);
@@ -578,7 +573,6 @@ void bta_dm_init_pm(void);
 void bta_dm_disable_pm(void);
 
 uint8_t bta_dm_get_av_count(void);
-void bta_dm_discovery_cmpl(tBTA_DM_MSG* p_data);
 bool bta_dm_is_search_request_queued();
 tBTA_DM_PEER_DEVICE* bta_dm_find_peer_device(const RawAddress& peer_addr);
 

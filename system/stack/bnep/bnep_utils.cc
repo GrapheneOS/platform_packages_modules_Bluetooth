@@ -1076,11 +1076,12 @@ void bnepu_process_peer_multicast_filter_set(tBNEP_CONN* p_bcb,
   }
 
   p_bcb->rcvd_mcast_filters = num_filters;
+  p_temp_filters = p_filters;
   for (xx = 0; xx < num_filters; xx++) {
-    memcpy(p_bcb->rcvd_mcast_filter_start[xx].address, p_filters, BD_ADDR_LEN);
-    memcpy(p_bcb->rcvd_mcast_filter_end[xx].address, p_filters + BD_ADDR_LEN,
+    memcpy(p_bcb->rcvd_mcast_filter_start[xx].address, p_temp_filters, BD_ADDR_LEN);
+    memcpy(p_bcb->rcvd_mcast_filter_end[xx].address, p_temp_filters + BD_ADDR_LEN,
            BD_ADDR_LEN);
-    p_filters += (BD_ADDR_LEN * 2);
+    p_temp_filters += (BD_ADDR_LEN * 2);
 
     /* Check if any of the ranges have all zeros as both starting and ending
      * addresses */
