@@ -228,7 +228,7 @@ void avct_lcb_open_ind(tAVCT_LCB* p_lcb, tAVCT_LCB_EVT* p_data) {
   int i;
   bool bind = false;
 
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
   if (android::sysprop::bluetooth::A2dp::src_sink_coexist().value_or(false)) {
     bool is_originater = false;
 
@@ -683,7 +683,7 @@ void avct_lcb_msg_ind(tAVCT_LCB* p_lcb, tAVCT_LCB_EVT* p_data) {
     return;
   }
 
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
   bool bind = false;
   if (android::sysprop::bluetooth::A2dp::src_sink_coexist().value_or(false)) {
     bind = avct_msg_ind_for_src_sink_coexist(p_lcb, p_data, label, cr_ipid);
