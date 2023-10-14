@@ -1569,7 +1569,7 @@ static void bta_dm_remove_sec_dev_entry(const RawAddress& remote_bd_addr) {
                                                             BT_TRANSPORT_LE) ||
       get_btm_client_interface().peer.BTM_IsAclConnectionUp(
           remote_bd_addr, BT_TRANSPORT_BR_EDR)) {
-    APPL_TRACE_DEBUG(
+    LOG_DEBUG(
         "%s ACL is not down. Schedule for  Dev Removal when ACL closes",
         __func__);
     get_btm_client_interface().security.BTM_SecClearSecurityFlags(
