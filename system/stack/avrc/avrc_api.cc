@@ -1198,7 +1198,7 @@ uint16_t AVRC_MsgReq(uint8_t handle, uint8_t label, uint8_t ctype,
   AVRC_TRACE_DEBUG("%s handle = %u label = %u ctype = %u len = %d", __func__,
                    handle, label, ctype, p_pkt->len);
   /* Handle for AVRCP fragment */
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
   if (!android::sysprop::bluetooth::A2dp::src_sink_coexist().value_or(false))
 #endif
     is_new_avrcp =
