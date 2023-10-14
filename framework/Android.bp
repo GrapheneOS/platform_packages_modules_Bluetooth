@@ -34,8 +34,8 @@ java_defaults {
     ],
     stub_only_libs: ["framework-tethering.stubs.module_lib"],
     srcs: [
+        ":Bluetooth-binder-aidl",
         ":framework-bluetooth-sources",
-        ":libbluetooth-binder-aidl",
         ":service-bluetooth-binder-aidl",
     ],
 }

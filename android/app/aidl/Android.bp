@@ -7,13 +7,9 @@ package {
     default_applicable_licenses: ["system_bt_license"],
 }
 
-// AIDL interface between libbluetooth-binder and framework.jar
+// AIDL interface between Bluetooth and framework.jar
 filegroup {
-    name: "libbluetooth-binder-aidl",
-    visibility: [
-        "//frameworks/base",
-        "//packages/modules/Bluetooth:__subpackages__",
-    ],
+    name: "Bluetooth-binder-aidl",
     srcs: [
         ":framework-bluetooth-updatable-exported-aidl-sources",
         ":modules-utils-synchronous-result-receiver-aidl",
