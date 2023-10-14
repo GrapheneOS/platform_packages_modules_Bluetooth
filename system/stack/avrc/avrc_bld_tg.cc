@@ -58,7 +58,7 @@ static tAVRC_STS avrc_bld_get_capability_rsp(tAVRC_GET_CAPS_RSP* p_rsp,
   tAVRC_STS status = AVRC_STS_NO_ERROR;
 
   if (!(AVRC_IS_VALID_CAP_ID(p_rsp->capability_id))) {
-    AVRC_TRACE_ERROR("%s bad parameter. p_rsp: %x", __func__, p_rsp);
+    AVRC_TRACE_ERROR("%s bad parameter. p_rsp: %p", __func__, p_rsp);
     status = AVRC_STS_BAD_PARAM;
     return status;
   }
@@ -310,7 +310,7 @@ static tAVRC_STS avrc_bld_app_setting_text_rsp(
 
   for (xx = 0; xx < p_rsp->num_attr; xx++) {
     if (len_left < (p_rsp->p_attrs[xx].str_len + 4)) {
-      AVRC_TRACE_ERROR("%s out of room (str_len:%d, left:%d)", __func__, xx,
+      AVRC_TRACE_ERROR("%s out of room (str_len:%d, left:%d)", __func__,
                        p_rsp->p_attrs[xx].str_len, len_left);
       p_rsp->num_attr = num_added;
       sts = AVRC_STS_INTERNAL_ERR;
@@ -448,7 +448,7 @@ static void avrc_build_attribute_entries(int num_attrs,
   }
   *pp_data = p_data;
   AVRC_TRACE_DEBUG("%s filled attributes, remaining_buffer_capacity: %d",
-                   __func__, num_attrs, remaining_buffer_capacity);
+                   __func__, remaining_buffer_capacity);
 }
 
 /*******************************************************************************
@@ -473,7 +473,7 @@ static tAVRC_STS avrc_bld_get_elem_attrs_rsp(tAVRC_GET_ATTRS_RSP* p_rsp,
   int remaining_buffer_capacity =
       BT_DEFAULT_BUFFER_SIZE - BT_HDR_SIZE - p_pkt->offset;
   if (remaining_buffer_capacity < 5) {
-    AVRC_TRACE_ERROR("%s not enough buffer for packet header",
+    AVRC_TRACE_ERROR("%d not enough buffer for packet header",
                      remaining_buffer_capacity);
     return AVRC_STS_INTERNAL_ERR;
   }
@@ -498,7 +498,7 @@ static tAVRC_STS avrc_bld_get_elem_attrs_rsp(tAVRC_GET_ATTRS_RSP* p_rsp,
   remaining_buffer_capacity -= p_data - p_pdu_start;
   ;
   if (remaining_buffer_capacity < 0) {
-    AVRC_TRACE_ERROR("%s not enough buffer capacity for response");
+    AVRC_TRACE_ERROR("%s not enough buffer capacity for response", __func__);
     return AVRC_STS_BAD_PARAM;
   }
   /* Fill in the Attribute ID, Character Set, Length and Values */
@@ -1087,7 +1087,7 @@ static tAVRC_STS avrc_bld_get_folder_items_rsp(tAVRC_GET_ITEMS_RSP* p_rsp,
         status = AVRC_STS_BAD_PARAM;
       break;
     }
-    AVRC_TRACE_DEBUG("len:%d, len_left:%d, num:%d, item_len:%d", len, len_left,
+    AVRC_TRACE_DEBUG("len:%d, len_left:%d, num:%d, item_len:%zu", len, len_left,
                      item_count, item_len);
   } /* for item_count */
 

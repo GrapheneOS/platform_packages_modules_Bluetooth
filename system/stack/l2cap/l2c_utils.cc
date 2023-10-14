@@ -1244,8 +1244,8 @@ void l2cu_dequeue_ccb(tL2C_CCB* p_ccb) {
 
   if ((!p_ccb->in_use) || (p_q == NULL) || (p_q->p_first_ccb == NULL)) {
     L2CAP_TRACE_ERROR(
-        "l2cu_dequeue_ccb  CID: 0x%04x ERROR in_use: %u  p_lcb: 0x%08x  p_q: "
-        "0x%08x  p_q->p_first_ccb: 0x%08x",
+        "l2cu_dequeue_ccb  CID: 0x%04x ERROR in_use: %u  p_lcb: 0x%p  p_q: "
+        "0x%p  p_q->p_first_ccb: 0x%p",
         p_ccb->local_cid, p_ccb->in_use, p_ccb->p_lcb, p_q,
         p_q ? p_q->p_first_ccb : 0);
     return;
@@ -2524,7 +2524,7 @@ void l2cu_resubmit_pending_sec_req(const RawAddress* p_bda) {
   tL2C_CCB* p_next_ccb;
   int xx;
 
-  L2CAP_TRACE_DEBUG("l2cu_resubmit_pending_sec_req  p_bda: 0x%08x", p_bda);
+  L2CAP_TRACE_DEBUG("l2cu_resubmit_pending_sec_req  p_bda: 0x%p", p_bda);
 
   /* If we are called with a BDA, only resubmit for that BDA */
   if (p_bda) {
@@ -3023,7 +3023,7 @@ void l2cu_send_peer_credit_based_conn_req(tL2C_CCB* p_ccb) {
 
   for (int i = 0; i < p_lcb->pending_ecoc_conn_cnt; i++) {
     uint16_t cid = p_lcb->pending_ecoc_connection_cids[i];
-    L2CAP_TRACE_DEBUG("\n\t cid: ", cid);
+    L2CAP_TRACE_DEBUG("\n\t cid: %d", cid);
     UINT16_TO_STREAM(p, cid);
   }
 
@@ -3464,7 +3464,7 @@ static void send_congestion_status_to_all_clients(tL2C_CCB* p_ccb,
   if (p_ccb->p_rcb && p_ccb->p_rcb->api.pL2CA_CongestionStatus_Cb) {
     L2CAP_TRACE_DEBUG(
         "L2CAP - Calling CongestionStatus_Cb (%d), CID: 0x%04x "
-        "xmit_hold_q.count: %u  buff_quota: %u",
+        "xmit_hold_q.count: %zu  buff_quota: %u",
         status, p_ccb->local_cid, fixed_queue_length(p_ccb->xmit_hold_q),
         p_ccb->buff_quota);
 

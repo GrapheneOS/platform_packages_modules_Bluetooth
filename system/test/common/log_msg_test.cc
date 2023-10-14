@@ -23,6 +23,8 @@
 
 #include "internal_include/bt_trace.h"
 
+#pragma GCC diagnostic ignored "-Wformat-security"
+
 namespace {
 uint32_t kDefaultTraceSetMask = 0x5a5a5a5a;
 }

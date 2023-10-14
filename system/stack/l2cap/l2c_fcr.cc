@@ -522,7 +522,7 @@ void l2c_fcr_proc_pdu(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
 
   L2CAP_TRACE_EVENT(
       "      eRTM Rx Nxt_tx_seq %u, Lst_rx_ack %u, Nxt_seq_exp %u, Lst_ack_snt "
-      "%u, wt_q.cnt %u, tries %u",
+      "%u, wt_q.cnt %zu, tries %u",
       p_ccb->fcrb.next_tx_seq, p_ccb->fcrb.last_rx_ack,
       p_ccb->fcrb.next_seq_expected, p_ccb->fcrb.last_ack_sent,
       fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q), p_ccb->fcrb.num_tries);
@@ -784,7 +784,7 @@ void l2c_fcr_proc_tout(tL2C_CCB* p_ccb) {
   CHECK(p_ccb != NULL);
   L2CAP_TRACE_DEBUG(
       "l2c_fcr_proc_tout:  CID: 0x%04x  num_tries: %u (max: %u)  wait_ack: %u  "
-      "ack_q_count: %u",
+      "ack_q_count: %zu",
       p_ccb->local_cid, p_ccb->fcrb.num_tries, p_ccb->peer_cfg.fcr.max_transmit,
       p_ccb->fcrb.wait_ack, fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q));
 
@@ -860,7 +860,7 @@ static bool process_reqseq(tL2C_CCB* p_ccb, uint16_t ctrl_word) {
     /* The channel is closed if ReqSeq is not in range */
     L2CAP_TRACE_WARNING(
         "L2CAP eRTM Frame BAD Req_Seq - ctrl_word: 0x%04x  req_seq 0x%02x  "
-        "last_rx_ack: 0x%02x  QCount: %u",
+        "last_rx_ack: 0x%02x  QCount: %zu",
         ctrl_word, req_seq, p_fcrb->last_rx_ack,
         fixed_queue_length(p_fcrb->waiting_for_ack_q));
 
@@ -1057,7 +1057,7 @@ static void process_i_frame(tL2C_CCB* p_ccb, BT_HDR* p_buf, uint16_t ctrl_word,
         } else {
           L2CAP_TRACE_WARNING(
               "process_i_frame() CID: 0x%04x  frame dropped in Srej Sent "
-              "next_srej:%u  hold_q.count:%u  win_sz:%u",
+              "next_srej:%u  hold_q.count:%zu  win_sz:%u",
               p_ccb->local_cid, next_srej,
               fixed_queue_length(p_fcrb->srej_rcv_hold_q),
               p_ccb->our_cfg.fcr.tx_win_sz);
@@ -1089,7 +1089,7 @@ static void process_i_frame(tL2C_CCB* p_ccb, BT_HDR* p_buf, uint16_t ctrl_word,
           if (!fixed_queue_is_empty(p_fcrb->srej_rcv_hold_q)) {
             L2CAP_TRACE_ERROR(
                 "process_i_frame() CID: 0x%04x  sending SREJ tx_seq:%d "
-                "hold_q.count:%u",
+                "hold_q.count:%zu",
                 p_ccb->local_cid, tx_seq,
                 fixed_queue_length(p_fcrb->srej_rcv_hold_q));
           }
@@ -1280,7 +1280,7 @@ static bool retransmit_i_frames(tL2C_CCB* p_ccb, uint8_t tx_seq) {
       (p_ccb->fcrb.num_tries >= p_ccb->peer_cfg.fcr.max_transmit)) {
     L2CAP_TRACE_EVENT(
         "Max Tries Exceeded:  (last_acq: %d  CID: 0x%04x  num_tries: %u (max: "
-        "%u) ack_q_count: %u",
+        "%u) ack_q_count: %zu",
         p_ccb->fcrb.last_rx_ack, p_ccb->local_cid, p_ccb->fcrb.num_tries,
         p_ccb->peer_cfg.fcr.max_transmit,
         fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q));
@@ -1320,7 +1320,7 @@ static bool retransmit_i_frames(tL2C_CCB* p_ccb, uint8_t tx_seq) {
     }
 
     if (!p_buf) {
-      L2CAP_TRACE_ERROR("retransmit_i_frames() UNKNOWN seq: %u  q_count: %u",
+      L2CAP_TRACE_ERROR("retransmit_i_frames() UNKNOWN seq: %u  q_count: %zu",
                         tx_seq,
                         fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q));
       return (true);
