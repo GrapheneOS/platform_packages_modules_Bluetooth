@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "bta/include/bta_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 
 typedef struct {

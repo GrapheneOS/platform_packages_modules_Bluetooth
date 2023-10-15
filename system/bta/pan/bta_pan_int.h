@@ -27,6 +27,7 @@
 #include <cstdint>
 
 #include "bta/include/bta_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "bta/include/bta_pan_api.h"
 #include "bta/sys/bta_sys.h"
 #include "osi/include/fixed_queue.h"

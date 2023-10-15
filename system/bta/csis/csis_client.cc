@@ -29,6 +29,7 @@
 
 #include "advertise_data_parser.h"
 #include "bta_api.h"
+#include "bta_sec_api.h"
 #include "bta_csis_api.h"
 #include "bta_gatt_api.h"
 #include "bta_gatt_queue.h"

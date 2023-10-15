@@ -29,7 +29,7 @@
 
 #include <atomic>
 
-#include "bta_api.h"
+#include "bta_sec_api.h"
 #include "btif_common.h"
 #include "btif_config.h"
 #include "btif_metrics_logging.h"

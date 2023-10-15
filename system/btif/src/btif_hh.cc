@@ -33,6 +33,7 @@
 
 #include <cstdint>
 
+#include "bta_sec_api.h"
 #include "bta_hh_co.h"
 #include "btif/include/btif_common.h"
 #include "btif/include/btif_profile_storage.h"

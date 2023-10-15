@@ -28,6 +28,7 @@
 #include <string>
 
 #include "bta/include/bta_av_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "bta/sys/bta_sys.h"
 #include "include/hardware/bt_av.h"
 #include "osi/include/list.h"
