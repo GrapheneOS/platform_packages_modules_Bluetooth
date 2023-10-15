@@ -5199,9 +5199,9 @@ packet LeCsSetProcedureParametersComplete : CommandComplete (command_op_code = L
 packet LeCsProcedureEnable : DistanceMeasurementCommand (op_code = LE_CS_PROCEDURE_ENABLE) {
   connection_handle: 12,
   _reserved_ : 4,
-  procedure_enable : 8,
   config_id : 2,
   _reserved_ : 6,
+  procedure_enable : Enable,
 }
 
 packet LeCsProcedureEnableStatus : CommandStatus (command_op_code = LE_CS_PROCEDURE_ENABLE) {
@@ -6741,18 +6741,13 @@ packet LeCsConfigComplete : LeMetaEvent (subevent_code = LE_CS_CONFIG_COMPLETE) 
   t_pm_time : 8,
 }
 
-enum CsProcedureState : 8 {
-  DISABLED = 0x00,
-  ENABLED = 0x01,
-}
-
 packet LeCsProcedureEnableComplete : LeMetaEvent (subevent_code = LE_CS_PROCEDURE_ENABLE_COMPLETE) {
   status : ErrorCode,
   connection_handle : 12,
   _reserved_ : 4,
   config_id : 2,
   _reserved_ : 6,
-  state : CsProcedureState,
+  state : Enable,
   tone_antenna_config_selection : 8,
   selected_tx_power : 8,
   subevent_len : 24,
