@@ -144,7 +144,7 @@ void avct_l2c_connect_ind_cback(const RawAddress& bd_addr, uint16_t lcid,
 
   /* if result ok, proceed with connection */
   if (result == L2CAP_CONN_OK) {
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
     if (android::sysprop::bluetooth::A2dp::src_sink_coexist().value_or(false)) {
       tAVCT_CCB* p_ccb = &avct_cb.ccb[0];
       for (int i = 0; i < AVCT_NUM_CONN; i++, p_ccb++) {
