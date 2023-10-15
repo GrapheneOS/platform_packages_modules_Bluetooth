@@ -74,6 +74,7 @@ typedef struct {
 extern tBTA_DM_SEC_CB bta_dm_sec_cb;
 
 void bta_dm_sec_enable(tBTA_DM_SEC_CBACK* p_sec_cback);
+void btm_sec_on_hw_on();
 
 void bta_dm_add_ble_device(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
                            tBT_DEVICE_TYPE dev_type);

@@ -75,6 +75,12 @@ const tBTM_APPL_INFO bta_security = {
 // Stores the local Input/Output Capabilities of the Bluetooth device.
 static uint8_t btm_local_io_caps;
 
+void btm_sec_on_hw_on() {
+  tBTA_DM_SEC_CBACK* temp_sec_cback = bta_dm_sec_cb.p_sec_cback;
+  bta_dm_sec_cb = {};
+  bta_dm_sec_cb.p_sec_cback = temp_sec_cback;
+}
+
 void bta_dm_ble_sirk_sec_cb_register(tBTA_DM_SEC_CBACK* p_cback) {
   /* Save the callback to be called when a request of member validation will be
    * needed. */

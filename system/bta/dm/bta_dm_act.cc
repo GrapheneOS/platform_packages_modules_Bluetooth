@@ -199,8 +199,6 @@ void bta_dm_enable(tBTA_DM_SEC_CBACK* p_sec_cback,
  ******************************************************************************/
 static void bta_dm_init_cb(void) {
   bta_dm_cb = {};
-  bta_dm_acl_cb = {};
-  bta_dm_sec_cb = {};
 
   bta_dm_cb.disable_timer = alarm_new("bta_dm.disable_timer");
   bta_dm_cb.switch_delay_timer = alarm_new("bta_dm.switch_delay_timer");
@@ -234,8 +232,6 @@ static void bta_dm_deinit_cb(void) {
     }
   }
   bta_dm_cb = {};
-  bta_dm_acl_cb = {};
-  bta_dm_sec_cb = {};
 }
 
 void BTA_dm_on_hw_off() {
@@ -254,23 +250,12 @@ void BTA_dm_on_hw_off() {
 
 void BTA_dm_on_hw_on() {
   DEV_CLASS dev_class;
-  tBTA_DM_SEC_CBACK* temp_sec_cback;
-  tBTA_DM_ACL_CBACK* temp_acl_cback;
 
   uint8_t key_mask = 0;
   tBTA_BLE_LOCAL_ID_KEYS id_key;
 
-  /* save callbacks */
-  temp_sec_cback = bta_dm_sec_cb.p_sec_cback;
-  temp_acl_cback = bta_dm_acl_cb.p_acl_cback;
-
   /* make sure the control block is properly initialized */
   bta_dm_init_cb();
-
-  /* and restore the callbacks */
-  bta_dm_sec_cb.p_sec_cback = temp_sec_cback;
-  bta_dm_acl_cb.p_acl_cback = temp_acl_cback;
-
 
   /* hw is ready, go on with BTA DM initialization */
   alarm_free(bta_dm_search_cb.search_timer);
@@ -313,6 +298,7 @@ void BTA_dm_on_hw_on() {
   bta_dm_search_cb.conn_id = GATT_INVALID_CONN_ID;
 
   btm_dm_sec_init();
+  btm_sec_on_hw_on();
 
   BTM_WritePageTimeout(osi_property_get_int32(PROPERTY_PAGE_TIMEOUT,
                                               p_bta_dm_cfg->page_timeout));
