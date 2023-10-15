@@ -28,7 +28,7 @@
 #include <cstdint>
 
 #include "bta/dm/bta_dm_int.h"
-#include "bta/dm/bta_dm_sec.h"
+#include "bta/dm/bta_dm_sec_int.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
