@@ -95,8 +95,7 @@ class DckService(DckServicer):
 
     @utils.rpc
     def Register(self, request: Empty, context: grpc.ServicerContext) -> Empty:
-        logging.info("Register")
-        if not self.dck_gatt_service:
+        if self.dck_gatt_service is None:
             self.dck_gatt_service = DckGattService(self.device)
             self.device.add_service(self.dck_gatt_service)  # type: ignore[no-untyped-call]
 
