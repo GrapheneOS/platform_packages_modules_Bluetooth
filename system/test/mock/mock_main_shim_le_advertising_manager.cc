@@ -30,10 +30,6 @@
 #include "stack/include/ble_advertiser.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 BleAdvertiserInterface* bluetooth::shim::get_ble_advertiser_instance() {
   inc_func_call_count(__func__);
   return nullptr;

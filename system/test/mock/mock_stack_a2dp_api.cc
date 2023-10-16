@@ -33,10 +33,6 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 tA2DP_STATUS A2DP_AddRecord(uint16_t service_uuid, char* p_service_name,
                             char* p_provider_name, uint16_t features,
                             uint32_t sdp_handle) {

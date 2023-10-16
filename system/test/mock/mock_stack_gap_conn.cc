@@ -37,10 +37,6 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 const RawAddress* GAP_ConnGetRemoteAddr(uint16_t gap_handle) {
   inc_func_call_count(__func__);
   return nullptr;

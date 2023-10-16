@@ -37,10 +37,6 @@
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 namespace test {
 namespace mock {
 namespace stack_acl_btm_ble_connection_establishment {

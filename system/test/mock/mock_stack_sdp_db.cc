@@ -31,10 +31,6 @@
 #include "test/common/mock_functions.h"
 #include "types/bluetooth/uuid.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 bool SDP_AddAdditionProtoLists(uint32_t handle, uint16_t num_elem,
                                tSDP_PROTO_LIST_ELEM* p_proto_list) {
   inc_func_call_count(__func__);

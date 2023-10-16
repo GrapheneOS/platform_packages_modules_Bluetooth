@@ -32,10 +32,6 @@
 #include "stack/include/btu_hcif.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 using hci_cmd_cb = base::OnceCallback<void(
     uint8_t* /* return_parameters */, uint16_t /* return_parameters_length*/)>;
 
@@ -47,10 +43,10 @@ struct cmd_with_cb_data {
 void btu_hcif_log_event_metrics(uint8_t evt_code, uint8_t* p_event) {
   inc_func_call_count(__func__);
 }
-void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
+void btu_hcif_process_event(uint8_t controller_id, BT_HDR* p_msg) {
   inc_func_call_count(__func__);
 }
-void btu_hcif_send_cmd(UNUSED_ATTR uint8_t controller_id, const BT_HDR* p_buf) {
+void btu_hcif_send_cmd(uint8_t controller_id, const BT_HDR* p_buf) {
   inc_func_call_count(__func__);
 }
 void btu_hcif_send_cmd_with_cb(const base::Location& posted_from,

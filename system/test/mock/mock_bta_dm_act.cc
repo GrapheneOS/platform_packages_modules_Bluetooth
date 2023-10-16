@@ -25,9 +25,6 @@
 #include "test/mock/mock_bta_dm_act.h"
 
 #include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
 
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"

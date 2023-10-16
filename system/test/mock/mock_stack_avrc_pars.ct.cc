@@ -31,18 +31,13 @@
 #include "stack/avrc/avrc_int.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 tAVRC_STS AVRC_Ctrl_ParsResponse(tAVRC_MSG* p_msg, tAVRC_RESPONSE* p_result,
                                  uint8_t* p_buf, uint16_t* buf_len) {
   inc_func_call_count(__func__);
   return 0;
 }
 tAVRC_STS AVRC_ParsResponse(tAVRC_MSG* p_msg, tAVRC_RESPONSE* p_result,
-                            UNUSED_ATTR uint8_t* p_buf,
-                            UNUSED_ATTR uint16_t buf_len) {
+                            uint8_t* p_buf, uint16_t buf_len) {
   inc_func_call_count(__func__);
   return 0;
 }

@@ -51,10 +51,6 @@ void check(bool exp, const char* message) {}
 #include <new>
 #endif
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 EventFlag::EventFlag(std::atomic<uint32_t>* fwAddr, status_t* status) {
   inc_func_call_count(__func__);
 }

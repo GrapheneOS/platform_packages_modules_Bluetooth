@@ -49,10 +49,6 @@
 #include "time_util.h"
 #endif
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 namespace bluetooth {
 namespace common {
 

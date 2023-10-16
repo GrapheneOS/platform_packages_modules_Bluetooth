@@ -39,12 +39,7 @@
 #include "types/raw_address.h"
 #include <frameworks/proto_logging/stats/enums/bluetooth/le/enums.pb.h>
 
-
 // Mocked compile conditionals, if any
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 namespace test {
 namespace mock {
 namespace main_shim_metrics_api {

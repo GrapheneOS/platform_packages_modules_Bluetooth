@@ -35,10 +35,6 @@
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 Octet16 octet16;
 
 bool bluetooth::shim::BTM_BleDataSignature(const RawAddress& bd_addr,

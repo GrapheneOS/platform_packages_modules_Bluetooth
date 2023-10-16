@@ -36,10 +36,6 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 void VolumeControl::AddFromStorage(const RawAddress& address) {
   inc_func_call_count(__func__);
 }

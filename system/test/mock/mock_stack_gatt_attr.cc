@@ -30,10 +30,6 @@
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 uint16_t gatt_profile_find_conn_id_by_bd_addr(const RawAddress& remote_bda) {
   inc_func_call_count(__func__);
   return 0;

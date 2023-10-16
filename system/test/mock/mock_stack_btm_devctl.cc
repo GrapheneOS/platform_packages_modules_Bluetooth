@@ -46,10 +46,6 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 namespace test {
 namespace mock {
 namespace stack_btm_devctl {
@@ -114,13 +110,12 @@ void BTM_WriteVoiceSettings(uint16_t settings) {
 }
 void BTM_db_reset(void) { inc_func_call_count(__func__); }
 void BTM_reset_complete() { inc_func_call_count(__func__); }
-void btm_delete_stored_link_key_complete(uint8_t* p,
-                                         UNUSED_ATTR uint16_t evt_len) {
+void btm_delete_stored_link_key_complete(uint8_t* p, uint16_t evt_len) {
   inc_func_call_count(__func__);
 }
 void btm_dev_free() { inc_func_call_count(__func__); }
 void btm_dev_init() { inc_func_call_count(__func__); }
-void btm_read_local_name_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len) {
+void btm_read_local_name_complete(uint8_t* p, uint16_t evt_len) {
   inc_func_call_count(__func__);
 }
 void btm_vendor_specific_evt(const uint8_t* p, uint8_t evt_len) {

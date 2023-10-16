@@ -30,10 +30,6 @@
 #include "stack/avrc/avrc_int.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 tAVRC_STS AVRC_Ctrl_ParsCommand(tAVRC_MSG* p_msg, tAVRC_COMMAND* p_result) {
   inc_func_call_count(__func__);
   return 0;

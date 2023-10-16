@@ -27,10 +27,6 @@
 #include "common/time_util.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 using namespace bluetooth::common;
 
 RepeatingTimer::~RepeatingTimer() { inc_func_call_count(__func__); }

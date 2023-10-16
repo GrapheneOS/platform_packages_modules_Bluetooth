@@ -36,10 +36,6 @@
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 tBTA_JV_STATUS BTA_JvCreateRecordByUser(uint32_t rfcomm_slot_id) {
   inc_func_call_count(__func__);
   return 0;

@@ -37,10 +37,6 @@
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 // Mocked internal structures, if any
 
 namespace test {

@@ -32,10 +32,6 @@
 #include "types/class_of_device.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 bool BTM_IsScoActiveByBdaddr(const RawAddress& remote_bda) {
   inc_func_call_count(__func__);
   return false;

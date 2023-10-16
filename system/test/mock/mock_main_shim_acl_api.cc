@@ -31,10 +31,6 @@
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 void bluetooth::shim::ACL_CreateClassicConnection(
     const RawAddress& raw_address) {
   inc_func_call_count(__func__);

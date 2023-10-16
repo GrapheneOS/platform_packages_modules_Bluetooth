@@ -23,10 +23,6 @@
 #include "btif/include/btif_storage.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 using bluetooth::groups::DeviceGroups;
 
 void DeviceGroups::AddFromStorage(const RawAddress& addr,

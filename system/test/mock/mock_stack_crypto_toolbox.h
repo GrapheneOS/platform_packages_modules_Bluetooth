@@ -41,10 +41,6 @@
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 
 // Mocked compile conditionals, if any
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 namespace test {
 namespace mock {
 namespace stack_crypto_toolbox {

@@ -49,10 +49,6 @@
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 namespace test {
 namespace mock {
 namespace stack_l2cap_api {

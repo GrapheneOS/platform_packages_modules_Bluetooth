@@ -37,10 +37,6 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 bool PORT_IsOpening(RawAddress* bd_addr) {
   inc_func_call_count(__func__);
   return false;

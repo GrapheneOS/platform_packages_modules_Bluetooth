@@ -32,10 +32,6 @@
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 tAVRC_STS AVRC_BldResponse(uint8_t handle, tAVRC_RESPONSE* p_rsp,
                            BT_HDR** pp_pkt) {
   inc_func_call_count(__func__);

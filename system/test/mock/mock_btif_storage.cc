@@ -31,10 +31,6 @@
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 Octet16 btif_storage_get_gatt_cl_db_hash(const RawAddress& bd_addr) {
   inc_func_call_count(__func__);
   Octet16 octet;

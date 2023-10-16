@@ -37,10 +37,6 @@
 #include "stack/btm/btm_int_types.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 void BleScanningManager::CleanUp() { inc_func_call_count(__func__); }
 void btm_ble_scanner_init() { inc_func_call_count(__func__); }
 base::WeakPtr<BleScanningManager> BleScanningManager::Get() {

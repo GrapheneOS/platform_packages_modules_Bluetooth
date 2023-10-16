@@ -40,10 +40,6 @@
 
 using namespace connection_manager;
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 bool connection_manager::background_connect_add(uint8_t app_id,
                                                 const RawAddress& address) {
   inc_func_call_count(__func__);

@@ -37,10 +37,6 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 uint16_t AVCT_CreateBrowse(uint8_t handle, uint8_t role) {
   inc_func_call_count(__func__);
   return 0;

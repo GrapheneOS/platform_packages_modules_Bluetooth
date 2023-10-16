@@ -29,10 +29,6 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 BT_HDR* bta_pan_ci_readbuf(uint16_t handle, RawAddress& src, RawAddress& dst,
                            uint16_t* p_protocol, bool* p_ext, bool* p_forward) {
   inc_func_call_count(__func__);

@@ -28,10 +28,6 @@
 #include "main/shim/distance_measurement_manager.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 DistanceMeasurementInterface*
 bluetooth::shim::get_distance_measurement_instance() {
   inc_func_call_count(__func__);

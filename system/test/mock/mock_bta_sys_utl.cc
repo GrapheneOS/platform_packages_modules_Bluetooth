@@ -28,10 +28,6 @@
 #include "stack/include/btm_api.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 bool utl_isdialchar(const char d) {
   inc_func_call_count(__func__);
   return false;

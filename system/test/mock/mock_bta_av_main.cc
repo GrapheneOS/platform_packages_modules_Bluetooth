@@ -20,29 +20,11 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
-#include "bt_target.h"
 #include "bta/av/bta_av_int.h"
-#include "bta/include/bta_ar_api.h"
-#include "bta/include/utl.h"
-#include "btif/avrcp/avrcp_service.h"
-#include "btif/include/btif_av_co.h"
-#include "btif/include/btif_config.h"
-#include "main/shim/dumpsys.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
-#include "osi/include/properties.h"
-#include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
-#include "types/hci_role.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 bool bta_av_chk_start(tBTA_AV_SCB* p_scb) {
   inc_func_call_count(__func__);
@@ -79,8 +61,8 @@ tBTA_AV_SCB* bta_av_hndl_to_scb(uint16_t handle) {
 void bta_av_api_deregister(tBTA_AV_DATA* p_data) {
   inc_func_call_count(__func__);
 }
-void bta_av_conn_cback(UNUSED_ATTR uint8_t handle, const RawAddress& bd_addr,
-                       uint8_t event, tAVDT_CTRL* p_data, uint8_t scb_index) {
+void bta_av_conn_cback(uint8_t handle, const RawAddress& bd_addr, uint8_t event,
+                       tAVDT_CTRL* p_data, uint8_t scb_index) {
   inc_func_call_count(__func__);
 }
 void bta_av_dup_audio_buf(tBTA_AV_SCB* p_scb, BT_HDR* p_buf) {

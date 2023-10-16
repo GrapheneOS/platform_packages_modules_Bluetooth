@@ -35,10 +35,6 @@
 #include "stack/btm/btm_int_types.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 void BTM_BleAdvFilterParamSetup(
     tBTM_BLE_SCAN_COND_OP action, tBTM_BLE_PF_FILT_INDEX filt_index,
     std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,

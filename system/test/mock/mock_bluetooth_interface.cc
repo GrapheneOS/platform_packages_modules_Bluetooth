@@ -17,7 +17,6 @@
 #include <cstdint>
 
 #include "btif/include/stack_manager.h"
-#include "device/include/interop.h"
 #include "hardware/bluetooth.h"
 #include "stack/include/bt_octets.h"
 #include "types/raw_address.h"

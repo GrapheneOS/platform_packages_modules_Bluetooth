@@ -43,10 +43,6 @@
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 namespace test {
 namespace mock {
 namespace stack_acl {
@@ -1072,12 +1068,11 @@ struct btm_read_failed_contact_counter_complete {
 extern struct btm_read_failed_contact_counter_complete
     btm_read_failed_contact_counter_complete;
 // Name: btm_read_failed_contact_counter_timeout
-// Params: UNUSED_ATTR void* data
+// Params: void* data
 // Returns: void
 struct btm_read_failed_contact_counter_timeout {
-  std::function<void(UNUSED_ATTR void* data)> body{
-      [](UNUSED_ATTR void* data) { ; }};
-  void operator()(UNUSED_ATTR void* data) { body(data); };
+  std::function<void(void* data)> body{[](void* data) { ; }};
+  void operator()(void* data) { body(data); };
 };
 extern struct btm_read_failed_contact_counter_timeout
     btm_read_failed_contact_counter_timeout;
@@ -1090,12 +1085,11 @@ struct btm_read_link_quality_complete {
 };
 extern struct btm_read_link_quality_complete btm_read_link_quality_complete;
 // Name: btm_read_link_quality_timeout
-// Params: UNUSED_ATTR void* data
+// Params: void* data
 // Returns: void
 struct btm_read_link_quality_timeout {
-  std::function<void(UNUSED_ATTR void* data)> body{
-      [](UNUSED_ATTR void* data) { ; }};
-  void operator()(UNUSED_ATTR void* data) { body(data); };
+  std::function<void(void* data)> body{[](void* data) { ; }};
+  void operator()(void* data) { body(data); };
 };
 extern struct btm_read_link_quality_timeout btm_read_link_quality_timeout;
 // Name: btm_read_remote_ext_features
@@ -1168,12 +1162,11 @@ struct btm_read_rssi_complete {
 };
 extern struct btm_read_rssi_complete btm_read_rssi_complete;
 // Name: btm_read_rssi_timeout
-// Params: UNUSED_ATTR void* data
+// Params: void* data
 // Returns: void
 struct btm_read_rssi_timeout {
-  std::function<void(UNUSED_ATTR void* data)> body{
-      [](UNUSED_ATTR void* data) { ; }};
-  void operator()(UNUSED_ATTR void* data) { body(data); };
+  std::function<void(void* data)> body{[](void* data) { ; }};
+  void operator()(void* data) { body(data); };
 };
 extern struct btm_read_rssi_timeout btm_read_rssi_timeout;
 // Name: btm_read_tx_power_complete
@@ -1188,12 +1181,11 @@ struct btm_read_tx_power_complete {
 };
 extern struct btm_read_tx_power_complete btm_read_tx_power_complete;
 // Name: btm_read_tx_power_timeout
-// Params: UNUSED_ATTR void* data
+// Params: void* data
 // Returns: void
 struct btm_read_tx_power_timeout {
-  std::function<void(UNUSED_ATTR void* data)> body{
-      [](UNUSED_ATTR void* data) { ; }};
-  void operator()(UNUSED_ATTR void* data) { body(data); };
+  std::function<void(void* data)> body{[](void* data) { ; }};
+  void operator()(void* data) { body(data); };
 };
 extern struct btm_read_tx_power_timeout btm_read_tx_power_timeout;
 // Name: btm_rejectlist_role_change_device

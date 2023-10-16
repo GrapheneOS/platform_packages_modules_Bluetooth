@@ -30,10 +30,6 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 void BTA_HdEnable(tBTA_HD_CBACK* p_cback) { inc_func_call_count(__func__); }
 void BTA_HdAddDevice(const RawAddress& addr) { inc_func_call_count(__func__); }
 void BTA_HdConnect(const RawAddress& addr) { inc_func_call_count(__func__); }

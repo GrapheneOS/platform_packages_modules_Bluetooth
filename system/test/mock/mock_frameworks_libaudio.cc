@@ -30,10 +30,6 @@
 #include <aaudio/AAudio.h>
 #include <aaudio/AAudioTesting.h>
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 aaudio_allowed_capture_policy_t AAudioStream_getAllowedCapturePolicy(
     AAudioStream* stream) {
   inc_func_call_count(__func__);

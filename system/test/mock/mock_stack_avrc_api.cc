@@ -35,10 +35,6 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 bool avrcp_absolute_volume_is_enabled() {
   inc_func_call_count(__func__);
   return true;

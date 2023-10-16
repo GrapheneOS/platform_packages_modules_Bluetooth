@@ -32,10 +32,6 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 void BTA_HhEnable(tBTA_HH_CBACK* p_cback, bool enable_hidp, bool enable_hogp) {
   inc_func_call_count(__func__);
 }
@@ -58,7 +54,7 @@ void BTA_HhRemoveDev(uint8_t dev_handle) { inc_func_call_count(__func__); }
 void BTA_HhSendCtrl(uint8_t dev_handle, tBTA_HH_TRANS_CTRL_TYPE c_type) {
   inc_func_call_count(__func__);
 }
-void BTA_HhSendData(uint8_t dev_handle, UNUSED_ATTR const RawAddress& dev_bda,
+void BTA_HhSendData(uint8_t dev_handle, const RawAddress& dev_bda,
                     BT_HDR* p_data) {
   inc_func_call_count(__func__);
 }

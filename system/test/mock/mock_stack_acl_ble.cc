@@ -35,10 +35,6 @@
 #include "types/hci_role.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 void acl_ble_connection_fail(const tBLE_BD_ADDR& address_with_type,
                              uint16_t handle, bool enhanced,
                              tHCI_STATUS status) {

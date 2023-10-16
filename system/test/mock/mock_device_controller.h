@@ -34,10 +34,6 @@
 #include "btcore/include/device_features.h"
 
 // Mocked compile conditionals, if any
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 namespace test {
 namespace mock {
 namespace device_controller {

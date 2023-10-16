@@ -31,10 +31,6 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 void BTM_LogHistory(const std::string& tag, const RawAddress& bd_addr,
                     const std::string& msg) {
   inc_func_call_count(__func__);

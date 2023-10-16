@@ -30,10 +30,6 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 tHID_STATUS HID_HostAddDev(const RawAddress& addr, uint16_t attr_mask,
                            uint8_t* handle) {
   inc_func_call_count(__func__);

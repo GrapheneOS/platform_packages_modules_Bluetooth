@@ -37,10 +37,6 @@
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 void BTA_GATTS_Disable(void) { inc_func_call_count(__func__); }
 void BTA_GATTS_AppDeregister(tGATT_IF server_if) {
   inc_func_call_count(__func__);

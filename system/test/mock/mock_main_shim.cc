@@ -29,10 +29,6 @@
 #include "main/shim/shim.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 bool bluetooth::shim::is_classic_discovery_only_enabled() {
   inc_func_call_count(__func__);
   return false;

@@ -33,10 +33,6 @@
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 using namespace bluetooth;
 
 tBNEP_RESULT BNEP_Connect(const RawAddress& p_rem_bda, const Uuid& src_uuid,

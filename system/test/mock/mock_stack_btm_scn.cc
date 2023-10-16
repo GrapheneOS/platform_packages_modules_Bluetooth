@@ -27,10 +27,6 @@
 #include "stack/include/rfcdefs.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 bool BTM_FreeSCN(uint8_t scn) {
   inc_func_call_count(__func__);
   return false;

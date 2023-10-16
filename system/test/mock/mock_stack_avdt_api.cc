@@ -39,10 +39,6 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 uint16_t AVDT_CloseReq(uint8_t handle) {
   inc_func_call_count(__func__);
   return 0;

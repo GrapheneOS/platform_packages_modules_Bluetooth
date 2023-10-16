@@ -31,10 +31,6 @@
 #include "osi/include/log.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 namespace bluetooth {
 namespace common {
 

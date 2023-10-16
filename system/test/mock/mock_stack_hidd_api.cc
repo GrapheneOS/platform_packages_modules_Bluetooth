@@ -34,10 +34,6 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 tHID_STATUS HID_DevAddRecord(uint32_t handle, char* p_name, char* p_description,
                              char* p_provider, uint16_t subclass,
                              uint16_t desc_len, uint8_t* p_desc_data) {

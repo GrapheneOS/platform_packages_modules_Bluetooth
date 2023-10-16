@@ -27,10 +27,6 @@
 #include "main/shim/shim.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 void bluetooth::shim::RegisterDumpsysFunction(const void* token,
                                               DumpsysFunction func) {
   inc_func_call_count(__func__);

@@ -35,10 +35,6 @@
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 A2dpCodecConfig* A2dpCodecConfig::createCodec(
     btav_a2dp_codec_index_t codec_index,
     btav_a2dp_codec_priority_t codec_priority) {
