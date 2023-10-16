@@ -633,8 +633,7 @@ void bnep_process_setup_conn_responce(tBNEP_CONN* p_bcb, uint8_t* p_setup) {
 
   /* Check if we are the originator */
   if (!(p_bcb->con_flags & BNEP_FLAGS_IS_ORIG)) {
-    BNEP_TRACE_ERROR("BNEP - setup response when we are not originator",
-                     p_bcb->con_state);
+    BNEP_TRACE_ERROR("BNEP - setup response when we are not originator");
     return;
   }
 

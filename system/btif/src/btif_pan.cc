@@ -416,7 +416,7 @@ int btpan_tap_send(int tap_fd, const RawAddress& src, const RawAddress& dst,
     /* Send data to network interface */
     ssize_t ret;
     OSI_NO_INTR(ret = write(tap_fd, packet, len + sizeof(tETH_HDR)));
-    BTIF_TRACE_DEBUG("ret:%d", ret);
+    BTIF_TRACE_DEBUG("ret:%zd", ret);
     return (int)ret;
   }
   return -1;

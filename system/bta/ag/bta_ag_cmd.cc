@@ -1782,7 +1782,7 @@ static void bta_ag_hfp_result(tBTA_AG_SCB* p_scb,
           bta_ag_send_result(p_scb, result.result, buffer, 0);
         } else {
           APPL_TRACE_DEBUG(
-              "%s HF Indicator %d already %s", result.data.ind.id,
+              "%s HF Indicator %d already %s", __func__, result.data.ind.id,
               (result.data.ind.on_demand) ? "Enabled" : "Disabled");
         }
       }

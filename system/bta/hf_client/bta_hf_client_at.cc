@@ -358,7 +358,8 @@ static void bta_hf_client_handle_cind_list_item(tBTA_HF_CLIENT_CB* client_cb,
                                                 uint32_t max, uint32_t index) {
   uint8_t i = 0;
 
-  APPL_TRACE_DEBUG("%s: %lu.%s <%lu:%lu>", __func__, index, name, min, max);
+  APPL_TRACE_DEBUG("%s: %" PRIu32 ".%s <%" PRIu32 ":%" PRIu32 ">", __func__,
+                   index, name, min, max);
 
   if (index >= BTA_HF_CLIENT_AT_INDICATOR_COUNT) {
     return;
@@ -497,7 +498,7 @@ static void bta_hf_client_handle_bcs(tBTA_HF_CLIENT_CB* client_cb,
 
 static void bta_hf_client_handle_bsir(tBTA_HF_CLIENT_CB* client_cb,
                                       uint32_t provided) {
-  APPL_TRACE_DEBUG("%s: %u", __func__, provided);
+  APPL_TRACE_DEBUG("%s: %" PRIu32, __func__, provided);
 
   bta_hf_client_evt_val(client_cb, BTA_HF_CLIENT_BSIR_EVT, provided);
 }
@@ -509,7 +510,7 @@ static void bta_hf_client_handle_cmeerror(tBTA_HF_CLIENT_CB* client_cb,
 
 static void bta_hf_client_handle_vgm(tBTA_HF_CLIENT_CB* client_cb,
                                      uint32_t value) {
-  APPL_TRACE_DEBUG("%s: %lu", __func__, value);
+  APPL_TRACE_DEBUG("%s: %" PRIu32, __func__, value);
 
   if (value <= BTA_HF_CLIENT_VGM_MAX) {
     bta_hf_client_evt_val(client_cb, BTA_HF_CLIENT_MIC_EVT, value);
@@ -518,7 +519,7 @@ static void bta_hf_client_handle_vgm(tBTA_HF_CLIENT_CB* client_cb,
 
 static void bta_hf_client_handle_vgs(tBTA_HF_CLIENT_CB* client_cb,
                                      uint32_t value) {
-  APPL_TRACE_DEBUG("%s: %lu", __func__, value);
+  APPL_TRACE_DEBUG("%s: %" PRIu32, __func__, value);
 
   if (value <= BTA_HF_CLIENT_VGS_MAX) {
     bta_hf_client_evt_val(client_cb, BTA_HF_CLIENT_SPK_EVT, value);
@@ -527,7 +528,7 @@ static void bta_hf_client_handle_vgs(tBTA_HF_CLIENT_CB* client_cb,
 
 static void bta_hf_client_handle_bvra(tBTA_HF_CLIENT_CB* client_cb,
                                       uint32_t value) {
-  APPL_TRACE_DEBUG("%s: %lu", __func__, value);
+  APPL_TRACE_DEBUG("%s: %" PRIu32, __func__, value);
 
   if (value > 1) {
     return;
@@ -591,7 +592,7 @@ static void bta_hf_client_handle_cnum(tBTA_HF_CLIENT_CB* client_cb,
 
 static void bta_hf_client_handle_btrh(tBTA_HF_CLIENT_CB* client_cb,
                                       uint16_t code) {
-  APPL_TRACE_DEBUG("%s: %lu", __func__, code);
+  APPL_TRACE_DEBUG("%s: %" PRIu32, __func__, code);
 
   bta_hf_client_evt_val(client_cb, BTA_HF_CLIENT_BTRH_EVT, code);
 }
@@ -1532,7 +1533,7 @@ static char* bta_hf_client_skip_unknown(tBTA_HF_CLIENT_CB* client_cb,
 
   buffer = tmp + 2;
 
-  APPL_TRACE_DEBUG("%s: %.*s", __func__, buffer - start - 2, start);
+  APPL_TRACE_DEBUG("%s: %.*s", __func__, (int)(buffer - start - 2), start);
 
   return buffer;
 }
