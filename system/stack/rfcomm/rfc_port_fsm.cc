@@ -418,7 +418,7 @@ void rfc_port_sm_orig_wait_sec_check(tPORT* p_port, tRFC_PORT_EVENT event,
       if (*((uint8_t*)p_data) != BTM_SUCCESS) {
         RFCOMM_TRACE_ERROR(
             "%s, RFC_PORT_EVENT_SEC_COMPLETE, index=%d, result=%d", __func__,
-            event, p_port->handle, *((uint8_t*)p_data));
+            p_port->handle, *((uint8_t*)p_data));
         p_port->rfc.p_mcb->is_disc_initiator = true;
         PORT_DlcEstablishCnf(p_port->rfc.p_mcb, p_port->dlci, 0,
                              RFCOMM_SECURITY_ERR);
@@ -571,7 +571,7 @@ void rfc_port_sm_disc_wait_ua(tPORT* p_port, tRFC_PORT_EVENT event,
 
     case RFC_PORT_EVENT_CLEAR:
       RFCOMM_TRACE_WARNING("%s, RFC_PORT_EVENT_CLEAR, index=%d", __func__,
-                           event, p_port->handle);
+                           p_port->handle);
       rfc_port_closed(p_port);
       return;
 

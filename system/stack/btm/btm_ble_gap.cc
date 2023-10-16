@@ -2743,8 +2743,8 @@ void btm_ble_process_adv_pkt(uint8_t data_len, const uint8_t* data) {
     STREAM_TO_INT8(rssi, p);
 
     if (rssi >= 21 && rssi <= 126) {
-      BTM_TRACE_ERROR("%s: bad rssi value in advertising report: ", __func__,
-                      pkt_data_len, rssi);
+      BTM_TRACE_ERROR("%s: bad rssi value in advertising report: %d", __func__,
+                      rssi);
     }
 
     // Pass up the address to GattService#onScanResult to use in

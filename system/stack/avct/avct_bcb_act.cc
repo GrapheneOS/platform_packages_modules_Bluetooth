@@ -542,7 +542,7 @@ void avct_bcb_msg_ind(tAVCT_BCB* p_bcb, tAVCT_LCB_EVT* p_data) {
 
   /* check for invalid cr_ipid */
   if (cr_ipid == AVCT_CR_IPID_INVALID) {
-    AVCT_TRACE_WARNING("Invalid cr_ipid", cr_ipid);
+    AVCT_TRACE_WARNING("Invalid cr_ipid %d", cr_ipid);
     osi_free_and_reset((void**)&p_data->p_buf);
     return;
   }

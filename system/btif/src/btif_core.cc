@@ -413,7 +413,7 @@ static bt_status_t btif_in_get_remote_device_properties(RawAddress* bd_addr) {
 }
 
 static void btif_core_storage_adapter_write(bt_property_t* prop) {
-  BTIF_TRACE_EVENT("type: %d, len %d, 0x%x", prop->type, prop->len, prop->val);
+  BTIF_TRACE_EVENT("type: %d, len %d, 0x%p", prop->type, prop->len, prop->val);
   bt_status_t status = btif_storage_set_adapter_property(prop);
   GetInterfaceToProfiles()->events->invoke_adapter_properties_cb(status, 1,
                                                                  prop);
@@ -589,7 +589,7 @@ bt_property_t* property_deep_copy(const bt_property_t* prop) {
  ******************************************************************************/
 
 void btif_set_adapter_property(bt_property_t* property) {
-  BTIF_TRACE_EVENT("btif_set_adapter_property type: %d, len %d, 0x%x",
+  BTIF_TRACE_EVENT("btif_set_adapter_property type: %d, len %d, 0x%p",
                    property->type, property->len, property->val);
 
   switch (property->type) {
