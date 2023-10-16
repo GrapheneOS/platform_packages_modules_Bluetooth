@@ -12,12 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import grpc
 import logging
 
 from bumble.core import UUID as BumbleUUID, AdvertisingData
 from bumble.device import Device
 from bumble.gatt import TemplateService, Characteristic, CharacteristicValue
+from bumble.pandora import utils
 from bumble.l2cap import Channel
+
+from google.protobuf.empty_pb2 import Empty
+from pandora_experimental.dck_grpc_aio import DckServicer
+from typing import Optional
 
 
 class DckGattService(TemplateService):
@@ -75,3 +81,23 @@ class DckGattService(TemplateService):
         # 19.2 LE Procedures AdvData field of ADV_IND
 
         return bytes(AdvertisingData([(AdvertisingData.SERVICE_DATA_16_BIT_UUID, bytes(DckGattService.CCC_DK_UUID))]))
+
+
+class DckService(DckServicer):
+
+    device: Device
+    dck_gatt_service: Optional[DckGattService]
+
+    def __init__(self, device: Device) -> None:
+        self.log = utils.BumbleServerLoggerAdapter(logging.getLogger(), {"service_name": "Dck", "device": device})
+        self.device = device
+        self.dck_gatt_service = None
+
+    @utils.rpc
+    def Register(self, request: Empty, context: grpc.ServicerContext) -> Empty:
+        logging.info("Register")
+        if not self.dck_gatt_service:
+            self.dck_gatt_service = DckGattService(self.device)
+            self.device.add_service(self.dck_gatt_service)  # type: ignore[no-untyped-call]
+
+        return Empty()
