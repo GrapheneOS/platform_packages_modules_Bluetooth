@@ -876,9 +876,10 @@ bt_status_t HeadsetInterface::Init(Callbacks* callbacks, int max_hf_clients,
          " maximum is "
       << BTA_AG_MAX_NUM_CLIENTS << " was given " << max_hf_clients;
   btif_max_hf_clients = max_hf_clients;
-  BTIF_TRACE_DEBUG(
-      "%s: btif_hf_features=%zu, max_hf_clients=%d, inband_ringing_enabled=%d",
-      __func__, btif_hf_features, btif_max_hf_clients, inband_ringing_enabled);
+  BTIF_TRACE_DEBUG("%s: btif_hf_features=%" PRIu32
+                   ", max_hf_clients=%d, inband_ringing_enabled=%d",
+                   __func__, btif_hf_features, btif_max_hf_clients,
+                   inband_ringing_enabled);
   bt_hf_callbacks = callbacks;
   for (btif_hf_cb_t& hf_cb : btif_hf_cb) {
     reset_control_block(&hf_cb);

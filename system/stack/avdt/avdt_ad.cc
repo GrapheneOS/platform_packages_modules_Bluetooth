@@ -276,7 +276,7 @@ AvdtpTransportChannel* avdt_ad_tc_tbl_alloc(AvdtpCcb* p_ccb) {
  *
  ******************************************************************************/
 uint8_t avdt_ad_tc_tbl_to_idx(AvdtpTransportChannel* p_tbl) {
-  AVDT_TRACE_DEBUG("avdt_ad_tc_tbl_to_idx: %d", (p_tbl - avdtp_cb.ad.tc_tbl));
+  AVDT_TRACE_DEBUG("avdt_ad_tc_tbl_to_idx: %ld", (long)(p_tbl - avdtp_cb.ad.tc_tbl));
   /* use array arithmetic to determine index */
   return (uint8_t)(p_tbl - avdtp_cb.ad.tc_tbl);
 }

@@ -757,9 +757,9 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
       if (num_of_channels != p_lcb->pending_ecoc_conn_cnt) {
         L2CAP_TRACE_ERROR(
             "Incorrect response."
-            "expected num of channels = %d",
-            "received num of channels = %d", num_of_channels,
-            p_lcb->pending_ecoc_conn_cnt);
+            "expected num of channels = %d"
+            "received num of channels = %d",
+            num_of_channels, p_lcb->pending_ecoc_conn_cnt);
         return;
       }
 

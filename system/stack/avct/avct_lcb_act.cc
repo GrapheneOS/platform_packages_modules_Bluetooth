@@ -621,7 +621,7 @@ void avct_lcb_send_msg(tAVCT_LCB* p_lcb, tAVCT_LCB_EVT* p_data) {
       pkt_type = AVCT_PKT_TYPE_END;
     }
   }
-  AVCT_TRACE_DEBUG("%s tx_q_count:%d", __func__,
+  AVCT_TRACE_DEBUG("%s tx_q_count:%zu", __func__,
                    fixed_queue_length(p_lcb->tx_q));
   return;
 }
@@ -678,7 +678,7 @@ void avct_lcb_msg_ind(tAVCT_LCB* p_lcb, tAVCT_LCB_EVT* p_data) {
 
   /* check for invalid cr_ipid */
   if (cr_ipid == AVCT_CR_IPID_INVALID) {
-    AVCT_TRACE_WARNING("Invalid cr_ipid", cr_ipid);
+    AVCT_TRACE_WARNING("Invalid cr_ipid %d", cr_ipid);
     osi_free_and_reset((void**)&p_data->p_buf);
     return;
   }

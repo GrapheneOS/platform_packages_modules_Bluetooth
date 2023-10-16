@@ -106,7 +106,7 @@ static void bta_ag_port_cback(UNUSED_ATTR uint32_t code, uint16_t port_handle,
 static void bta_ag_mgmt_cback(uint32_t code, uint16_t port_handle,
                               uint16_t handle) {
   tBTA_AG_SCB* p_scb = bta_ag_scb_by_idx(handle);
-  APPL_TRACE_DEBUG("%s: code=%d, port_handle=%d, scb_handle=%d, p_scb=0x%08x",
+  APPL_TRACE_DEBUG("%s: code=%d, port_handle=%d, scb_handle=%d, p_scb=0x%p",
                    __func__, code, port_handle, handle, p_scb);
   if (p_scb == nullptr) {
     LOG(WARNING) << __func__ << ": cannot find scb, code=" << code
@@ -267,7 +267,7 @@ void bta_ag_start_servers(tBTA_AG_SCB* p_scb, tBTA_SERVICE_MASK services) {
                    << ", services=" << loghex(services)
                    << ", mgmt_cback_index=" << management_callback_index;
       }
-      APPL_TRACE_DEBUG("%s: p_scb=0x%08x, services=0x%04x, mgmt_cback_index=%d",
+      APPL_TRACE_DEBUG("%s: p_scb=0x%p, services=0x%04x, mgmt_cback_index=%d",
                        __func__, p_scb, services, management_callback_index);
     }
   }
@@ -333,7 +333,7 @@ void bta_ag_rfc_do_open(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
       bta_ag_mgmt_cback_tbl[management_callback_index],
       BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT);
   APPL_TRACE_DEBUG(
-      "%s: p_scb=0x%08x, conn_handle=%d, mgmt_cback_index=%d,"
+      "%s: p_scb=0x%p, conn_handle=%d, mgmt_cback_index=%d,"
       " status=%d",
       __func__, p_scb, p_scb->conn_handle, management_callback_index, status);
   if (status == PORT_SUCCESS) {
