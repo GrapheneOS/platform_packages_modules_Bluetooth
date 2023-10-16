@@ -1,0 +1,8 @@
+package: "com.android.bluetooth.flags"
+
+flag {
+    name: "use_new_satellite_mode"
+    namespace: "bluetooth"
+    description: "Use the new implemention of satellite mode"
+    bug: "289584302"
+}
