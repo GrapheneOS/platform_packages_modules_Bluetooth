@@ -31,10 +31,11 @@ android_test_helper_app {
         "pandora_experimental-proto-java",
     ],
 
-    // Include all test java files.
-    srcs: ["src/**/*.java"],
-
-    platform_apis: true,
+    // Include all test java and kotlin files.
+    srcs: [
+        "src/**/*.java",
+        "src/**/*.kt",
+    ],
 }
 
 // This empty test host is needed for building required host binary
@@ -58,5 +59,19 @@ java_test_host {
 
     test_suites: [
         "general-tests",
+    ],
+}
+
+python_binary_host {
+    name: "bumble_pandora_server",
+    main: "src/bumble_server.py",
+    srcs: [
+        "src/bumble_server.py",
+    ],
+    libs: [
+        "bumble-pandora",
+        "bumble_services_experimental-python",
+        "pandora-python",
+        "pandora_experimental-python",
     ],
 }
