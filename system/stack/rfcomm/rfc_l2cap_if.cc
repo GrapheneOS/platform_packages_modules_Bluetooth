@@ -319,7 +319,7 @@ void RFCOMM_BufDataInd(uint16_t lcid, BT_HDR* p_buf) {
     RFCOMM_TRACE_DEBUG("%s: port_handles[dlci=%d]:%d->%d, p_mcb=%p", __func__,
                        rfc_cb.rfc.rx_frame.dlci,
                        p_mcb->port_handles[rfc_cb.rfc.rx_frame.dlci],
-                       p_port->handle);
+                       p_port->handle, p_mcb);
     p_mcb->port_handles[rfc_cb.rfc.rx_frame.dlci] = p_port->handle;
     p_port->rfc.p_mcb = p_mcb;
   }

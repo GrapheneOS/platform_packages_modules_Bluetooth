@@ -758,7 +758,7 @@ static void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
       if (bta_dm_search_cb.p_sdp_db != NULL &&
           bta_dm_search_cb.p_sdp_db->raw_used != 0 &&
           bta_dm_search_cb.p_sdp_db->raw_data != NULL) {
-        APPL_TRACE_DEBUG("%s raw_data used = 0x%x raw_data_ptr = 0x%x",
+        APPL_TRACE_DEBUG("%s raw_data used = 0x%x raw_data_ptr = 0x%p",
                          __func__, bta_dm_search_cb.p_sdp_db->raw_used,
                          bta_dm_search_cb.p_sdp_db->raw_data);
 
@@ -1296,7 +1296,7 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
   bta_dm_search_cb.peer_bdaddr = remote_bd_addr;
 
   APPL_TRACE_DEBUG(
-      "%s name_discover_done = %d p_btm_inq_info 0x%x state = %d, transport=%d",
+      "%s name_discover_done = %d p_btm_inq_info 0x%p state = %d, transport=%d",
       __func__, bta_dm_search_cb.name_discover_done,
       bta_dm_search_cb.p_btm_inq_info, bta_dm_search_get_state(), transport);
 
@@ -1374,7 +1374,7 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
       }
       if (bta_dm_search_cb.p_btm_inq_info) {
         APPL_TRACE_DEBUG(
-            "%s p_btm_inq_info 0x%x results.device_type 0x%x "
+            "%s p_btm_inq_info 0x%p results.device_type 0x%x "
             "services_to_search 0x%x",
             __func__, bta_dm_search_cb.p_btm_inq_info,
             bta_dm_search_cb.p_btm_inq_info->results.device_type,
