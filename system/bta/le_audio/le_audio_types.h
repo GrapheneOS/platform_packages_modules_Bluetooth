@@ -574,6 +574,54 @@ struct LeAudioCoreCodecConfig {
   }
 };
 
+struct LeAudioCoreCodecCapabilities {
+  bool HasSupportedSamplingFrequencies() const {
+    return supported_sampling_frequencies.has_value();
+  }
+  bool HasSupportedFrameDurations() const {
+    return supported_frame_durations.has_value();
+  }
+  bool HasSupportedOctetsPerCodecFrame() const {
+    return supported_min_octets_per_codec_frame.has_value() &&
+           supported_max_octets_per_codec_frame.has_value();
+  }
+  bool HasSupportedAudioChannelCounts() const {
+    return supported_audio_channel_counts.has_value();
+  }
+  bool HasSupportedMaxCodecFramesPerSdu() const {
+    return supported_max_codec_frames_per_sdu.has_value();
+  }
+
+  bool IsSamplingFrequencyConfigSupported(uint8_t value) const {
+    return supported_sampling_frequencies.value_or(0) &
+           codec_spec_caps::SamplingFreqConfig2Capability(value);
+  }
+  bool IsFrameDurationConfigSupported(uint8_t value) const {
+    return supported_frame_durations.value_or(0) &
+           codec_spec_caps::FrameDurationConfig2Capability(value);
+  }
+  bool IsAudioChannelCountsSupported(uint8_t value) const {
+    if (value > 0)
+      return supported_audio_channel_counts.value_or(0) & (0b1 << (value - 1));
+
+    return false;
+  }
+  bool IsOctetsPerCodecFrameConfigSupported(uint16_t value) const {
+    return (value >= supported_min_octets_per_codec_frame.value_or(0)) &&
+           (value <= supported_max_octets_per_codec_frame.value_or(0));
+  }
+  bool IsCodecFramesPerSduSupported(uint8_t value) const {
+    return value <= supported_max_codec_frames_per_sdu.value_or(1);
+  }
+
+  std::optional<uint16_t> supported_sampling_frequencies;
+  std::optional<uint8_t> supported_frame_durations;
+  std::optional<uint8_t> supported_audio_channel_counts;
+  std::optional<uint16_t> supported_min_octets_per_codec_frame;
+  std::optional<uint16_t> supported_max_octets_per_codec_frame;
+  std::optional<uint8_t> supported_max_codec_frames_per_sdu;
+};
+
 class LeAudioLtvMap {
  public:
   LeAudioLtvMap() {}
@@ -622,6 +670,7 @@ class LeAudioLtvMap {
   }
 
   const struct LeAudioCoreCodecConfig& GetAsCoreCodecConfig() const;
+  const struct LeAudioCoreCodecCapabilities& GetAsCoreCodecCapabilities() const;
 
   std::string ToString(
       const std::string& indent_string,
@@ -681,9 +730,80 @@ class LeAudioLtvMap {
     return core;
   }
 
+  static LeAudioCoreCodecCapabilities LtvMapToCoreCodecCapabilities(
+      LeAudioLtvMap pacs) {
+    LeAudioCoreCodecCapabilities core;
+
+    auto pac =
+        pacs.Find(codec_spec_caps::kLeAudioLtvTypeSupportedSamplingFrequencies);
+    if (pac &&
+        (pac.value().size() ==
+         sizeof(decltype(core.supported_sampling_frequencies)::value_type))) {
+      core.supported_sampling_frequencies = VEC_UINT8_TO_UINT16(pac.value());
+    }
+
+    pac = pacs.Find(codec_spec_caps::kLeAudioLtvTypeSupportedFrameDurations);
+    if (pac && (pac.value().size() ==
+                sizeof(decltype(core.supported_frame_durations)::value_type))) {
+      core.supported_frame_durations = VEC_UINT8_TO_UINT8(pac.value());
+    }
+
+    pac =
+        pacs.Find(codec_spec_caps::kLeAudioLtvTypeSupportedOctetsPerCodecFrame);
+    if (pac &&
+        (pac.value().size() ==
+         (sizeof(
+              decltype(core.supported_min_octets_per_codec_frame)::value_type) +
+          sizeof(decltype(core.supported_max_octets_per_codec_frame)::
+                     value_type)))) {
+      core.supported_min_octets_per_codec_frame =
+          VEC_UINT8_TO_UINT16(pac.value());
+      core.supported_max_octets_per_codec_frame = OFF_VEC_UINT8_TO_UINT16(
+          pac.value(),
+          sizeof(
+              decltype(core.supported_min_octets_per_codec_frame)::value_type));
+    }
+
+    /*
+     * BAP_1.0.1 4.3.1 Codec_Specific_Capabilities LTV requirements:
+     * The absence of the Supported_Audio_Channel_Counts LTV structure shall be
+     * interpreted as equivalent to a Supported_Audio_Channel_Counts value of
+     * 0x01 (one Audio Channel supported).
+     */
+    pac =
+        pacs.Find(codec_spec_caps::kLeAudioLtvTypeSupportedAudioChannelCounts);
+    if (pac &&
+        (pac.value().size() ==
+         sizeof(decltype(core.supported_audio_channel_counts)::value_type))) {
+      core.supported_audio_channel_counts = VEC_UINT8_TO_UINT8(pac.value());
+    } else {
+      core.supported_audio_channel_counts = 0b1;
+    }
+
+    /*
+     * BAP_1.0.1 4.3.1 Codec_Specific_Capabilities LTV requirements:
+     * The absence of the Supported_Max_Codec_Frames_Per_SDU LTV structure shall
+     * be interpreted as equivalent to a Supported_Max_Codec_Frames_Per_SDU
+     * value of 1 codec frame per Audio Channel per SDU maximum.
+     */
+    pac = pacs.Find(
+        codec_spec_caps::kLeAudioLtvTypeSupportedMaxCodecFramesPerSdu);
+    if (pac &&
+        (pac.value().size() ==
+         sizeof(
+             decltype(core.supported_max_codec_frames_per_sdu)::value_type))) {
+      core.supported_max_codec_frames_per_sdu = VEC_UINT8_TO_UINT8(pac.value());
+    } else {
+      core.supported_max_codec_frames_per_sdu = 1;
+    }
+
+    return core;
+  }
+
   std::map<uint8_t, std::vector<uint8_t>> values;
   // Lazy-constructed views of the LTV data
   mutable std::optional<struct LeAudioCoreCodecConfig> core_config;
+  mutable std::optional<struct LeAudioCoreCodecCapabilities> core_capabilities;
 };
 
 struct LeAudioCodecId {
