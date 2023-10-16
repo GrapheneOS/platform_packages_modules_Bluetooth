@@ -880,8 +880,8 @@ bt_status_t btif_storage_add_bonded_device(RawAddress* remote_bd_addr,
       btif_config_set_int(bdstr, BTIF_STORAGE_KEY_LINK_KEY_TYPE, (int)key_type);
   ret &=
       btif_config_set_int(bdstr, BTIF_STORAGE_KEY_PIN_LENGTH, (int)pin_length);
-  ret &= btif_config_set_bin(bdstr, BTIF_STORAGE_KEY_LINK_KEY_TYPE,
-                             link_key.data(), link_key.size());
+  ret &= btif_config_set_bin(bdstr, BTIF_STORAGE_KEY_LINK_KEY, link_key.data(),
+                             link_key.size());
 
   if (ret) {
     btif_storage_set_mode(remote_bd_addr);
