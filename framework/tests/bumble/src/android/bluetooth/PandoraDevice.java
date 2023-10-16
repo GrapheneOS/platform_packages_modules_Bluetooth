@@ -27,6 +27,7 @@ import org.junit.rules.ExternalResource;
 
 import java.util.concurrent.TimeUnit;
 
+import pandora.DckGrpc;
 import pandora.HostGrpc;
 
 public final class PandoraDevice extends ExternalResource {
@@ -85,5 +86,20 @@ public final class PandoraDevice extends ExternalResource {
     /** Get Pandora Host service */
     public HostGrpc.HostStub host() {
         return HostGrpc.newStub(mChannel);
+    }
+
+    /** Get Pandora Host service */
+    public HostGrpc.HostBlockingStub hostBlocking() {
+        return HostGrpc.newBlockingStub(mChannel);
+    }
+
+    /** Get Pandora Dck service */
+    public DckGrpc.DckStub dck() {
+        return DckGrpc.newStub(mChannel);
+    }
+
+    /** Get Pandora Dck blocking service */
+    public DckGrpc.DckBlockingStub dckBlocking() {
+        return DckGrpc.newBlockingStub(mChannel);
     }
 }
