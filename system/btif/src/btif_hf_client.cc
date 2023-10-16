@@ -845,7 +845,7 @@ static void btif_hf_client_upstreams_evt(uint16_t event, char* p_param) {
     cb = btif_hf_client_allocate_cb();
     if (cb == NULL) {
       BTIF_TRACE_ERROR("%s: event BTA_HF_CLIENT_OPEN_EVT failed to allocate cb",
-                       __func__, event);
+                       __func__);
       return;
     }
     cb->handle = p_data->open.handle;

@@ -205,7 +205,7 @@ static void bta_hh_sdp_cback(uint16_t result, uint16_t attr_mask,
     /* security is required for the connection, add attr_mask bit*/
     attr_mask |= HID_SEC_REQUIRED;
 
-    APPL_TRACE_EVENT("%s: p_cb: %d result 0x%02x, attr_mask 0x%02x, handle %x",
+    APPL_TRACE_EVENT("%s: p_cb: %p result 0x%02x, attr_mask 0x%02x, handle %x",
                      __func__, p_cb, result, attr_mask, p_cb->hid_handle);
 
     /* check to see type of device is supported , and should not been added
@@ -267,7 +267,7 @@ static void bta_hh_di_sdp_cback(UNUSED_ATTR const RawAddress& bd_addr,
   tBTA_HH_STATUS status = BTA_HH_ERR_SDP;
   tSDP_DI_GET_RECORD di_rec;
   tHID_STATUS ret;
-  APPL_TRACE_EVENT("%s: p_cb: %d result 0x%02x", __func__, p_cb, result);
+  APPL_TRACE_EVENT("%s: p_cb: %p result 0x%02x", __func__, p_cb, result);
 
   /* if DI record does not exist on remote device, vendor_id in
    * tBTA_HH_DEV_DSCP_INFO will be set to 0xffff and we will allow the

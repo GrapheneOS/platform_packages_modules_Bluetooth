@@ -1451,7 +1451,8 @@ void bta_ag_set_sco_offload_enabled(bool value) {
 
 void bta_ag_set_sco_allowed(bool value) {
   sco_allowed = value;
-  APPL_TRACE_DEBUG(sco_allowed ? "sco now allowed" : "sco now not allowed");
+  APPL_TRACE_DEBUG("%s",
+                   sco_allowed ? "sco now allowed" : "sco now not allowed");
 }
 
 const RawAddress& bta_ag_get_active_device() { return active_device_addr; }

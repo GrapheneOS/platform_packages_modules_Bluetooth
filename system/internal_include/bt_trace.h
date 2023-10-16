@@ -22,9 +22,9 @@
 
 // move this function outof extern "C" block
 // as it is a C++ function.
-extern void LogMsg(uint32_t trace_set_mask,
-                   const char *filename, uint32_t linenum, const char *func,
-                   const char* fmt_str, ...);
+__attribute__((format(printf, 5, 6))) extern void LogMsg(
+    uint32_t trace_set_mask, const char* filename, uint32_t linenum,
+    const char* func, const char* fmt_str, ...);
 
 #ifdef __cplusplus
 extern "C" {

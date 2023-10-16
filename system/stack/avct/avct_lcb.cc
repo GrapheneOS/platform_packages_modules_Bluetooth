@@ -307,7 +307,7 @@ void avct_lcb_dealloc(tAVCT_LCB* p_lcb, UNUSED_ATTR tAVCT_LCB_EVT* p_data) {
   tAVCT_CCB* p_ccb = &avct_cb.ccb[0];
   for (size_t i = 0; i < AVCT_NUM_CONN; i++, p_ccb++) {
     if (p_ccb->allocated && p_ccb->p_lcb == p_lcb) {
-      AVCT_TRACE_DEBUG("%s LCB in use; lcb index: %d", __func__, i);
+      AVCT_TRACE_DEBUG("%s LCB in use; lcb index: %zu", __func__, i);
       return;
     }
   }
@@ -388,7 +388,7 @@ bool avct_lcb_last_ccb(tAVCT_LCB* p_lcb, tAVCT_CCB* p_ccb_last) {
 
   AVCT_TRACE_WARNING("avct_lcb_last_ccb");
   for (i = 0; i < AVCT_NUM_CONN; i++, p_ccb++) {
-    AVCT_TRACE_WARNING("%x: aloc:%d, lcb:0x%x/0x%x, ccb:0x%x/0x%x", i,
+    AVCT_TRACE_WARNING("%x: aloc:%d, lcb:0x%p/0x%p, ccb:0x%p/0x%p", i,
                        p_ccb->allocated, p_ccb->p_lcb, p_lcb, p_ccb,
                        p_ccb_last);
     if (p_ccb->allocated && (p_ccb->p_lcb == p_lcb) && (p_ccb != p_ccb_last)) {
