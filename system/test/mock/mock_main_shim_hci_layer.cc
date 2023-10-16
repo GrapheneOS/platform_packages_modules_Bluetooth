@@ -21,13 +21,13 @@
  *  mockcify.pl ver 0.3.0
  */
 
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_main_shim_hci_layer.h"
+
 #include <cstdint>
 #include <functional>
 #include <map>
 #include <string>
-
-// Mock include file to share data between tests and mock
-#include "test/mock/mock_main_shim_hci_layer.h"
 
 // Mocked internal structures, if any
 

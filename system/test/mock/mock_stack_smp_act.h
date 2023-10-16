@@ -34,7 +34,6 @@
 //       may need attention to prune the inclusion set.
 #include "btif/include/btif_api.h"
 #include "stack/smp/smp_int.h"
-#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any

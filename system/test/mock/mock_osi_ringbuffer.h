@@ -38,7 +38,6 @@
 #include "check.h"
 #include "osi/include/allocator.h"
 #include "osi/include/ringbuffer.h"
-#include "test/common/mock_functions.h"
 
 // Mocked compile conditionals, if any
 

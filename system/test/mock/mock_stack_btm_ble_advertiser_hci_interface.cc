@@ -20,6 +20,8 @@
  *
  *  mockcify.pl ver 0.2
  */
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_stack_btm_ble_advertiser_hci_interface.h"
 
 #include <cstdint>
 #include <functional>
@@ -33,8 +35,7 @@
 //       for this effort.  This compilation unit may compile as-is, or
 //       may need attention to prune the inclusion set.
 
-// Mock include file to share data between tests and mock
-#include "test/mock/mock_stack_btm_ble_advertiser_hci_interface.h"
+#include "test/common/mock_functions.h"
 
 // Mocked compile conditionals, if any
 #ifndef UNUSED_ATTR

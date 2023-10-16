@@ -34,7 +34,6 @@
 //       may need attention to prune the inclusion set.
 #include "stack/include/l2c_api.h"
 #include "stack/l2cap/l2c_int.h"
-#include "test/common/mock_functions.h"
 #include "types/ble_address_with_type.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"

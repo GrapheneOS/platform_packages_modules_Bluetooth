@@ -38,7 +38,6 @@
 #include "osi/include/osi.h"
 #include "stack/include/sdp_api.h"
 #include "stack/sdp/sdpint.h"
-#include "test/common/mock_functions.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 

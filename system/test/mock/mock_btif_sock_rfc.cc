@@ -19,12 +19,12 @@
  *
  *  mockcify.pl ver 0.6.2
  */
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_btif_sock_rfc.h"
 
 #include <cstdint>
 
-// Mock include file to share data between tests and mock
 #include "test/common/mock_functions.h"
-#include "test/mock/mock_btif_sock_rfc.h"
 
 // Original usings
 using bluetooth::Uuid;

@@ -33,10 +33,6 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 tBTA_STATUS BTA_AgEnable(tBTA_AG_CBACK* p_cback) {
   inc_func_call_count(__func__);
   return BTA_SUCCESS;

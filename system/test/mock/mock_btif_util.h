@@ -21,11 +21,12 @@
  *
  *  mockcify.pl ver 0.6.0
  */
-
 #include <cstdint>
 #include <functional>
 #include <map>
 #include <string>
+
+#include "test/mock/mock_btif_util.h"
 
 // Original included files, if any
 // NOTE: Since this is a mock file with mock definitions some number of
@@ -40,8 +41,6 @@
 
 #include "include/hardware/bluetooth.h"
 #include "stack/include/bt_dev_class.h"
-#include "test/common/mock_functions.h"
-#include "test/mock/mock_btif_util.h"
 
 // Original usings
 

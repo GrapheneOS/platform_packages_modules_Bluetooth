@@ -40,7 +40,6 @@
 #include "osi/include/allocator.h"
 #include "stack/avrc/avrc_int.h"
 #include "stack/include/bt_hdr.h"
-#include "test/common/mock_functions.h"
 
 // Original usings
 

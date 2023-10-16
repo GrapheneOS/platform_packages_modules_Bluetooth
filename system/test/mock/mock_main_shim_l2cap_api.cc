@@ -30,6 +30,8 @@
 
 // Mock include file to share data between tests and mock
 
+#include "test/common/mock_functions.h"
+
 // Mocked compile conditionals, if any
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

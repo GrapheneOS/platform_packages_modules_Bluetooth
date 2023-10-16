@@ -20,7 +20,6 @@
 #include "stack/btm/btm_dev.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_status.h"
-#include "test/common/mock_functions.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 

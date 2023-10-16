@@ -39,7 +39,6 @@
 #include "stack/btm/security_device_record.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_client_interface.h"
-#include "test/common/mock_functions.h"
 #include "types/class_of_device.h"
 #include "types/raw_address.h"
 

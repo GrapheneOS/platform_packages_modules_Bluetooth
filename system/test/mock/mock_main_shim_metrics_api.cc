@@ -20,6 +20,8 @@
  *
  *  mockcify.pl ver 0.2
  */
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_main_shim_metrics_api.h"
 
 #include <cstdint>
 #include <functional>
@@ -34,10 +36,8 @@
 //       may need attention to prune the inclusion set.
 #include "gd/hci/address.h"
 #include "main/shim/helpers.h"
+#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
-
-// Mock include file to share data between tests and mock
-#include "test/mock/mock_main_shim_metrics_api.h"
 
 // Mocked compile conditionals, if any
 #ifndef UNUSED_ATTR
