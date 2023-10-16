@@ -51,6 +51,7 @@
 #include <optional>
 
 #include "advertise_data_parser.h"
+#include "bta/dm/bta_dm_disc.h"
 #include "bta/include/bta_api.h"
 #include "bta_csis_api.h"
 #include "bta_dm_int.h"
