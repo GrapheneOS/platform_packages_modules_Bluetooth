@@ -27,6 +27,7 @@
 #include <cstdint>
 
 #include "bt_trace.h"
+#include "bta/dm/bta_dm_disc.h"
 #include "bta/dm/bta_dm_int.h"
 #include "bta/include/bta_api.h"
 #include "bta/include/bta_gatt_api.h"
@@ -81,7 +82,6 @@ static void bta_dm_sdp_callback(const RawAddress& bd_addr,
                                 tSDP_STATUS sdp_status);
 
 static void bta_dm_search_timer_cback(void* data);
-static const char* bta_dm_get_remname(void);
 static bool bta_dm_read_remote_device_name(const RawAddress& bd_addr,
                                            tBT_TRANSPORT transport);
 static void bta_dm_discover_device(const RawAddress& remote_bd_addr);
@@ -1639,7 +1639,7 @@ static void bta_dm_remname_cback(const tBTM_REMOTE_DEV_NAME* p_remote_name) {
  *
  * Returns          char * - Pointer to the remote device name
  ******************************************************************************/
-static const char* bta_dm_get_remname(void) {
+const char* bta_dm_get_remname(void) {
   const char* p_name = (const char*)bta_dm_search_cb.peer_name;
 
   /* If the name isn't already stored, try retrieving from BTM */
