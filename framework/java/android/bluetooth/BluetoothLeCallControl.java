@@ -379,10 +379,7 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
     private String mToken;
     private Callback mCallback = null;
     private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(
-                    this,
-                    BluetoothProfile.LE_CALL_CONTROL,
-                    IBluetoothLeCallControl.class.getName());
+            new BluetoothProfileConnector(this, BluetoothProfile.LE_CALL_CONTROL);
 
     /**
      * Create a BluetoothLeCallControl proxy object for interacting with the local Bluetooth

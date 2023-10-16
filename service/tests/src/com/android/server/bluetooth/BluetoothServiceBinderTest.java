@@ -248,13 +248,11 @@ public class BluetoothServiceBinderTest {
     @Test
     public void bindBluetoothProfileService() {
         assertThrows(
-                NullPointerException.class,
-                () -> mBinder.bindBluetoothProfileService(0, "foo", null));
+                NullPointerException.class, () -> mBinder.bindBluetoothProfileService(0, null));
         // No permission needed for this call
 
-        mBinder.bindBluetoothProfileService(
-                0, "foo", mock(IBluetoothProfileServiceConnection.class));
-        verify(mManagerService).bindBluetoothProfileService(anyInt(), any(), any());
+        mBinder.bindBluetoothProfileService(0, mock(IBluetoothProfileServiceConnection.class));
+        verify(mManagerService).bindBluetoothProfileService(anyInt(), any());
         verifyMock();
     }
 
