@@ -16,14 +16,12 @@
 
 package com.android.bluetooth.mapclient;
 
-import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import android.annotation.Nullable;
 import android.app.BroadcastOptions;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -39,7 +37,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.provider.Telephony.Sms;
-import android.provider.Telephony.Mms;
 import android.telephony.TelephonyManager;
 import android.telephony.SubscriptionManager;
 import android.test.mock.MockContentProvider;
@@ -51,7 +48,6 @@ import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
@@ -64,7 +60,6 @@ import com.google.common.truth.Correspondence;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -76,7 +71,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +89,8 @@ public class MapClientStateMachineTest {
     private Bmessage mTestIncomingMmsBmessage;
     private String mTestMessageSmsHandle = "0001";
     private String mTestMessageMmsHandle = "0002";
+    boolean mIsAdapterServiceSet;
+    boolean mIsMapClientServiceStarted;
 
     private static final boolean MESSAGE_SEEN = true;
     private static final boolean MESSAGE_NOT_SEEN = false;
@@ -151,12 +147,14 @@ public class MapClientStateMachineTest {
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         MockitoAnnotations.initMocks(this);
+        TestUtils.setAdapterService(mAdapterService);
+        mIsAdapterServiceSet = true;
         mMockContentProvider = new MockSmsContentProvider();
         mMockContentResolver = new MockContentResolver();
-        TestUtils.setAdapterService(mAdapterService);
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.startService(mServiceRule, MapClientService.class);
+        mIsMapClientServiceStarted = true;
         mMockContentResolver.addProvider("sms", mMockContentProvider);
         mMockContentResolver.addProvider("mms", mMockContentProvider);
         mMockContentResolver.addProvider("mms-sms", mMockContentProvider);
@@ -206,8 +204,13 @@ public class MapClientStateMachineTest {
         if (mMceStateMachine != null) {
             mMceStateMachine.doQuit();
         }
-        TestUtils.stopService(mServiceRule, MapClientService.class);
-        TestUtils.clearAdapterService(mAdapterService);
+
+        if (mIsMapClientServiceStarted) {
+            TestUtils.stopService(mServiceRule, MapClientService.class);
+        }
+        if (mIsAdapterServiceSet) {
+            TestUtils.clearAdapterService(mAdapterService);
+        }
     }
 
     /**

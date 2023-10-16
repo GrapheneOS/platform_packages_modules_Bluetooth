@@ -21,7 +21,6 @@ import static org.mockito.Mockito.*;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
-import android.bluetooth.IBluetoothMapClient;
 import android.content.Context;
 import android.os.UserHandle;
 
@@ -30,7 +29,6 @@ import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
@@ -38,7 +36,6 @@ import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -57,6 +54,8 @@ public class MapClientTest {
     private MapClientService mService = null;
     private BluetoothAdapter mAdapter = null;
     private Context mTargetContext;
+    private boolean mIsAdapterServiceSet;
+    private boolean mIsMapClientServiceStarted;
 
     @Mock private AdapterService mAdapterService;
     @Mock private MnsService mMockMnsService;
@@ -69,10 +68,12 @@ public class MapClientTest {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
+        mIsAdapterServiceSet = true;
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         MapUtils.setMnsService(mMockMnsService);
         TestUtils.startService(mServiceRule, MapClientService.class);
+        mIsMapClientServiceStarted = true;
         mService = MapClientService.getMapClientService();
         Assert.assertNotNull(mService);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -80,10 +81,14 @@ public class MapClientTest {
 
     @After
     public void tearDown() throws Exception {
-        TestUtils.stopService(mServiceRule, MapClientService.class);
-        mService = MapClientService.getMapClientService();
-        Assert.assertNull(mService);
-        TestUtils.clearAdapterService(mAdapterService);
+        if (mIsMapClientServiceStarted) {
+            TestUtils.stopService(mServiceRule, MapClientService.class);
+            mService = MapClientService.getMapClientService();
+            Assert.assertNull(mService);
+        }
+        if (mIsAdapterServiceSet) {
+            TestUtils.clearAdapterService(mAdapterService);
+        }
     }
 
     /**

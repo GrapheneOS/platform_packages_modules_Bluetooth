@@ -57,6 +57,7 @@ public class HapClientStateMachineTest {
     private HapClientStateMachine mHapClientStateMachine;
     private BluetoothDevice mTestDevice;
     private static final int TIMEOUT_MS = 1000;
+    boolean mIsAdapterServiceSet;
 
     @Mock
     private AdapterService mAdapterService;
@@ -70,6 +71,7 @@ public class HapClientStateMachineTest {
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
+        mIsAdapterServiceSet = true;
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -88,8 +90,13 @@ public class HapClientStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
-        mHapClientStateMachine.doQuit();
-        mHandlerThread.quit();
+        if (!mIsAdapterServiceSet) {
+            return;
+        }
+        if (mHapClientStateMachine != null) {
+            mHapClientStateMachine.doQuit();
+            mHandlerThread.quit();
+        }
         TestUtils.clearAdapterService(mAdapterService);
     }
 
