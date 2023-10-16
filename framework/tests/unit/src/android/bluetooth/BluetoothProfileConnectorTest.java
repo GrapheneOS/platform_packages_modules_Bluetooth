@@ -102,7 +102,6 @@ public class BluetoothProfileConnectorTest {
                 bluetoothManager.getLooper(),
                 null,
                 BluetoothProfile.HEADSET,
-                "Headset",
                 "HeadsetService",
                 bluetoothManager);
     }

@@ -86,10 +86,7 @@ public final class BluetoothA2dpSink implements BluetoothProfile {
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
             new BluetoothProfileConnector(
-                    this,
-                    BluetoothProfile.A2DP_SINK,
-                    "BluetoothA2dpSink",
-                    IBluetoothA2dpSink.class.getName());
+                    this, BluetoothProfile.A2DP_SINK, IBluetoothA2dpSink.class.getName());
 
     /**
      * Create a BluetoothA2dp proxy object for interacting with the local

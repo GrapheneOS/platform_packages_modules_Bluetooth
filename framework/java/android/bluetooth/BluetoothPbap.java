@@ -106,7 +106,7 @@ public class BluetoothPbap implements BluetoothProfile {
     private BluetoothAdapter mAdapter;
     private final BluetoothProfileConnector mProfileConnector =
             new BluetoothProfileConnector(
-                    this, BluetoothProfile.PBAP, "BluetoothPbap", IBluetoothPbap.class.getName());
+                    this, BluetoothProfile.PBAP, IBluetoothPbap.class.getName());
 
     /**
      * Create a BluetoothPbap proxy object.

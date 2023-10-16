@@ -382,7 +382,6 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
             new BluetoothProfileConnector(
                     this,
                     BluetoothProfile.LE_CALL_CONTROL,
-                    "BluetoothLeCallControl",
                     IBluetoothLeCallControl.class.getName());
 
     /**

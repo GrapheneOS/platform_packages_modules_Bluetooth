@@ -243,10 +243,7 @@ public final class BluetoothHidHost implements BluetoothProfile {
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
             new BluetoothProfileConnector(
-                    this,
-                    BluetoothProfile.HID_HOST,
-                    "BluetoothHidHost",
-                    IBluetoothHidHost.class.getName());
+                    this, BluetoothProfile.HID_HOST, IBluetoothHidHost.class.getName());
 
     /**
      * Create a BluetoothHidHost proxy object for interacting with the local

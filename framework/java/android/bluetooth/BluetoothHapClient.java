@@ -507,10 +507,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
             new BluetoothProfileConnector(
-                    this,
-                    BluetoothProfile.HAP_CLIENT,
-                    "BluetoothHapClient",
-                    IBluetoothHapClient.class.getName());
+                    this, BluetoothProfile.HAP_CLIENT, IBluetoothHapClient.class.getName());
 
     /**
      * Create a BluetoothHapClient proxy object for interacting with the local

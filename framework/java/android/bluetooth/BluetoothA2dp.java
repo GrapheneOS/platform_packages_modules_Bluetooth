@@ -272,7 +272,7 @@ public final class BluetoothA2dp implements BluetoothProfile {
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
             new BluetoothProfileConnector(
-                    this, BluetoothProfile.A2DP, "BluetoothA2dp", IBluetoothA2dp.class.getName());
+                    this, BluetoothProfile.A2DP, IBluetoothA2dp.class.getName());
 
     /**
      * Create a BluetoothA2dp proxy object for interacting with the local

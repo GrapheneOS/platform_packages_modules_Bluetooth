@@ -238,7 +238,7 @@ public final class BluetoothPan implements BluetoothProfile {
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
             new BluetoothProfileConnector(
-                    this, BluetoothProfile.PAN, "BluetoothPan", IBluetoothPan.class.getName());
+                    this, BluetoothProfile.PAN, IBluetoothPan.class.getName());
 
     /**
      * Create a BluetoothPan proxy object for interacting with the local
