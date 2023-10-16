@@ -19,6 +19,8 @@ package android.bluetooth;
 import com.google.protobuf.ByteString;
 
 public final class Utils {
+    public static final String BUMBLE_RANDOM_ADDRESS = "51:F7:A8:75:AC:5E";
+
     public static String addressStringFromByteString(ByteString bs) {
         StringBuilder refAddrBuilder = new StringBuilder();
         for (int i = 0; i < bs.size(); i++) {
