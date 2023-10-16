@@ -19,6 +19,7 @@ import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.os.HandlerThread
 import android.os.UserManager
+import com.android.bluetooth.flags.FeatureFlagsImpl
 import com.android.server.SystemService
 import com.android.server.SystemService.TargetUser
 
@@ -30,7 +31,8 @@ class BluetoothService(context: Context) : SystemService(context) {
     init {
         mHandlerThread = HandlerThread("BluetoothManagerService")
         mHandlerThread.start()
-        mBluetoothManagerService = BluetoothManagerService(context, mHandlerThread.getLooper())
+        mBluetoothManagerService =
+            BluetoothManagerService(context, mHandlerThread.getLooper(), FeatureFlagsImpl())
     }
 
     private fun initialize() {
