@@ -417,7 +417,7 @@ int PORT_SetDataCOCallback(uint16_t port_handle,
                            tPORT_DATA_CO_CALLBACK* p_port_cb) {
   tPORT* p_port;
 
-  RFCOMM_TRACE_API("PORT_SetDataCOCallback() handle:%d cb 0x%x", port_handle,
+  RFCOMM_TRACE_API("PORT_SetDataCOCallback() handle:%d cb 0x%p", port_handle,
                    p_port_cb);
 
   /* Check if handle is valid to avoid crashing */
@@ -976,7 +976,7 @@ int PORT_WriteDataCO(uint16_t handle, int* p_len) {
       port_flow_control_user(p_port);
       event |= PORT_EV_FC;
       RFCOMM_TRACE_EVENT(
-          "tx queue is full,tx.queue_size:%d,tx.queue.count:%d,available:%d",
+          "tx queue is full,tx.queue_size:%d,tx.queue.count:%zu,available:%d",
           p_port->tx.queue_size, fixed_queue_length(p_port->tx.queue),
           available);
       break;

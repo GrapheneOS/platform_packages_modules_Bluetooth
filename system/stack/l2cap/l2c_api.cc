@@ -533,7 +533,7 @@ uint16_t L2CA_ConnectLECocReq(uint16_t psm, const RawAddress& p_bd_addr,
     if ((p_lcb == NULL)
         /* currently use BR/EDR for ERTM mode l2cap connection */
         || (!l2cu_create_conn_le(p_lcb))) {
-      L2CAP_TRACE_WARNING("%s conn not started for PSM: 0x%04x  p_lcb: 0x%08x",
+      L2CAP_TRACE_WARNING("%s conn not started for PSM: 0x%04x  p_lcb: 0x%p",
                           __func__, psm, p_lcb);
       return 0;
     }
@@ -1578,8 +1578,8 @@ uint16_t L2CA_FlushChannel(uint16_t lcid, uint16_t num_to_flush) {
 
   if (num_to_flush != L2CAP_FLUSH_CHANS_GET) {
     L2CAP_TRACE_API(
-        "L2CA_FlushChannel (FLUSH)  CID: 0x%04x  NumToFlush: %d  QC: %u  "
-        "pFirst: 0x%08x",
+        "L2CA_FlushChannel (FLUSH)  CID: 0x%04x  NumToFlush: %d  QC: %zu  "
+        "pFirst: 0x%p",
         lcid, num_to_flush, fixed_queue_length(p_ccb->xmit_hold_q),
         fixed_queue_try_peek_first(p_ccb->xmit_hold_q));
   } else {

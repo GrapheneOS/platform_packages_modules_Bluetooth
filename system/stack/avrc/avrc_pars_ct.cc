@@ -214,7 +214,7 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
   uint8_t pdu;
 
   if (p_msg->browse_len == 0) {
-    AVRC_TRACE_ERROR("%s length ", p_msg->browse_len);
+    AVRC_TRACE_ERROR("%s length %d", __func__, p_msg->browse_len);
     return AVRC_STS_BAD_PARAM;
   }
 

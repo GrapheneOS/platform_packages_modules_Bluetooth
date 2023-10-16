@@ -5879,7 +5879,7 @@ static void btif_rc_transaction_timeout_handler(UNUSED_ATTR uint16_t event,
                                    &(p_context->command.passthru));
       break;
     default:
-      BTIF_TRACE_WARNING("%s: received timeout for unknown opcode=", __func__,
+      BTIF_TRACE_WARNING("%s: received timeout for unknown opcode=%d", __func__,
                          p_context->opcode);
       return;
   }
