@@ -38,7 +38,7 @@
 #include "stack/btm/btm_sco_hfp_hal.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_uuid16.h"
-#include "stack/include/btm_api.h"
+// #include "stack/include/btm_api.h"
 #include "stack/sdp/sdpint.h"
 
 /* Maximum number of bytes to reserve out of SDP MTU for response data */

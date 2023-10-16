@@ -25,9 +25,7 @@
 #include <cstdint>
 #include <string>
 
-#include "gd/crypto_toolbox/crypto_toolbox.h"
 #include "main/shim/dumpsys.h"
-#include "osi/include/alarm.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/bt_name.h"
 #include "stack/include/bt_octets.h"

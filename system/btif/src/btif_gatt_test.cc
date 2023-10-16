@@ -35,6 +35,7 @@
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "gatt_api.h"
+#include "stack/include/btm_ble_sec_api.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "types/bluetooth/uuid.h"

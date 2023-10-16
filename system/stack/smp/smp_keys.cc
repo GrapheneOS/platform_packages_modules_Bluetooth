@@ -28,7 +28,7 @@
 #include <cstring>
 
 #include "bt_target.h"
-#include "btm_ble_api.h"
+#include "btm_ble_sec_api.h"
 #include "btm_ble_int.h"
 #include "device/include/controller.h"
 #include "osi/include/osi.h"
