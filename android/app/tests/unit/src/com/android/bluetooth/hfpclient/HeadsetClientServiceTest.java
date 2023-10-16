@@ -62,6 +62,8 @@ public class HeadsetClientServiceTest {
     private HeadsetClientService mService = null;
     private BluetoothAdapter mAdapter = null;
     private Context mTargetContext;
+    private boolean mIsAdapterServiceSet;
+    private boolean mIsHeadsetClientServiceStarted;
 
     private static final int STANDARD_WAIT_MILLIS = 1000;
 
@@ -79,6 +81,7 @@ public class HeadsetClientServiceTest {
         MockitoAnnotations.initMocks(this);
 
         TestUtils.setAdapterService(mAdapterService);
+        mIsAdapterServiceSet = true;
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(mRemoteDevices).when(mAdapterService).getRemoteDevices();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
@@ -88,16 +91,16 @@ public class HeadsetClientServiceTest {
     @After
     public void tearDown() throws Exception {
         NativeInterface.setInstance(null);
-        mService = HeadsetClientService.getHeadsetClientService();
-        Assert.assertNull(mService);
-        TestUtils.clearAdapterService(mAdapterService);
+        stopServiceIfStarted();
+        if (mIsAdapterServiceSet) {
+            TestUtils.clearAdapterService(mAdapterService);
+        }
     }
 
     @Test
     public void testInitialize() throws Exception {
         startService();
         Assert.assertNotNull(HeadsetClientService.getHeadsetClientService());
-        stopService();
     }
 
     @Ignore("b/260202548")
@@ -121,8 +124,6 @@ public class HeadsetClientServiceTest {
                     eq(HeadsetClientStateMachine.SEND_BIEV),
                     eq(2),
                     anyInt());
-
-        stopService();
     }
 
     @Test
@@ -142,8 +143,6 @@ public class HeadsetClientServiceTest {
                     eq(HeadsetClientStateMachine.SEND_BIEV),
                     eq(2),
                     anyInt());
-
-        stopService();
     }
 
     @Test
@@ -159,8 +158,6 @@ public class HeadsetClientServiceTest {
 
         verify(mStateMachine, timeout(STANDARD_WAIT_MILLIS).times(1))
                 .setAudioPolicy(any(BluetoothSinkAudioPolicy.class));
-
-        stopService();
     }
 
     @Test
@@ -173,8 +170,6 @@ public class HeadsetClientServiceTest {
         mService.getStateMachineMap().put(device, mStateMachine);
 
         mService.dump(new StringBuilder());
-
-        stopService();
     }
 
     @Test
@@ -217,9 +212,14 @@ public class HeadsetClientServiceTest {
         // Try getting the Bluetooth adapter
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         Assert.assertNotNull(mAdapter);
+        mIsHeadsetClientServiceStarted = true;
     }
 
-    private void stopService() throws Exception {
-        TestUtils.stopService(mServiceRule, HeadsetClientService.class);
+    private void stopServiceIfStarted() throws Exception {
+        if (mIsHeadsetClientServiceStarted) {
+            TestUtils.stopService(mServiceRule, HeadsetClientService.class);
+            mService = HeadsetClientService.getHeadsetClientService();
+            Assert.assertNull(mService);
+        }
     }
 }
