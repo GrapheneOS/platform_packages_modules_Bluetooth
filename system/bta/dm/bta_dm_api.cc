@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "bt_target.h"  // Must be first to define build configuration
+#include "bta/dm/bta_dm_disc.h"
 #include "bta/dm/bta_dm_int.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
