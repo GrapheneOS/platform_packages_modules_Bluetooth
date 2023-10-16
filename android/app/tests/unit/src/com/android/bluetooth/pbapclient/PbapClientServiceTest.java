@@ -65,6 +65,8 @@ public class PbapClientServiceTest {
     private BluetoothAdapter mAdapter = null;
     private Context mTargetContext;
     private BluetoothDevice mRemoteDevice;
+    boolean mIsAdapterServiceSet;
+    boolean mIsPbapClientServiceStarted;
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
@@ -77,9 +79,11 @@ public class PbapClientServiceTest {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
+        mIsAdapterServiceSet = true;
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.startService(mServiceRule, PbapClientService.class);
+        mIsPbapClientServiceStarted = true;
         mService = PbapClientService.getPbapClientService();
         Assert.assertNotNull(mService);
         // Try getting the Bluetooth adapter
@@ -90,9 +94,14 @@ public class PbapClientServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        TestUtils.stopService(mServiceRule, PbapClientService.class);
-        mService = PbapClientService.getPbapClientService();
-        Assert.assertNull(mService);
+        if (!mIsAdapterServiceSet) {
+            return;
+        }
+        if (mIsPbapClientServiceStarted) {
+            TestUtils.stopService(mServiceRule, PbapClientService.class);
+            mService = PbapClientService.getPbapClientService();
+            Assert.assertNull(mService);
+        }
         TestUtils.clearAdapterService(mAdapterService);
         BluetoothMethodProxy.setInstanceForTesting(null);
     }

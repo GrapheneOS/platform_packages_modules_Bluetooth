@@ -39,7 +39,6 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,6 +55,8 @@ public class BluetoothPbapServiceTest {
     private BluetoothPbapService mService;
     private BluetoothAdapter mAdapter = null;
     private BluetoothDevice mRemoteDevice;
+    private boolean mIsAdapterServiceSet;
+    private boolean mIsBluetoothPabpServiceStarted;
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
@@ -66,11 +67,13 @@ public class BluetoothPbapServiceTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
+        mIsAdapterServiceSet = true;
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.startService(mServiceRule, BluetoothPbapService.class);
         mService = BluetoothPbapService.getBluetoothPbapService();
         assertThat(mService).isNotNull();
+        mIsBluetoothPabpServiceStarted = true;
         // Try getting the Bluetooth adapter
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         assertThat(mAdapter).isNotNull();
@@ -79,9 +82,14 @@ public class BluetoothPbapServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        TestUtils.stopService(mServiceRule, BluetoothPbapService.class);
-        mService = BluetoothPbapService.getBluetoothPbapService();
-        assertThat(mService).isNull();
+        if (!mIsAdapterServiceSet) {
+            return;
+        }
+        if (mIsBluetoothPabpServiceStarted) {
+            TestUtils.stopService(mServiceRule, BluetoothPbapService.class);
+            mService = BluetoothPbapService.getBluetoothPbapService();
+            assertThat(mService).isNull();
+        }
         TestUtils.clearAdapterService(mAdapterService);
     }
 
