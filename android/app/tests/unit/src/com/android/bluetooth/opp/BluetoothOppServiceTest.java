@@ -57,6 +57,8 @@ import org.mockito.MockitoAnnotations;
 public class BluetoothOppServiceTest {
     private BluetoothOppService mService = null;
     private BluetoothAdapter mAdapter = null;
+    private boolean mIsAdapterServiceSet;
+    private boolean mIsBluetoothOppServiceStarted;
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
@@ -77,8 +79,10 @@ public class BluetoothOppServiceTest {
         doNothing().when(mBluetoothMethodProxy).threadStart(any());
 
         TestUtils.setAdapterService(mAdapterService);
+        mIsAdapterServiceSet = true;
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.startService(mServiceRule, BluetoothOppService.class);
+        mIsBluetoothOppServiceStarted = true;
         mService = BluetoothOppService.getBluetoothOppService();
 
         Assert.assertNotNull(mService);
@@ -110,8 +114,12 @@ public class BluetoothOppServiceTest {
         }
 
         BluetoothMethodProxy.setInstanceForTesting(null);
-        TestUtils.stopService(mServiceRule, BluetoothOppService.class);
-        TestUtils.clearAdapterService(mAdapterService);
+        if (mIsBluetoothOppServiceStarted) {
+            TestUtils.stopService(mServiceRule, BluetoothOppService.class);
+        }
+        if (mIsAdapterServiceSet) {
+            TestUtils.clearAdapterService(mAdapterService);
+        }
     }
 
     @Test

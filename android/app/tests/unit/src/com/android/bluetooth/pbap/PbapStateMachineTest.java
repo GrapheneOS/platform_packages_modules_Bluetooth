@@ -30,14 +30,12 @@ import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -58,6 +56,7 @@ public class PbapStateMachineTest {
     private Handler mHandler;
     private BluetoothSocket mSocket;
     private BluetoothPbapService mBluetoothPbapService;
+    private boolean mIsAdapterServiceSet;
 
     @Mock private AdapterService mAdapterService;
 
@@ -66,6 +65,7 @@ public class PbapStateMachineTest {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
+        mIsAdapterServiceSet = true;
         // This line must be called to make sure relevant objects are initialized properly
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         // Get a device for testing
@@ -82,6 +82,9 @@ public class PbapStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
+        if (!mIsAdapterServiceSet) {
+            return;
+        }
         mHandlerThread.quitSafely();
         TestUtils.clearAdapterService(mAdapterService);
     }
