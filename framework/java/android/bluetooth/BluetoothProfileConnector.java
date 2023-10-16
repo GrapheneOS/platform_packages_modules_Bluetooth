@@ -38,7 +38,7 @@ import java.util.Objects;
  * @hide
  */
 @SuppressLint("AndroidFrameworkBluetoothPermission")
-public abstract class BluetoothProfileConnector<T> extends Handler {
+public final class BluetoothProfileConnector extends Handler {
     private final CloseGuard mCloseGuard = new CloseGuard();
     private final int mProfileId;
     private BluetoothProfile.ServiceListener mServiceListener;
@@ -47,7 +47,7 @@ public abstract class BluetoothProfileConnector<T> extends Handler {
     private final String mProfileName;
     private final String mServiceName;
     private final IBluetoothManager mBluetoothManager;
-    private volatile T mService;
+    private volatile IBinder mService;
     private boolean mBound = false;
 
     private static final int MESSAGE_SERVICE_CONNECTED = 100;
@@ -69,14 +69,14 @@ public abstract class BluetoothProfileConnector<T> extends Handler {
                 @Override
                 public void onServiceConnected(ComponentName className, IBinder service) {
                     logDebug("Proxy object connected");
-                    mService = getServiceInterface(service);
+                    mService = service;
                     sendEmptyMessage(MESSAGE_SERVICE_CONNECTED);
                 }
 
                 @Override
                 public void onServiceDisconnected(ComponentName className) {
                     logDebug("Proxy object disconnected");
-                    T service = mService;
+                    IBinder service = mService;
                     doUnbind();
                     if (service != null) {
                         sendEmptyMessage(MESSAGE_SERVICE_DISCONNECTED);
@@ -190,18 +190,9 @@ public abstract class BluetoothProfileConnector<T> extends Handler {
         }
     }
 
-    T getService() {
+    IBinder getService() {
         return mService;
     }
-
-    /**
-     * This abstract function is used to implement method to get the
-     * connected Bluetooth service interface.
-     * @param service the connected binder service.
-     * @return T the binder interface of {@code service}.
-     * @hide
-     */
-    public abstract T getServiceInterface(IBinder service);
 
     private void logDebug(String log) {
         Log.d(mProfileName, log);
