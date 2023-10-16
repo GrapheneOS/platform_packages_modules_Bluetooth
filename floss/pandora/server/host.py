@@ -47,12 +47,12 @@ class HostService(host_grpc_aio.HostServicer):
         self.waited_connections = set()
 
     async def FactoryReset(self, request: empty_pb2.Empty, context: grpc.ServicerContext) -> empty_pb2.Empty:
-        self.waited_connections = set()
+        self.waited_connections.clear()
         asyncio.create_task(self.server.stop(None))
         return empty_pb2.Empty()
 
     async def Reset(self, request: empty_pb2.Empty, context: grpc.ServicerContext) -> empty_pb2.Empty:
-        self.waited_connections = set()
+        self.waited_connections.clear()
         self.bluetooth.reset()
         return empty_pb2.Empty()
 
@@ -77,18 +77,22 @@ class HostService(host_grpc_aio.HostServicer):
                     return
 
                 if status != 0:
-                    self.task['connect_device'].set_result(
-                        (False, f'{address} failed to bond. Status: {status}, State: {state}'))
+                    future = self.task['connect_device']
+                    future.get_loop().call_soon_threadsafe(
+                        future.set_result, (False, f'{address} failed to bond. Status: {status}, State: {state}'))
                     return
 
                 if state == floss_enums.BondState.BONDED:
                     if not self.client.is_connected(self.task['address']):
-                        logging.info('{address} calling connect_all_enabled_profiles')
+                        logging.info('%s calling connect_all_enabled_profiles', address)
                         if not self.client.connect_all_enabled_profiles(self.task['address']):
-                            self.task['connect_device'].set_result(
+                            future = self.task['connect_device']
+                            future.get_loop().call_soon_threadsafe(
+                                future.set_result,
                                 (False, f'{self.task["address"]} failed on connect_all_enabled_profiles'))
                     else:
-                        self.task['connect_device'].set_result((True, None))
+                        future = self.task['connect_device']
+                        future.get_loop().call_soon_threadsafe(future.set_result, (True, None))
 
             @utils.glib_callback()
             def on_ssp_request(self, remote_device, class_of_device, variant, passkey):
@@ -104,8 +108,9 @@ class HostService(host_grpc_aio.HostServicer):
             @utils.glib_callback()
             def on_set_pairing_confirmation(self, err, result):
                 if err or not result:
-                    self.task['connect_device'].set_result(
-                        (False, f'Pairing confirmation failed: err: {err}, result: {result}'))
+                    future = self.task['connect_device']
+                    future.get_loop().call_soon_threadsafe(
+                        future.set_result, (False, f'Pairing confirmation failed: err: {err}, result: {result}'))
 
             @utils.glib_callback()
             def on_device_connected(self, remote_device):
@@ -114,13 +119,14 @@ class HostService(host_grpc_aio.HostServicer):
                     return
 
                 if self.client.is_bonded(address):
-                    self.task['connect_device'].set_result((True, None))
+                    future = self.task['connect_device']
+                    future.get_loop().call_soon_threadsafe(future.set_result, (True, None))
 
         address = utils.address_from(request.address)
 
         if not self.bluetooth.is_connected(address):
             try:
-                connect_device = asyncio.Future()
+                connect_device = asyncio.get_running_loop().create_future()
                 observer = PairingObserver(self.bluetooth.adapter_client, {
                     'connect_device': connect_device,
                     'address': address
@@ -140,7 +146,7 @@ class HostService(host_grpc_aio.HostServicer):
             finally:
                 self.bluetooth.adapter_client.unregister_callback_observer(name, observer)
 
-        cookie = any_pb2.Any(value=utils.address_to(request.address))
+        cookie = any_pb2.Any(value=utils.address_to(address))
         return host_pb2.ConnectResponse(connection=host_pb2.Connection(cookie=cookie))
 
     async def WaitConnection(self, request: host_pb2.WaitConnectionRequest,
@@ -158,7 +164,8 @@ class HostService(host_grpc_aio.HostServicer):
                 if address != self.task['address']:
                     return
 
-                self.task['wait_connection'].set_result(address)
+                future = self.task['wait_connection']
+                future.get_loop().call_soon_threadsafe(future.set_result, address)
 
         if request.address is None:
             raise ValueError('Request address field must be set.')
@@ -166,7 +173,7 @@ class HostService(host_grpc_aio.HostServicer):
 
         if not self.bluetooth.is_connected(address) or address not in self.waited_connections:
             try:
-                wait_connection = asyncio.Future()
+                wait_connection = asyncio.get_running_loop().create_future()
                 observer = ConnectionObserver({'wait_connection': wait_connection, 'address': address})
                 name = utils.create_observer_name(observer)
                 self.bluetooth.adapter_client.register_callback_observer(name, observer)
@@ -174,7 +181,7 @@ class HostService(host_grpc_aio.HostServicer):
                 await wait_connection
             finally:
                 self.bluetooth.adapter_client.unregister_callback_observer(name, observer)
-            self.waited_connection.add(address)
+            self.waited_connections.add(address)
 
         cookie = any_pb2.Any(value=utils.address_to(address))
         return host_pb2.WaitConnectionResponse(connection=host_pb2.Connection(cookie=cookie))
@@ -205,7 +212,9 @@ class HostService(host_grpc_aio.HostServicer):
                 address, _ = remote_device
                 if address != self.task['address']:
                     return
-                self.task['wait_disconnection'].set_result(address)
+
+                future = self.task['wait_disconnection']
+                future.get_loop().call_soon_threadsafe(future.set_result, address)
 
         if request.address is None:
             raise ValueError('Request address field must be set')
@@ -213,7 +222,7 @@ class HostService(host_grpc_aio.HostServicer):
 
         if self.bluetooth.is_connected(address):
             try:
-                wait_disconnection = asyncio.Future()
+                wait_disconnection = asyncio.get_running_loop().create_future()
                 observer = ConnectionObserver({'wait_disconnection': wait_disconnection, 'address': address})
                 name = utils.create_observer_name(observer)
                 self.bluetooth.adapter_client.register_callback_observer(name, observer)
@@ -277,7 +286,9 @@ class HostService(host_grpc_aio.HostServicer):
                 if status is None or floss_enums.GattStatus(status) != floss_enums.GattStatus.SUCCESS:
                     logging.error('Failed to start advertising.')
                     advertiser_id = None
-                self.task['start_advertising'].set_result(advertiser_id)
+
+                future = self.task['start_advertising']
+                future.get_loop().call_soon_threadsafe(future.set_result, advertiser_id)
 
         class ConnectionObserver(adapter_client.BluetoothConnectionCallbacks):
             """Observer to observe all connections."""
@@ -323,7 +334,7 @@ class HostService(host_grpc_aio.HostServicer):
 
                 logging.info('Advertise: Wait for LE connection...')
                 address = await connections.get()
-                logging.info(f'Advertise: Connected to {address}')
+                logging.info('Advertise: Connected to %s', address)
 
                 cookie = any_pb2.Any(value=utils.address_to(address))
                 yield host_pb2.AdvertiseResponse(connection=host_pb2.Connection(cookie=cookie))
@@ -357,7 +368,9 @@ class HostService(host_grpc_aio.HostServicer):
                 if floss_enums.GattStatus(status) != floss_enums.GattStatus.SUCCESS:
                     logging.error('Failed to register scanner! uuid: {uuid}')
                     scanner_id = None
-                self.task['register_scanner'].set_result(scanner_id)
+
+                future = self.task['register_scanner']
+                future.get_loop().call_soon_threadsafe(future.set_result, scanner_id)
 
             @utils.glib_callback()
             def on_scan_result(self, scan_result):
@@ -455,12 +468,13 @@ class HostService(host_grpc_aio.HostServicer):
             @utils.glib_callback()
             def on_discovering_changed(self, discovering):
                 if discovering == self.task['discovering']:
-                    self.task['start_inquiry'].set_result(discovering)
+                    future = self.task['start_inquiry']
+                    future.get_loop().call_soon_threadsafe(future.set_result, discovering)
 
         observers = []
         try:
             if not self.bluetooth.is_discovering():
-                inquriy = {'start_inquiry': asyncio.Future(), 'discovering': True}
+                inquriy = {'start_inquiry': asyncio.get_running_loop().create_future(), 'discovering': True}
                 observer = DiscoveryObserver(inquriy)
                 name = utils.create_observer_name(observer)
                 self.bluetooth.adapter_client.register_callback_observer(name, observer)
