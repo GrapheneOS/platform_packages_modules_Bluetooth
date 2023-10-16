@@ -34,6 +34,10 @@ genrule {
         "pandora_experimental/avrcp_grpc_aio.py",
         "pandora_experimental/avrcp_pb2.py",
         "pandora_experimental/avrcp_pb2.pyi",
+        "pandora_experimental/dck_grpc.py",
+        "pandora_experimental/dck_grpc_aio.py",
+        "pandora_experimental/dck_pb2.py",
+        "pandora_experimental/dck_pb2.pyi",
         "pandora_experimental/gatt_grpc.py",
         "pandora_experimental/gatt_grpc_aio.py",
         "pandora_experimental/gatt_pb2.py",
@@ -97,6 +101,7 @@ filegroup {
     srcs: [
         ":pandora_experimental-python-gen-src{pandora_experimental/asha_pb2.pyi}",
         ":pandora_experimental-python-gen-src{pandora_experimental/avrcp_pb2.pyi}",
+        ":pandora_experimental-python-gen-src{pandora_experimental/dck_pb2.pyi}",
         ":pandora_experimental-python-gen-src{pandora_experimental/gatt_pb2.pyi}",
         ":pandora_experimental-python-gen-src{pandora_experimental/hfp_pb2.pyi}",
         ":pandora_experimental-python-gen-src{pandora_experimental/hid_pb2.pyi}",
