@@ -9,18 +9,19 @@ use crate::engine::{Rule, RuleGroup, Signal};
 use crate::parser::{Packet, PacketChild};
 use bt_packets::hci::{
     Acl, AclCommandChild, Address, AuthenticatedPayloadTimeoutExpired, CommandChild,
-    ConnectionManagementCommandChild, DisconnectReason, ErrorCode, EventChild,
+    ConnectionManagementCommandChild, DisconnectReason, Enable, ErrorCode, EventChild,
     InitiatorFilterPolicy, LeConnectionManagementCommandChild, LeMetaEventChild,
     NumberOfCompletedPackets, OpCode, ScoConnectionCommandChild, SecurityCommandChild,
 };
 
 enum ConnectionSignal {
-    LinkKeyMismatch,      // Peer forgets the link key or it mismatches ours
-    NocpDisconnect,       // Peer is disconnected when NOCP packet isn't yet received
-    NocpTimeout,          // Host doesn't receive NOCP packet 5 seconds after ACL is sent
-    ApteDisconnect,       // Host doesn't receive a packet with valid MIC for a while.
-    RemoteFeatureNoReply, // Host doesn't receive a response for a remote feature request.
-    RemoteFeatureError,   // Controller replies error for remote feature request.
+    LinkKeyMismatch, // Peer forgets the link key or it mismatches ours. (b/284802375)
+    NocpDisconnect,  // Peer is disconnected when NOCP packet isn't yet received. (b/249295604)
+    NocpTimeout,     // Host doesn't receive NOCP packet 5 seconds after ACL is sent. (b/249295604)
+    ApteDisconnect,  // Host doesn't receive a packet with valid MIC for a while. (b/299850738)
+    RemoteFeatureNoReply, // Host doesn't receive a response for a remote feature request. (b/300851411)
+    RemoteFeatureError,   // Controller replies error for remote feature request. (b/292116133)
+    SecurityMode3,        // Peer uses the unsupported legacy security mode 3. (b/260625799)
 }
 
 impl Into<&'static str> for ConnectionSignal {
@@ -32,6 +33,7 @@ impl Into<&'static str> for ConnectionSignal {
             ConnectionSignal::ApteDisconnect => "AuthenticatedPayloadTimeoutExpired",
             ConnectionSignal::RemoteFeatureError => "RemoteFeatureError",
             ConnectionSignal::RemoteFeatureNoReply => "RemoteFeatureNoReply",
+            ConnectionSignal::SecurityMode3 => "UnsupportedSecurityMode3",
         }
     }
 }
@@ -970,11 +972,82 @@ impl Rule for LinkKeyMismatchRule {
     }
 }
 
+struct SecurityMode3Rule {
+    /// Pre-defined signals discovered in the logs.
+    signals: Vec<Signal>,
+
+    /// Interesting occurrences surfaced by this rule.
+    reportable: Vec<(NaiveDateTime, String)>,
+}
+
+impl SecurityMode3Rule {
+    pub fn new() -> Self {
+        SecurityMode3Rule { signals: vec![], reportable: vec![] }
+    }
+
+    fn process_connect_complete(
+        &mut self,
+        status: ErrorCode,
+        address: Address,
+        encryption_enabled: Enable,
+        packet: &Packet,
+    ) {
+        // See figure 5.2 and 5.3 in BT spec v5.4 Vol 3 Part C 5.2 for security mode 3 explanation.
+        // It is indicated by encryption before the link setup is complete.
+        // Therefore we just need to observe the encryption_enabled parameter in conn complete evt.
+        if status == ErrorCode::Success && encryption_enabled == Enable::Enabled {
+            self.signals.push(Signal {
+                index: packet.index,
+                ts: packet.ts,
+                tag: ConnectionSignal::SecurityMode3.into(),
+            });
+
+            self.reportable.push((
+                packet.ts,
+                format!("Device {} uses unsupported legacy security mode 3 (b/260625799)", address),
+            ));
+        }
+    }
+}
+
+impl Rule for SecurityMode3Rule {
+    fn process(&mut self, packet: &Packet) {
+        match &packet.inner {
+            PacketChild::HciEvent(ev) => match ev.specialize() {
+                EventChild::ConnectionComplete(ev) => {
+                    self.process_connect_complete(
+                        ev.get_status(),
+                        ev.get_bd_addr(),
+                        ev.get_encryption_enabled(),
+                        packet,
+                    );
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+    fn report(&self, writer: &mut dyn Write) {
+        if self.reportable.len() > 0 {
+            let _ = writeln!(writer, "SecurityMode3Rule report:");
+            for (ts, message) in self.reportable.iter() {
+                let _ = writeln!(writer, "[{:?}] {}", ts, message);
+            }
+        }
+    }
+
+    fn report_signals(&self) -> &[Signal] {
+        self.signals.as_slice()
+    }
+}
+
 /// Get a rule group with connection rules.
 pub fn get_connections_group() -> RuleGroup {
     let mut group = RuleGroup::new();
     group.add_rule(Box::new(LinkKeyMismatchRule::new()));
     group.add_rule(Box::new(OddDisconnectionsRule::new()));
+    group.add_rule(Box::new(SecurityMode3Rule::new()));
 
     group
 }
