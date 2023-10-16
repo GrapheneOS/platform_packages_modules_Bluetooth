@@ -17,10 +17,12 @@
 package com.android.bluetooth.a2dp;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import static com.android.bluetooth.Utils.checkCallerTargetSdk;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 import static com.android.bluetooth.Utils.enforceCdmAssociation;
 import static com.android.bluetooth.Utils.hasBluetoothPrivilegedPermission;
+
 import static java.util.Objects.requireNonNull;
 
 import android.annotation.NonNull;
@@ -57,6 +59,7 @@ import android.util.Log;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.BluetoothStatsLog;
+import com.android.bluetooth.Flags;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
@@ -1341,11 +1344,13 @@ public class A2dpService extends ProfileService {
         if (toState == BluetoothProfile.STATE_CONNECTED) {
             MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.A2DP);
         }
-        // Set the active device if only one connected device is supported and it was connected
-        if (toState == BluetoothProfile.STATE_CONNECTED && (mMaxConnectedAudioDevices == 1)) {
-            setActiveDevice(device);
+        if (!Flags.audioRoutingCentralization()) {
+            // Set the active device if only one connected device is supported and it was connected
+            if (toState == BluetoothProfile.STATE_CONNECTED && (mMaxConnectedAudioDevices == 1)) {
+                setActiveDevice(device);
+            }
+            // When disconnected, ActiveDeviceManager will call setActiveDevice(null)
         }
-        // When disconnected, ActiveDeviceManager will call setActiveDevice(null)
 
         // Check if the device is disconnected - if unbond, remove the state machine
         if (toState == BluetoothProfile.STATE_DISCONNECTED) {
