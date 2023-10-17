@@ -144,7 +144,7 @@ bool LeAudioTransport::GetPresentationPosition(uint64_t* remote_delay_report_ns,
 }
 
 void LeAudioTransport::SourceMetadataChanged(
-    const source_metadata_t& source_metadata) {
+    const source_metadata_v7_t& source_metadata) {
   auto track_count = source_metadata.track_count;
 
   if (track_count == 0) {
@@ -156,7 +156,7 @@ void LeAudioTransport::SourceMetadataChanged(
 }
 
 void LeAudioTransport::SinkMetadataChanged(
-    const sink_metadata_t& sink_metadata) {
+    const sink_metadata_v7_t& sink_metadata) {
   auto track_count = sink_metadata.track_count;
 
   if (track_count == 0) {
@@ -292,12 +292,12 @@ bool LeAudioSinkTransport::GetPresentationPosition(
 }
 
 void LeAudioSinkTransport::SourceMetadataChanged(
-    const source_metadata_t& source_metadata) {
+    const source_metadata_v7_t& source_metadata) {
   transport_->SourceMetadataChanged(source_metadata);
 }
 
 void LeAudioSinkTransport::SinkMetadataChanged(
-    const sink_metadata_t& sink_metadata) {
+    const sink_metadata_v7_t& sink_metadata) {
   transport_->SinkMetadataChanged(sink_metadata);
 }
 
@@ -382,12 +382,12 @@ bool LeAudioSourceTransport::GetPresentationPosition(
 }
 
 void LeAudioSourceTransport::SourceMetadataChanged(
-    const source_metadata_t& source_metadata) {
+    const source_metadata_v7_t& source_metadata) {
   transport_->SourceMetadataChanged(source_metadata);
 }
 
 void LeAudioSourceTransport::SinkMetadataChanged(
-    const sink_metadata_t& sink_metadata) {
+    const sink_metadata_v7_t& sink_metadata) {
   transport_->SinkMetadataChanged(sink_metadata);
 }
 
