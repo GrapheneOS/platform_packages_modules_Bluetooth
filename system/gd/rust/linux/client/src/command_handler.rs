@@ -9,7 +9,7 @@ use crate::bt_gatt::AuthReq;
 use crate::callbacks::{BtGattCallback, BtGattServerCallback};
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
-use bt_topshim::btif::{BtConnectionState, BtDiscMode, BtStatus, BtTransport};
+use bt_topshim::btif::{BtConnectionState, BtDiscMode, BtStatus, BtTransport, INVALID_RSSI};
 use bt_topshim::profiles::hid_host::BthhReportType;
 use bt_topshim::profiles::sdp::{BtSdpMpsRecord, BtSdpRecord};
 use bt_topshim::profiles::{gatt::LePhy, ProfileConnectionState};
@@ -155,6 +155,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
                 String::from("device set-pairing-pin <address> <pin|reject>"),
                 String::from("device set-pairing-passkey <address> <passkey|reject>"),
                 String::from("device set-alias <address> <new-alias>"),
+                String::from("device get-rssi <address>"),
             ],
             description: String::from("Take action on a remote device. (i.e. info)"),
             function_pointer: CommandHandler::cmd_device,
@@ -895,6 +896,27 @@ impl CommandHandler {
                     accept,
                     passkey,
                 );
+            }
+            "get-rssi" => {
+                let device = BluetoothDevice {
+                    address: String::from(get_arg(args, 1)?),
+                    name: String::from(""),
+                };
+
+                match self
+                    .lock_context()
+                    .adapter_dbus
+                    .as_mut()
+                    .unwrap()
+                    .get_remote_rssi(device.clone())
+                {
+                    INVALID_RSSI => {
+                        println!("Invalid RSSI");
+                    }
+                    rssi => {
+                        println!("RSSI: {}", rssi);
+                    }
+                };
             }
             other => {
                 println!("Invalid argument '{}'", other);
