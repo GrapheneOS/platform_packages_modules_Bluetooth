@@ -22,6 +22,8 @@
 #include "bta/include/bta_api.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 
+void bta_dm_sec_enable(tBTA_DM_SEC_CBACK* p_sec_cback);
+
 void bta_dm_add_ble_device(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
                            tBT_DEVICE_TYPE dev_type);
 void bta_dm_add_blekey(const RawAddress& bd_addr, tBTA_LE_KEY_VALUE blekey,
