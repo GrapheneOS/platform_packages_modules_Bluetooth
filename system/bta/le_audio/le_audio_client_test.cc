@@ -1761,6 +1761,24 @@ class UnicastTestNoInit : public Test {
   void UpdateLocalSourceMetadata(
       std::vector<struct playback_track_metadata> tracks,
       bool reconfigure_existing_stream = false) {
+    std::vector<playback_track_metadata_v7> tracks_vec;
+    tracks_vec.reserve(tracks.size());
+    for (const auto& track : tracks) {
+      playback_track_metadata_v7 desc_track = {
+          .base =
+              {
+                  .usage = static_cast<audio_usage_t>(track.usage),
+                  .content_type =
+                      static_cast<audio_content_type_t>(track.content_type),
+                  .gain = track.gain,
+              },
+      };
+      tracks_vec.push_back(desc_track);
+    }
+
+    const source_metadata_v7_t source_metadata = {
+        .track_count = tracks_vec.size(), .tracks = tracks_vec.data()};
+
     ASSERT_NE(nullptr, mock_le_audio_source_hal_client_);
     /* Local Source may reconfigure once the metadata is updated */
     if (reconfigure_existing_stream) {
@@ -1781,7 +1799,7 @@ class UnicastTestNoInit : public Test {
     }
 
     ASSERT_NE(unicast_source_hal_cb_, nullptr);
-    unicast_source_hal_cb_->OnAudioMetadataUpdate(tracks);
+    unicast_source_hal_cb_->OnAudioMetadataUpdate(source_metadata);
   }
 
   void UpdateLocalSourceMetadata(audio_usage_t usage,
@@ -1797,12 +1815,33 @@ class UnicastTestNoInit : public Test {
   }
 
   void UpdateLocalSinkMetadata(audio_source_t audio_source) {
-    std::vector<struct record_track_metadata> sink_metadata = {
+    std::vector<struct record_track_metadata> tracks = {
         {{AUDIO_SOURCE_INVALID, 0.5, AUDIO_DEVICE_NONE, "00:11:22:33:44:55"},
          {AUDIO_SOURCE_MIC, 0.7, AUDIO_DEVICE_OUT_BLE_HEADSET,
           "AA:BB:CC:DD:EE:FF"}}};
 
-    sink_metadata[1].source = audio_source;
+    tracks[1].source = audio_source;
+
+    std::vector<record_track_metadata_v7> tracks_vec;
+    tracks_vec.reserve(tracks.size());
+    for (const auto& track : tracks) {
+      record_track_metadata_v7 desc_track = {
+          .base =
+              {
+                  .source = static_cast<audio_source_t>(track.source),
+                  .gain = track.gain,
+                  .dest_device =
+                      static_cast<audio_devices_t>(track.dest_device),
+              },
+      };
+
+      strcpy(desc_track.base.dest_device_address, track.dest_device_address);
+      tracks_vec.push_back(desc_track);
+    }
+
+    const sink_metadata_v7_t sink_metadata = {.track_count = tracks_vec.size(),
+                                              .tracks = tracks_vec.data()};
+
     ASSERT_NE(nullptr, unicast_sink_hal_cb_);
     unicast_sink_hal_cb_->OnAudioMetadataUpdate(sink_metadata);
   }
