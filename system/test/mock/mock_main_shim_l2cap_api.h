@@ -52,7 +52,6 @@
 #include "stack/include/btm_api.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/sco_hci_link_interface.h"
-#include "test/common/mock_functions.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 

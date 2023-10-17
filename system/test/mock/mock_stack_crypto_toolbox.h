@@ -39,7 +39,6 @@
 
 #include "stack/crypto_toolbox/aes.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
-#include "test/common/mock_functions.h"
 
 // Mocked compile conditionals, if any
 #ifndef UNUSED_ATTR

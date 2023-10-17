@@ -26,6 +26,7 @@
 #include "btif/include/btif_common.h"
 #include "common/init_flags.h"
 #include "device/src/device_iot_config_int.h"
+#include "test/common/mock_functions.h"
 #include "test/mock/mock_osi_alarm.h"
 #include "test/mock/mock_osi_allocator.h"
 #include "test/mock/mock_osi_config.h"

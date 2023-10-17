@@ -20,6 +20,8 @@
  *
  *  mockcify.pl ver 0.2
  */
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_stack_l2cap_ble.h"
 
 #include <map>
 #include <string>
@@ -31,8 +33,7 @@
 //       for this effort.  This compilation unit may compile as-is, or
 //       may need attention to prune the inclusion set.
 
-// Mock include file to share data between tests and mock
-#include "test/mock/mock_stack_l2cap_ble.h"
+#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any

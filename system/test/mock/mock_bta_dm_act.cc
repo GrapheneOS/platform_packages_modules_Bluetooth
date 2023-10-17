@@ -21,13 +21,15 @@
  *  mockcify.pl ver 0.3.0
  */
 
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_bta_dm_act.h"
+
 #include <cstdint>
 #include <functional>
 #include <map>
 #include <string>
 
-// Mock include file to share data between tests and mock
-#include "test/mock/mock_bta_dm_act.h"
+#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 // Mocked internal structures, if any

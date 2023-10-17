@@ -37,7 +37,6 @@
 #include <mutex>
 
 #include "osi/include/mutex.h"
-#include "test/common/mock_functions.h"
 
 // Mocked compile conditionals, if any
 

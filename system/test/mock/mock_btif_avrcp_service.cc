@@ -20,13 +20,15 @@
  *  mockcify.pl ver 0.5.0
  */
 
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_btif_avrcp_service.h"
+
 #include <cstdint>
 #include <functional>
 #include <map>
 #include <string>
 
-// Mock include file to share data between tests and mock
-#include "test/mock/mock_btif_avrcp_service.h"
+#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 // Original usings
