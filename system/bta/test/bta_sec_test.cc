@@ -64,7 +64,7 @@ TEST_F(BtaSecTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithName) {
          tBT_TRANSPORT transport) -> tBTM_STATUS { return BTM_CMD_STARTED; };
 
   static tBTA_DM_SP_CFM_REQ cfm_req{};
-  bta_dm_enable([](tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
+  bta_dm_sec_enable([](tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
     callback_sent = true;
     cfm_req = p_data->cfm_req;
   });
@@ -115,7 +115,7 @@ TEST_F(BtaSecTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithoutName_RNRSuccess) {
          tBT_TRANSPORT transport) -> tBTM_STATUS { return BTM_CMD_STARTED; };
 
   static tBTA_DM_SP_CFM_REQ cfm_req{};
-  bta_dm_enable([](tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
+  bta_dm_sec_enable([](tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
     callback_sent = true;
     cfm_req = p_data->cfm_req;
   });
@@ -156,7 +156,7 @@ TEST_F(BtaSecTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithoutName_RNRFail) {
          tBT_TRANSPORT transport) -> tBTM_STATUS { return BTM_SUCCESS; };
 
   static tBTA_DM_SP_CFM_REQ cfm_req{};
-  bta_dm_enable([](tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
+  bta_dm_sec_enable([](tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
     callback_sent = true;
     cfm_req = p_data->cfm_req;
   });
@@ -205,7 +205,7 @@ TEST_F(BtaSecTest, bta_dm_sp_cback__BTM_SP_KEY_NOTIF_EVT) {
          tBT_TRANSPORT transport) -> tBTM_STATUS { return BTM_CMD_STARTED; };
 
   static tBTA_DM_SP_KEY_NOTIF key_notif{};
-  bta_dm_enable([](tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
+  bta_dm_sec_enable([](tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
     callback_sent = true;
     key_notif = p_data->key_notif;
   });
