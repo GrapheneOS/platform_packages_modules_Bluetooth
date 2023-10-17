@@ -326,8 +326,11 @@ struct InformationalRule {
     devices: HashMap<Address, DeviceInformation>,
     handles: HashMap<ConnectionHandle, Address>,
     sco_handles: HashMap<ConnectionHandle, ConnectionHandle>,
-    // unknownConnections store connections which is initiated before btsnoop starts.
+    /// unknownConnections store connections which is initiated before btsnoop starts.
     unknown_connections: HashMap<ConnectionHandle, AclInformation>,
+    /// When powering off, the controller might or might not reply disconnection request. Therefore
+    /// make this a special case.
+    pending_disconnect_due_to_host_power_off: HashSet<ConnectionHandle>,
 }
 
 impl InformationalRule {
@@ -337,6 +340,7 @@ impl InformationalRule {
             handles: HashMap::new(),
             sco_handles: HashMap::new(),
             unknown_connections: HashMap::new(),
+            pending_disconnect_due_to_host_power_off: HashSet::new(),
         }
     }
 
@@ -454,6 +458,7 @@ impl InformationalRule {
             self.report_connection_end(handle, ts);
         }
         self.sco_handles.clear();
+        self.pending_disconnect_due_to_host_power_off.clear();
     }
 
     fn _report_profile_start(
@@ -537,7 +542,14 @@ impl Rule for InformationalRule {
                 }
 
                 EventChild::DisconnectionComplete(ev) => {
-                    self.report_connection_end(ev.get_connection_handle(), packet.ts);
+                    // If disconnected because host is powering off, the event has been processed.
+                    // We can't just query the reason here because it's different across vendors.
+                    if !self
+                        .pending_disconnect_due_to_host_power_off
+                        .remove(&ev.get_connection_handle())
+                    {
+                        self.report_connection_end(ev.get_connection_handle(), packet.ts);
+                    }
                 }
 
                 EventChild::ExtendedInquiryResult(ev) => {
@@ -638,6 +650,8 @@ impl Rule for InformationalRule {
                         if cmd.get_reason()
                             == DisconnectReason::RemoteDeviceTerminatedConnectionPowerOff
                         {
+                            self.pending_disconnect_due_to_host_power_off
+                                .insert(cmd.get_connection_handle());
                             self.report_connection_end(cmd.get_connection_handle(), packet.ts);
                         }
                     }
