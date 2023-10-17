@@ -24,15 +24,8 @@
 #include <base/strings/string_number_conversions.h>
 #include <hardware/bt_vc.h>
 
-#include <map>
-#include <string>
-#include <vector>
-
-#include "bind_helpers.h"
-#include "bta/include/bta_gatt_api.h"
 #include "bta/include/bta_gatt_queue.h"
 #include "bta/include/bta_vc_api.h"
-#include "btif/include/btif_storage.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 

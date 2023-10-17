@@ -19,7 +19,7 @@
  *   Functions generated:2
  */
 
-#include "bta/av/bta_av_int.h"
+#include "bta/include/bta_av_api.h"
 #include "test/common/mock_functions.h"
 
 void bta_av_ci_setconfig(tBTA_AV_HNDL bta_av_handle, uint8_t err_code,

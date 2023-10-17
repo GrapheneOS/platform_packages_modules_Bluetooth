@@ -20,8 +20,6 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "stack/include/gap_api.h"
 #include "test/common/mock_functions.h"

@@ -24,9 +24,6 @@
 #include "test/mock/mock_btif_bta_pan_co_rx.h"
 
 #include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
 
 #include "test/common/mock_functions.h"
 

@@ -19,8 +19,6 @@
  *   Functions generated:12
  */
 
-#include <map>
-#include <string>
 #include <vector>
 
 #include "bta/vc/devices.h"

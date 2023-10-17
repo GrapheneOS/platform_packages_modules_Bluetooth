@@ -23,8 +23,6 @@
 #include "test/mock/mock_stack_a2dp_sbc.h"
 
 #include <cstdint>
-#include <functional>
-#include <map>
 #include <string>
 
 #include "test/common/mock_functions.h"

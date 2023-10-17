@@ -20,11 +20,8 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "stack/btm/btm_int_types.h"
-#include "stack/include/rfcdefs.h"
 #include "test/common/mock_functions.h"
 
 bool BTM_FreeSCN(uint8_t scn) {

@@ -20,8 +20,6 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "stack/include/bt_hdr.h"
 #include "stack/l2cap/l2c_int.h"

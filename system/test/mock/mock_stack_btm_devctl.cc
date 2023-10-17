@@ -23,26 +23,7 @@
 #include <base/logging.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <map>
-#include <string>
-
-#include "bta/dm/bta_dm_int.h"
-#include "bta/sys/bta_sys.h"
-#include "btcore/include/module.h"
-#include "btif/include/btif_bqr.h"
-#include "common/message_loop_thread.h"
-#include "device/include/controller.h"
-#include "hci/include/hci_layer.h"
-#include "main/shim/btm_api.h"
-#include "main/shim/controller.h"
-#include "main/shim/shim.h"
-#include "osi/include/osi.h"
-#include "stack/btm/btm_ble_int.h"
-#include "stack/gatt/connection_manager.h"
-#include "stack/include/acl_api.h"
-#include "stack/include/l2cap_controller_interface.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 

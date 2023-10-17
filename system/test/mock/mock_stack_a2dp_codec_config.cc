@@ -20,18 +20,11 @@
  */
 
 #include <base/logging.h>
-#include <inttypes.h>
 
-#include <map>
 #include <string>
 
-#include "a2dp_aac.h"
 #include "a2dp_codec_api.h"
-#include "a2dp_sbc.h"
-#include "a2dp_vendor.h"
 #include "bta/av/bta_av_int.h"
-#include "osi/include/log.h"
-#include "osi/include/properties.h"
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
 

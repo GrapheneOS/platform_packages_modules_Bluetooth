@@ -24,8 +24,6 @@
 #include "test/mock/mock_stack_pan_api.h"
 
 #include <cstdint>
-#include <functional>
-#include <map>
 #include <string>
 
 #include "test/common/mock_functions.h"

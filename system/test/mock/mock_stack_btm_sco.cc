@@ -20,8 +20,6 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "device/include/esco_parameters.h"
 #include "stack/include/bt_hdr.h"

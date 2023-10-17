@@ -24,13 +24,11 @@
 #include "gd/neighbor/connectability.h"
 #include "gd/neighbor/discoverability.h"
 #include "gd/neighbor/inquiry.h"
-#include "gd/neighbor/inquiry_mock.h"
 #include "gd/neighbor/page.h"
 #include "gd/os/handler.h"
 #include "gd/security/security_module.h"
 #include "gd/storage/storage_module.h"
 #include "main/shim/entry.h"
-#include "main/shim/stack.h"
 
 namespace bluetooth {
 namespace hci {

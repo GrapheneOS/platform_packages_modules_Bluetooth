@@ -24,11 +24,6 @@
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_common_os_utils.h"
 
-#include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
-
 #include "test/common/mock_functions.h"
 
 // Mocked internal structures, if any

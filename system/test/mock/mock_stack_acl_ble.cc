@@ -20,16 +20,8 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
-#include "osi/include/log.h"
-#include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
-#include "stack/btm/btm_sec.h"
-#include "stack/gatt/connection_manager.h"
-#include "stack/include/acl_api.h"
-#include "stack/include/l2cap_hci_link_interface.h"
 #include "test/common/mock_functions.h"
 #include "types/ble_address_with_type.h"
 #include "types/hci_role.h"

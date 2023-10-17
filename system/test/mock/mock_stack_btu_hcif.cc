@@ -20,8 +20,6 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #define LOG_TAG "bt_btu_hcif"
 #include <base/functional/bind.h>

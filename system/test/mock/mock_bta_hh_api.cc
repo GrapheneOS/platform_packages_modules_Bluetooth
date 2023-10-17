@@ -20,14 +20,8 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
-#include "bt_target.h"
-#include "bta/hh/bta_hh_int.h"
-#include "bta/sys/bta_sys.h"
-#include "osi/include/allocator.h"
-#include "osi/include/osi.h"
+#include "bta/include/bta_hh_api.h"
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"

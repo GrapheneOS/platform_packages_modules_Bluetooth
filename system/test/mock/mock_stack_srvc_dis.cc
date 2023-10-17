@@ -20,8 +20,6 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "stack/include/srvc_api.h"
 #include "stack/srvc/srvc_eng_int.h"

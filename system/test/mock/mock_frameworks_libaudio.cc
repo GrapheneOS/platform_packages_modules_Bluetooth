@@ -19,9 +19,6 @@
  *   Functions generated:60
  */
 
-#include <map>
-#include <string>
-
 #include "test/common/mock_functions.h"
 
 #undef __INTRODUCED_IN

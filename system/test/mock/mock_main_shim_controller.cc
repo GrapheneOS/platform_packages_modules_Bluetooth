@@ -19,9 +19,6 @@
  *   Functions generated:9
  */
 
-#include <map>
-#include <string>
-
 #include "device/include/controller.h"
 #include "main/shim/controller.h"
 #include "test/common/mock_functions.h"

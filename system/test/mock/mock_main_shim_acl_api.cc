@@ -19,9 +19,7 @@
  *   Functions generated:5
  */
 
-#include <cstddef>
 #include <cstdint>
-#include <map>
 #include <string>
 
 #include "main/shim/acl_api.h"

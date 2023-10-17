@@ -20,8 +20,6 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "bta/include/bta_hh_api.h"
 #include "bta/include/bta_hh_co.h"

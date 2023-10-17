@@ -18,9 +18,6 @@
 #include <base/functional/bind.h>
 #include <hardware/bt_le_audio.h>
 
-#include <map>
-#include <string>
-
 #include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "test/common/mock_functions.h"
 

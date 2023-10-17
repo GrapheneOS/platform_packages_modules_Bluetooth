@@ -19,12 +19,6 @@
  *   Functions generated:8
  */
 
-#include <map>
-#include <string>
-
-#include "bt_target.h"
-#include "bta/pan/bta_pan_int.h"
-#include "osi/include/allocator.h"
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"

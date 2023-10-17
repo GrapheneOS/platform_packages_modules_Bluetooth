@@ -19,9 +19,6 @@
  *   Functions generated:3
  */
 
-#include <map>
-#include <string>
-
 #include "include/hardware/ble_scanner.h"
 #include "main/shim/le_scanning_manager.h"
 #include "test/common/mock_functions.h"

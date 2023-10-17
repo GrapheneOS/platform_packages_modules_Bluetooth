@@ -19,20 +19,7 @@
  *   Functions generated:9
  */
 
-#include <string.h>
-
-#include <map>
-#include <string>
-
 #include "avct_api.h"
-#include "bt_target.h"
-#include "bta/include/bta_api.h"
-#include "btm_api.h"
-#include "l2c_api.h"
-#include "l2cdefs.h"
-#include "osi/include/osi.h"
-#include "stack/avct/avct_int.h"
-#include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"

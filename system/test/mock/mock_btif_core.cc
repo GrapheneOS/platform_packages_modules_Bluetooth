@@ -22,7 +22,6 @@
 #include <base/functional/bind.h>
 
 #include <cstdint>
-#include <string>
 
 #include "bta/include/bta_api.h"
 #include "btif/include/btif_common.h"

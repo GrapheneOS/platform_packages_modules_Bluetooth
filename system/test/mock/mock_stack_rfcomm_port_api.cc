@@ -20,20 +20,8 @@
  */
 
 #include <base/logging.h>
-#include <string.h>
 
-#include <map>
-#include <string>
-
-#include "l2c_api.h"
-#include "osi/include/log.h"
-#include "osi/include/mutex.h"
 #include "port_api.h"
-#include "rfcdefs.h"
-#include "sdp_api.h"
-#include "stack/include/btm_api_types.h"
-#include "stack/rfcomm/port_int.h"
-#include "stack/rfcomm/rfc_int.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 

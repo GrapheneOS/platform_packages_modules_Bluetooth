@@ -22,8 +22,6 @@
 #include <base/logging.h>
 #include <openssl/hmac.h>
 
-#include <algorithm>
-#include <map>
 #include <string>
 
 #include "common/address_obfuscator.h"

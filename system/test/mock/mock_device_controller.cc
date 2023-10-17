@@ -24,11 +24,6 @@
 #include "test/mock/mock_device_controller.h"
 
 // Original included files, if any
-// NOTE: Since this is a mock file with mock definitions some number of
-//       include files may not be required.  The include-what-you-use
-//       still applies, but crafting proper inclusion is out of scope
-//       for this effort.  This compilation unit may compile as-is, or
-//       may need attention to prune the inclusion set.
 #include "btcore/include/version.h"
 #include "device/include/controller.h"
 #include "stack/include/btm_api_types.h"

@@ -24,9 +24,6 @@
 #include "test/mock/mock_stack_btm_hfp_msbc_encoder.h"
 
 #include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
 
 #ifndef __clang_analyzer__
 

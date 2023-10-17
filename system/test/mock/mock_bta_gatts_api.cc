@@ -24,14 +24,9 @@
 #include <base/location.h>
 
 #include <cstdint>
-#include <map>
-#include <memory>
-#include <string>
 #include <vector>
 
-#include "bt_target.h"
-#include "bta/gatt/bta_gatts_int.h"
-#include "osi/include/allocator.h"
+#include "bta/include/bta_gatt_api.h"
 #include "test/common/mock_functions.h"
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"

@@ -20,15 +20,7 @@
  */
 
 #include <base/logging.h>
-#include <string.h>
 
-#include <map>
-#include <string>
-
-#include "osi/include/fixed_queue.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
-#include "osi/include/properties.h"
 #include "stack/avrc/avrc_int.h"
 #include "stack/include/avrc_api.h"
 #include "stack/include/bt_hdr.h"

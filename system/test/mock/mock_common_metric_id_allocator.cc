@@ -21,11 +21,7 @@
 
 #include <base/logging.h>
 
-#include <functional>
-#include <map>
-#include <mutex>
 #include <string>
-#include <thread>
 
 #include "common/metric_id_allocator.h"
 #include "test/common/mock_functions.h"

@@ -24,8 +24,6 @@
 #include "test/mock/mock_stack_acl.h"
 
 #include <cstdint>
-#include <functional>
-#include <map>
 #include <string>
 
 #include "stack/include/bt_hdr.h"

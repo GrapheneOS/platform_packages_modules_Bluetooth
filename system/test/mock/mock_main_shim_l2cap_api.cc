@@ -24,9 +24,6 @@
 #include "test/mock/mock_main_shim_l2cap_api.h"
 
 #include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
 
 // Mock include file to share data between tests and mock
 

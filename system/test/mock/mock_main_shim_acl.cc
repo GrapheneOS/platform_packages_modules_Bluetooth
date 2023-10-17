@@ -19,13 +19,7 @@
  *   Functions generated:7
  */
 
-#include <cstdint>
-#include <map>
-#include <string>
-
 #include "main/shim/acl_api.h"
 #include "test/common/mock_functions.h"
-#include "types/ble_address_with_type.h"
-#include "types/raw_address.h"
 
 void bluetooth::shim::ACL_Shutdown() { inc_func_call_count(__func__); }

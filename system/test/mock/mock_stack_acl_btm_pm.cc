@@ -22,16 +22,7 @@
 #include <base/strings/stringprintf.h>
 
 #include <cstdint>
-#include <map>
-#include <string>
-#include <unordered_map>
 
-#include "bt_target.h"
-#include "device/include/controller.h"
-#include "main/shim/dumpsys.h"
-#include "main/shim/shim.h"
-#include "osi/include/log.h"
-#include "stack/btm/btm_int_types.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_status.h"

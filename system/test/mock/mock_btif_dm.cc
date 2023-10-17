@@ -20,8 +20,6 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "bta/include/bta_api.h"
 #include "include/hardware/bluetooth.h"

@@ -19,19 +19,8 @@
  *   Functions generated:11
  */
 
-#include <string.h>
-
-#include <map>
-#include <string>
-
-#include "bt_target.h"
-#include "main/shim/shim.h"
 #include "stack/btm/btm_dev.h"
-#include "stack/include/l2c_api.h"
-#include "stack/include/l2cdefs.h"
 #include "stack/include/smp_api.h"
-#include "stack/smp/smp_int.h"
-#include "stack_config.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 

@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <map>
-#include <string>
 
 #include "bta/include/bta_le_audio_api.h"
 #include "test/common/mock_functions.h"

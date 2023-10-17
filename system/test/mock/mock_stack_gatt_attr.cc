@@ -22,8 +22,6 @@
 #include <base/functional/callback.h>
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "stack/gatt/gatt_int.h"
 #include "test/common/mock_functions.h"

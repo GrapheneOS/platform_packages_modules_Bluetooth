@@ -17,13 +17,7 @@
 #include <base/functional/callback.h>
 #include <stddef.h>
 
-#include <map>
-#include <string>
-
-#include "bt_target.h"
-#include "hcimsgs.h"
-#include "stack/include/acl_hci_link_interface.h"
-#include "stack/include/bt_octets.h"
+#include "stack/include/hcimsgs.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 

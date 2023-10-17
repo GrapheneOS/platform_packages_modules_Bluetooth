@@ -19,15 +19,8 @@
  *   Functions generated:3
  */
 
-#include <map>
-#include <string>
-#include <vector>
-
-#include "btif/include/btif_common.h"
-#include "gd/common/init_flags.h"
 #include "include/hardware/ble_advertiser.h"
 #include "main/shim/le_advertising_manager.h"
-#include "stack/include/ble_advertiser.h"
 #include "test/common/mock_functions.h"
 
 BleAdvertiserInterface* bluetooth::shim::get_ble_advertiser_instance() {

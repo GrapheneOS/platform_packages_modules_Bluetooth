@@ -19,12 +19,6 @@
  *   Functions generated:7
  */
 
-#include <string.h>
-
-#include <map>
-#include <string>
-
-#include "stack/avrc/avrc_int.h"
 #include "stack/include/avrc_api.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"

@@ -22,7 +22,6 @@
 #include <cstdint>
 
 #include "bta/sys/bta_sys.h"
-#include "osi/include/osi.h"
 #include "test/common/mock_functions.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"

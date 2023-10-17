@@ -23,8 +23,6 @@
 #include "test/mock/mock_stack_btm_sec.h"
 
 #include <cstdint>
-#include <functional>
-#include <map>
 #include <string>
 
 #include "test/common/mock_functions.h"

@@ -21,16 +21,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <map>
-#include <string>
-
-#include "btm_api.h"
-#include "hidd_api.h"
-#include "hiddefs.h"
-#include "stack/btm/btm_sec.h"
-#include "stack/hid/hidd_int.h"
+#include "stack/include/hidd_api.h"
+#include "stack/include/hiddefs.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 

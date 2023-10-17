@@ -20,13 +20,10 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "stack/include/bt_hdr.h"
 #include "stack/include/hiddefs.h"
 #include "stack/include/hidh_api.h"
-#include "stack/include/sdp_api.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 

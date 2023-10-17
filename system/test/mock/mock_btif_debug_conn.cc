@@ -19,9 +19,6 @@
  *   Functions generated:2
  */
 
-#include <map>
-#include <string>
-
 #include "btif/include/btif_debug_conn.h"
 #include "stack/include/gatt_api.h"
 #include "test/common/mock_functions.h"

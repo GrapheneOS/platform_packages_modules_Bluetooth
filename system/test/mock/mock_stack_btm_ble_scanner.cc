@@ -20,21 +20,10 @@
 #include <base/memory/weak_ptr.h>
 #include <base/strings/string_number_conversions.h>
 #include <base/time/time.h>
-#include <string.h>
 
-#include <map>
-#include <queue>
-#include <string>
-#include <vector>
-
-#include "bind_helpers.h"
 #include "ble_scanner.h"
-#include "bt_target.h"
-#include "device/include/controller.h"
-#include "osi/include/alarm.h"
 #include "stack/btm/ble_scanner_hci_interface.h"
 #include "stack/btm/btm_ble_int.h"
-#include "stack/btm/btm_int_types.h"
 #include "test/common/mock_functions.h"
 
 void BleScanningManager::CleanUp() { inc_func_call_count(__func__); }

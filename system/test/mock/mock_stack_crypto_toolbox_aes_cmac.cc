@@ -19,10 +19,6 @@
  *   Functions generated:1
  */
 
-#include <map>
-#include <string>
-
-#include "stack/crypto_toolbox/aes.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "test/common/mock_functions.h"
 

@@ -20,8 +20,6 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/bt_hdr.h"

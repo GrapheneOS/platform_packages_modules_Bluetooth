@@ -19,35 +19,11 @@
  *   Functions generated:36
  */
 
-#include <map>
 #include <string>
 
 #include "common/metrics.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
-
-#if 0
-#include <base/base64.h>
-#include <base/logging.h>
-#include <include/hardware/bt_av.h>
-#include <statslog.h>
-#include <unistd.h>
-#include <algorithm>
-#include <array>
-#include <cerrno>
-#include <chrono>
-#include <cstdint>
-#include <cstring>
-#include <memory>
-#include <mutex>
-#include "address_obfuscator.h"
-#include "bluetooth/metrics/bluetooth.pb.h"
-#include "leaky_bonded_queue.h"
-#include "metric_id_allocator.h"
-#include "osi/include/osi.h"
-#include "stack/include/btm_api_types.h"
-#include "time_util.h"
-#endif
 
 namespace bluetooth {
 namespace common {

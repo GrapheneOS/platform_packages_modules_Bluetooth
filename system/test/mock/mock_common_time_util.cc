@@ -20,10 +20,6 @@
  */
 
 #include <sys/time.h>
-#include <time.h>
-
-#include <map>
-#include <string>
 
 #include "common/time_util.h"
 #include "test/common/mock_functions.h"
