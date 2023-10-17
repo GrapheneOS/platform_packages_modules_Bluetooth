@@ -20,24 +20,12 @@
  */
 
 #include <base/logging.h>
-#include <string.h>
 
-#include <map>
-#include <string>
-
-#include "osi/include/fixed_queue.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
-#include "osi/include/properties.h"
 #include "stack/avrc/avrc_int.h"
 #include "stack/include/avrc_api.h"
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 bool avrcp_absolute_volume_is_enabled() {
   inc_func_call_count(__func__);

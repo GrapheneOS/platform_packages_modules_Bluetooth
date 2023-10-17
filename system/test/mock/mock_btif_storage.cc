@@ -20,20 +20,14 @@
  */
 
 #include <cstdint>
-#include <map>
 #include <string>
 
 #include "bta/include/bta_hearing_aid_api.h"
-#include "stack/btm/btm_int_types.h"
 #include "stack/include/bt_octets.h"
 #include "test/common/mock_functions.h"
 #include "types/ble_address_with_type.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 Octet16 btif_storage_get_gatt_cl_db_hash(const RawAddress& bd_addr) {
   inc_func_call_count(__func__);

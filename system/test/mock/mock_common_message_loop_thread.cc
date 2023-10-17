@@ -22,9 +22,6 @@
 
 #include <base/strings/stringprintf.h>
 
-#include "gd/common/init_flags.h"
-#include "osi/include/log.h"
-
 namespace bluetooth {
 
 namespace common {

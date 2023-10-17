@@ -20,8 +20,6 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "device/include/esco_parameters.h"
 #include "stack/include/bt_hdr.h"
@@ -31,10 +29,6 @@
 #include "test/common/mock_functions.h"
 #include "types/class_of_device.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 bool BTM_IsScoActiveByBdaddr(const RawAddress& remote_bda) {
   inc_func_call_count(__func__);

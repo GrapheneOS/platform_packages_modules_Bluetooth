@@ -22,7 +22,6 @@
 #include <base/functional/bind.h>
 
 #include <cstdint>
-#include <string>
 
 #include "bta/include/bta_api.h"
 #include "btif/include/btif_common.h"
@@ -30,10 +29,6 @@
 #include "test/common/jni_thread.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 bool btif_is_dut_mode() {
   inc_func_call_count(__func__);
