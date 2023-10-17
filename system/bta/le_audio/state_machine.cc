@@ -1250,10 +1250,13 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
   static bool isIntervalAndLatencyProperlySet(uint32_t sdu_interval_us,
                                               uint16_t max_latency_ms) {
+    LOG_VERBOSE("sdu_interval_us: %d, max_latency_ms: %d", sdu_interval_us,
+                max_latency_ms);
+
     if (sdu_interval_us == 0) {
       return max_latency_ms == le_audio::types::kMaxTransportLatencyMin;
     }
-    return ((1000 * max_latency_ms) > sdu_interval_us);
+    return ((1000 * max_latency_ms) >= sdu_interval_us);
   }
 
   bool CigCreate(LeAudioDeviceGroup* group) {
