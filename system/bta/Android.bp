@@ -46,6 +46,7 @@ filegroup {
         "dm/bta_dm_gatt_client.cc",
         "dm/bta_dm_main.cc",
         "dm/bta_dm_pm.cc",
+        "dm/bta_dm_sec.cc",
     ],
 }
 
@@ -412,6 +413,7 @@ cc_test {
         "test/bta_hf_client_add_record_test.cc",
         "test/bta_pan_test.cc",
         "test/bta_sdp_test.cc",
+        "test/bta_sec_test.cc",
     ],
     shared_libs: [
         "libbase",

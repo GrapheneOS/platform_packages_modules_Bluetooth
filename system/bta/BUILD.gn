@@ -45,6 +45,7 @@ static_library("bta") {
     "dm/bta_dm_gatt_client.cc",
     "dm/bta_dm_main.cc",
     "dm/bta_dm_pm.cc",
+    "dm/bta_dm_sec.cc",
     "gatt/bta_gattc_act.cc",
     "gatt/bta_gattc_api.cc",
     "gatt/bta_gattc_db_storage.cc",
