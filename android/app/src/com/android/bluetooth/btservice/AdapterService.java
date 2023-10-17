@@ -34,6 +34,7 @@ import static com.android.bluetooth.Utils.getBytesFromAddress;
 import static com.android.bluetooth.Utils.hasBluetoothPrivilegedPermission;
 import static com.android.bluetooth.Utils.isDualModeAudioEnabled;
 import static com.android.bluetooth.Utils.isPackageNameAccurate;
+
 import static java.util.Objects.requireNonNull;
 
 import android.annotation.NonNull;
@@ -122,6 +123,7 @@ import com.android.bluetooth.btservice.bluetoothkeystore.BluetoothKeystoreServic
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.btservice.storage.MetadataDatabase;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
+import com.android.bluetooth.flags.FeatureFlagsImpl;
 import com.android.bluetooth.gatt.GattService;
 import com.android.bluetooth.gatt.ScanManager;
 import com.android.bluetooth.hap.HapClientService;
@@ -689,7 +691,7 @@ public class AdapterService extends Service {
          */
         if (!isAutomotiveDevice && getResources().getBoolean(R.bool.enable_phone_policy)) {
             Log.i(TAG, "Phone policy enabled");
-            mPhonePolicy = new PhonePolicy(this, new ServiceFactory());
+            mPhonePolicy = new PhonePolicy(this, new ServiceFactory(), new FeatureFlagsImpl());
             mPhonePolicy.start();
         } else {
             Log.i(TAG, "Phone policy disabled");
