@@ -332,42 +332,42 @@ static void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
   if (p_attr != nullptr)
     record->dip.spec_id = p_attr->attr_value.v.u16;
   else
-    APPL_TRACE_ERROR("%s() ATTR_ID_SPECIFICATION_ID not found", __func__);
+    LOG_ERROR("%s() ATTR_ID_SPECIFICATION_ID not found", __func__);
 
   p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
       p_rec, ATTR_ID_VENDOR_ID);
   if (p_attr != nullptr)
     record->dip.vendor = p_attr->attr_value.v.u16;
   else
-    APPL_TRACE_ERROR("%s() ATTR_ID_VENDOR_ID not found", __func__);
+    LOG_ERROR("%s() ATTR_ID_VENDOR_ID not found", __func__);
 
   p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
       p_rec, ATTR_ID_VENDOR_ID_SOURCE);
   if (p_attr != nullptr)
     record->dip.vendor_id_source = p_attr->attr_value.v.u16;
   else
-    APPL_TRACE_ERROR("%s() ATTR_ID_VENDOR_ID_SOURCE not found", __func__);
+    LOG_ERROR("%s() ATTR_ID_VENDOR_ID_SOURCE not found", __func__);
 
   p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
       p_rec, ATTR_ID_PRODUCT_ID);
   if (p_attr != nullptr)
     record->dip.product = p_attr->attr_value.v.u16;
   else
-    APPL_TRACE_ERROR("%s() ATTR_ID_PRODUCT_ID not found", __func__);
+    LOG_ERROR("%s() ATTR_ID_PRODUCT_ID not found", __func__);
 
   p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
       p_rec, ATTR_ID_PRODUCT_VERSION);
   if (p_attr != nullptr)
     record->dip.version = p_attr->attr_value.v.u16;
   else
-    APPL_TRACE_ERROR("%s() ATTR_ID_PRODUCT_VERSION not found", __func__);
+    LOG_ERROR("%s() ATTR_ID_PRODUCT_VERSION not found", __func__);
 
   p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
       p_rec, ATTR_ID_PRIMARY_RECORD);
   if (p_attr != nullptr)
     record->dip.primary_record = !(!p_attr->attr_value.v.u8);
   else
-    APPL_TRACE_ERROR("%s() ATTR_ID_PRIMARY_RECORD not found", __func__);
+    LOG_ERROR("%s() ATTR_ID_PRIMARY_RECORD not found", __func__);
 }
 
 static void bta_create_raw_sdp_record(bluetooth_sdp_record* record,
