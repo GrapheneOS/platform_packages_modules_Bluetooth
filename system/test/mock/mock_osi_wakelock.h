@@ -56,7 +56,6 @@
 #include "osi/include/osi.h"
 #include "osi/include/thread.h"
 #include "osi/include/wakelock.h"
-#include "test/common/mock_functions.h"
 
 // Mocked compile conditionals, if any
 

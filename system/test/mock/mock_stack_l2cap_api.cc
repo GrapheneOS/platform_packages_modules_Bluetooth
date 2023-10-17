@@ -20,6 +20,7 @@
  *
  *  mockcify.pl ver 0.2
  */
+#include "test/mock/mock_stack_l2cap_api.h"
 
 #include <map>
 #include <string>
@@ -30,7 +31,8 @@
 //       still applies, but crafting proper inclusion is out of scope
 //       for this effort.  This compilation unit may compile as-is, or
 //       may need attention to prune the inclusion set.
-#include "test/mock/mock_stack_l2cap_api.h"
+
+#include "test/common/mock_functions.h"
 
 // Mocked compile conditionals, if any
 #ifndef UNUSED_ATTR

@@ -20,13 +20,15 @@
  *  mockcify.pl ver 0.6.0
  */
 
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_btif_profile_queue.h"
+
 #include <cstdint>
 #include <functional>
 #include <map>
 #include <string>
 
-// Mock include file to share data between tests and mock
-#include "test/mock/mock_btif_profile_queue.h"
+#include "test/common/mock_functions.h"
 
 // Original usings
 

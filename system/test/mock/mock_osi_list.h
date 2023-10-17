@@ -38,7 +38,6 @@
 #include "osi/include/allocator.h"
 #include "osi/include/list.h"
 #include "osi/include/osi.h"
-#include "test/common/mock_functions.h"
 
 // Mocked compile conditionals, if any
 

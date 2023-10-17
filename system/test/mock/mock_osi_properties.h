@@ -36,7 +36,6 @@
 #include <string.h>
 
 #include "osi/include/properties.h"
-#include "test/common/mock_functions.h"
 
 // Mocked compile conditionals, if any
 

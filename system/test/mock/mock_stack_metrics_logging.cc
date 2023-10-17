@@ -20,6 +20,8 @@
  *
  *  mockcify.pl ver 0.2
  */
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_stack_metrics_logging.h"
 
 #include <map>
 #include <string>
@@ -33,10 +35,8 @@
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/hci/enums.pb.h>
 
+#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
-
-// Mock include file to share data between tests and mock
-#include "test/mock/mock_stack_metrics_logging.h"
 
 // Mocked compile conditionals, if any
 #ifndef UNUSED_ATTR

@@ -20,15 +20,16 @@
  *
  *  mockcify.pl ver 0.2.1
  */
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_stack_acl.h"
 
 #include <cstdint>
 #include <functional>
 #include <map>
 #include <string>
 
-// Mock include file to share data between tests and mock
 #include "stack/include/bt_hdr.h"
-#include "test/mock/mock_stack_acl.h"
+#include "test/common/mock_functions.h"
 #include "types/class_of_device.h"
 #include "types/raw_address.h"
 

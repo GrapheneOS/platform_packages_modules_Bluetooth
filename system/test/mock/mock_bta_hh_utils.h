@@ -42,7 +42,6 @@
 #include "osi/include/osi.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/btm_client_interface.h"
-#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any

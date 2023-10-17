@@ -20,11 +20,12 @@
  *  mockcify.pl ver 0.6.1
  */
 
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_bta_dm_api.h"
+
 #include <cstdint>
 
-// Mock include file to share data between tests and mock
 #include "test/common/mock_functions.h"
-#include "test/mock/mock_bta_dm_api.h"
 
 // Original usings
 
