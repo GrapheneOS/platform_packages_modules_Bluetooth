@@ -89,12 +89,17 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
                 if (DBG) Log.d(TAG, "Locale has updated");
                 if (sBluetoothMediaBrowserService == null) return;
                 MediaSessionCompat session = sBluetoothMediaBrowserService.getSession();
+
+                // Update playback state error message under new locale, if applicable
                 MediaControllerCompat controller = session.getController();
                 PlaybackStateCompat playbackState =
                         controller == null ? null : controller.getPlaybackState();
                 if (playbackState != null && playbackState.getErrorMessage() != null) {
                     setErrorPlaybackState();
                 }
+
+                // Update queue title under new locale
+                session.setQueueTitle(getString(R.string.bluetooth_a2dp_sink_queue_name));
             }
         }
     }
