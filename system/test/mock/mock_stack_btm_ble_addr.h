@@ -36,7 +36,6 @@
 //       may need attention to prune the inclusion set.
 //
 #include "stack/btm/security_device_record.h"
-#include "test/common/mock_functions.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 

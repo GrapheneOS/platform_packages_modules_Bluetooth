@@ -19,13 +19,13 @@
  *
  *  mockcify.pl ver 0.6.2
  */
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_device_interop.h"
 
 #include <cstdint>
 
-// Mock include file to share data between tests and mock
 #include "device/include/interop.h"
 #include "test/common/mock_functions.h"
-#include "test/mock/mock_device_interop.h"
 
 // Original usings
 

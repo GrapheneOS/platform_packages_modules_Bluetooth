@@ -41,7 +41,6 @@
 #include "embdrv/sbc/decoder/include/oi_status.h"
 #include "hfp_msbc_decoder.h"
 #include "osi/include/log.h"
-#include "test/common/mock_functions.h"
 
 // Original usings
 

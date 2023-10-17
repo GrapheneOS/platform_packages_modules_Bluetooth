@@ -50,7 +50,6 @@
 
 #include "check.h"
 #include "osi/include/config.h"
-#include "test/common/mock_functions.h"
 
 // Mocked compile conditionals, if any
 

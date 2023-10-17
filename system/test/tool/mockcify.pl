@@ -271,9 +271,9 @@ sub print_source {
   my $FH = shift @_;
   print_copyright($FH);
   print_generated_note($FH);
-  print_mock_decl_src($FH);
 
   print_mock_header_include($FH);
+  print_mock_decl_src($FH);
   print_usings($FH);
   print_internal_structs($FH);
   print_source_namespace_structs($FH);
@@ -793,8 +793,6 @@ print $FH <<EOF;
 #include <map>
 #include <string>
 
-#include "test/common/mock_functions.h"
-
 EOF
 }
 
@@ -805,6 +803,8 @@ print $FH <<EOF;
 #include <functional>
 #include <map>
 #include <string>
+
+#include "test/common/mock_functions.h"
 
 EOF
 }

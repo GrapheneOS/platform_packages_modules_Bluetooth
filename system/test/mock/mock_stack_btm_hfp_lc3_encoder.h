@@ -37,7 +37,6 @@
 
 #include "hfp_lc3_encoder.h"
 #include "osi/include/log.h"
-#include "test/common/mock_functions.h"
 
 // Original usings
 
