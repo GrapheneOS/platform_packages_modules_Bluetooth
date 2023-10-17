@@ -18,11 +18,9 @@
 #include "module.h"
 
 #include "common/init_flags.h"
-#include "os/wakelock_manager.h"
 
 using ::bluetooth::os::Handler;
 using ::bluetooth::os::Thread;
-using ::bluetooth::os::WakelockManager;
 
 namespace bluetooth {
 
@@ -133,47 +131,6 @@ os::Handler* ModuleRegistry::GetModuleHandler(const ModuleFactory* module) const
     return started_instance->second->GetHandler();
   }
   return nullptr;
-}
-
-void ModuleDumper::DumpState(std::string* output) const {
-  ASSERT(output != nullptr);
-
-  flatbuffers::FlatBufferBuilder builder(1024);
-  auto title = builder.CreateString(title_);
-
-  common::InitFlagsDataBuilder init_flags_builder(builder);
-  init_flags_builder.add_title(builder.CreateString("----- Init Flags -----"));
-  std::vector<flatbuffers::Offset<common::InitFlagValue>> flags;
-  for (const auto& flag : common::init_flags::dump()) {
-    flags.push_back(common::CreateInitFlagValue(
-        builder,
-        builder.CreateString(std::string(flag.flag)),
-        builder.CreateString(std::string(flag.value))));
-  }
-  init_flags_builder.add_values(builder.CreateVector(flags));
-  auto init_flags_offset = init_flags_builder.Finish();
-
-  auto wakelock_offset = WakelockManager::Get().GetDumpsysData(&builder);
-
-  std::queue<DumpsysDataFinisher> queue;
-  for (auto it = module_registry_.start_order_.rbegin(); it != module_registry_.start_order_.rend(); it++) {
-    auto instance = module_registry_.started_modules_.find(*it);
-    ASSERT(instance != module_registry_.started_modules_.end());
-    queue.push(instance->second->GetDumpsysData(&builder));
-  }
-
-  DumpsysDataBuilder data_builder(builder);
-  data_builder.add_title(title);
-  data_builder.add_init_flags(init_flags_offset);
-  data_builder.add_wakelock_manager_data(wakelock_offset);
-
-  while (!queue.empty()) {
-    queue.front()(&data_builder);
-    queue.pop();
-  }
-
-  builder.Finish(data_builder.Finish());
-  *output = std::string(builder.GetBufferPointer(), builder.GetBufferPointer() + builder.GetSize());
 }
 
 }  // namespace bluetooth
