@@ -66,7 +66,7 @@ void BTIF_dm_on_hw_error() { inc_func_call_count(__func__); }
 void BTIF_dm_report_inquiry_status_change(uint8_t status) {
   inc_func_call_count(__func__);
 }
-void bte_dm_evt(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
+void btif_dm_sec_evt(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
   inc_func_call_count(__func__);
 }
 void btif_ble_receiver_test(uint8_t rx_freq) { inc_func_call_count(__func__); }
