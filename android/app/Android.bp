@@ -250,6 +250,7 @@ android_app {
         "bluetooth-protos-lite",
         "bluetooth.change-ids",
         "bluetooth.mapsapi",
+        "bluetooth_flags_java_lib",
         "com.android.obex",
         "com.android.vcard",
         "guava",
