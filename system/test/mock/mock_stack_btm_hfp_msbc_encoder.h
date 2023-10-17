@@ -38,7 +38,6 @@
 #include "embdrv/sbc/encoder/include/sbc_encoder.h"
 #include "hfp_msbc_encoder.h"
 #include "osi/include/log.h"
-#include "test/common/mock_functions.h"
 
 // Original usings
 

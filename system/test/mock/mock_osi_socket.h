@@ -47,7 +47,6 @@
 #include "osi/include/osi.h"
 #include "osi/include/reactor.h"
 #include "osi/include/socket.h"
-#include "test/common/mock_functions.h"
 
 // Mocked compile conditionals, if any
 

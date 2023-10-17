@@ -55,7 +55,6 @@
 #include "stack/include/l2cap_security_interface.h"
 #include "stack/include/l2cdefs.h"
 #include "stack/include/smp_api.h"
-#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 // Original usings

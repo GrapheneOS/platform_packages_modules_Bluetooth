@@ -37,7 +37,6 @@
 
 #include "avrc_api.h"
 #include "stack/avrc/avrc_int.h"
-#include "test/common/mock_functions.h"
 
 // Original usings
 

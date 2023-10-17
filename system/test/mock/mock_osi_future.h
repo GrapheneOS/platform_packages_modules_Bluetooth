@@ -39,7 +39,6 @@
 #include "osi/include/future.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
-#include "test/common/mock_functions.h"
 
 // Mocked compile conditionals, if any
 

@@ -33,7 +33,6 @@
 //       for this effort.  This compilation unit may compile as-is, or
 //       may need attention to prune the inclusion set.
 #include "stack/btm/security_device_record.h"
-#include "test/common/mock_functions.h"
 
 // Mocked compile conditionals, if any
 #ifndef UNUSED_ATTR
