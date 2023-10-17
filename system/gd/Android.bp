@@ -148,6 +148,7 @@ cc_defaults {
         ":BluetoothStorageSources",
         ":BluetoothSyspropsSources",
         "module.cc",
+        "module_dumper.cc",
         "stack_manager.cc",
     ],
     generated_headers: [

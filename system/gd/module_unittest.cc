@@ -15,15 +15,15 @@
  */
 
 #include "module.h"
+
+#include <functional>
+#include <string>
+
+#include "gtest/gtest.h"
+#include "module_dumper.h"
 #include "module_unittest_generated.h"
 #include "os/handler.h"
 #include "os/thread.h"
-
-#include "gtest/gtest.h"
-
-#include <functional>
-#include <future>
-#include <string>
 
 using ::bluetooth::os::Thread;
 
