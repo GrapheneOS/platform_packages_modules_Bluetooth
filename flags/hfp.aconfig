@@ -1,0 +1,8 @@
+package: "com.android.bluetooth.flags"
+
+flag {
+    name: "auto_connect_on_hfp_when_no_a2dp_device"
+    namespace: "bluetooth"
+    description: "Auto connect to hfp device is there is no a2dp device to connect to"
+    bug: "305799237"
+}

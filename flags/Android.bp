@@ -7,6 +7,7 @@ aconfig_declarations {
     name: "bluetooth_aconfig_flags",
     package: "com.android.bluetooth.flags",
     srcs: [
+        "hfp.aconfig",
         "system_service.aconfig",
     ],
 }
@@ -15,6 +16,7 @@ java_aconfig_library {
     name: "bluetooth_flags_java_lib",
     aconfig_declarations: "bluetooth_aconfig_flags",
     visibility: [
+        "//packages/modules/Bluetooth/android/app",
         "//packages/modules/Bluetooth/service:__subpackages__",
     ],
     apex_available: [
