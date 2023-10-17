@@ -19,24 +19,12 @@
  *   Functions generated:23
  */
 
-#include <map>
-#include <string>
-
-#include "bt_target.h"
 #include "l2c_api.h"
-#include "osi/include/osi.h"
-#include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
-#include "stack/btm/btm_sec.h"
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/l2cap_acl_interface.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 void gatt_init(void) { inc_func_call_count(__func__); }
 bool gatt_act_connect(tGATT_REG* p_reg, const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,

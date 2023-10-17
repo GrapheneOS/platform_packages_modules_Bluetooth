@@ -19,17 +19,9 @@
  *   Functions generated:8
  */
 
-#include <map>
-#include <string>
-
 #include "common/message_loop_thread.h"
 #include "common/repeating_timer.h"
-#include "common/time_util.h"
 #include "test/common/mock_functions.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 using namespace bluetooth::common;
 

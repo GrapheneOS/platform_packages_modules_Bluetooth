@@ -19,17 +19,8 @@
  *   Functions generated:4
  */
 
-#include <map>
-#include <string>
-
 #include "main/shim/dumpsys.h"
-#include "main/shim/entry.h"
-#include "main/shim/shim.h"
 #include "test/common/mock_functions.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 void bluetooth::shim::RegisterDumpsysFunction(const void* token,
                                               DumpsysFunction func) {

@@ -21,7 +21,6 @@
 
 #include <fmq/EventFlag.h>
 
-#include <map>
 #include <string>
 
 #include "test/common/mock_functions.h"
@@ -39,21 +38,6 @@ void check(bool exp, const char* message) {}
 }  // namespace details
 }  // namespace hardware
 }  // namespace android
-
-#if 0
-#include <linux/futex.h>
-#include <string.h>
-#include <sys/mman.h>
-#include <sys/syscall.h>
-#include <unistd.h>
-#include <utils/Log.h>
-#include <utils/SystemClock.h>
-#include <new>
-#endif
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 EventFlag::EventFlag(std::atomic<uint32_t>* fwAddr, status_t* status) {
   inc_func_call_count(__func__);

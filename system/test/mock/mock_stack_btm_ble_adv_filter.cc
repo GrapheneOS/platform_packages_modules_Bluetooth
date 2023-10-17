@@ -20,24 +20,12 @@
  */
 
 #include <base/functional/bind.h>
-#include <string.h>
 
-#include <algorithm>
-#include <map>
-#include <string>
-#include <vector>
+#include <memory>
 
-#include "bind_helpers.h"
-#include "bt_target.h"
 #include "btm_ble_api.h"
-#include "device/include/controller.h"
 #include "stack/btm/btm_ble_int.h"
-#include "stack/btm/btm_int_types.h"
 #include "test/common/mock_functions.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 void BTM_BleAdvFilterParamSetup(
     tBTM_BLE_SCAN_COND_OP action, tBTM_BLE_PF_FILT_INDEX filt_index,

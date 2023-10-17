@@ -23,9 +23,6 @@
 #include "test/mock/mock_stack_btm_hfp_lc3_encoder.h"
 
 #include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
 
 #ifndef __clang_analyzer__
 

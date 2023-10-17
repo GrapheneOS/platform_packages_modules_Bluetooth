@@ -20,26 +20,12 @@
  */
 
 #include <base/strings/stringprintf.h>
-#include <string.h>
 
-#include <map>
-#include <string>
-
-#include "bt_target.h"
-#include "device/include/controller.h"
 #include "gap_api.h"
 #include "l2c_api.h"
-#include "l2cdefs.h"
-#include "osi/include/fixed_queue.h"
-#include "osi/include/mutex.h"
-#include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 const RawAddress* GAP_ConnGetRemoteAddr(uint16_t gap_handle) {
   inc_func_call_count(__func__);

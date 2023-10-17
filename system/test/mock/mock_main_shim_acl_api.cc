@@ -19,9 +19,7 @@
  *   Functions generated:5
  */
 
-#include <cstddef>
 #include <cstdint>
-#include <map>
 #include <string>
 
 #include "main/shim/acl_api.h"
@@ -30,10 +28,6 @@
 #include "test/common/mock_functions.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 void bluetooth::shim::ACL_CreateClassicConnection(
     const RawAddress& raw_address) {

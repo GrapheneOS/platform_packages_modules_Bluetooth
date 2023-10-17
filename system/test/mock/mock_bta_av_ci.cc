@@ -19,17 +19,8 @@
  *   Functions generated:2
  */
 
-#include <map>
-#include <string>
-
-#include "bta/av/bta_av_int.h"
-#include "osi/include/allocator.h"
-#include "osi/include/log.h"
+#include "bta/include/bta_av_api.h"
 #include "test/common/mock_functions.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 void bta_av_ci_setconfig(tBTA_AV_HNDL bta_av_handle, uint8_t err_code,
                          uint8_t category, uint8_t num_seid, uint8_t* p_seid,

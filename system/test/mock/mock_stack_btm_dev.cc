@@ -24,25 +24,14 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <map>
 #include <string>
 
 #include "btm_api.h"
-#include "device/include/controller.h"
-#include "l2c_api.h"
-#include "main/shim/btm_api.h"
-#include "main/shim/shim.h"
 #include "stack/btm/btm_dev.h"
-#include "stack/include/acl_api.h"
 #include "stack/include/bt_octets.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 namespace test {
 namespace mock {

@@ -23,19 +23,10 @@
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_stack_btm_ble_bgconn.h"
 
-#include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
-
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 // Mocked internal structures, if any
 struct BackgroundConnection {};
 struct BgConnHash {};

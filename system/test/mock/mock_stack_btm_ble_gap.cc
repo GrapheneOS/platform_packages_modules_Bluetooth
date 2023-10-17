@@ -23,36 +23,16 @@
 #include <base/strings/string_number_conversions.h>
 
 #include <cstdint>
-#include <list>
-#include <map>
-#include <memory>
-#include <string>
 #include <vector>
 
-#include "common/time_util.h"
-#include "device/include/controller.h"
-#include "main/shim/acl_api.h"
-#include "main/shim/btm_api.h"
-#include "main/shim/shim.h"
-#include "osi/include/log.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_ble_int_types.h"
 #include "stack/btm/btm_dev.h"
-#include "stack/btm/btm_int_types.h"
-#include "stack/gatt/gatt_int.h"
-#include "stack/include/acl_api.h"
-#include "stack/include/advertise_data_parser.h"
 #include "stack/include/btm_api_types.h"
-#include "stack/include/gap_api.h"
 #include "stack/include/hci_error_code.h"
-#include "stack/include/inq_hci_link_interface.h"
 #include "test/common/mock_functions.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 using StartSyncCb = base::Callback<void(
     uint8_t /*status*/, uint16_t /*sync_handle*/, uint8_t /*advertising_sid*/,

@@ -30,6 +30,7 @@
 #include "btif/include/btif_api.h"
 #include "btif/include/stack_manager.h"
 #include "include/hardware/bt_hh.h"
+#include "osi/include/allocator.h"
 #include "test/common/core_interface.h"
 #include "test/common/mock_functions.h"
 #include "test/mock/mock_osi_allocator.h"

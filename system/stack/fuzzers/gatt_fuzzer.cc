@@ -1,3 +1,4 @@
+#include <base/location.h>
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include <cstdint>
