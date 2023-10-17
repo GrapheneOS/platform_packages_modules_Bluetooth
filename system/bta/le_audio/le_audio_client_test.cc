@@ -5377,6 +5377,9 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchReconfigure) {
   fake_osi_alarm_set_on_mloop_.cb(fake_osi_alarm_set_on_mloop_.data);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
 
+  // SetInCall is used by GTBS - and only then we can expect CCID to be set.
+  LeAudioClient::Get()->SetInCall(true);
+
   // Conversational is a bidirectional scenario so expect GTBS CCID
   // in the metadata for both directions. Can be called twice when one
   // direction resume after the other and metadata is updated.
@@ -5396,8 +5399,10 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchReconfigure) {
   cis_count_out = 2;
   cis_count_in = 2;
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920, 40);
+
+  LeAudioClient::Get()->SetInCall(false);
   // Stop
-  StopStreaming(group_id);
+  StopStreaming(group_id, true);
 
   // Switch back to MEDIA
   ccids = {.sink = {gmcs_ccid}, .source = {}};
@@ -5415,6 +5420,87 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchReconfigure) {
   Mock::VerifyAndClearExpectations(&mock_state_machine_);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+}
+
+TEST_F(UnicastTest, TwoEarbudsVoipStreamingVerifyMetadataUpdate) {
+  uint8_t group_size = 2;
+  int group_id = 2;
+
+  /*
+   * Scenario
+   * 1. Configure stream for the VOIP
+   * 2. Verify CONVERSATIONAL metadata and context is used.
+   * 3. Resume LocalSink
+   * 4. Make sure there is no change of the metadata and context
+   */
+
+  // Report working CSIS
+  ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+      .WillByDefault(Return(true));
+
+  // First earbud
+  const RawAddress test_address0 = GetTestAddress(0);
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address0, true))
+      .Times(1);
+  ConnectCsisDevice(test_address0, 1 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontLeft,
+                    codec_spec_conf::kLeAudioLocationFrontLeft, group_size,
+                    group_id, 1 /* rank*/);
+
+  // Second earbud
+  const RawAddress test_address1 = GetTestAddress(1);
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address1, true))
+      .Times(1);
+  ConnectCsisDevice(test_address1, 2 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontRight,
+                    codec_spec_conf::kLeAudioLocationFrontRight, group_size,
+                    group_id, 2 /* rank*/, true /*connect_through_csis*/);
+
+  constexpr int gtbs_ccid = 2;
+
+  ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
+      .WillByDefault(Invoke([&](int group_id) { return 2; }));
+  LeAudioClient::Get()->SetCcidInformation(gtbs_ccid, 2 /* Phone */);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
+
+  // VOIP not using Telecom API has no ccids.
+  types::BidirectionalPair<std::vector<uint8_t>> ccids = {.sink = {},
+                                                          .source = {}};
+  EXPECT_CALL(
+      mock_state_machine_,
+      StartStream(_, types::LeAudioContextType::CONVERSATIONAL, _, ccids))
+      .Times(AtLeast(1));
+
+  UpdateLocalSourceMetadata(AUDIO_USAGE_VOICE_COMMUNICATION,
+                            AUDIO_CONTENT_TYPE_SPEECH);
+  UpdateLocalSinkMetadata(AUDIO_SOURCE_MIC);
+
+  LocalAudioSourceResume();
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+
+  // Verify Data transfer are sending. The LocalSink is not yet resumed.
+  uint8_t cis_count_out = 2;
+  uint8_t cis_count_in = 0;
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920, 0);
+
+  types::BidirectionalPair<types::AudioContexts> contexts = {
+      .sink = types::AudioContexts(types::LeAudioContextType::CONVERSATIONAL),
+      .source =
+          types::AudioContexts(types::LeAudioContextType::CONVERSATIONAL)};
+  EXPECT_CALL(mock_state_machine_,
+              StartStream(_, types::LeAudioContextType::CONVERSATIONAL,
+                          contexts, ccids))
+      .Times(AtLeast(1));
+
+  LocalAudioSinkResume();
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
 }
 
 TEST_F(UnicastTest, TwoReconfigureAndVerifyEnableContextType) {
@@ -5508,6 +5594,8 @@ TEST_F(UnicastTest, TwoReconfigureAndVerifyEnableContextType) {
               StartStream(_, types::LeAudioContextType::CONVERSATIONAL,
                           conversiational_contexts, ccids))
       .Times(AtLeast(1));
+
+  LeAudioClient::Get()->SetInCall(true);
 
   LocalAudioSourceResume(true);
   SyncOnMainLoop();
