@@ -22,14 +22,9 @@
 #include <cstdint>
 
 #include "bta/sys/bta_sys.h"
-#include "osi/include/osi.h"
 #include "test/common/mock_functions.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 void bta_sys_app_close(tBTA_SYS_ID id, uint8_t app_id,
                        const RawAddress& peer_addr) {
@@ -92,7 +87,7 @@ void bta_sys_sco_unuse(tBTA_SYS_ID id, uint8_t app_id,
                        const RawAddress& peer_addr) {
   inc_func_call_count(__func__);
 }
-void bta_sys_sco_use(UNUSED_ATTR tBTA_SYS_ID id, uint8_t app_id,
+void bta_sys_sco_use(tBTA_SYS_ID id, uint8_t app_id,
                      const RawAddress& peer_addr) {
   inc_func_call_count(__func__);
 }

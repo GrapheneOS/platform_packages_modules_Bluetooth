@@ -22,17 +22,11 @@
 #include <base/functional/callback.h>
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "stack/gatt/gatt_int.h"
 #include "test/common/mock_functions.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 uint16_t gatt_profile_find_conn_id_by_bd_addr(const RawAddress& remote_bda) {
   inc_func_call_count(__func__);

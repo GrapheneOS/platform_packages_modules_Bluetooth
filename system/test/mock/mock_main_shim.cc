@@ -19,19 +19,10 @@
  *   Functions generated:14
  */
 
-#include <map>
-#include <string>
-
 #define LOG_TAG "bt_shim"
 
-#include "gd/common/init_flags.h"
-#include "main/shim/entry.h"
 #include "main/shim/shim.h"
 #include "test/common/mock_functions.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 bool bluetooth::shim::is_classic_discovery_only_enabled() {
   inc_func_call_count(__func__);

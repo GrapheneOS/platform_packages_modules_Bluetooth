@@ -24,21 +24,13 @@
 #include <base/logging.h>
 
 #include <cstdint>
-#include <map>
 #include <memory>
-#include <string>
 
-#include "bt_target.h"
-#include "bta/jv/bta_jv_int.h"
+#include "bta/include/bta_jv_api.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/gap_api.h"
 #include "test/common/mock_functions.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 tBTA_JV_STATUS BTA_JvCreateRecordByUser(uint32_t rfcomm_slot_id) {
   inc_func_call_count(__func__);

@@ -19,20 +19,9 @@
  *   Functions generated:12
  */
 
-#include <map>
-#include <string>
-
-#include "bt_target.h"
-#include "bta/hd/bta_hd_int.h"
-#include "osi/include/allocator.h"
-#include "osi/include/compat.h"
-#include "osi/include/log.h"
+#include "bta/include/bta_hd_api.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 void BTA_HdEnable(tBTA_HD_CBACK* p_cback) { inc_func_call_count(__func__); }
 void BTA_HdAddDevice(const RawAddress& addr) { inc_func_call_count(__func__); }

@@ -18,11 +18,6 @@
  * Generated mock file from original source file
  */
 
-#include <map>
-#include <string>
-
-#define UNUSED_ATTR
-
 #include <cstdint>
 
 #include "stack/include/bt_hdr.h"
@@ -67,14 +62,12 @@ void l2c_link_role_changed(const RawAddress* bd_addr, uint8_t new_role,
                            uint8_t hci_status) {
   inc_func_call_count(__func__);
 }
-void l2c_link_sec_comp(const RawAddress* p_bda,
-                       UNUSED_ATTR tBT_TRANSPORT transport, void* p_ref_data,
-                       uint8_t status) {
+void l2c_link_sec_comp(const RawAddress* p_bda, tBT_TRANSPORT transport,
+                       void* p_ref_data, uint8_t status) {
   inc_func_call_count(__func__);
 }
-void l2c_link_sec_comp2(const RawAddress& p_bda,
-                        UNUSED_ATTR tBT_TRANSPORT transport, void* p_ref_data,
-                        uint8_t status) {
+void l2c_link_sec_comp2(const RawAddress& p_bda, tBT_TRANSPORT transport,
+                        void* p_ref_data, uint8_t status) {
   inc_func_call_count(__func__);
 }
 void l2c_link_segments_xmitted(BT_HDR* p_msg) { inc_func_call_count(__func__); }

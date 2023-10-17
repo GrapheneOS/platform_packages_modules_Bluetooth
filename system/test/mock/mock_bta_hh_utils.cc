@@ -24,9 +24,6 @@
 #include "test/mock/mock_bta_hh_utils.h"
 
 #include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
 
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"

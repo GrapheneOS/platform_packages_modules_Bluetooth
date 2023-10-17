@@ -19,18 +19,12 @@
  *   Functions generated:12
  */
 
-#include <map>
-#include <string>
 #include <vector>
 
 #include "bta/vc/devices.h"
 #include "test/common/mock_functions.h"
 
 using namespace bluetooth::vc::internal;
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 void VolumeControlDevice::EnableEncryption() { inc_func_call_count(__func__); }
 bool VolumeControlDevice::EnqueueInitialRequests(
