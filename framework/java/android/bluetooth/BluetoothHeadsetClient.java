@@ -32,6 +32,7 @@ import android.content.AttributionSource;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.RemoteException;
@@ -729,17 +730,16 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
 
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
-    private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.HEADSET_CLIENT);
+
+    private IBluetoothHeadsetClient mService;
 
     /**
      * Create a BluetoothHeadsetClient proxy object.
      */
-    BluetoothHeadsetClient(Context context, ServiceListener listener,
-            BluetoothAdapter adapter) {
+    BluetoothHeadsetClient(Context context, BluetoothAdapter adapter) {
         mAdapter = adapter;
         mAttributionSource = adapter.getAttributionSource();
-        mProfileConnector.connect(context, listener);
+        mService = null;
         mCloseGuard = new CloseGuard();
         mCloseGuard.open("close");
     }
@@ -754,14 +754,32 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
     @Override
     public void close() {
         if (VDBG) log("close()");
-        mProfileConnector.disconnect();
+        mAdapter.closeProfileProxy(this);
         if (mCloseGuard != null) {
             mCloseGuard.close();
         }
     }
 
+    /** @hide */
+    @Override
+    public void onServiceConnected(IBinder service) {
+        mService = IBluetoothHeadsetClient.Stub.asInterface(service);
+    }
+
+    /** @hide */
+    @Override
+    public void onServiceDisconnected() {
+        mService = null;
+    }
+
     private IBluetoothHeadsetClient getService() {
-        return IBluetoothHeadsetClient.Stub.asInterface(mProfileConnector.getService());
+        return mService;
+    }
+
+    /** @hide */
+    @Override
+    public BluetoothAdapter getAdapter() {
+        return mAdapter;
     }
 
     /** @hide */

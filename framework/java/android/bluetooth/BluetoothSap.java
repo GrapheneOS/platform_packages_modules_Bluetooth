@@ -32,6 +32,7 @@ import android.compat.annotation.UnsupportedAppUsage;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.os.Build;
+import android.os.IBinder;
 import android.os.IpcDataCache;
 import android.os.RemoteException;
 import android.util.CloseGuard;
@@ -114,18 +115,17 @@ public final class BluetoothSap implements BluetoothProfile, AutoCloseable {
 
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
-    private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.SAP);
+
+    private IBluetoothSap mService;
 
     /**
      * Create a BluetoothSap proxy object.
      */
-    /* package */ BluetoothSap(Context context, ServiceListener listener,
-            BluetoothAdapter adapter) {
+    /* package */ BluetoothSap(Context context, BluetoothAdapter adapter) {
         if (DBG) Log.d(TAG, "Create BluetoothSap proxy object");
         mAdapter = adapter;
         mAttributionSource = adapter.getAttributionSource();
-        mProfileConnector.connect(context, listener);
+        mService = null;
         mCloseGuard = new CloseGuard();
         mCloseGuard.open("close");
     }
@@ -150,11 +150,29 @@ public final class BluetoothSap implements BluetoothProfile, AutoCloseable {
      */
     @Override
     public synchronized void close() {
-        mProfileConnector.disconnect();
+        mAdapter.closeProfileProxy(this);
+    }
+
+    /** @hide */
+    @Override
+    public void onServiceConnected(IBinder service) {
+        mService = IBluetoothSap.Stub.asInterface(service);
+    }
+
+    /** @hide */
+    @Override
+    public void onServiceDisconnected() {
+        mService = null;
     }
 
     private IBluetoothSap getService() {
-        return IBluetoothSap.Stub.asInterface(mProfileConnector.getService());
+        return mService;
+    }
+
+    /** @hide */
+    @Override
+    public BluetoothAdapter getAdapter() {
+        return mAdapter;
     }
 
     /**
