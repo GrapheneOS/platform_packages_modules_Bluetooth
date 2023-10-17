@@ -1848,7 +1848,7 @@ impl CommandHandler {
             }
             "enable" => {
                 let mut context = self.lock_context();
-                context.telephony_dbus.as_mut().unwrap().set_phone_ops_enabled(true);
+                context.telephony_dbus.as_mut().unwrap().set_mps_qualification_enabled(true);
                 if context.mps_sdp_handle.is_none() {
                     let success = context
                         .adapter_dbus
@@ -1862,7 +1862,7 @@ impl CommandHandler {
             }
             "disable" => {
                 let mut context = self.lock_context();
-                context.telephony_dbus.as_mut().unwrap().set_phone_ops_enabled(false);
+                context.telephony_dbus.as_mut().unwrap().set_mps_qualification_enabled(false);
                 if let Some(handle) = context.mps_sdp_handle.take() {
                     let success = context.adapter_dbus.as_mut().unwrap().remove_sdp_record(handle);
                     if !success {

@@ -98,10 +98,24 @@ pub mod ffi {
         Held,   // Only used by CLCC response
     }
 
+    #[derive(Debug, Copy, Clone)]
+    /*
+    When a SCO is created, it is necessary to have at least one call in the call list.
+    Otherwise, some headsets may not be able to output sound.
+
+    Therefore, we need to separate the call for CRAS from the call for the application so that
+    we can have a correct life cycle for the call list status.
+    */
+    pub enum CallSource {
+        CRAS,
+        HID,
+    }
+
     #[derive(Debug, Clone)]
     pub struct CallInfo {
         index: i32,
         dir_incoming: bool,
+        source: CallSource,
         state: CallState,
         number: String,
     }
@@ -140,6 +154,7 @@ pub mod ffi {
         ) -> i32;
         fn set_active_device(self: Pin<&mut HfpIntf>, bt_addr: RawAddress) -> i32;
         fn set_volume(self: Pin<&mut HfpIntf>, volume: i8, bt_addr: RawAddress) -> i32;
+        fn set_mic_volume(self: Pin<&mut HfpIntf>, volume: i8, bt_addr: RawAddress) -> u32;
         fn disconnect(self: Pin<&mut HfpIntf>, bt_addr: RawAddress) -> u32;
         fn disconnect_audio(self: Pin<&mut HfpIntf>, bt_addr: RawAddress) -> i32;
         fn device_status_notification(
@@ -173,6 +188,7 @@ pub mod ffi {
         fn hfp_connection_state_callback(state: u32, addr: RawAddress);
         fn hfp_audio_state_callback(state: u32, addr: RawAddress);
         fn hfp_volume_update_callback(volume: u8, addr: RawAddress);
+        fn hfp_mic_volume_update_callback(volume: u8, addr: RawAddress);
         fn hfp_vendor_specific_at_command_callback(at_string: String, addr: RawAddress);
         fn hfp_battery_level_update_callback(battery_level: u8, addr: RawAddress);
         fn hfp_wbs_caps_update_callback(wbs_supported: bool, addr: RawAddress);
@@ -210,6 +226,7 @@ impl TelephonyDeviceStatus {
 }
 
 pub type CallState = ffi::CallState;
+pub type CallSource = ffi::CallSource;
 pub type CallInfo = ffi::CallInfo;
 pub type PhoneState = ffi::PhoneState;
 pub type CallHoldCommand = ffi::CallHoldCommand;
@@ -219,6 +236,7 @@ pub enum HfpCallbacks {
     ConnectionState(BthfConnectionState, RawAddress),
     AudioState(BthfAudioState, RawAddress),
     VolumeUpdate(u8, RawAddress),
+    MicVolumeUpdate(u8, RawAddress),
     VendorSpecificAtCommand(String, RawAddress),
     BatteryLevelUpdate(u8, RawAddress),
     WbsCapsUpdate(bool, RawAddress),
@@ -251,6 +269,11 @@ cb_variant!(
 cb_variant!(
     HfpCb,
     hfp_volume_update_callback -> HfpCallbacks::VolumeUpdate,
+    u8, RawAddress);
+
+cb_variant!(
+    HfpCb,
+    hfp_mic_volume_update_callback -> HfpCallbacks::MicVolumeUpdate,
     u8, RawAddress);
 
 cb_variant!(
@@ -381,6 +404,11 @@ impl Hfp {
     #[profile_enabled_or(BtStatus::NotReady.into())]
     pub fn set_volume(&mut self, volume: i8, addr: RawAddress) -> i32 {
         self.internal.pin_mut().set_volume(volume, addr)
+    }
+
+    #[profile_enabled_or(BtStatus::NotReady.into())]
+    pub fn set_mic_volume(&mut self, volume: i8, addr: RawAddress) -> BtStatus {
+        BtStatus::from(self.internal.pin_mut().set_mic_volume(volume, addr))
     }
 
     #[profile_enabled_or(BtStatus::NotReady)]
