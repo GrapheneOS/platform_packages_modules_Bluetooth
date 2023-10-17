@@ -21,27 +21,12 @@
  *  mockcify.pl ver 0.2
  */
 
-#include <cstdint>
 #include <functional>
-#include <map>
-#include <string>
 
 // Original included files, if any
-// NOTE: Since this is a mock file with mock definitions some number of
-//       include files may not be required.  The include-what-you-use
-//       still applies, but crafting proper inclusion is out of scope
-//       for this effort.  This compilation unit may compile as-is, or
-//       may need attention to prune the inclusion set.
 #include <base/functional/bind.h>
 
-#include <cstdint>
-#include <unordered_map>
-
-#include "device/include/controller.h"
-#include "main/shim/acl_api.h"
-#include "main/shim/shim.h"
 #include "stack/btm/btm_dev.h"
-#include "stack/btm/btm_int_types.h"
 #include "stack/btm/security_device_record.h"
 #include "types/raw_address.h"
 

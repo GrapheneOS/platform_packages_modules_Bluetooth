@@ -23,22 +23,14 @@
 
 #include <cstdint>
 #include <functional>
-#include <map>
 #include <string>
 
 // Original included files, if any
-// NOTE: Since this is a mock file with mock definitions some number of
-//       include files may not be required.  The include-what-you-use
-//       still applies, but crafting proper inclusion is out of scope
-//       for this effort.  This compilation unit may compile as-is, or
-//       may need attention to prune the inclusion set.
-#include <cstdint>
-
 #include "device/include/controller.h"
 #include "stack/acl/acl.h"
 #include "stack/btm/security_device_record.h"
+#include "stack/include/acl_client_callbacks.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/btm_client_interface.h"
 #include "types/class_of_device.h"
 #include "types/raw_address.h"
 

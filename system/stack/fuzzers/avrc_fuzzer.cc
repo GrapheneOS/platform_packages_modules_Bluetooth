@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <base/functional/bind.h>
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include <cstdint>

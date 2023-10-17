@@ -15,7 +15,6 @@
  */
 
 #include "device/include/controller.h"
-#include "main/shim/controller.h"
 
 namespace bluetooth {
 namespace testing {

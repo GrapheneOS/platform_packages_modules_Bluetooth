@@ -27,6 +27,7 @@
 #include "bta/hf_client/bta_hf_client_int.h"
 #include "bta/include/bta_api.h"
 #include "osi/include/compat.h"
+#include "osi/include/osi.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/btm_status.h"
 #include "test/common/main_handler.h"

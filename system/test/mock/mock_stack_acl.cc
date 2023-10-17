@@ -26,6 +26,7 @@
 #include <cstdint>
 #include <string>
 
+#include "stack/include/acl_client_callbacks.h"
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
 #include "types/class_of_device.h"

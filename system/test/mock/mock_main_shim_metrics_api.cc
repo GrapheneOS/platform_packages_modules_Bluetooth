@@ -27,6 +27,7 @@
 #include <string>
 
 // Original included files, if any
+#include "main/shim/metrics_api.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 

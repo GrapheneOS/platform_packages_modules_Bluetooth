@@ -27,6 +27,7 @@
 
 // Mock include file to share data between tests and mock
 
+#include "main/shim/l2c_api.h"
 #include "test/common/mock_functions.h"
 
 // Mocked compile conditionals, if any
