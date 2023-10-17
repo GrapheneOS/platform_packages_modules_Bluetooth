@@ -19,29 +19,11 @@
  *   Functions generated:26
  */
 
-#include <string.h>
-
-#include <map>
-#include <string>
-
-#include "avdt_api.h"
-#include "avdtc_api.h"
-#include "bt_target.h"
-#include "bta/include/bta_api.h"
-#include "btm_api.h"
-#include "l2c_api.h"
-#include "main/shim/dumpsys.h"
-#include "osi/include/log.h"
 #include "stack/avdt/avdt_int.h"
-#include "stack/btm/btm_sec.h"
-#include "stack/include/a2dp_codec_api.h"
+#include "stack/include/avdt_api.h"
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 uint16_t AVDT_CloseReq(uint8_t handle) {
   inc_func_call_count(__func__);

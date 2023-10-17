@@ -19,21 +19,11 @@
  *   Functions generated:7
  */
 
-#include <map>
-#include <memory>
 #include <string>
 
-#include "bt_target.h"
-#include "main/shim/dumpsys.h"
-#include "stack/btm/btm_int_types.h"
-#include "stack/include/btm_client_interface.h"
-#include "stack_config.h"
 #include "test/common/mock_functions.h"
+#include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 void BTM_LogHistory(const std::string& tag, const RawAddress& bd_addr,
                     const std::string& msg) {

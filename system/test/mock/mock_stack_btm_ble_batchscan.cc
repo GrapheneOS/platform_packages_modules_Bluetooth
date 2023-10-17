@@ -21,22 +21,9 @@
 
 #include <base/functional/bind.h>
 #include <base/functional/callback.h>
-#include <string.h>
 
-#include <cstddef>
-#include <map>
-#include <string>
-#include <vector>
-
-#include "bt_target.h"
 #include "btm_ble_api.h"
-#include "device/include/controller.h"
-#include "stack/btm/btm_int_types.h"
 #include "test/common/mock_functions.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 void BTM_BleDisableBatchScan(base::Callback<void(uint8_t)> cb) {
   inc_func_call_count(__func__);

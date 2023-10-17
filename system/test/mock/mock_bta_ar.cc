@@ -20,13 +20,9 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
-#include "bta/ar/bta_ar_int.h"
 #include "bta/sys/bta_sys.h"
-#include "stack/include/avct_api.h"
-#include "stack/include/avrc_api.h"
+#include "stack/include/avdt_api.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 

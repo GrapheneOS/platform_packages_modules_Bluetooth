@@ -20,15 +20,9 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "test/common/mock_functions.h"
 #include "udrv/include/uipc.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 std::unique_ptr<tUIPC_STATE> mock_uipc_init_ret;
 uint32_t mock_uipc_read_ret;
@@ -39,9 +33,8 @@ bool UIPC_Open(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK* p_cback,
   inc_func_call_count(__func__);
   return false;
 }
-bool UIPC_Send(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id,
-               UNUSED_ATTR uint16_t msg_evt, const uint8_t* p_buf,
-               uint16_t msglen) {
+bool UIPC_Send(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint16_t msg_evt,
+               const uint8_t* p_buf, uint16_t msglen) {
   inc_func_call_count(__func__);
   return mock_uipc_send_ret;
 }

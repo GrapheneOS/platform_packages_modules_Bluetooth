@@ -20,17 +20,11 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 bool gatt_security_check_start(tGATT_CLCB* p_clcb) {
   inc_func_call_count(__func__);

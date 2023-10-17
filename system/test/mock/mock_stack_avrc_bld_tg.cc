@@ -20,21 +20,11 @@
  */
 
 #include <base/logging.h>
-#include <string.h>
-
-#include <map>
-#include <string>
 
 #include "avrc_api.h"
 #include "avrc_defs.h"
-#include "osi/include/osi.h"
-#include "stack/avrc/avrc_int.h"
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 tAVRC_STS AVRC_BldResponse(uint8_t handle, tAVRC_RESPONSE* p_rsp,
                            BT_HDR** pp_pkt) {
