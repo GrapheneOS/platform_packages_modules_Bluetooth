@@ -24,22 +24,13 @@
 #include <base/location.h>
 
 #include <cstdint>
-#include <map>
-#include <memory>
-#include <string>
 #include <vector>
 
-#include "bt_target.h"
-#include "bta/gatt/bta_gatts_int.h"
-#include "osi/include/allocator.h"
+#include "bta/include/bta_gatt_api.h"
 #include "test/common/mock_functions.h"
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 void BTA_GATTS_Disable(void) { inc_func_call_count(__func__); }
 void BTA_GATTS_AppDeregister(tGATT_IF server_if) {

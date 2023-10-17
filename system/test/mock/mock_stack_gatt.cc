@@ -20,23 +20,15 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/gatt_api.h"
 #include "test/common/mock_functions.h"
 #include "types/bluetooth/uuid.h"
-#include "types/bt_transport.h"
-#include "types/raw_address.h"
 
 using namespace bluetooth;
 
 tGATT_HDL_LIST_ELEM elem;  // gatt_add_an_item_to_list
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 tGATT_HDL_LIST_ELEM& gatt_add_an_item_to_list(uint16_t s_handle) {
   inc_func_call_count(__func__);

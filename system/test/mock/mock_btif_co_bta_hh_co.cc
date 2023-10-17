@@ -20,8 +20,6 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "bta/include/bta_hh_api.h"
 #include "bta/include/bta_hh_co.h"
@@ -29,24 +27,20 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 int bta_hh_co_write(int fd, uint8_t* rpt, uint16_t len) {
   inc_func_call_count(__func__);
   return 0;
 }
 tBTA_HH_RPT_CACHE_ENTRY* bta_hh_le_co_cache_load(const RawAddress& remote_bda,
                                                  uint8_t* p_num_rpt,
-                                                 UNUSED_ATTR uint8_t app_id) {
+                                                 uint8_t app_id) {
   inc_func_call_count(__func__);
   return nullptr;
 }
 void bta_hh_co_close(btif_hh_device_t* p_dev) { inc_func_call_count(__func__); }
 void bta_hh_co_data(uint8_t dev_handle, uint8_t* p_rpt, uint16_t len,
                     tBTA_HH_PROTO_MODE mode, uint8_t sub_class,
-                    uint8_t ctry_code, UNUSED_ATTR const RawAddress& peer_addr,
+                    uint8_t ctry_code, const RawAddress& peer_addr,
                     uint8_t app_id) {
   inc_func_call_count(__func__);
 }
@@ -69,12 +63,11 @@ void bta_hh_co_set_rpt_rsp(uint8_t dev_handle, uint8_t status) {
   inc_func_call_count(__func__);
 }
 void bta_hh_le_co_reset_rpt_cache(const RawAddress& remote_bda,
-                                  UNUSED_ATTR uint8_t app_id) {
+                                  uint8_t app_id) {
   inc_func_call_count(__func__);
 }
 void bta_hh_le_co_rpt_info(const RawAddress& remote_bda,
-                           tBTA_HH_RPT_CACHE_ENTRY* p_entry,
-                           UNUSED_ATTR uint8_t app_id) {
+                           tBTA_HH_RPT_CACHE_ENTRY* p_entry, uint8_t app_id) {
   inc_func_call_count(__func__);
 }
 void uhid_set_non_blocking(int fd) { inc_func_call_count(__func__); }

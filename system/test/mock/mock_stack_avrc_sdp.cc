@@ -19,19 +19,9 @@
  *   Functions generated:7
  */
 
-#include <string.h>
-
-#include <map>
-#include <string>
-
-#include "stack/avrc/avrc_int.h"
 #include "stack/include/avrc_api.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 uint16_t AVRC_AddRecord(uint16_t service_uuid, const char* p_service_name,
                         const char* p_provider_name, uint16_t categories,

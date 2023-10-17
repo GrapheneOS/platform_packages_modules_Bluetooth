@@ -20,17 +20,11 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "stack/include/srvc_api.h"
 #include "stack/srvc/srvc_eng_int.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 bool DIS_ReadDISInfo(const RawAddress& peer_bda, tDIS_READ_CBACK* p_cback,
                      tDIS_ATTR_MASK mask) {
@@ -53,14 +47,13 @@ tDIS_STATUS DIS_SrUpdate(tDIS_ATTR_BIT dis_attr_bit, tDIS_ATTR* p_info) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint8_t dis_read_attr_value(UNUSED_ATTR uint8_t clcb_idx, uint16_t handle,
+uint8_t dis_read_attr_value(uint8_t clcb_idx, uint16_t handle,
                             tGATT_VALUE* p_value, bool is_long,
                             tGATT_STATUS* p_status) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint8_t dis_write_attr_value(UNUSED_ATTR tGATT_WRITE_REQ* p_data,
-                             tGATT_STATUS* p_status) {
+uint8_t dis_write_attr_value(tGATT_WRITE_REQ* p_data, tGATT_STATUS* p_status) {
   inc_func_call_count(__func__);
   return 0;
 }

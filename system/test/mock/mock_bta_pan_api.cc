@@ -20,17 +20,9 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
-#include "bt_target.h"
+#include "bta/include/bta_pan_api.h"
 #include "test/common/mock_functions.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
-#include "bta/pan/bta_pan_int.h"
 #include "types/raw_address.h"
 
 void BTA_PanClose(uint16_t handle) { inc_func_call_count(__func__); }

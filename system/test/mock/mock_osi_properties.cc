@@ -24,9 +24,7 @@
 #include "test/mock/mock_osi_properties.h"
 
 #include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
+#include <vector>
 
 #include "test/common/mock_functions.h"
 

@@ -19,25 +19,17 @@
  *   Functions generated:85
  */
 
-#include <cstdint>
-#include <map>
-#include <string>
-
 #include <base/functional/bind.h>
 #include <base/functional/callback.h>
 
+#include <cstdint>
+
 #include "main/shim/btm_api.h"
-#include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btm_ble_api_types.h"
 #include "test/common/mock_functions.h"
-#include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 Octet16 octet16;
 

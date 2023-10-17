@@ -22,25 +22,12 @@
 #include <base/strings/stringprintf.h>
 
 #include <cstdint>
-#include <map>
-#include <string>
-#include <unordered_map>
 
-#include "bt_target.h"
-#include "device/include/controller.h"
-#include "main/shim/dumpsys.h"
-#include "main/shim/shim.h"
-#include "osi/include/log.h"
-#include "stack/btm/btm_int_types.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_status.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 bool BTM_ReadPowerMode(const RawAddress& remote_bda, tBTM_PM_MODE* p_mode) {
   inc_func_call_count(__func__);
@@ -91,11 +78,11 @@ void btm_pm_proc_mode_change(tHCI_STATUS hci_status, uint16_t hci_handle,
                              tHCI_MODE hci_mode, uint16_t interval) {
   inc_func_call_count(__func__);
 }
-void btm_pm_proc_ssr_evt(uint8_t* p, UNUSED_ATTR uint16_t evt_len) {
+void btm_pm_proc_ssr_evt(uint8_t* p, uint16_t evt_len) {
   inc_func_call_count(__func__);
 }
 void btm_pm_reset(void) { inc_func_call_count(__func__); }
-void process_ssr_event(tHCI_STATUS status, uint16_t handle,
-                       UNUSED_ATTR uint16_t max_tx_lat, uint16_t max_rx_lat) {
+void process_ssr_event(tHCI_STATUS status, uint16_t handle, uint16_t max_tx_lat,
+                       uint16_t max_rx_lat) {
   inc_func_call_count(__func__);
 }

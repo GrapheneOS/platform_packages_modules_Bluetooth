@@ -16,13 +16,10 @@
  *
  ******************************************************************************/
 
-#include "common/init_flags.h"
 #include "os/logging/log_redaction.h"
 
 namespace bluetooth {
 namespace os {
-
-using bluetooth::common::init_flags::redact_log_is_enabled;
 
 bool should_log_be_redacted() { return false; }
 

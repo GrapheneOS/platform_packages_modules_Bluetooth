@@ -19,24 +19,10 @@
  *   Functions generated:9
  */
 
-#include <string.h>
-
-#include <map>
-#include <string>
-
-#include "bt_target.h"
 #include "l2c_api.h"
-#include "l2cdefs.h"
-#include "main/shim/shim.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/l2cap/l2c_int.h"
 #include "test/common/mock_functions.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 uint8_t l2c_data_write(uint16_t cid, BT_HDR* p_data, uint16_t flags) {
   inc_func_call_count(__func__);
@@ -48,6 +34,6 @@ void l2c_free(void) { inc_func_call_count(__func__); }
 void l2c_init(void) { inc_func_call_count(__func__); }
 void l2c_lcb_timer_timeout(void* data) { inc_func_call_count(__func__); }
 void l2c_rcv_acl_data(BT_HDR* p_msg) { inc_func_call_count(__func__); }
-void l2c_receive_hold_timer_timeout(UNUSED_ATTR void* data) {
+void l2c_receive_hold_timer_timeout(void* data) {
   inc_func_call_count(__func__);
 }
