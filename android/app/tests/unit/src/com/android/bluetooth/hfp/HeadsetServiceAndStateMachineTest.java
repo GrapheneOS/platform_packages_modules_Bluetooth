@@ -105,6 +105,8 @@ public class HeadsetServiceAndStateMachineTest {
     private HeadsetIntentReceiver mHeadsetIntentReceiver;
     private int mOriginalVrTimeoutMs = 5000;
     private PowerManager.WakeLock mVoiceRecognitionWakeLock;
+    boolean mIsAdapterServiceSet;
+    boolean mIsHeadsetServiceStarted;
 
     @Mock private HeadsetNativeInterface mNativeInterface;
 
@@ -166,6 +168,7 @@ public class HeadsetServiceAndStateMachineTest {
         mVoiceRecognitionWakeLock =
                 powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "VoiceRecognitionTest");
         TestUtils.setAdapterService(mAdapterService);
+        mIsAdapterServiceSet = true;
         doReturn(MAX_HEADSET_CONNECTIONS).when(mAdapterService).getMaxConnectedAudioDevices();
         doReturn(new ParcelUuid[]{BluetoothUuid.HFP}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
@@ -220,6 +223,7 @@ public class HeadsetServiceAndStateMachineTest {
         mOriginalVrTimeoutMs = HeadsetService.sStartVrTimeoutMs;
         HeadsetService.sStartVrTimeoutMs = START_VR_TIMEOUT_MILLIS;
         TestUtils.startService(mServiceRule, HeadsetService.class);
+        mIsHeadsetServiceStarted = true;
         mHeadsetService = HeadsetService.getHeadsetService();
         Assert.assertNotNull(mHeadsetService);
         verify(mObjectsFactory).makeSystemInterface(mHeadsetService);
@@ -238,22 +242,29 @@ public class HeadsetServiceAndStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
-        mTargetContext.unregisterReceiver(mHeadsetIntentReceiver);
-        TestUtils.stopService(mServiceRule, HeadsetService.class);
-        HeadsetService.sStartVrTimeoutMs = mOriginalVrTimeoutMs;
-        Intents.release();
-        mHeadsetService = HeadsetService.getHeadsetService();
-        Assert.assertNull(mHeadsetService);
-        Method method = HeadsetObjectsFactory.class.getDeclaredMethod("setInstanceForTesting",
-                HeadsetObjectsFactory.class);
-        method.setAccessible(true);
-        method.invoke(null, (HeadsetObjectsFactory) null);
-        TestUtils.clearAdapterService(mAdapterService);
-        mBondedDevices.clear();
+        if (!mIsAdapterServiceSet) {
+            return;
+        }
         mConnectionStateChangedQueue.clear();
         mActiveDeviceChangedQueue.clear();
-        // Clear classes that is spied on and has static life time
-        clearInvocations(mNativeInterface);
+
+        if (mIsHeadsetServiceStarted) {
+            mTargetContext.unregisterReceiver(mHeadsetIntentReceiver);
+            TestUtils.stopService(mServiceRule, HeadsetService.class);
+            mHeadsetService = HeadsetService.getHeadsetService();
+            Assert.assertNull(mHeadsetService);
+            // Clear classes that is spied on and has static life time
+            clearInvocations(mNativeInterface);
+        }
+        HeadsetService.sStartVrTimeoutMs = mOriginalVrTimeoutMs;
+        Intents.release();
+        Method method =
+                HeadsetObjectsFactory.class.getDeclaredMethod(
+                        "setInstanceForTesting", HeadsetObjectsFactory.class);
+        method.setAccessible(true);
+        method.invoke(null, (HeadsetObjectsFactory) null);
+        mBondedDevices.clear();
+        TestUtils.clearAdapterService(mAdapterService);
     }
 
     /**

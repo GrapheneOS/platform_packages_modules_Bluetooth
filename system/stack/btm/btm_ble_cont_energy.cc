@@ -16,9 +16,10 @@
  *
  ******************************************************************************/
 
+#include <inttypes.h>
 #include <string.h>
-#include "bt_target.h"
 
+#include "bt_target.h"
 #include "btm_ble_api.h"
 #include "stack/btm/btm_int_types.h"
 
@@ -56,9 +57,10 @@ static void btm_ble_cont_energy_cmpl_cback(tBTM_VSC_CMPL* p_params) {
   STREAM_TO_UINT32(total_idle_time, p);
   STREAM_TO_UINT32(total_energy_used, p);
 
-  BTM_TRACE_DEBUG(
-      "energy_info status=%d,tx_t=%ld, rx_t=%ld, ener_used=%ld, idle_t=%ld",
-      status, total_tx_time, total_rx_time, total_energy_used, total_idle_time);
+  BTM_TRACE_DEBUG("energy_info status=%d,tx_t=%" PRId32 ", rx_t=%" PRId32
+                  ", ener_used=%" PRId32 ", idle_t=%" PRId32,
+                  status, total_tx_time, total_rx_time, total_energy_used,
+                  total_idle_time);
 
   if (NULL != ble_energy_info_cb.p_ener_cback)
     ble_energy_info_cb.p_ener_cback(total_tx_time, total_rx_time,

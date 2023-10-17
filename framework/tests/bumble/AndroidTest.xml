@@ -15,8 +15,7 @@
     <target_preparer class="com.android.tradefed.targetprep.RunHostCommandTargetPreparer">
       <option name="python-virtualenv" value="true"/>
 
-      <option name="host-setup-command" value="adb -s $SERIAL forward tcp:6211 tcp:6211" />
-      <option name="host-background-command" value="adb -s $SERIAL shell nc -L -p 6211 nc 192.168.97.1 7300" />
+      <option name="host-setup-command" value="adb -s $SERIAL forward tcp:6211 vsock:2:7300" />
       <option name="host-teardown-command" value="adb -s $SERIAL forward --remove tcp:6211" />
 
       <option name="host-setup-command" value="adb -s $SERIAL reverse tcp:7999 tcp:7999" />

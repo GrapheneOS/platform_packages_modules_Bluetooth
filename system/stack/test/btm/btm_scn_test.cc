@@ -41,50 +41,46 @@ class BtmAllocateSCNTest : public Test {
 };
 
 TEST_F(BtmAllocateSCNTest, scn_available_after_available_index) {
-  btm_cb.btm_available_index = 5;
-  uint8_t occupied_idx[] = {1, 2, 3, 4, 5, 6, 7};
-  for (uint8_t idx : occupied_idx) {
-    btm_cb.btm_scn[idx] = true;
-  }
+  ASSERT_EQ(BTM_AllocateSCN(), 2);
+  ASSERT_EQ(BTM_AllocateSCN(), 3);
+  ASSERT_TRUE(BTM_TryAllocateSCN(4));
+  ASSERT_TRUE(BTM_TryAllocateSCN(5));
 
-  uint8_t scn = BTM_AllocateSCN();
-  ASSERT_EQ(scn, 9);  // All indexes up to 7 are occupied; hence index 8 i.e.
-                      // scn 9 should return
+  // Available index should be 3, and the next available scn is 6
+  ASSERT_EQ(BTM_AllocateSCN(), 6);
 }
 
 TEST_F(BtmAllocateSCNTest, scn_available_before_available_index) {
-  btm_cb.btm_available_index = 28;
-  uint8_t occupied_idx[] = {26, 27, 28, 29};
-  for (uint8_t idx : occupied_idx) {
-    btm_cb.btm_scn[idx] = true;
+  for (uint8_t scn = 2; scn <= RFCOMM_MAX_SCN; scn++) {
+    ASSERT_TRUE(BTM_TryAllocateSCN(scn));
   }
+  ASSERT_TRUE(BTM_FreeSCN(28));
+  ASSERT_EQ(BTM_AllocateSCN(), 28);
+  ASSERT_TRUE(BTM_FreeSCN(2));
 
-  uint8_t scn = BTM_AllocateSCN();
-  ASSERT_EQ(scn, 2);  // All SCN from available to 30 are occupied; hence cycle
-                      // to beginning.
+  // Available index is 27, and the available scn is 2
+  ASSERT_EQ(BTM_AllocateSCN(), 2);
 }
 
 TEST_F(BtmAllocateSCNTest, can_allocate_all_scns) {
   for (uint8_t scn = 2; scn <= RFCOMM_MAX_SCN; scn++) {
-    EXPECT_EQ(BTM_AllocateSCN(), scn);
+    ASSERT_EQ(BTM_AllocateSCN(), scn);
   }
 }
 
 TEST_F(BtmAllocateSCNTest, only_last_scn_available) {
   // Fill all relevant SCN except the last
   for (uint8_t scn = 2; scn < RFCOMM_MAX_SCN; scn++) {
-    btm_cb.btm_scn[scn - 1] = true;
+    ASSERT_EQ(BTM_AllocateSCN(), scn);
   }
 
-  EXPECT_EQ(BTM_AllocateSCN(), RFCOMM_MAX_SCN);
+  ASSERT_EQ(BTM_AllocateSCN(), RFCOMM_MAX_SCN);
 }
 
 TEST_F(BtmAllocateSCNTest, no_scn_available) {
-  for (int i = 1; i < RFCOMM_MAX_SCN;
-       i++) {  // Fill all relevant SCN indexes (1 to 29)
-    btm_cb.btm_scn[i] = true;
+  for (uint8_t scn = 2; scn <= RFCOMM_MAX_SCN; scn++) {
+    ASSERT_EQ(BTM_AllocateSCN(), scn);
   }
 
-  uint8_t scn = BTM_AllocateSCN();
-  EXPECT_EQ(scn, 0) << "scn = " << scn << "and not 0";
+  ASSERT_EQ(BTM_AllocateSCN(), 0);
 }

@@ -939,7 +939,7 @@ uint8_t l2c_data_write(uint16_t cid, BT_HDR* p_data, uint16_t flags) {
   if (p_ccb->cong_sent) {
     L2CAP_TRACE_ERROR(
         "L2CAP - CID: 0x%04x cannot send, already congested  "
-        "xmit_hold_q.count: %u  buff_quota: %u",
+        "xmit_hold_q.count: %zu  buff_quota: %u",
         p_ccb->local_cid, fixed_queue_length(p_ccb->xmit_hold_q),
         p_ccb->buff_quota);
 

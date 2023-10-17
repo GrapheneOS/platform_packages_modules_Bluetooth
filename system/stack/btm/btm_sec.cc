@@ -2653,8 +2653,10 @@ void btm_io_capabilities_req(const RawAddress& p) {
 
   if ((btm_cb.security_mode == BTM_SEC_MODE_SC) &&
       (!p_dev_rec->remote_feature_received)) {
-    BTM_TRACE_EVENT("%s: Device security mode is SC only.",
-                    "To continue need to know remote features.", __func__);
+    BTM_TRACE_EVENT(
+        "%s: Device security mode is SC only."
+        "To continue need to know remote features.",
+        __func__);
 
     // ACL calls back to btm_sec_set_peer_sec_caps after it gets data
     p_dev_rec->remote_features_needed = true;
@@ -4205,7 +4207,7 @@ void btm_sec_link_key_request(const uint8_t* p_event) {
       (btm_cb.p_collided_dev_rec->bd_addr == bda)) {
     BTM_TRACE_EVENT(
         "btm_sec_link_key_request() rejecting link key req "
-        "State: %d START_TIMEOUT : %d",
+        "State: %d START_TIMEOUT : %" PRIu64,
         btm_cb.pairing_state, btm_cb.collision_start_time);
     btsnd_hcic_link_key_neg_reply(bda);
     return;
@@ -4430,8 +4432,8 @@ void btm_sec_pin_code_request(const uint8_t* p_event) {
                 BTM_COD_MAJOR_PERIPHERAL) &&
                (p_dev_rec->dev_class[2] & BTM_COD_MINOR_KEYBOARD))) {
     BTM_TRACE_WARNING(
-        "btm_sec_pin_code_request(): Pairing disabled:%d; PIN callback:%x, Dev "
-        "Rec:%x!",
+        "btm_sec_pin_code_request(): Pairing disabled:%d; PIN callback:%p, Dev "
+        "Rec:%p!",
         p_cb->pairing_disabled, p_cb->api.p_pin_callback, p_dev_rec);
 
     btsnd_hcic_pin_code_neg_reply(p_bda);
@@ -4632,8 +4634,9 @@ tBTM_STATUS btm_sec_execute_procedure(tBTM_SEC_DEV_REC* p_dev_rec) {
   if ((p_dev_rec->security_required & BTM_SEC_MODE4_LEVEL4) &&
       (p_dev_rec->link_key_type != BTM_LKEY_TYPE_AUTH_COMB_P_256)) {
     BTM_TRACE_EVENT(
-        "%s: Security Manager: SC only service, but link key type is 0x%02x -",
-        "security failure", __func__, p_dev_rec->link_key_type);
+        "%s: Security Manager: SC only service, but link key type is 0x%02x -"
+        "security failure",
+        __func__, p_dev_rec->link_key_type);
     return (BTM_FAILED_ON_SECURITY);
   }
 

@@ -27,6 +27,7 @@
 #include <cstdint>
 
 #include "bt_trace.h"
+#include "bta/dm/bta_dm_disc.h"
 #include "bta/dm/bta_dm_int.h"
 #include "bta/include/bta_api.h"
 #include "bta/include/bta_gatt_api.h"
@@ -81,7 +82,6 @@ static void bta_dm_sdp_callback(const RawAddress& bd_addr,
                                 tSDP_STATUS sdp_status);
 
 static void bta_dm_search_timer_cback(void* data);
-static const char* bta_dm_get_remname(void);
 static bool bta_dm_read_remote_device_name(const RawAddress& bd_addr,
                                            tBT_TRANSPORT transport);
 static void bta_dm_discover_device(const RawAddress& remote_bd_addr);
@@ -756,7 +756,7 @@ static void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
       if (bta_dm_search_cb.p_sdp_db != NULL &&
           bta_dm_search_cb.p_sdp_db->raw_used != 0 &&
           bta_dm_search_cb.p_sdp_db->raw_data != NULL) {
-        APPL_TRACE_DEBUG("%s raw_data used = 0x%x raw_data_ptr = 0x%x",
+        APPL_TRACE_DEBUG("%s raw_data used = 0x%x raw_data_ptr = 0x%p",
                          __func__, bta_dm_search_cb.p_sdp_db->raw_used,
                          bta_dm_search_cb.p_sdp_db->raw_data);
 
@@ -1294,7 +1294,7 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
   bta_dm_search_cb.peer_bdaddr = remote_bd_addr;
 
   APPL_TRACE_DEBUG(
-      "%s name_discover_done = %d p_btm_inq_info 0x%x state = %d, transport=%d",
+      "%s name_discover_done = %d p_btm_inq_info 0x%p state = %d, transport=%d",
       __func__, bta_dm_search_cb.name_discover_done,
       bta_dm_search_cb.p_btm_inq_info, bta_dm_search_get_state(), transport);
 
@@ -1372,7 +1372,7 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
       }
       if (bta_dm_search_cb.p_btm_inq_info) {
         APPL_TRACE_DEBUG(
-            "%s p_btm_inq_info 0x%x results.device_type 0x%x "
+            "%s p_btm_inq_info 0x%p results.device_type 0x%x "
             "services_to_search 0x%x",
             __func__, bta_dm_search_cb.p_btm_inq_info,
             bta_dm_search_cb.p_btm_inq_info->results.device_type,
@@ -1637,7 +1637,7 @@ static void bta_dm_remname_cback(const tBTM_REMOTE_DEV_NAME* p_remote_name) {
  *
  * Returns          char * - Pointer to the remote device name
  ******************************************************************************/
-static const char* bta_dm_get_remname(void) {
+const char* bta_dm_get_remname(void) {
   const char* p_name = (const char*)bta_dm_search_cb.peer_name;
 
   /* If the name isn't already stored, try retrieving from BTM */

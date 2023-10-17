@@ -51,6 +51,7 @@
 #include <optional>
 
 #include "advertise_data_parser.h"
+#include "bta/dm/bta_dm_disc.h"
 #include "bta/include/bta_api.h"
 #include "bta_csis_api.h"
 #include "bta_dm_int.h"
@@ -2451,8 +2452,8 @@ static void bta_energy_info_cb(tBTM_BLE_TX_TIME_MS tx_time,
                                tBTM_CONTRL_STATE ctrl_state,
                                tBTA_STATUS status) {
   BTIF_TRACE_DEBUG(
-      "energy_info_cb-Status:%d,state=%d,tx_t=%ld, rx_t=%ld, "
-      "idle_time=%ld,used=%ld",
+      "energy_info_cb-Status:%d,state=%d,tx_t=%u, rx_t=%u, "
+      "idle_time=%u,used=%u",
       status, ctrl_state, tx_time, rx_time, idle_time, energy_used);
 
   bt_activity_energy_info energy_info;
@@ -2551,7 +2552,7 @@ void btif_dm_create_bond(const RawAddress bd_addr, int transport) {
  ******************************************************************************/
 void btif_dm_create_bond_le(const RawAddress bd_addr,
                             tBLE_ADDR_TYPE addr_type) {
-  BTIF_TRACE_EVENT("%s: bd_addr=%s, addr_type=%d, transport=%d", __func__,
+  BTIF_TRACE_EVENT("%s: bd_addr=%s, addr_type=%d", __func__,
                    ADDRESS_TO_LOGGABLE_CSTR(bd_addr), addr_type);
   const tBLE_BD_ADDR ble_bd_addr{
       .type = addr_type,

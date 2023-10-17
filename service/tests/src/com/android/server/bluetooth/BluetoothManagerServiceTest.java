@@ -37,7 +37,6 @@ import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.validateMockitoUsage;
 import static org.mockito.Mockito.verify;
@@ -61,6 +60,9 @@ import android.provider.Settings;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.flags.FeatureFlags;
+import com.android.bluetooth.flags.FeatureFlagsImpl;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -80,7 +82,10 @@ public class BluetoothManagerServiceTest {
 
     BluetoothManagerService mManagerService;
 
-    /* @Spy */ Context mContext;
+    @Spy
+    private final Context mContext =
+            new ContextWrapper(InstrumentationRegistry.getInstrumentation().getTargetContext());
+
     @Spy BluetoothServerProxy mBluetoothServerProxy;
     @Mock UserManager mUserManager;
 
@@ -90,6 +95,7 @@ public class BluetoothManagerServiceTest {
 
     @Mock IBluetooth mAdapterService;
     @Mock AdapterBinder mAdapterBinder;
+    @Spy private final FeatureFlags mFeatureFlags = new FeatureFlagsImpl();
 
     TestLooper mLooper;
 
@@ -113,11 +119,6 @@ public class BluetoothManagerServiceTest {
         doReturn("00:11:22:33:44:55")
                 .when(mBluetoothServerProxy)
                 .settingsSecureGetString(any(), eq(Settings.Secure.BLUETOOTH_ADDRESS));
-
-        mContext =
-                spy(
-                        new ContextWrapper(
-                                InstrumentationRegistry.getInstrumentation().getTargetContext()));
 
         // Test is not allowed to send broadcast as Bluetooth. doNothing Prevent SecurityException
         doNothing().when(mContext).sendBroadcastAsUser(any(), any(), any(), any());
@@ -145,7 +146,7 @@ public class BluetoothManagerServiceTest {
 
         mLooper = new TestLooper();
 
-        mManagerService = new BluetoothManagerService(mContext, mLooper.getLooper());
+        mManagerService = new BluetoothManagerService(mContext, mLooper.getLooper(), mFeatureFlags);
         mManagerService.registerAdapter(mManagerCallback);
     }
 

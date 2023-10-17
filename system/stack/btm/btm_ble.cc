@@ -1804,7 +1804,7 @@ tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
         if (btm_cb.api.p_le_callback) {
           /* the callback function implementation may change the IO
            * capability... */
-          BTM_TRACE_DEBUG("btm_cb.api.p_le_callback=0x%x",
+          BTM_TRACE_DEBUG("btm_cb.api.p_le_callback=0x%p",
                           btm_cb.api.p_le_callback);
           (*btm_cb.api.p_le_callback)(event, bd_addr,
                                       (tBTM_LE_EVT_DATA*)p_data);
@@ -1887,7 +1887,7 @@ tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
 
       case SMP_LE_ADDR_ASSOC_EVT:
         if (btm_cb.api.p_le_callback) {
-          BTM_TRACE_DEBUG("btm_cb.api.p_le_callback=0x%x",
+          BTM_TRACE_DEBUG("btm_cb.api.p_le_callback=0x%p",
                           btm_cb.api.p_le_callback);
           (*btm_cb.api.p_le_callback)(event, bd_addr,
                                       (tBTM_LE_EVT_DATA*)p_data);
@@ -1961,7 +1961,7 @@ bool BTM_BleDataSignature(const RawAddress& bd_addr, uint8_t* p_text,
                            BTM_CMAC_TLEN_SIZE, p_mac);
   btm_ble_increment_sign_ctr(bd_addr, true);
 
-  BTM_TRACE_DEBUG("%s p_mac = %d", __func__, p_mac);
+  BTM_TRACE_DEBUG("%s p_mac = %p", __func__, p_mac);
   BTM_TRACE_DEBUG(
       "p_mac[0] = 0x%02x p_mac[1] = 0x%02x p_mac[2] = 0x%02x p_mac[3] = "
       "0x%02x",
