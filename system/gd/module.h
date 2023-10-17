@@ -161,17 +161,6 @@ class ModuleRegistry {
   std::string last_instance_;
 };
 
-class ModuleDumper {
- public:
-  ModuleDumper(const ModuleRegistry& module_registry, const char* title)
-      : module_registry_(module_registry), title_(title) {}
-  void DumpState(std::string* output) const;
-
- private:
-  const ModuleRegistry& module_registry_;
-  const std::string title_;
-};
-
 class TestModuleRegistry : public ModuleRegistry {
  public:
   void InjectTestModule(const ModuleFactory* module, Module* instance) {
