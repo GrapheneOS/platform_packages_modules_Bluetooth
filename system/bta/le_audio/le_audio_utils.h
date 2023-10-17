@@ -32,9 +32,9 @@ namespace utils {
 types::LeAudioContextType AudioContentToLeAudioContext(
     audio_content_type_t content_type, audio_usage_t usage);
 types::AudioContexts GetAudioContextsFromSourceMetadata(
-    const std::vector<struct playback_track_metadata>& source_metadata);
+    const source_metadata_v7& source_metadata);
 types::AudioContexts GetAudioContextsFromSinkMetadata(
-    const std::vector<struct record_track_metadata>& sink_metadata);
+    const sink_metadata_v7& sink_metadata);
 
 }  // namespace utils
 }  // namespace le_audio

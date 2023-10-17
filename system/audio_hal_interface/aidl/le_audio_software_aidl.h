@@ -84,9 +84,9 @@ class LeAudioTransport {
                                uint64_t* total_bytes_processed,
                                timespec* data_position);
 
-  void SourceMetadataChanged(const source_metadata_t& source_metadata);
+  void SourceMetadataChanged(const source_metadata_v7_t& source_metadata);
 
-  void SinkMetadataChanged(const sink_metadata_t& sink_metadata);
+  void SinkMetadataChanged(const sink_metadata_v7_t& sink_metadata);
 
   void ResetPresentationPosition();
 
@@ -140,9 +140,10 @@ class LeAudioSinkTransport
                                uint64_t* total_bytes_read,
                                timespec* data_position) override;
 
-  void SourceMetadataChanged(const source_metadata_t& source_metadata) override;
+  void SourceMetadataChanged(
+      const source_metadata_v7_t& source_metadata) override;
 
-  void SinkMetadataChanged(const sink_metadata_t& sink_metadata) override;
+  void SinkMetadataChanged(const sink_metadata_v7_t& sink_metadata) override;
 
   void ResetPresentationPosition() override;
 
@@ -195,9 +196,10 @@ class LeAudioSourceTransport
                                uint64_t* total_bytes_written,
                                timespec* data_position) override;
 
-  void SourceMetadataChanged(const source_metadata_t& source_metadata) override;
+  void SourceMetadataChanged(
+      const source_metadata_v7_t& source_metadata) override;
 
-  void SinkMetadataChanged(const sink_metadata_t& sink_metadata) override;
+  void SinkMetadataChanged(const sink_metadata_v7_t& sink_metadata) override;
 
   void ResetPresentationPosition() override;
 
