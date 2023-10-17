@@ -35,13 +35,13 @@ extern tBTA_JV_CB bta_jv_cb;
  *
  ******************************************************************************/
 uint8_t BTA_AllocateSCN(void) {
-  LOG_DEBUG("BTA_AllocateSCN");
   // SCN can be allocated in the range of [1, RFCOMM_MAX_SCN]
   // btm_scn uses indexes 0 to RFCOMM_MAX_SCN-1 to track RFC ports
   for (uint8_t i = bta_jv_cb.scn_search_index; i < RFCOMM_MAX_SCN; ++i) {
     if (!bta_jv_cb.scn_in_use[i]) {
       bta_jv_cb.scn_in_use[i] = true;
       bta_jv_cb.scn_search_index = (i + 1);
+      LOG_DEBUG("Allocating scn: %u", i + 1);
       return (i + 1);  // allocated scn is index + 1
     }
   }
@@ -57,10 +57,11 @@ uint8_t BTA_AllocateSCN(void) {
     if (!bta_jv_cb.scn_in_use[i]) {
       bta_jv_cb.scn_in_use[i] = true;
       bta_jv_cb.scn_search_index = (i + 1);
+      LOG_DEBUG("Allocating scn: %u", i + 1);
       return (i + 1);  // allocated scn is index + 1
     }
   }
-
+  LOG_DEBUG("Unable to allocate an scn");
   return (0); /* No free ports */
 }
 
@@ -75,7 +76,6 @@ uint8_t BTA_AllocateSCN(void) {
  ******************************************************************************/
 
 bool BTA_TryAllocateSCN(uint8_t scn) {
-  LOG_DEBUG("BTA_TryAllocateScn scn=%u", scn);
   /* Make sure we don't exceed max scn range.
    * Stack reserves scn 1 for HFP and HSP
    */
@@ -84,9 +84,10 @@ bool BTA_TryAllocateSCN(uint8_t scn) {
   /* check if this scn is available */
   if (!bta_jv_cb.scn_in_use[scn - 1]) {
     bta_jv_cb.scn_in_use[scn - 1] = true;
+    LOG_DEBUG("Allocating scn: %u", scn);
     return true;
   }
-
+  LOG_DEBUG("Unable to allocate scn %u", scn);
   return (false); /* scn was busy */
 }
 
@@ -100,14 +101,15 @@ bool BTA_TryAllocateSCN(uint8_t scn) {
  *
  ******************************************************************************/
 bool BTA_FreeSCN(uint8_t scn) {
-  LOG_DEBUG("BTA_FreeSCN scn=%u", scn);
   /* Since this isn't used by HFP, this function will only free valid SCNs
    * that aren't reserved for HFP, which is range [2, RFCOMM_MAX_SCN].
    */
   if (scn < RFCOMM_MAX_SCN && scn > 1) {
     bta_jv_cb.scn_in_use[scn - 1] = false;
+    LOG_DEBUG("Freed SCN: %u", scn);
     return (true);
   } else {
+    LOG_WARN("Invalid SCN: %u", scn);
     return (false); /* Illegal SCN passed in */
   }
 }
