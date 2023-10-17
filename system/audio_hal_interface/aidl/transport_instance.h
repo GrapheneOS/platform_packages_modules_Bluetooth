@@ -78,8 +78,8 @@ class IBluetoothTransportInstance {
                                        timespec* data_position) = 0;
 
   virtual void SourceMetadataChanged(
-      const source_metadata_t& source_metadata) = 0;
-  virtual void SinkMetadataChanged(const sink_metadata_t& sink_metadata) = 0;
+      const source_metadata_v7_t& source_metadata) = 0;
+  virtual void SinkMetadataChanged(const sink_metadata_v7_t& sink_metadata) = 0;
 
   /***
    * Invoked when the transport is requested to reset presentation position

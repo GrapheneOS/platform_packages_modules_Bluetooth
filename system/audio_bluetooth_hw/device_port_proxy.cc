@@ -34,12 +34,17 @@ namespace bluetooth {
 namespace audio {
 namespace aidl {
 
+using ::aidl::android::hardware::audio::common::SinkMetadata;
+using ::aidl::android::hardware::audio::common::SourceMetadata;
 using ::aidl::android::hardware::bluetooth::audio::AudioConfiguration;
 using ::aidl::android::hardware::bluetooth::audio::BluetoothAudioSessionControl;
 using ::aidl::android::hardware::bluetooth::audio::ChannelMode;
 using ::aidl::android::hardware::bluetooth::audio::PcmConfiguration;
 using ::aidl::android::hardware::bluetooth::audio::PortStatusCallbacks;
 using ::aidl::android::hardware::bluetooth::audio::PresentationPosition;
+using ::aidl::android::media::audio::common::AudioContentType;
+using ::aidl::android::media::audio::common::AudioSource;
+using ::aidl::android::media::audio::common::AudioUsage;
 
 using ::android::base::StringPrintf;
 using ControlResultCallback = std::function<void(
@@ -577,7 +582,7 @@ bool BluetoothAudioPortAidl::GetPresentationPosition(
 }
 
 void BluetoothAudioPortAidl::UpdateSourceMetadata(
-    const source_metadata* source_metadata) const {
+    const source_metadata_v7* source_metadata) const {
   if (!in_use()) {
     LOG(ERROR) << __func__ << ": BluetoothAudioPortAidl is not in use";
     return;
@@ -586,13 +591,25 @@ void BluetoothAudioPortAidl::UpdateSourceMetadata(
              << ", cookie=" << StringPrintf("%#hx", cookie_)
              << ", state=" << state_ << ", " << source_metadata->track_count
              << " track(s)";
-  if (source_metadata->track_count == 0) return;
+  ssize_t track_count = source_metadata->track_count;
+  if (track_count == 0) return;
+  SourceMetadata hal_source_metadata;
+  hal_source_metadata.tracks.resize(track_count);
+  for (int i = 0; i < track_count; i++) {
+    hal_source_metadata.tracks[i].usage =
+        static_cast<AudioUsage>(source_metadata->tracks[i].base.usage);
+    hal_source_metadata.tracks[i].contentType = static_cast<AudioContentType>(
+        source_metadata->tracks[i].base.content_type);
+    hal_source_metadata.tracks[i].tags.push_back(
+        std::string(source_metadata->tracks[i].tags));
+  }
+
   BluetoothAudioSessionControl::UpdateSourceMetadata(session_type_,
-                                                     *source_metadata);
+                                                     hal_source_metadata);
 }
 
 void BluetoothAudioPortAidl::UpdateSinkMetadata(
-    const sink_metadata* sink_metadata) const {
+    const sink_metadata_v7* sink_metadata) const {
   if (!in_use()) {
     LOG(ERROR) << __func__ << ": BluetoothAudioPortAidl is not in use";
     return;
@@ -601,9 +618,20 @@ void BluetoothAudioPortAidl::UpdateSinkMetadata(
              << ", cookie=" << StringPrintf("%#hx", cookie_)
              << ", state=" << state_ << ", " << sink_metadata->track_count
              << " track(s)";
-  if (sink_metadata->track_count == 0) return;
+  ssize_t track_count = sink_metadata->track_count;
+  if (track_count == 0) return;
+  SinkMetadata hal_sink_metadata;
+  hal_sink_metadata.tracks.resize(track_count);
+  for (int i = 0; i < track_count; i++) {
+    hal_sink_metadata.tracks[i].source =
+        static_cast<AudioSource>(sink_metadata->tracks[i].base.source);
+    hal_sink_metadata.tracks[i].gain = sink_metadata->tracks[i].base.gain;
+    hal_sink_metadata.tracks[i].tags.push_back(
+        std::string(sink_metadata->tracks[i].tags));
+  }
+
   BluetoothAudioSessionControl::UpdateSinkMetadata(session_type_,
-                                                   *sink_metadata);
+                                                   hal_sink_metadata);
 }
 
 BluetoothStreamState BluetoothAudioPortAidl::GetState() const { return state_; }
