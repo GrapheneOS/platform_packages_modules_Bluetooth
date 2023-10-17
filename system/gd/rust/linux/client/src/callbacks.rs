@@ -3,9 +3,10 @@ use crate::dbus_iface::{
     export_admin_policy_callback_dbus_intf, export_advertising_set_callback_dbus_intf,
     export_bluetooth_callback_dbus_intf, export_bluetooth_connection_callback_dbus_intf,
     export_bluetooth_gatt_callback_dbus_intf, export_bluetooth_manager_callback_dbus_intf,
-    export_bluetooth_media_callback_dbus_intf, export_gatt_server_callback_dbus_intf,
-    export_qa_callback_dbus_intf, export_scanner_callback_dbus_intf,
-    export_socket_callback_dbus_intf, export_suspend_callback_dbus_intf,
+    export_bluetooth_media_callback_dbus_intf, export_bluetooth_telephony_callback_dbus_intf,
+    export_gatt_server_callback_dbus_intf, export_qa_callback_dbus_intf,
+    export_scanner_callback_dbus_intf, export_socket_callback_dbus_intf,
+    export_suspend_callback_dbus_intf,
 };
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
@@ -22,7 +23,9 @@ use btstack::bluetooth_gatt::{
     BluetoothGattService, IBluetoothGattCallback, IBluetoothGattServerCallback, IScannerCallback,
     ScanResult,
 };
-use btstack::bluetooth_media::{BluetoothAudioDevice, IBluetoothMediaCallback};
+use btstack::bluetooth_media::{
+    BluetoothAudioDevice, IBluetoothMediaCallback, IBluetoothTelephonyCallback,
+};
 use btstack::bluetooth_qa::IBluetoothQACallback;
 use btstack::socket_manager::{
     BluetoothServerSocket, BluetoothSocket, IBluetoothSocketManager,
@@ -1417,6 +1420,47 @@ impl RPCProxy for MediaCallback {
     fn export_for_rpc(self: Box<Self>) {
         let cr = self.dbus_crossroads.clone();
         let iface = export_bluetooth_media_callback_dbus_intf(
+            self.dbus_connection.clone(),
+            &mut cr.lock().unwrap(),
+            Arc::new(Mutex::new(DisconnectWatcher::new())),
+        );
+        cr.lock().unwrap().insert(self.get_object_id(), &[iface], Arc::new(Mutex::new(self)));
+    }
+}
+
+pub(crate) struct TelephonyCallback {
+    objpath: String,
+    context: Arc<Mutex<ClientContext>>,
+
+    dbus_connection: Arc<SyncConnection>,
+    dbus_crossroads: Arc<Mutex<Crossroads>>,
+}
+
+impl TelephonyCallback {
+    pub(crate) fn new(
+        objpath: String,
+        context: Arc<Mutex<ClientContext>>,
+        dbus_connection: Arc<SyncConnection>,
+        dbus_crossroads: Arc<Mutex<Crossroads>>,
+    ) -> Self {
+        Self { objpath, context, dbus_connection, dbus_crossroads }
+    }
+}
+
+impl IBluetoothTelephonyCallback for TelephonyCallback {
+    fn on_telephony_use(&mut self, addr: String, state: bool) {
+        print_info!("Telephony use changed: [{}] state: {}", addr, state);
+    }
+}
+
+impl RPCProxy for TelephonyCallback {
+    fn get_object_id(&self) -> String {
+        self.objpath.clone()
+    }
+
+    fn export_for_rpc(self: Box<Self>) {
+        let cr = self.dbus_crossroads.clone();
+        let iface = export_bluetooth_telephony_callback_dbus_intf(
             self.dbus_connection.clone(),
             &mut cr.lock().unwrap(),
             Arc::new(Mutex::new(DisconnectWatcher::new())),

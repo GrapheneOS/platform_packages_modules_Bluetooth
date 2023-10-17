@@ -26,6 +26,7 @@ nix = "0.23"
 num-derive = "0.3"
 num-traits = "0.2"
 uhid-virt = "0.0.6"
+tokio = { version = "1", features = ['rt'] }
 
 [lib]
 crate-type = ["rlib"]
