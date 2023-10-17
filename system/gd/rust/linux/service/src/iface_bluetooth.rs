@@ -642,6 +642,11 @@ impl IBluetooth for IBluetoothDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("GetRemoteRSSI", DBusLog::Disable)]
+    fn get_remote_rssi(&self, device: BluetoothDevice) -> i8 {
+        dbus_generated!()
+    }
+
     #[dbus_method("GetConnectedDevices", DBusLog::Disable)]
     fn get_connected_devices(&self) -> Vec<BluetoothDevice> {
         dbus_generated!()

@@ -502,6 +502,13 @@ pub enum BluetoothProperty {
     Unknown(),
 }
 
+/// Unknown or invalid RSSI value.
+/// Per Core v5.3, Vol 4, E, 7.5.4. Valid RSSI is represent in 1-byte with the range:
+/// BR/EDR: -128 to 127
+/// LE: -127 to 20, 127
+/// Set 127 as invalid value also aligns with bluez.
+pub const INVALID_RSSI: i8 = 127;
+
 /// Wherever names are sent in bindings::bt_property_t, the size of the character
 /// arrays are 256. Keep one extra byte for null termination.
 const PROPERTY_NAME_MAX: usize = 255;
