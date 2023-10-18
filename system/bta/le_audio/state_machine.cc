@@ -1797,7 +1797,19 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
         if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
           /* We are here because of the reconnection of the single device. */
-          PrepareAndSendConfigQos(group, leAudioDevice);
+          /* Make sure that device is ready to be configured as we could also
+           * get here triggered by the remote device. If device is not connected
+           * yet, we should wait for the stack to trigger adding device to the
+           * stream */
+          if (leAudioDevice->GetConnectionState() ==
+              le_audio::DeviceConnectState::CONNECTED) {
+            PrepareAndSendConfigQos(group, leAudioDevice);
+          } else {
+            LOG_DEBUG(
+                "Device %s initiated configured state but it is not yet ready "
+                "to be configured",
+                ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
+          }
           return;
         }
 
@@ -1896,7 +1908,19 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
         if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
           /* We are here because of the reconnection of the single device. */
-          PrepareAndSendConfigQos(group, leAudioDevice);
+          /* Make sure that device is ready to be configured as we could also
+           * get here triggered by the remote device. If device is not connected
+           * yet, we should wait for the stack to trigger adding device to the
+           * stream */
+          if (leAudioDevice->GetConnectionState() ==
+              le_audio::DeviceConnectState::CONNECTED) {
+            PrepareAndSendConfigQos(group, leAudioDevice);
+          } else {
+            LOG_DEBUG(
+                "Device %s initiated configured state but it is not yet ready "
+                "to be configured",
+                ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
+          }
           return;
         }
 
