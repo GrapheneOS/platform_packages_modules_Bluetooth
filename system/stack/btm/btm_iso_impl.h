@@ -303,7 +303,10 @@ struct iso_impl {
       LOG_ASSERT(cis) << "No such cis: " << +el.cis_conn_handle;
       LOG_ASSERT(!(cis->state_flags &
                    (kStateFlagIsConnected | kStateFlagIsConnecting)))
-          << "Already connected or connecting";
+          << "cis: " << +el.cis_conn_handle
+          << " is already connected or connecting flags: " << +cis->state_flags
+          << ", num of cis params: " << +conn_params.conn_pairs.size();
+
       cis->state_flags |= kStateFlagIsConnecting;
 
       tBTM_SEC_DEV_REC* p_rec = btm_find_dev_by_handle(el.acl_conn_handle);
