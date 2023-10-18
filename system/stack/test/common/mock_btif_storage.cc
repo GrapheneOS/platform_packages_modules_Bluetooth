@@ -17,7 +17,8 @@
  ******************************************************************************/
 
 #include "mock_btif_storage.h"
-#include "stack/include/btm_api_types.h"
+
+#include "stack/include/btm_sec_api_types.h"
 
 static bluetooth::manager::MockBtifStorageInterface* btif_storage_interface =
     nullptr;

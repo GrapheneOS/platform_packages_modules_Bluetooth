@@ -27,6 +27,7 @@
 #include "bt_target.h"  // Must be first to define build configuration
 #include "stack/include/bt_octets.h"
 #include "stack/include/bt_types.h"
+#include "stack/include/btm_sec_api_types.h"
 #include "stack/include/btm_ble_sec_api_types.h"
 #include "stack/include/bt_name.h"
 #include "stack/include/hci_error_code.h"

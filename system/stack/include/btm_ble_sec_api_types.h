@@ -20,8 +20,7 @@
 
 #include <cstdint>
 #include "stack/include/bt_octets.h"
-#include "types/ble_address_with_type.h"
-#include "btm_api_types.h"
+#include "stack/include/btm_sec_api_types.h"
 
 //////////////////////////////////////////////////////////
 ////// from btm_ble_api_types.h

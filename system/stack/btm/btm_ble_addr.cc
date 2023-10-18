@@ -25,8 +25,6 @@
 #include <base/functional/bind.h>
 #include <string.h>
 
-#include "types/ble_address_with_type.h"
-#include "btm_api_types.h"
 #include "btm_ble_int.h"
 #include "device/include/controller.h"
 #include "gap_api.h"
@@ -34,6 +32,7 @@
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_dev.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
+#include "stack/include/btm_sec_api.h"
 #include "stack/include/btm_ble_sec_api.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "stack/include/acl_api.h"
