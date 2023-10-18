@@ -505,21 +505,6 @@ struct tSdpApi {
      ******************************************************************************/
     bool (*SDP_AddServiceClassIdList)(uint32_t handle, uint16_t num_services,
                                       uint16_t* p_service_uuids);
-
-    /*******************************************************************************
-
-      Function         SDP_DeleteAttribute
-
-      Description      Delete an attribute from a record.
-                       This would be through the SDP database maintenance API.
-
-      Parameters:      handle       - (input) Handle to add
-                       attr_id      - (input) attribute id to delete
-
-      Returns          true if deleted OK, else false if not found
-
-     ******************************************************************************/
-    bool (*SDP_DeleteAttribute)(uint32_t handle, uint16_t attr_id);
   } handle;
 
   struct {
