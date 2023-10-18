@@ -346,6 +346,8 @@ void bta_av_free_scb(tBTA_AV_SCB* p_scb) {
   CHECK(p_scb == bta_av_cb.p_scb[scb_index]);
   bta_av_cb.p_scb[scb_index] = nullptr;
   alarm_free(p_scb->avrc_ct_timer);
+  list_free(p_scb->a2dp_list);
+  p_scb->a2dp_list = NULL;
   // TODO: After tBTA_AV_SCB is changed to a proper class, the entry
   // here should be de-allocated by C++ 'delete' statement.
   osi_free(p_scb);
