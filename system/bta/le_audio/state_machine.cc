@@ -24,23 +24,18 @@
 #include <com_android_bluetooth_flags.h>
 #endif
 
-#include <map>
-
-#include "bt_types.h"
 #include "bta_gatt_queue.h"
-#include "bta_le_audio_api.h"
 #include "btm_iso_api.h"
 #include "client_parser.h"
 #include "codec_manager.h"
-#include "content_control_id_keeper.h"
 #include "devices.h"
 #include "gd/common/strings.h"
 #include "hcimsgs.h"
 #include "le_audio_health_status.h"
 #include "le_audio_log_history.h"
 #include "le_audio_types.h"
+#include "os/log.h"
 #include "osi/include/alarm.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 
