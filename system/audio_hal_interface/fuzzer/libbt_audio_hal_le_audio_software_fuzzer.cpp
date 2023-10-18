@@ -24,12 +24,11 @@ using ::bluetooth::audio::le_audio::LeAudioClientInterface;
 
 constexpr int32_t kRandomStringLength = 256;
 
-constexpr uint8_t kBitsPerSample[] = {0, 16, 24, 32};
+constexpr uint8_t kBitsPerSample[] = {16, 24, 32};
 
-constexpr uint8_t kChannelCount[] = {0, 1, 2};
+constexpr uint8_t kChannelCount[] = {1, 2};
 
-constexpr uint32_t kSampleRates[] = {0,     8000,  16000, 24000,  32000, 44100,
-                                     48000, 88200, 96000, 176400, 192000};
+constexpr uint32_t kSampleRates[] = {16000, 24000, 44100, 48000, 88200, 96000};
 
 extern "C" {
 struct android_namespace_t* android_get_exported_namespace(const char*) {
@@ -65,15 +64,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     LeAudioClientInterface::Source* source =
         interface->GetSource(streamCb, &messageLoopThread);
     if (source != nullptr) {
-      source->StartSession();
       uint16_t delay = fdp.ConsumeIntegral<uint16_t>();
       source->SetRemoteDelay(delay);
       LeAudioClientInterface::PcmParameters params;
-      params.data_interval_us = fdp.ConsumeIntegral<uint32_t>();
+      params.data_interval_us = fdp.ConsumeIntegralInRange<uint32_t>(
+          1000, std::numeric_limits<uint32_t>::max());
       params.sample_rate = fdp.PickValueInArray(kSampleRates);
       params.bits_per_sample = fdp.PickValueInArray(kBitsPerSample);
       params.channels_count = fdp.PickValueInArray(kChannelCount);
       source->SetPcmParameters(params);
+      source->StartSession();
       source->StopSession();
       source->Cleanup();
     }
@@ -84,15 +84,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     LeAudioClientInterface::Sink* sink =
         interface->GetSink(streamCb, &messageLoopThread, false);
     if (sink != nullptr) {
-      sink->StartSession();
       uint16_t delay = fdp.ConsumeIntegral<uint16_t>();
       sink->SetRemoteDelay(delay);
       LeAudioClientInterface::PcmParameters params;
-      params.data_interval_us = fdp.ConsumeIntegral<uint32_t>();
+      params.data_interval_us = fdp.ConsumeIntegralInRange<uint32_t>(
+          1000, std::numeric_limits<uint32_t>::max());
       params.sample_rate = fdp.PickValueInArray(kSampleRates);
       params.bits_per_sample = fdp.PickValueInArray(kBitsPerSample);
       params.channels_count = fdp.PickValueInArray(kChannelCount);
       sink->SetPcmParameters(params);
+      sink->StartSession();
       sink->StopSession();
       sink->Cleanup();
     }
