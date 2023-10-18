@@ -25,7 +25,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "bta/dm/bta_dm_sec.h"
 #include "btcore/include/module.h"
 #include "btcore/include/osi_module.h"
 #include "btif_api.h"

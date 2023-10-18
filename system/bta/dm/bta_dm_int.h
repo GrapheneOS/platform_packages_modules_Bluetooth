@@ -31,6 +31,7 @@
 
 #include "bt_target.h"  // Must be first to define build configuration
 #include "bta/include/bta_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "bta/include/bta_gatt_api.h"
 #include "bta/sys/bta_sys.h"
 #include "main/shim/dumpsys.h"
@@ -488,7 +489,6 @@ extern tBTA_DM_DI_CB bta_dm_di_cb;
 void bta_dm_enable(tBTA_DM_SEC_CBACK*, tBTA_DM_ACL_CBACK*);
 void bta_dm_disable();
 void bta_dm_set_dev_name(const std::vector<uint8_t>&);
-void bta_dm_remove_device(const RawAddress& bd_addr);
 void bta_dm_close_acl(const RawAddress&, bool, tBT_TRANSPORT);
 
 void bta_dm_pm_btm_status(const RawAddress&, tBTM_PM_STATUS, uint16_t,
