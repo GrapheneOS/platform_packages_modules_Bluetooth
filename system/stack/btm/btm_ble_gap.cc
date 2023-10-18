@@ -2596,7 +2596,7 @@ void btm_ble_process_ext_adv_pkt(uint8_t data_len, const uint8_t* data) {
   while (num_reports--) {
     if (p + extended_report_header_size > data + data_len) {
       // TODO(jpawlowski): we should crash the stack here
-      BTM_TRACE_ERROR(
+      LOG_ERROR(
           "Malformed LE Extended Advertising Report Event from controller - "
           "can't loop the data");
       return;
@@ -2663,7 +2663,7 @@ void btm_ble_process_adv_pkt(uint8_t data_len, const uint8_t* data) {
   while (num_reports--) {
     if (p + report_header_size > data + data_len) {
       // TODO(jpawlowski): we should crash the stack here
-      BTM_TRACE_ERROR("Malformed LE Advertising Report Event from controller");
+      LOG_ERROR("Malformed LE Advertising Report Event from controller");
       return;
     }
 
