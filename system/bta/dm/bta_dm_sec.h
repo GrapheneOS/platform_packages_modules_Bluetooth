@@ -18,9 +18,59 @@
 
 #include <memory>
 
-#include "bta/dm/bta_dm_int.h"
 #include "bta/include/bta_api.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+
+typedef struct {
+  RawAddress bd_addr;
+  bool accept;
+  uint8_t pin_len;
+  uint8_t p_pin[PIN_CODE_LEN];
+} tBTA_DM_API_PIN_REPLY;
+
+typedef struct {
+  BT_HDR_RIGID hdr;
+  RawAddress bd_addr;
+  tBTM_IO_CAP io_cap;
+  tBTM_OOB_DATA oob_data;
+  tBTM_AUTH_REQ auth_req;
+} tBTA_DM_CI_IO_REQ;
+
+typedef struct {
+  RawAddress bd_addr;
+  Octet16 c;
+  Octet16 r;
+  bool accept;
+} tBTA_DM_CI_RMT_OOB;
+
+typedef struct {
+  RawAddress bd_addr;
+  DEV_CLASS dc;
+  LinkKey link_key;
+  uint8_t key_type;
+  bool link_key_known;
+  bool dc_known;
+  BD_NAME bd_name;
+  uint8_t pin_length;
+} tBTA_DM_API_ADD_DEVICE;
+
+typedef struct {
+  tBTA_DM_SEC_CBACK* p_sec_cback;
+  tBTA_DM_SEC_CBACK* p_sec_sirk_cback;
+/* Storage for pin code request parameters */
+  RawAddress pin_bd_addr;
+  DEV_CLASS pin_dev_class;
+  tBTA_DM_SEC_EVT pin_evt;
+  tBTM_IO_CAP loc_io_caps;    /* IO Capabilities of local device */
+  tBTM_IO_CAP rmt_io_caps;    /* IO Capabilities of remote device */
+  tBTM_AUTH_REQ loc_auth_req; /* Authentication required for local device */
+  tBTM_AUTH_REQ rmt_auth_req;
+  uint32_t num_val; /* the numeric value for comparison. If just_works, do not
+                       show this number to UI */
+  bool just_works;  /* true, if "Just Works" association model */
+} tBTA_DM_SEC_CB;
+
+extern tBTA_DM_SEC_CB bta_dm_sec_cb;
 
 void bta_dm_sec_enable(tBTA_DM_SEC_CBACK* p_sec_cback);
 
