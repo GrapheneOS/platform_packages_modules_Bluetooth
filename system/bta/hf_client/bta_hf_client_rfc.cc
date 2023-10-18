@@ -26,6 +26,7 @@
 
 #include <cstdint>
 
+#include "bta/include/bta_sec_api.h"
 #include "bta/hf_client/bta_hf_client_int.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
