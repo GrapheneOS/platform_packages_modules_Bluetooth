@@ -23,7 +23,7 @@
 #include <string>
 
 #include "bta/dm/bta_dm_int.h"
-#include "bta/dm/bta_dm_sec.h"
+#include "bta/dm/bta_dm_sec_int.h"
 #include "bta/hf_client/bta_hf_client_int.h"
 #include "bta/include/bta_api.h"
 #include "osi/include/compat.h"

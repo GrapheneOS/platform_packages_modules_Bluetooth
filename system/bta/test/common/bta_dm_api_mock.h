@@ -20,6 +20,7 @@
 #include <gmock/gmock.h>
 
 #include "bta_api.h"
+#include "bta_sec_api.h"
 #include "bta_dm_api.h"
 
 namespace dm {
