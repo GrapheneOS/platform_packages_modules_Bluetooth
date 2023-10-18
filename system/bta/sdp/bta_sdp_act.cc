@@ -325,6 +325,7 @@ static void bta_create_ops_sdp_record(bluetooth_sdp_record* record,
   } else {
       LOG_ERROR("ATTR_ID_GOEP_L2CAP_PSM attr not found!!");
   }
+
   p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
       p_rec, ATTR_ID_SUPPORTED_FORMATS_LIST);
   if (p_attr != NULL) {
@@ -483,7 +484,6 @@ static void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
 
   p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
       p_rec, ATTR_ID_PRODUCT_VERSION);
-
   if (p_attr != nullptr) {
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == UINT_DESC_TYPE &&
         SDP_DISC_ATTR_LEN(p_attr->attr_len_type) >= 2) {

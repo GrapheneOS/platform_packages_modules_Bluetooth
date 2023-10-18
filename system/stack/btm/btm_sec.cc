@@ -1734,7 +1734,7 @@ tBTM_STATUS btm_sec_l2cap_access_req_by_requirement(
 
         if (p_callback)
           (*p_callback)(&bd_addr, transport, (void*)p_ref_data, rc);
-        return (rc);
+        return rc;
       }
     }
 
@@ -1994,7 +1994,7 @@ tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
     {
       if (access_secure_service_from_temp_bond(p_dev_rec,
           is_originator, security_required)) {
-        LOG_ERROR("Trying to access a secure rfcomm service from a temp bonding, reject");
+        LOG_ERROR("Trying to access a secure rfcomm service from a temp bonding, rejecting");
         rc = BTM_FAILED_ON_SECURITY;
       }
       if (p_callback) {
