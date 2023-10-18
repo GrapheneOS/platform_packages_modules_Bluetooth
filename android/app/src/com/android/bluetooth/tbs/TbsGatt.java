@@ -254,8 +254,10 @@ public class TbsGatt {
 
     TbsGatt(TbsService tbsService) {
         mContext = tbsService;
-        mAdapterService =  Objects.requireNonNull(AdapterService.getAdapterService(),
-                "AdapterService shouldn't be null when creating MediaControlCattService");
+        mAdapterService =
+                Objects.requireNonNull(
+                        AdapterService.getAdapterService(),
+                        "AdapterService shouldn't be null when creating TbsGatt");
 
         mAdapterService.registerBluetoothStateCallback(
                 mContext.getMainExecutor(), mBluetoothStateChangeCallback);
@@ -363,6 +365,8 @@ public class TbsGatt {
     }
 
     public void cleanup() {
+        mAdapterService.unregisterBluetoothStateCallback(mBluetoothStateChangeCallback);
+
         if (mBluetoothGattServer == null) {
             return;
         }
