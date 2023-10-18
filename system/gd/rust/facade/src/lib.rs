@@ -88,12 +88,15 @@ impl FacadeServer {
         }
 
         let env = Arc::new(Environment::new(2));
-        let mut builder = ServerBuilder::new(env).bind("0.0.0.0", grpc_port);
+        let mut builder = ServerBuilder::new(env);
         for service in services {
             builder = builder.register_service(service);
         }
 
         let mut server = builder.build().unwrap();
+        let addr = format!("0.0.0.0:{}", grpc_port);
+        let creds = ServerCredentials::insecure();
+        server.add_listening_port(addr, creds).unwrap();
         server.start();
 
         Self { server, stack }
