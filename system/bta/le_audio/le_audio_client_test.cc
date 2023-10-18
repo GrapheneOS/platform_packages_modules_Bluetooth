@@ -1761,6 +1761,24 @@ class UnicastTestNoInit : public Test {
   void UpdateLocalSourceMetadata(
       std::vector<struct playback_track_metadata> tracks,
       bool reconfigure_existing_stream = false) {
+    std::vector<playback_track_metadata_v7> tracks_vec;
+    tracks_vec.reserve(tracks.size());
+    for (const auto& track : tracks) {
+      playback_track_metadata_v7 desc_track = {
+          .base =
+              {
+                  .usage = static_cast<audio_usage_t>(track.usage),
+                  .content_type =
+                      static_cast<audio_content_type_t>(track.content_type),
+                  .gain = track.gain,
+              },
+      };
+      tracks_vec.push_back(desc_track);
+    }
+
+    const source_metadata_v7_t source_metadata = {
+        .track_count = tracks_vec.size(), .tracks = tracks_vec.data()};
+
     ASSERT_NE(nullptr, mock_le_audio_source_hal_client_);
     /* Local Source may reconfigure once the metadata is updated */
     if (reconfigure_existing_stream) {
@@ -1781,7 +1799,7 @@ class UnicastTestNoInit : public Test {
     }
 
     ASSERT_NE(unicast_source_hal_cb_, nullptr);
-    unicast_source_hal_cb_->OnAudioMetadataUpdate(tracks);
+    unicast_source_hal_cb_->OnAudioMetadataUpdate(source_metadata);
   }
 
   void UpdateLocalSourceMetadata(audio_usage_t usage,
@@ -1797,12 +1815,33 @@ class UnicastTestNoInit : public Test {
   }
 
   void UpdateLocalSinkMetadata(audio_source_t audio_source) {
-    std::vector<struct record_track_metadata> sink_metadata = {
+    std::vector<struct record_track_metadata> tracks = {
         {{AUDIO_SOURCE_INVALID, 0.5, AUDIO_DEVICE_NONE, "00:11:22:33:44:55"},
          {AUDIO_SOURCE_MIC, 0.7, AUDIO_DEVICE_OUT_BLE_HEADSET,
           "AA:BB:CC:DD:EE:FF"}}};
 
-    sink_metadata[1].source = audio_source;
+    tracks[1].source = audio_source;
+
+    std::vector<record_track_metadata_v7> tracks_vec;
+    tracks_vec.reserve(tracks.size());
+    for (const auto& track : tracks) {
+      record_track_metadata_v7 desc_track = {
+          .base =
+              {
+                  .source = static_cast<audio_source_t>(track.source),
+                  .gain = track.gain,
+                  .dest_device =
+                      static_cast<audio_devices_t>(track.dest_device),
+              },
+      };
+
+      strcpy(desc_track.base.dest_device_address, track.dest_device_address);
+      tracks_vec.push_back(desc_track);
+    }
+
+    const sink_metadata_v7_t sink_metadata = {.track_count = tracks_vec.size(),
+                                              .tracks = tracks_vec.data()};
+
     ASSERT_NE(nullptr, unicast_sink_hal_cb_);
     unicast_sink_hal_cb_->OnAudioMetadataUpdate(sink_metadata);
   }
@@ -5338,6 +5377,9 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchReconfigure) {
   fake_osi_alarm_set_on_mloop_.cb(fake_osi_alarm_set_on_mloop_.data);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
 
+  // SetInCall is used by GTBS - and only then we can expect CCID to be set.
+  LeAudioClient::Get()->SetInCall(true);
+
   // Conversational is a bidirectional scenario so expect GTBS CCID
   // in the metadata for both directions. Can be called twice when one
   // direction resume after the other and metadata is updated.
@@ -5357,8 +5399,10 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchReconfigure) {
   cis_count_out = 2;
   cis_count_in = 2;
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920, 40);
+
+  LeAudioClient::Get()->SetInCall(false);
   // Stop
-  StopStreaming(group_id);
+  StopStreaming(group_id, true);
 
   // Switch back to MEDIA
   ccids = {.sink = {gmcs_ccid}, .source = {}};
@@ -5376,6 +5420,87 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchReconfigure) {
   Mock::VerifyAndClearExpectations(&mock_state_machine_);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+}
+
+TEST_F(UnicastTest, TwoEarbudsVoipStreamingVerifyMetadataUpdate) {
+  uint8_t group_size = 2;
+  int group_id = 2;
+
+  /*
+   * Scenario
+   * 1. Configure stream for the VOIP
+   * 2. Verify CONVERSATIONAL metadata and context is used.
+   * 3. Resume LocalSink
+   * 4. Make sure there is no change of the metadata and context
+   */
+
+  // Report working CSIS
+  ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+      .WillByDefault(Return(true));
+
+  // First earbud
+  const RawAddress test_address0 = GetTestAddress(0);
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address0, true))
+      .Times(1);
+  ConnectCsisDevice(test_address0, 1 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontLeft,
+                    codec_spec_conf::kLeAudioLocationFrontLeft, group_size,
+                    group_id, 1 /* rank*/);
+
+  // Second earbud
+  const RawAddress test_address1 = GetTestAddress(1);
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address1, true))
+      .Times(1);
+  ConnectCsisDevice(test_address1, 2 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontRight,
+                    codec_spec_conf::kLeAudioLocationFrontRight, group_size,
+                    group_id, 2 /* rank*/, true /*connect_through_csis*/);
+
+  constexpr int gtbs_ccid = 2;
+
+  ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
+      .WillByDefault(Invoke([&](int group_id) { return 2; }));
+  LeAudioClient::Get()->SetCcidInformation(gtbs_ccid, 2 /* Phone */);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
+
+  // VOIP not using Telecom API has no ccids.
+  types::BidirectionalPair<std::vector<uint8_t>> ccids = {.sink = {},
+                                                          .source = {}};
+  EXPECT_CALL(
+      mock_state_machine_,
+      StartStream(_, types::LeAudioContextType::CONVERSATIONAL, _, ccids))
+      .Times(AtLeast(1));
+
+  UpdateLocalSourceMetadata(AUDIO_USAGE_VOICE_COMMUNICATION,
+                            AUDIO_CONTENT_TYPE_SPEECH);
+  UpdateLocalSinkMetadata(AUDIO_SOURCE_MIC);
+
+  LocalAudioSourceResume();
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+
+  // Verify Data transfer are sending. The LocalSink is not yet resumed.
+  uint8_t cis_count_out = 2;
+  uint8_t cis_count_in = 0;
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920, 0);
+
+  types::BidirectionalPair<types::AudioContexts> contexts = {
+      .sink = types::AudioContexts(types::LeAudioContextType::CONVERSATIONAL),
+      .source =
+          types::AudioContexts(types::LeAudioContextType::CONVERSATIONAL)};
+  EXPECT_CALL(mock_state_machine_,
+              StartStream(_, types::LeAudioContextType::CONVERSATIONAL,
+                          contexts, ccids))
+      .Times(AtLeast(1));
+
+  LocalAudioSinkResume();
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
 }
 
 TEST_F(UnicastTest, TwoReconfigureAndVerifyEnableContextType) {
@@ -5469,6 +5594,8 @@ TEST_F(UnicastTest, TwoReconfigureAndVerifyEnableContextType) {
               StartStream(_, types::LeAudioContextType::CONVERSATIONAL,
                           conversiational_contexts, ccids))
       .Times(AtLeast(1));
+
+  LeAudioClient::Get()->SetInCall(true);
 
   LocalAudioSourceResume(true);
   SyncOnMainLoop();
@@ -6752,6 +6879,82 @@ TEST_F(UnicastTest, UpdateMultipleBidirContextTypes) {
                      },
                      LeAudioClient::Get()));
   SyncOnMainLoop();
+}
+
+TEST_F(UnicastTest, UpdateDisableLocalAudioSinkOnGame) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  int group_id = bluetooth::groups::kGroupUnknown;
+
+  available_snk_context_types_ =
+      (types::LeAudioContextType::CONVERSATIONAL |
+       types::LeAudioContextType::GAME | types::LeAudioContextType::LIVE)
+          .value();
+  supported_snk_context_types_ =
+      available_snk_context_types_ |
+      types::AudioContexts(types::LeAudioContextType::UNSPECIFIED).value();
+  available_src_context_types_ = available_snk_context_types_;
+  supported_src_context_types_ =
+      available_src_context_types_ |
+      types::AudioContexts(types::LeAudioContextType::UNSPECIFIED).value();
+
+  SetSampleDatabaseEarbudsValid(
+      1, test_address0, codec_spec_conf::kLeAudioLocationAnyLeft,
+      codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
+      default_channel_cnt, 0x0024, false /*add_csis*/, true /*add_cas*/,
+      true /*add_pacs*/, default_ase_cnt /*add_ascs_cnt*/, 1 /*set_size*/,
+      0 /*rank*/);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(1);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnGroupNodeStatus(test_address0, _, GroupNodeStatus::ADDED))
+      .WillOnce(DoAll(SaveArg<1>(&group_id)));
+
+  ConnectLeAudio(test_address0);
+  ASSERT_NE(group_id, bluetooth::groups::kGroupUnknown);
+
+  // Audio sessions are started only when device gets active
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
+  EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
+
+  // Start GAME stream
+  types::BidirectionalPair<types::AudioContexts> contexts = {
+      .sink = types::AudioContexts(types::LeAudioContextType::GAME),
+      .source = types::AudioContexts(types::LeAudioContextType::GAME)};
+  EXPECT_CALL(
+      mock_state_machine_,
+      StartStream(_, le_audio::types::LeAudioContextType::GAME, contexts, _))
+      .Times(1);
+
+  // 1) Start the recording. Sink resume will trigger the reconfiguration
+  // ---------------------------------------------------------------------
+  StartStreaming(AUDIO_USAGE_GAME, AUDIO_CONTENT_TYPE_MUSIC, group_id,
+                 AUDIO_SOURCE_MIC);
+
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_sink_hal_client_);
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
+
+  // Verify Data transfer on one audio source and sink cis
+  uint8_t cis_count_out = 1;
+  uint8_t cis_count_in = 1;
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920, 40);
+
+  SyncOnMainLoop();
+
+  // 2) Now Lets suspend MIC and do not expect reconfiguration
+  // -----------------------------------------------------------------
+
+  EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(0);
+  LocalAudioSinkSuspend();
+  // simulate suspend timeout passed, alarm executing
+  fake_osi_alarm_set_on_mloop_.cb(fake_osi_alarm_set_on_mloop_.data);
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
 }
 
 /* Start music when in a call, end the call, continue with music only */

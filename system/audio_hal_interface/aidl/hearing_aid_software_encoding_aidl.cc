@@ -97,20 +97,20 @@ class HearingAidTransport
   }
 
   void SourceMetadataChanged(
-      const source_metadata_t& source_metadata) override {
+      const source_metadata_v7_t& source_metadata) override {
     auto track_count = source_metadata.track_count;
     auto tracks = source_metadata.tracks;
     LOG(INFO) << __func__ << ": " << track_count << " track(s) received";
     while (track_count) {
-      VLOG(1) << __func__ << ": usage=" << tracks->usage
-              << ", content_type=" << tracks->content_type
-              << ", gain=" << tracks->gain;
+      VLOG(1) << __func__ << ": usage=" << tracks->base.usage
+              << ", content_type=" << tracks->base.content_type
+              << ", gain=" << tracks->base.gain;
       --track_count;
       ++tracks;
     }
   }
 
-  void SinkMetadataChanged(const sink_metadata_t&) override {}
+  void SinkMetadataChanged(const sink_metadata_v7_t&) override {}
 
   void ResetPresentationPosition() override {
     VLOG(2) << __func__ << ": called.";

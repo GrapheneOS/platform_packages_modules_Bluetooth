@@ -335,30 +335,9 @@ fn configure_pid(pid_tx: mpsc::Sender<Message>) {
     });
 }
 
-async fn start_hci_if_floss_enabled(hci: u16, floss_enabled: bool, tx: mpsc::Sender<Message>) {
-    // Initialize adapter states based on saved config only if floss is enabled.
-    if floss_enabled {
-        let is_enabled = config_util::is_hci_n_enabled(hci.into());
-        debug!("Start hci {}: floss={}, enabled={}", hci, floss_enabled, is_enabled);
-
-        if is_enabled {
-            // Sent on start-up so we can assume VirtualIndex == RealIndex.
-            let _ = tx
-                .send_timeout(
-                    Message::AdapterStateChange(AdapterStateActions::StartBluetooth(
-                        VirtualHciIndex(hci.into()),
-                    )),
-                    TX_SEND_TIMEOUT_DURATION,
-                )
-                .await
-                .unwrap();
-        }
-    }
-}
-
 // Configure the HCI socket listener and prepare the system to receive mgmt events for index added
 // and index removed.
-fn configure_hci(hci_tx: mpsc::Sender<Message>, floss_enabled: bool) {
+fn configure_hci(hci_tx: mpsc::Sender<Message>) {
     let mut btsock = BtSocket::new();
 
     // If the bluetooth socket isn't available, the kernel module is not loaded and we can't
@@ -451,16 +430,6 @@ fn configure_hci(hci_tx: mpsc::Sender<Message>, floss_enabled: bool) {
                                             )
                                             .await
                                             .unwrap();
-
-                                        // With a list of initial hci devices, make sure to
-                                        // enable them if they were previously enabled and we
-                                        // are using floss.
-                                        start_hci_if_floss_enabled(
-                                            hci.into(),
-                                            floss_enabled,
-                                            hci_tx.clone(),
-                                        )
-                                        .await;
                                     }
                                 }
                             }
@@ -626,7 +595,7 @@ pub async fn mainloop(
     // Set up an HCI device listener to emit HCI device inotify messages.
     // This is also responsible for configuring the initial list of HCI devices available on the
     // system.
-    configure_hci(context.tx.clone(), context.get_proxy().get_floss_enabled());
+    configure_hci(context.tx.clone());
     configure_pid(context.tx.clone());
 
     // Listen for all messages and act on them
@@ -713,6 +682,13 @@ pub async fn mainloop(
                             None => None,
                         };
                         hci = context.state_machine.get_updated_virtual_id(devpath.clone(), *i);
+
+                        // If this is really a new hci device, load the enabled state from the disk.
+                        if previous_real_hci.is_none() {
+                            context.state_machine.modify_state(hci, |a: &mut AdapterState| {
+                                a.config_enabled = config_util::is_hci_n_enabled(hci.0);
+                            });
+                        }
 
                         // If the real hci changed, we need to set the previous present to the
                         // opposite of the current present so that we don't no-op the action.

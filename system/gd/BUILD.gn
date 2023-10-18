@@ -55,6 +55,7 @@ group("gd_default_deps") {
 static_library("libbluetooth_gd") {
   sources = [
     "module.cc",
+    "module_dumper.cc",
     "stack_manager.cc",
   ]
 

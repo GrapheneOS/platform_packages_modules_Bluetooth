@@ -1080,7 +1080,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     }
 
     virtual void OnAudioMetadataUpdate(
-        std::vector<struct playback_track_metadata> source_metadata) override {
+        source_metadata_v7 source_metadata) override {
       LOG_INFO();
       if (!instance) return;
 

@@ -35,6 +35,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 
+tBTA_DM_ACL_CB bta_dm_acl_cb;
 tBTA_DM_CB bta_dm_cb;
 tBTA_DM_DI_CB bta_dm_di_cb;
 

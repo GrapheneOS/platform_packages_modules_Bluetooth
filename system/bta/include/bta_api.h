@@ -217,16 +217,20 @@ typedef struct {
 
 typedef uint8_t tBTA_DM_BLE_RSSI_ALERT_TYPE;
 
+typedef enum: uint8_t {
+  BTA_DM_LINK_UP_EVT = 5,          /* Connection UP event */
+  BTA_DM_LINK_DOWN_EVT = 6,        /* Connection DOWN event */
+  BTA_DM_LE_FEATURES_READ = 27,    /* Cotroller specific LE features are read */
+  BTA_DM_LINK_UP_FAILED_EVT = 34,    /* Create connection failed event */
+} tBTA_DM_ACL_EVT;
+
 typedef enum : uint8_t {
   /* Security Callback Events */
   BTA_DM_PIN_REQ_EVT = 2,          /* PIN request. */
   BTA_DM_AUTH_CMPL_EVT = 3,        /* Authentication complete indication. */
   BTA_DM_AUTHORIZE_EVT = 4,        /* Authorization request. */
-  BTA_DM_LINK_UP_EVT = 5,          /* Connection UP event */
-  BTA_DM_LINK_DOWN_EVT = 6,        /* Connection DOWN event */
   BTA_DM_BOND_CANCEL_CMPL_EVT = 9, /* Bond cancel complete indication */
-  BTA_DM_SP_CFM_REQ_EVT = 10,   /* Simple Pairing User Confirmation request. \
-                                 */
+  BTA_DM_SP_CFM_REQ_EVT = 10,   /* Simple Pairing User Confirmation request */
   BTA_DM_SP_KEY_NOTIF_EVT = 11, /* Simple Pairing Passkey Notification */
   BTA_DM_BLE_KEY_EVT = 15,      /* BLE SMP key event for peer device keys */
   BTA_DM_BLE_SEC_REQ_EVT = 16,  /* BLE SMP security request */
@@ -240,15 +244,12 @@ typedef enum : uint8_t {
       23, /* Simple Pairing Remote OOB Extended Data request. */
   BTA_DM_BLE_AUTH_CMPL_EVT = 24, /* BLE Auth complete */
   BTA_DM_DEV_UNPAIRED_EVT = 25,
-  BTA_DM_LE_FEATURES_READ = 27,    /* Cotroller specific LE features are read \
-                                    */
   BTA_DM_ENER_INFO_READ = 28,      /* Energy info read */
   BTA_DM_BLE_SC_OOB_REQ_EVT = 29,  /* SMP SC OOB request event */
   BTA_DM_BLE_CONSENT_REQ_EVT = 30, /* SMP consent request event */
   BTA_DM_BLE_SC_CR_LOC_OOB_EVT = 31, /* SMP SC Create Local OOB request event */
   BTA_DM_REPORT_BONDING_EVT = 32,    /*handle for pin or key missing*/
   BTA_DM_LE_ADDR_ASSOC_EVT = 33,     /* identity address association event */
-  BTA_DM_LINK_UP_FAILED_EVT = 34,    /* Create connection failed event */
   BTA_DM_SIRK_VERIFICATION_REQ_EVT = 35,
 } tBTA_DM_SEC_EVT;
 
@@ -354,6 +355,12 @@ typedef struct {
   tHCI_STATUS status;
 } tBTA_DM_LINK_DOWN;
 
+/* Structure associated with BTA_DM_DEV_UNPAIRED_EVT */
+typedef struct {
+  RawAddress bd_addr; /* BD address peer device. */
+  tBT_TRANSPORT transport_link_type;
+} tBTA_DM_UNPAIR;
+
 #define BTA_AUTH_SP_YES                                                       \
   BTM_AUTH_SP_YES /* 1 MITM Protection Required - Single Profile/non-bonding  \
                     Use IO Capabilities to determine authentication procedure \
@@ -424,13 +431,19 @@ typedef struct {
   RawAddress id_addr;
 } tBTA_DM_PROC_ID_ADDR;
 
+typedef union {
+  tBTA_DM_LINK_UP link_up;        /* ACL connection up event */
+  tBTA_DM_LINK_UP_FAILED link_up_failed; /* ACL connection up failure event */
+  tBTA_DM_LINK_DOWN link_down;    /* ACL connection down event */
+} tBTA_DM_ACL;
+
+typedef void(tBTA_DM_ACL_CBACK)(tBTA_DM_ACL_EVT event, tBTA_DM_ACL* p_data);
+
 /* Union of all security callback structures */
 typedef union {
   tBTA_DM_PIN_REQ pin_req;        /* PIN request. */
   tBTA_DM_AUTH_CMPL auth_cmpl;    /* Authentication complete indication. */
-  tBTA_DM_LINK_UP link_up;        /* ACL connection up event */
-  tBTA_DM_LINK_UP_FAILED link_up_failed; /* ACL connection up failure event */
-  tBTA_DM_LINK_DOWN link_down;    /* ACL connection down event */
+  tBTA_DM_UNPAIR dev_unpair;      /* Remove bonding complete indication */
   tBTA_DM_SP_CFM_REQ cfm_req;     /* user confirm request */
   tBTA_DM_SP_KEY_NOTIF key_notif; /* passkey notification */
   tBTA_DM_SP_RMT_OOB rmt_oob;     /* remote oob */

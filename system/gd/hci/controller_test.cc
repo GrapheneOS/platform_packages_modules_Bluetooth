@@ -18,25 +18,21 @@
 
 #include <gtest/gtest.h>
 
-#include <algorithm>
 #include <chrono>
 #include <future>
-#include <map>
 #include <memory>
 
 #include "common/bind.h"
-#include "common/callback.h"
 #include "common/init_flags.h"
 #include "hci/address.h"
 #include "hci/hci_layer.h"
+#include "module_dumper.h"
 #include "os/thread.h"
 #include "packet/raw_builder.h"
 
 using namespace bluetooth;
 using namespace std::chrono_literals;
 
-using common::BidiQueue;
-using common::BidiQueueEnd;
 using packet::kLittleEndian;
 using packet::PacketView;
 using packet::RawBuilder;

@@ -592,7 +592,25 @@ TEST_F(BroadcasterTest, UpdateMetadataFromAudioTrackMetadata) {
         0},
        {AUDIO_USAGE_UNKNOWN, AUDIO_CONTENT_TYPE_UNKNOWN, 0}}};
 
-  audio_receiver->OnAudioMetadataUpdate(multitrack_source_metadata);
+  std::vector<playback_track_metadata_v7> tracks_vec;
+  tracks_vec.reserve(multitrack_source_metadata.size());
+  for (const auto& track : multitrack_source_metadata) {
+    playback_track_metadata_v7 desc_track = {
+        .base =
+            {
+                .usage = static_cast<audio_usage_t>(track.usage),
+                .content_type =
+                    static_cast<audio_content_type_t>(track.content_type),
+                .gain = track.gain,
+            },
+    };
+    tracks_vec.push_back(desc_track);
+  }
+
+  const source_metadata_v7_t source_metadata = {
+      .track_count = tracks_vec.size(), .tracks = tracks_vec.data()};
+
+  audio_receiver->OnAudioMetadataUpdate(source_metadata);
 
   // Verify ccid
   ASSERT_NE(ccid_list.size(), 0u);

@@ -45,9 +45,9 @@ class A2dpTransport
                                uint64_t* total_bytes_read,
                                timespec* data_position) override;
 
-  void SourceMetadataChanged(const source_metadata_t& source_metadata);
+  void SourceMetadataChanged(const source_metadata_v7_t& source_metadata);
 
-  void SinkMetadataChanged(const sink_metadata_t&) override;
+  void SinkMetadataChanged(const sink_metadata_v7_t&) override;
 
   tA2DP_CTRL_CMD GetPendingCmd() const;
 

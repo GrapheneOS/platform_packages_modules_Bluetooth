@@ -37,6 +37,7 @@ use btstack::bluetooth_gatt::{
 };
 use btstack::bluetooth_media::{
     BluetoothAudioDevice, IBluetoothMedia, IBluetoothMediaCallback, IBluetoothTelephony,
+    IBluetoothTelephonyCallback,
 };
 use btstack::bluetooth_qa::IBluetoothQA;
 use btstack::socket_manager::{
@@ -926,6 +927,11 @@ impl IBluetooth for BluetoothDBus {
 
     #[dbus_method("GetRemoteAddressType")]
     fn get_remote_address_type(&self, device: BluetoothDevice) -> BtAddrType {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetRemoteRSSI")]
+    fn get_remote_rssi(&self, device: BluetoothDevice) -> i8 {
         dbus_generated!()
     }
 
@@ -2282,25 +2288,45 @@ impl ISuspendCallback for ISuspendCallbackDBus {
     fn on_resumed(&mut self, suspend_id: i32) {}
 }
 
-pub(crate) struct BluetoothTelephonyDBus {
+pub(crate) struct BluetoothTelephonyDBusRPC {
     client_proxy: ClientDBusProxy,
 }
 
+pub(crate) struct BluetoothTelephonyDBus {
+    client_proxy: ClientDBusProxy,
+    pub rpc: BluetoothTelephonyDBusRPC,
+}
+
 impl BluetoothTelephonyDBus {
+    fn make_client_proxy(conn: Arc<SyncConnection>, index: i32) -> ClientDBusProxy {
+        ClientDBusProxy::new(
+            conn.clone(),
+            String::from("org.chromium.bluetooth"),
+            make_object_path(index, "telephony"),
+            String::from("org.chromium.bluetooth.BluetoothTelephony"),
+        )
+    }
+
     pub(crate) fn new(conn: Arc<SyncConnection>, index: i32) -> BluetoothTelephonyDBus {
         BluetoothTelephonyDBus {
-            client_proxy: ClientDBusProxy::new(
-                conn.clone(),
-                String::from("org.chromium.bluetooth"),
-                make_object_path(index, "telephony"),
-                String::from("org.chromium.bluetooth.BluetoothTelephony"),
-            ),
+            client_proxy: Self::make_client_proxy(conn.clone(), index),
+            rpc: BluetoothTelephonyDBusRPC {
+                client_proxy: Self::make_client_proxy(conn.clone(), index),
+            },
         }
     }
 }
 
-#[generate_dbus_interface_client]
+#[generate_dbus_interface_client(BluetoothTelephonyDBusRPC)]
 impl IBluetoothTelephony for BluetoothTelephonyDBus {
+    #[dbus_method("RegisterTelephonyCallback")]
+    fn register_telephony_callback(
+        &mut self,
+        callback: Box<dyn IBluetoothTelephonyCallback + Send>,
+    ) -> bool {
+        dbus_generated!()
+    }
+
     #[dbus_method("SetNetworkAvailable")]
     fn set_network_available(&mut self, network_available: bool) {
         dbus_generated!()
@@ -2319,6 +2345,10 @@ impl IBluetoothTelephony for BluetoothTelephonyDBus {
     }
     #[dbus_method("SetPhoneOpsEnabled")]
     fn set_phone_ops_enabled(&mut self, enable: bool) {
+        dbus_generated!()
+    }
+    #[dbus_method("SetMpsQualificationEnabled")]
+    fn set_mps_qualification_enabled(&mut self, enable: bool) {
         dbus_generated!()
     }
     #[dbus_method("IncomingCall")]
@@ -2363,6 +2393,21 @@ impl IBluetoothTelephony for BluetoothTelephonyDBus {
     }
     #[dbus_method("AudioDisconnect")]
     fn audio_disconnect(&mut self, address: String) {
+        dbus_generated!()
+    }
+}
+
+struct IBluetoothTelephonyCallbackDBus {}
+
+impl RPCProxy for IBluetoothTelephonyCallbackDBus {}
+
+#[generate_dbus_exporter(
+    export_bluetooth_telephony_callback_dbus_intf,
+    "org.chromium.bluetooth.BluetoothTelephonyCallback"
+)]
+impl IBluetoothTelephonyCallback for IBluetoothTelephonyCallbackDBus {
+    #[dbus_method("OnTelephonyUse")]
+    fn on_telephony_use(&mut self, addr: String, state: bool) {
         dbus_generated!()
     }
 }

@@ -86,6 +86,7 @@ pub enum Message {
     // Actions within the stack
     Media(MediaActions),
     MediaCallbackDisconnected(u32),
+    TelephonyCallbackDisconnected(u32),
 
     // Client callback disconnections
     AdapterCallbackDisconnected(u32),
@@ -148,6 +149,10 @@ pub enum Message {
     QaGetHidReport(String, BthhReportType, u8),
     QaSetHidReport(String, BthhReportType, String),
     QaSendHidData(String, String),
+
+    // UHid callbacks
+    UHidHfpOutputCallback(String, u8, u8),
+    UHidTelephonyUseCallback(String, bool),
 }
 
 pub enum BluetoothAPI {
@@ -280,6 +285,10 @@ impl Stack {
 
                 Message::MediaCallbackDisconnected(cb_id) => {
                     bluetooth_media.lock().unwrap().remove_callback(cb_id);
+                }
+
+                Message::TelephonyCallbackDisconnected(cb_id) => {
+                    bluetooth_media.lock().unwrap().remove_telephony_callback(cb_id);
                 }
 
                 Message::AdapterCallbackDisconnected(id) => {
@@ -434,6 +443,21 @@ impl Stack {
                 Message::QaSendHidData(addr, data) => {
                     let status = bluetooth.lock().unwrap().send_hid_data_internal(addr, data);
                     bluetooth_qa.lock().unwrap().on_send_hid_data_completed(status);
+                }
+
+                // UHid callbacks
+                Message::UHidHfpOutputCallback(addr, id, data) => {
+                    bluetooth_media
+                        .lock()
+                        .unwrap()
+                        .dispatch_uhid_hfp_output_callback(addr, id, data);
+                }
+
+                Message::UHidTelephonyUseCallback(addr, state) => {
+                    bluetooth_media
+                        .lock()
+                        .unwrap()
+                        .dispatch_uhid_telephony_use_callback(addr, state);
                 }
             }
         }

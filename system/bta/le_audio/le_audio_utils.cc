@@ -151,15 +151,16 @@ static const char* audioSourceToStr(audio_source_t source) {
 }
 
 AudioContexts GetAudioContextsFromSourceMetadata(
-    const std::vector<struct playback_track_metadata>& source_metadata) {
+    const source_metadata_v7& source_metadata) {
   AudioContexts track_contexts;
-  for (auto& track : source_metadata) {
+  for (size_t i = 0; i < source_metadata.track_count; i++) {
+    auto track = source_metadata.tracks[i].base;
     if (track.content_type == 0 && track.usage == 0) continue;
 
-    LOG_INFO("%s: usage=%s(%d), content_type=%s(%d), gain=%f", __func__,
+    LOG_INFO("%s: usage=%s(%d), content_type=%s(%d), gain=%f, tag:%s", __func__,
              usageToString(track.usage).c_str(), track.usage,
              contentTypeToString(track.content_type).c_str(),
-             track.content_type, track.gain);
+             track.content_type, track.gain, source_metadata.tracks[i].tags);
 
     track_contexts.set(
         AudioContentToLeAudioContext(track.content_type, track.usage));
@@ -168,10 +169,11 @@ AudioContexts GetAudioContextsFromSourceMetadata(
 }
 
 AudioContexts GetAudioContextsFromSinkMetadata(
-    const std::vector<struct record_track_metadata>& sink_metadata) {
+    const sink_metadata_v7& sink_metadata) {
   AudioContexts all_track_contexts;
 
-  for (auto& track : sink_metadata) {
+  for (size_t i = 0; i < sink_metadata.track_count; i++) {
+    auto track = sink_metadata.tracks[i].base;
     if (track.source == AUDIO_SOURCE_INVALID) continue;
     LeAudioContextType track_context;
 

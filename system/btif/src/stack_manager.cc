@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "bta/dm/bta_dm_sec.h"
 #include "btcore/include/module.h"
 #include "btcore/include/osi_module.h"
 #include "btif_api.h"
@@ -331,7 +332,7 @@ static void event_start_up_stack(bluetooth::core::CoreInterface* interface,
 
   btif_init_ok();
   BTA_dm_init();
-  bta_dm_enable(bte_dm_evt);
+  bta_dm_enable(btif_dm_sec_evt, btif_dm_acl_evt);
 
   bta_set_forward_hw_failures(true);
   btm_acl_device_down();

@@ -704,17 +704,32 @@ static int out_get_presentation_position(const struct audio_stream_out* stream,
   return 0;
 }
 
-static void out_update_source_metadata(
+static void out_update_source_metadata_v7(
     struct audio_stream_out* stream,
-    const struct source_metadata* source_metadata) {
+    const struct source_metadata_v7* source_metadata_v7) {
   auto* out = reinterpret_cast<BluetoothStreamOut*>(stream);
   std::unique_lock<std::mutex> lock(out->mutex_);
-  if (source_metadata == nullptr || source_metadata->track_count == 0) {
+  if (source_metadata_v7 == nullptr || source_metadata_v7->track_count == 0) {
     return;
   }
   LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
-               << ", " << source_metadata->track_count << " track(s)";
-  out->bluetooth_output_->UpdateSourceMetadata(source_metadata);
+               << ", " << source_metadata_v7->track_count << " track(s)";
+  if (!out->is_aidl) {
+    struct source_metadata source_metadata;
+    source_metadata.track_count = source_metadata_v7->track_count;
+    struct playback_track_metadata playback_track;
+    playback_track_metadata_from_v7(&playback_track,
+                                    source_metadata_v7->tracks);
+    source_metadata.tracks = &playback_track;
+
+    static_cast<::android::bluetooth::audio::hidl::BluetoothAudioPortHidl*>(
+        out->bluetooth_output_.get())
+        ->UpdateTracksMetadata(&source_metadata);
+  } else {
+    static_cast<::android::bluetooth::audio::aidl::BluetoothAudioPortAidl*>(
+        out->bluetooth_output_.get())
+        ->UpdateSourceMetadata(source_metadata_v7);
+  }
 }
 
 int adev_open_output_stream(struct audio_hw_device* dev,
@@ -762,7 +777,7 @@ int adev_open_output_stream(struct audio_hw_device* dev,
   out->stream_out_.pause = out_pause;
   out->stream_out_.resume = out_resume;
   out->stream_out_.get_presentation_position = out_get_presentation_position;
-  out->stream_out_.update_source_metadata = out_update_source_metadata;
+  out->stream_out_.update_source_metadata_v7 = out_update_source_metadata_v7;
   /** Fix Coverity Scan Issue @{ */
   out->channel_mask_ = AUDIO_CHANNEL_NONE;
   /** @} */
@@ -1207,8 +1222,9 @@ static int in_set_microphone_field_dimension(
   return -ENOSYS;
 }
 
-static void in_update_sink_metadata(struct audio_stream_in* stream,
-                                    const struct sink_metadata* sink_metadata) {
+static void in_update_sink_metadata_v7(
+    struct audio_stream_in* stream,
+    const struct sink_metadata_v7* sink_metadata) {
   LOG(INFO) << __func__;
   if (sink_metadata == nullptr || sink_metadata->track_count == 0) {
     return;
@@ -1279,7 +1295,7 @@ int adev_open_input_stream(struct audio_hw_device* dev,
   in->stream_in_.set_microphone_direction = in_set_microphone_direction;
   in->stream_in_.set_microphone_field_dimension =
       in_set_microphone_field_dimension;
-  in->stream_in_.update_sink_metadata = in_update_sink_metadata;
+  in->stream_in_.update_sink_metadata_v7 = in_update_sink_metadata_v7;
 
   if (!in->bluetooth_input_->LoadAudioConfig(config)) {
     LOG(ERROR) << __func__ << ": state=" << in->bluetooth_input_->GetState()

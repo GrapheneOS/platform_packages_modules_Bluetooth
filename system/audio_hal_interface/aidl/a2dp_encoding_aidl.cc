@@ -158,20 +158,20 @@ bool A2dpTransport::GetPresentationPosition(uint64_t* remote_delay_report_ns,
 }
 
 void A2dpTransport::SourceMetadataChanged(
-    const source_metadata_t& source_metadata) {
+    const source_metadata_v7_t& source_metadata) {
   auto track_count = source_metadata.track_count;
   auto tracks = source_metadata.tracks;
   VLOG(1) << __func__ << ": " << track_count << " track(s) received";
   while (track_count) {
-    VLOG(2) << __func__ << ": usage=" << tracks->usage
-            << ", content_type=" << tracks->content_type
-            << ", gain=" << tracks->gain;
+    VLOG(2) << __func__ << ": usage=" << tracks->base.usage
+            << ", content_type=" << tracks->base.content_type
+            << ", gain=" << tracks->base.gain;
     --track_count;
     ++tracks;
   }
 }
 
-void A2dpTransport::SinkMetadataChanged(const sink_metadata_t&) {}
+void A2dpTransport::SinkMetadataChanged(const sink_metadata_v7_t&) {}
 
 tA2DP_CTRL_CMD A2dpTransport::GetPendingCmd() const {
   return a2dp_pending_cmd_;

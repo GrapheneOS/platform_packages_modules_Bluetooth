@@ -43,6 +43,10 @@ static void volume_update_cb(uint8_t volume, RawAddress* addr) {
   rusty::hfp_volume_update_callback(volume, *addr);
 }
 
+static void mic_volume_update_cb(uint8_t volume, RawAddress* addr) {
+  rusty::hfp_mic_volume_update_callback(volume, *addr);
+}
+
 static void vendor_specific_at_command_cb(char* at_string, RawAddress* addr) {
   rusty::hfp_vendor_specific_at_command_callback(::rust::String{at_string}, *addr);
 }
@@ -164,10 +168,17 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
   }
 
   void VolumeControlCallback(headset::bthf_volume_type_t type, int volume, RawAddress* bd_addr) override {
-    if (type != headset::bthf_volume_type_t::BTHF_VOLUME_TYPE_SPK || volume < 0) return;
+    if (volume < 0) return;
     if (volume > 15) volume = 15;
-    LOG_INFO("VolumeControlCallback %d from %s", volume, ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
-    topshim::rust::internal::volume_update_cb(volume, bd_addr);
+    if (type == headset::bthf_volume_type_t::BTHF_VOLUME_TYPE_SPK) {
+      LOG_INFO(
+          "VolumeControlCallback (Spk) %d from %s", volume, ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
+      topshim::rust::internal::volume_update_cb(volume, bd_addr);
+    } else if (type == headset::bthf_volume_type_t::BTHF_VOLUME_TYPE_MIC) {
+      LOG_INFO(
+          "VolumeControlCallback (Mic) %d from %s", volume, ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
+      topshim::rust::internal::mic_volume_update_cb(volume, bd_addr);
+    }
   }
 
   void DialCallCallback(char* number, RawAddress* bd_addr) override {
@@ -324,6 +335,10 @@ int HfpIntf::set_active_device(RawAddress addr) {
 
 int HfpIntf::set_volume(int8_t volume, RawAddress addr) {
   return intf_->VolumeControl(headset::bthf_volume_type_t::BTHF_VOLUME_TYPE_SPK, volume, &addr);
+}
+
+uint32_t HfpIntf::set_mic_volume(int8_t volume, RawAddress addr) {
+  return intf_->VolumeControl(headset::bthf_volume_type_t::BTHF_VOLUME_TYPE_MIC, volume, &addr);
 }
 
 uint32_t HfpIntf::disconnect(RawAddress addr) {

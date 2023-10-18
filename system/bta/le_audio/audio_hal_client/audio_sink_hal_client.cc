@@ -60,7 +60,7 @@ class SinkImpl : public LeAudioSinkAudioHalClient {
 
   bool OnResumeReq(bool start_media_task);
   bool OnSuspendReq();
-  bool OnMetadataUpdateReq(const sink_metadata_t& sink_metadata);
+  bool OnMetadataUpdateReq(const sink_metadata_v7_t& sink_metadata);
   bool Acquire();
   void Release();
 
@@ -155,22 +155,17 @@ bool SinkImpl::OnSuspendReq() {
   return false;
 }
 
-bool SinkImpl::OnMetadataUpdateReq(const sink_metadata_t& sink_metadata) {
+bool SinkImpl::OnMetadataUpdateReq(const sink_metadata_v7_t& sink_metadata) {
   if (audioSinkCallbacks_ == nullptr) {
     LOG_ERROR("audioSinkCallbacks_ not set");
     return false;
-  }
-
-  std::vector<struct record_track_metadata> metadata;
-  for (size_t i = 0; i < sink_metadata.track_count; i++) {
-    metadata.push_back(sink_metadata.tracks[i]);
   }
 
   bt_status_t status = do_in_main_thread(
       FROM_HERE,
       base::BindOnce(
           &LeAudioSinkAudioHalClient::Callbacks::OnAudioMetadataUpdate,
-          audioSinkCallbacks_->weak_factory_.GetWeakPtr(), metadata));
+          audioSinkCallbacks_->weak_factory_.GetWeakPtr(), sink_metadata));
   if (status == BT_STATUS_SUCCESS) {
     return true;
   }

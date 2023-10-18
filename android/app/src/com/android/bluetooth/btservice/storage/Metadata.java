@@ -58,6 +58,8 @@ public class Metadata {
     public long last_active_time;
     public boolean is_active_a2dp_device;
 
+    public boolean isActiveHfpDevice;
+
     @Embedded
     public AudioPolicyEntity audioPolicyMetadata;
 
@@ -78,6 +80,10 @@ public class Metadata {
     public int preferred_duplex_profile;
 
     Metadata(String address) {
+        this(address, false, false);
+    }
+
+    private Metadata(String address, boolean isActiveA2dp, boolean isActiveHfp) {
         this.address = address;
         migrated = false;
         profileConnectionPolicies = new ProfilePrioritiesEntity();
@@ -85,10 +91,35 @@ public class Metadata {
         a2dpSupportsOptionalCodecs = BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN;
         a2dpOptionalCodecsEnabled = BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
         last_active_time = MetadataDatabase.sCurrentConnectionNumber++;
-        is_active_a2dp_device = true;
+        is_active_a2dp_device = isActiveA2dp;
+        isActiveHfpDevice = isActiveHfp;
         audioPolicyMetadata = new AudioPolicyEntity();
         preferred_output_only_profile = 0;
         preferred_duplex_profile = 0;
+    }
+
+    static final class Builder {
+        final String mAddress;
+        boolean mIsActiveA2dpDevice = false;
+        boolean mIsActiveHfpDevice = false;
+
+        Builder(String address) {
+            mAddress = address;
+        }
+
+        Builder setActiveA2dp() {
+            mIsActiveA2dpDevice = true;
+            return this;
+        }
+
+        Builder setActiveHfp() {
+            mIsActiveHfpDevice = true;
+            return this;
+        }
+
+        Metadata build() {
+            return new Metadata(mAddress, mIsActiveA2dpDevice, mIsActiveHfpDevice);
+        }
     }
 
     /**
@@ -432,18 +463,20 @@ public class Metadata {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append(getAnonymizedAddress())
-            .append(" last_active_time=" + last_active_time)
-            .append(" {profile connection policy(")
-            .append(profileConnectionPolicies)
-            .append("), optional codec(support=")
-            .append(a2dpSupportsOptionalCodecs)
-            .append("|enabled=")
-            .append(a2dpOptionalCodecsEnabled)
-            .append("), custom metadata(")
-            .append(publicMetadata)
-            .append("), hfp client audio policy(")
-            .append(audioPolicyMetadata)
-            .append(")}");
+                .append(" last_active_time=" + last_active_time)
+                .append(" {profile connection policy(")
+                .append(profileConnectionPolicies)
+                .append("), optional codec(support=")
+                .append(a2dpSupportsOptionalCodecs)
+                .append("|enabled=")
+                .append(a2dpOptionalCodecsEnabled)
+                .append("), isActiveHfpDevice (")
+                .append(isActiveHfpDevice)
+                .append("), custom metadata(")
+                .append(publicMetadata)
+                .append("), hfp client audio policy(")
+                .append(audioPolicyMetadata)
+                .append(")}");
 
         return builder.toString();
     }
