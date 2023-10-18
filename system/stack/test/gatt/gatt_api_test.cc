@@ -20,9 +20,10 @@
 #include <gtest/gtest.h>
 
 #include "btm/btm_dev.h"
+#include "btm/btm_sec_int_types.h"
 #include "gatt/gatt_int.h"
 
-extern tBTM_CB btm_cb;
+extern tBTM_SEC_CB btm_sec_cb;
 
 static const size_t QUEUE_SIZE_MAX = 10;
 
@@ -52,12 +53,12 @@ class GattApiTest : public ::testing::Test {
   virtual ~GattApiTest() = default;
 
   void SetUp() override {
-    btm_cb.sec_dev_rec = list_new(osi_free);
+    btm_sec_cb.sec_dev_rec = list_new(osi_free);
     gatt_cb.srv_chg_clt_q = fixed_queue_new(QUEUE_SIZE_MAX);
     logging::SetMinLogLevel(-2);
   }
 
-  void TearDown() override { list_free(btm_cb.sec_dev_rec); }
+  void TearDown() override { list_free(btm_sec_cb.sec_dev_rec); }
 };
 
 static const RawAddress SAMPLE_PUBLIC_BDA = {

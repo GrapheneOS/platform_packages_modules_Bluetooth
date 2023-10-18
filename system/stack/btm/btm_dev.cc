@@ -30,9 +30,10 @@
 #include <string.h>
 
 #include "btm_api.h"
-#include "btm_sec_api.h"
 #include "btm_ble_int.h"
 #include "btm_ble_sec_api.h"
+#include "btm_sec_api.h"
+#include "btm_sec_int_types.h"
 #include "device/include/controller.h"
 #include "l2c_api.h"
 #include "main/shim/btm_api.h"
@@ -96,7 +97,7 @@ bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
         ADDRESS_TO_LOGGABLE_CSTR(bd_addr), key_type);
 
     /* "Bump" timestamp for existing record */
-    p_dev_rec->timestamp = btm_cb.dev_rec_count++;
+    p_dev_rec->timestamp = btm_sec_cb.dev_rec_count++;
 
     /* TODO(eisenbach):
      * Small refactor, but leaving original logic for now.
@@ -144,7 +145,7 @@ bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
 void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* p_dev_rec) {
   p_dev_rec->link_key.fill(0);
   memset(&p_dev_rec->ble.keys, 0, sizeof(tBTM_SEC_BLE_KEYS));
-  list_remove(btm_cb.sec_dev_rec, p_dev_rec);
+  list_remove(btm_sec_cb.sec_dev_rec, p_dev_rec);
 }
 
 /** Removes the device from acceptlist */
@@ -276,8 +277,8 @@ tBTM_SEC_DEV_REC* btm_sec_alloc_dev(const RawAddress& bd_addr) {
       LOG_WARN(
           "Please do not update device record from anonymous le advertisement");
 
-  } else if (bd_addr == btm_cb.connecting_bda)
-    memcpy(p_dev_rec->dev_class, btm_cb.connecting_dc, DEV_CLASS_LEN);
+  } else if (bd_addr == btm_sec_cb.connecting_bda)
+    memcpy(p_dev_rec->dev_class, btm_sec_cb.connecting_dc, DEV_CLASS_LEN);
 
   /* update conn params, use default value for background connection params */
   memset(&p_dev_rec->conn_params, 0xff, sizeof(tBTM_LE_CONN_PRAMS));
@@ -358,7 +359,8 @@ bool is_handle_equal(void* data, void* context) {
  *
  ******************************************************************************/
 tBTM_SEC_DEV_REC* btm_find_dev_by_handle(uint16_t handle) {
-  list_node_t* n = list_foreach(btm_cb.sec_dev_rec, is_handle_equal, &handle);
+  list_node_t* n =
+      list_foreach(btm_sec_cb.sec_dev_rec, is_handle_equal, &handle);
   if (n) return static_cast<tBTM_SEC_DEV_REC*>(list_node(n));
 
   return NULL;
@@ -387,10 +389,10 @@ bool is_address_equal(void* data, void* context) {
  *
  ******************************************************************************/
 tBTM_SEC_DEV_REC* btm_find_dev(const RawAddress& bd_addr) {
-  if (btm_cb.sec_dev_rec == nullptr) return nullptr;
+  if (btm_sec_cb.sec_dev_rec == nullptr) return nullptr;
 
   list_node_t* n =
-      list_foreach(btm_cb.sec_dev_rec, is_address_equal, (void*)&bd_addr);
+      list_foreach(btm_sec_cb.sec_dev_rec, is_address_equal, (void*)&bd_addr);
   if (n) return static_cast<tBTM_SEC_DEV_REC*>(list_node(n));
 
   return NULL;
@@ -414,10 +416,10 @@ static bool has_lenc_and_address_is_equal(void* data, void* context) {
  *
  ******************************************************************************/
 tBTM_SEC_DEV_REC* btm_find_dev_with_lenc(const RawAddress& bd_addr) {
-  if (btm_cb.sec_dev_rec == nullptr) return nullptr;
+  if (btm_sec_cb.sec_dev_rec == nullptr) return nullptr;
 
-  list_node_t* n = list_foreach(btm_cb.sec_dev_rec, has_lenc_and_address_is_equal,
-                                (void*)&bd_addr);
+  list_node_t* n = list_foreach(btm_sec_cb.sec_dev_rec,
+                                has_lenc_and_address_is_equal, (void*)&bd_addr);
   if (n) return static_cast<tBTM_SEC_DEV_REC*>(list_node(n));
 
   return NULL;
@@ -436,8 +438,8 @@ void btm_consolidate_dev(tBTM_SEC_DEV_REC* p_target_rec) {
 
   BTM_TRACE_DEBUG("%s", __func__);
 
-  list_node_t* end = list_end(btm_cb.sec_dev_rec);
-  list_node_t* node = list_begin(btm_cb.sec_dev_rec);
+  list_node_t* end = list_end(btm_sec_cb.sec_dev_rec);
+  list_node_t* node = list_begin(btm_sec_cb.sec_dev_rec);
   while (node != end) {
     tBTM_SEC_DEV_REC* p_dev_rec =
         static_cast<tBTM_SEC_DEV_REC*>(list_node(node));
@@ -501,8 +503,8 @@ void btm_dev_consolidate_existing_connections(const RawAddress& bd_addr) {
 
   LOG_INFO("%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
-  list_node_t* end = list_end(btm_cb.sec_dev_rec);
-  list_node_t* node = list_begin(btm_cb.sec_dev_rec);
+  list_node_t* end = list_end(btm_sec_cb.sec_dev_rec);
+  list_node_t* node = list_begin(btm_sec_cb.sec_dev_rec);
   while (node != end) {
     tBTM_SEC_DEV_REC* p_dev_rec =
         static_cast<tBTM_SEC_DEV_REC*>(list_node(node));
@@ -585,8 +587,8 @@ static tBTM_SEC_DEV_REC* btm_find_oldest_dev_rec(void) {
   tBTM_SEC_DEV_REC* p_oldest_paired = NULL;
   uint32_t ts_oldest_paired = 0xFFFFFFFF;
 
-  list_node_t* end = list_end(btm_cb.sec_dev_rec);
-  for (list_node_t* node = list_begin(btm_cb.sec_dev_rec); node != end;
+  list_node_t* end = list_end(btm_sec_cb.sec_dev_rec);
+  for (list_node_t* node = list_begin(btm_sec_cb.sec_dev_rec); node != end;
        node = list_next(node)) {
     tBTM_SEC_DEV_REC* p_dev_rec =
         static_cast<tBTM_SEC_DEV_REC*>(list_node(node));
@@ -628,19 +630,19 @@ static tBTM_SEC_DEV_REC* btm_find_oldest_dev_rec(void) {
 tBTM_SEC_DEV_REC* btm_sec_allocate_dev_rec(void) {
   tBTM_SEC_DEV_REC* p_dev_rec = NULL;
 
-  if (list_length(btm_cb.sec_dev_rec) > BTM_SEC_MAX_DEVICE_RECORDS) {
+  if (list_length(btm_sec_cb.sec_dev_rec) > BTM_SEC_MAX_DEVICE_RECORDS) {
     p_dev_rec = btm_find_oldest_dev_rec();
     wipe_secrets_and_remove(p_dev_rec);
   }
 
   p_dev_rec =
       static_cast<tBTM_SEC_DEV_REC*>(osi_calloc(sizeof(tBTM_SEC_DEV_REC)));
-  list_append(btm_cb.sec_dev_rec, p_dev_rec);
+  list_append(btm_sec_cb.sec_dev_rec, p_dev_rec);
 
   // Initialize defaults
   p_dev_rec->sec_flags = BTM_SEC_IN_USE;
   p_dev_rec->bond_type = tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN;
-  p_dev_rec->timestamp = btm_cb.dev_rec_count++;
+  p_dev_rec->timestamp = btm_sec_cb.dev_rec_count++;
   p_dev_rec->rmt_io_caps = BTM_IO_CAP_UNKNOWN;
   p_dev_rec->suggested_tx_octets = 0;
 
@@ -698,8 +700,8 @@ bool btm_set_bond_type_dev(const RawAddress& bd_addr,
 std::vector<tBTM_SEC_DEV_REC*> btm_get_sec_dev_rec() {
   std::vector<tBTM_SEC_DEV_REC*> result{};
 
-  list_node_t* end = list_end(btm_cb.sec_dev_rec);
-  for (list_node_t* node = list_begin(btm_cb.sec_dev_rec); node != end;
+  list_node_t* end = list_end(btm_sec_cb.sec_dev_rec);
+  for (list_node_t* node = list_begin(btm_sec_cb.sec_dev_rec); node != end;
        node = list_next(node)) {
     tBTM_SEC_DEV_REC* p_dev_rec =
         static_cast<tBTM_SEC_DEV_REC*>(list_node(node));
