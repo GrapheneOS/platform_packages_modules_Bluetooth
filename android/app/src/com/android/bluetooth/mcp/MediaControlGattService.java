@@ -1636,6 +1636,8 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
             Log.d(TAG, "Destroy");
         }
 
+        mAdapterService.unregisterBluetoothStateCallback(mBluetoothStateChangeCallback);
+
         if (mBluetoothGattServer == null) {
             return;
         }
