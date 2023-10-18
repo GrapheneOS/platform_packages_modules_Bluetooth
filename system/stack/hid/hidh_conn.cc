@@ -28,7 +28,7 @@
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <string.h>
 
-#include "bta/include/bta_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "hiddefs.h"
 #include "hidh_api.h"
 #include "hidh_int.h"

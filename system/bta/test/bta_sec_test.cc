@@ -20,7 +20,7 @@
 #include <sys/socket.h>
 
 #include "bta/dm/bta_dm_int.h"
-#include "bta/dm/bta_dm_sec.h"
+#include "bta/dm/bta_dm_sec_int.h"
 #include "bta/include/bta_api.h"
 #include "test/mock/mock_stack_btm.h"
 #include "test/mock/mock_stack_btm_inq.h"

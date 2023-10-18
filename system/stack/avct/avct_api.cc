@@ -29,6 +29,7 @@
 #include "avct_int.h"
 #include "bt_target.h"
 #include "bta/include/bta_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "btm_api.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"

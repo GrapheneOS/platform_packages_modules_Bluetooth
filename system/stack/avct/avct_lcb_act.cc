@@ -30,6 +30,7 @@
 #include "avct_int.h"
 #include "bt_target.h"
 #include "bta/include/bta_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "btm_api.h"
 #include "device/include/device_iot_config.h"
 #include "osi/include/allocator.h"

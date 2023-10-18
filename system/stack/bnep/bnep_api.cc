@@ -29,6 +29,7 @@
 
 #include "bnep_int.h"
 #include "bta/include/bta_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "osi/include/allocator.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_psm_types.h"

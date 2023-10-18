@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "bta/include/bta_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 
 typedef struct {
@@ -73,6 +74,7 @@ typedef struct {
 extern tBTA_DM_SEC_CB bta_dm_sec_cb;
 
 void bta_dm_sec_enable(tBTA_DM_SEC_CBACK* p_sec_cback);
+void btm_sec_on_hw_on();
 
 void bta_dm_add_ble_device(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
                            tBT_DEVICE_TYPE dev_type);
@@ -89,6 +91,7 @@ void bta_dm_ble_sirk_sec_cb_register(tBTA_DM_SEC_CBACK* p_cback);
 void bta_dm_bond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
                  tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type);
 void bta_dm_bond_cancel(const RawAddress& bd_addr);
+void bta_dm_remove_device(const RawAddress& bd_addr);
 void bta_dm_ci_rmt_oob_act(std::unique_ptr<tBTA_DM_CI_RMT_OOB> msg);
 void bta_dm_confirm(const RawAddress& bd_addr, bool accept);
 void bta_dm_consolidate(const RawAddress& identity_addr, const RawAddress& rpa);
