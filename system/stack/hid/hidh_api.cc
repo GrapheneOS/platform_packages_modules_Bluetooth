@@ -179,6 +179,7 @@ static void hidh_search_callback(UNUSED_ATTR const RawAddress& bd_addr,
     attr_mask |= HID_NORMALLY_CONNECTABLE;
   }
 
+  // this attribute is deprecated, should we still keep it?
   if (((p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
             p_rec, ATTR_ID_HID_SDP_DISABLE)) != NULL) &&
       SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == BOOLEAN_DESC_TYPE &&
