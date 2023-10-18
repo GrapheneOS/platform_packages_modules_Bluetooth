@@ -73,10 +73,13 @@ public class PhonePolicy implements AdapterService.BluetoothStateCallback {
 
     @VisibleForTesting static final String AUTO_CONNECT_PROFILES_PROPERTY =
             "bluetooth.auto_connect_profiles.enabled";
-    private static final String CONFIG_LE_AUDIO_ENABLED_BY_DEFAULT = "le_audio_enabled_by_default";
 
-    private static boolean sLeAudioEnabledByDefault = DeviceConfig.getBoolean(
-            DeviceConfig.NAMESPACE_BLUETOOTH, CONFIG_LE_AUDIO_ENABLED_BY_DEFAULT, false);
+    private static final String LE_AUDIO_CONNECTION_BY_DEFAULT_PROPERTY =
+            "ro.bluetooth.leaudio.le_audio_connection_by_default";
+
+    @VisibleForTesting
+    static final String BYPASS_LE_AUDIO_ALLOWLIST_PROPERTY =
+            "persist.bluetooth.leaudio.bypass_allow_list";
 
     /** flag for multi auto connect */
     public static boolean sIsHfpMultiAutoConnectEnabled =
@@ -97,6 +100,7 @@ public class PhonePolicy implements AdapterService.BluetoothStateCallback {
     private final HashSet<BluetoothDevice> mA2dpRetrySet = new HashSet<>();
     private final HashSet<BluetoothDevice> mConnectOtherProfilesDeviceSet = new HashSet<>();
     @VisibleForTesting boolean mAutoConnectProfilesSupported;
+    @VisibleForTesting boolean mLeAudioEnabledByDefault;
 
     @Override
     public void onBluetoothStateChange(int prevState, int newState) {
@@ -184,6 +188,8 @@ public class PhonePolicy implements AdapterService.BluetoothStateCallback {
         mHandler = new PhonePolicyHandler(service.getMainLooper());
         mAutoConnectProfilesSupported =
                 SystemProperties.getBoolean(AUTO_CONNECT_PROFILES_PROPERTY, false);
+        mLeAudioEnabledByDefault =
+                SystemProperties.getBoolean(LE_AUDIO_CONNECTION_BY_DEFAULT_PROPERTY, true);
     }
 
     // Policy implementation, all functions MUST be private
@@ -204,12 +210,24 @@ public class PhonePolicy implements AdapterService.BluetoothStateCallback {
         BassClientService bcService = mFactory.getBassClientService();
         BatteryService batteryService = mFactory.getBatteryService();
 
-        boolean isLeAudioProfileAllowed = (leAudioService != null)
-                && Utils.arrayContains(uuids, BluetoothUuid.LE_AUDIO)
-                && (leAudioService.getConnectionPolicy(device)
-                    != BluetoothProfile.CONNECTION_POLICY_FORBIDDEN)
-                && mAdapterService.isLeAudioAllowed(device)
-                && (sLeAudioEnabledByDefault || isDualModeAudioEnabled());
+        final boolean isBypassLeAudioAllowlist =
+                SystemProperties.getBoolean(BYPASS_LE_AUDIO_ALLOWLIST_PROPERTY, false);
+
+        boolean isLeAudioProfileAllowed =
+                (leAudioService != null)
+                        && Utils.arrayContains(uuids, BluetoothUuid.LE_AUDIO)
+                        && (leAudioService.getConnectionPolicy(device)
+                                != BluetoothProfile.CONNECTION_POLICY_FORBIDDEN)
+                        && (mLeAudioEnabledByDefault || isDualModeAudioEnabled())
+                        && (isBypassLeAudioAllowlist || mAdapterService.isLeAudioAllowed(device));
+
+        debugLog(
+                "mLeAudioEnabledByDefault: "
+                        + mLeAudioEnabledByDefault
+                        + ", isBypassLeAudioAllowlist: "
+                        + isBypassLeAudioAllowlist
+                        + ", isLeAudioAllowDevice: "
+                        + mAdapterService.isLeAudioAllowed(device));
 
         // Set profile priorities only for the profiles discovered on the remote device.
         // This avoids needless auto-connect attempts to profiles non-existent on the remote device
@@ -790,11 +808,11 @@ public class PhonePolicy implements AdapterService.BluetoothStateCallback {
         }
         if (leAudioService != null) {
             List<BluetoothDevice> leAudioConnDevList = leAudioService.getConnectedDevices();
-            if (!leAudioConnDevList.contains(device) && (leAudioService.getConnectionPolicy(device)
-                    == BluetoothProfile.CONNECTION_POLICY_ALLOWED)
+            if (!leAudioConnDevList.contains(device)
+                    && (leAudioService.getConnectionPolicy(device)
+                            == BluetoothProfile.CONNECTION_POLICY_ALLOWED)
                     && (leAudioService.getConnectionState(device)
-                    == BluetoothProfile.STATE_DISCONNECTED)
-                    && mAdapterService.isLeAudioAllowed(device)) {
+                            == BluetoothProfile.STATE_DISCONNECTED)) {
                 debugLog("Retrying connection to LEAudio with device " + device);
                 leAudioService.connect(device);
             }
@@ -864,11 +882,6 @@ public class PhonePolicy implements AdapterService.BluetoothStateCallback {
         } else {
             warnLog("onUuidsDiscovered: uuids is null for device " + device);
         }
-    }
-
-    @VisibleForTesting
-    void setLeAudioEnabledByDefaultForTesting(boolean enabled) {
-        sLeAudioEnabledByDefault = enabled;
     }
 
     private static void debugLog(String msg) {
