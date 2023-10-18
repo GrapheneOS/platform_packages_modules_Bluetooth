@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+#define LOG_TAG "gatt"
+
 #include <list>
 #include <unordered_map>
 #include <unordered_set>
 
 #include "bta_gatt_server_queue.h"
+#include "osi/include/log.h"
 
 using gatts_operation = BtaGattServerQueue::gatts_operation;
 using bluetooth::Uuid;

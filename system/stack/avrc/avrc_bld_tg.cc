@@ -15,6 +15,8 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+#define LOG_TAG "avrcp"
+
 #include <base/logging.h>
 #include <string.h>
 
@@ -22,6 +24,7 @@
 #include "avrc_defs.h"
 #include "avrc_int.h"
 #include "osi/include/allocator.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
 

@@ -22,6 +22,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "sdp_api"
+
 #include "stack/include/sdp_api.h"
 
 #include <string.h>
@@ -29,6 +31,7 @@
 #include <cstdint>
 
 #include "bt_target.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"  // PTR_TO_UINT
 #include "stack/include/bt_types.h"
 #include "stack/include/bt_uuid16.h"
