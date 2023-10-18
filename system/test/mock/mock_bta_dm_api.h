@@ -31,6 +31,7 @@
 #include <vector>
 
 #include "bta/include/bta_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/bt_octets.h"
 #include "types/ble_address_with_type.h"

@@ -22,6 +22,7 @@
 #include <cstdint>
 
 #include "bta/include/bta_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "include/hardware/bluetooth.h"
 #include "internal_include/bte_appl.h"
 #include "test/common/mock_functions.h"

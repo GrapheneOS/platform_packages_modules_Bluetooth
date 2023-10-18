@@ -33,6 +33,7 @@
 
 #include "bt_target.h"  // Must be first to define build configuration
 #include "bta/include/bta_hd_api.h"
+#include "bta_sec_api.h"
 #include "bta/sys/bta_sys.h"
 #include "btif/include/btif_common.h"
 #include "btif/include/btif_profile_storage.h"
