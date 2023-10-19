@@ -28,6 +28,7 @@ cc_binary {
     name: "bt_headless",
     defaults: [
         "fluoride_defaults",
+        "latest_android_hardware_bluetooth_audio_ndk_shared",
     ],
     cflags: [
         "-Wall",
@@ -110,7 +111,6 @@ cc_binary {
         "libz",
     ],
     shared_libs: [
-        "android.hardware.bluetooth.audio-V3-ndk",
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "android.hardware.bluetooth@1.0",
