@@ -583,6 +583,13 @@ public class AudioRoutingManagerTest {
         assertThat(mAudioRoutingManager.getHearingAidActiveDevices().isEmpty()).isTrue();
     }
 
+    @Test
+    public void hearingAidActiveWithNull_clearHearingAidActiveDevices() {
+        hearingAidActiveDeviceChanged(null);
+        TestUtils.waitForLooperToFinishScheduledTask(mAudioRoutingManager.getHandlerLooper());
+        assertThat(mAudioRoutingManager.getHearingAidActiveDevices()).isEmpty();
+    }
+
     /** One LE Audio is connected. */
     @Test
     public void onlyLeAudioConnected_setHeadsetActive() {
