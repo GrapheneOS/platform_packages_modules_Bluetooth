@@ -29,12 +29,10 @@
 #include <chrono>
 #include <cstdint>
 #include <future>
-#include <memory>
 #include <string>
 #include <vector>
 
 #include "audio_hal_interface/a2dp_encoding.h"
-#include "bta/av/bta_av_int.h"
 #include "btif/include/btif_a2dp.h"
 #include "btif/include/btif_a2dp_control.h"
 #include "btif/include/btif_a2dp_sink.h"
@@ -47,19 +45,17 @@
 #include "btif/include/btif_util.h"
 #include "btif/include/stack_manager.h"
 #include "btif_metrics_logging.h"
-#include "common/metrics.h"
 #include "common/state_machine.h"
 #include "device/include/device_iot_config.h"
 #include "hardware/bt_av.h"
 #include "include/hardware/bt_rc.h"
-#include "main/shim/dumpsys.h"
+#include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
-#include "osi/include/properties.h"
 #include "stack/include/avrc_api.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/btm_api.h"
+#include "stack/include/bt_uuid16.h"
+#include "stack/include/btm_log_history.h"
 #include "stack/include/main_thread.h"
-#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 #ifdef __ANDROID__

@@ -24,13 +24,12 @@
 #include <mutex>
 #include <sstream>
 
-#include "abstract_message_loop.h"
 #include "bta/sys/bta_sys.h"
 #include "btif_av.h"
 #include "btif_common.h"
-#include "btif_dm.h"
 #include "device.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/main_thread.h"
 #include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"

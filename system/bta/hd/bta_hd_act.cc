@@ -25,7 +25,6 @@
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 
 #include <cstdint>
-#include <string>
 
 // BTA_HD_INCLUDED
 #include "bt_target.h"  // Must be first to define build configuration
@@ -35,8 +34,8 @@
 #include "include/hardware/bt_hd.h"
 #include "main/shim/metrics_api.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/hidd_api.h"
 #include "stack/include/sdp_api.h"
 #include "types/raw_address.h"

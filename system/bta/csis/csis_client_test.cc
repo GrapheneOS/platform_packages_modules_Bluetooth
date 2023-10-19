@@ -29,6 +29,7 @@
 #include "csis_types.h"
 #include "gatt/database_builder.h"
 #include "hardware/bt_gatt_types.h"
+#include "stack/include/bt_uuid16.h"
 #include "test/common/mock_functions.h"
 
 bool gatt_cl_read_sirk_req(
