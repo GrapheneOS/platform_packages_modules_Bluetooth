@@ -92,8 +92,8 @@ pub enum AdapterStateActions {
     StartBluetooth(VirtualHciIndex),
     StopBluetooth(VirtualHciIndex),
     RestartBluetooth(VirtualHciIndex),
-    BluetoothStarted(i32, RealHciIndex), // PID and HCI
-    BluetoothStopped(RealHciIndex),
+    BluetoothStarted(i32, VirtualHciIndex), // PID and HCI
+    BluetoothStopped(VirtualHciIndex),
     HciDevicePresence(DevPath, RealHciIndex, bool),
 }
 
@@ -273,9 +273,9 @@ fn pid_inotify_async_fd() -> AsyncFd<inotify::Inotify> {
 }
 
 /// Given an pid path, returns the adapter index for that pid path.
-fn get_hci_index_from_pid_path(path: &str) -> Option<RealHciIndex> {
+fn get_hci_index_from_pid_path(path: &str) -> Option<VirtualHciIndex> {
     let re = Regex::new(r"bluetooth([0-9]+).pid").unwrap();
-    re.captures(path)?.get(1)?.as_str().parse().ok().map(|v| RealHciIndex(v))
+    re.captures(path)?.get(1)?.as_str().parse().ok().map(|v| VirtualHciIndex(v))
 }
 
 fn event_name_to_string(name: Option<&std::ffi::OsStr>) -> Option<String> {
@@ -642,28 +642,16 @@ pub async fn mainloop(
                         let action = context.state_machine.action_restart_bluetooth(hci);
                         cmd_timeout.lock().unwrap().handle_timeout_action(hci, action);
                     }
-                    AdapterStateActions::BluetoothStarted(pid, real_hci) => {
-                        hci = match context.state_machine.get_virtual_id_by_real_id(*real_hci) {
-                            Some(v) => v,
-                            None => context.state_machine.get_next_virtual_id(
-                                *real_hci,
-                                config_util::get_devpath_for_hci(real_hci.to_i32()),
-                            ),
-                        };
+                    AdapterStateActions::BluetoothStarted(pid, i) => {
+                        hci = *i;
                         prev_state = context.state_machine.get_process_state(hci);
                         next_state = ProcessState::On;
 
                         let action = context.state_machine.action_on_bluetooth_started(*pid, hci);
                         cmd_timeout.lock().unwrap().handle_timeout_action(hci, action);
                     }
-                    AdapterStateActions::BluetoothStopped(real_hci) => {
-                        hci = match context.state_machine.get_virtual_id_by_real_id(*real_hci) {
-                            Some(v) => v,
-                            None => context.state_machine.get_next_virtual_id(
-                                *real_hci,
-                                config_util::get_devpath_for_hci(real_hci.to_i32()),
-                            ),
-                        };
+                    AdapterStateActions::BluetoothStopped(i) => {
+                        hci = *i;
                         prev_state = context.state_machine.get_process_state(hci);
                         next_state = ProcessState::Off;
 
@@ -2047,15 +2035,15 @@ mod tests {
     fn path_to_pid() {
         assert_eq!(
             get_hci_index_from_pid_path("/var/run/bluetooth/bluetooth0.pid"),
-            Some(RealHciIndex(0))
+            Some(VirtualHciIndex(0))
         );
         assert_eq!(
             get_hci_index_from_pid_path("/var/run/bluetooth/bluetooth1.pid"),
-            Some(RealHciIndex(1))
+            Some(VirtualHciIndex(1))
         );
         assert_eq!(
             get_hci_index_from_pid_path("/var/run/bluetooth/bluetooth10.pid"),
-            Some(RealHciIndex(10))
+            Some(VirtualHciIndex(10))
         );
         assert_eq!(get_hci_index_from_pid_path("/var/run/bluetooth/garbage"), None);
     }
