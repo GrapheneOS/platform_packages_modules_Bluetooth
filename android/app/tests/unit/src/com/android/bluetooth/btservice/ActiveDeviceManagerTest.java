@@ -626,6 +626,13 @@ public class ActiveDeviceManagerTest {
         Assert.assertTrue(mActiveDeviceManager.getHearingAidActiveDevices().isEmpty());
     }
 
+    @Test
+    public void hearingAidActiveWithNull_clearHearingAidActiveDevices() {
+        hearingAidActiveDeviceChanged(null);
+        TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
+        assertThat(mActiveDeviceManager.getHearingAidActiveDevices()).isEmpty();
+    }
+
     /**
      * One LE Audio is connected.
      */
