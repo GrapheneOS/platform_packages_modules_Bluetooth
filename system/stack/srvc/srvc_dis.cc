@@ -18,19 +18,18 @@
 
 #define LOG_TAG "bt_srvc"
 
-#include "bt_target.h"
+#include <base/logging.h>
+
 #include "gatt_api.h"
-#include "gatt_int.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "srvc_dis_int.h"
 #include "srvc_eng_int.h"
 #include "stack/include/bt_types.h"
+#include "stack/include/bt_uuid16.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 using base::StringPrintf;
 #define DIS_MAX_NUM_INC_SVR 0

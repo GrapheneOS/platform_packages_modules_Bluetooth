@@ -27,7 +27,7 @@
 #include "profile/avrcp/avrcp_config.h"
 #include "stack/include/avrc_api.h"
 #include "stack/include/avrc_defs.h"
-#include "stack/include/sdp_api.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/sdp/sdpint.h"
 #include "test/mock/mock_btif_config.h"
 #include "test/mock/mock_osi_properties.h"

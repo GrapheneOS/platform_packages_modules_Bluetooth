@@ -49,8 +49,8 @@
 #include "include/hardware/bluetooth_headset_interface.h"
 #include "include/hardware/bt_hf.h"
 #include "main/shim/dumpsys.h"
-#include "osi/include/log.h"
 #include "stack/btm/btm_sco_hfp_hal.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/btm_api.h"
 #include "types/raw_address.h"
 

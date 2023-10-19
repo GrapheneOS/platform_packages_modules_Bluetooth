@@ -27,7 +27,7 @@
 #include "gatt/database_builder.h"
 #include "hardware/bt_gatt_types.h"
 #include "mock_csis_client.h"
-#include "test/common/mock_functions.h"
+#include "stack/include/bt_uuid16.h"
 #include "types.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"

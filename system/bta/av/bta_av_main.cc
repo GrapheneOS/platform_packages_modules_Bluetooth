@@ -44,6 +44,7 @@
 #include "osi/include/properties.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/sdp_api.h"
 #include "types/hci_role.h"

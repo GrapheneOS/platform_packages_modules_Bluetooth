@@ -37,6 +37,7 @@
 #include "has_types.h"
 #include "mock_controller.h"
 #include "mock_csis_client.h"
+#include "stack/include/bt_uuid16.h"
 #include "test/common/mock_functions.h"
 
 bool gatt_profile_get_eatt_support(const RawAddress& addr) { return true; }
