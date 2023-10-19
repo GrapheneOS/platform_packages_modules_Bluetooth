@@ -20,7 +20,7 @@
 #include <sys/socket.h>
 
 #include "bta/dm/bta_dm_int.h"
-#include "bta/dm/bta_dm_sec.h"
+#include "bta/dm/bta_dm_sec_int.h"
 #include "bta/include/bta_api.h"
 #include "test/mock/mock_stack_btm.h"
 #include "test/mock/mock_stack_btm_inq.h"
@@ -92,7 +92,7 @@ TEST_F(BtaSecTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithName) {
   ASSERT_EQ(btm_status_text(BTM_CMD_STARTED),
             btm_status_text(bluetooth::legacy::testing::bta_dm_sp_cback(
                 BTM_SP_CFM_REQ_EVT, &data)));
-  ASSERT_EQ(kNumVal, bta_dm_cb.num_val);
+  ASSERT_EQ(kNumVal, bta_dm_sec_cb.num_val);
   ASSERT_TRUE(callback_sent);
 
   ASSERT_EQ(kRawAddress, cfm_req.bd_addr);
@@ -142,7 +142,7 @@ TEST_F(BtaSecTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithoutName_RNRSuccess) {
   ASSERT_EQ(btm_status_text(BTM_CMD_STARTED),
             btm_status_text(bluetooth::legacy::testing::bta_dm_sp_cback(
                 BTM_SP_CFM_REQ_EVT, &data)));
-  ASSERT_EQ(kNumVal, bta_dm_cb.num_val);
+  ASSERT_EQ(kNumVal, bta_dm_sec_cb.num_val);
   ASSERT_FALSE(callback_sent);
 
   test::mock::stack_btm_inq::BTM_ReadRemoteDeviceName = {};
@@ -183,7 +183,7 @@ TEST_F(BtaSecTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithoutName_RNRFail) {
   ASSERT_EQ(btm_status_text(BTM_CMD_STARTED),
             btm_status_text(bluetooth::legacy::testing::bta_dm_sp_cback(
                 BTM_SP_CFM_REQ_EVT, &data)));
-  ASSERT_EQ(kNumVal, bta_dm_cb.num_val);
+  ASSERT_EQ(kNumVal, bta_dm_sec_cb.num_val);
   ASSERT_TRUE(callback_sent);
 
   ASSERT_EQ(kRawAddress, cfm_req.bd_addr);
@@ -227,7 +227,7 @@ TEST_F(BtaSecTest, bta_dm_sp_cback__BTM_SP_KEY_NOTIF_EVT) {
   ASSERT_EQ(btm_status_text(BTM_CMD_STARTED),
             btm_status_text(bluetooth::legacy::testing::bta_dm_sp_cback(
                 BTM_SP_KEY_NOTIF_EVT, &data)));
-  ASSERT_EQ(kPassKey, bta_dm_cb.num_val);
+  ASSERT_EQ(kPassKey, bta_dm_sec_cb.num_val);
   ASSERT_TRUE(callback_sent);
 
   ASSERT_EQ(kRawAddress, key_notif.bd_addr);

@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_device_iot_config.h"
 
 #include <cstdint>
-#include <functional>
-#include <map>
 #include <string>
 
-// Mock include file to share data between tests and mock
 #include "test/common/mock_functions.h"
-#include "test/mock/mock_device_iot_config.h"
 
 namespace test {
 namespace mock {

@@ -30,6 +30,7 @@
 #include <cstdint>
 
 #include "bta/include/bta_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "osi/include/allocator.h"
 #include "stack/hid/hidd_int.h"
 #include "stack/include/bt_hdr.h"

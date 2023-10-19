@@ -21,32 +21,10 @@
  *  mockcify.pl ver 0.3.0
  */
 
-#include <cstdint>
 #include <functional>
-#include <map>
-#include <string>
-
-#include "test/common/mock_functions.h"
 
 // Original included files, if any
-// NOTE: Since this is a mock file with mock definitions some number of
-//       include files may not be required.  The include-what-you-use
-//       still applies, but crafting proper inclusion is out of scope
-//       for this effort.  This compilation unit may compile as-is, or
-//       may need attention to prune from (or add to ) the inclusion set.
-#include <base/logging.h>
-#include <dlfcn.h>
-#include <string.h>
-
-#include <mutex>
-#include <unordered_map>
-
 #include "btcore/include/module.h"
-#include "check.h"
-#include "common/message_loop_thread.h"
-#include "osi/include/allocator.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
 
 // Mocked compile conditionals, if any
 

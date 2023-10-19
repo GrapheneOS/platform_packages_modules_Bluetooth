@@ -19,19 +19,9 @@
  *   Functions generated:8
  */
 
-#include <map>
-#include <string>
-
-#include "bt_target.h"
-#include "bta/pan/bta_pan_int.h"
-#include "osi/include/allocator.h"
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 BT_HDR* bta_pan_ci_readbuf(uint16_t handle, RawAddress& src, RawAddress& dst,
                            uint16_t* p_protocol, bool* p_ext, bool* p_forward) {

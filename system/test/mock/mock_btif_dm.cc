@@ -20,10 +20,9 @@
  */
 
 #include <cstdint>
-#include <map>
-#include <string>
 
 #include "bta/include/bta_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "include/hardware/bluetooth.h"
 #include "internal_include/bte_appl.h"
 #include "test/common/mock_functions.h"
@@ -31,10 +30,6 @@
 #include "types/raw_address.h"
 
 struct uid_set_t;
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 bool btif_dm_pairing_is_busy() {
   inc_func_call_count(__func__);
@@ -123,9 +118,8 @@ void btif_dm_pin_reply(const RawAddress bd_addr, uint8_t accept,
 void btif_dm_proc_io_req(tBTM_AUTH_REQ* p_auth_req, bool is_orig) {
   inc_func_call_count(__func__);
 }
-void btif_dm_proc_io_rsp(UNUSED_ATTR const RawAddress& bd_addr,
-                         tBTM_IO_CAP io_cap, UNUSED_ATTR tBTM_OOB_DATA oob_data,
-                         tBTM_AUTH_REQ auth_req) {
+void btif_dm_proc_io_rsp(const RawAddress& bd_addr, tBTM_IO_CAP io_cap,
+                         tBTM_OOB_DATA oob_data, tBTM_AUTH_REQ auth_req) {
   inc_func_call_count(__func__);
 }
 void btif_dm_read_energy_info() { inc_func_call_count(__func__); }

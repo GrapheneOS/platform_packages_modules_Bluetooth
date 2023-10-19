@@ -439,7 +439,7 @@ static void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
       LOG_ERROR("ATTR_ID_SPECIFICATION_ID attr type or len wrong!!");
     }
   } else {
-    APPL_TRACE_ERROR("%s() ATTR_ID_SPECIFICATION_ID not found", __func__);
+    LOG_ERROR("%s() ATTR_ID_SPECIFICATION_ID not found", __func__);
   }
 
   p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
@@ -452,7 +452,7 @@ static void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
       LOG_ERROR("ATTR_ID_VENDOR_ID attr type or len wrong!!");
     }
   } else {
-    APPL_TRACE_ERROR("%s() ATTR_ID_VENDOR_ID not found", __func__);
+    LOG_ERROR("%s() ATTR_ID_VENDOR_ID not found", __func__);
   }
 
   p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
@@ -465,7 +465,7 @@ static void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
       LOG_ERROR("ATTR_ID_VENDOR_ID_SOURCE attr type or len wrong!!");
     }
   } else {
-    APPL_TRACE_ERROR("%s() ATTR_ID_VENDOR_ID_SOURCE not found", __func__);
+    LOG_ERROR("%s() ATTR_ID_VENDOR_ID_SOURCE not found", __func__);
   }
 
   p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
@@ -478,7 +478,7 @@ static void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
       LOG_ERROR("ATTR_ID_PRODUCT_ID attr type or len wrong!!");
     }
   } else {
-    APPL_TRACE_ERROR("%s() ATTR_ID_PRODUCT_ID not found", __func__);
+    LOG_ERROR("%s() ATTR_ID_PRODUCT_ID not found", __func__);
   }
 
   p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
@@ -491,7 +491,7 @@ static void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
       LOG_ERROR("ATTR_ID_PRODUCT_VERSION attr type or len wrong!!");
     }
   } else {
-    APPL_TRACE_ERROR("%s() ATTR_ID_PRODUCT_VERSION not found", __func__);
+    LOG_ERROR("%s() ATTR_ID_PRODUCT_VERSION not found", __func__);
   }
 
   p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
@@ -504,7 +504,7 @@ static void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
       LOG_ERROR("ATTR_ID_PRIMARY_RECORD attr type or len wrong!!");
     }
   } else {
-    APPL_TRACE_ERROR("%s() ATTR_ID_PRIMARY_RECORD not found", __func__);
+    LOG_ERROR("%s() ATTR_ID_PRIMARY_RECORD not found", __func__);
   }
 }
 

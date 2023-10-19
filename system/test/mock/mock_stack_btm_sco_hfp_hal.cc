@@ -19,15 +19,13 @@
  *
  *  mockcify.pl ver 0.5.1
  */
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_stack_btm_sco_hfp_hal.h"
 
 #ifndef __clang_analyzer__
 #include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
 
-// Mock include file to share data between tests and mock
-#include "test/mock/mock_stack_btm_sco_hfp_hal.h"
+#include "test/common/mock_functions.h"
 
 // Original usings
 

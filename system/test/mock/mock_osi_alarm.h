@@ -23,40 +23,11 @@
 
 #include <cstdint>
 #include <functional>
-#include <map>
-#include <string>
 
 // Original included files, if any
-// NOTE: Since this is a mock file with mock definitions some number of
-//       include files may not be required.  The include-what-you-use
-//       still applies, but crafting proper inclusion is out of scope
-//       for this effort.  This compilation unit may compile as-is, or
-//       may need attention to prune from (or add to ) the inclusion set.
-#include <base/cancelable_callback.h>
-#include <base/logging.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <hardware/bluetooth.h>
-#include <inttypes.h>
-#include <malloc.h>
-#include <pthread.h>
-#include <signal.h>
-#include <string.h>
-#include <time.h>
 
-#include <mutex>
-
-#include "check.h"
-#include "internal_include/bt_target.h"
 #include "osi/include/alarm.h"
-#include "osi/include/allocator.h"
-#include "osi/include/fixed_queue.h"
-#include "osi/include/list.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
-#include "osi/include/thread.h"
-#include "osi/include/wakelock.h"
-#include "test/common/mock_functions.h"
 
 // Mocked compile conditionals, if any
 

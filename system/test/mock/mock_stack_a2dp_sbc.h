@@ -24,26 +24,11 @@
 
 #include <cstdint>
 #include <functional>
-#include <map>
 #include <string>
 
 // Original included files, if any
-// NOTE: Since this is a mock file with mock definitions some number of
-//       include files may not be required.  The include-what-you-use
-//       still applies, but crafting proper inclusion is out of scope
-//       for this effort.  This compilation unit may compile as-is, or
-//       may need attention to prune from (or add to ) the inclusion set.
-#include <base/logging.h>
-#include <string.h>
-
-#include "a2dp_sbc.h"
-#include "a2dp_sbc_decoder.h"
-#include "a2dp_sbc_encoder.h"
-#include "embdrv/sbc/encoder/include/sbc_encoder.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
+#include "stack/include/a2dp_codec_api.h"
 #include "stack/include/bt_hdr.h"
-#include "test/common/mock_functions.h"
 
 // Original usings
 

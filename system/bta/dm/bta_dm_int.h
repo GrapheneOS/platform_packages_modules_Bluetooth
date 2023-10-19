@@ -31,6 +31,7 @@
 
 #include "bt_target.h"  // Must be first to define build configuration
 #include "bta/include/bta_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "bta/include/bta_gatt_api.h"
 #include "bta/sys/bta_sys.h"
 #include "main/shim/dumpsys.h"
@@ -109,27 +110,6 @@ typedef struct {
   BT_HDR_RIGID hdr;
 } tBTA_DM_API_DISCOVERY_CANCEL;
 
-typedef struct {
-  RawAddress bd_addr;
-  bool accept;
-  uint8_t pin_len;
-  uint8_t p_pin[PIN_CODE_LEN];
-} tBTA_DM_API_PIN_REPLY;
-
-typedef struct {
-  BT_HDR_RIGID hdr;
-  RawAddress bd_addr;
-  tBTM_IO_CAP io_cap;
-  tBTM_OOB_DATA oob_data;
-  tBTM_AUTH_REQ auth_req;
-} tBTA_DM_CI_IO_REQ;
-
-typedef struct {
-  RawAddress bd_addr;
-  Octet16 c;
-  Octet16 r;
-  bool accept;
-} tBTA_DM_CI_RMT_OOB;
 
 typedef struct {
   BT_HDR_RIGID hdr;
@@ -156,16 +136,6 @@ typedef struct {
   tSDP_RESULT sdp_result;
 } tBTA_DM_SDP_RESULT;
 
-typedef struct {
-  RawAddress bd_addr;
-  DEV_CLASS dc;
-  LinkKey link_key;
-  uint8_t key_type;
-  bool link_key_known;
-  bool dc_known;
-  BD_NAME bd_name;
-  uint8_t pin_length;
-} tBTA_DM_API_ADD_DEVICE;
 
 typedef struct {
   BT_HDR_RIGID hdr;
@@ -353,8 +323,6 @@ typedef struct {
 /* DM control block */
 typedef struct {
   tBTA_DM_ACTIVE_LINK device_list;
-  tBTA_DM_SEC_CBACK* p_sec_cback;
-  tBTA_DM_SEC_CBACK* p_sec_sirk_cback;
   tBTA_BLE_ENERGY_INFO_CBACK* p_energy_info_cback;
   bool disabling;
   alarm_t* disable_timer;
@@ -362,17 +330,6 @@ typedef struct {
   tBTA_PM_TIMER pm_timer[BTA_DM_NUM_PM_TIMER];
   uint8_t cur_av_count;   /* current AV connecions */
 
-  /* Storage for pin code request parameters */
-  RawAddress pin_bd_addr;
-  DEV_CLASS pin_dev_class;
-  tBTA_DM_SEC_EVT pin_evt;
-  tBTM_IO_CAP loc_io_caps;    /* IO Capabilities of local device */
-  tBTM_IO_CAP rmt_io_caps;    /* IO Capabilities of remote device */
-  tBTM_AUTH_REQ loc_auth_req; /* Authentication required for local device */
-  tBTM_AUTH_REQ rmt_auth_req;
-  uint32_t num_val; /* the numeric value for comparison. If just_works, do not
-                       show this number to UI */
-  bool just_works;  /* true, if "Just Works" association model */
 #if (BTA_EIR_CANNED_UUID_LIST != TRUE)
   /* store UUID list for EIR */
   uint32_t eir_uuid[BTM_EIR_SERVICE_ARRAY_SIZE];
@@ -532,7 +489,6 @@ extern tBTA_DM_DI_CB bta_dm_di_cb;
 void bta_dm_enable(tBTA_DM_SEC_CBACK*, tBTA_DM_ACL_CBACK*);
 void bta_dm_disable();
 void bta_dm_set_dev_name(const std::vector<uint8_t>&);
-void bta_dm_remove_device(const RawAddress& bd_addr);
 void bta_dm_close_acl(const RawAddress&, bool, tBT_TRANSPORT);
 
 void bta_dm_pm_btm_status(const RawAddress&, tBTM_PM_STATUS, uint16_t,

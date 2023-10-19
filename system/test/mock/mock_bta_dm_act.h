@@ -23,38 +23,12 @@
 
 #include <cstdint>
 #include <functional>
-#include <map>
-#include <string>
-
-#include "test/common/mock_functions.h"
 
 // Original included files, if any
-// NOTE: Since this is a mock file with mock definitions some number of
-//       include files may not be required.  The include-what-you-use
-//       still applies, but crafting proper inclusion is out of scope
-//       for this effort.  This compilation unit may compile as-is, or
-//       may need attention to prune from (or add to ) the inclusion set.
 #include <cstdint>
 
 #include "bta/dm/bta_dm_int.h"
-#include "bta/gatt/bta_gattc_int.h"
-#include "bta/include/bta_dm_ci.h"
-#include "btif/include/btif_dm.h"
-#include "btif/include/btif_storage.h"
-#include "btif/include/stack_manager.h"
-#include "gap_api.h"
-#include "main/shim/acl_api.h"
-#include "main/shim/btm_api.h"
-#include "main/shim/dumpsys.h"
-#include "main/shim/shim.h"
-#include "osi/include/fixed_queue.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
-#include "stack/btm/btm_sec.h"
-#include "stack/btm/neighbor_inquiry.h"
-#include "stack/gatt/connection_manager.h"
-#include "stack/include/acl_api.h"
-#include "stack/include/btm_client_interface.h"
+#include "bta/dm/bta_dm_sec_int.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any

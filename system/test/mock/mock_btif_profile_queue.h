@@ -24,29 +24,9 @@
 
 #include <cstdint>
 #include <functional>
-#include <map>
-#include <string>
-
-#include "test/common/mock_functions.h"
 
 // Original included files, if any
-// NOTE: Since this is a mock file with mock definitions some number of
-//       include files may not be required.  The include-what-you-use
-//       still applies, but crafting proper inclusion is out of scope
-//       for this effort.  This compilation unit may compile as-is, or
-//       may need attention to prune from (or add to ) the inclusion set.
-#include <base/functional/bind.h>
-#include <base/functional/callback.h>
-#include <base/logging.h>
-#include <base/strings/stringprintf.h>
-#include <string.h>
-
-#include <list>
-
-#include "btif/include/btif_common.h"
 #include "btif/include/btif_profile_queue.h"
-#include "btif/include/stack_manager.h"
-#include "main/shim/dumpsys.h"
 #include "types/raw_address.h"
 
 // Original usings

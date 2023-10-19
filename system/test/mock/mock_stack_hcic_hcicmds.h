@@ -25,28 +25,11 @@
 
 #include <cstdint>
 #include <functional>
-#include <map>
-#include <string>
 
 // Original included files, if any
-// NOTE: Since this is a mock file with mock definitions some number of
-//       include files may not be required.  The include-what-you-use
-//       still applies, but crafting proper inclusion is out of scope
-//       for this effort.  This compilation unit may compile as-is, or
-//       may need attention to prune from (or add to ) the inclusion set.
-#include <base/functional/callback_forward.h>
-#include <stddef.h>
-#include <string.h>
-
-#include "bt_target.h"
 #include "device/include/esco_parameters.h"
-#include "hcidefs.h"
 #include "hcimsgs.h"
-#include "osi/include/allocator.h"
-#include "stack/include/acl_hci_link_interface.h"
-#include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
-#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any

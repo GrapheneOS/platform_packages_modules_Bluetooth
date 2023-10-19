@@ -23,29 +23,14 @@
 
 #include <cstdint>
 #include <functional>
-#include <map>
-#include <string>
 
 // Original included files, if any
-// NOTE: Since this is a mock file with mock definitions some number of
-//       include files may not be required.  The include-what-you-use
-//       still applies, but crafting proper inclusion is out of scope
-//       for this effort.  This compilation unit may compile as-is, or
-//       may need attention to prune the inclusion set.
 #include <base/logging.h>
 #include <base/strings/string_number_conversions.h>
 
-#include <algorithm>
-
-#include "stack/crypto_toolbox/aes.h"
-#include "stack/crypto_toolbox/crypto_toolbox.h"
-#include "test/common/mock_functions.h"
+#include "stack/include/bt_octets.h"
 
 // Mocked compile conditionals, if any
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 namespace test {
 namespace mock {
 namespace stack_crypto_toolbox {

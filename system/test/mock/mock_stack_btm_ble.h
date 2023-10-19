@@ -24,38 +24,14 @@
 
 #include <cstdint>
 #include <functional>
-#include <map>
-#include <string>
 
 // Original included files, if any
-// NOTE: Since this is a mock file with mock definitions some number of
-//       include files may not be required.  The include-what-you-use
-//       still applies, but crafting proper inclusion is out of scope
-//       for this effort.  This compilation unit may compile as-is, or
-//       may need attention to prune from (or add to ) the inclusion set.
-#include <base/logging.h>
-
-#include <cstdint>
-
 #include "device/include/controller.h"
-#include "main/shim/btm_api.h"
-#include "main/shim/l2c_api.h"
-#include "main/shim/shim.h"
-#include "osi/include/allocator.h"
-#include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/security_device_record.h"
-#include "stack/crypto_toolbox/crypto_toolbox.h"
-#include "stack/include/acl_api.h"
 #include "stack/include/bt_octets.h"
-#include "stack/include/bt_types.h"
-#include "stack/include/btm_api.h"
-#include "stack/include/gatt_api.h"
-#include "stack/include/l2cap_security_interface.h"
 #include "stack/include/l2cdefs.h"
-#include "stack/include/smp_api.h"
-#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 // Original usings

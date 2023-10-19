@@ -20,14 +20,14 @@
  *  mockcify.pl ver 0.5.1
  */
 
-#include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
-
-#ifndef __clang_analyzer__
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_stack_btm_hfp_msbc_encoder.h"
+
+#include <cstdint>
+
+#ifndef __clang_analyzer__
+
+#include "test/common/mock_functions.h"
 
 // Original usings
 

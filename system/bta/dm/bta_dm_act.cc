@@ -37,8 +37,9 @@
 #include "bta/dm/bta_dm_gatt_client.h"
 #include "bta/dm/bta_dm_int.h"
 #include "bta/include/bta_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "bta/include/bta_sdp_api.h"
-#include "bta/dm/bta_dm_sec.h"
+#include "bta/dm/bta_dm_sec_int.h"
 #include "bta/sys/bta_sys.h"
 #include "btif/include/btif_config.h"
 #include "btif/include/btif_dm.h"
@@ -198,7 +199,7 @@ void bta_dm_enable(tBTA_DM_SEC_CBACK* p_sec_cback,
  ******************************************************************************/
 static void bta_dm_init_cb(void) {
   bta_dm_cb = {};
-  bta_dm_acl_cb = {};
+
   bta_dm_cb.disable_timer = alarm_new("bta_dm.disable_timer");
   bta_dm_cb.switch_delay_timer = alarm_new("bta_dm.switch_delay_timer");
   for (size_t i = 0; i < BTA_DM_NUM_PM_TIMER; i++) {
@@ -231,7 +232,6 @@ static void bta_dm_deinit_cb(void) {
     }
   }
   bta_dm_cb = {};
-  bta_dm_acl_cb = {};
 }
 
 void BTA_dm_on_hw_off() {
@@ -250,22 +250,12 @@ void BTA_dm_on_hw_off() {
 
 void BTA_dm_on_hw_on() {
   DEV_CLASS dev_class;
-  tBTA_DM_SEC_CBACK* temp_sec_cback;
-  tBTA_DM_ACL_CBACK* temp_acl_cback;
 
   uint8_t key_mask = 0;
   tBTA_BLE_LOCAL_ID_KEYS id_key;
 
-  /* save callbacks */
-  temp_sec_cback = bta_dm_cb.p_sec_cback;
-  temp_acl_cback = bta_dm_acl_cb.p_acl_cback;
-
   /* make sure the control block is properly initialized */
   bta_dm_init_cb();
-  /* and restore the callbacks */
-  bta_dm_cb.p_sec_cback = temp_sec_cback;
-  bta_dm_acl_cb.p_acl_cback = temp_acl_cback;
-
 
   /* hw is ready, go on with BTA DM initialization */
   alarm_free(bta_dm_search_cb.search_timer);
@@ -308,6 +298,7 @@ void BTA_dm_on_hw_on() {
   bta_dm_search_cb.conn_id = GATT_INVALID_CONN_ID;
 
   btm_dm_sec_init();
+  btm_sec_on_hw_on();
 
   BTM_WritePageTimeout(osi_property_get_int32(PROPERTY_PAGE_TIMEOUT,
                                               p_bta_dm_cfg->page_timeout));
@@ -488,10 +479,10 @@ void bta_dm_process_remove_device(const RawAddress& bd_addr) {
   /* Conclude service search if it was pending */
   bta_dm_disc_remove_device(bd_addr);
 
-  if (bta_dm_cb.p_sec_cback) {
+  if (bta_dm_sec_cb.p_sec_cback) {
     tBTA_DM_SEC sec_event;
     sec_event.dev_unpair.bd_addr = bd_addr;
-    bta_dm_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, &sec_event);
+    bta_dm_sec_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, &sec_event);
   }
 }
 
@@ -874,12 +865,12 @@ static void bta_dm_acl_down(const RawAddress& bd_addr,
   }
 
   // TODO: reorganize and factor out the following logic
-  if (issue_unpair_cb && bta_dm_cb.p_sec_cback) {
+  if (issue_unpair_cb && bta_dm_sec_cb.p_sec_cback) {
     tBTA_DM_SEC conn{};
     conn.dev_unpair.bd_addr = bd_addr;
     conn.dev_unpair.transport_link_type = transport;
 
-    bta_dm_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, &conn);
+    bta_dm_sec_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, &conn);
   }
 
   bta_dm_adjust_roles(true);

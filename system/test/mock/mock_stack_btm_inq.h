@@ -24,42 +24,16 @@
 
 #include <cstdint>
 #include <functional>
-#include <map>
-#include <string>
-
-#include "test/common/mock_functions.h"
 
 // Original included files, if any
-// NOTE: Since this is a mock file with mock definitions some number of
-//       include files may not be required.  The include-what-you-use
-//       still applies, but crafting proper inclusion is out of scope
-//       for this effort.  This compilation unit may compile as-is, or
-//       may need attention to prune from (or add to ) the inclusion set.
 #include <base/logging.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <mutex>
-
-#include "advertise_data_parser.h"
-#include "common/time_util.h"
-#include "device/include/controller.h"
-#include "main/shim/btm_api.h"
-#include "main/shim/shim.h"
-#include "osi/include/allocator.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
-#include "osi/include/properties.h"
-#include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
-#include "stack/btm/btm_int_types.h"
-#include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/btm_api.h"
-#include "stack/include/btm_ble_api.h"
-#include "stack/include/inq_hci_link_interface.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 

@@ -24,32 +24,16 @@
 
 #include <cstdint>
 #include <functional>
-#include <map>
 #include <string>
 
 // Original included files, if any
-// NOTE: Since this is a mock file with mock definitions some number of
-//       include files may not be required.  The include-what-you-use
-//       still applies, but crafting proper inclusion is out of scope
-//       for this effort.  This compilation unit may compile as-is, or
-//       may need attention to prune from (or add to ) the inclusion set.
 #include <base/logging.h>
 #include <base/strings/string_number_conversions.h>
 #include <stdio.h>
 
 #include <string>
 
-#include "bt_target.h"
-#include "device/include/controller.h"
-#include "l2c_api.h"
-#include "main/shim/dumpsys.h"
-#include "osi/include/allocator.h"
-#include "osi/include/log.h"
-#include "stack/gatt/connection_manager.h"
-#include "stack/gatt/gatt_int.h"
-#include "stack/include/bt_hdr.h"
 #include "stack/include/gatt_api.h"
-#include "test/common/mock_functions.h"
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"

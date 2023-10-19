@@ -93,8 +93,14 @@ void A2dpEncodingFuzzer::process(const uint8_t* data, size_t size) {
   uint16_t delayReport = fdp.ConsumeIntegral<uint16_t>();
   bluetooth::audio::a2dp::set_remote_delay(delayReport);
 
-  (void)bluetooth::audio::a2dp::init(&messageLoopThread);
-  (void)bluetooth::audio::a2dp::setup_codec();
+  if (!bluetooth::audio::a2dp::init(&messageLoopThread)) {
+    return;
+  }
+
+  if (!bluetooth::audio::a2dp::setup_codec()) {
+    return;
+  }
+
   bluetooth::audio::a2dp::start_session();
 
   tA2DP_CTRL_ACK status = fdp.PickValueInArray(kCtrlAckStatus);

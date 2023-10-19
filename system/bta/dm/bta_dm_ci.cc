@@ -26,7 +26,7 @@
 #include <memory>
 
 #include "bta/dm/bta_dm_int.h"
-#include "bta/dm/bta_dm_sec.h"
+#include "bta/dm/bta_dm_sec_int.h"
 #include "stack/include/main_thread.h"
 #include "types/raw_address.h"
 

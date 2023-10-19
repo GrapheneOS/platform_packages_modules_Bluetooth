@@ -1,4 +1,3 @@
-#include <memory>
 
 #include "stack/include/btm_iso_api.h"
 

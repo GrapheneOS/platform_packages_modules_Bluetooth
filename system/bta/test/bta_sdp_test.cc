@@ -22,6 +22,7 @@
 #include <string>
 
 #include "bta/dm/bta_dm_int.h"
+#include "osi/include/allocator.h"
 #include "test/common/main_handler.h"
 #include "test/fake/fake_osi.h"
 #include "test/mock/mock_stack_btm.h"

@@ -20,23 +20,19 @@
  *
  *  mockcify.pl ver 0.2.1
  */
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_stack_acl.h"
 
 #include <cstdint>
-#include <functional>
-#include <map>
 #include <string>
 
-// Mock include file to share data between tests and mock
+#include "stack/include/acl_client_callbacks.h"
 #include "stack/include/bt_hdr.h"
-#include "test/mock/mock_stack_acl.h"
+#include "test/common/mock_functions.h"
 #include "types/class_of_device.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 // Mocked internal structures, if any
 
 namespace test {
@@ -611,7 +607,7 @@ void btm_read_failed_contact_counter_complete(uint8_t* p) {
   inc_func_call_count(__func__);
   test::mock::stack_acl::btm_read_failed_contact_counter_complete(p);
 }
-void btm_read_failed_contact_counter_timeout(UNUSED_ATTR void* data) {
+void btm_read_failed_contact_counter_timeout(void* data) {
   inc_func_call_count(__func__);
   test::mock::stack_acl::btm_read_failed_contact_counter_timeout(data);
 }
@@ -619,7 +615,7 @@ void btm_read_link_quality_complete(uint8_t* p, uint16_t evt_len) {
   inc_func_call_count(__func__);
   test::mock::stack_acl::btm_read_link_quality_complete(p, evt_len);
 }
-void btm_read_link_quality_timeout(UNUSED_ATTR void* data) {
+void btm_read_link_quality_timeout(void* data) {
   inc_func_call_count(__func__);
   test::mock::stack_acl::btm_read_link_quality_timeout(data);
 }
@@ -654,7 +650,7 @@ void btm_read_rssi_complete(uint8_t* p, uint16_t evt_len) {
   inc_func_call_count(__func__);
   test::mock::stack_acl::btm_read_rssi_complete(p, evt_len);
 }
-void btm_read_rssi_timeout(UNUSED_ATTR void* data) {
+void btm_read_rssi_timeout(void* data) {
   inc_func_call_count(__func__);
   test::mock::stack_acl::btm_read_rssi_timeout(data);
 }
@@ -662,7 +658,7 @@ void btm_read_tx_power_complete(uint8_t* p, uint16_t evt_len, bool is_ble) {
   inc_func_call_count(__func__);
   test::mock::stack_acl::btm_read_tx_power_complete(p, evt_len, is_ble);
 }
-void btm_read_tx_power_timeout(UNUSED_ATTR void* data) {
+void btm_read_tx_power_timeout(void* data) {
   inc_func_call_count(__func__);
   test::mock::stack_acl::btm_read_tx_power_timeout(data);
 }

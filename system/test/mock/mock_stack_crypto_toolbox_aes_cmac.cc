@@ -19,16 +19,8 @@
  *   Functions generated:1
  */
 
-#include <map>
-#include <string>
-
-#include "stack/crypto_toolbox/aes.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "test/common/mock_functions.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 namespace crypto_toolbox {
 Octet16 aes_cmac(const Octet16& key, const uint8_t* input, uint16_t length) {

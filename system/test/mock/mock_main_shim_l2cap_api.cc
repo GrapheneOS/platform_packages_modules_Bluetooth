@@ -24,17 +24,13 @@
 #include "test/mock/mock_main_shim_l2cap_api.h"
 
 #include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
 
 // Mock include file to share data between tests and mock
 
-// Mocked compile conditionals, if any
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
+#include "main/shim/l2c_api.h"
+#include "test/common/mock_functions.h"
 
+// Mocked compile conditionals, if any
 // Mocked internal structures, if any
 
 namespace test {

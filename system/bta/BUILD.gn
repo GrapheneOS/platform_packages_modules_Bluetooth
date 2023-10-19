@@ -39,6 +39,7 @@ static_library("bta") {
     "csis/csis_client.cc",
     "dm/bta_dm_act.cc",
     "dm/bta_dm_api.cc",
+    "dm/bta_dm_sec_api.cc",
     "dm/bta_dm_cfg.cc",
     "dm/bta_dm_ci.cc",
     "dm/bta_dm_disc.cc",

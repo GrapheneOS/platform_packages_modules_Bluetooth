@@ -23,30 +23,15 @@
 
 #include <cstdint>
 #include <functional>
-#include <map>
 #include <string>
 
-#include "test/common/mock_functions.h"
-
 // Original included files, if any
-// NOTE: Since this is a mock file with mock definitions some number of
-//       include files may not be required.  The include-what-you-use
-//       still applies, but crafting proper inclusion is out of scope
-//       for this effort.  This compilation unit may compile as-is, or
-//       may need attention to prune the inclusion set.
-#include "gd/hci/address.h"
-#include "gd/os/metrics.h"
-#include "main/shim/helpers.h"
-#include "main/shim/metrics_api.h"
-#include "types/raw_address.h"
 #include <frameworks/proto_logging/stats/enums/bluetooth/le/enums.pb.h>
 
+#include "gd/os/metrics.h"
+#include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 namespace test {
 namespace mock {
 namespace main_shim_metrics_api {

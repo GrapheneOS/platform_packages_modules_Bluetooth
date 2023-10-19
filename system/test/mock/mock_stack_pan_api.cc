@@ -20,20 +20,15 @@
  *
  *  mockcify.pl ver 0.2.1
  */
-
-#include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
-
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_stack_pan_api.h"
 
-// Mocked compile conditionals, if any
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
+#include <cstdint>
+#include <string>
 
+#include "test/common/mock_functions.h"
+
+// Mocked compile conditionals, if any
 // Mocked internal structures, if any
 
 namespace test {

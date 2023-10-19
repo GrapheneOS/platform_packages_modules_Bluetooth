@@ -18,15 +18,8 @@
 #include <base/functional/bind.h>
 #include <hardware/bt_le_audio.h>
 
-#include <map>
-#include <string>
-
 #include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "test/common/mock_functions.h"
-
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
 
 void LeAudioBroadcaster::DebugDump(int) { inc_func_call_count(__func__); }
 void LeAudioBroadcaster::Initialize(

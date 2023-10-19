@@ -23,44 +23,14 @@
 
 #include <cstdint>
 #include <functional>
-#include <map>
-#include <string>
 
 // Original included files, if any
-// NOTE: Since this is a mock file with mock definitions some number of
-//       include files may not be required.  The include-what-you-use
-//       still applies, but crafting proper inclusion is out of scope
-//       for this effort.  This compilation unit may compile as-is, or
-//       may need attention to prune the inclusion set.
-#include <future>
-#include <unordered_map>
-#include <unordered_set>
-
-#include "bta/include/bta_dm_acl.h"
-#include "gd/os/log.h"
-#include "gd/os/queue.h"
-#include "main/shim/acl_api.h"
-#include "main/shim/entry.h"
-#include "main/shim/helpers.h"
-#include "main/shim/l2c_api.h"
-#include "osi/include/allocator.h"
-#include "stack/btm/btm_ble_int.h"
-#include "stack/btm/btm_sec.h"
-#include "stack/include/acl_hci_link_interface.h"
-#include "stack/include/ble_acl_interface.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/btm_api.h"
-#include "stack/include/gatt_api.h"
-#include "stack/include/sco_hci_link_interface.h"
-#include "test/common/mock_functions.h"
+#include "stack/include/l2c_api.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
-
 namespace test {
 namespace mock {
 namespace main_shim_l2cap_api {

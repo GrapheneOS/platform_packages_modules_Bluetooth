@@ -19,14 +19,12 @@
  *
  *  mockcify.pl ver 0.6.0
  */
-
-#include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
-
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_btif_util.h"
+
+#include <cstdint>
+
+#include "test/common/mock_functions.h"
 
 // Original usings
 
