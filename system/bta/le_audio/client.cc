@@ -1953,43 +1953,49 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    bool write_ccc = false;
+
     /* GATTC will ommit not registered previously handles */
     for (auto pac_tuple : leAudioDevice->snk_pacs_) {
       subscribe_for_notification(leAudioDevice->conn_id_,
                                  leAudioDevice->address_,
-                                 std::get<0>(pac_tuple));
+                                 std::get<0>(pac_tuple), write_ccc);
     }
     for (auto pac_tuple : leAudioDevice->src_pacs_) {
       subscribe_for_notification(leAudioDevice->conn_id_,
                                  leAudioDevice->address_,
-                                 std::get<0>(pac_tuple));
+                                 std::get<0>(pac_tuple), write_ccc);
     }
 
     if (leAudioDevice->snk_audio_locations_hdls_.val_hdl != 0)
-      subscribe_for_notification(leAudioDevice->conn_id_,
-                                 leAudioDevice->address_,
-                                 leAudioDevice->snk_audio_locations_hdls_);
+      subscribe_for_notification(
+          leAudioDevice->conn_id_, leAudioDevice->address_,
+          leAudioDevice->snk_audio_locations_hdls_, write_ccc);
     if (leAudioDevice->src_audio_locations_hdls_.val_hdl != 0)
-      subscribe_for_notification(leAudioDevice->conn_id_,
-                                 leAudioDevice->address_,
-                                 leAudioDevice->src_audio_locations_hdls_);
+      subscribe_for_notification(
+          leAudioDevice->conn_id_, leAudioDevice->address_,
+          leAudioDevice->src_audio_locations_hdls_, write_ccc);
 
     if (leAudioDevice->audio_avail_hdls_.val_hdl != 0)
       subscribe_for_notification(leAudioDevice->conn_id_,
                                  leAudioDevice->address_,
-                                 leAudioDevice->audio_avail_hdls_);
+                                 leAudioDevice->audio_avail_hdls_, write_ccc);
 
     if (leAudioDevice->audio_supp_cont_hdls_.val_hdl != 0)
-      subscribe_for_notification(leAudioDevice->conn_id_,
-                                 leAudioDevice->address_,
-                                 leAudioDevice->audio_supp_cont_hdls_);
+      subscribe_for_notification(
+          leAudioDevice->conn_id_, leAudioDevice->address_,
+          leAudioDevice->audio_supp_cont_hdls_, write_ccc);
 
     for (struct ase& ase : leAudioDevice->ases_)
       subscribe_for_notification(leAudioDevice->conn_id_,
-                                 leAudioDevice->address_, ase.hdls);
+                                 leAudioDevice->address_, ase.hdls, write_ccc);
 
+    /* Let's register only for control point on the reconnection time.
+     * This is mainly to assure that the database did not changed on another
+     * side
+     */
     subscribe_for_notification(leAudioDevice->conn_id_, leAudioDevice->address_,
-                               leAudioDevice->ctp_hdls_);
+                               leAudioDevice->ctp_hdls_, true);
   }
 
   void changeMtuIfPossible(LeAudioDevice* leAudioDevice) {
@@ -2037,11 +2043,12 @@ class LeAudioClientImpl : public LeAudioClient {
 
     changeMtuIfPossible(leAudioDevice);
 
-    /* If we know services, register for notifications */
-    if (leAudioDevice->known_service_handles_)
-      RegisterKnownNotifications(leAudioDevice);
-
     leAudioDevice->encrypted_ = true;
+
+    /* If we know services, register for notifications */
+    if (leAudioDevice->known_service_handles_) {
+      RegisterKnownNotifications(leAudioDevice);
+    }
 
     /* If we know services and read is not ongoing, this is reconnection and
      * just notify connected  */
@@ -2310,9 +2317,9 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
-  bool subscribe_for_notification(
-      uint16_t conn_id, const RawAddress& address,
-      struct le_audio::types::hdl_pair handle_pair) {
+  bool subscribe_for_notification(uint16_t conn_id, const RawAddress& address,
+                                  struct le_audio::types::hdl_pair handle_pair,
+                                  bool write_ccc = true) {
     std::vector<uint8_t> value(2);
     uint8_t* ptr = value.data();
     uint16_t handle = handle_pair.val_hdl;
@@ -2324,6 +2331,12 @@ class LeAudioClientImpl : public LeAudioClient {
       LOG(ERROR) << __func__ << ", cannot register for notification: "
                  << static_cast<int>(handle);
       return false;
+    }
+
+    if (write_ccc == false) {
+      LOG_VERBOSE("CCC is not written to %s (0x%04x), handle 0x%04x",
+                  ADDRESS_TO_LOGGABLE_CSTR(address), conn_id, ccc_handle);
+      return true;
     }
 
     UINT16_TO_STREAM(ptr, GATT_CHAR_CLIENT_CONFIG_NOTIFICATION);
