@@ -21,14 +21,14 @@
 #include <string.h>
 
 #include <array>
-#include <list>
 #include <queue>
 
+#include "common/init_flags.h"
 #include "gap_api.h"
 #include "gatt_api.h"
-#include "main/shim/dumpsys.h"
-#include "osi/include/log.h"
+#include "os/log.h"
 #include "stack/include/bt_types.h"
+#include "stack/include/bt_uuid16.h"
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"

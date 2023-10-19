@@ -32,6 +32,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/properties.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_uuid16.h"
 #include "types/raw_address.h"
 
 extern bool btif_av_peer_is_connected_sink(const RawAddress& peer_address);

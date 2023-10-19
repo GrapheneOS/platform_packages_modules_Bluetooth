@@ -36,8 +36,8 @@
 
 #include "btif/include/btif_config.h"
 #include "device/include/device_iot_config.h"
-#include "os/system_properties.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/l2c_api.h"
 #include "stack/include/port_api.h"
 #include "stack/include/sdp_api.h"

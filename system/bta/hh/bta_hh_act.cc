@@ -28,18 +28,17 @@
 #include <cstdint>
 #include <string>
 
-#include "bt_target.h"  // Must be first to define build configuration
 #include "bta/hh/bta_hh_int.h"
 #include "bta/include/bta_hh_api.h"
 #include "bta/include/bta_hh_co.h"
 #include "bta/sys/bta_sys.h"
 #include "btif/include/btif_storage.h"
-#include "main/shim/dumpsys.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/hiddefs.h"
 #include "stack/include/hidh_api.h"
 #include "stack/include/sdp_api.h"

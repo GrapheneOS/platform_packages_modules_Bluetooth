@@ -34,6 +34,7 @@
 #include "osi/include/compat.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack/include/main_thread.h"
