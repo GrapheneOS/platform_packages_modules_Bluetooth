@@ -676,7 +676,7 @@ public class ActiveDeviceManager implements AdapterService.BluetoothStateCallbac
             final HearingAidService hearingAidService = mFactory.getHearingAidService();
             if (hearingAidService != null) {
                 long hiSyncId = hearingAidService.getHiSyncId(device);
-                if (getHearingAidActiveHiSyncIdLocked() == hiSyncId) {
+                if (device != null && getHearingAidActiveHiSyncIdLocked() == hiSyncId) {
                     mHearingAidActiveDevices.add(device);
                 } else {
                     mHearingAidActiveDevices.clear();
