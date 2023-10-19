@@ -16,7 +16,6 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name" msgid="2326164424236203271">"Bluetooth"</string>
     <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"Piekļuve lietojumprogrammai Download Manager."</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"Ļauj lietotnei piekļūt BluetoothShare pārvaldniekam, lai to izmantotu failu pārsūtīšanai."</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"Iekļaut Bluetooth ierīces piekļuvi atļaušanas sarakstā."</string>
@@ -131,9 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Nevar pārsūtīt failus, kas lielāki par 4 GB."</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Izveidot savienojumu ar Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Tehnoloģija Bluetooth lidojuma režīmā paliek ieslēgta"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="6168686193308136881">"Ja Bluetooth savienojums paliks ieslēgts, ierīcē tas paliks ieslēgts arī nākamreiz, kad ieslēgsiet lidojuma režīmu."</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Ja Bluetooth savienojums paliks ieslēgts, tālrunī tas paliks ieslēgts arī nākamreiz, kad ieslēgsiet lidojuma režīmu."</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth savienojums joprojām ir ieslēgts"</string>
-    <string name="bluetooth_stays_on_message" msgid="3669663452593157737">"Lidojuma režīmā ierīcē joprojām būs ieslēgts Bluetooth savienojums. Izslēdziet Bluetooth savienojumu, ja nevēlaties, lai tas paliktu ieslēgts."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Lidojuma režīmā tālrunī joprojām būs ieslēgts Bluetooth savienojums. Izslēdziet Bluetooth savienojumu, ja nevēlaties, lai tas paliktu ieslēgts."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi savienojums un tehnoloģija Bluetooth paliek ieslēgta"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="7848565203843882558">"Lidojuma režīmā ierīcē joprojām būs ieslēgti Wi-Fi un Bluetooth savienojumi. Izslēdziet Wi-Fi un Bluetooth savienojumus, ja nevēlaties, lai tie paliktu ieslēgti."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Lidojuma režīmā tālrunī joprojām būs ieslēgti Wi-Fi un Bluetooth savienojumi. Izslēdziet Wi-Fi un Bluetooth savienojumus, ja nevēlaties, lai tie paliktu ieslēgti."</string>
 </resources>

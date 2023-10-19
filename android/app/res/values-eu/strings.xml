@@ -16,7 +16,6 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name" msgid="2326164424236203271">"Bluetootha"</string>
     <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"Atzitu deskargen kudeatzailea."</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"Bluetooth bidezko partekatzeen kudeatzailea atzitzea eta fitxategiak transferitzeko erabiltzeko baimena ematen die aplikazioei."</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"Ezarri Bluetooth bidezko gailuak onartutakoen zerrendan."</string>
@@ -131,9 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Ezin dira transferitu 4 GB baino gehiagoko fitxategiak"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Konektatu Bluetoothera"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetootha aktibatuta mantentzen da hegaldi moduan"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="6168686193308136881">"Bluetootha aktibatuta utziz gero, hura aktibatuta mantentzeaz gogoratuko da gailua hegaldi modua erabiltzen duzun hurrengoan"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Bluetootha aktibatuta utziz gero, hura aktibatuta mantentzeaz gogoratuko da telefonoa hegaldi modua erabiltzen duzun hurrengoan"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetootha aktibatuta mantenduko da"</string>
-    <string name="bluetooth_stays_on_message" msgid="3669663452593157737">"Hegaldi moduan, Bluetootha aktibatuta mantentzeaz gogoratzen da gailua. Halakorik nahi ez baduzu, desaktiba ezazu zuk zeuk."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Hegaldi moduan, Bluetootha aktibatuta mantentzeaz gogoratzen da telefonoa. Halakorik nahi ez baduzu, desaktiba ezazu zuk zeuk."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wifia eta Bluetootha aktibatuta mantentzen dira"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="7848565203843882558">"Hegaldi moduan, wifia eta Bluetootha aktibatuta mantentzeaz gogoratzen da gailua. Halakorik nahi ez baduzu, desaktiba itzazu zuk zeuk."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Hegaldi moduan, wifia eta Bluetootha aktibatuta mantentzeaz gogoratzen da telefonoa. Halakorik nahi ez baduzu, desaktiba itzazu zuk zeuk."</string>
 </resources>

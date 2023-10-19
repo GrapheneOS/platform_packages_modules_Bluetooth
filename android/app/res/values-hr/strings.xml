@@ -16,7 +16,6 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name" msgid="2326164424236203271">"Bluetooth"</string>
     <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"Pristupite upravitelju za preuzimanje."</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"Aplikaciji omogućuje pristup upravitelju za BluetoothShare i njegovu upotrebu za prijenos datoteka."</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"Stavi pristup Bluetooth uređaja na popis prihvaćenih."</string>
@@ -131,9 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Datoteke veće od 4 GB ne mogu se prenijeti"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Povezivanje s Bluetoothom"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth je uključen u načinu rada u zrakoplovu"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="6168686193308136881">"Ako Bluetooth ostane uključen, uređaj će zapamtiti da treba ostati uključen u načinu rada u zrakoplovu"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Ako Bluetooth ostane uključen, telefon će zapamtiti da treba ostati uključen u načinu rada u zrakoplovu"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth ostaje uključen"</string>
-    <string name="bluetooth_stays_on_message" msgid="3669663452593157737">"Uređaj će zapamtiti da Bluetooth treba ostati uključen u načinu rada u zrakoplovu. Isključite Bluetooth ako ne želite da ostane uključen."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Telefon će zapamtiti da Bluetooth treba ostati uključen u načinu rada u zrakoplovu. Isključite Bluetooth ako ne želite da ostane uključen."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi i Bluetooth ostat će uključeni"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="7848565203843882558">"Uređaj će zapamtiti da Wi‑Fi i Bluetooth trebaju ostati uključeni u načinu rada u zrakoplovu. Isključite Wi-Fi i Bluetooth ako ne želite da ostanu uključeni."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Telefon će zapamtiti da Wi‑Fi i Bluetooth trebaju ostati uključeni u načinu rada u zrakoplovu. Uključite Wi-Fi i Bluetooth ako ne želite da ostanu uključeni."</string>
 </resources>
