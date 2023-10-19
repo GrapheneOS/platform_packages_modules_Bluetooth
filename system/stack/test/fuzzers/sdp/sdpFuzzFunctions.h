@@ -284,13 +284,6 @@ static const std::vector<std::function<void(FuzzedDataProvider*)>>
           delete[] service_uuids;
         },
 
-        // ::SDP_DeleteAttribute
-        [](FuzzedDataProvider* fdp) -> void {
-          get_legacy_stack_sdp_api()->handle.SDP_DeleteAttribute(
-              getArbitraryVectorElement(fdp, sdp_record_handles, true),
-              fdp->ConsumeIntegral<uint16_t>());
-        },
-
         // ::SDP_SetLocalDiRecord
         [](FuzzedDataProvider* fdp) -> void {
           uint32_t handle;  // Output var
