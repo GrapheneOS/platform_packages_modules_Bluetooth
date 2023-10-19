@@ -1823,6 +1823,7 @@ public class BassClientService extends ProfileService {
             BassClientStateMachine sm = entry.getValue();
             if (sm.getConnectionState() == BluetoothProfile.STATE_CONNECTED) {
                 sm.dump(sb);
+                sb.append("\n\n");
             }
         }
 
@@ -1834,7 +1835,7 @@ public class BassClientService extends ProfileService {
             }
         }
 
-        sb.append("\n");
+        sb.append("\n\n");
         sEventLogger.dump(sb);
         sb.append("\n");
     }
