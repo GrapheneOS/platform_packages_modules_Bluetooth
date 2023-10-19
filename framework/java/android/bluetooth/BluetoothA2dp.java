@@ -18,6 +18,7 @@ package android.bluetooth;
 
 import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 
+import android.annotation.FlaggedApi;
 import android.annotation.IntDef;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
@@ -753,6 +754,38 @@ public final class BluetoothA2dp implements BluetoothProfile {
             }
         }
         return false;
+    }
+
+    /**
+     * Returns the list of source codecs that are supported by the current platform.
+     *
+     * <p>The list always includes the mandatory SBC codec, and may include optional proprietary
+     * codecs.
+     *
+     * @return list of supported source codec types
+     */
+    @NonNull
+    @RequiresLegacyBluetoothPermission
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
+    @FlaggedApi("com.android.bluetooth.flags.a2dp_offload_codec_extensibility")
+    public List<BluetoothCodecType> getSupportedCodecTypes() {
+        Log.d(TAG, "getSupportedSourceCodecTypes()");
+        final IBluetoothA2dp service = getService();
+        List<BluetoothCodecType> defaultValue = new ArrayList<>();
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else if (isEnabled()) {
+            try {
+                final SynchronousResultReceiver<List<BluetoothCodecType>> recv =
+                        SynchronousResultReceiver.get();
+                service.getSupportedCodecTypes(mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            } catch (RemoteException | TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            }
+        }
+        return defaultValue;
     }
 
     /**

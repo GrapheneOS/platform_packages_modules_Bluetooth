@@ -33,6 +33,7 @@ import android.bluetooth.BluetoothA2dp.OptionalCodecsSupportStatus;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothCodecConfig;
 import android.bluetooth.BluetoothCodecStatus;
+import android.bluetooth.BluetoothCodecType;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
@@ -729,6 +730,12 @@ public class A2dpService extends ProfileService {
             }
             return sm.isPlaying();
         }
+    }
+
+    /** Returns the list of locally supported codec types. */
+    public List<BluetoothCodecType> getSupportedCodecTypes() {
+        Log.d(TAG, "getSupportedCodecTypes()");
+        return mNativeInterface.getSupportedCodecTypes();
     }
 
     /**
@@ -1555,6 +1562,22 @@ public class A2dpService extends ProfileService {
                 boolean result = false;
                 if (service != null) {
                     result = service.isA2dpPlaying(device);
+                }
+                receiver.send(result);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
+        public void getSupportedCodecTypes(
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                A2dpService service = getService(source);
+                List<BluetoothCodecType> result = new ArrayList<>();
+                if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
+                    result = service.getSupportedCodecTypes();
                 }
                 receiver.send(result);
             } catch (RuntimeException e) {
