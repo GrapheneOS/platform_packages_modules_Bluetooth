@@ -18,7 +18,6 @@ package com.android.bluetooth.btservice;
 
 import static com.android.bluetooth.TestUtils.getTestDevice;
 import static com.android.bluetooth.TestUtils.waitForLooperToFinishScheduledTask;
-import static com.android.bluetooth.btservice.PhonePolicy.sIsHfpMultiAutoConnectEnabled;
 
 import static org.mockito.Mockito.*;
 
@@ -635,6 +634,7 @@ public class PhonePolicyTest {
     @Test
     public void testAutoConnectHfpOnly() {
         mFakeFlagsImpl.setFlag(Flags.FLAG_AUTO_CONNECT_ON_HFP_WHEN_NO_A2DP_DEVICE, true);
+        mFakeFlagsImpl.setFlag(Flags.FLAG_AUTO_CONNECT_ON_MULTIPLE_HFP_WHEN_NO_A2DP_DEVICE, false);
 
         // Return desired values from the mocked object(s)
         doReturn(BluetoothAdapter.STATE_ON).when(mAdapterService).getState();
@@ -645,7 +645,7 @@ public class PhonePolicyTest {
                                 InstrumentationRegistry.getInstrumentation().getTargetContext(),
                                 MetadataDatabase.class)
                         .build();
-        DatabaseManager db = new DatabaseManager(mAdapterService);
+        DatabaseManager db = new DatabaseManager(mAdapterService, mFakeFlagsImpl);
         doReturn(db).when(mAdapterService).getDatabase();
         PhonePolicy phonePolicy = new PhonePolicy(mAdapterService, mServiceFactory, mFakeFlagsImpl);
 
@@ -672,110 +672,100 @@ public class PhonePolicyTest {
     @Test
     public void autoConnect_whenMultiHfp_startConnection() {
         mFakeFlagsImpl.setFlag(Flags.FLAG_AUTO_CONNECT_ON_HFP_WHEN_NO_A2DP_DEVICE, true);
-        sIsHfpMultiAutoConnectEnabled = true;
+        mFakeFlagsImpl.setFlag(Flags.FLAG_AUTO_CONNECT_ON_MULTIPLE_HFP_WHEN_NO_A2DP_DEVICE, true);
 
-        try {
-            // Return desired values from the mocked object(s)
-            doReturn(BluetoothAdapter.STATE_ON).when(mAdapterService).getState();
-            doReturn(false).when(mAdapterService).isQuietModeEnabled();
+        // Return desired values from the mocked object(s)
+        doReturn(BluetoothAdapter.STATE_ON).when(mAdapterService).getState();
+        doReturn(false).when(mAdapterService).isQuietModeEnabled();
 
-            MetadataDatabase mDatabase =
-                    Room.inMemoryDatabaseBuilder(
-                                    InstrumentationRegistry.getInstrumentation().getTargetContext(),
-                                    MetadataDatabase.class)
-                            .build();
-            DatabaseManager db = new DatabaseManager(mAdapterService);
-            doReturn(db).when(mAdapterService).getDatabase();
-            PhonePolicy phonePolicy =
-                    new PhonePolicy(mAdapterService, mServiceFactory, mFakeFlagsImpl);
+        MetadataDatabase mDatabase =
+                Room.inMemoryDatabaseBuilder(
+                                InstrumentationRegistry.getInstrumentation().getTargetContext(),
+                                MetadataDatabase.class)
+                        .build();
+        DatabaseManager db = new DatabaseManager(mAdapterService, mFakeFlagsImpl);
+        doReturn(db).when(mAdapterService).getDatabase();
+        PhonePolicy phonePolicy = new PhonePolicy(mAdapterService, mServiceFactory, mFakeFlagsImpl);
 
-            db.start(mDatabase);
-            TestUtils.waitForLooperToFinishScheduledTask(db.getHandlerLooper());
+        db.start(mDatabase);
+        TestUtils.waitForLooperToFinishScheduledTask(db.getHandlerLooper());
 
-            List<BluetoothDevice> devices =
-                    List.of(
-                            getTestDevice(mAdapter, 1),
-                            getTestDevice(mAdapter, 2),
-                            getTestDevice(mAdapter, 3));
+        List<BluetoothDevice> devices =
+                List.of(
+                        getTestDevice(mAdapter, 1),
+                        getTestDevice(mAdapter, 2),
+                        getTestDevice(mAdapter, 3));
 
-            for (BluetoothDevice device : devices) {
-                db.setConnection(device, BluetoothProfile.HEADSET);
-                doReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED)
-                        .when(mHeadsetService)
-                        .getConnectionPolicy(eq(device));
-            }
-            // wait for all MSG_UPDATE_DATABASE
-            TestUtils.waitForLooperToFinishScheduledTask(db.getHandlerLooper());
+        for (BluetoothDevice device : devices) {
+            db.setConnection(device, BluetoothProfile.HEADSET);
+            doReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED)
+                    .when(mHeadsetService)
+                    .getConnectionPolicy(eq(device));
+        }
+        // wait for all MSG_UPDATE_DATABASE
+        TestUtils.waitForLooperToFinishScheduledTask(db.getHandlerLooper());
 
-            phonePolicy.autoConnect();
+        phonePolicy.autoConnect();
 
-            // Check that we got a request to connect over HFP for each device
-            for (BluetoothDevice device : devices) {
-                verify(mHeadsetService).connect(eq(device));
-            }
-        } finally {
-            sIsHfpMultiAutoConnectEnabled = false;
+        // Check that we got a request to connect over HFP for each device
+        for (BluetoothDevice device : devices) {
+            verify(mHeadsetService).connect(eq(device));
         }
     }
 
     @Test
     public void autoConnect_whenMultiHfpAndDeconnection_startConnection() {
         mFakeFlagsImpl.setFlag(Flags.FLAG_AUTO_CONNECT_ON_HFP_WHEN_NO_A2DP_DEVICE, true);
-        sIsHfpMultiAutoConnectEnabled = true;
+        mFakeFlagsImpl.setFlag(Flags.FLAG_AUTO_CONNECT_ON_MULTIPLE_HFP_WHEN_NO_A2DP_DEVICE, true);
 
-        try {
-            // Return desired values from the mocked object(s)
-            doReturn(BluetoothAdapter.STATE_ON).when(mAdapterService).getState();
-            doReturn(false).when(mAdapterService).isQuietModeEnabled();
+        // Return desired values from the mocked object(s)
+        doReturn(BluetoothAdapter.STATE_ON).when(mAdapterService).getState();
+        doReturn(false).when(mAdapterService).isQuietModeEnabled();
 
-            MetadataDatabase mDatabase =
-                    Room.inMemoryDatabaseBuilder(
-                                    InstrumentationRegistry.getInstrumentation().getTargetContext(),
-                                    MetadataDatabase.class)
-                            .build();
-            DatabaseManager db = new DatabaseManager(mAdapterService);
-            doReturn(db).when(mAdapterService).getDatabase();
-            PhonePolicy phonePolicy =
-                    new PhonePolicy(mAdapterService, mServiceFactory, mFakeFlagsImpl);
+        MetadataDatabase mDatabase =
+                Room.inMemoryDatabaseBuilder(
+                                InstrumentationRegistry.getInstrumentation().getTargetContext(),
+                                MetadataDatabase.class)
+                        .build();
+        DatabaseManager db = new DatabaseManager(mAdapterService, mFakeFlagsImpl);
+        doReturn(db).when(mAdapterService).getDatabase();
+        PhonePolicy phonePolicy = new PhonePolicy(mAdapterService, mServiceFactory, mFakeFlagsImpl);
 
-            db.start(mDatabase);
-            TestUtils.waitForLooperToFinishScheduledTask(db.getHandlerLooper());
+        db.start(mDatabase);
+        TestUtils.waitForLooperToFinishScheduledTask(db.getHandlerLooper());
 
-            BluetoothDevice deviceToDeconnect = getTestDevice(mAdapter, 0);
-            db.setConnection(deviceToDeconnect, BluetoothProfile.HEADSET);
+        BluetoothDevice deviceToDeconnect = getTestDevice(mAdapter, 0);
+        db.setConnection(deviceToDeconnect, BluetoothProfile.HEADSET);
+        doReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED)
+                .when(mHeadsetService)
+                .getConnectionPolicy(eq(deviceToDeconnect));
+
+        List<BluetoothDevice> devices =
+                List.of(
+                        getTestDevice(mAdapter, 1),
+                        getTestDevice(mAdapter, 2),
+                        getTestDevice(mAdapter, 3));
+
+        for (BluetoothDevice device : devices) {
+            db.setConnection(device, BluetoothProfile.HEADSET);
             doReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED)
                     .when(mHeadsetService)
-                    .getConnectionPolicy(eq(deviceToDeconnect));
-
-            List<BluetoothDevice> devices =
-                    List.of(
-                            getTestDevice(mAdapter, 1),
-                            getTestDevice(mAdapter, 2),
-                            getTestDevice(mAdapter, 3));
-
-            for (BluetoothDevice device : devices) {
-                db.setConnection(device, BluetoothProfile.HEADSET);
-                doReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED)
-                        .when(mHeadsetService)
-                        .getConnectionPolicy(eq(device));
-            }
-
-            db.setDisconnection(deviceToDeconnect, BluetoothProfile.HEADSET);
-
-            // wait for all MSG_UPDATE_DATABASE
-            TestUtils.waitForLooperToFinishScheduledTask(db.getHandlerLooper());
-
-            phonePolicy.autoConnect();
-
-            // Check that we got a request to connect over HFP for each device
-            for (BluetoothDevice device : devices) {
-                verify(mHeadsetService).connect(eq(device));
-            }
-            // Except for the device that was manually disconnected
-            verify(mHeadsetService, times(0)).connect(eq(deviceToDeconnect));
-        } finally {
-            sIsHfpMultiAutoConnectEnabled = false;
+                    .getConnectionPolicy(eq(device));
         }
+
+        db.setDisconnection(deviceToDeconnect, BluetoothProfile.HEADSET);
+
+        // wait for all MSG_UPDATE_DATABASE
+        TestUtils.waitForLooperToFinishScheduledTask(db.getHandlerLooper());
+
+        phonePolicy.autoConnect();
+
+        // Check that we got a request to connect over HFP for each device
+        for (BluetoothDevice device : devices) {
+            verify(mHeadsetService).connect(eq(device));
+        }
+        // Except for the device that was manually disconnected
+        verify(mHeadsetService, times(0)).connect(eq(deviceToDeconnect));
     }
 
     /**
