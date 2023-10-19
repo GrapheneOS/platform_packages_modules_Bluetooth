@@ -1018,13 +1018,6 @@ static bool btif_a2dp_source_enqueue_callback(BT_HDR* p_buf, size_t frames_n,
         btif_av_source_active_peer(), btif_a2dp_source_cb.encoder_interval_ms,
         drop_n, num_dropped_encoded_frames, num_dropped_encoded_bytes);
 
-    // Intel controllers don't handle ReadRSSI, ReadFailedContactCounter, and
-    // ReadTxPower very well, it sends back Hardware Error event which will
-    // crash the daemon. So temporarily disable this for Floss.
-    // TODO(b/249876976): Intel controllers to handle this command correctly.
-    // And if the need for disabling metrics-related HCI call grows, consider
-    // creating a framework to avoid ifdefs.
-#ifndef TARGET_FLOSS
     // Request additional debug info if we had to flush buffers
     RawAddress peer_bda = btif_av_source_active_peer();
     tBTM_STATUS status = BTM_ReadRSSI(peer_bda, btm_read_rssi_cb);
@@ -1032,19 +1025,26 @@ static bool btif_a2dp_source_enqueue_callback(BT_HDR* p_buf, size_t frames_n,
       LOG_WARN("%s: Cannot read RSSI: status %d", __func__, status);
     }
 
+    // Intel controllers don't handle ReadFailedContactCounter very well, it
+    // sends back Hardware Error event which will crash the daemon. So
+    // temporarily disable this for Floss.
+    // TODO(b/249876976): Intel controllers to handle this command correctly.
+    // And if the need for disabling metrics-related HCI call grows, consider
+    // creating a framework to avoid ifdefs.
+#ifndef TARGET_FLOSS
     status = BTM_ReadFailedContactCounter(peer_bda,
                                           btm_read_failed_contact_counter_cb);
     if (status != BTM_CMD_STARTED) {
       LOG_WARN("%s: Cannot read Failed Contact Counter: status %d", __func__,
                status);
     }
+#endif
 
     status =
         BTM_ReadTxPower(peer_bda, BT_TRANSPORT_BR_EDR, btm_read_tx_power_cb);
     if (status != BTM_CMD_STARTED) {
       LOG_WARN("%s: Cannot read Tx Power: status %d", __func__, status);
     }
-#endif
   }
 
   /* Update the statistics */
