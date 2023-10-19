@@ -47,6 +47,8 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.flags.FakeFeatureFlagsImpl;
+import com.android.bluetooth.flags.Flags;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
@@ -73,6 +75,7 @@ public final class DatabaseManagerTest {
     private BluetoothDevice mTestDevice;
     private BluetoothDevice mTestDevice2;
     private BluetoothDevice mTestDevice3;
+    private FakeFeatureFlagsImpl mFakeFlagsImpl;
 
     private static final String LOCAL_STORAGE = "LocalStorage";
     private static final String TEST_BT_ADDR = "11:22:33:44:55:66";
@@ -106,7 +109,10 @@ public final class DatabaseManagerTest {
 
         when(mAdapterService.getPackageManager()).thenReturn(
                 InstrumentationRegistry.getTargetContext().getPackageManager());
-        mDatabaseManager = new DatabaseManager(mAdapterService);
+
+        mFakeFlagsImpl = new FakeFeatureFlagsImpl();
+
+        mDatabaseManager = new DatabaseManager(mAdapterService, mFakeFlagsImpl);
 
         BluetoothDevice[] bondedDevices = {mTestDevice};
         doReturn(bondedDevices).when(mAdapterService).getBondedDevices();
@@ -477,6 +483,7 @@ public final class DatabaseManagerTest {
 
     @Test
     public void testSetConnectionHeadset() {
+        mFakeFlagsImpl.setFlag(Flags.FLAG_AUTO_CONNECT_ON_MULTIPLE_HFP_WHEN_NO_A2DP_DEVICE, false);
         // Verify pre-conditions to ensure a fresh test
         Assert.assertEquals(0, mDatabaseManager.mMetadataCache.size());
         Assert.assertNotNull(mTestDevice);
@@ -529,6 +536,7 @@ public final class DatabaseManagerTest {
 
     @Test
     public void testSetConnection() {
+        mFakeFlagsImpl.setFlag(Flags.FLAG_AUTO_CONNECT_ON_MULTIPLE_HFP_WHEN_NO_A2DP_DEVICE, false);
         // Verify pre-conditions to ensure a fresh test
         Assert.assertEquals(0, mDatabaseManager.mMetadataCache.size());
         Assert.assertNotNull(mTestDevice);
