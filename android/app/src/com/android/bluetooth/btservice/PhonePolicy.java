@@ -81,13 +81,6 @@ public class PhonePolicy implements AdapterService.BluetoothStateCallback {
     static final String BYPASS_LE_AUDIO_ALLOWLIST_PROPERTY =
             "persist.bluetooth.leaudio.bypass_allow_list";
 
-    /** flag for multi auto connect */
-    public static boolean sIsHfpMultiAutoConnectEnabled =
-            DeviceConfig.getBoolean(
-                    DeviceConfig.NAMESPACE_BLUETOOTH,
-                    "com.android.bluetooth.hfp_multi_auto_connect",
-                    false);
-
     // Timeouts
     @VisibleForTesting static int sConnectOtherProfilesTimeoutMillis = 6000; // 6s
 
@@ -645,7 +638,7 @@ public class PhonePolicy implements AdapterService.BluetoothStateCallback {
             return;
         }
 
-        if (sIsHfpMultiAutoConnectEnabled) {
+        if (mFeatureFlags.autoConnectOnMultipleHfpWhenNoA2dpDevice()) {
             final List<BluetoothDevice> mostRecentlyConnectedHfpDevices =
                     mDatabaseManager.getMostRecentlyActiveHfpDevices();
             for (BluetoothDevice hfpDevice : mostRecentlyConnectedHfpDevices) {
