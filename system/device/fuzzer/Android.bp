@@ -29,6 +29,9 @@ cc_fuzz {
     srcs: [
         "btdevice_esco_fuzzer.cpp",
     ],
+    header_libs: [
+        "libbluetooth_headers",
+    ],
     shared_libs: [
         "libdl",
         "liblog",
