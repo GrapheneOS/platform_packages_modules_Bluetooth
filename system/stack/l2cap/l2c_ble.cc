@@ -1346,7 +1346,7 @@ void l2cble_process_rc_param_request_evt(uint16_t handle, uint16_t int_min,
     }
 
   } else {
-    L2CAP_TRACE_WARNING("No link to update connection parameter")
+    L2CAP_TRACE_WARNING("No link to update connection parameter");
   }
 }
 

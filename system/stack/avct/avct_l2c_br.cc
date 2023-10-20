@@ -24,12 +24,15 @@
  *
  *****************************************************************************/
 
+#define LOG_TAG "avctp"
+
 #include "avct_api.h"
 #include "avct_int.h"
 #include "bt_target.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "osi/include/allocator.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
