@@ -123,6 +123,9 @@ typedef struct {
   uint8_t sec_id[BTA_JV_NUM_SERVICE_ID];       /* service ID */
   uint16_t free_psm_list[BTA_JV_MAX_L2C_CONN]; /* PSMs freed by java
                                                 (can be reused) */
+  bool scn_in_use[RFCOMM_MAX_SCN];
+  uint8_t scn_search_index; /* used to search for free scns */
+
   uint8_t sdp_active;                          /* see BTA_JV_SDP_ACT_* */
   bluetooth::Uuid uuid;                   /* current uuid of sdp discovery*/
   tBTA_JV_PM_CB pm_cb[BTA_JV_PM_MAX_NUM]; /* PM on a per JV handle bases */
