@@ -1118,7 +1118,6 @@ bluetooth::legacy::stack::sdp::tSdpApi api_ = {
             .SDP_AddProfileDescriptorList = ::SDP_AddProfileDescriptorList,
             .SDP_AddLanguageBaseAttrIDList = ::SDP_AddLanguageBaseAttrIDList,
             .SDP_AddServiceClassIdList = ::SDP_AddServiceClassIdList,
-            .SDP_DeleteAttribute = ::SDP_DeleteAttribute,
         },
     .device_id =
         {

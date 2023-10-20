@@ -44,8 +44,6 @@ static bool find_uuid_in_seq(uint8_t* p, uint32_t seq_len,
 bool SDP_AddAttribute(uint32_t handle, uint16_t attr_id, uint8_t attr_type,
                       uint32_t attr_len, uint8_t* p_val);
 
-bool SDP_DeleteAttribute(uint32_t handle, uint16_t attr_id);
-
 /*******************************************************************************
  *
  * Function         sdp_db_service_search
@@ -844,31 +842,6 @@ bool SDP_AddServiceClassIdList(uint32_t handle, uint16_t num_services,
                        DATA_ELE_SEQ_DESC_TYPE, (uint32_t)(p - p_buff), p_buff);
   osi_free(p_buff);
   return result;
-}
-
-/*******************************************************************************
- *
- * Function         SDP_DeleteAttribute
- *
- * Description      This function is called to delete an attribute from a
- *                  record. This would be through the SDP database maintenance
- *                  API.
- *
- * Returns          true if deleted OK, else false if not found
- *
- ******************************************************************************/
-bool SDP_DeleteAttribute(uint32_t handle, uint16_t attr_id) {
-  tSDP_RECORD* p_rec = &sdp_cb.server_db.record[0];
-
-  /* Find the record in the database */
-  for (uint16_t record_index = 0; record_index < sdp_cb.server_db.num_records; record_index++, p_rec++) {
-    if (p_rec->record_handle == handle) {
-      SDP_TRACE_API("Deleting attr_id 0x%04x for handle 0x%x", attr_id, handle);
-      return SDP_DeleteAttributeFromRecord(p_rec, attr_id);
-    }
-  }
-  /* If here, not found */
-  return (false);
 }
 
 /*******************************************************************************

@@ -64,10 +64,6 @@ bool SDP_AddUuidSequence(uint32_t handle, uint16_t attr_id, uint16_t num_uuids,
   inc_func_call_count(__func__);
   return false;
 }
-bool SDP_DeleteAttribute(uint32_t handle, uint16_t attr_id) {
-  inc_func_call_count(__func__);
-  return false;
-}
 bool SDP_DeleteRecord(uint32_t handle) {
   inc_func_call_count(__func__);
   return false;

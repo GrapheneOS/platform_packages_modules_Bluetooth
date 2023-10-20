@@ -383,18 +383,6 @@ bool SDP_AddLanguageBaseAttrIDList(uint32_t handle, uint16_t lang,
 bool SDP_AddServiceClassIdList(uint32_t handle, uint16_t num_services,
                                uint16_t* p_service_uuids);
 
-/*******************************************************************************
- *
- * Function         SDP_DeleteAttribute
- *
- * Description      Delete an attribute from a record.
- *                  This would be through the SDP database maintenance API.
- *
- * Returns          true if deleted OK, else false if not found
- *
- ******************************************************************************/
-bool SDP_DeleteAttribute(uint32_t handle, uint16_t attr_id);
-
 /* Device Identification APIs */
 
 /*******************************************************************************
