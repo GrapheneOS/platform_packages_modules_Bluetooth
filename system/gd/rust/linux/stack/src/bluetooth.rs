@@ -1139,7 +1139,7 @@ impl Bluetooth {
         }
         let adapter_addr = self.get_address().to_lowercase();
         match self.uhid_wakeup_source.create(
-            "suspend uhid".to_string(),
+            "VIRTUAL_SUSPEND_UHID".to_string(),
             adapter_addr,
             String::from(BD_ADDR_DEFAULT),
         ) {
