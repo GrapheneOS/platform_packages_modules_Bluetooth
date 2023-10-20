@@ -16,12 +16,15 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "btm_iot"
+
 #include "bt_target.h"
 #include "btif/include/btif_storage.h"
 #include "btif/include/btif_util.h"
 #include "btm_ble_api.h"
 #include "btm_int_types.h"
 #include "device/include/device_iot_config.h"
+#include "osi/include/log.h"
 
 /*******************************************************************************
  *

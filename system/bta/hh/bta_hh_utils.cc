@@ -66,7 +66,7 @@ uint8_t bta_hh_find_cb(const RawAddress& bda) {
     if ((bda == bta_hh_cb.kdev[xx].addr && !bda.IsEmpty())) {
 #if (BTA_HH_DEBUG == TRUE)
       APPL_TRACE_DEBUG("found kdev_cb[%d] hid_handle = %d ", xx,
-                       bta_hh_cb.kdev[xx].hid_handle)
+                       bta_hh_cb.kdev[xx].hid_handle);
 #endif
       return xx;
     }
