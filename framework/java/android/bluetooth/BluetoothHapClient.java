@@ -20,6 +20,7 @@ package android.bluetooth;
 import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 
 import android.annotation.CallbackExecutor;
+import android.annotation.FlaggedApi;
 import android.annotation.IntDef;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
@@ -404,6 +405,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @hide
      */
     @SystemApi
+    @FlaggedApi("com.android.bluetooth.flags.settings_can_control_hap_preset")
     public static final int PRESET_INDEX_UNAVAILABLE = IBluetoothHapClient.PRESET_INDEX_UNAVAILABLE;
 
     /**
@@ -865,6 +867,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @hide
      */
     @SystemApi
+    @FlaggedApi("com.android.bluetooth.flags.settings_can_control_hap_preset")
     @RequiresBluetoothConnectPermission
     @RequiresPermission(
             allOf = {
@@ -899,6 +902,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @hide
      */
     @SystemApi
+    @FlaggedApi("com.android.bluetooth.flags.settings_can_control_hap_preset")
     @RequiresBluetoothConnectPermission
     @RequiresPermission(
             allOf = {
@@ -1040,6 +1044,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @hide
      */
     @SystemApi
+    @FlaggedApi("com.android.bluetooth.flags.settings_can_control_hap_preset")
     @RequiresBluetoothConnectPermission
     @RequiresPermission(
             allOf = {
@@ -1073,6 +1078,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @hide
      */
     @SystemApi
+    @FlaggedApi("com.android.bluetooth.flags.settings_can_control_hap_preset")
     @RequiresBluetoothConnectPermission
     @RequiresPermission(
             allOf = {
@@ -1103,6 +1109,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @hide
      */
     @SystemApi
+    @FlaggedApi("com.android.bluetooth.flags.settings_can_control_hap_preset")
     @RequiresBluetoothConnectPermission
     @RequiresPermission(
             allOf = {
@@ -1136,6 +1143,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @hide
      */
     @SystemApi
+    @FlaggedApi("com.android.bluetooth.flags.settings_can_control_hap_preset")
     @RequiresBluetoothConnectPermission
     @RequiresPermission(
             allOf = {
@@ -1165,6 +1173,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @hide
      */
     @SystemApi
+    @FlaggedApi("com.android.bluetooth.flags.settings_can_control_hap_preset")
     @RequiresBluetoothConnectPermission
     @RequiresPermission(
             allOf = {
