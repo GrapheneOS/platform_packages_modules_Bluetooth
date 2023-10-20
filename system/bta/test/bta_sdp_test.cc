@@ -16,7 +16,6 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <stdarg.h>
 
 #include <memory>
 #include <string>
@@ -25,7 +24,7 @@
 #include "osi/include/allocator.h"
 #include "test/common/main_handler.h"
 #include "test/fake/fake_osi.h"
-#include "test/mock/mock_stack_btm.h"
+#include "test/mock/mock_stack_btm_interface.h"
 #include "test/mock/mock_stack_gatt_api.h"
 
 void BTA_dm_on_hw_on();
