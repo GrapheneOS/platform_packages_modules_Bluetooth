@@ -25,7 +25,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_status.h"
 #include "test/fake/fake_osi.h"
-#include "test/mock/mock_stack_btm.h"
+#include "test/mock/mock_stack_btm_interface.h"
 #include "types/bluetooth/uuid.h"
 
 using bluetooth::Uuid;
