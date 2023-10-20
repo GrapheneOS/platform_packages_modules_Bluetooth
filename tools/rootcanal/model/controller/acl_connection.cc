@@ -33,7 +33,7 @@ AclConnection::AclConnection(AddressWithType address,
       type_(phy_type),
       role_(role),
       last_packet_timestamp_(std::chrono::steady_clock::now()),
-      timeout_(std::chrono::seconds(1)) {}
+      timeout_(std::chrono::seconds(3)) {}
 
 void AclConnection::Encrypt() { encrypted_ = true; }
 
