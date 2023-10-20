@@ -113,6 +113,7 @@ static_library("bta") {
     "pan/bta_pan_api.cc",
     "pan/bta_pan_ci.cc",
     "pan/bta_pan_main.cc",
+    "rfcomm/bta_rfcomm_scn.cc",
     "sdp/bta_sdp.cc",
     "sdp/bta_sdp_act.cc",
     "sdp/bta_sdp_api.cc",

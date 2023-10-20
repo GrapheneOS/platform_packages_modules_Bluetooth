@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "btm"
+#include "bta/include/bta_rfcomm_scn.h"
+
+#define LOG_TAG "bta"
 
 #include <cstdint>
-#include "stack/btm/btm_int_types.h"  // tBTM_CB
-#include "stack/include/rfcdefs.h"    // PORT_MAX_RFC_PORTS
 
-extern tBTM_CB btm_cb;
+#include "bta/jv/bta_jv_int.h"      // tBTA_JV_CB
+#include "stack/include/rfcdefs.h"  // RFCOMM_MAX_SCN
+
+extern tBTA_JV_CB bta_jv_cb;
 
 /*******************************************************************************
  *
@@ -31,34 +34,34 @@ extern tBTM_CB btm_cb;
  * Returns          Allocated SCN number or 0 if none.
  *
  ******************************************************************************/
-uint8_t BTM_AllocateSCN(void) {
-  BTM_TRACE_DEBUG("BTM_AllocateSCN");
-
+uint8_t BTA_AllocateSCN(void) {
   // SCN can be allocated in the range of [1, RFCOMM_MAX_SCN]
   // btm_scn uses indexes 0 to RFCOMM_MAX_SCN-1 to track RFC ports
-  for (uint8_t i = btm_cb.btm_available_index; i < RFCOMM_MAX_SCN; ++i) {
-    if (!btm_cb.btm_scn[i]) {
-      btm_cb.btm_scn[i] = true;
-      btm_cb.btm_available_index = (i + 1);
+  for (uint8_t i = bta_jv_cb.scn_search_index; i < RFCOMM_MAX_SCN; ++i) {
+    if (!bta_jv_cb.scn_in_use[i]) {
+      bta_jv_cb.scn_in_use[i] = true;
+      bta_jv_cb.scn_search_index = (i + 1);
+      LOG_DEBUG("Allocating scn: %u", i + 1);
       return (i + 1);  // allocated scn is index + 1
     }
   }
 
   // In order to avoid OOB, btm_available_index must be no more than
   // RFCOMM_MAX_SCN.
-  btm_cb.btm_available_index =
-      std::min(btm_cb.btm_available_index, (uint8_t)(RFCOMM_MAX_SCN));
+  bta_jv_cb.scn_search_index =
+      std::min(bta_jv_cb.scn_search_index, (uint8_t)(RFCOMM_MAX_SCN));
 
   // Start from index 1 because index 0 (scn 1) is reserved for HFP
   // If there's no empty SCN from _last_index to BTM_MAX_SCN.
-  for (uint8_t i = 1; i < btm_cb.btm_available_index; ++i) {
-    if (!btm_cb.btm_scn[i]) {
-      btm_cb.btm_scn[i] = true;
-      btm_cb.btm_available_index = (i + 1);
+  for (uint8_t i = 1; i < bta_jv_cb.scn_search_index; ++i) {
+    if (!bta_jv_cb.scn_in_use[i]) {
+      bta_jv_cb.scn_in_use[i] = true;
+      bta_jv_cb.scn_search_index = (i + 1);
+      LOG_DEBUG("Allocating scn: %u", i + 1);
       return (i + 1);  // allocated scn is index + 1
     }
   }
-
+  LOG_DEBUG("Unable to allocate an scn");
   return (0); /* No free ports */
 }
 
@@ -72,18 +75,19 @@ uint8_t BTM_AllocateSCN(void) {
  *
  ******************************************************************************/
 
-bool BTM_TryAllocateSCN(uint8_t scn) {
+bool BTA_TryAllocateSCN(uint8_t scn) {
   /* Make sure we don't exceed max scn range.
    * Stack reserves scn 1 for HFP and HSP
    */
   if ((scn > RFCOMM_MAX_SCN) || (scn == 1) || (scn == 0)) return false;
 
   /* check if this scn is available */
-  if (!btm_cb.btm_scn[scn - 1]) {
-    btm_cb.btm_scn[scn - 1] = true;
+  if (!bta_jv_cb.scn_in_use[scn - 1]) {
+    bta_jv_cb.scn_in_use[scn - 1] = true;
+    LOG_DEBUG("Allocating scn: %u", scn);
     return true;
   }
-
+  LOG_DEBUG("Unable to allocate scn %u", scn);
   return (false); /* scn was busy */
 }
 
@@ -96,15 +100,16 @@ bool BTM_TryAllocateSCN(uint8_t scn) {
  * Returns          true or false
  *
  ******************************************************************************/
-bool BTM_FreeSCN(uint8_t scn) {
-  BTM_TRACE_DEBUG("BTM_FreeSCN ");
+bool BTA_FreeSCN(uint8_t scn) {
   /* Since this isn't used by HFP, this function will only free valid SCNs
    * that aren't reserved for HFP, which is range [2, RFCOMM_MAX_SCN].
    */
   if (scn < RFCOMM_MAX_SCN && scn > 1) {
-    btm_cb.btm_scn[scn - 1] = false;
+    bta_jv_cb.scn_in_use[scn - 1] = false;
+    LOG_DEBUG("Freed SCN: %u", scn);
     return (true);
   } else {
+    LOG_WARN("Invalid SCN: %u", scn);
     return (false); /* Illegal SCN passed in */
   }
 }

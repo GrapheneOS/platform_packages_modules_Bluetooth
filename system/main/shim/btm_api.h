@@ -835,40 +835,6 @@ void BTM_VendorSpecificCommand(uint16_t opcode, uint8_t param_len,
 
 /*******************************************************************************
  *
- * Function         BTM_AllocateSCN
- *
- * Description      Look through the Server Channel Numbers for a free one to be
- *                  used with an RFCOMM connection.
- *
- * Returns          Allocated SCN number or 0 if none.
- *
- ******************************************************************************/
-uint8_t BTM_AllocateSCN(void);
-
-/*******************************************************************************
- *
- * Function         BTM_TryAllocateSCN
- *
- * Description      Try to allocate a fixed server channel
- *
- * Returns          Returns true if server channel was available
- *
- ******************************************************************************/
-bool BTM_TryAllocateSCN(uint8_t scn);
-
-/*******************************************************************************
- *
- * Function         BTM_FreeSCN
- *
- * Description      Free the specified SCN.
- *
- * Returns          true if successful, false if SCN is not in use or invalid
- *
- ******************************************************************************/
-bool BTM_FreeSCN(uint8_t scn);
-
-/*******************************************************************************
- *
  * Function         BTM_SetTraceLevel
  *
  * Description      This function sets the trace level for BTM.  If called with
