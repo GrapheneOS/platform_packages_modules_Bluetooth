@@ -121,7 +121,6 @@ source_set("stack") {
     "btm/btm_iot_config.cc",
     "btm/btm_iso.cc",
     "btm/btm_main.cc",
-    "btm/btm_scn.cc",
     "btm/btm_sco.cc",
     "btm/btm_sco_hci.cc",
     "btm/btm_sco_hfp_hal_linux.cc",

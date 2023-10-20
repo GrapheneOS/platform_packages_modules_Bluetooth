@@ -228,15 +228,15 @@ typedef struct tBTM_CB {
                                            Octet16* p_stk);
   friend void btm_ble_ltk_request_reply(const RawAddress& bda, bool use_stk,
                                         const Octet16& stk);
-  uint16_t enc_handle{0};
+  [[maybe_unused]] uint16_t enc_handle{0};
 
   friend void btm_ble_ltk_request(uint16_t handle, uint8_t rand[8],
                                   uint16_t ediv);
   BT_OCTET8 enc_rand; /* received rand value from LTK request*/
 
-  uint16_t ediv{0}; /* received ediv value from LTK request */
+  [[maybe_unused]] uint16_t ediv{0}; /* received ediv value from LTK request */
 
-  uint8_t key_size{0};
+  [[maybe_unused]] uint8_t key_size{0};
 
  public:
   tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
@@ -365,7 +365,6 @@ typedef struct tBTM_CB {
         kBtmLogHistoryBufferSize);
     CHECK(history_ != nullptr);
     history_->Push(std::string("Initialized btm history"));
-    btm_available_index = 1;
   }
 
   void Free() {
@@ -390,21 +389,6 @@ typedef struct tBTM_CB {
     alarm_free(execution_wait_timer);
     execution_wait_timer = nullptr;
   }
-
- private:
-  friend uint8_t BTM_AllocateSCN(void);
-  friend bool BTM_TryAllocateSCN(uint8_t scn);
-  friend bool BTM_FreeSCN(uint8_t scn);
-  uint8_t btm_scn[RFCOMM_MAX_SCN];
-  uint8_t btm_available_index;
-
-  // give access to private method for test:
-  friend class BtmAllocateSCNTest;
-  FRIEND_TEST(BtmAllocateSCNTest, can_allocate_all_scns);
-  FRIEND_TEST(BtmAllocateSCNTest, only_last_scn_available);
-  FRIEND_TEST(BtmAllocateSCNTest, scn_available_after_available_index);
-  FRIEND_TEST(BtmAllocateSCNTest, scn_available_before_available_index);
-  FRIEND_TEST(BtmAllocateSCNTest, no_scn_available);
 } tBTM_CB;
 
 /* security action for L2CAP COC channels */
