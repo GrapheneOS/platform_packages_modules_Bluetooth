@@ -36,12 +36,11 @@
 #include "test/mock/mock_osi_alarm.h"
 #include "test/mock/mock_osi_allocator.h"
 #include "test/mock/mock_stack_acl.h"
-#include "test/mock/mock_stack_btm.h"
 #include "test/mock/mock_stack_btm_ble.h"
+#include "test/mock/mock_stack_btm_interface.h"
 #include "types/ble_address_with_type.h"
 
 using namespace std::chrono_literals;
-using ::testing::ElementsAre;
 
 namespace base {
 class MessageLoop;
@@ -97,7 +96,6 @@ class BtaDmTest : public testing::Test {
     bluetooth::legacy::testing::bta_dm_deinit_cb();
     post_on_bt_main([]() { LOG_INFO("Main thread shutting down"); });
     main_thread_shut_down();
-    btm_client_interface = {};
   }
 
   std::unique_ptr<test::fake::FakeOsi> fake_osi_;
