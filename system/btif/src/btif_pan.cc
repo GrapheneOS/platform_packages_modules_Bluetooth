@@ -66,7 +66,7 @@
   do {                                                                   \
     if (!(s))                                                            \
       BTIF_TRACE_ERROR("btif_pan: ## %s assert %s failed at line:%d ##", \
-                       __func__, #s, __LINE__)                           \
+                       __func__, #s, __LINE__);                          \
   } while (0)
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
