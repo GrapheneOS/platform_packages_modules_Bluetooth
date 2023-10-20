@@ -130,6 +130,13 @@ filegroup {
 }
 
 filegroup {
+    name: "TestMockBtaScn",
+    srcs: [
+        "mock/mock_bta_scn.cc",
+    ],
+}
+
+filegroup {
     name: "TestMockBtaSdp",
     srcs: [
         "mock/mock_bta_sdp_*.cc",
