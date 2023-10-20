@@ -56,12 +56,13 @@
 #include "btif_sock.h"
 #include "btif_sock_util.h"
 #include "btif_util.h"
+#include "osi/include/log.h"
 
 #define asrt(s)                                                              \
   do {                                                                       \
     if (!(s))                                                                \
       APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##", __func__, #s, \
-                       __LINE__)                                             \
+                       __LINE__);                                            \
   } while (0)
 
 #define MAX_THREAD 8

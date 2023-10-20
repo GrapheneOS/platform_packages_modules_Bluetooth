@@ -1021,7 +1021,7 @@ void bta_av_rc_msg(tBTA_AV_CB* p_cb, tBTA_AV_DATA* p_data) {
             bta_av_op_supported(p_data->rc_msg.msg.pass.op_id, is_inquiry);
       }
 
-      APPL_TRACE_DEBUG("%s: ctype %d", __func__, p_data->rc_msg.msg.hdr.ctype)
+      APPL_TRACE_DEBUG("%s: ctype %d", __func__, p_data->rc_msg.msg.hdr.ctype);
 
       /* send response */
       if (p_data->rc_msg.msg.hdr.ctype != AVRC_RSP_INTERIM)

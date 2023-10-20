@@ -23,6 +23,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "avctp"
+
 #include <base/logging.h>
 #include <string.h>
 
@@ -31,6 +33,7 @@
 #include "bt_target.h"
 #include "device/include/device_iot_config.h"
 #include "osi/include/allocator.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "types/raw_address.h"
 

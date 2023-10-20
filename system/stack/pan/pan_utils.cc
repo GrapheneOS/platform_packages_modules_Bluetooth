@@ -23,10 +23,13 @@
  *
  *****************************************************************************/
 
+#define LOG_TAG "pan"
+
 #include <base/logging.h>
 
 #include <cstdint>
 
+#include "osi/include/log.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/sdp_api.h"

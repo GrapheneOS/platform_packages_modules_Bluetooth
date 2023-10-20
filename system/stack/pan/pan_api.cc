@@ -23,6 +23,8 @@
  *
  *****************************************************************************/
 
+#define LOG_TAG "pan"
+
 #include "stack/include/pan_api.h"
 
 #include <base/logging.h>
@@ -34,6 +36,7 @@
 #include "bta/sys/bta_sys.h"
 #include "main/shim/dumpsys.h"
 #include "osi/include/allocator.h"
+#include "osi/include/log.h"
 #include "stack/include/bnep_api.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_uuid16.h"
