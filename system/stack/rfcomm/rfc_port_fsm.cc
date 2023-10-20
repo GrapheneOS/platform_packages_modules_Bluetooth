@@ -29,15 +29,14 @@
 #include <cstring>
 #include <set>
 
-#include "bt_target.h"
 #include "gd/hal/snoop_logger.h"
-#include "main/shim/shim.h"
+#include "main/shim/entry.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/sdpdefs.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/l2cap/l2c_int.h"
 #include "stack/rfcomm/port_int.h"
 #include "stack/rfcomm/rfc_int.h"

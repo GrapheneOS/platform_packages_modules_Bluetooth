@@ -21,6 +21,7 @@
 #include <cstdint>
 
 #include "stack/include/sdp_callback.h"
+#include "stack/include/sdp_device_id.h"
 #include "stack/sdp/sdp_discovery_db.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
