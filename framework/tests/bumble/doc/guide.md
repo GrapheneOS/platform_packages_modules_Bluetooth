@@ -55,6 +55,13 @@ atest BumbleBluetoothTests:<package_name>.<test_file_name>#<test_name>
 atest BumbleBluetoothTests:android.bluetooth.DckTest#testDiscoverDkGattService
 ```
 
+Note: The process might not shut down correctly when interrupted with a SIGINT (Ctrl + C) command.
+This can leave behind a ghost process. To locate and terminate it, simply follow these steps:
+```shell
+ps aux | grep python3 # Identify the ghost process and its process id
+kill <pid>
+```
+
 ## Crafting the test: Step by Step
 
 ### 0. Create the test file
