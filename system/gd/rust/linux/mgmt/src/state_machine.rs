@@ -31,6 +31,11 @@ pub const RESET_ON_RESTART_COUNT: i32 = 2;
 /// the socket.
 pub const INDEX_REMOVED_DEBOUNCE_TIME: Duration = Duration::from_millis(150);
 
+/// Period to check the PID existence. Ideally adapter should clean up the PID
+/// file by itself and uses it as the stopped signal. This is a backup mechanism
+/// to avoid dead process + PID not cleaned up from happening.
+pub const PID_RUNNING_CHECK_PERIOD: Duration = Duration::from_secs(60);
+
 #[derive(Debug, PartialEq, Copy, Clone)]
 #[repr(u32)]
 pub enum ProcessState {
@@ -742,7 +747,10 @@ pub async fn mainloop(
             Message::PidChange(mask, filename) => match (mask, &filename) {
                 (inotify::EventMask::CREATE, Some(fname)) => {
                     let path = std::path::Path::new(PID_DIR).join(&fname);
-                    match (get_hci_index_from_pid_path(&fname), tokio::fs::read(path).await.ok()) {
+                    match (
+                        get_hci_index_from_pid_path(&fname),
+                        tokio::fs::read(path.clone()).await.ok(),
+                    ) {
                         (Some(hci), Some(s)) => {
                             let pid = String::from_utf8(s)
                                 .expect("invalid pid file")
@@ -759,6 +767,45 @@ pub async fn mainloop(
                                 )
                                 .await
                                 .unwrap();
+                            let handle = tokio::spawn(async move {
+                                debug!("[hci{}]: Spawned process monitor", hci);
+                                loop {
+                                    tokio::time::sleep(PID_RUNNING_CHECK_PERIOD).await;
+                                    // Check if process exists by sending kill -0.
+                                    match nix::sys::signal::kill(Pid::from_raw(pid), None) {
+                                        Err(nix::errno::Errno::ESRCH) => {
+                                            warn!("[hci{}]: Process died; Removing PID file", hci);
+                                            if let Err(e) = std::fs::remove_file(path) {
+                                                warn!("[hci{}]: Failed to remove: {}", hci, e);
+                                            }
+                                            break;
+                                        }
+                                        Err(e) => {
+                                            // Other errno should rarely happen:
+                                            //   EINVAL: The value of the sig argument is an invalid
+                                            //           or unsupported signal number.
+                                            //   EPERM: The process does not have permission to send
+                                            //          the signal to any receiving process.
+                                            error!("[hci{}]: Failed to send signal: {}", hci, e);
+                                            break;
+                                        }
+                                        _ => {}
+                                    }
+                                }
+                            });
+                            match context
+                                .state_machine
+                                .process_monitor
+                                .lock()
+                                .unwrap()
+                                .insert(fname.clone(), handle)
+                            {
+                                Some(handle) => {
+                                    warn!("[hci{}]: Aborting old handler", hci);
+                                    handle.abort();
+                                }
+                                None => {}
+                            }
                         }
                         _ => debug!("Invalid pid path: {}", fname),
                     }
@@ -776,6 +823,12 @@ pub async fn mainloop(
                             )
                             .await
                             .unwrap();
+                        match context.state_machine.process_monitor.lock().unwrap().remove(fname) {
+                            Some(handle) => handle.abort(),
+                            None => {
+                                warn!("[hci{}]: Process exited but process monitor not found", hci)
+                            }
+                        }
                     }
                 }
                 _ => debug!("Ignored event {:?} - {:?}", mask, &filename),
@@ -1003,6 +1056,9 @@ struct StateMachineInternal {
     /// we depend on ordering for |get_lowest_available_adapter|.
     state: Arc<Mutex<BTreeMap<VirtualHciIndex, AdapterState>>>,
 
+    /// Trace the process existence for each pid file and clean it up if needed.
+    process_monitor: Arc<Mutex<HashMap<String, tokio::task::JoinHandle<()>>>>,
+
     /// Process manager implementation.
     process_manager: Box<dyn ProcessManager + Send>,
 }
@@ -1040,6 +1096,7 @@ impl StateMachineInternal {
             default_adapter: Arc::new(AtomicI32::new(desired_adapter.to_i32())),
             desired_adapter,
             state: Arc::new(Mutex::new(BTreeMap::new())),
+            process_monitor: Arc::new(Mutex::new(HashMap::new())),
             process_manager: process_manager,
         }
     }
