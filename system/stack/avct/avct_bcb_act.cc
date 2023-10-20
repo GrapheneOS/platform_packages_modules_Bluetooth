@@ -539,6 +539,8 @@ void avct_bcb_msg_ind(tAVCT_BCB* p_bcb, tAVCT_LCB_EVT* p_data) {
 
   /* parse header byte */
   AVCT_PARSE_HDR(p, label, type, cr_ipid);
+  /* parse PID */
+  BE_STREAM_TO_UINT16(pid, p);
 
   /* check for invalid cr_ipid */
   if (cr_ipid == AVCT_CR_IPID_INVALID) {
@@ -556,8 +558,7 @@ void avct_bcb_msg_ind(tAVCT_BCB* p_bcb, tAVCT_LCB_EVT* p_data) {
   } else
 #endif
   {
-    /* parse and lookup PID */
-    BE_STREAM_TO_UINT16(pid, p);
+    /* lookup PID */
     p_ccb = avct_lcb_has_pid(p_lcb, pid);
     if (p_ccb) {
       /* PID found; send msg up, adjust bt hdr and call msg callback */
