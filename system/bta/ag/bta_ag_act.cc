@@ -40,6 +40,7 @@
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/l2c_api.h"
 #include "stack/include/port_api.h"
+#include "stack/include/btm_sec_api_types.h"
 #include "stack/include/sdp_api.h"
 #include "types/raw_address.h"
 
