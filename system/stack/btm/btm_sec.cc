@@ -4157,7 +4157,7 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
 
     BTM_TRACE_EVENT("rmt_io_caps:%d, sec_flags:x%x, dev_class[1]:x%02x",
                     p_dev_rec->rmt_io_caps, p_dev_rec->sec_flags,
-                    p_dev_rec->dev_class[1])
+                    p_dev_rec->dev_class[1]);
     return;
   }
 

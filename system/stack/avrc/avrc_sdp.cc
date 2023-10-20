@@ -21,10 +21,13 @@
  *  AVRCP SDP related functions
  *
  ******************************************************************************/
+#define LOG_TAG "avrcp"
+
 #include <string.h>
 
 #include "avrc_api.h"
 #include "avrc_int.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/sdp_api.h"

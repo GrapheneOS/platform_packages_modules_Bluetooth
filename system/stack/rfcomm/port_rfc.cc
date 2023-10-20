@@ -23,6 +23,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "rfcomm"
+
 #include <base/functional/callback.h>
 #include <base/logging.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
@@ -36,6 +38,7 @@
 #include "main/shim/entry.h"
 #include "osi/include/allocator.h"
 #include "osi/include/mutex.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_uuid16.h"
