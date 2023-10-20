@@ -33,8 +33,9 @@
 #include "btif/include/btif_storage.h"
 #include "osi/include/compat.h"  // strlcpy
 #include "osi/include/osi.h"     // UNUSED_ATTR
-#include "stack/include/btm_ble_api.h"
-#include "stack/include/btm_ble_api_types.h"
+#include "stack/include/btm_ble_sec_api.h"
+#include "stack/include/btm_sec_api.h"
+#include "stack/include/btm_ble_sec_api_types.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack/include/l2c_api.h"
 #include "stack/include/security_client_callbacks.h"

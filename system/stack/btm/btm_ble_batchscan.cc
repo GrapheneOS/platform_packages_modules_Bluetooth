@@ -26,6 +26,7 @@
 #include "btm_ble_api.h"
 #include "device/include/controller.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/include/btm_ble_sec_api.h"
 #include "stack/include/btu_hcif.h"
 #include "stack/include/main_thread.h"
 

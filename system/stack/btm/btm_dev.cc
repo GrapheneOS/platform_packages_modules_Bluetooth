@@ -30,7 +30,9 @@
 #include <string.h>
 
 #include "btm_api.h"
+#include "btm_sec_api.h"
 #include "btm_ble_int.h"
+#include "btm_ble_sec_api.h"
 #include "device/include/controller.h"
 #include "l2c_api.h"
 #include "main/shim/btm_api.h"
