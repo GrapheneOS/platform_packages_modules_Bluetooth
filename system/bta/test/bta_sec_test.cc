@@ -19,11 +19,9 @@
 #include <gtest/gtest.h>
 #include <sys/socket.h>
 
-#include "bta/dm/bta_dm_int.h"
 #include "bta/dm/bta_dm_sec_int.h"
-#include "bta/include/bta_api.h"
-#include "test/mock/mock_stack_btm.h"
 #include "test/mock/mock_stack_btm_inq.h"
+#include "test/mock/mock_stack_btm_interface.h"
 #include "types/raw_address.h"
 
 using ::testing::ElementsAre;
