@@ -12,3 +12,4 @@ compile_commands.json
 .vscode/
 *.profraw
 *.iml
+**/.idea
