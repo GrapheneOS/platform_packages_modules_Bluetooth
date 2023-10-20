@@ -70,10 +70,10 @@ void LogMetricsBondCreateAttempt(RawAddress* addr, uint32_t device_type) {
   LOG_DEBUG(
       "PairingStateChanged: %s, %d, %s, %d, %d",
       boot_id.c_str(),
-      boot_time,
+      (int)boot_time,
       addr_string.c_str(),
-      connection_type,
-      PairingState::PAIR_STARTING);
+      (int)connection_type,
+      (int)PairingState::PAIR_STARTING);
 
   ::metrics::structured::events::bluetooth::BluetoothPairingStateChanged()
       .SetBootId(boot_id)
@@ -108,10 +108,10 @@ void LogMetricsBondStateChanged(
   LOG_DEBUG(
       "PairingStateChanged: %s, %d, %s, %d, %d",
       boot_id.c_str(),
-      boot_time,
+      (int)boot_time,
       addr_string.c_str(),
-      connection_type,
-      pairing_state);
+      (int)connection_type,
+      (int)pairing_state);
 
   ::metrics::structured::events::bluetooth::BluetoothPairingStateChanged()
       .SetBootId(boot_id)
@@ -148,15 +148,15 @@ void LogMetricsDeviceInfoReport(
   LOG_DEBUG(
       "DeviceInfoReport %s %d %s %d %d %d %d %d %d %d",
       boot_id.c_str(),
-      boot_time,
+      (int)boot_time,
       addr_string.c_str(),
-      device_type,
-      major_class,
-      category,
-      vendor_id,
-      vendor_id_src,
-      product_id,
-      version);
+      (int)device_type,
+      (int)major_class,
+      (int)category,
+      (int)vendor_id,
+      (int)vendor_id_src,
+      (int)product_id,
+      (int)version);
 
   if (!IsDeviceInfoInAllowlist(vendor_id_src, vendor_id, product_id)) {
     vendor_id_src = 0;
@@ -196,11 +196,11 @@ void LogMetricsProfileConnectionStateChanged(RawAddress* addr, uint32_t profile,
   LOG_DEBUG(
       "ProfileConnectionStateChanged: %s, %d, %s, %d, %d, %d",
       boot_id.c_str(),
-      boot_time,
+      (int)boot_time,
       addr_string.c_str(),
-      event.type,
-      event.profile,
-      event.state);
+      (int)event.type,
+      (int)event.profile,
+      (int)event.state);
 
   ::metrics::structured::events::bluetooth::BluetoothProfileConnectionStateChanged()
       .SetBootId(boot_id)
@@ -245,13 +245,13 @@ void LogMetricsAclConnectionStateChanged(
   LOG_DEBUG(
       "AclConnectionStateChanged: %s, %d, %s, %d, %d, %d, %d, %d",
       boot_id.c_str(),
-      event.start_time,
+      (int)event.start_time,
       addr_string.c_str(),
-      transport,
-      event.direction,
-      event.initiator,
-      event.state,
-      event.start_status);
+      (int)transport,
+      (int)event.direction,
+      (int)event.initiator,
+      (int)event.state,
+      (int)event.start_status);
 
   ::metrics::structured::events::bluetooth::BluetoothAclConnectionStateChanged()
       .SetBootId(boot_id)
@@ -268,13 +268,13 @@ void LogMetricsAclConnectionStateChanged(
   LOG_DEBUG(
       "AclConnectionStateChanged: %s, %d, %s, %d, %d, %d, %d, %d",
       boot_id.c_str(),
-      boot_time,
+      (int)boot_time,
       addr_string.c_str(),
-      transport,
-      event.direction,
-      event.initiator,
-      event.state,
-      event.status);
+      (int)transport,
+      (int)event.direction,
+      (int)event.initiator,
+      (int)event.state,
+      (int)event.status);
 
   ::metrics::structured::events::bluetooth::BluetoothAclConnectionStateChanged()
       .SetBootId(boot_id)
