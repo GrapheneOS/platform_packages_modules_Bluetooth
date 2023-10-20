@@ -30,27 +30,24 @@
 #include <base/functional/bind.h>
 #include <base/logging.h>
 #include <base/threading/thread.h>
-#include <errno.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_gatt.h>
 
 #include <string>
 
+#include "bta/include/bta_sec_api.h"
 #include "bta_api.h"
 #include "bta_gatt_api.h"
 #include "btif_common.h"
 #include "btif_config.h"
-#include "btif_dm.h"
 #include "btif_gatt.h"
 #include "btif_gatt_util.h"
-#include "btif_storage.h"
-#include "btif_util.h"
 #include "device/include/controller.h"
-#include "osi/include/allocator.h"
-#include "osi/include/log.h"
+#include "os/log.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/acl_api_types.h"
 #include "stack/include/main_thread.h"
+#include "types/ble_address_with_type.h"
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
