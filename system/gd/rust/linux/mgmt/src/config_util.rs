@@ -147,10 +147,6 @@ pub fn set_default_adapter(adapter: i32) -> bool {
     }
 }
 
-pub fn list_hci_devices() -> Vec<i32> {
-    hci_devices_string_to_int(list_hci_devices_string())
-}
-
 fn list_hci_devices_string() -> Vec<String> {
     match std::fs::read_dir(HCI_DEVICES_DIR) {
         Ok(entries) => entries
@@ -175,13 +171,6 @@ pub fn get_devpath_for_hci(hci: i32) -> Option<String> {
             None
         }
     }
-}
-
-fn hci_devices_string_to_int(devices: Vec<String>) -> Vec<i32> {
-    devices
-        .into_iter()
-        .filter_map(|e| if e.starts_with("hci") { e[3..].parse::<i32>().ok() } else { None })
-        .collect()
 }
 
 pub fn list_pid_files(pid_dir: &str) -> Vec<String> {
@@ -325,24 +314,6 @@ mod tests {
         assert_eq!(
             is_hci_n_enabled_internal_wrapper("{\"hci0\":\n{\"enabled\": true}}".to_string(), 1),
             true
-        );
-    }
-
-    #[test]
-    fn test_hci_devices_string_to_int_none() {
-        assert_eq!(hci_devices_string_to_int(vec!["somethingelse".to_string()]), Vec::<i32>::new());
-    }
-
-    #[test]
-    fn test_hci_devices_string_to_int_one() {
-        assert_eq!(hci_devices_string_to_int(vec!["hci0".to_string()]), vec![0]);
-    }
-
-    #[test]
-    fn test_hci_devices_string_to_int_two() {
-        assert_eq!(
-            hci_devices_string_to_int(vec!["hci0".to_string(), "hci1".to_string()]),
-            vec![0, 1]
         );
     }
 }

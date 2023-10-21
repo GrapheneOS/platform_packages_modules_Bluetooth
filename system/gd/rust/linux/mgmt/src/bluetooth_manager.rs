@@ -156,15 +156,15 @@ impl IBluetoothManager for BluetoothManager {
                 warn!("Failed to stop bluetoothd: {}", e);
             }
             migrate::migrate_bluez_devices();
-            for hci in config_util::list_hci_devices() {
-                if config_util::is_hci_n_enabled(hci) {
-                    let _ = self.proxy.start_bluetooth(VirtualHciIndex(hci));
+            for hci in self.proxy.get_valid_adapters().iter().map(|a| a.virt_hci) {
+                if config_util::is_hci_n_enabled(hci.to_i32()) {
+                    self.proxy.start_bluetooth(hci);
                 }
             }
         } else if prev != enabled {
-            for hci in config_util::list_hci_devices() {
-                if config_util::is_hci_n_enabled(hci) {
-                    let _ = self.proxy.stop_bluetooth(VirtualHciIndex(hci));
+            for hci in self.proxy.get_valid_adapters().iter().map(|a| a.virt_hci) {
+                if config_util::is_hci_n_enabled(hci.to_i32()) {
+                    self.proxy.stop_bluetooth(hci);
                 }
             }
             migrate::migrate_floss_devices();
