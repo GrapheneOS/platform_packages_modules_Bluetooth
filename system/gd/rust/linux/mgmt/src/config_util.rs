@@ -78,7 +78,7 @@ pub fn is_hci_n_enabled(hci: VirtualHciIndex) -> bool {
 fn is_hci_n_enabled_internal(config: String, hci: VirtualHciIndex) -> Option<bool> {
     serde_json::from_str::<Value>(config.as_str())
         .ok()?
-        .get(format!("hci{}", hci))?
+        .get(format!("hci{}", hci.to_i32()))?
         .as_object()?
         .get("enabled")?
         .as_bool()
@@ -111,7 +111,7 @@ fn modify_hci_n_enabled_internal(
     hci: VirtualHciIndex,
     enabled: bool,
 ) -> Option<String> {
-    let hci_str = format!("hci{}", hci);
+    let hci_str = format!("hci{}", hci.to_i32());
     let mut o = serde_json::from_str::<Value>(config.as_str()).ok()?;
     match o.get_mut(hci_str.clone()) {
         Some(section) => {
@@ -164,16 +164,17 @@ fn list_hci_devices_string() -> Vec<String> {
 
 /// Check whether a certain hci device exists in sysfs.
 pub fn check_hci_device_exists(hci: RealHciIndex) -> bool {
-    Path::new(format!("{}/hci{}", HCI_DEVICES_DIR, hci).as_str()).exists()
+    Path::new(format!("{}/hci{}", HCI_DEVICES_DIR, hci.to_i32()).as_str()).exists()
 }
 
 /// Get the devpath for a given hci index. This gives a stable path that can be
 /// used to identify a device even as the hci index fluctuates.
 pub fn get_devpath_for_hci(hci: RealHciIndex) -> Option<String> {
-    match std::fs::canonicalize(format!("{}/hci{}/device", HCI_DEVICES_DIR, hci).as_str()) {
+    match std::fs::canonicalize(format!("{}/hci{}/device", HCI_DEVICES_DIR, hci.to_i32()).as_str())
+    {
         Ok(p) => Some(p.into_os_string().into_string().ok()?),
         Err(e) => {
-            log::debug!("Failed to get devpath for hci{} with error: {}", hci, e);
+            log::debug!("Failed to get devpath for {} with error: {}", hci, e);
             None
         }
     }
@@ -190,7 +191,7 @@ pub fn list_pid_files(pid_dir: &str) -> Vec<String> {
 
 /// Calls the reset sysfs entry for an hci device. Returns True if the write succeeds.
 pub fn reset_hci_device(hci: RealHciIndex) -> bool {
-    let path = format!("/sys/class/bluetooth/hci{}/reset", hci);
+    let path = format!("/sys/class/bluetooth/hci{}/reset", hci.to_i32());
     std::fs::write(path, "1").is_ok()
 }
 
