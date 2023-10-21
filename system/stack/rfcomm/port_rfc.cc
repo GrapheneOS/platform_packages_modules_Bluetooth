@@ -23,6 +23,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "rfcomm"
+
 #include <base/functional/callback.h>
 #include <base/logging.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
@@ -33,12 +35,13 @@
 #include "bt_target.h"
 #include "bt_trace.h"
 #include "gd/hal/snoop_logger.h"
-#include "main/shim/shim.h"
+#include "main/shim/entry.h"
 #include "osi/include/allocator.h"
 #include "osi/include/mutex.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
-#include "stack/include/sdpdefs.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/stack_metrics_logging.h"
 #include "stack/l2cap/l2c_int.h"
 #include "stack/rfcomm/port_int.h"

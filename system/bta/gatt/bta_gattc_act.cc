@@ -29,20 +29,17 @@
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
 
-#include "bt_target.h"  // Must be first to define build configuration
 #include "bta/gatt/bta_gattc_int.h"
-#include "bta/hh/bta_hh_int.h"
+#include "bta/include/bta_api.h"
 #include "btif/include/btif_debug_conn.h"
-#include "btif/include/core_callbacks.h"
-#include "btif/include/stack_manager.h"
 #include "device/include/controller.h"
-#include "device/include/interop.h"
-#include "main/shim/dumpsys.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/btm_ble_api_types.h"
+#include "stack/include/btm_sec_api.h"
 #include "stack/include/l2c_api.h"
 #include "stack/include/main_thread.h"
 #include "types/bluetooth/uuid.h"

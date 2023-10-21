@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,9 @@
  * limitations under the License.
  */
 
-/*
- * Generated mock file from original source file
- *   Functions generated:3
- */
+#pragma once
 
 #include <cstdint>
 
-#include "stack/btm/btm_int_types.h"
-#include "test/common/mock_functions.h"
-
-bool BTM_FreeSCN(uint8_t scn) {
-  inc_func_call_count(__func__);
-  return false;
-}
-bool BTM_TryAllocateSCN(uint8_t scn) {
-  inc_func_call_count(__func__);
-  return false;
-}
-uint8_t BTM_AllocateSCN(void) {
-  inc_func_call_count(__func__);
-  return 0;
-}
+#define LAP_LEN 3
+typedef uint8_t LAP[LAP_LEN]; /* IAC as passed to Inquiry (LAP) */

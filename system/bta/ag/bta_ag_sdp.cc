@@ -30,17 +30,17 @@
 #include "bt_target.h"  // Legacy stack config
 #include "bt_trace.h"   // Legacy trace logging
 #include "bta/ag/bta_ag_int.h"
+#include "bta/include/bta_rfcomm_scn.h"
 #include "btif/include/btif_config.h"
-#include "common/init_flags.h"
 #include "device/include/interop.h"
 #include "device/include/interop_config.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_sco_hfp_hal.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/main_thread.h"
-#include "stack/include/port_api.h"
 #include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
 
@@ -258,7 +258,7 @@ void bta_ag_create_records(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
       if (bta_ag_cb.profile[i].sdp_handle == 0) {
         bta_ag_cb.profile[i].sdp_handle =
             get_legacy_stack_sdp_api()->handle.SDP_CreateRecord();
-        bta_ag_cb.profile[i].scn = BTM_AllocateSCN();
+        bta_ag_cb.profile[i].scn = BTA_AllocateSCN();
         bta_ag_add_record(bta_ag_uuid[i], data.api_register.p_name[i],
                           bta_ag_cb.profile[i].scn, data.api_register.features,
                           bta_ag_cb.profile[i].sdp_handle);
@@ -308,7 +308,7 @@ void bta_ag_del_records(tBTA_AG_SCB* p_scb) {
             bta_ag_cb.profile[i].sdp_handle);
         bta_ag_cb.profile[i].sdp_handle = 0;
       }
-      BTM_FreeSCN(bta_ag_cb.profile[i].scn);
+      BTA_FreeSCN(bta_ag_cb.profile[i].scn);
       bta_sys_remove_uuid(bta_ag_uuid[i]);
     }
   }

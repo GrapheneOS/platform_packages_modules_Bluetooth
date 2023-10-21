@@ -157,40 +157,6 @@ void BTM_VendorSpecificCommand(uint16_t opcode, uint8_t param_len,
 
 /*******************************************************************************
  *
- * Function         BTM_AllocateSCN
- *
- * Description      Look through the Server Channel Numbers for a free one to be
- *                  used with an RFCOMM connection.
- *
- * Returns          Allocated SCN number or 0 if none.
- *
- ******************************************************************************/
-uint8_t BTM_AllocateSCN(void);
-
-/*******************************************************************************
- *
- * Function         BTM_TryAllocateSCN
- *
- * Description      Try to allocate a fixed server channel
- *
- * Returns          Returns true if server channel was available
- *
- ******************************************************************************/
-bool BTM_TryAllocateSCN(uint8_t scn);
-
-/*******************************************************************************
- *
- * Function         BTM_FreeSCN
- *
- * Description      Free the specified SCN.
- *
- * Returns          true if successful, false if SCN is not in use or invalid
- *
- ******************************************************************************/
-bool BTM_FreeSCN(uint8_t scn);
-
-/*******************************************************************************
- *
  * Function         BTM_SetTraceLevel
  *
  * Description      This function sets the trace level for BTM.  If called with
@@ -633,60 +599,6 @@ uint8_t BTM_GetNumScoLinks(void);
  ******************************************************************************/
 tBTM_SCO_DEBUG_DUMP BTM_GetScoDebugDump(void);
 
-/*****************************************************************************
- *  SECURITY MANAGEMENT FUNCTIONS
- ****************************************************************************/
-
-/*******************************************************************************
- *
- * Function         BTM_SecAddDevice
- *
- * Description      Add/modify device.  This function will be normally called
- *                  during host startup to restore all required information
- *                  stored in the NVRAM.
- *                  dev_class, bd_name, link_key, and features are NULL if
- *                  unknown
- *
- * Returns          true if added OK, else false
- *
- ******************************************************************************/
-bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
-                      const BD_NAME& bd_name, uint8_t* features,
-                      LinkKey* link_key, uint8_t key_type, uint8_t pin_length);
-
-/** Free resources associated with the device associated with |bd_addr| address.
- *
- * *** WARNING ***
- * tBTM_SEC_DEV_REC associated with bd_addr becomes invalid after this function
- * is called, also any of it's fields. i.e. if you use p_dev_rec->bd_addr, it is
- * no longer valid!
- * *** WARNING ***
- *
- * Returns true if removed OK, false if not found or ACL link is active.
- */
-bool BTM_SecDeleteDevice(const RawAddress& bd_addr);
-
-/*******************************************************************************
- *
- * Function         BTM_SecClearSecurityFlags
- *
- * Description      Reset the security flags (mark as not-paired) for a given
- *                  remove device.
- *
- ******************************************************************************/
-void BTM_SecClearSecurityFlags(const RawAddress& bd_addr);
-
-/*******************************************************************************
- *
- * Function         btm_sec_is_a_bonded_dev
- *
- * Description       Is the specified device is a bonded device
- *
- * Returns          true - dev is bonded
- *
- ******************************************************************************/
-bool btm_sec_is_a_bonded_dev(const RawAddress& bda);
-
 /*******************************************************************************
  *
  * Function         BTM_GetPeerDeviceTypeFromFeatures
@@ -811,22 +723,6 @@ uint8_t BTM_GetPeerSCA(const RawAddress& remote_bda, tBT_TRANSPORT transport);
 
 /*******************************************************************************
  *
- * Function         BTM_DeleteStoredLinkKey
- *
- * Description      This function is called to delete link key for the specified
- *                  device addresses from the NVRAM storage attached to the
- *                  Bluetooth controller.
- *
- * Parameters:      bd_addr      - Addresses of the devices
- *                  p_cb         - Call back function to be called to return
- *                                 the results
- *
- ******************************************************************************/
-tBTM_STATUS BTM_DeleteStoredLinkKey(const RawAddress* bd_addr,
-                                    tBTM_CMPL_CB* p_cb);
-
-/*******************************************************************************
- *
  * Function         BTM_WriteEIR
  *
  * Description      This function is called to write EIR data to controller.
@@ -944,20 +840,6 @@ uint8_t BTM_GetEirUuidList(const uint8_t* p_eir, size_t eir_len,
  ******************************************************************************/
 tBTM_CONTRL_STATE BTM_PM_ReadControllerState(void);
 
-/*******************************************************************************
- *
- * Function         BTM_BleSirkConfirmDeviceReply
- *
- * Description      This procedure confirms requested to validate set device.
- *
- * Parameter        bd_addr     - BD address of the peer
- *                  res         - confirmation result BTM_SUCCESS if success
- *
- * Returns          void
- *
- ******************************************************************************/
-void BTM_BleSirkConfirmDeviceReply(const RawAddress& bd_addr, uint8_t res);
-
 /**
  * Send remote name request, either to legacy HCI, or to GD shim Name module
  */
@@ -972,8 +854,6 @@ uint16_t BTM_GetMaxPacketSize(const RawAddress& addr);
 
 tBTM_STATUS BTM_BT_Quality_Report_VSE_Register(
     bool is_register, tBTM_BT_QUALITY_REPORT_RECEIVER* p_bqr_report_receiver);
-
-uint8_t btm_ble_read_sec_key_size(const RawAddress& bd_addr);
 
 typedef void(BTM_CONSOLIDATION_CB)(const RawAddress& identity_addr,
                                    const RawAddress& rpa);

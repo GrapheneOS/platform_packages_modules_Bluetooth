@@ -20,7 +20,11 @@
 
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_ble_api_types.h"
+#include "stack/include/btm_ble_sec_api.h"
+#include "stack/include/btm_ble_sec_api_types.h"
 #include "stack/include/btm_client_interface.h"
+#include "stack/include/btm_sec_api.h"
+#include "stack/include/btm_sec_api_types.h"
 #include "types/raw_address.h"
 
 namespace {

@@ -42,7 +42,7 @@ import android.util.Log;
 import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
-import com.android.bluetooth.btservice.PhonePolicy;
+import com.android.bluetooth.flags.FeatureFlags;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -67,7 +67,8 @@ import java.util.stream.Collectors;
 public class DatabaseManager {
     private static final String TAG = "BluetoothDatabase";
 
-    private AdapterService mAdapterService = null;
+    private final AdapterService mAdapterService;
+    private final FeatureFlags mFeatureFlags;
     private HandlerThread mHandlerThread = null;
     private Handler mHandler = null;
     private final Object mDatabaseLock = new Object();
@@ -112,11 +113,10 @@ public class DatabaseManager {
     private static final String
             LEGACY_HEARING_AID_PRIORITY_PREFIX = "bluetooth_hearing_aid_priority_";
 
-    /**
-     * Constructor of the DatabaseManager
-     */
-    public DatabaseManager(AdapterService service) {
-        mAdapterService = service;
+    /** Constructor of the DatabaseManager */
+    public DatabaseManager(AdapterService service, FeatureFlags featureFlags) {
+        mAdapterService = Objects.requireNonNull(service, "Adapter service cannot be null");
+        mFeatureFlags = Objects.requireNonNull(featureFlags, "Feature Flags cannot be null");
         mMetadataChangedLog = EvictingQueue.create(METADATA_CHANGED_LOG_MAX_SIZE);
     }
 
@@ -648,7 +648,7 @@ public class DatabaseManager {
             if (isA2dpDevice) {
                 resetActiveA2dpDevice();
             }
-            if (isHfpDevice && !PhonePolicy.sIsHfpMultiAutoConnectEnabled) {
+            if (isHfpDevice && !mFeatureFlags.autoConnectOnMultipleHfpWhenNoA2dpDevice()) {
                 resetActiveHfpDevice();
             }
 
@@ -1034,10 +1034,6 @@ public class DatabaseManager {
      */
     public void start(MetadataDatabase database) {
         Log.d(TAG, "start()");
-        if (mAdapterService == null) {
-            Log.e(TAG, "stat failed, mAdapterService is null.");
-            return;
-        }
 
         if (database == null) {
             Log.e(TAG, "stat failed, database is null.");

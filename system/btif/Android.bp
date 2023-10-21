@@ -260,6 +260,9 @@ cc_test {
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
+        "latest_android_hardware_audio_common_ndk_static",
+        "latest_android_hardware_bluetooth_audio_ndk_static",
+        "latest_android_media_audio_common_types_ndk_static",
         "mts_defaults",
     ],
     test_suites: ["device-tests"],
@@ -282,14 +285,11 @@ cc_test {
         "libutils",
     ],
     static_libs: [
-        "android.hardware.audio.common-V2-ndk",
         "android.hardware.bluetooth.a2dp@1.0",
-        "android.hardware.bluetooth.audio-V3-ndk",
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
         "android.hardware.common-V2-ndk",
         "android.hardware.common.fmq-V1-ndk",
-        "android.media.audio.common.types-V2-ndk",
         "android.system.suspend.control-V1-ndk",
         "libFraunhoferAAC",
         "libbluetooth-types",
@@ -539,6 +539,9 @@ cc_test {
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
+        "latest_android_hardware_audio_common_ndk_static",
+        "latest_android_hardware_bluetooth_audio_ndk_static",
+        "latest_android_media_audio_common_types_ndk_static",
         "mts_defaults",
     ],
     test_suites: ["device-tests"],
@@ -589,6 +592,7 @@ cc_test {
         ":TestMockBtaLeAudio",
         ":TestMockBtaLeAudioHalVerifier",
         ":TestMockBtaPan",
+        ":TestMockBtaScn",
         ":TestMockBtaSdp",
         ":TestMockBtaSys",
         ":TestMockBtaVc",
@@ -651,11 +655,8 @@ cc_test {
     target: {
         android: {
             static_libs: [
-                "android.hardware.audio.common-V2-ndk",
-                "android.hardware.bluetooth.audio-V3-ndk",
                 "android.hardware.common-V2-ndk",
                 "android.hardware.common.fmq-V1-ndk",
-                "android.media.audio.common.types-V2-ndk",
             ],
             shared_libs: [
                 "libbinder_ndk",
@@ -677,6 +678,9 @@ cc_test {
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
+        "latest_android_hardware_audio_common_ndk_static",
+        "latest_android_hardware_bluetooth_audio_ndk_static",
+        "latest_android_media_audio_common_types_ndk_static",
         "mts_defaults",
     ],
     test_suites: ["device-tests"],
@@ -728,6 +732,7 @@ cc_test {
         ":TestMockBtaLeAudio",
         ":TestMockBtaLeAudioHalVerifier",
         ":TestMockBtaPan",
+        ":TestMockBtaScn",
         ":TestMockBtaSdp",
         ":TestMockBtaSys",
         ":TestMockBtaVc",
@@ -788,11 +793,8 @@ cc_test {
     target: {
         android: {
             static_libs: [
-                "android.hardware.audio.common-V2-ndk",
-                "android.hardware.bluetooth.audio-V3-ndk",
                 "android.hardware.common-V2-ndk",
                 "android.hardware.common.fmq-V1-ndk",
-                "android.media.audio.common.types-V2-ndk",
             ],
             shared_libs: [
                 "libbinder_ndk",

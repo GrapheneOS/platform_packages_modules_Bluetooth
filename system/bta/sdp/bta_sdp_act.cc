@@ -32,6 +32,7 @@
 #include "main/shim/metrics_api.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"

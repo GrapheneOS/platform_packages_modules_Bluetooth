@@ -15,6 +15,8 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+#define LOG_TAG "ble_batchscan"
+
 #include <base/functional/bind.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -25,7 +27,9 @@
 #include "bt_target.h"
 #include "btm_ble_api.h"
 #include "device/include/controller.h"
+#include "osi/include/log.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/include/btm_ble_sec_api.h"
 #include "stack/include/btu_hcif.h"
 #include "stack/include/main_thread.h"
 

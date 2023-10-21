@@ -33,16 +33,16 @@
 #include "bta/include/utl.h"
 #include "btif/avrcp/avrcp_service.h"
 #include "device/include/device_iot_config.h"
+#include "device/include/interop.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "osi/include/properties.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/l2c_api.h"
 #include "stack/include/sdp_api.h"
 #include "types/raw_address.h"
-#include "device/include/interop.h"
 
 using namespace bluetooth::legacy::stack::sdp;
 
@@ -1021,7 +1021,7 @@ void bta_av_rc_msg(tBTA_AV_CB* p_cb, tBTA_AV_DATA* p_data) {
             bta_av_op_supported(p_data->rc_msg.msg.pass.op_id, is_inquiry);
       }
 
-      APPL_TRACE_DEBUG("%s: ctype %d", __func__, p_data->rc_msg.msg.hdr.ctype)
+      APPL_TRACE_DEBUG("%s: ctype %d", __func__, p_data->rc_msg.msg.hdr.ctype);
 
       /* send response */
       if (p_data->rc_msg.msg.hdr.ctype != AVRC_RSP_INTERIM)
@@ -2163,14 +2163,15 @@ void bta_av_rc_disc_done_all(UNUSED_ATTR tBTA_AV_DATA* p_data) {
 
     /* Change our features if the remote AVRCP version is 1.3 or less */
     tSDP_DISC_REC* p_rec = nullptr;
-    p_rec = SDP_FindServiceInDb(p_cb->p_disc_db,
-                                UUID_SERVCLASS_AV_REMOTE_CONTROL, p_rec);
+    p_rec = get_legacy_stack_sdp_api()->db.SDP_FindServiceInDb(
+        p_cb->p_disc_db, UUID_SERVCLASS_AV_REMOTE_CONTROL, p_rec);
     if (p_rec != NULL &&
-        SDP_FindAttributeInRec(p_rec, ATTR_ID_BT_PROFILE_DESC_LIST) != NULL) {
+        get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
+            p_rec, ATTR_ID_BT_PROFILE_DESC_LIST) != NULL) {
       /* get profile version (if failure, version parameter is not updated) */
       uint16_t peer_rc_version = 0xFFFF;  // Don't change the AVRCP version
-      SDP_FindProfileVersionInRec(p_rec, UUID_SERVCLASS_AV_REMOTE_CONTROL,
-                                  &peer_rc_version);
+      get_legacy_stack_sdp_api()->record.SDP_FindProfileVersionInRec(
+          p_rec, UUID_SERVCLASS_AV_REMOTE_CONTROL, &peer_rc_version);
       if (peer_rc_version <= AVRC_REV_1_3) {
         APPL_TRACE_DEBUG("%s: Using AVRCP 1.3 Capabilities with remote device",
                          __func__);

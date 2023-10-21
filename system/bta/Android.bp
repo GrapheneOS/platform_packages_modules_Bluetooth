@@ -40,7 +40,6 @@ filegroup {
     srcs: [
         "dm/bta_dm_act.cc",
         "dm/bta_dm_api.cc",
-        "dm/bta_dm_sec_api.cc",
         "dm/bta_dm_cfg.cc",
         "dm/bta_dm_ci.cc",
         "dm/bta_dm_disc.cc",
@@ -48,6 +47,7 @@ filegroup {
         "dm/bta_dm_main.cc",
         "dm/bta_dm_pm.cc",
         "dm/bta_dm_sec.cc",
+        "dm/bta_dm_sec_api.cc",
     ],
 }
 
@@ -184,6 +184,7 @@ cc_library_static {
         "jv/bta_jv_act.cc",
         "jv/bta_jv_api.cc",
         "jv/bta_jv_cfg.cc",
+        "rfcomm/bta_rfcomm_scn.cc",
         "sdp/bta_sdp.cc",
         "sdp/bta_sdp_act.cc",
         "sdp/bta_sdp_api.cc",
@@ -340,6 +341,7 @@ cc_test {
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
         ":TestFakeOsi",
+        ":TestMockBtaScn",
         ":TestMockBtaSdp",
         ":TestMockBtif",
         ":TestMockDevice",
@@ -426,6 +428,70 @@ cc_test {
         "libbluetooth-types",
         "libbluetooth_gd",
         "libbluetooth_hci_pdl",
+        "libbt-common",
+        "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
+        "libbtcore",
+        "libbtdevice",
+        "libchrome",
+        "libcom.android.sysprop.bluetooth",
+        "libevent",
+        "libgmock",
+    ],
+    sanitize: {
+        address: true,
+        cfi: true,
+        misc_undefined: ["bounds"],
+    },
+    target: {
+        android: {
+            whole_static_libs: [
+                "libPlatformProperties",
+            ],
+        },
+    },
+    cflags: ["-Wno-unused-parameter"],
+}
+
+cc_test {
+    name: "bt_host_test_bta_scn",
+    defaults: [
+        "bluetooth_gtest_x86_asan_workaround",
+        "fluoride_bta_defaults",
+        "mts_defaults",
+    ],
+    test_suites: ["device-tests"],
+    host_supported: true,
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
+    ],
+    generated_headers: [
+        "BluetoothGeneratedDumpsysDataSchema_h",
+    ],
+    srcs: [
+        ":TestCommonMockFunctions",
+        ":TestFakeOsi",
+        ":TestMockBtaSys",
+        ":TestMockBtif",
+        ":TestMockStackBtm",
+        ":TestMockStackGap",
+        ":TestMockStackL2cap",
+        ":TestMockStackRfcomm",
+        ":TestMockStackSdp",
+        "jv/bta_jv_act.cc",
+        "rfcomm/bta_rfcomm_scn.cc",
+        "test/bta_rfcomm_scn_test.cc",
+    ],
+    shared_libs: [
+        "libbase",
+        "libcrypto",
+        "libcutils",
+        "liblog",
+    ],
+    static_libs: [
+        "libbluetooth-types",
         "libbt-common",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",

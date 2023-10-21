@@ -59,6 +59,7 @@
 #include "stack/include/a2dp_api.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_ble_api.h"
+#include "stack/include/btm_ble_sec_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 

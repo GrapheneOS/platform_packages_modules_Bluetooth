@@ -51,6 +51,7 @@
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_psm_types.h"
 #include "stack/include/btm_status.h"
+#include "stack/include/btm_sec_api.h"
 #include "stack/include/l2cap_security_interface.h"
 #include "stack/include/main_thread.h"
 #include "stack/include/stack_metrics_logging.h"
@@ -4157,7 +4158,7 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
 
     BTM_TRACE_EVENT("rmt_io_caps:%d, sec_flags:x%x, dev_class[1]:x%02x",
                     p_dev_rec->rmt_io_caps, p_dev_rec->sec_flags,
-                    p_dev_rec->dev_class[1])
+                    p_dev_rec->dev_class[1]);
     return;
   }
 

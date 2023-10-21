@@ -28,14 +28,11 @@
 
 #include <cstdint>
 
-#include "main/shim/dumpsys.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bnep_api.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/btm_log_history.h"
-#include "stack/include/sdpdefs.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/pan/pan_int.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"

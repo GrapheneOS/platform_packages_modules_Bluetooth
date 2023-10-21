@@ -130,15 +130,9 @@ impl BatteryService {
         self.gatt.lock().unwrap().register_client(
             // TODO(b/233101174): make dynamic or decide on a static UUID
             String::from("e4d2acffcfaa42198f494606b7412117"),
-            Box::new(GattCallback::new(self.tx.clone())),
+            Box::new(GattCallback::new(self.tx.clone(), self.api_tx.clone())),
             false,
         );
-
-        // TODO(b:300202503) make sure battery interface is exposed after initialized
-        let api_tx = self.api_tx.clone();
-        tokio::spawn(async move {
-            let _ = api_tx.send(APIMessage::IsReady(BluetoothAPI::Battery)).await;
-        });
     }
 
     /// Handles all callback messages in a central location to avoid deadlocks.
@@ -379,11 +373,12 @@ impl RPCProxy for BatteryProviderCallback {
 
 struct GattCallback {
     tx: Sender<Message>,
+    api_tx: Sender<APIMessage>,
 }
 
 impl GattCallback {
-    fn new(tx: Sender<Message>) -> Self {
-        Self { tx }
+    fn new(tx: Sender<Message>, api_tx: Sender<APIMessage>) -> Self {
+        Self { tx, api_tx }
     }
 }
 
@@ -394,12 +389,14 @@ impl IBluetoothGattCallback for GattCallback {
 
     fn on_client_registered(&mut self, status: GattStatus, client_id: i32) {
         let tx = self.tx.clone();
+        let api_tx = self.api_tx.clone();
         tokio::spawn(async move {
             let _ = tx
                 .send(Message::BatteryService(BatteryServiceActions::OnClientRegistered(
                     status, client_id,
                 )))
                 .await;
+            let _ = api_tx.send(APIMessage::IsReady(BluetoothAPI::Battery)).await;
         });
     }
 

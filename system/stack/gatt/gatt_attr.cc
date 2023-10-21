@@ -23,6 +23,8 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
+
 #include <deque>
 #include <map>
 
@@ -32,14 +34,13 @@
 #include "eatt/eatt.h"
 #include "gatt_api.h"
 #include "gatt_int.h"
-#include "gd/common/init_flags.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
+#include "os/log.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_types.h"
+#include "stack/include/bt_uuid16.h"
 #include "types/bluetooth/uuid.h"
+#include "stack/include/btm_sec_api.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 using base::StringPrintf;
 using bluetooth::Uuid;

@@ -43,14 +43,13 @@
 #include "btif/include/btif_storage.h"
 #include "device/include/device_iot_config.h"
 #include "device/include/interop.h"
-#include "main/shim/dumpsys.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "stack/include/a2dp_sbc.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack/include/l2c_api.h"
@@ -182,7 +181,7 @@ static uint8_t bta_av_get_scb_handle(tBTA_AV_SCB* p_scb, uint8_t local_sep) {
       return (p_scb->seps[i].av_handle);
     }
   }
-  APPL_TRACE_DEBUG("%s: local sep_type %d not found", __func__, local_sep)
+  APPL_TRACE_DEBUG("%s: local sep_type %d not found", __func__, local_sep);
   return 0; /* return invalid handle */
 }
 
@@ -200,7 +199,7 @@ static uint8_t bta_av_get_scb_sep_type(tBTA_AV_SCB* p_scb,
   for (int i = 0; i < BTAV_A2DP_CODEC_INDEX_MAX; i++) {
     if (p_scb->seps[i].av_handle == tavdt_handle) return (p_scb->seps[i].tsep);
   }
-  APPL_TRACE_DEBUG("%s: avdt_handle %d not found", __func__, tavdt_handle)
+  APPL_TRACE_DEBUG("%s: avdt_handle %d not found", __func__, tavdt_handle);
   return AVDT_TSEP_INVALID;
 }
 

@@ -27,15 +27,13 @@
 #include <cstdint>
 
 #include "bta/hf_client/bta_hf_client_int.h"
-#include "bta/include/bta_ag_api.h"
 #include "bta/include/bta_hf_client_api.h"
+#include "bta/include/bta_rfcomm_scn.h"
 #include "bta/sys/bta_sys.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
-#include "osi/include/properties.h"
-#include "stack/btm/btm_sec.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/btm_api.h"
-#include "stack/include/port_api.h"
 #include "stack/include/sdp_api.h"
 #include "stack/include/sdpdefs.h"
 #include "types/bluetooth/uuid.h"
@@ -185,7 +183,7 @@ void bta_hf_client_create_record(tBTA_HF_CLIENT_CB_ARR* client_cb_arr,
   if (client_cb_arr->sdp_handle == 0) {
     client_cb_arr->sdp_handle =
         get_legacy_stack_sdp_api()->handle.SDP_CreateRecord();
-    client_cb_arr->scn = BTM_AllocateSCN();
+    client_cb_arr->scn = BTA_AllocateSCN();
     bta_hf_client_add_record(p_service_name, client_cb_arr->scn,
                              client_cb_arr->features,
                              client_cb_arr->sdp_handle);
@@ -210,7 +208,7 @@ void bta_hf_client_del_record(tBTA_HF_CLIENT_CB_ARR* client_cb) {
   if (client_cb->sdp_handle != 0) {
     get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(client_cb->sdp_handle);
     client_cb->sdp_handle = 0;
-    BTM_FreeSCN(client_cb->scn);
+    BTA_FreeSCN(client_cb->scn);
     bta_sys_remove_uuid(UUID_SERVCLASS_HF_HANDSFREE);
   }
 }

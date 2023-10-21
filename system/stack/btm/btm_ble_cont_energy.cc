@@ -16,11 +16,14 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "btm_ble_cont_energy"
+
 #include <inttypes.h>
 #include <string.h>
 
 #include "bt_target.h"
 #include "btm_ble_api.h"
+#include "osi/include/log.h"
 #include "stack/btm/btm_int_types.h"
 
 extern tBTM_CB btm_cb;

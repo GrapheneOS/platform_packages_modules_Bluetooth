@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#define LOG_TAG "gatt"
+
 #include "bta_gatt_queue.h"
 
 #include <list>
@@ -21,6 +23,7 @@
 #include <unordered_set>
 
 #include "osi/include/allocator.h"
+#include "osi/include/log.h"
 
 #include <base/logging.h>
 

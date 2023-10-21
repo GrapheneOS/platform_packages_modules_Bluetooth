@@ -29,9 +29,11 @@ cc_defaults {
         "avrcp_headers",
         "libbluetooth_headers",
     ],
+    defaults: [
+        "latest_android_hardware_bluetooth_audio_ndk_shared",
+    ],
     shared_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
-        "android.hardware.bluetooth.audio-V3-ndk",
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "android.hardware.bluetooth@1.0",

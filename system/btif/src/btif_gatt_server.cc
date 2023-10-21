@@ -27,25 +27,21 @@
 #define LOG_TAG "bt_btif_gatt"
 
 #include <base/functional/bind.h>
-#include <errno.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_gatt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "bta_api.h"
+#include "bta/include/bta_sec_api.h"
 #include "bta_gatt_api.h"
 #include "btif_common.h"
-#include "btif_config.h"
-#include "btif_dm.h"
 #include "btif_gatt.h"
 #include "btif_gatt_util.h"
-#include "btif_storage.h"
-#include "btif_util.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/main_thread.h"
+#include "types/ble_address_with_type.h"
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
@@ -54,7 +50,6 @@ bool btif_get_address_type(const RawAddress& bda, tBLE_ADDR_TYPE* p_addr_type);
 bool btif_get_device_type(const RawAddress& bda, int* p_device_type);
 
 using base::Bind;
-using base::Owned;
 using bluetooth::Uuid;
 using std::vector;
 

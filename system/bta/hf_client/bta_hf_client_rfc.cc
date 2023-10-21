@@ -24,17 +24,18 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
+
 #include <cstdint>
 
-#include "bta/include/bta_sec_api.h"
 #include "bta/hf_client/bta_hf_client_int.h"
+#include "bta/include/bta_sec_api.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "stack/include/bt_uuid16.h"
 #include "stack/include/port_api.h"
 #include "stack/include/sdp_api.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 using namespace bluetooth::legacy::stack::sdp;
 

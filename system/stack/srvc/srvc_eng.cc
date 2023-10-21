@@ -16,17 +16,16 @@
  *
  ******************************************************************************/
 
-#include "bt_target.h"
+#include <base/logging.h>
+
 #include "gatt_api.h"
-#include "gatt_int.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "srvc_dis_int.h"
 #include "srvc_eng_int.h"
+#include "stack/include/bt_uuid16.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 using base::StringPrintf;
 static void srvc_eng_s_request_cback(uint16_t conn_id, uint32_t trans_id,
