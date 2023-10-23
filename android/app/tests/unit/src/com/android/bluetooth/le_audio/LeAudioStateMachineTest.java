@@ -42,6 +42,8 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.flags.FakeFeatureFlagsImpl;
+import com.android.bluetooth.flags.Flags;
 
 import org.junit.After;
 import org.junit.Before;
@@ -58,6 +60,7 @@ public class LeAudioStateMachineTest {
     private HandlerThread mHandlerThread;
     private LeAudioStateMachine mLeAudioStateMachine;
     private BluetoothDevice mTestDevice;
+    private FakeFeatureFlagsImpl mFakeFlagsImpl;
     private static final int TIMEOUT_MS = 1000;
 
     @Mock private AdapterService mAdapterService;
@@ -72,6 +75,8 @@ public class LeAudioStateMachineTest {
         TestUtils.setAdapterService(mAdapterService);
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        mFakeFlagsImpl = new FakeFeatureFlagsImpl();
+        mFakeFlagsImpl.setFlag(Flags.FLAG_AUDIO_ROUTING_CENTRALIZATION, false);
 
         // Get a device for testing
         mTestDevice = mAdapter.getRemoteDevice("00:01:02:03:04:05");
@@ -79,11 +84,15 @@ public class LeAudioStateMachineTest {
         // Set up thread and looper
         mHandlerThread = new HandlerThread("LeAudioStateMachineTestHandlerThread");
         mHandlerThread.start();
-        mLeAudioStateMachine = new LeAudioStateMachine(mTestDevice, mLeAudioService,
-                mLeAudioNativeInterface, mHandlerThread.getLooper());
         // Override the timeout value to speed up the test
-        mLeAudioStateMachine.sConnectTimeoutMs = 1000;     // 1s
-        mLeAudioStateMachine.start();
+        LeAudioStateMachine.sConnectTimeoutMs = 1000; // 1s
+        mLeAudioStateMachine =
+                LeAudioStateMachine.make(
+                        mTestDevice,
+                        mLeAudioService,
+                        mLeAudioNativeInterface,
+                        mHandlerThread.getLooper(),
+                        mFakeFlagsImpl);
     }
 
     @After
