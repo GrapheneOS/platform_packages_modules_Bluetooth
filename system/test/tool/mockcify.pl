@@ -18,6 +18,8 @@ use File::Basename;
 
 ## mockcify version
 ##
+## 0.6.3 Streamline inclusion for headers and source
+##
 ## 0.6.2 Add tBTA_STATUS default value, Cpp type failure log
 ##
 ## 0.6.1 Add tBTA_SDP_STATUS default value
@@ -40,7 +42,7 @@ use File::Basename;
 ##
 ## 0.2.0 First version
 ##
-my $VERSION = "0.6.2";
+my $VERSION = "0.6.3";
 
 use strict;
 use warnings;
@@ -790,8 +792,6 @@ sub print_mock_decl_hdr {
 print $FH <<EOF;
 #include <cstdint>
 #include <functional>
-#include <map>
-#include <string>
 
 EOF
 }
@@ -800,9 +800,6 @@ sub print_mock_decl_src {
   my $FH = shift @_;
 print $FH <<EOF;
 #include <cstdint>
-#include <functional>
-#include <map>
-#include <string>
 
 #include "test/common/mock_functions.h"
 
