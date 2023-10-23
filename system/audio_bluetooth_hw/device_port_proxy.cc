@@ -99,6 +99,20 @@ audio_format_t BitsPerSampleToAudioFormat(uint8_t bits_per_sample,
   }
 }
 
+std::vector<std::string> CovertAudioTagFromV7(char* tags_v7) {
+  std::vector<std::string> tags;
+  char tags_copy[AUDIO_ATTRIBUTES_TAGS_MAX_SIZE];
+  strlcpy(tags_copy, tags_v7, AUDIO_ATTRIBUTES_TAGS_MAX_SIZE);
+  char* tag = strtok(tags_copy, ";");
+
+  while (tag != NULL) {
+    tags.push_back(tag);
+    tag = strtok(NULL, ";");
+  }
+
+  return tags;
+}
+
 // The maximum time to wait in std::condition_variable::wait_for()
 constexpr unsigned int kMaxWaitingTimeMs = 4500;
 
@@ -600,8 +614,8 @@ void BluetoothAudioPortAidl::UpdateSourceMetadata(
         static_cast<AudioUsage>(source_metadata->tracks[i].base.usage);
     hal_source_metadata.tracks[i].contentType = static_cast<AudioContentType>(
         source_metadata->tracks[i].base.content_type);
-    hal_source_metadata.tracks[i].tags.push_back(
-        std::string(source_metadata->tracks[i].tags));
+    hal_source_metadata.tracks[i].tags =
+        std::move(CovertAudioTagFromV7(source_metadata->tracks[i].tags));
   }
 
   BluetoothAudioSessionControl::UpdateSourceMetadata(session_type_,
@@ -626,8 +640,8 @@ void BluetoothAudioPortAidl::UpdateSinkMetadata(
     hal_sink_metadata.tracks[i].source =
         static_cast<AudioSource>(sink_metadata->tracks[i].base.source);
     hal_sink_metadata.tracks[i].gain = sink_metadata->tracks[i].base.gain;
-    hal_sink_metadata.tracks[i].tags.push_back(
-        std::string(sink_metadata->tracks[i].tags));
+    hal_sink_metadata.tracks[i].tags =
+        std::move(CovertAudioTagFromV7(sink_metadata->tracks[i].tags));
   }
 
   BluetoothAudioSessionControl::UpdateSinkMetadata(session_type_,
