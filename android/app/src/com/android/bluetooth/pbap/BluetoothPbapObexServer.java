@@ -106,8 +106,9 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             "/telecom/cch",
     };
 
-    // Currently not support SIM card
-    @SuppressWarnings("unused") private static final String[] LEGAL_PATH_WITH_SIM = {
+    // SIM card is only supported when SIM feature is enabled
+    // (i.e. when the property bluetooth.profile.pbap.sim.enabled is set to true)
+    private static final String[] LEGAL_PATH_WITH_SIM = {
             "/telecom",
             "/telecom/pb",
             "/telecom/fav",
@@ -492,6 +493,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             validName = false;
         }
 
+        boolean isSimEnabled = BluetoothPbapService.isSimEnabled();
+
         if (!validName || (validName && type.equals(TYPE_VCARD))) {
             if (D) {
                 Log.d(TAG,
@@ -502,21 +505,28 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 appParamValue.needTag = ContentType.PHONEBOOK;
             } else if (mCurrentPath.equals(FAV_PATH)) {
                 appParamValue.needTag = ContentType.FAVORITES;
-            } else if (mCurrentPath.equals(ICH_PATH)) {
+            } else if (mCurrentPath.equals(ICH_PATH)
+                    || (isSimEnabled && mCurrentPath.equals(SIM_ICH_PATH))) {
                 appParamValue.needTag = ContentType.INCOMING_CALL_HISTORY;
-            } else if (mCurrentPath.equals(OCH_PATH)) {
+            } else if (mCurrentPath.equals(OCH_PATH)
+                    || (isSimEnabled && mCurrentPath.equals(SIM_OCH_PATH))) {
                 appParamValue.needTag = ContentType.OUTGOING_CALL_HISTORY;
-            } else if (mCurrentPath.equals(MCH_PATH)) {
+            } else if (mCurrentPath.equals(MCH_PATH)
+                    || (isSimEnabled && mCurrentPath.equals(SIM_MCH_PATH))) {
                 appParamValue.needTag = ContentType.MISSED_CALL_HISTORY;
                 mNeedNewMissedCallsNum = true;
-            } else if (mCurrentPath.equals(CCH_PATH)) {
+            } else if (mCurrentPath.equals(CCH_PATH)
+                    || (isSimEnabled && mCurrentPath.equals(SIM_CCH_PATH))) {
                 appParamValue.needTag = ContentType.COMBINED_CALL_HISTORY;
-            } else if (mCurrentPath.equals(TELECOM_PATH)) {
+            } else if (mCurrentPath.equals(TELECOM_PATH)
+                    || (isSimEnabled && mCurrentPath.equals(SIM_PATH))) {
                 /* PBAP 1.1.1 change */
                 if (!validName && type.equals(TYPE_LISTING)) {
                     Log.e(TAG, "invalid vcard listing request in default folder");
                     return ResponseCodes.OBEX_HTTP_NOT_FOUND;
                 }
+            } else if (isSimEnabled && mCurrentPath.equals(SIM_PB_PATH)) {
+                appParamValue.needTag = ContentType.SIM_PHONEBOOK;
             } else {
                 Log.w(TAG, "mCurrentpath is not valid path!!!");
                 return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
@@ -532,9 +542,11 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 TYPE_PB, TYPE_LISTING, mCurrentPath)) {
                 appParamValue.needTag = ContentType.SIM_PHONEBOOK;
                 if (D) Log.d(TAG, "download SIM phonebook request");
-                // Not support SIM card currently
-                Log.w(TAG, "Not support access SIM card info!");
-                return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
+                if (!isSimEnabled) {
+                    // Not support SIM card currently
+                    Log.w(TAG, "Not support access SIM card info!");
+                    return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
+                }
             } else if (isNameMatchTarget(name, PB)) {
                 appParamValue.needTag = ContentType.PHONEBOOK;
                 if (D) {
@@ -629,8 +641,11 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         if (str.length() == 0) {
             return true;
         }
-        for (int i = 0; i < LEGAL_PATH.length; i++) {
-            if (str.equals(LEGAL_PATH[i])) {
+        String[] legal_paths = BluetoothPbapService.isSimEnabled()
+                ? LEGAL_PATH_WITH_SIM : LEGAL_PATH;
+
+        for (int i = 0; i < legal_paths.length; i++) {
+            if (str.equals(legal_paths[i])) {
                 return true;
             }
         }
