@@ -48,6 +48,7 @@ BluetoothAudioHalTransport HalVersionManager::GetHalTransport() {
     case BluetoothAudioHalVersion::VERSION_AIDL_V1:
     case BluetoothAudioHalVersion::VERSION_AIDL_V2:
     case BluetoothAudioHalVersion::VERSION_AIDL_V3:
+    case BluetoothAudioHalVersion::VERSION_AIDL_V4:
       return BluetoothAudioHalTransport::AIDL;
     case BluetoothAudioHalVersion::VERSION_2_0:
     case BluetoothAudioHalVersion::VERSION_2_1:
@@ -119,6 +120,8 @@ BluetoothAudioHalVersion GetAidlInterfaceVersion() {
       return BluetoothAudioHalVersion::VERSION_AIDL_V2;
     case 3:
       return BluetoothAudioHalVersion::VERSION_AIDL_V3;
+    case 4:
+      return BluetoothAudioHalVersion::VERSION_AIDL_V4;
     default:
       LOG_ERROR("Unknown AIDL version %d", aidl_version);
       return BluetoothAudioHalVersion::VERSION_UNAVAILABLE;

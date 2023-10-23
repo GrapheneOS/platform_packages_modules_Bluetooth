@@ -40,7 +40,8 @@ enum class BluetoothAudioHalVersion : uint8_t {
   VERSION_2_1,
   VERSION_AIDL_V1,
   VERSION_AIDL_V2,
-  VERSION_AIDL_V3
+  VERSION_AIDL_V3,
+  VERSION_AIDL_V4,
 };
 
 enum class BluetoothAudioHalTransport : uint8_t {
