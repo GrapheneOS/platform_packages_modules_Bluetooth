@@ -7771,7 +7771,7 @@ public class AdapterService extends Service {
         Log.i(TAG, "sendUuidsInternal: Received service discovery UUIDs for device " + device);
         if (DBG) {
             for (int i = 0; i < uuids.length; i++) {
-                Log.d(TAG, "index=" + i + "uuid=" + uuids[i]);
+                Log.d(TAG, "sendUuidsInternal: index=" + i + " uuid=" + uuids[i]);
             }
         }
         if (mPhonePolicy != null) {
