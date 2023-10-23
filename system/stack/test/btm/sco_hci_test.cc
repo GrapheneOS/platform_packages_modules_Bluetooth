@@ -31,7 +31,6 @@
 #include "stack/include/hfp_msbc_decoder.h"
 #include "stack/include/hfp_msbc_encoder.h"
 #include "test/common/mock_functions.h"
-#include "test/fake/fake_osi.h"
 #include "udrv/include/uipc.h"
 
 extern bluetooth::core::CoreInterface* GetInterfaceToProfiles();
@@ -109,7 +108,6 @@ class ScoHciTest : public Test {
  protected:
   void SetUp() override {
     reset_mock_function_count_map();
-    fake_osi_ = std::make_unique<test::fake::FakeOsi>();
     mock_uipc_init_ret = nullptr;
     mock_uipc_read_ret = 0;
     mock_uipc_send_ret = true;
@@ -120,7 +118,6 @@ class ScoHciTest : public Test {
     GetInterfaceToProfiles()->lc3Codec = &lc3_codec;
   }
   void TearDown() override {}
-  std::unique_ptr<test::fake::FakeOsi> fake_osi_;
 };
 
 class ScoHciWithOpenCleanTest : public ScoHciTest {
