@@ -1430,7 +1430,7 @@ impl RPCProxy for MediaCallback {
 
 pub(crate) struct TelephonyCallback {
     objpath: String,
-    context: Arc<Mutex<ClientContext>>,
+    _context: Arc<Mutex<ClientContext>>,
 
     dbus_connection: Arc<SyncConnection>,
     dbus_crossroads: Arc<Mutex<Crossroads>>,
@@ -1443,7 +1443,7 @@ impl TelephonyCallback {
         dbus_connection: Arc<SyncConnection>,
         dbus_crossroads: Arc<Mutex<Crossroads>>,
     ) -> Self {
-        Self { objpath, context, dbus_connection, dbus_crossroads }
+        Self { objpath, _context: context, dbus_connection, dbus_crossroads }
     }
 }
 
