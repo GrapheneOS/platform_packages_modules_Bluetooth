@@ -13,8 +13,8 @@ fn main() {
     println!("cargo:rerun-if-changed={}", cxx_outdir.into_string().unwrap());
 
     // A few dynamic links
-    println!("cargo:rustc-link-lib=dylib=flatbuffers");
-    println!("cargo:rustc-link-lib=dylib=protobuf");
+    Config::new().probe("flatbuffers").unwrap();
+    Config::new().probe("protobuf").unwrap();
     println!("cargo:rustc-link-lib=dylib=resolv");
 
     // Clang requires -lc++ instead of -lstdc++
