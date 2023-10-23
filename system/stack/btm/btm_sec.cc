@@ -2318,6 +2318,10 @@ void btm_sec_abort_access_req(const RawAddress& bd_addr) {
 static tBTM_STATUS btm_sec_dd_create_conn(tBTM_SEC_DEV_REC* p_dev_rec) {
   tBTM_STATUS status = l2cu_ConnectAclForSecurity(p_dev_rec->bd_addr);
   if (status == BTM_CMD_STARTED) {
+    /* If already connected, start pending security procedure */
+    if (BTM_IsAclConnectionUp(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR)) {
+      return BTM_SUCCESS;
+    }
     btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
     return BTM_CMD_STARTED;
   } else if (status == BTM_NO_RESOURCES) {
@@ -2516,6 +2520,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
                       BTM_SEC_IS_SM4(p_dev_rec->sm4),
                       BTM_SEC_IS_SM4_UNKNOWN(p_dev_rec->sm4));
 
+      bool await_connection = true;
       /* BT 2.1 or carkit, bring up the connection to force the peer to request
        *PIN.
        ** Else prefetch (btm_sec_check_prefetch_pin will do the prefetching if
@@ -2532,15 +2537,24 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
               __func__);
         }
         /* Both we and the peer are 2.1 - continue to create connection */
-        else if (btm_sec_dd_create_conn(p_dev_rec) != BTM_CMD_STARTED) {
-          BTM_TRACE_WARNING("%s: failed to start connection", __func__);
+        else {
+          tBTM_STATUS req_status = btm_sec_dd_create_conn(p_dev_rec);
+          if (req_status == BTM_SUCCESS) {
+            await_connection = false;
+          } else if (req_status != BTM_CMD_STARTED) {
+            BTM_TRACE_WARNING("%s: failed to start connection", __func__);
 
-          btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+            btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
 
-          NotifyBondingChange(*p_dev_rec, HCI_ERR_MEMORY_FULL);
+            NotifyBondingChange(*p_dev_rec, HCI_ERR_MEMORY_FULL);
+          }
         }
       }
-      return;
+
+      if (await_connection) {
+        LOG_DEBUG("Wait for connection to begin pairing");
+        return;
+      }
     } else {
       BTM_TRACE_WARNING("%s: wrong BDA, retry with pairing BDA", __func__);
       if (BTM_ReadRemoteDeviceName(btm_cb.pairing_bda, NULL,
