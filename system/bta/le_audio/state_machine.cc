@@ -113,6 +113,7 @@ using le_audio::types::LeAudioContextType;
 namespace {
 
 constexpr int linkQualityCheckInterval = 4000;
+constexpr int kAutonomousTransitionTimeoutMs = 5000;
 
 static void link_quality_cb(void* data) {
   // very ugly, but we need to pass just two bytes
@@ -2075,6 +2076,12 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         SetAseState(leAudioDevice, ase,
                     AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED);
 
+        /* Remote may autonomously bring ASEs to QoS configured state */
+        if (group->GetTargetState() !=
+            AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED) {
+          ProcessAutonomousDisable(leAudioDevice, ase);
+        }
+
         /* Process the Disable Transition of the rest of group members if no
          * more ASE notifications has to come from this device. */
         if (leAudioDevice->IsReadyToSuspendStream()) ProcessGroupDisable(group);
@@ -2670,6 +2677,22 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     }
   }
 
+  void ScheduleAutonomousOperationTimer(AseState target_state,
+                                        LeAudioDevice* leAudioDevice,
+                                        struct ase* ase) {
+    ase->autonomous_target_state_ = target_state;
+    ase->autonomous_operation_timer_ =
+        alarm_new("LeAudioAutonomousOperationTimeout");
+    alarm_set_on_mloop(
+        ase->autonomous_operation_timer_, kAutonomousTransitionTimeoutMs,
+        [](void* data) {
+          LeAudioDevice* leAudioDevice = static_cast<LeAudioDevice*>(data);
+          instance->state_machine_callbacks_
+              ->OnDeviceAutonomousStateTransitionTimeout(leAudioDevice);
+        },
+        leAudioDevice);
+  }
+
   void AseStateMachineProcessDisabling(
       struct le_audio::client_parser::ascs::ase_rsp_hdr& arh, struct ase* ase,
       LeAudioDeviceGroup* group, LeAudioDevice* leAudioDevice) {
@@ -2696,10 +2719,15 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         SetAseState(leAudioDevice, ase,
                     AseState::BTA_LE_AUDIO_ASE_STATE_DISABLING);
 
+        /* Remote may autonomously bring ASEs to QoS configured state */
+        if (group->GetTargetState() !=
+            AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED) {
+          ProcessAutonomousDisable(leAudioDevice, ase);
+        }
+
         /* Process the Disable Transition of the rest of group members if no
          * more ASE notifications has to come from this device. */
-        if (leAudioDevice->IsReadyToSuspendStream())
-          ProcessGroupDisable(group);
+        if (leAudioDevice->IsReadyToSuspendStream()) ProcessGroupDisable(group);
 
         break;
 
@@ -2893,6 +2921,34 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                 ToString(group->GetState()).c_str(),
                 ToString(group->GetTargetState()).c_str());
       StopStream(group);
+    }
+  }
+
+  void ProcessAutonomousDisable(LeAudioDevice* leAudioDevice, struct ase* ase) {
+    auto bidirection_ase = leAudioDevice->GetAseToMatchBidirectionCis(ase);
+
+    /* ASE is not a part of bi-directional CIS */
+    if (!bidirection_ase) return;
+
+    /* ASE is already disabled */
+    if (bidirection_ase->state ==
+        AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED) {
+      /* Bi-direction ASEs are now disabled */
+      if ((ase->autonomous_target_state_ ==
+           AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED) &&
+          alarm_is_scheduled(ase->autonomous_operation_timer_)) {
+        alarm_free(ase->autonomous_operation_timer_);
+        ase->autonomous_operation_timer_ = NULL;
+        ase->autonomous_target_state_ = AseState::BTA_LE_AUDIO_ASE_STATE_IDLE;
+      }
+      return;
+    }
+
+    /* Schedule alarm if first ASE is autonomously disabling */
+    if (!alarm_is_scheduled(bidirection_ase->autonomous_operation_timer_)) {
+      ScheduleAutonomousOperationTimer(
+          AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED, leAudioDevice,
+          bidirection_ase);
     }
   }
 };
