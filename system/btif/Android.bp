@@ -280,6 +280,7 @@ cc_test {
         "liblog",
         "libstatssocket",
         "libutils",
+        "server_configurable_flags",
     ],
     static_libs: [
         "android.hardware.audio.common-V2-ndk",

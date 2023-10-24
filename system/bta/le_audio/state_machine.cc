@@ -20,6 +20,9 @@
 #include <base/functional/bind.h>
 #include <base/functional/callback.h>
 #include <base/strings/string_number_conversions.h>
+#ifdef __ANDROID__
+#include <com_android_bluetooth_flags.h>
+#endif
 
 #include <map>
 
@@ -309,7 +312,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
   void notifyLeAudioHealth(LeAudioDeviceGroup* group,
                            le_audio::LeAudioHealthGroupStatType stat) {
-    if (!bluetooth::common::InitFlags::IsLeAudioHealthBasedActionsEnabled()) {
+#ifdef __ANDROID__
+    if (!com::android::bluetooth::flags::
+            leaudio_enable_health_based_actions()) {
       return;
     }
 
@@ -317,6 +322,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     if (leAudioHealthStatus) {
       leAudioHealthStatus->AddStatisticForGroup(group, stat);
     }
+#endif
   }
 
   void ProcessGattCtpNotification(LeAudioDeviceGroup* group, uint8_t* value,

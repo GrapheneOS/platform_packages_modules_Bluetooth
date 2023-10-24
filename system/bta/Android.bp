@@ -911,6 +911,7 @@ cc_test {
         "libcrypto",
         "libhidlbase",
         "liblog", // __android_log_print
+        "server_configurable_flags",
     ],
     static_libs: [
         "libbluetooth-types",
@@ -936,7 +937,6 @@ cc_test {
     name: "bluetooth_le_audio_client_test",
     test_suites: ["device-tests"],
     defaults: [
-        "bluetooth_gtest_x86_asan_workaround",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -986,11 +986,13 @@ cc_test {
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
+        "libbase",
         "libbinder_ndk",
         "libcrypto",
         "libfmq",
         "libhidlbase",
         "liblog",
+        "server_configurable_flags",
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
@@ -1003,6 +1005,7 @@ cc_test {
         "libbt_shim_ffi",
         "libchrome",
         "libevent",
+        "libflagtest",
         "libflatbuffers-cpp",
         "libgmock",
         "liblc3",
