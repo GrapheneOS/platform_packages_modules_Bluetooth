@@ -1,0 +1,15 @@
+package: "com.android.bluetooth.flags"
+
+flag {
+    name: "leaudio_broadcast_monitor_source_sync_status"
+    namespace: "bluetooth"
+    description: "New APIs to improve broadcast source sync"
+    bug: "307406671"
+}
+
+flag {
+    name: "leaudio_broadcast_volume_control_for_connected_devices"
+    namespace: "bluetooth"
+    description: "Allow volume control for connected devices"
+    bug: "307408418"
+}
