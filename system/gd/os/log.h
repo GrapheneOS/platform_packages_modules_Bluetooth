@@ -163,18 +163,8 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG should never be NULL");
         ##args);                                                                                                    \
   } while (false)
 
-#define LOG_VERBOSE_INT(fmt, args...)                                                  \
-  do {                                                                                 \
-    if (bluetooth::common::InitFlags::GetLogLevelForTag(LOG_TAG) >= LOG_TAG_VERBOSE) { \
-      LOGWRAPPER(fmt, ##args);                                                         \
-    }                                                                                  \
-  } while (false)
-#define LOG_DEBUG_INT(fmt, args...)                                                  \
-  do {                                                                               \
-    if (bluetooth::common::InitFlags::GetLogLevelForTag(LOG_TAG) >= LOG_TAG_DEBUG) { \
-      LOGWRAPPER(fmt, ##args);                                                       \
-    }                                                                                \
-  } while (false)
+#define LOG_VERBOSE_INT(...) LOGWRAPPER(__VA_ARGS__)
+#define LOG_DEBUG_INT(...) LOGWRAPPER(__VA_ARGS__)
 #define LOG_INFO_INT(...) LOGWRAPPER(__VA_ARGS__)
 #define LOG_WARN_INT(...) LOGWRAPPER(__VA_ARGS__)
 #define LOG_ERROR_INT(...) LOGWRAPPER(__VA_ARGS__)
