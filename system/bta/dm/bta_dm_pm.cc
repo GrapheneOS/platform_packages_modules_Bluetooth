@@ -162,7 +162,7 @@ uint8_t bta_dm_get_av_count(void) {
  *
  ******************************************************************************/
 static void bta_dm_pm_stop_timer(const RawAddress& peer_addr) {
-  APPL_TRACE_DEBUG("%s: ", __func__);
+  LOG_VERBOSE("%s: ", __func__);
 
   for (int i = 0; i < BTA_DM_NUM_PM_TIMER; i++) {
     if (bta_dm_cb.pm_timer[i].in_use &&
@@ -422,7 +422,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, const tBTA_SYS_ID id,
                sizeof(bta_dm_conn_srvcs.conn_srvc[j]));
       }
     } else {
-      APPL_TRACE_WARNING("bta_dm_act no entry for connected service cbs");
+      LOG_WARN("bta_dm_act no entry for connected service cbs");
       return;
     }
   } else if (j == bta_dm_conn_srvcs.count) {
@@ -452,7 +452,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, const tBTA_SYS_ID id,
   bta_dm_pm_stop_timer(peer_addr);
   if (bta_dm_conn_srvcs.count > 0) {
     pm_req = BTA_DM_PM_RESTART;
-    APPL_TRACE_DEBUG(
+    LOG_VERBOSE(
         "%s bta_dm_pm_stop_timer for current service, restart other "
         "service timers: count = %d",
         __func__, bta_dm_conn_srvcs.count);
@@ -478,10 +478,10 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, const tBTA_SYS_ID id,
          HCI_SNIFF_SUB_RATE_SUPPORTED(p)) &&
         (index == BTA_DM_PM_SSR0)) {
       if (status == BTA_SYS_SCO_OPEN) {
-        APPL_TRACE_DEBUG("%s: SCO inactive, reset SSR to zero", __func__);
+        LOG_VERBOSE("%s: SCO inactive, reset SSR to zero", __func__);
         BTM_SetSsrParams(peer_addr, 0, 0, 0);
       } else if (status == BTA_SYS_SCO_CLOSE) {
-        APPL_TRACE_DEBUG("%s: SCO active, back to old SSR", __func__);
+        LOG_VERBOSE("%s: SCO active, back to old SSR", __func__);
         bta_dm_pm_ssr(peer_addr, BTA_DM_PM_SSR0);
       }
     }
@@ -812,7 +812,7 @@ void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index) {
     p_peer_dev->reset_sniff_flags();
     p_peer_dev->set_sniff_command_sent();
   } else if (status == BTM_SUCCESS) {
-    APPL_TRACE_DEBUG("bta_dm_pm_sniff BTM_SetPowerMode() returns BTM_SUCCESS");
+    LOG_VERBOSE("bta_dm_pm_sniff BTM_SetPowerMode() returns BTM_SUCCESS");
     p_peer_dev->reset_sniff_flags();
   } else {
     LOG_ERROR("Unable to set power mode peer:%s status:%s",
@@ -962,14 +962,13 @@ static void bta_dm_pm_timer_cback(void* data) {
 
   std::unique_lock<std::recursive_mutex> state_lock(pm_timer_state_mutex);
   for (i = 0; i < BTA_DM_NUM_PM_TIMER; i++) {
-    APPL_TRACE_DEBUG("dm_pm_timer[%d] in use? %d", i,
-                     bta_dm_cb.pm_timer[i].in_use);
+    LOG_VERBOSE("dm_pm_timer[%d] in use? %d", i, bta_dm_cb.pm_timer[i].in_use);
     if (bta_dm_cb.pm_timer[i].in_use) {
       for (j = 0; j < BTA_DM_PM_MODE_TIMER_MAX; j++) {
         if (bta_dm_cb.pm_timer[i].timer[j] == alarm) {
           bta_dm_cb.pm_timer[i].active--;
           bta_dm_cb.pm_timer[i].srvc_id[j] = BTA_ID_MAX;
-          APPL_TRACE_DEBUG("dm_pm_timer[%d] expires, timer_idx=%d", i, j);
+          LOG_VERBOSE("dm_pm_timer[%d] expires, timer_idx=%d", i, j);
           break;
         }
       }
@@ -1011,7 +1010,7 @@ void bta_dm_pm_btm_status(const RawAddress& bd_addr, tBTM_PM_STATUS status,
       /* if our sniff or park attempt failed
       we should not try it again*/
       if (hci_status != 0) {
-        APPL_TRACE_ERROR("%s hci_status=%d", __func__, hci_status);
+        LOG_ERROR("%s hci_status=%d", __func__, hci_status);
         p_dev->reset_sniff_flags();
 
         if (p_dev->pm_mode_attempted & (BTA_DM_PM_PARK | BTA_DM_PM_SNIFF)) {
@@ -1086,7 +1085,7 @@ void bta_dm_pm_btm_status(const RawAddress& bd_addr, tBTM_PM_STATUS status,
 
 /** Process pm timer event from btm */
 void bta_dm_pm_timer(const RawAddress& bd_addr, tBTA_DM_PM_ACTION pm_request) {
-  APPL_TRACE_EVENT("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
   bta_dm_pm_set_mode(bd_addr, pm_request, BTA_DM_PM_EXECUTE);
 }
 
@@ -1149,6 +1148,6 @@ tBTM_CONTRL_STATE bta_dm_pm_obtain_controller_state(void) {
   tBTM_CONTRL_STATE cur_state = BTM_CONTRL_UNKNOWN;
   cur_state = BTM_PM_ReadControllerState();
 
-  APPL_TRACE_DEBUG("bta_dm_pm_obtain_controller_state: %d", cur_state);
+  LOG_VERBOSE("bta_dm_pm_obtain_controller_state: %d", cur_state);
   return cur_state;
 }

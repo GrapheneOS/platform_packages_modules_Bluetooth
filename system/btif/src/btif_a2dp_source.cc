@@ -809,9 +809,8 @@ static void btif_a2dp_source_audio_tx_start_event(void) {
   CHECK(btif_a2dp_source_cb.encoder_interface != nullptr);
   btif_a2dp_source_cb.encoder_interface->feeding_reset();
 
-  APPL_TRACE_EVENT(
-      "%s: starting timer %" PRIu64 " ms", __func__,
-      btif_a2dp_source_cb.encoder_interface->get_encoder_interval_ms());
+  LOG_VERBOSE("%s: starting timer %" PRIu64 " ms", __func__,
+              btif_a2dp_source_cb.encoder_interface->get_encoder_interval_ms());
 
   /* audio engine starting, reset tx suspended flag */
   btif_a2dp_source_cb.tx_flush = false;
@@ -1104,10 +1103,9 @@ BT_HDR* btif_a2dp_source_audio_readbuf(void) {
 
 static void log_tstamps_us(const char* comment, uint64_t timestamp_us) {
   static uint64_t prev_us = 0;
-  APPL_TRACE_DEBUG("%s: [%s] ts %08" PRIu64 ", diff : %08" PRIu64
-                   ", queue sz %zu",
-                   __func__, comment, timestamp_us, timestamp_us - prev_us,
-                   fixed_queue_length(btif_a2dp_source_cb.tx_audio_queue));
+  LOG_VERBOSE("%s: [%s] ts %08" PRIu64 ", diff : %08" PRIu64 ", queue sz %zu",
+              __func__, comment, timestamp_us, timestamp_us - prev_us,
+              fixed_queue_length(btif_a2dp_source_cb.tx_audio_queue));
   prev_us = timestamp_us;
 }
 

@@ -844,7 +844,7 @@ static bool btm_pm_device_in_active_or_sniff_mode(void) {
 
   /* Check BLE states */
   if (!btm_sec_cb.ble_ctr_cb.is_connection_state_idle()) {
-    BTM_TRACE_DEBUG("%s - BLE state is not idle", __func__);
+    LOG_VERBOSE("%s - BLE state is not idle", __func__);
     return true;
   }
 
@@ -870,7 +870,7 @@ static bool btm_pm_device_in_scan_state(void) {
   /* Check for inquiry */
   if ((btm_cb.btm_inq_vars.inq_active &
        (BTM_BR_INQ_ACTIVE_MASK | BTM_BLE_INQ_ACTIVE_MASK)) != 0) {
-    BTM_TRACE_DEBUG("btm_pm_device_in_scan_state- Inq active");
+    LOG_VERBOSE("btm_pm_device_in_scan_state- Inq active");
     return true;
   }
 

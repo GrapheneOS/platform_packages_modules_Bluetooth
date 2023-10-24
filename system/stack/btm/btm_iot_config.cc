@@ -54,9 +54,9 @@ void btm_iot_save_remote_properties(tACL_CONN* p_acl_cb) {
                              sizeof(cod), &cod);
   if (btif_storage_get_remote_device_property(&p_acl_cb->remote_addr,
                                               &prop_name) == BT_STATUS_SUCCESS)
-    BTIF_TRACE_DEBUG("%s cod retrieved from storage is 0x%06x", __func__, cod);
+    LOG_VERBOSE("%s cod retrieved from storage is 0x%06x", __func__, cod);
   if (cod == 0) {
-    BTIF_TRACE_DEBUG("%s cod is 0, set as unclassified", __func__);
+    LOG_VERBOSE("%s cod is 0, set as unclassified", __func__);
     cod = (0x1F) << 8;
   }
 

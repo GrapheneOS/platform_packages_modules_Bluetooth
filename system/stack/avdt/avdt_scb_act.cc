@@ -275,7 +275,7 @@ void avdt_scb_hdl_pkt_no_frag(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
 
   /* do sanity check */
   if (pad_len >= (len - offset)) {
-    AVDT_TRACE_WARNING("Got bad media packet");
+    LOG_WARN("Got bad media packet");
     osi_free_and_reset((void**)&p_data->p_pkt);
   }
   /* adjust offset and length and send it up */
@@ -295,8 +295,8 @@ void avdt_scb_hdl_pkt_no_frag(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
   }
   return;
 length_error:
-  AVDT_TRACE_WARNING("%s: hdl packet length %d too short: must be at least %d",
-                     __func__, len, offset);
+  LOG_WARN("%s: hdl packet length %d too short: must be at least %d", __func__,
+           len, offset);
   osi_free_and_reset((void**)&p_data->p_pkt);
 }
 
@@ -318,14 +318,13 @@ uint8_t* avdt_scb_hdl_report(AvdtpScb* p_scb, uint8_t* p, uint16_t len) {
   AVDT_REPORT_TYPE pt;
   tAVDT_REPORT_DATA report;
 
-  AVDT_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
   if (p_scb->stream_config.p_report_cback) {
     /* parse report packet header */
     min_len += 8;
     if (min_len > len) {
-      AVDT_TRACE_WARNING(
-          "%s: hdl packet length %d too short: must be at least %d", __func__,
-          len, min_len);
+      LOG_WARN("%s: hdl packet length %d too short: must be at least %d",
+               __func__, len, min_len);
       goto avdt_scb_hdl_report_exit;
     }
     AVDT_MSG_PRS_RPT_OCTET1(p, o_v, o_p, o_cc);
@@ -337,9 +336,8 @@ uint8_t* avdt_scb_hdl_report(AvdtpScb* p_scb, uint8_t* p, uint16_t len) {
       case AVDT_RTCP_PT_SR: /* the packet type - SR (Sender Report) */
         min_len += 20;
         if (min_len > len) {
-          AVDT_TRACE_WARNING(
-              "%s: hdl packet length %d too short: must be at least %d",
-              __func__, len, min_len);
+          LOG_WARN("%s: hdl packet length %d too short: must be at least %d",
+                   __func__, len, min_len);
           goto avdt_scb_hdl_report_exit;
         }
         BE_STREAM_TO_UINT32(report.sr.ntp_sec, p);
@@ -352,9 +350,8 @@ uint8_t* avdt_scb_hdl_report(AvdtpScb* p_scb, uint8_t* p, uint16_t len) {
       case AVDT_RTCP_PT_RR: /* the packet type - RR (Receiver Report) */
         min_len += 20;
         if (min_len > len) {
-          AVDT_TRACE_WARNING(
-              "%s: hdl packet length %d too short: must be at least %d",
-              __func__, len, min_len);
+          LOG_WARN("%s: hdl packet length %d too short: must be at least %d",
+                   __func__, len, min_len);
           goto avdt_scb_hdl_report_exit;
         }
         report.rr.frag_lost = *p;
@@ -370,9 +367,8 @@ uint8_t* avdt_scb_hdl_report(AvdtpScb* p_scb, uint8_t* p, uint16_t len) {
         uint8_t sdes_type;
         min_len += 1;
         if (min_len > len) {
-          AVDT_TRACE_WARNING(
-              "%s: hdl packet length %d too short: must be at least %d",
-              __func__, len, min_len);
+          LOG_WARN("%s: hdl packet length %d too short: must be at least %d",
+                   __func__, len, min_len);
           goto avdt_scb_hdl_report_exit;
         }
         BE_STREAM_TO_UINT8(sdes_type, p);
@@ -380,9 +376,8 @@ uint8_t* avdt_scb_hdl_report(AvdtpScb* p_scb, uint8_t* p, uint16_t len) {
           uint8_t name_length;
           min_len += 1;
           if (min_len > len) {
-            AVDT_TRACE_WARNING(
-                "%s: hdl packet length %d too short: must be at least %d",
-                __func__, len, min_len);
+            LOG_WARN("%s: hdl packet length %d too short: must be at least %d",
+                     __func__, len, min_len);
             goto avdt_scb_hdl_report_exit;
           }
           BE_STREAM_TO_UINT8(name_length, p);
@@ -394,19 +389,18 @@ uint8_t* avdt_scb_hdl_report(AvdtpScb* p_scb, uint8_t* p, uint16_t len) {
           }
         } else {
           if (min_len + 1 > len) {
-            AVDT_TRACE_WARNING(
-                "%s: hdl packet length %d too short: must be at least %d",
-                __func__, len, min_len);
+            LOG_WARN("%s: hdl packet length %d too short: must be at least %d",
+                     __func__, len, min_len);
             goto avdt_scb_hdl_report_exit;
           }
-          AVDT_TRACE_WARNING("%s: SDES SSRC=0x%08x sc=%d %d len=%d", __func__,
-                             ssrc, o_cc, sdes_type, *p);
+          LOG_WARN("%s: SDES SSRC=0x%08x sc=%d %d len=%d", __func__, ssrc, o_cc,
+                   sdes_type, *p);
           result = AVDT_BUSY;
         }
         break;
 
       default:
-        AVDT_TRACE_ERROR("Bad Report pkt - packet type: %d", pt);
+        LOG_ERROR("Bad Report pkt - packet type: %d", pt);
         result = AVDT_BAD_PARAMS;
     }
 
@@ -449,7 +443,7 @@ void avdt_scb_hdl_pkt(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
  *
  ******************************************************************************/
 void avdt_scb_drop_pkt(UNUSED_ATTR AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
-  AVDT_TRACE_ERROR("%s dropped incoming media packet", __func__);
+  LOG_ERROR("%s dropped incoming media packet", __func__);
   osi_free_and_reset((void**)&p_data->p_pkt);
 }
 
@@ -567,14 +561,14 @@ void avdt_scb_hdl_security_rsp(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
  *
  ******************************************************************************/
 void avdt_scb_hdl_setconfig_cmd(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
-  AVDT_TRACE_DEBUG("%s: p_scb->in_use=%d p_avdt_scb=%p scb_index=%d", __func__,
-                   p_scb->in_use, p_scb, p_scb->stream_config.scb_index);
+  LOG_VERBOSE("%s: p_scb->in_use=%d p_avdt_scb=%p scb_index=%d", __func__,
+              p_scb->in_use, p_scb, p_scb->stream_config.scb_index);
 
   if (!p_scb->in_use) {
-    AVDT_TRACE_DEBUG(
+    LOG_VERBOSE(
         "%s: codec: %s", __func__,
         A2DP_CodecInfoString(p_scb->stream_config.cfg.codec_info).c_str());
-    AVDT_TRACE_DEBUG(
+    LOG_VERBOSE(
         "%s: codec: %s", __func__,
         A2DP_CodecInfoString(p_data->msg.config_cmd.p_cfg->codec_info).c_str());
     AvdtpSepConfig* p_cfg = p_data->msg.config_cmd.p_cfg;
@@ -583,7 +577,7 @@ void avdt_scb_hdl_setconfig_cmd(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
       /* copy info to scb */
       AvdtpCcb* p_ccb = avdt_ccb_by_idx(p_data->msg.config_cmd.hdr.ccb_idx);
       if (p_scb->p_ccb != p_ccb) {
-        AVDT_TRACE_ERROR(
+        LOG_ERROR(
             "%s: mismatch in AVDTP SCB/CCB state: (p_scb->p_ccb=%p != "
             "p_ccb=%p): "
             "p_scb=%p scb_handle=%d ccb_idx=%d",
@@ -611,7 +605,7 @@ void avdt_scb_hdl_setconfig_cmd(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
                         p_data->msg.hdr.sig_id, &p_data->msg);
     }
   } else {
-    AVDT_TRACE_DEBUG("%s: calling avdt_scb_rej_in_use()", __func__);
+    LOG_VERBOSE("%s: calling avdt_scb_rej_in_use()", __func__);
     avdt_scb_rej_in_use(p_scb, p_data);
   }
 }
@@ -939,9 +933,9 @@ void avdt_scb_hdl_tc_open(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
       (p_scb->role == AVDT_OPEN_INT) ? AVDT_OPEN_CFM_EVT : AVDT_OPEN_IND_EVT;
   p_data->open.hdr.err_code = 0;
 
-  AVDT_TRACE_DEBUG("%s: psc_mask: cfg: 0x%x, req:0x%x, cur: 0x%x", __func__,
-                   p_scb->stream_config.cfg.psc_mask, p_scb->req_cfg.psc_mask,
-                   p_scb->curr_cfg.psc_mask);
+  LOG_VERBOSE("%s: psc_mask: cfg: 0x%x, req:0x%x, cur: 0x%x", __func__,
+              p_scb->stream_config.cfg.psc_mask, p_scb->req_cfg.psc_mask,
+              p_scb->curr_cfg.psc_mask);
   if (p_scb->curr_cfg.psc_mask & AVDT_PSC_REPORT) {
     /* open the reporting channel, if both devices support it */
     role = (p_scb->role == AVDT_OPEN_INT) ? AVDT_INT : AVDT_ACP;
@@ -1001,7 +995,7 @@ void avdt_scb_hdl_write_req(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
   /* free packet we're holding, if any; to be replaced with new */
   if (p_scb->p_pkt != NULL) {
     /* this shouldn't be happening */
-    AVDT_TRACE_WARNING("Dropped media packet; congested");
+    LOG_WARN("Dropped media packet; congested");
   }
   osi_free_and_reset((void**)&p_scb->p_pkt);
 
@@ -1049,7 +1043,7 @@ void avdt_scb_snd_abort_req(AvdtpScb* p_scb,
                             UNUSED_ATTR tAVDT_SCB_EVT* p_data) {
   tAVDT_EVT_HDR hdr;
 
-  AVDT_TRACE_DEBUG("%s: p_scb->p_ccb=%p", __func__, p_scb->p_ccb);
+  LOG_VERBOSE("%s: p_scb->p_ccb=%p", __func__, p_scb->p_ccb);
 
   if (p_scb->p_ccb != NULL) {
     p_scb->role = AVDT_CLOSE_INT;
@@ -1213,9 +1207,9 @@ void avdt_scb_snd_open_rsp(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
  *
  ******************************************************************************/
 void avdt_scb_snd_reconfig_req(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
-  AVDT_TRACE_DEBUG("%s: p_scb->peer_seid=%d p_data->msg.hdr.seid=%d", __func__,
-                   p_scb->peer_seid, p_data->msg.hdr.seid);
-  AVDT_TRACE_DEBUG(
+  LOG_VERBOSE("%s: p_scb->peer_seid=%d p_data->msg.hdr.seid=%d", __func__,
+              p_scb->peer_seid, p_data->msg.hdr.seid);
+  LOG_VERBOSE(
       "%s: codec: %s", __func__,
       A2DP_CodecInfoString(p_data->msg.config_cmd.p_cfg->codec_info).c_str());
 
@@ -1319,7 +1313,7 @@ void avdt_scb_snd_setconfig_rej(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
  *
  ******************************************************************************/
 void avdt_scb_snd_setconfig_req(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
-  AVDT_TRACE_DEBUG(
+  LOG_VERBOSE(
       "%s: codec: %s", __func__,
       A2DP_CodecInfoString(p_data->msg.config_cmd.p_cfg->codec_info).c_str());
 
@@ -1327,7 +1321,7 @@ void avdt_scb_snd_setconfig_req(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
 
   AvdtpCcb* p_ccb = avdt_ccb_by_idx(p_data->msg.config_cmd.hdr.ccb_idx);
   if (p_scb->p_ccb != p_ccb) {
-    AVDT_TRACE_ERROR(
+    LOG_ERROR(
         "%s: mismatch in AVDTP SCB/CCB state: (p_scb->p_ccb=%p != p_ccb=%p): "
         "p_scb=%p scb_handle=%d ccb_idx=%d",
         __func__, p_scb->p_ccb, p_ccb, p_scb, p_scb->ScbHandle(),
@@ -1501,7 +1495,7 @@ void avdt_scb_free_pkt(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
 
   osi_free_and_reset((void**)&p_data->apiwrite.p_buf);
 
-  AVDT_TRACE_WARNING("Dropped media packet");
+  LOG_WARN("Dropped media packet");
 
   /* we need to call callback to keep data flow going */
   (*p_scb->stream_config.p_avdt_ctrl_cback)(
@@ -1540,7 +1534,7 @@ void avdt_scb_clr_pkt(AvdtpScb* p_scb, UNUSED_ATTR tAVDT_SCB_EVT* p_data) {
   if (p_scb->p_pkt != NULL) {
     osi_free_and_reset((void**)&p_scb->p_pkt);
 
-    AVDT_TRACE_DEBUG("Dropped stored media packet");
+    LOG_VERBOSE("Dropped stored media packet");
 
     /* we need to call callback to keep data flow going */
     (*p_scb->stream_config.p_avdt_ctrl_cback)(
