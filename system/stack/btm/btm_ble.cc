@@ -215,7 +215,7 @@ void BTM_BleLoadLocalKeys(uint8_t key_type, tBTM_BLE_LOCAL_KEYS* p_key) {
         break;
 
       default:
-        LOG_ERROR("unknow local key type: %d", key_type);
+        LOG_ERROR("unknown local key type: %d", key_type);
         break;
     }
   }

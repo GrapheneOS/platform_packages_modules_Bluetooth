@@ -249,10 +249,10 @@ typedef struct {
 } tBTA_HF_CLIENT_VAL;
 
 /* data associated with BTA_HF_CLIENT_UNKNOWN_EVT event */
-#define BTA_HF_CLIENT_UNKOWN_EVENT_LEN 32
+#define BTA_HF_CLIENT_UNKNOWN_EVENT_LEN 32
 typedef struct {
   RawAddress bd_addr;
-  char event_string[BTA_HF_CLIENT_UNKOWN_EVENT_LEN + 1];
+  char event_string[BTA_HF_CLIENT_UNKNOWN_EVENT_LEN + 1];
 } tBTA_HF_CLIENT_UNKNOWN;
 
 /* union of data associated with AG callback */
