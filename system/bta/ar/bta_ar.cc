@@ -112,8 +112,8 @@ void bta_ar_reg_avdt(AvdtpRcb* p_reg, tAVDT_CTRL_CBACK* p_cback) {
   if (bta_ar_cb.avdt_registered == 0) {
     AVDT_Register(p_reg, bta_ar_avdt_cback);
   } else {
-    APPL_TRACE_WARNING("%s: doesn't register again (registered:%d)", __func__,
-                       bta_ar_cb.avdt_registered);
+    LOG_WARN("%s: doesn't register again (registered:%d)", __func__,
+             bta_ar_cb.avdt_registered);
   }
   bta_ar_cb.avdt_registered |= BTA_AR_AV_MASK;
 }
@@ -329,7 +329,7 @@ void bta_ar_reg_avrc_for_src_sink_coexist(
     } else {
       /* If first reg 1,3 version, reg 1.6 must update class id */
       if (bta_ar_cb.ct_ver < profile_version) {
-        APPL_TRACE_API("%s ver=0x%x", __FUNCTION__, profile_version);
+        LOG_VERBOSE("%s ver=0x%x", __FUNCTION__, profile_version);
         if (bta_ar_cb.ct_ver <= AVRC_REV_1_3 &&
             profile_version > AVRC_REV_1_3) {
           bta_ar_cb.ct_ver = profile_version;

@@ -67,20 +67,20 @@ extern const btgatt_callbacks_t* bt_gatt_callbacks;
 /*******************************************************************************
  *  Constants & Macros
  ******************************************************************************/
-#define CLI_CBACK_WRAP_IN_JNI(P_CBACK, P_CBACK_WRAP)                 \
-  do {                                                               \
-    if (bt_gatt_callbacks && bt_gatt_callbacks->client->P_CBACK) {   \
-      BTIF_TRACE_API("HAL bt_gatt_callbacks->client->%s", #P_CBACK); \
-      do_in_jni_thread(P_CBACK_WRAP);                                \
-    } else {                                                         \
-      ASSERTC(0, "Callback is NULL", 0);                             \
-    }                                                                \
+#define CLI_CBACK_WRAP_IN_JNI(P_CBACK, P_CBACK_WRAP)               \
+  do {                                                             \
+    if (bt_gatt_callbacks && bt_gatt_callbacks->client->P_CBACK) { \
+      LOG_VERBOSE("HAL bt_gatt_callbacks->client->%s", #P_CBACK);  \
+      do_in_jni_thread(P_CBACK_WRAP);                              \
+    } else {                                                       \
+      ASSERTC(0, "Callback is NULL", 0);                           \
+    }                                                              \
   } while (0)
 
 #define CLI_CBACK_IN_JNI(P_CBACK, ...)                                         \
   do {                                                                         \
     if (bt_gatt_callbacks && bt_gatt_callbacks->client->P_CBACK) {             \
-      BTIF_TRACE_API("HAL bt_gatt_callbacks->client->%s", #P_CBACK);           \
+      LOG_VERBOSE("HAL bt_gatt_callbacks->client->%s", #P_CBACK);              \
       do_in_jni_thread(Bind(bt_gatt_callbacks->client->P_CBACK, __VA_ARGS__)); \
     } else {                                                                   \
       ASSERTC(0, "Callback is NULL", 0);                                       \

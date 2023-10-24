@@ -176,7 +176,7 @@ static uint8_t btm_ble_find_irk_index(void) {
     i++;
   }
 
-  BTM_TRACE_ERROR("%s failed, list full", __func__);
+  LOG_ERROR("%s failed, list full", __func__);
   return i;
 }
 
@@ -228,13 +228,13 @@ void btm_ble_clear_resolving_list_complete(uint8_t* p, uint16_t evt_len) {
   uint8_t status = 0;
 
   if (evt_len < 1) {
-    BTM_TRACE_ERROR("malformatted event packet: containing zero bytes");
+    LOG_ERROR("malformatted event packet: containing zero bytes");
     return;
   }
 
   STREAM_TO_UINT8(status, p);
 
-  BTM_TRACE_DEBUG("%s status=%d", __func__, status);
+  LOG_VERBOSE("%s status=%d", __func__, status);
 
   if (status == HCI_SUCCESS) {
     if (evt_len >= 3) {
@@ -257,8 +257,8 @@ void btm_ble_clear_resolving_list_complete(uint8_t* p, uint16_t evt_len) {
     btm_sec_cb.ble_ctr_cb.resolving_list_avail_size =
         controller_get_interface()->get_ble_resolving_list_max_size();
 
-    BTM_TRACE_DEBUG("%s resolving_list_avail_size=%d", __func__,
-                    btm_sec_cb.ble_ctr_cb.resolving_list_avail_size);
+    LOG_VERBOSE("%s resolving_list_avail_size=%d", __func__,
+                btm_sec_cb.ble_ctr_cb.resolving_list_avail_size);
 
     list_foreach(btm_sec_cb.sec_dev_rec, clear_resolving_list_bit, NULL);
   }
@@ -278,17 +278,17 @@ void btm_ble_add_resolving_list_entry_complete(uint8_t* p, uint16_t evt_len) {
   uint8_t status;
 
   if (evt_len < 1) {
-    BTM_TRACE_ERROR("malformatted event packet: containing zero byte");
+    LOG_ERROR("malformatted event packet: containing zero byte");
     return;
   }
 
   STREAM_TO_UINT8(status, p);
 
-  BTM_TRACE_DEBUG("%s status = %d", __func__, status);
+  LOG_VERBOSE("%s status = %d", __func__, status);
 
   RawAddress pseudo_bda;
   if (!btm_ble_deq_resolving_pending(pseudo_bda)) {
-    BTM_TRACE_DEBUG("no pending resolving list operation");
+    LOG_VERBOSE("no pending resolving list operation");
     return;
   }
 
@@ -305,7 +305,7 @@ void btm_ble_add_resolving_list_entry_complete(uint8_t* p, uint16_t evt_len) {
              HCI_ERR_MEMORY_FULL) /* BT_ERROR_CODE_MEMORY_CAPACITY_EXCEEDED  */
   {
     btm_sec_cb.ble_ctr_cb.resolving_list_avail_size = 0;
-    BTM_TRACE_DEBUG("%s Resolving list Full ", __func__);
+    LOG_VERBOSE("%s Resolving list Full ", __func__);
   }
 }
 
@@ -326,10 +326,10 @@ void btm_ble_remove_resolving_list_entry_complete(uint8_t* p,
 
   STREAM_TO_UINT8(status, p);
 
-  BTM_TRACE_DEBUG("%s status = %d", __func__, status);
+  LOG_VERBOSE("%s status = %d", __func__, status);
 
   if (!btm_ble_deq_resolving_pending(pseudo_bda)) {
-    BTM_TRACE_ERROR("%s no pending resolving list operation", __func__);
+    LOG_ERROR("%s no pending resolving list operation", __func__);
     return;
   }
 
@@ -360,10 +360,10 @@ void btm_ble_read_resolving_list_entry_complete(const uint8_t* p,
 
   STREAM_TO_UINT8(status, p);
 
-  BTM_TRACE_DEBUG("%s status = %d", __func__, status);
+  LOG_VERBOSE("%s status = %d", __func__, status);
 
   if (!btm_ble_deq_resolving_pending(pseudo_bda)) {
-    BTM_TRACE_ERROR("no pending resolving list operation");
+    LOG_ERROR("no pending resolving list operation");
     return;
   }
 
@@ -402,7 +402,7 @@ static void btm_ble_resolving_list_vsc_op_cmpl(tBTM_VSC_CMPL* p_params) {
 
   op_subcode = *(p + 1);
 
-  BTM_TRACE_DEBUG("%s op_subcode = %d", __func__, op_subcode);
+  LOG_VERBOSE("%s op_subcode = %d", __func__, op_subcode);
 
   if (op_subcode == BTM_BLE_META_CLEAR_IRK_LIST) {
     btm_ble_clear_resolving_list_complete(p, evt_len);
@@ -612,7 +612,7 @@ void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
     LOG_DEBUG("Privacy 1.2 is not enabled");
     return;
   }
-  BTM_TRACE_EVENT("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   if ((p_dev_rec->ble.in_controller_list & BTM_RESOLVING_LIST_BIT) &&
       !btm_ble_brcm_find_resolving_pending_entry(
@@ -620,7 +620,7 @@ void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
     btm_ble_update_resolving_list(p_dev_rec->bd_addr, false);
     btm_ble_remove_resolving_list_entry(p_dev_rec);
   } else {
-    BTM_TRACE_DEBUG("Device not in resolving list");
+    LOG_VERBOSE("Device not in resolving list");
   }
 }
 
@@ -652,7 +652,7 @@ void btm_ble_resolving_list_init(uint8_t max_irk_list_sz) {
       // NOTE: This memory is never freed
       btm_sec_cb.ble_ctr_cb.irk_list_mask = (uint8_t*)osi_malloc(irk_mask_size);
 
-    BTM_TRACE_DEBUG("%s max_irk_list_sz = %d", __func__, max_irk_list_sz);
+    LOG_VERBOSE("%s max_irk_list_sz = %d", __func__, max_irk_list_sz);
   }
 
   controller_get_interface()->set_ble_resolving_list_max_size(max_irk_list_sz);

@@ -221,7 +221,7 @@ void bta_ag_start_open(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
 void bta_ag_disc_int_res(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
   uint16_t event = BTA_AG_DISC_FAIL_EVT;
 
-  APPL_TRACE_DEBUG("bta_ag_disc_int_res: Status: %d", data.disc_result.status);
+  LOG_VERBOSE("bta_ag_disc_int_res: Status: %d", data.disc_result.status);
 
   /* if found service */
   if (data.disc_result.status == SDP_SUCCESS ||
@@ -480,8 +480,8 @@ void bta_ag_rfc_open(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
     if (!btif_config_get_bin(
             p_scb->peer_addr.ToString(), HFP_VERSION_CONFIG_KEY,
             (uint8_t*)&p_scb->peer_version, &version_value_size)) {
-      APPL_TRACE_WARNING("%s: Failed read cached peer HFP version for %s",
-                         __func__, ADDRESS_TO_LOGGABLE_CSTR(p_scb->peer_addr));
+      LOG_WARN("%s: Failed read cached peer HFP version for %s", __func__,
+               ADDRESS_TO_LOGGABLE_CSTR(p_scb->peer_addr));
       p_scb->peer_version = HFP_HSP_VERSION_UNKNOWN;
     }
     size_t sdp_features_size = sizeof(p_scb->peer_sdp_features);
@@ -501,8 +501,8 @@ void bta_ag_rfc_open(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
         p_scb->sco_codec = BTM_SCO_CODEC_LC3;
       }
     } else {
-      APPL_TRACE_WARNING("%s: Failed read cached peer HFP SDP features for %s",
-                         __func__, ADDRESS_TO_LOGGABLE_CSTR(p_scb->peer_addr));
+      LOG_WARN("%s: Failed read cached peer HFP SDP features for %s", __func__,
+               ADDRESS_TO_LOGGABLE_CSTR(p_scb->peer_addr));
     }
   }
 
@@ -539,8 +539,8 @@ void bta_ag_rfc_open(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
  *
  ******************************************************************************/
 void bta_ag_rfc_acp_open(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
-  APPL_TRACE_DEBUG("%s: serv_handle0 = %d serv_handle = %d", __func__,
-                   p_scb->serv_handle[0], p_scb->serv_handle[1]);
+  LOG_VERBOSE("%s: serv_handle0 = %d serv_handle = %d", __func__,
+              p_scb->serv_handle[0], p_scb->serv_handle[1]);
   /* set role */
   p_scb->role = BTA_AG_ACP;
 
@@ -592,9 +592,8 @@ void bta_ag_rfc_acp_open(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
 
   /* determine connected service from port handle */
   for (uint8_t i = 0; i < BTA_AG_NUM_IDX; i++) {
-    APPL_TRACE_DEBUG(
-        "bta_ag_rfc_acp_open: i = %d serv_handle = %d port_handle = %d", i,
-        p_scb->serv_handle[i], data.rfc.port_handle);
+    LOG_VERBOSE("bta_ag_rfc_acp_open: i = %d serv_handle = %d port_handle = %d",
+                i, p_scb->serv_handle[i], data.rfc.port_handle);
 
     if (p_scb->serv_handle[i] == data.rfc.port_handle) {
       p_scb->conn_service = i;
@@ -603,8 +602,8 @@ void bta_ag_rfc_acp_open(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
     }
   }
 
-  APPL_TRACE_DEBUG("bta_ag_rfc_acp_open: conn_service = %d conn_handle = %d",
-                   p_scb->conn_service, p_scb->conn_handle);
+  LOG_VERBOSE("bta_ag_rfc_acp_open: conn_service = %d conn_handle = %d",
+              p_scb->conn_service, p_scb->conn_handle);
 
   /* close any unopened server */
   bta_ag_close_servers(
@@ -641,7 +640,7 @@ void bta_ag_rfc_data(tBTA_AG_SCB* p_scb, UNUSED_ATTR const tBTA_AG_DATA& data) {
   uint16_t len;
   char buf[BTA_AG_RFC_READ_MAX] = "";
 
-  APPL_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   /* do the following */
   for (;;) {
@@ -663,7 +662,7 @@ void bta_ag_rfc_data(tBTA_AG_SCB* p_scb, UNUSED_ATTR const tBTA_AG_DATA& data) {
     bta_ag_at_parse(&p_scb->at_cb, buf, len);
     if ((p_scb->sco_idx != BTM_INVALID_SCO_INDEX) &&
         bta_ag_sco_is_open(p_scb)) {
-      APPL_TRACE_DEBUG("%s change link policy for SCO", __func__);
+      LOG_VERBOSE("%s change link policy for SCO", __func__);
       bta_sys_sco_open(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
     } else {
       bta_sys_idle(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
@@ -860,7 +859,7 @@ void bta_ag_setcodec(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
     p_scb->codec_updated = true;
     val.num = codec_type;
     val.hdr.status = BTA_AG_SUCCESS;
-    APPL_TRACE_DEBUG("bta_ag_setcodec: Updated codec type %d", codec_type);
+    LOG_VERBOSE("bta_ag_setcodec: Updated codec type %d", codec_type);
   } else {
     val.num = codec_type;
     val.hdr.status = BTA_AG_FAIL_RESOURCES;

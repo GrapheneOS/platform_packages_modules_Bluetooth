@@ -65,9 +65,8 @@ void btif_a2dp_control_cleanup(void) {
 
 static tA2DP_CTRL_ACK btif_a2dp_control_on_check_ready() {
   if (btif_a2dp_source_media_task_is_shutting_down()) {
-    APPL_TRACE_WARNING(
-        "%s: A2DP command check ready while media task shutting down",
-        __func__);
+    LOG_WARN("%s: A2DP command check ready while media task shutting down",
+             __func__);
     return A2DP_CTRL_ACK_FAILURE;
   }
 
@@ -75,8 +74,8 @@ static tA2DP_CTRL_ACK btif_a2dp_control_on_check_ready() {
   if (btif_av_stream_ready() || btif_av_stream_started_ready()) {
     return A2DP_CTRL_ACK_SUCCESS;
   } else {
-    APPL_TRACE_WARNING(
-        "%s: A2DP command check ready while AV stream is not ready", __func__);
+    LOG_WARN("%s: A2DP command check ready while AV stream is not ready",
+             __func__);
     return A2DP_CTRL_ACK_FAILURE;
   }
 }
@@ -88,8 +87,7 @@ static tA2DP_CTRL_ACK btif_a2dp_control_on_start() {
    * while in a call, and respond with BAD_STATE.
    */
   if (!bluetooth::headset::IsCallIdle()) {
-    APPL_TRACE_WARNING("%s: A2DP command start while call state is busy",
-                       __func__);
+    LOG_WARN("%s: A2DP command start while call state is busy", __func__);
     return A2DP_CTRL_ACK_INCALL_FAILURE;
   }
 
@@ -116,8 +114,7 @@ static tA2DP_CTRL_ACK btif_a2dp_control_on_start() {
               A2DP_DATA_PATH);
     return A2DP_CTRL_ACK_SUCCESS;
   }
-  APPL_TRACE_WARNING("%s: A2DP command start while AV stream is not ready",
-                     __func__);
+  LOG_WARN("%s: A2DP command start while AV stream is not ready", __func__);
   return A2DP_CTRL_ACK_FAILURE;
 }
 
@@ -203,25 +200,24 @@ static void btif_a2dp_control_on_set_output_audio_config() {
                 reinterpret_cast<uint8_t*>(&codec_config.sample_rate),
                 sizeof(btav_a2dp_codec_sample_rate_t)) !=
       sizeof(btav_a2dp_codec_sample_rate_t)) {
-    APPL_TRACE_ERROR("%s: Error reading sample rate from audio HAL", __func__);
+    LOG_ERROR("%s: Error reading sample rate from audio HAL", __func__);
     return;
   }
   if (UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_CTRL,
                 reinterpret_cast<uint8_t*>(&codec_config.bits_per_sample),
                 sizeof(btav_a2dp_codec_bits_per_sample_t)) !=
       sizeof(btav_a2dp_codec_bits_per_sample_t)) {
-    APPL_TRACE_ERROR("%s: Error reading bits per sample from audio HAL",
-                     __func__);
+    LOG_ERROR("%s: Error reading bits per sample from audio HAL", __func__);
     return;
   }
   if (UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_CTRL,
                 reinterpret_cast<uint8_t*>(&codec_config.channel_mode),
                 sizeof(btav_a2dp_codec_channel_mode_t)) !=
       sizeof(btav_a2dp_codec_channel_mode_t)) {
-    APPL_TRACE_ERROR("%s: Error reading channel mode from audio HAL", __func__);
+    LOG_ERROR("%s: Error reading channel mode from audio HAL", __func__);
     return;
   }
-  APPL_TRACE_DEBUG(
+  LOG_VERBOSE(
       "%s: A2DP_CTRL_SET_OUTPUT_AUDIO_CONFIG: "
       "sample_rate=0x%x bits_per_sample=0x%x "
       "channel_mode=0x%x",
@@ -256,7 +252,7 @@ static void btif_a2dp_recv_ctrl_data(void) {
 
   /* detach on ctrl channel means audioflinger process was terminated */
   if (n == 0) {
-    APPL_TRACE_WARNING("%s: CTRL CH DETACHED", __func__);
+    LOG_WARN("%s: CTRL CH DETACHED", __func__);
     UIPC_Close(*a2dp_uipc, UIPC_CH_ID_AV_CTRL);
     return;
   }
@@ -264,11 +260,11 @@ static void btif_a2dp_recv_ctrl_data(void) {
   // Don't log A2DP_CTRL_GET_PRESENTATION_POSITION by default, because it
   // could be very chatty when audio is streaming.
   if (cmd == A2DP_CTRL_GET_PRESENTATION_POSITION) {
-    APPL_TRACE_DEBUG("%s: a2dp-ctrl-cmd : %s", __func__,
-                     audio_a2dp_hw_dump_ctrl_event(cmd));
+    LOG_VERBOSE("%s: a2dp-ctrl-cmd : %s", __func__,
+                audio_a2dp_hw_dump_ctrl_event(cmd));
   } else {
-    APPL_TRACE_WARNING("%s: a2dp-ctrl-cmd : %s", __func__,
-                       audio_a2dp_hw_dump_ctrl_event(cmd));
+    LOG_WARN("%s: a2dp-ctrl-cmd : %s", __func__,
+             audio_a2dp_hw_dump_ctrl_event(cmd));
   }
 
   a2dp_cmd_pending = cmd;
@@ -306,7 +302,7 @@ static void btif_a2dp_recv_ctrl_data(void) {
       break;
 
     default:
-      APPL_TRACE_ERROR("%s: UNSUPPORTED CMD (%d)", __func__, cmd);
+      LOG_ERROR("%s: UNSUPPORTED CMD (%d)", __func__, cmd);
       btif_a2dp_command_ack(A2DP_CTRL_ACK_FAILURE);
       break;
   }
@@ -314,11 +310,11 @@ static void btif_a2dp_recv_ctrl_data(void) {
   // Don't log A2DP_CTRL_GET_PRESENTATION_POSITION by default, because it
   // could be very chatty when audio is streaming.
   if (cmd == A2DP_CTRL_GET_PRESENTATION_POSITION) {
-    APPL_TRACE_DEBUG("%s: a2dp-ctrl-cmd : %s DONE", __func__,
-                     audio_a2dp_hw_dump_ctrl_event(cmd));
+    LOG_VERBOSE("%s: a2dp-ctrl-cmd : %s DONE", __func__,
+                audio_a2dp_hw_dump_ctrl_event(cmd));
   } else {
-    APPL_TRACE_WARNING("%s: a2dp-ctrl-cmd : %s DONE", __func__,
-                       audio_a2dp_hw_dump_ctrl_event(cmd));
+    LOG_WARN("%s: a2dp-ctrl-cmd : %s DONE", __func__,
+             audio_a2dp_hw_dump_ctrl_event(cmd));
   }
 }
 
@@ -327,11 +323,11 @@ static void btif_a2dp_ctrl_cb(UNUSED_ATTR tUIPC_CH_ID ch_id,
   // Don't log UIPC_RX_DATA_READY_EVT by default, because it
   // could be very chatty when audio is streaming.
   if (event == UIPC_RX_DATA_READY_EVT) {
-    APPL_TRACE_DEBUG("%s: A2DP-CTRL-CHANNEL EVENT %s", __func__,
-                     dump_uipc_event(event));
+    LOG_VERBOSE("%s: A2DP-CTRL-CHANNEL EVENT %s", __func__,
+                dump_uipc_event(event));
   } else {
-    APPL_TRACE_WARNING("%s: A2DP-CTRL-CHANNEL EVENT %s", __func__,
-                       dump_uipc_event(event));
+    LOG_WARN("%s: A2DP-CTRL-CHANNEL EVENT %s", __func__,
+             dump_uipc_event(event));
   }
 
   switch (event) {
@@ -350,16 +346,16 @@ static void btif_a2dp_ctrl_cb(UNUSED_ATTR tUIPC_CH_ID ch_id,
       break;
 
     default:
-      APPL_TRACE_ERROR("%s: ### A2DP-CTRL-CHANNEL EVENT %d NOT HANDLED ###",
-                       __func__, event);
+      LOG_ERROR("%s: ### A2DP-CTRL-CHANNEL EVENT %d NOT HANDLED ###", __func__,
+                event);
       break;
   }
 }
 
 static void btif_a2dp_data_cb(UNUSED_ATTR tUIPC_CH_ID ch_id,
                               tUIPC_EVENT event) {
-  APPL_TRACE_WARNING("%s: BTIF MEDIA (A2DP-DATA) EVENT %s", __func__,
-                     dump_uipc_event(event));
+  LOG_WARN("%s: BTIF MEDIA (A2DP-DATA) EVENT %s", __func__,
+           dump_uipc_event(event));
 
   switch (event) {
     case UIPC_OPEN_EVT:
@@ -381,15 +377,14 @@ static void btif_a2dp_data_cb(UNUSED_ATTR tUIPC_CH_ID ch_id,
       break;
 
     case UIPC_CLOSE_EVT:
-      APPL_TRACE_EVENT("%s: ## AUDIO PATH DETACHED ##", __func__);
+      LOG_VERBOSE("%s: ## AUDIO PATH DETACHED ##", __func__);
       btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
       /* Post stop event and wait for audio path to stop */
       btif_av_stream_stop(RawAddress::kEmpty);
       break;
 
     default:
-      APPL_TRACE_ERROR("%s: ### A2DP-DATA EVENT %d NOT HANDLED ###", __func__,
-                       event);
+      LOG_ERROR("%s: ### A2DP-DATA EVENT %d NOT HANDLED ###", __func__, event);
       break;
   }
 }
@@ -400,16 +395,16 @@ void btif_a2dp_command_ack(tA2DP_CTRL_ACK status) {
   // Don't log A2DP_CTRL_GET_PRESENTATION_POSITION by default, because it
   // could be very chatty when audio is streaming.
   if (a2dp_cmd_pending == A2DP_CTRL_GET_PRESENTATION_POSITION) {
-    APPL_TRACE_DEBUG("%s: ## a2dp ack : %s, status %d ##", __func__,
-                     audio_a2dp_hw_dump_ctrl_event(a2dp_cmd_pending), status);
+    LOG_VERBOSE("%s: ## a2dp ack : %s, status %d ##", __func__,
+                audio_a2dp_hw_dump_ctrl_event(a2dp_cmd_pending), status);
   } else {
-    APPL_TRACE_WARNING("%s: ## a2dp ack : %s, status %d ##", __func__,
-                       audio_a2dp_hw_dump_ctrl_event(a2dp_cmd_pending), status);
+    LOG_WARN("%s: ## a2dp ack : %s, status %d ##", __func__,
+             audio_a2dp_hw_dump_ctrl_event(a2dp_cmd_pending), status);
   }
 
   /* Sanity check */
   if (a2dp_cmd_pending == A2DP_CTRL_CMD_NONE) {
-    APPL_TRACE_ERROR("%s: warning : no command pending, ignore ack", __func__);
+    LOG_ERROR("%s: warning : no command pending, ignore ack", __func__);
     return;
   }
 
@@ -428,12 +423,12 @@ void btif_a2dp_control_log_bytes_read(uint32_t bytes_read) {
 }
 
 void btif_a2dp_control_set_audio_delay(uint16_t delay) {
-  APPL_TRACE_DEBUG("%s: DELAY: %.1f ms", __func__, (float)delay / 10);
+  LOG_VERBOSE("%s: DELAY: %.1f ms", __func__, (float)delay / 10);
   delay_report_stats.audio_delay = delay;
 }
 
 void btif_a2dp_control_reset_audio_delay(void) {
-  APPL_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
   delay_report_stats.audio_delay = 0;
   delay_report_stats.total_bytes_read = 0;
   delay_report_stats.timestamp = {};

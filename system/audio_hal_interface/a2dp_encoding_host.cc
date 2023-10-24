@@ -44,8 +44,8 @@ std::unique_ptr<tUIPC_STATE> a2dp_uipc = nullptr;
 
 static void btif_a2dp_data_cb([[maybe_unused]] tUIPC_CH_ID ch_id,
                               tUIPC_EVENT event) {
-  APPL_TRACE_WARNING("%s: BTIF MEDIA (A2DP-DATA) EVENT %s", __func__,
-                     dump_uipc_event(event));
+  LOG_WARN("%s: BTIF MEDIA (A2DP-DATA) EVENT %s", __func__,
+           dump_uipc_event(event));
 
   switch (event) {
     case UIPC_OPEN_EVT:
@@ -69,8 +69,7 @@ static void btif_a2dp_data_cb([[maybe_unused]] tUIPC_CH_ID ch_id,
       break;
 
     default:
-      APPL_TRACE_ERROR("%s: ### A2DP-DATA EVENT %d NOT HANDLED ###", __func__,
-                       event);
+      LOG_ERROR("%s: ### A2DP-DATA EVENT %d NOT HANDLED ###", __func__, event);
       break;
   }
 }
