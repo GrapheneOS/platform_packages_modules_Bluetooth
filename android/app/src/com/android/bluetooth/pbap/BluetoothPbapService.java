@@ -160,7 +160,8 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
     private static final int SDP_PBAP_SERVER_VERSION_1_2 = 0x0102;
     // PBAP v1.2.3, Sec. 7.1.2: local phonebook and favorites
-    private static final int SDP_PBAP_SUPPORTED_REPOSITORIES = 0x0009;
+    private static final int SDP_PBAP_SUPPORTED_REPOSITORIES_WITHOUT_SIM = 0x0009;
+    private static final int SDP_PBAP_SUPPORTED_REPOSITORIES_WITH_SIM = 0x000B;
     private static final int SDP_PBAP_SUPPORTED_FEATURES = 0x021F;
 
     /* PBAP will use Bluetooth notification ID from 1000000 (included) to 2000000 (excluded).
@@ -200,6 +201,10 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
     public static boolean isEnabled() {
         return BluetoothProperties.isProfilePbapServerEnabled().orElse(false);
+    }
+
+    public static boolean isSimEnabled() {
+        return BluetoothProperties.isProfilePbapSimEnabled().orElse(false);
     }
 
     private class BluetoothPbapContentObserver extends ContentObserver {
@@ -376,6 +381,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             return;
         }
 
+        int pbapSupportedRepositories = isSimEnabled() ? SDP_PBAP_SUPPORTED_REPOSITORIES_WITH_SIM
+                : SDP_PBAP_SUPPORTED_REPOSITORIES_WITHOUT_SIM;
+
         mSdpHandle =
                 SdpManagerNativeInterface.getInstance()
                         .createPbapPseRecord(
@@ -383,7 +391,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                                 mServerSockets.getRfcommChannel(),
                                 mServerSockets.getL2capPsm(),
                                 SDP_PBAP_SERVER_VERSION_1_2,
-                                SDP_PBAP_SUPPORTED_REPOSITORIES,
+                                pbapSupportedRepositories,
                                 SDP_PBAP_SUPPORTED_FEATURES);
 
         if (DEBUG) {
