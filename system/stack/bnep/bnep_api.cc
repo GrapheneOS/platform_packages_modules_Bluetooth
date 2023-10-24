@@ -240,7 +240,7 @@ tBNEP_RESULT BNEP_ConnectResp(uint16_t handle, tBNEP_RESULT resp) {
   else
     resp_code = BNEP_SETUP_CONN_NOT_ALLOWED;
 
-  bnep_send_conn_responce(p_bcb, resp_code);
+  bnep_send_conn_response(p_bcb, resp_code);
   p_bcb->con_flags &= (~BNEP_FLAGS_SETUP_RCVD);
 
   if (resp == BNEP_SUCCESS)

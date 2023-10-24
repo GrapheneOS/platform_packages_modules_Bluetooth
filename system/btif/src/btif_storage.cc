@@ -418,7 +418,7 @@ static bool cfg2prop(const RawAddress* remote_bd_addr, bt_property_t* prop) {
     } break;
 
     default:
-      LOG_ERROR("Unknow prop type:%d", prop->type);
+      LOG_ERROR("Unknown prop type:%d", prop->type);
       return false;
   }
   return ret;

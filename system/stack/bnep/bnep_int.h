@@ -194,7 +194,7 @@ void bnepu_process_peer_filter_set(tBNEP_CONN* p_bcb, uint8_t* p_filters,
 void bnepu_process_peer_filter_rsp(tBNEP_CONN* p_bcb, uint8_t* p_data);
 void bnepu_process_multicast_filter_rsp(tBNEP_CONN* p_bcb, uint8_t* p_data);
 void bnep_send_conn_req(tBNEP_CONN* p_bcb);
-void bnep_send_conn_responce(tBNEP_CONN* p_bcb, uint16_t resp_code);
+void bnep_send_conn_response(tBNEP_CONN* p_bcb, uint16_t resp_code);
 void bnep_process_setup_conn_req(tBNEP_CONN* p_bcb, uint8_t* p_setup,
                                  uint8_t len);
 void bnep_process_setup_conn_responce(tBNEP_CONN* p_bcb, uint8_t* p_setup);
