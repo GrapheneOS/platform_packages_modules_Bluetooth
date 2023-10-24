@@ -19,6 +19,7 @@ package com.android.bluetooth.le_audio;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.bluetooth.IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID;
+
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 import static com.android.modules.utils.build.SdkLevel.isAtLeastU;
 
@@ -198,6 +199,7 @@ public class LeAudioService extends ProfileService {
 
     private static class LeAudioDeviceDescriptor {
         LeAudioDeviceDescriptor(boolean isInbandRingtonEnabled) {
+            mAclConnected = false;
             mStateMachine = null;
             mGroupId = LE_AUDIO_GROUP_ID_INVALID;
             mSinkAudioLocation = BluetoothLeAudio.AUDIO_LOCATION_INVALID;
@@ -205,6 +207,7 @@ public class LeAudioService extends ProfileService {
             mDevInbandRingtoneEnabled = isInbandRingtonEnabled;
         }
 
+        public boolean mAclConnected;
         public LeAudioStateMachine mStateMachine;
         public Integer mGroupId;
         public Integer mSinkAudioLocation;
@@ -1272,8 +1275,33 @@ public class LeAudioService extends ProfileService {
             return false;
         }
 
+        if (allLeAudioDevicesConnected()) {
+            Log.d(TAG, "isScannerNeeded: all devices connected, scanner not needed");
+            return false;
+        }
+
         if (DBG) {
             Log.d(TAG, "isScannerNeeded: true");
+        }
+        return true;
+    }
+
+    boolean allLeAudioDevicesConnected() {
+        synchronized (mGroupLock) {
+            for (Map.Entry<BluetoothDevice, LeAudioDeviceDescriptor> deviceEntry :
+                    mDeviceDescriptors.entrySet()) {
+                LeAudioDeviceDescriptor deviceDescriptor = deviceEntry.getValue();
+
+                if (deviceDescriptor.mStateMachine == null) {
+                    /* Lack of state machine means device is not connected */
+                    return false;
+                }
+
+                if (!deviceDescriptor.mStateMachine.isConnected()
+                        || !deviceDescriptor.mAclConnected) {
+                    return false;
+                }
+            }
         }
         return true;
     }
@@ -2024,6 +2052,7 @@ public class LeAudioService extends ProfileService {
                     switch (stackEvent.valueInt1) {
                         case LeAudioStackEvent.CONNECTION_STATE_DISCONNECTING:
                         case LeAudioStackEvent.CONNECTION_STATE_DISCONNECTED:
+                            deviceDescriptor.mAclConnected = false;
                             startAudioServersBackgroundScan(/* retry = */ false);
 
                             boolean disconnectDueToUnbond =
@@ -2042,6 +2071,7 @@ public class LeAudioService extends ProfileService {
                             break;
                         case LeAudioStackEvent.CONNECTION_STATE_CONNECTED:
                         case LeAudioStackEvent.CONNECTION_STATE_CONNECTING:
+                            deviceDescriptor.mAclConnected = true;
                             if (descriptor != null
                                     && Objects.equals(
                                             descriptor.mLostLeadDeviceWhileStreaming,
@@ -2060,6 +2090,7 @@ public class LeAudioService extends ProfileService {
                     switch (stackEvent.valueInt1) {
                         case LeAudioStackEvent.CONNECTION_STATE_CONNECTED:
                         case LeAudioStackEvent.CONNECTION_STATE_CONNECTING:
+                            deviceDescriptor.mAclConnected = true;
                             sm = getOrCreateStateMachine(device);
                             /* Incoming connection try to connect other devices from the group */
                             connectSet(device);
@@ -4078,7 +4109,8 @@ public class LeAudioService extends ProfileService {
                     } else {
                         ProfileService.println(sb, "state machine is null");
                     }
-
+                    ProfileService.println(
+                            sb, "    mAclConnected: " + deviceDescriptor.mAclConnected);
                     ProfileService.println(sb, "    mDevInbandRingtoneEnabled: "
                             + deviceDescriptor.mDevInbandRingtoneEnabled);
                     ProfileService.println(sb, "    mSinkAudioLocation: "
@@ -4098,6 +4130,7 @@ public class LeAudioService extends ProfileService {
                 }
 
                 deviceDescriptor.mStateMachine.dump(sb);
+                ProfileService.println(sb, "    mAclConnected: " + deviceDescriptor.mAclConnected);
                 ProfileService.println(sb, "    mDevInbandRingtoneEnabled: "
                         + deviceDescriptor.mDevInbandRingtoneEnabled);
                 ProfileService.println(sb, "    mSinkAudioLocation: "
