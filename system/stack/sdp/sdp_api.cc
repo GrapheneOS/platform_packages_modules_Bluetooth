@@ -598,7 +598,7 @@ static bool sdp_fill_proto_elem(const tSDP_DISC_ATTR* p_attr,
     /* Now, see if the entry contains the layer we are interested in */
     for (p_sattr = p_attr->attr_value.v.p_sub_attr; p_sattr;
          p_sattr = p_sattr->p_next_attr) {
-      /* SDP_TRACE_DEBUG ("SDP - p_sattr 0x%x, layer_uuid:0x%x, u16:0x%x####",
+      /* LOG_VERBOSE ("SDP - p_sattr 0x%x, layer_uuid:0x%x, u16:0x%x####",
           p_sattr, layer_uuid, p_sattr->attr_value.v.u16); */
 
       if ((SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE) &&

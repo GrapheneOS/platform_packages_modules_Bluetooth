@@ -412,7 +412,7 @@ tAVRC_STS AVRC_Ctrl_ParsCommand(tAVRC_MSG* p_msg, tAVRC_COMMAND* p_result) {
 
 #define RETURN_STATUS_IF_FALSE(_status_, _b_, _msg_, ...) \
   if (!(_b_)) {                                           \
-    AVRC_TRACE_DEBUG(_msg_, ##__VA_ARGS__);               \
+    LOG_VERBOSE(_msg_, ##__VA_ARGS__);                    \
     return _status_;                                      \
   }
 
