@@ -211,18 +211,18 @@ void bnep_send_conn_req(tBNEP_CONN* p_bcb) {
 
 /*******************************************************************************
  *
- * Function         bnep_send_conn_responce
+ * Function         bnep_send_conn_response
  *
  * Description      This function sends a BNEP setup response to peer
  *
  * Returns          void
  *
  ******************************************************************************/
-void bnep_send_conn_responce(tBNEP_CONN* p_bcb, uint16_t resp_code) {
+void bnep_send_conn_response(tBNEP_CONN* p_bcb, uint16_t resp_code) {
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(BNEP_BUF_SIZE);
   uint8_t* p;
 
-  LOG_DEBUG("BNEP - bnep_send_conn_responce for CID: 0x%x", p_bcb->l2cap_cid);
+  LOG_DEBUG("BNEP - bnep_send_conn_response for CID: 0x%x", p_bcb->l2cap_cid);
 
   p_buf->offset = L2CAP_MIN_OFFSET;
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -535,7 +535,7 @@ void bnep_process_setup_conn_req(tBNEP_CONN* p_bcb, uint8_t* p_setup,
       p_bcb->con_state != BNEP_STATE_SEC_CHECKING &&
       p_bcb->con_state != BNEP_STATE_CONNECTED) {
     LOG_ERROR("BNEP - setup request in bad state %d", p_bcb->con_state);
-    bnep_send_conn_responce(p_bcb, BNEP_SETUP_CONN_NOT_ALLOWED);
+    bnep_send_conn_response(p_bcb, BNEP_SETUP_CONN_NOT_ALLOWED);
     return;
   }
 
@@ -553,7 +553,7 @@ void bnep_process_setup_conn_req(tBNEP_CONN* p_bcb, uint8_t* p_setup,
       (p_bcb->con_flags & BNEP_FLAGS_IS_ORIG)) {
     LOG_ERROR("BNEP - setup request when we are originator state:%hu",
               p_bcb->con_state);
-    bnep_send_conn_responce(p_bcb, BNEP_SETUP_CONN_NOT_ALLOWED);
+    bnep_send_conn_response(p_bcb, BNEP_SETUP_CONN_NOT_ALLOWED);
     return;
   }
 
@@ -576,7 +576,7 @@ void bnep_process_setup_conn_req(tBNEP_CONN* p_bcb, uint8_t* p_setup,
     if (p_bcb->con_state == BNEP_STATE_CONNECTED &&
         p_bcb->src_uuid == p_bcb->prv_src_uuid &&
         p_bcb->dst_uuid == p_bcb->prv_dst_uuid) {
-      bnep_send_conn_responce(p_bcb, BNEP_SETUP_CONN_OK);
+      bnep_send_conn_response(p_bcb, BNEP_SETUP_CONN_OK);
       return;
     }
   } else if (len == Uuid::kNumBytes32) {
@@ -595,7 +595,7 @@ void bnep_process_setup_conn_req(tBNEP_CONN* p_bcb, uint8_t* p_setup,
     p_setup += len;
   } else {
     LOG_ERROR("BNEP - Bad UID len %d in ConnReq", len);
-    bnep_send_conn_responce(p_bcb, BNEP_SETUP_INVALID_UUID_SIZE);
+    bnep_send_conn_response(p_bcb, BNEP_SETUP_INVALID_UUID_SIZE);
     return;
   }
 
@@ -1171,7 +1171,7 @@ void bnep_sec_check_complete(const RawAddress* bd_addr, tBT_TRANSPORT trasnport,
                              p_bcb->src_uuid, is_role_change);
   } else {
     /* Profile didn't register connection indication call back */
-    bnep_send_conn_responce(p_bcb, resp_code);
+    bnep_send_conn_response(p_bcb, resp_code);
     bnep_connected(p_bcb);
   }
 }
