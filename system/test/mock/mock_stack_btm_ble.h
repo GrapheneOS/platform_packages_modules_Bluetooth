@@ -28,11 +28,12 @@
 // Original included files, if any
 #include "device/include/controller.h"
 #include "stack/btm/btm_dev.h"
-#include "stack/btm/btm_int_types.h"
-#include "stack/btm/security_device_record.h"
+// #include "stack/btm/btm_sec_int_types.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/l2cdefs.h"
 #include "types/raw_address.h"
+
+typedef uint8_t tBTM_SEC_ACTION;
 
 // Original usings
 

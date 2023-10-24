@@ -54,6 +54,7 @@
 #include "osi/include/allocator.h"
 #include "stack/acl/acl.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/btm/btm_sec_int_types.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/l2cap/l2c_int.h"
 #include "types/ble_address_with_type.h"
@@ -1306,14 +1307,14 @@ void DumpsysBtm(int fd) {
 void DumpsysRecord(int fd) {
   LOG_DUMPSYS_TITLE(fd, DUMPSYS_TAG);
 
-  if (btm_cb.sec_dev_rec == nullptr) {
+  if (btm_sec_cb.sec_dev_rec == nullptr) {
     LOG_DUMPSYS(fd, "Record is empty - no devices");
     return;
   }
 
   unsigned cnt = 0;
-  list_node_t* end = list_end(btm_cb.sec_dev_rec);
-  for (list_node_t* node = list_begin(btm_cb.sec_dev_rec); node != end;
+  list_node_t* end = list_end(btm_sec_cb.sec_dev_rec);
+  for (list_node_t* node = list_begin(btm_sec_cb.sec_dev_rec); node != end;
        node = list_next(node)) {
     tBTM_SEC_DEV_REC* p_dev_rec =
         static_cast<tBTM_SEC_DEV_REC*>(list_node(node));

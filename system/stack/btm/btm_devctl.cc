@@ -32,6 +32,8 @@
 #include "bta/sys/bta_sys.h"
 #include "btcore/include/module.h"
 #include "btif/include/btif_bqr.h"
+#include "btm_ble_int.h"
+#include "btm_sec_int_types.h"
 #include "common/message_loop_thread.h"
 #include "hci/include/hci_layer.h"
 #include "main/shim/btm_api.h"
@@ -41,7 +43,6 @@
 #include "main/shim/shim.h"
 #include "osi/include/compat.h"
 #include "osi/include/osi.h"
-#include "stack/btm/btm_ble_int.h"
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
@@ -86,7 +87,7 @@ static void BTM_BT_Quality_Report_VSE_CBack(uint8_t length,
  ******************************************************************************/
 void btm_dev_init() {
   /* Initialize nonzero defaults */
-  memset(btm_cb.cfg.bd_name, 0, sizeof(tBTM_LOC_BD_NAME));
+  memset(btm_sec_cb.cfg.bd_name, 0, sizeof(tBTM_LOC_BD_NAME));
 
   btm_cb.devcb.read_local_name_timer = alarm_new("btm.read_local_name_timer");
   btm_cb.devcb.read_rssi_timer = alarm_new("btm.read_rssi_timer");
@@ -174,7 +175,7 @@ void BTM_reset_complete() {
   l2cu_device_reset();
 
   /* Clear current security state */
-  list_foreach(btm_cb.sec_dev_rec, set_sec_state_idle, NULL);
+  list_foreach(btm_sec_cb.sec_dev_rec, set_sec_state_idle, NULL);
 
   /* After the reset controller should restore all parameters to defaults. */
   btm_cb.btm_inq_vars.inq_counter = 1;
@@ -186,7 +187,7 @@ void BTM_reset_complete() {
   btm_cb.btm_inq_vars.page_scan_period = HCI_DEF_PAGESCAN_INTERVAL;
   btm_cb.btm_inq_vars.page_scan_type = HCI_DEF_SCAN_TYPE;
 
-  btm_cb.ble_ctr_cb.set_connection_state_idle();
+  btm_sec_cb.ble_ctr_cb.set_connection_state_idle();
   connection_manager::reset(true);
 
   btm_pm_reset();
@@ -212,8 +213,8 @@ void BTM_reset_complete() {
     l2c_link_processs_ble_num_bufs(controller->get_acl_buffer_count_ble());
   }
 
-  BTM_SetPinType(btm_cb.cfg.pin_type, btm_cb.cfg.pin_code,
-                 btm_cb.cfg.pin_code_len);
+  BTM_SetPinType(btm_sec_cb.cfg.pin_type, btm_sec_cb.cfg.pin_code,
+                 btm_sec_cb.cfg.pin_code_len);
 
   decode_controller_support();
 }
@@ -325,9 +326,9 @@ tBTM_STATUS BTM_SetLocalDeviceName(const char* p_name) {
 
   if (!controller_get_interface()->get_is_ready()) return (BTM_DEV_RESET);
   /* Save the device name if local storage is enabled */
-  p = (uint8_t*)btm_cb.cfg.bd_name;
+  p = (uint8_t*)btm_sec_cb.cfg.bd_name;
   if (p != (uint8_t*)p_name)
-    strlcpy((char*)btm_cb.cfg.bd_name, p_name, BTM_MAX_LOC_BD_NAME_LEN + 1);
+    strlcpy((char*)btm_sec_cb.cfg.bd_name, p_name, BTM_MAX_LOC_BD_NAME_LEN + 1);
 
   btsnd_hcic_change_name(p);
   return (BTM_CMD_STARTED);
@@ -347,7 +348,7 @@ tBTM_STATUS BTM_SetLocalDeviceName(const char* p_name) {
  *
  ******************************************************************************/
 tBTM_STATUS BTM_ReadLocalDeviceName(const char** p_name) {
-  *p_name = (const char*)btm_cb.cfg.bd_name;
+  *p_name = (const char*)btm_sec_cb.cfg.bd_name;
   return (BTM_SUCCESS);
 }
 
@@ -667,14 +668,14 @@ tBTM_STATUS BTM_DeleteStoredLinkKey(const RawAddress* bd_addr,
    */
 #if !defined(TARGET_FLOSS)
   /* Check if the previous command is completed */
-  if (btm_cb.devcb.p_stored_link_key_cmpl_cb) return (BTM_BUSY);
+  if (btm_sec_cb.devcb.p_stored_link_key_cmpl_cb) return (BTM_BUSY);
 
   bool delete_all_flag = !bd_addr;
 
   BTM_TRACE_EVENT("BTM: BTM_DeleteStoredLinkKey: delete_all_flag: %s",
                   delete_all_flag ? "true" : "false");
 
-  btm_cb.devcb.p_stored_link_key_cmpl_cb = p_cb;
+  btm_sec_cb.devcb.p_stored_link_key_cmpl_cb = p_cb;
   if (!bd_addr) {
     /* This is to delete all link keys */
     /* We don't care the BD address. Just pass a non zero pointer */
@@ -700,11 +701,11 @@ tBTM_STATUS BTM_DeleteStoredLinkKey(const RawAddress* bd_addr,
  *
  ******************************************************************************/
 void btm_delete_stored_link_key_complete(uint8_t* p, uint16_t evt_len) {
-  tBTM_CMPL_CB* p_cb = btm_cb.devcb.p_stored_link_key_cmpl_cb;
+  tBTM_CMPL_CB* p_cb = btm_sec_cb.devcb.p_stored_link_key_cmpl_cb;
   tBTM_DELETE_STORED_LINK_KEY_COMPLETE result;
 
   /* If there was a callback registered for read stored link key, call it */
-  btm_cb.devcb.p_stored_link_key_cmpl_cb = NULL;
+  btm_sec_cb.devcb.p_stored_link_key_cmpl_cb = NULL;
 
   if (p_cb) {
     /* Set the call back event to indicate command complete */
