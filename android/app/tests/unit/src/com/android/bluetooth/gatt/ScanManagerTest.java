@@ -68,11 +68,14 @@ import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.BluetoothAdapterProxy;
 import com.android.bluetooth.btservice.MetricsLogger;
+import com.android.bluetooth.flags.FakeFeatureFlagsImpl;
+import com.android.bluetooth.flags.Flags;
 import com.android.internal.app.IBatteryStats;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -124,6 +127,7 @@ public class ScanManagerTest {
     @Mock private ScanNativeInterface mScanNativeInterface;
     @Mock private MetricsLogger  mMetricsLogger;
 
+    private FakeFeatureFlagsImpl mFakeFlagsImpl;
     private MockContentResolver mMockContentResolver;
     @Captor ArgumentCaptor<Long> mScanDurationCaptor;
 
@@ -181,7 +185,10 @@ public class ScanManagerTest {
         doReturn(mTargetContext.getUser()).when(mMockGattService).getUser();
         doReturn(mTargetContext.getPackageName()).when(mMockGattService).getPackageName();
 
-        mScanManager = new ScanManager(mMockGattService, mAdapterService, mBluetoothAdapterProxy);
+        mFakeFlagsImpl = new FakeFeatureFlagsImpl();
+        mScanManager =
+                new ScanManager(
+                        mMockGattService, mAdapterService, mBluetoothAdapterProxy, mFakeFlagsImpl);
 
         mHandler = mScanManager.getClientHandler();
         assertThat(mHandler).isNotNull();
@@ -1360,6 +1367,10 @@ public class ScanManagerTest {
 
     @Test
     public void profileConnectionStateChanged_sendStartConnectionMessage() {
+        // This test shouldn't be impacted by this flag. Setting it to false to ensure it passes
+        // with the older behavior. Tested flag set to true locally to make sure it doesn't fail
+        // when flag is removed.
+        mFakeFlagsImpl.setFlag(Flags.FLAG_ENABLE_QUEUING_PROFILE_CONNECTION_CHANGE, false);
         // Set scan downgrade duration through Mock
         when(mAdapterService.getScanDowngradeDurationMillis())
                 .thenReturn((long) DELAY_SCAN_DOWNGRADE_DURATION_MS);
@@ -1373,5 +1384,42 @@ public class ScanManagerTest {
         // Wait for handleConnectingState to happen
         TestUtils.waitForLooperToBeIdle(mHandler.getLooper());
         assertThat(mScanManager.mIsConnecting).isTrue();
+    }
+
+    @Test
+    public void multipleProfileConnectionStateChanged_updateCountersCorrectly()
+            throws ExecutionException, InterruptedException {
+        mFakeFlagsImpl.setFlag(Flags.FLAG_ENABLE_QUEUING_PROFILE_CONNECTION_CHANGE, true);
+        when(mAdapterService.getScanDowngradeDurationMillis())
+                .thenReturn((long) DELAY_SCAN_DOWNGRADE_DURATION_MS);
+        assertThat(mScanManager.mIsConnecting).isFalse();
+
+        Thread t1 =
+                new Thread(
+                        () ->
+                                mScanManager.handleBluetoothProfileConnectionStateChanged(
+                                        BluetoothProfile.A2DP,
+                                        BluetoothProfile.STATE_DISCONNECTED,
+                                        BluetoothProfile.STATE_CONNECTING));
+        Thread t2 =
+                new Thread(
+                        () ->
+                                mScanManager.handleBluetoothProfileConnectionStateChanged(
+                                        BluetoothProfile.HEADSET,
+                                        BluetoothProfile.STATE_DISCONNECTED,
+                                        BluetoothProfile.STATE_CONNECTING));
+
+        // Connect 3 profiles concurrently.
+        t1.start();
+        t2.start();
+        mScanManager.handleBluetoothProfileConnectionStateChanged(
+                BluetoothProfile.HID_HOST,
+                BluetoothProfile.STATE_DISCONNECTED,
+                BluetoothProfile.STATE_CONNECTING);
+
+        t1.join();
+        t2.join();
+        TestUtils.waitForLooperToBeIdle(mHandler.getLooper());
+        assertThat(mScanManager.mProfilesConnecting).isEqualTo(3);
     }
 }
