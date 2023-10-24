@@ -260,8 +260,7 @@ static tBTA_DM_STATE bta_dm_search_get_state() {
 static void bta_dm_search_start(tBTA_DM_MSG* p_data) {
   bta_dm_gattc_register();
 
-  APPL_TRACE_DEBUG("%s avoid_scatter=%d", __func__,
-                   p_bta_dm_cfg->avoid_scatter);
+  LOG_VERBOSE("%s avoid_scatter=%d", __func__, p_bta_dm_cfg->avoid_scatter);
 
   BTM_ClearInqDb(nullptr);
   /* save search params */
@@ -381,7 +380,7 @@ static bool bta_dm_read_remote_device_name(const RawAddress& bd_addr,
                                            tBT_TRANSPORT transport) {
   tBTM_STATUS btm_status;
 
-  APPL_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   bta_dm_search_cb.peer_bdaddr = bd_addr;
   bta_dm_search_cb.peer_name[0] = 0;
@@ -390,11 +389,11 @@ static bool bta_dm_read_remote_device_name(const RawAddress& bd_addr,
                                         bta_dm_remname_cback, transport);
 
   if (btm_status == BTM_CMD_STARTED) {
-    APPL_TRACE_DEBUG("%s: BTM_ReadRemoteDeviceName is started", __func__);
+    LOG_VERBOSE("%s: BTM_ReadRemoteDeviceName is started", __func__);
 
     return (true);
   } else if (btm_status == BTM_BUSY) {
-    APPL_TRACE_DEBUG("%s: BTM_ReadRemoteDeviceName is busy", __func__);
+    LOG_VERBOSE("%s: BTM_ReadRemoteDeviceName is busy", __func__);
 
     /* Remote name discovery is on going now so BTM cannot notify through
      * "bta_dm_remname_cback" */
@@ -405,8 +404,8 @@ static bool bta_dm_read_remote_device_name(const RawAddress& bd_addr,
 
     return (true);
   } else {
-    APPL_TRACE_WARNING("%s: BTM_ReadRemoteDeviceName returns 0x%02X", __func__,
-                       btm_status);
+    LOG_WARN("%s: BTM_ReadRemoteDeviceName returns 0x%02X", __func__,
+             btm_status);
 
     return (false);
   }
@@ -434,7 +433,7 @@ static void bta_dm_inq_cmpl(uint8_t num) {
 
   tBTA_DM_SEARCH data;
 
-  APPL_TRACE_DEBUG("bta_dm_inq_cmpl");
+  LOG_VERBOSE("bta_dm_inq_cmpl");
 
   data.inq_cmpl.num_resps = num;
   bta_dm_search_cb.p_search_cback(BTA_DM_INQ_CMPL_EVT, &data);
@@ -600,7 +599,7 @@ static void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
   if ((p_data->sdp_event.sdp_result == SDP_SUCCESS) ||
       (p_data->sdp_event.sdp_result == SDP_NO_RECS_MATCH) ||
       (p_data->sdp_event.sdp_result == SDP_DB_FULL)) {
-    APPL_TRACE_DEBUG("sdp_result::0x%x", p_data->sdp_event.sdp_result);
+    LOG_VERBOSE("sdp_result::0x%x", p_data->sdp_event.sdp_result);
     do {
       p_sdp_rec = NULL;
       if (bta_dm_search_cb.service_index == (BTA_USER_SERVICE_ID + 1)) {
@@ -676,8 +675,8 @@ static void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
 
     } while (bta_dm_search_cb.service_index <= BTA_MAX_SERVICE_ID);
 
-    APPL_TRACE_DEBUG("%s services_found = %04x", __func__,
-                     bta_dm_search_cb.services_found);
+    LOG_VERBOSE("%s services_found = %04x", __func__,
+                bta_dm_search_cb.services_found);
 
     /* Collect the 128-bit services here and put them into the list */
     if (bta_dm_search_cb.services == BTA_ALL_SERVICE_MASK) {
@@ -754,17 +753,16 @@ static void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
       if (bta_dm_search_cb.p_sdp_db != NULL &&
           bta_dm_search_cb.p_sdp_db->raw_used != 0 &&
           bta_dm_search_cb.p_sdp_db->raw_data != NULL) {
-        APPL_TRACE_DEBUG("%s raw_data used = 0x%x raw_data_ptr = 0x%p",
-                         __func__, bta_dm_search_cb.p_sdp_db->raw_used,
-                         bta_dm_search_cb.p_sdp_db->raw_data);
+        LOG_VERBOSE("%s raw_data used = 0x%x raw_data_ptr = 0x%p", __func__,
+                    bta_dm_search_cb.p_sdp_db->raw_used,
+                    bta_dm_search_cb.p_sdp_db->raw_data);
 
         bta_dm_search_cb.p_sdp_db->raw_data =
             NULL;  // no need to free this - it is a global assigned.
         bta_dm_search_cb.p_sdp_db->raw_used = 0;
         bta_dm_search_cb.p_sdp_db->raw_size = 0;
       } else {
-        APPL_TRACE_DEBUG("%s raw data size is 0 or raw_data is null!!",
-                         __func__);
+        LOG_VERBOSE("%s raw data size is 0 or raw_data is null!!", __func__);
       }
       /* Done with p_sdp_db. Free it */
       bta_dm_free_sdp_db();
@@ -777,8 +775,8 @@ static void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
             static_cast<tBTA_STATUS>((3 + bta_dm_search_cb.peer_scn));
         p_msg->disc_result.result.disc_res.services |= BTA_USER_SERVICE_MASK;
 
-        APPL_TRACE_EVENT(" Piggy back the SCN over result field  SCN=%d",
-                         bta_dm_search_cb.peer_scn);
+        LOG_VERBOSE(" Piggy back the SCN over result field  SCN=%d",
+                    bta_dm_search_cb.peer_scn);
       }
       p_msg->disc_result.result.disc_res.bd_addr = bta_dm_search_cb.peer_bdaddr;
       strlcpy((char*)p_msg->disc_result.result.disc_res.bd_name,
@@ -923,7 +921,7 @@ static void bta_dm_search_cmpl() {
  *
  ******************************************************************************/
 static void bta_dm_disc_result(tBTA_DM_MSG* p_data) {
-  APPL_TRACE_EVENT("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   /* disc_res.device_type is set only when GATT discovery is finished in
    * bta_dm_gatt_disc_complete */
@@ -953,9 +951,9 @@ static void bta_dm_disc_result(tBTA_DM_MSG* p_data) {
  *
  ******************************************************************************/
 static void bta_dm_search_result(tBTA_DM_MSG* p_data) {
-  APPL_TRACE_DEBUG("%s searching:0x%04x, result:0x%04x", __func__,
-                   bta_dm_search_cb.services,
-                   p_data->disc_result.result.disc_res.services);
+  LOG_VERBOSE("%s searching:0x%04x, result:0x%04x", __func__,
+              bta_dm_search_cb.services,
+              p_data->disc_result.result.disc_res.services);
 
   /* call back if application wants name discovery or found services that
    * application is searching */
@@ -990,7 +988,7 @@ static void bta_dm_search_result(tBTA_DM_MSG* p_data) {
  *
  ******************************************************************************/
 static void bta_dm_search_timer_cback(UNUSED_ATTR void* data) {
-  APPL_TRACE_EVENT("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
   bta_dm_search_cb.wait_disc = false;
 
   /* proceed with next device */
@@ -1146,8 +1144,8 @@ static void bta_dm_find_services(const RawAddress& bd_addr) {
             bta_dm_search_cb.service_index))) {
       bta_dm_search_cb.p_sdp_db =
           (tSDP_DISCOVERY_DB*)osi_malloc(BTA_DM_SDP_DB_SIZE);
-      APPL_TRACE_DEBUG("bta_dm_search_cb.services = %04x***********",
-                       bta_dm_search_cb.services);
+      LOG_VERBOSE("bta_dm_search_cb.services = %04x***********",
+                  bta_dm_search_cb.services);
       /* try to search all services by search based on L2CAP UUID */
       if (bta_dm_search_cb.services == BTA_ALL_SERVICE_MASK) {
         LOG_INFO("%s services_to_search=%08x", __func__,
@@ -1236,7 +1234,7 @@ static void bta_dm_find_services(const RawAddress& bd_addr) {
  *
  ******************************************************************************/
 static void bta_dm_discover_next_device(void) {
-  APPL_TRACE_DEBUG("bta_dm_discover_next_device");
+  LOG_VERBOSE("bta_dm_discover_next_device");
 
   /* searching next device on inquiry result */
   bta_dm_search_cb.p_btm_inq_info =
@@ -1299,14 +1297,14 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
 
   bta_dm_search_cb.peer_bdaddr = remote_bd_addr;
 
-  APPL_TRACE_DEBUG(
+  LOG_VERBOSE(
       "%s name_discover_done = %d p_btm_inq_info 0x%p state = %d, transport=%d",
       __func__, bta_dm_search_cb.name_discover_done,
       bta_dm_search_cb.p_btm_inq_info, bta_dm_search_get_state(), transport);
 
   if (bta_dm_search_cb.p_btm_inq_info) {
-    APPL_TRACE_DEBUG("%s appl_knows_rem_name %d", __func__,
-                     bta_dm_search_cb.p_btm_inq_info->appl_knows_rem_name);
+    LOG_VERBOSE("%s appl_knows_rem_name %d", __func__,
+                bta_dm_search_cb.p_btm_inq_info->appl_knows_rem_name);
   }
   if (((bta_dm_search_cb.p_btm_inq_info) &&
        (bta_dm_search_cb.p_btm_inq_info->results.device_type ==
@@ -1377,7 +1375,7 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
           bta_dm_search_cb.wait_disc = true;
       }
       if (bta_dm_search_cb.p_btm_inq_info) {
-        APPL_TRACE_DEBUG(
+        LOG_VERBOSE(
             "%s p_btm_inq_info 0x%p results.device_type 0x%x "
             "services_to_search 0x%x",
             __func__, bta_dm_search_cb.p_btm_inq_info,
@@ -1506,7 +1504,7 @@ static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, const uint8_t* p_eir,
  *
  ******************************************************************************/
 static void bta_dm_inq_cmpl_cb(void* p_result) {
-  APPL_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   bta_dm_inq_cmpl(((tBTM_INQUIRY_CMPL*)p_result)->num_resp);
 }
@@ -1526,7 +1524,7 @@ static void bta_dm_service_search_remname_cback(const RawAddress& bd_addr,
   tBTM_REMOTE_DEV_NAME rem_name = {};
   tBTM_STATUS btm_status;
 
-  APPL_TRACE_DEBUG("%s name=<%s>", __func__, bd_name);
+  LOG_VERBOSE("%s name=<%s>", __func__, bd_name);
 
   /* if this is what we are looking for */
   if (bta_dm_search_cb.peer_bdaddr == bd_addr) {
@@ -1546,11 +1544,11 @@ static void bta_dm_service_search_remname_cback(const RawAddress& bd_addr,
                                  bta_dm_remname_cback, BT_TRANSPORT_BR_EDR);
     if (btm_status == BTM_BUSY) {
       /* wait for next chance(notification of remote name discovery done) */
-      APPL_TRACE_DEBUG("%s: BTM_ReadRemoteDeviceName is busy", __func__);
+      LOG_VERBOSE("%s: BTM_ReadRemoteDeviceName is busy", __func__);
     } else if (btm_status != BTM_CMD_STARTED) {
       /* if failed to start getting remote name then continue */
-      APPL_TRACE_WARNING("%s: BTM_ReadRemoteDeviceName returns 0x%02X",
-                         __func__, btm_status);
+      LOG_WARN("%s: BTM_ReadRemoteDeviceName returns 0x%02X", __func__,
+               btm_status);
 
       // needed so our response is not ignored, since this corresponds to the
       // actual peer_bdaddr
@@ -1670,7 +1668,7 @@ static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
                                       const uint8_t* p_eir, uint16_t eir_len) {
   tBTA_DM_SEARCH result;
   tBTM_INQ_INFO* p_inq_info;
-  APPL_TRACE_DEBUG("bta_dm_observe_results_cb");
+  LOG_VERBOSE("bta_dm_observe_results_cb");
 
   result.inq_res.bd_addr = p_inq->remote_bd_addr;
   result.inq_res.original_bda = p_inq->original_bda;
@@ -1772,7 +1770,7 @@ static void bta_dm_opportunistic_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
 static void bta_dm_observe_cmpl_cb(void* p_result) {
   tBTA_DM_SEARCH data;
 
-  APPL_TRACE_DEBUG("bta_dm_observe_cmpl_cb");
+  LOG_VERBOSE("bta_dm_observe_cmpl_cb");
 
   data.inq_cmpl.num_resps = ((tBTM_INQUIRY_CMPL*)p_result)->num_resp;
   if (bta_dm_search_cb.p_scan_cback) {
@@ -1796,8 +1794,7 @@ static void bta_dm_start_scan(uint8_t duration_sec,
                 .num_resps = 0,
             },
     };
-    APPL_TRACE_WARNING(" %s BTM_BleObserve  failed. status %d", __func__,
-                       status);
+    LOG_WARN(" %s BTM_BleObserve  failed. status %d", __func__, status);
     if (bta_dm_search_cb.p_scan_cback) {
       bta_dm_search_cb.p_scan_cback(BTA_DM_INQ_CMPL_EVT, &data);
     }
@@ -1896,7 +1893,7 @@ static void bta_dm_gattc_register(void) {
  *
  ******************************************************************************/
 static void bta_dm_gatt_disc_complete(uint16_t conn_id, tGATT_STATUS status) {
-  APPL_TRACE_DEBUG("%s conn_id = %d", __func__, conn_id);
+  LOG_VERBOSE("%s conn_id = %d", __func__, conn_id);
 
   tBTA_DM_MSG* p_msg = (tBTA_DM_MSG*)osi_malloc(sizeof(tBTA_DM_MSG));
 
@@ -1904,8 +1901,8 @@ static void bta_dm_gatt_disc_complete(uint16_t conn_id, tGATT_STATUS status) {
   p_msg->hdr.event = BTA_DM_DISCOVERY_RESULT_EVT;
   p_msg->disc_result.result.disc_res.result =
       (status == GATT_SUCCESS) ? BTA_SUCCESS : BTA_FAILURE;
-  APPL_TRACE_DEBUG("%s service found: 0x%08x", __func__,
-                   bta_dm_search_cb.services_found);
+  LOG_VERBOSE("%s service found: 0x%08x", __func__,
+              bta_dm_search_cb.services_found);
   p_msg->disc_result.result.disc_res.services = bta_dm_search_cb.services_found;
   p_msg->disc_result.result.disc_res.num_uuids = 0;
   p_msg->disc_result.result.disc_res.p_uuid_list = NULL;
@@ -2079,7 +2076,7 @@ void bta_dm_proc_close_evt(const tBTA_GATTC_CLOSE& close) {
  *
  ******************************************************************************/
 static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
-  APPL_TRACE_DEBUG("bta_dm_gattc_callback event = %d", event);
+  LOG_VERBOSE("bta_dm_gattc_callback event = %d", event);
 
   switch (event) {
     case BTA_GATTC_OPEN_EVT:

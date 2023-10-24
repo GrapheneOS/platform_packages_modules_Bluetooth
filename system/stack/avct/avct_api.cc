@@ -58,7 +58,7 @@ uint8_t avct_trace_level = AVCT_INITIAL_TRACE_LEVEL;
  *
  ******************************************************************************/
 void AVCT_Register() {
-  AVCT_TRACE_API("AVCT_Register");
+  LOG_VERBOSE("AVCT_Register");
 
   /* initialize AVCTP data structures */
   memset(&avct_cb, 0, sizeof(tAVCT_CB));
@@ -93,7 +93,7 @@ void AVCT_Register() {
  *
  ******************************************************************************/
 void AVCT_Deregister(void) {
-  AVCT_TRACE_API("AVCT_Deregister");
+  LOG_VERBOSE("AVCT_Deregister");
 
   /* deregister PSM with L2CAP */
   L2CA_Deregister(AVCT_PSM);
@@ -122,7 +122,7 @@ uint16_t AVCT_CreateConn(uint8_t* p_handle, tAVCT_CC* p_cc,
   tAVCT_CCB* p_ccb;
   tAVCT_LCB* p_lcb;
 
-  AVCT_TRACE_API("AVCT_CreateConn: %d, control:%d", p_cc->role, p_cc->control);
+  LOG_VERBOSE("AVCT_CreateConn: %d, control:%d", p_cc->role, p_cc->control);
 
   /* Allocate ccb; if no ccbs, return failure */
   p_ccb = avct_ccb_alloc(p_cc);
@@ -153,7 +153,7 @@ uint16_t AVCT_CreateConn(uint8_t* p_handle, tAVCT_CC* p_cc,
       if (result == AVCT_SUCCESS) {
         /* bind lcb to ccb */
         p_ccb->p_lcb = p_lcb;
-        AVCT_TRACE_DEBUG("ch_state: %d", p_lcb->ch_state);
+        LOG_VERBOSE("ch_state: %d", p_lcb->ch_state);
         tAVCT_LCB_EVT avct_lcb_evt;
         avct_lcb_evt.p_ccb = p_ccb;
         avct_lcb_event(p_lcb, AVCT_LCB_UL_BIND_EVT, &avct_lcb_evt);
@@ -180,7 +180,7 @@ uint16_t AVCT_RemoveConn(uint8_t handle) {
   uint16_t result = AVCT_SUCCESS;
   tAVCT_CCB* p_ccb;
 
-  AVCT_TRACE_API("AVCT_RemoveConn");
+  LOG_VERBOSE("AVCT_RemoveConn");
 
   /* map handle to ccb */
   p_ccb = avct_ccb_by_idx(handle);
@@ -223,7 +223,7 @@ uint16_t AVCT_CreateBrowse(uint8_t handle, uint8_t role) {
   tAVCT_BCB* p_bcb;
   int index;
 
-  AVCT_TRACE_API("AVCT_CreateBrowse: %d", role);
+  LOG_VERBOSE("AVCT_CreateBrowse: %d", role);
 
   /* map handle to ccb */
   p_ccb = avct_ccb_by_idx(handle);
@@ -257,7 +257,7 @@ uint16_t AVCT_CreateBrowse(uint8_t handle, uint8_t role) {
       /* bind bcb to ccb */
       p_ccb->p_bcb = p_bcb;
       p_bcb->peer_addr = p_ccb->p_lcb->peer_addr;
-      AVCT_TRACE_DEBUG("ch_state: %d", p_bcb->ch_state);
+      LOG_VERBOSE("ch_state: %d", p_bcb->ch_state);
       tAVCT_LCB_EVT avct_lcb_evt;
       avct_lcb_evt.p_ccb = p_ccb;
       avct_bcb_event(p_bcb, AVCT_LCB_UL_BIND_EVT, &avct_lcb_evt);
@@ -284,7 +284,7 @@ uint16_t AVCT_RemoveBrowse(uint8_t handle) {
   uint16_t result = AVCT_SUCCESS;
   tAVCT_CCB* p_ccb;
 
-  AVCT_TRACE_API("AVCT_RemoveBrowse");
+  LOG_VERBOSE("AVCT_RemoveBrowse");
 
   /* map handle to ccb */
   p_ccb = avct_ccb_by_idx(handle);
@@ -375,14 +375,14 @@ uint16_t AVCT_MsgReq(uint8_t handle, uint8_t label, uint8_t cr, BT_HDR* p_msg) {
   tAVCT_CCB* p_ccb;
   tAVCT_UL_MSG ul_msg;
 
-  AVCT_TRACE_API("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   /* verify p_msg parameter */
   if (p_msg == NULL) {
     return AVCT_NO_RESOURCES;
   }
-  AVCT_TRACE_API("%s len: %d layer_specific: %d", __func__, p_msg->len,
-                 p_msg->layer_specific);
+  LOG_VERBOSE("%s len: %d layer_specific: %d", __func__, p_msg->len,
+              p_msg->layer_specific);
 
   /* map handle to ccb */
   p_ccb = avct_ccb_by_idx(handle);

@@ -757,10 +757,10 @@ void avdt_scb_event(AvdtpScb* p_scb, uint8_t event, tAVDT_SCB_EVT* p_data) {
   uint8_t action;
 
 #if (AVDT_DEBUG == TRUE)
-  AVDT_TRACE_EVENT(
-      "%s: SCB hdl=%d event=%d/%s state=%s p_avdt_scb=%p scb_index=%d",
-      __func__, avdt_scb_to_hdl(p_scb), event, avdt_scb_evt_str[event],
-      avdt_scb_st_str[p_scb->state], p_scb, p_scb->stream_config.scb_index);
+  LOG_VERBOSE("%s: SCB hdl=%d event=%d/%s state=%s p_avdt_scb=%p scb_index=%d",
+              __func__, avdt_scb_to_hdl(p_scb), event, avdt_scb_evt_str[event],
+              avdt_scb_st_str[p_scb->state], p_scb,
+              p_scb->stream_config.scb_index);
 #endif
 
   /* Check that we only send AVDT_SCB_API_WRITE_REQ_EVT to the active stream
@@ -787,7 +787,7 @@ void avdt_scb_event(AvdtpScb* p_scb, uint8_t event, tAVDT_SCB_EVT* p_data) {
     avdtp_cb.ccb[ccb_index].scb[scb_index].curr_stream = true;
   } else if (num_st_streams > 1 && !p_scb->curr_stream &&
              event == AVDT_SCB_API_WRITE_REQ_EVT) {
-    AVDT_TRACE_ERROR("%s: ignore AVDT_SCB_API_WRITE_REQ_EVT", __func__);
+    LOG_ERROR("%s: ignore AVDT_SCB_API_WRITE_REQ_EVT", __func__);
     avdt_scb_free_pkt(p_scb, p_data);
     return;
   }
@@ -853,14 +853,13 @@ AvdtpScb* avdt_scb_alloc(uint8_t peer_id,
   for (int i = 0; i < AVDT_NUM_SEPS; i++, p_scb++) {
     if (!p_scb->allocated) {
       p_scb->Allocate(&avdtp_cb.ccb[peer_id], avdtp_stream_config);
-      AVDT_TRACE_DEBUG("%s: allocated (handle=%d, psc_mask:0x%x)", __func__,
-                       p_scb->ScbHandle(), avdtp_stream_config.cfg.psc_mask);
+      LOG_VERBOSE("%s: allocated (handle=%d, psc_mask:0x%x)", __func__,
+                  p_scb->ScbHandle(), avdtp_stream_config.cfg.psc_mask);
       return p_scb;
     }
   }
 
-  AVDT_TRACE_WARNING("%s: out of AvdtScb entries for peer_id %d", __func__,
-                     peer_id);
+  LOG_WARN("%s: out of AvdtScb entries for peer_id %d", __func__, peer_id);
   return nullptr;
 }
 
@@ -885,7 +884,7 @@ void AvdtpScb::Allocate(AvdtpCcb* p_avdtp_ccb,
  *
  ******************************************************************************/
 void avdt_scb_dealloc(AvdtpScb* p_scb, UNUSED_ATTR tAVDT_SCB_EVT* p_data) {
-  AVDT_TRACE_DEBUG("%s: hdl=%d", __func__, avdt_scb_to_hdl(p_scb));
+  LOG_VERBOSE("%s: hdl=%d", __func__, avdt_scb_to_hdl(p_scb));
   p_scb->Recycle();
 }
 
@@ -915,7 +914,7 @@ uint8_t avdt_scb_to_hdl(AvdtpScb* p_scb) { return p_scb->ScbHandle(); }
 AvdtpScb* avdt_scb_by_hdl(uint8_t hdl) {
   // Verify the index
   if ((hdl < 1) || (hdl > AVDT_NUM_LINKS * AVDT_NUM_SEPS)) {
-    AVDT_TRACE_WARNING("%s: SCB handle %d out of range", __func__, hdl);
+    LOG_WARN("%s: SCB handle %d out of range", __func__, hdl);
     return nullptr;
   }
 
@@ -926,12 +925,12 @@ AvdtpScb* avdt_scb_by_hdl(uint8_t hdl) {
   AvdtpScb* p_scb = &avdtp_cb.ccb[i].scb[j];
   // Verify the whether the scb is allocated
   if (!p_scb->allocated) {
-    AVDT_TRACE_WARNING("%s: SCB handle %d not allocated", __func__, hdl);
+    LOG_WARN("%s: SCB handle %d not allocated", __func__, hdl);
     return nullptr;
   }
 
-  AVDT_TRACE_DEBUG("%s: SCB for handle %d found: p_scb=%p scb_index=%d",
-                   __func__, hdl, p_scb, p_scb->stream_config.scb_index);
+  LOG_VERBOSE("%s: SCB for handle %d found: p_scb=%p scb_index=%d", __func__,
+              hdl, p_scb, p_scb->stream_config.scb_index);
   return p_scb;
 }
 
@@ -947,7 +946,7 @@ AvdtpScb* avdt_scb_by_hdl(uint8_t hdl) {
  ******************************************************************************/
 uint8_t avdt_scb_verify(AvdtpCcb* p_ccb, uint8_t state, uint8_t* p_seid,
                         uint16_t num_seid, uint8_t* p_err_code) {
-  AVDT_TRACE_DEBUG("avdt_scb_verify state %d", state);
+  LOG_VERBOSE("avdt_scb_verify state %d", state);
   /* set nonsupported command mask */
   /* translate public state into private state */
   uint8_t nsc_mask = 0;

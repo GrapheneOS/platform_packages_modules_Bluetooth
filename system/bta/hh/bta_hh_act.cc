@@ -204,8 +204,8 @@ static void bta_hh_sdp_cback(uint16_t result, uint16_t attr_mask,
     /* security is required for the connection, add attr_mask bit*/
     attr_mask |= HID_SEC_REQUIRED;
 
-    APPL_TRACE_EVENT("%s: p_cb: %p result 0x%02x, attr_mask 0x%02x, handle %x",
-                     __func__, p_cb, result, attr_mask, p_cb->hid_handle);
+    LOG_VERBOSE("%s: p_cb: %p result 0x%02x, attr_mask 0x%02x, handle %x",
+                __func__, p_cb, result, attr_mask, p_cb->hid_handle);
 
     /* check to see type of device is supported , and should not been added
      * before */
@@ -266,7 +266,7 @@ static void bta_hh_di_sdp_cback(UNUSED_ATTR const RawAddress& bd_addr,
   tBTA_HH_STATUS status = BTA_HH_ERR_SDP;
   tSDP_DI_GET_RECORD di_rec;
   tHID_STATUS ret;
-  APPL_TRACE_EVENT("%s: p_cb: %p result 0x%02x", __func__, p_cb, result);
+  LOG_VERBOSE("%s: p_cb: %p result 0x%02x", __func__, p_cb, result);
 
   /* if DI record does not exist on remote device, vendor_id in
    * tBTA_HH_DEV_DSCP_INFO will be set to 0xffff and we will allow the
@@ -296,8 +296,8 @@ static void bta_hh_di_sdp_cback(UNUSED_ATTR const RawAddress& bd_addr,
     if (ret == HID_SUCCESS) {
       status = BTA_HH_OK;
     } else {
-      APPL_TRACE_DEBUG("%s:  HID_HostGetSDPRecord failed: Status 0x%2x",
-                       __func__, ret);
+      LOG_VERBOSE("%s:  HID_HostGetSDPRecord failed: Status 0x%2x", __func__,
+                  ret);
     }
   }
 
@@ -372,7 +372,7 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
   tBTA_HH_CONN conn_dat;
   tBTA_HH_STATUS status = p_data->status;
 
-  APPL_TRACE_DEBUG("%s:  status 0x%2X", __func__, p_data->status);
+  LOG_VERBOSE("%s:  status 0x%2X", __func__, p_data->status);
 
   /* initialize call back data */
   memset((void*)&conn_dat, 0, sizeof(tBTA_HH_CONN));
@@ -387,18 +387,17 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
 
       /* open HID connection */
       ret = HID_HostOpenDev(p_cb->hid_handle);
-      APPL_TRACE_DEBUG("%s: HID_HostOpenDev returned=%d", __func__, ret);
+      LOG_VERBOSE("%s: HID_HostOpenDev returned=%d", __func__, ret);
       if (ret == HID_SUCCESS || ret == HID_ERR_ALREADY_CONN) {
         status = BTA_HH_OK;
       } else if (ret == HID_ERR_CONN_IN_PROCESS) {
         /* Connection already in progress, return from here, SDP
          * will be performed after connection is completed.
          */
-        APPL_TRACE_DEBUG("%s: connection already in progress", __func__);
+        LOG_VERBOSE("%s: connection already in progress", __func__);
         return;
       } else {
-        APPL_TRACE_DEBUG("%s: HID_HostOpenDev failed: Status 0x%2X", __func__,
-                         ret);
+        LOG_VERBOSE("%s: HID_HostOpenDev failed: Status 0x%2X", __func__, ret);
         /* open fail, remove device from management device list */
         HID_HostRemoveDev(p_cb->hid_handle);
         status = BTA_HH_ERR;
@@ -417,8 +416,8 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
      */
     if ((status == BTA_HH_ERR_SDP) && (p_cb->incoming_conn) &&
         (p_cb->app_id == 0)) {
-      APPL_TRACE_ERROR("%s: SDP failed for  incoming conn hndl: %d", __func__,
-                       p_cb->incoming_hid_handle);
+      LOG_ERROR("%s: SDP failed for  incoming conn hndl: %d", __func__,
+                p_cb->incoming_hid_handle);
       HID_HostRemoveDev(p_cb->incoming_hid_handle);
     }
     conn_dat.status = status;
@@ -458,7 +457,7 @@ static void bta_hh_bredr_conn(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) 
     tBTA_HH_DATA bta_hh_data;
     bta_hh_data.status = BTA_HH_OK;
 
-    APPL_TRACE_DEBUG("%s: skip SDP for known devices", __func__);
+    LOG_VERBOSE("%s: skip SDP for known devices", __func__);
 
     if (p_cb->hid_handle == BTA_HH_INVALID_HANDLE) {
       uint8_t hdl;
@@ -674,7 +673,7 @@ void bta_hh_open_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
   uint8_t dev_handle =
       p_data ? (uint8_t)p_data->hid_cback.hdr.layer_specific : p_cb->hid_handle;
 
-  APPL_TRACE_EVENT("%s:  Device[%d] connected", __func__, dev_handle);
+  LOG_VERBOSE("%s:  Device[%d] connected", __func__, dev_handle);
 
   /* SDP has been done */
   if (p_cb->app_id != 0) {
@@ -729,8 +728,8 @@ void bta_hh_data_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
  *
  ******************************************************************************/
 void bta_hh_handsk_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
-  APPL_TRACE_DEBUG("HANDSHAKE received for: event = %s data= %d",
-                   bta_hh_get_w4_event(p_cb->w4_evt), p_data->hid_cback.data);
+  LOG_VERBOSE("HANDSHAKE received for: event = %s data= %d",
+              bta_hh_get_w4_event(p_cb->w4_evt), p_data->hid_cback.data);
 
   tBTA_HH bta_hh;
   memset(&bta_hh, 0, sizeof(tBTA_HH));
@@ -775,7 +774,7 @@ void bta_hh_handsk_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
 
     default:
       /* unknow transaction handshake response */
-      APPL_TRACE_DEBUG("unknown transaction type");
+      LOG_VERBOSE("unknown transaction type");
       break;
   }
 
@@ -798,8 +797,8 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
   uint8_t* data = (uint8_t*)(pdata + 1) + pdata->offset;
   tBTA_HH_HSDATA hs_data;
 
-  APPL_TRACE_DEBUG("Ctrl DATA received w4: event[%s]",
-                   bta_hh_get_w4_event(p_cb->w4_evt));
+  LOG_VERBOSE("Ctrl DATA received w4: event[%s]",
+              bta_hh_get_w4_event(p_cb->w4_evt));
   if (pdata->len == 0) {
     p_cb->w4_evt = 0;
     osi_free_and_reset((void**)&pdata);
@@ -820,10 +819,10 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
       hs_data.rsp_data.proto_mode = ((*data) == HID_PAR_PROTOCOL_REPORT)
                                         ? BTA_HH_PROTO_RPT_MODE
                                         : BTA_HH_PROTO_BOOT_MODE;
-      APPL_TRACE_DEBUG("GET_PROTOCOL Mode = [%s]",
-                       (hs_data.rsp_data.proto_mode == BTA_HH_PROTO_RPT_MODE)
-                           ? "Report"
-                           : "Boot");
+      LOG_VERBOSE("GET_PROTOCOL Mode = [%s]",
+                  (hs_data.rsp_data.proto_mode == BTA_HH_PROTO_RPT_MODE)
+                      ? "Report"
+                      : "Boot");
       break;
     /* should not expect control DATA for SET_ transaction */
     case BTA_HH_SET_PROTO_EVT:
@@ -833,8 +832,8 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
     case BTA_HH_SET_IDLE_EVT:
       FALLTHROUGH_INTENDED; /* FALLTHROUGH */
     default:
-      APPL_TRACE_DEBUG("invalid  transaction type for DATA payload: 4_evt[%s]",
-                       bta_hh_get_w4_event(p_cb->w4_evt));
+      LOG_VERBOSE("invalid  transaction type for DATA payload: 4_evt[%s]",
+                  bta_hh_get_w4_event(p_cb->w4_evt));
       break;
   }
 
@@ -1078,7 +1077,7 @@ void bta_hh_maint_dev_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
       break;
 
     default:
-      APPL_TRACE_DEBUG("invalid command");
+      LOG_VERBOSE("invalid command");
       break;
   }
 
@@ -1182,8 +1181,7 @@ void bta_hh_write_dev_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
         /* currently not expected */
         case HID_TRANS_DATAC:
         default:
-          APPL_TRACE_DEBUG("%s: cmd type = %d", __func__,
-                           p_data->api_sndcmd.t_type);
+          LOG_VERBOSE("%s: cmd type = %d", __func__, p_data->api_sndcmd.t_type);
           break;
       }
 
@@ -1220,8 +1218,7 @@ static void bta_hh_cback(uint8_t dev_handle, const RawAddress& addr,
   uint16_t sm_event = BTA_HH_INVALID_EVT;
   uint8_t xx = 0;
 
-  APPL_TRACE_DEBUG("%s::HID_event [%s]", __func__,
-                   bta_hh_hid_event_name(event));
+  LOG_VERBOSE("%s::HID_event [%s]", __func__, bta_hh_hid_event_name(event));
 
   switch (event) {
     case HID_HDEV_EVT_OPEN:

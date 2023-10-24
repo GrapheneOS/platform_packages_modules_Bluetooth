@@ -277,8 +277,7 @@ void sdp_disc_server_rsp(tCONN_CB* p_ccb, BT_HDR* p_msg) {
   }
 
   if (invalid_pdu) {
-    SDP_TRACE_WARNING("SDP - Unexp. PDU: %d in state: %d", rsp_pdu,
-                      p_ccb->disc_state);
+    LOG_WARN("SDP - Unexp. PDU: %d in state: %d", rsp_pdu, p_ccb->disc_state);
     sdp_disconnect(p_ccb, SDP_GENERIC_ERROR);
   }
 }
@@ -311,7 +310,7 @@ static void process_service_search_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
   orig = p_ccb->num_handles;
   p_ccb->num_handles += cur_handles;
   if (p_ccb->num_handles == 0 || p_ccb->num_handles < orig) {
-    SDP_TRACE_WARNING("SDP - Rcvd ServiceSearchRsp, no matches");
+    LOG_WARN("SDP - Rcvd ServiceSearchRsp, no matches");
     sdp_disconnect(p_ccb, SDP_NO_RECS_MATCH);
     return;
   }
@@ -381,11 +380,11 @@ static bool sdp_copy_raw_data(tCONN_CB* p_ccb, bool offset) {
       uint8_t* old_p = p;
       p = sdpu_get_len_from_type(p, p_end, type, &list_len);
       if (p == NULL || (p + list_len) > p_end) {
-        SDP_TRACE_WARNING("%s: bad length", __func__);
+        LOG_WARN("%s: bad length", __func__);
         return false;
       }
       if ((int)cpy_len < (p - old_p)) {
-        SDP_TRACE_WARNING("%s: no bytes left for data", __func__);
+        LOG_WARN("%s: no bytes left for data", __func__);
         return false;
       }
       cpy_len -= (p - old_p);
@@ -395,7 +394,7 @@ static bool sdp_copy_raw_data(tCONN_CB* p_ccb, bool offset) {
     }
     rem_len = SDP_MAX_LIST_BYTE_COUNT - (unsigned int)(p - &p_ccb->rsp_list[0]);
     if (cpy_len > rem_len) {
-      SDP_TRACE_WARNING("rem_len :%d less than cpy_len:%d", rem_len, cpy_len);
+      LOG_WARN("rem_len :%d less than cpy_len:%d", rem_len, cpy_len);
       cpy_len = rem_len;
     }
     memcpy(&p_ccb->p_db->raw_data[p_ccb->p_db->raw_used], p, cpy_len);
@@ -457,9 +456,9 @@ static void process_service_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
       }
       cont_request_needed = true;
     } else {
-      SDP_TRACE_WARNING("process_service_attr_rsp");
+      LOG_WARN("process_service_attr_rsp");
       if (!sdp_copy_raw_data(p_ccb, false)) {
-        SDP_TRACE_ERROR("sdp_copy_raw_data failed");
+        LOG_ERROR("sdp_copy_raw_data failed");
         sdp_disconnect(p_ccb, SDP_ILLEGAL_PARAMETER);
         return;
       }
@@ -727,19 +726,19 @@ static uint8_t* save_attr_seq(tCONN_CB* p_ccb, uint8_t* p, uint8_t* p_msg_end) {
   type = *p++;
 
   if ((type >> 3) != DATA_ELE_SEQ_DESC_TYPE) {
-    SDP_TRACE_WARNING("SDP - Wrong type: 0x%02x in attr_rsp", type);
+    LOG_WARN("SDP - Wrong type: 0x%02x in attr_rsp", type);
     return (NULL);
   }
   p = sdpu_get_len_from_type(p, p_msg_end, type, &seq_len);
   if (p == NULL || (p + seq_len) > p_msg_end) {
-    SDP_TRACE_WARNING("SDP - Bad len in attr_rsp %d", seq_len);
+    LOG_WARN("SDP - Bad len in attr_rsp %d", seq_len);
     return (NULL);
   }
 
   /* Create a record */
   p_rec = add_record(p_ccb->p_db, p_ccb->device_address);
   if (!p_rec) {
-    SDP_TRACE_WARNING("SDP - DB full add_record");
+    LOG_WARN("SDP - DB full add_record");
     return (NULL);
   }
 
@@ -750,12 +749,11 @@ static uint8_t* save_attr_seq(tCONN_CB* p_ccb, uint8_t* p, uint8_t* p_msg_end) {
     type = *p++;
     p = sdpu_get_len_from_type(p, p_msg_end, type, &attr_len);
     if (p == NULL || (p + attr_len) > p_seq_end) {
-      SDP_TRACE_WARNING("%s: Bad len in attr_rsp %d", __func__, attr_len);
+      LOG_WARN("%s: Bad len in attr_rsp %d", __func__, attr_len);
       return (NULL);
     }
     if (((type >> 3) != UINT_DESC_TYPE) || (attr_len != 2)) {
-      SDP_TRACE_WARNING("SDP - Bad type: 0x%02x or len: %d in attr_rsp", type,
-                        attr_len);
+      LOG_WARN("SDP - Bad type: 0x%02x or len: %d in attr_rsp", type, attr_len);
       return (NULL);
     }
     BE_STREAM_TO_UINT16(attr_id, p);
@@ -764,7 +762,7 @@ static uint8_t* save_attr_seq(tCONN_CB* p_ccb, uint8_t* p, uint8_t* p_msg_end) {
     p = add_attr(p, p_seq_end, p_ccb->p_db, p_rec, attr_id, NULL, 0);
 
     if (!p) {
-      SDP_TRACE_WARNING("SDP - DB full add_attr");
+      LOG_WARN("SDP - DB full add_attr");
       return (NULL);
     }
   }
@@ -838,7 +836,7 @@ static uint8_t* add_attr(uint8_t* p, uint8_t* p_end, tSDP_DISCOVERY_DB* p_db,
   type = *p++;
   p = sdpu_get_len_from_type(p, p_end, type, &attr_len);
   if (p == NULL || (p + attr_len) > p_end) {
-    SDP_TRACE_WARNING("%s: bad length in attr_rsp", __func__);
+    LOG_WARN("%s: bad length in attr_rsp", __func__);
     return NULL;
   }
   attr_len &= SDP_DISC_ATTR_LEN_MASK;
@@ -852,7 +850,7 @@ static uint8_t* add_attr(uint8_t* p, uint8_t* p_end, tSDP_DISCOVERY_DB* p_db,
 
   p_attr_end = p + attr_len;
   if (p_attr_end > p_end) {
-    SDP_TRACE_WARNING("%s: SDP - Attribute length beyond p_end", __func__);
+    LOG_WARN("%s: SDP - Attribute length beyond p_end", __func__);
     return NULL;
   }
 
@@ -883,7 +881,7 @@ static uint8_t* add_attr(uint8_t* p, uint8_t* p_end, tSDP_DISCOVERY_DB* p_db,
 
           /* SDP_TRACE_DEBUG ("SDP - attr nest level:%d(list)", nest_level); */
           if (nest_level >= MAX_NEST_LEVELS) {
-            SDP_TRACE_ERROR("SDP - attr nesting too deep");
+            LOG_ERROR("SDP - attr nesting too deep");
             return p_attr_end;
           }
 
@@ -947,7 +945,7 @@ static uint8_t* add_attr(uint8_t* p, uint8_t* p_end, tSDP_DISCOVERY_DB* p_db,
           }
           break;
         default:
-          SDP_TRACE_WARNING("SDP - bad len in UUID attr: %d", attr_len);
+          LOG_WARN("SDP - bad len in UUID attr: %d", attr_len);
           return p_attr_end;
       }
       break;
@@ -962,7 +960,7 @@ static uint8_t* add_attr(uint8_t* p, uint8_t* p_end, tSDP_DISCOVERY_DB* p_db,
 
       /* SDP_TRACE_DEBUG ("SDP - attr nest level:%d", nest_level); */
       if (nest_level >= MAX_NEST_LEVELS) {
-        SDP_TRACE_ERROR("SDP - attr nesting too deep");
+        LOG_ERROR("SDP - attr nesting too deep");
         return p_attr_end;
       }
       if (is_additional_list != 0 ||
@@ -990,7 +988,7 @@ static uint8_t* add_attr(uint8_t* p, uint8_t* p_end, tSDP_DISCOVERY_DB* p_db,
           p_attr->attr_value.v.u8 = *p++;
           break;
         default:
-          SDP_TRACE_WARNING("SDP - bad len in boolean attr: %d", attr_len);
+          LOG_WARN("SDP - bad len in boolean attr: %d", attr_len);
           return p_attr_end;
       }
       break;
