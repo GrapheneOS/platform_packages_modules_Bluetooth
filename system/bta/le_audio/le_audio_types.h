@@ -33,6 +33,7 @@
 
 #include "bta_le_audio_uuids.h"
 #include "btm_iso_api_types.h"
+#include "osi/include/alarm.h"
 
 namespace le_audio {
 
@@ -722,6 +723,8 @@ struct ase {
         pres_delay_max(0),
         preferred_pres_delay_min(0),
         preferred_pres_delay_max(0),
+        autonomous_operation_timer_(nullptr),
+        autonomous_target_state_(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
         state(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {}
 
   struct hdl_pair hdls;
@@ -760,6 +763,10 @@ struct ase {
   uint32_t preferred_pres_delay_max;
 
   std::vector<uint8_t> metadata;
+
+  /* Autonomous change data */
+  alarm_t* autonomous_operation_timer_;
+  types::AseState autonomous_target_state_;
 
   AseState state;
 };
