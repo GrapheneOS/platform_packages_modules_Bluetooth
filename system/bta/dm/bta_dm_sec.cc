@@ -191,7 +191,7 @@ void bta_dm_bond_cancel(const RawAddress& bd_addr) {
   tBTM_STATUS status;
   tBTA_DM_SEC sec_event;
 
-  APPL_TRACE_EVENT(" bta_dm_bond_cancel ");
+  LOG_VERBOSE(" bta_dm_bond_cancel ");
 
   status = get_btm_client_interface().security.BTM_SecBondCancel(bd_addr);
 
@@ -313,8 +313,7 @@ static uint8_t bta_dm_pin_cback(const RawAddress& bd_addr, DEV_CLASS dev_class,
         BTM_CMD_STARTED)
       return BTM_CMD_STARTED;
 
-    APPL_TRACE_WARNING(
-        " bta_dm_pin_cback() -> Failed to start Remote Name Request  ");
+    LOG_WARN(" bta_dm_pin_cback() -> Failed to start Remote Name Request  ");
   }
 
   tBTA_DM_SEC sec_event = {.pin_req = {
@@ -443,7 +442,7 @@ static tBTM_STATUS bta_dm_sp_cback(tBTM_SP_EVT event,
   tBTA_DM_SEC sec_event = {};
   tBTA_DM_SEC_EVT pin_evt = BTA_DM_SP_KEY_NOTIF_EVT;
 
-  APPL_TRACE_EVENT("bta_dm_sp_cback: %d", event);
+  LOG_VERBOSE("bta_dm_sp_cback: %d", event);
   if (!bta_dm_sec_cb.p_sec_cback) return BTM_NOT_AUTHORIZED;
 
   bool sp_rmt_result = false;
@@ -455,8 +454,8 @@ static tBTM_STATUS bta_dm_sp_cback(tBTM_SP_EVT event,
         btif_dm_set_oob_for_io_req(&p_data->io_req.oob_data);
         btif_dm_proc_io_req(&p_data->io_req.auth_req, p_data->io_req.is_orig);
       }
-      APPL_TRACE_EVENT("io mitm: %d oob_data:%d", p_data->io_req.auth_req,
-                       p_data->io_req.oob_data);
+      LOG_VERBOSE("io mitm: %d oob_data:%d", p_data->io_req.auth_req,
+                  p_data->io_req.oob_data);
       break;
     case BTM_SP_IO_RSP_EVT:
       if (btm_local_io_caps != BTM_IO_CAP_NONE) {
@@ -537,7 +536,7 @@ static tBTM_STATUS bta_dm_sp_cback(tBTM_SP_EVT event,
                   p_data->key_notif.bd_addr, bta_dm_pinname_cback,
                   BT_TRANSPORT_BR_EDR)) == BTM_CMD_STARTED)
             return BTM_CMD_STARTED;
-          APPL_TRACE_WARNING(
+          LOG_WARN(
               " bta_dm_sp_cback() -> Failed to start Remote Name Request  ");
         } else {
           sec_event.key_notif.bd_addr = p_data->key_notif.bd_addr;
@@ -568,7 +567,7 @@ static tBTM_STATUS bta_dm_sp_cback(tBTM_SP_EVT event,
 #ifdef BTIF_DM_OOB_TEST
       sp_rmt_result = btif_dm_proc_rmt_oob(p_data->rmt_oob.bd_addr, &c, &r);
 #endif
-      BTIF_TRACE_DEBUG("bta_dm_ci_rmt_oob: result=%d", sp_rmt_result);
+      LOG_VERBOSE("bta_dm_ci_rmt_oob: result=%d", sp_rmt_result);
       bta_dm_ci_rmt_oob(sp_rmt_result, p_data->rmt_oob.bd_addr, c, r);
       break;
     }
@@ -577,7 +576,7 @@ static tBTM_STATUS bta_dm_sp_cback(tBTM_SP_EVT event,
       status = BTM_NOT_AUTHORIZED;
       break;
   }
-  APPL_TRACE_EVENT("dm status: %d", status);
+  LOG_VERBOSE("dm status: %d", status);
   return status;
 }
 
@@ -624,9 +623,8 @@ static void bta_dm_remove_sec_dev_entry(const RawAddress& remote_bd_addr) {
                                                             BT_TRANSPORT_LE) ||
       get_btm_client_interface().peer.BTM_IsAclConnectionUp(
           remote_bd_addr, BT_TRANSPORT_BR_EDR)) {
-    APPL_TRACE_DEBUG(
-        "%s ACL is not down. Schedule for  Dev Removal when ACL closes",
-        __func__);
+    LOG_VERBOSE("%s ACL is not down. Schedule for  Dev Removal when ACL closes",
+                __func__);
     BTM_SecClearSecurityFlags(remote_bd_addr);
     for (int i = 0; i < bta_dm_cb.device_list.count; i++) {
       auto& dev = bta_dm_cb.device_list.peer_device[i];
@@ -730,8 +728,8 @@ static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, const RawAddress& bda,
       ble_io_req(bda, &p_data->io_req.io_cap, &p_data->io_req.oob_data,
                  &p_data->io_req.auth_req, &p_data->io_req.max_key_size,
                  &p_data->io_req.init_keys, &p_data->io_req.resp_keys);
-      APPL_TRACE_EVENT("io mitm: %d oob_data:%d", p_data->io_req.auth_req,
-                       p_data->io_req.oob_data);
+      LOG_VERBOSE("io mitm: %d oob_data:%d", p_data->io_req.auth_req,
+                  p_data->io_req.oob_data);
       break;
 
     case BTM_LE_CONSENT_REQ_EVT:
@@ -993,7 +991,7 @@ static void bta_dm_ble_id_key_cback(uint8_t key_type,
       break;
 
     default:
-      APPL_TRACE_DEBUG("Unknown key type %d", key_type);
+      LOG_VERBOSE("Unknown key type %d", key_type);
       break;
   }
   return;

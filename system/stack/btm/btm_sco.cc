@@ -242,7 +242,7 @@ static void btm_esco_conn_rsp(uint16_t sco_inx, uint8_t hci_status,
             ->supports_enhanced_setup_synchronous_connection() &&
         !osi_property_get_bool(kPropertyDisableEnhancedConnection,
                                kDefaultDisableEnhancedConnection)) {
-      BTM_TRACE_DEBUG(
+      LOG_VERBOSE(
           "%s: txbw 0x%x, rxbw 0x%x, lat 0x%x, retrans 0x%02x, "
           "pkt 0x%04x, path %u",
           __func__, p_setup->transmit_bandwidth, p_setup->receive_bandwidth,
@@ -510,17 +510,17 @@ static tBTM_STATUS btm_send_connect_request(uint16_t acl_handle,
     const RawAddress bd_addr = acl_address_from_handle(acl_handle);
     if (bd_addr != RawAddress::kEmpty) {
       if (!sco_peer_supports_esco_2m_phy(bd_addr)) {
-        BTM_TRACE_DEBUG("BTM Remote does not support 2-EDR eSCO");
+        LOG_VERBOSE("BTM Remote does not support 2-EDR eSCO");
         temp_packet_types |=
             (ESCO_PKT_TYPES_MASK_NO_2_EV3 | ESCO_PKT_TYPES_MASK_NO_2_EV5);
       }
       if (!sco_peer_supports_esco_3m_phy(bd_addr)) {
-        BTM_TRACE_DEBUG("BTM Remote does not support 3-EDR eSCO");
+        LOG_VERBOSE("BTM Remote does not support 3-EDR eSCO");
         temp_packet_types |=
             (ESCO_PKT_TYPES_MASK_NO_3_EV3 | ESCO_PKT_TYPES_MASK_NO_3_EV5);
       }
       if (!sco_peer_supports_esco_ev3(bd_addr)) {
-        BTM_TRACE_DEBUG("BTM Remote does not support EV3 eSCO");
+        LOG_VERBOSE("BTM Remote does not support EV3 eSCO");
         // If EV3 is not supported, EV4 and EV% are not supported, either.
         temp_packet_types &= ~BTM_ESCO_LINK_ONLY_MASK;
         p_setup->retransmission_effort = ESCO_RETRANSMISSION_OFF;
@@ -736,8 +736,8 @@ tBTM_STATUS BTM_CreateSco(const RawAddress* remote_bda, bool is_orig,
           /* If role change is in progress, do not proceed with SCO setup
            * Wait till role change is complete */
           if (!acl_is_switch_role_idle(*remote_bda, BT_TRANSPORT_BR_EDR)) {
-            BTM_TRACE_API("Role Change is in progress for ACL handle 0x%04x",
-                          acl_handle);
+            LOG_VERBOSE("Role Change is in progress for ACL handle 0x%04x",
+                        acl_handle);
             p->state = SCO_ST_PEND_ROLECHANGE;
           }
         }
@@ -832,7 +832,7 @@ void btm_sco_chk_pend_rolechange(uint16_t hci_handle) {
               p->esco.data.bd_addr, BT_TRANSPORT_BR_EDR)) == hci_handle))
 
     {
-      BTM_TRACE_API(
+      LOG_VERBOSE(
           "btm_sco_chk_pend_rolechange -> (e)SCO Link for ACL handle 0x%04x",
           acl_handle);
 
@@ -942,8 +942,7 @@ void btm_sco_conn_req(const RawAddress& bda, const DEV_CLASS& dev_class,
   }
 
   /* If here, no one wants the SCO connection. Reject it */
-  BTM_TRACE_WARNING("%s: rejecting SCO for %s", __func__,
-                    ADDRESS_TO_LOGGABLE_CSTR(bda));
+  LOG_WARN("%s: rejecting SCO for %s", __func__, ADDRESS_TO_LOGGABLE_CSTR(bda));
   btm_esco_conn_rsp(BTM_MAX_SCO_LINKS, HCI_ERR_HOST_REJECT_RESOURCES, bda,
                     nullptr);
 }
@@ -1111,7 +1110,7 @@ tBTM_STATUS BTM_RemoveSco(uint16_t sco_inx) {
   tSCO_CONN* p = &btm_cb.sco_cb.sco_db[sco_inx];
   tBTM_PM_STATE state = BTM_PM_ST_INVALID;
 
-  BTM_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   if (BTM_MAX_SCO_LINKS == 0) {
     return BTM_NO_RESOURCES;
@@ -1131,8 +1130,8 @@ tBTM_STATUS BTM_RemoveSco(uint16_t sco_inx) {
 
   if (BTM_ReadPowerMode(p->esco.data.bd_addr, &state) &&
       (state == BTM_PM_ST_PENDING)) {
-    BTM_TRACE_DEBUG("%s: BTM_PM_ST_PENDING for ACL mapped with SCO Link 0x%04x",
-                    __func__, p->hci_handle);
+    LOG_VERBOSE("%s: BTM_PM_ST_PENDING for ACL mapped with SCO Link 0x%04x",
+                __func__, p->hci_handle);
     p->state = SCO_ST_PEND_MODECHANGE;
     return (BTM_CMD_STARTED);
   }
@@ -1447,11 +1446,11 @@ static tBTM_STATUS BTM_ChangeEScoLinkParms(uint16_t sco_inx,
         p_parms->packet_types &
         (btm_cb.btm_sco_pkt_types_supported & BTM_SCO_LINK_ONLY_MASK);
 
-    BTM_TRACE_API("%s: SCO Link for handle 0x%04x, pkt 0x%04x", __func__,
-                  p_sco->hci_handle, p_setup->packet_types);
+    LOG_VERBOSE("%s: SCO Link for handle 0x%04x, pkt 0x%04x", __func__,
+                p_sco->hci_handle, p_setup->packet_types);
 
-    BTM_TRACE_API("%s: SCO Link for handle 0x%04x, pkt 0x%04x", __func__,
-                  p_sco->hci_handle, p_setup->packet_types);
+    LOG_VERBOSE("%s: SCO Link for handle 0x%04x, pkt 0x%04x", __func__,
+                p_sco->hci_handle, p_setup->packet_types);
 
     btsnd_hcic_change_conn_type(p_sco->hci_handle,
                                 BTM_ESCO_2_SCO(p_setup->packet_types));
@@ -1467,13 +1466,12 @@ static tBTM_STATUS BTM_ChangeEScoLinkParms(uint16_t sco_inx,
          (btm_cb.btm_sco_pkt_types_supported & BTM_SCO_EXCEPTION_PKTS_MASK));
     p_setup->packet_types = temp_packet_types;
 
-    BTM_TRACE_API("%s -> eSCO Link for handle 0x%04x", __func__,
-                  p_sco->hci_handle);
-    BTM_TRACE_API(
-        "   txbw 0x%x, rxbw 0x%x, lat 0x%x, retrans 0x%02x, pkt 0x%04x",
-        p_setup->transmit_bandwidth, p_setup->receive_bandwidth,
-        p_parms->max_latency_ms, p_parms->retransmission_effort,
-        temp_packet_types);
+    LOG_VERBOSE("%s -> eSCO Link for handle 0x%04x", __func__,
+                p_sco->hci_handle);
+    LOG_VERBOSE("   txbw 0x%x, rxbw 0x%x, lat 0x%x, retrans 0x%02x, pkt 0x%04x",
+                p_setup->transmit_bandwidth, p_setup->receive_bandwidth,
+                p_parms->max_latency_ms, p_parms->retransmission_effort,
+                temp_packet_types);
 
     /* Use Enhanced Synchronous commands if supported */
     if (controller_get_interface()
@@ -1494,7 +1492,7 @@ static tBTM_STATUS BTM_ChangeEScoLinkParms(uint16_t sco_inx,
                                  p_setup->packet_types);
     }
 
-    BTM_TRACE_API(
+    LOG_VERBOSE(
         "%s: txbw 0x%x, rxbw 0x%x, lat 0x%x, retrans 0x%02x, pkt 0x%04x",
         __func__, p_setup->transmit_bandwidth, p_setup->receive_bandwidth,
         p_parms->max_latency_ms, p_parms->retransmission_effort,
@@ -1707,8 +1705,7 @@ static uint16_t btm_sco_voice_settings_to_legacy(enh_esco_params_t* p_params) {
   else /* Use 8 bit for all others */
     voice_settings |= HCI_INP_SAMPLE_SIZE_8BIT;
 
-  BTM_TRACE_DEBUG("%s: voice setting for legacy 0x%03x", __func__,
-                  voice_settings);
+  LOG_VERBOSE("%s: voice setting for legacy 0x%03x", __func__, voice_settings);
 
   return (voice_settings);
 }

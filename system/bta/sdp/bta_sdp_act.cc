@@ -332,7 +332,7 @@ static void bta_create_ops_sdp_record(bluetooth_sdp_record* record,
     /* Safety check - each entry should itself be a sequence */
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) != DATA_ELE_SEQ_DESC_TYPE) {
       record->ops.supported_formats_list_len = 0;
-      APPL_TRACE_ERROR(
+      LOG_ERROR(
           "%s() - supported_formats_list - wrong attribute length/type:"
           " 0x%02x - expected 0x06",
           __func__, p_attr->attr_len_type);
@@ -348,7 +348,7 @@ static void bta_create_ops_sdp_record(bluetooth_sdp_record* record,
         if ((SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UINT_DESC_TYPE) &&
             (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) >= 1)) {
           if (count == sizeof(record->ops.supported_formats_list)) {
-            APPL_TRACE_ERROR(
+            LOG_ERROR(
                 "%s() - supported_formats_list - count overflow - "
                 "too many sub attributes!!",
                 __func__);
@@ -359,7 +359,7 @@ static void bta_create_ops_sdp_record(bluetooth_sdp_record* record,
           record->ops.supported_formats_list[count] = p_sattr->attr_value.v.u8;
           count++;
         } else {
-          APPL_TRACE_ERROR(
+          LOG_ERROR(
               "%s() - supported_formats_list - wrong sub attribute "
               "length/type: 0x%02x - expected 0x80",
               __func__, p_sattr->attr_len_type);
@@ -367,7 +367,7 @@ static void bta_create_ops_sdp_record(bluetooth_sdp_record* record,
         }
       }
       if (record->ops.supported_formats_list_len != count) {
-        APPL_TRACE_WARNING(
+        LOG_WARN(
             "%s() - supported_formats_list - Length of attribute different "
             "from the actual number of sub-attributes in the sequence "
             "att-length: %d - number of elements: %d",
@@ -420,7 +420,7 @@ static void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
                                       tSDP_DISC_REC* p_rec) {
   tSDP_DISC_ATTR* p_attr;
 
-  APPL_TRACE_DEBUG("%s()", __func__);
+  LOG_VERBOSE("%s()", __func__);
 
   /* hdr is redundancy in dip */
   record->dip.hdr.type = SDP_TYPE_DIP;
@@ -550,7 +550,7 @@ static void bta_sdp_search_cback(UNUSED_ATTR const RawAddress& bd_addr,
                                  tSDP_RESULT result, const void* user_data) {
   tBTA_SDP_STATUS status = BTA_SDP_FAILURE;
   int count = 0;
-  APPL_TRACE_DEBUG("%s() -  res: 0x%x", __func__, result);
+  LOG_VERBOSE("%s() -  res: 0x%x", __func__, result);
 
   bta_sdp_cb.sdp_active = false;
 
@@ -570,29 +570,28 @@ static void bta_sdp_search_cback(UNUSED_ATTR const RawAddress& bd_addr,
           p_bta_sdp_cfg->p_sdp_db, uuid, p_rec);
       /* generate the matching record data pointer */
       if (!p_rec) {
-        APPL_TRACE_DEBUG("%s() - UUID not found", __func__);
+        LOG_VERBOSE("%s() - UUID not found", __func__);
         continue;
       }
 
       status = BTA_SDP_SUCCESS;
       if (uuid == UUID_MAP_MAS) {
-        APPL_TRACE_DEBUG("%s() - found MAP (MAS) uuid", __func__);
+        LOG_VERBOSE("%s() - found MAP (MAS) uuid", __func__);
         bta_create_mas_sdp_record(&evt_data.records[count], p_rec);
       } else if (uuid == UUID_MAP_MNS) {
-        APPL_TRACE_DEBUG("%s() - found MAP (MNS) uuid", __func__);
+        LOG_VERBOSE("%s() - found MAP (MNS) uuid", __func__);
         bta_create_mns_sdp_record(&evt_data.records[count], p_rec);
       } else if (uuid == UUID_PBAP_PSE) {
-        APPL_TRACE_DEBUG("%s() - found PBAP (PSE) uuid", __func__);
+        LOG_VERBOSE("%s() - found PBAP (PSE) uuid", __func__);
         bta_create_pse_sdp_record(&evt_data.records[count], p_rec);
       } else if (uuid == UUID_OBEX_OBJECT_PUSH) {
-        APPL_TRACE_DEBUG("%s() - found Object Push Server (OPS) uuid",
-                         __func__);
+        LOG_VERBOSE("%s() - found Object Push Server (OPS) uuid", __func__);
         bta_create_ops_sdp_record(&evt_data.records[count], p_rec);
       } else if (uuid == UUID_SAP) {
-        APPL_TRACE_DEBUG("%s() - found SAP uuid", __func__);
+        LOG_VERBOSE("%s() - found SAP uuid", __func__);
         bta_create_sap_sdp_record(&evt_data.records[count], p_rec);
       } else if (uuid == UUID_PBAP_PCE) {
-        APPL_TRACE_DEBUG("%s() - found PBAP (PCE) uuid", __func__);
+        LOG_VERBOSE("%s() - found PBAP (PCE) uuid", __func__);
         if (p_rec != NULL) {
           uint16_t peer_pce_version = 0;
 
@@ -603,15 +602,14 @@ static void bta_sdp_search_cback(UNUSED_ATTR const RawAddress& bd_addr,
                                                  peer_pce_version);
           }
         } else {
-          APPL_TRACE_DEBUG("%s() - PCE Record is null", __func__);
+          LOG_VERBOSE("%s() - PCE Record is null", __func__);
         }
       } else if (uuid == UUID_DIP) {
-        APPL_TRACE_DEBUG("%s() - found DIP uuid", __func__);
+        LOG_VERBOSE("%s() - found DIP uuid", __func__);
         bta_create_dip_sdp_record(&evt_data.records[count], p_rec);
       } else {
         /* we do not have specific structure for this */
-        APPL_TRACE_DEBUG("%s() - profile not identified. using raw data",
-                         __func__);
+        LOG_VERBOSE("%s() - profile not identified. using raw data", __func__);
         bta_create_raw_sdp_record(&evt_data.records[count], p_rec);
         p_rec = NULL;  // Terminate loop
         /* For raw, we only extract the first entry, and then return the
@@ -646,7 +644,7 @@ static void bta_sdp_search_cback(UNUSED_ATTR const RawAddress& bd_addr,
  *
  ******************************************************************************/
 void bta_sdp_enable(tBTA_SDP_DM_CBACK* p_cback) {
-  APPL_TRACE_DEBUG("%s in, sdp_active:%d", __func__, bta_sdp_cb.sdp_active);
+  LOG_VERBOSE("%s in, sdp_active:%d", __func__, bta_sdp_cb.sdp_active);
   tBTA_SDP_STATUS status = BTA_SDP_SUCCESS;
   bta_sdp_cb.p_dm_cback = p_cback;
   tBTA_SDP bta_sdp;
@@ -666,7 +664,7 @@ void bta_sdp_enable(tBTA_SDP_DM_CBACK* p_cback) {
 void bta_sdp_search(const RawAddress bd_addr, const bluetooth::Uuid uuid) {
   tBTA_SDP_STATUS status = BTA_SDP_FAILURE;
 
-  APPL_TRACE_DEBUG("%s in, sdp_active:%d", __func__, bta_sdp_cb.sdp_active);
+  LOG_VERBOSE("%s in, sdp_active:%d", __func__, bta_sdp_cb.sdp_active);
 
   if (bta_sdp_cb.sdp_active) {
     /* SDP is still in progress */
@@ -688,8 +686,8 @@ void bta_sdp_search(const RawAddress bd_addr, const bluetooth::Uuid uuid) {
   bta_sdp_cb.remote_addr = bd_addr;
 
   /* initialize the search for the uuid */
-  APPL_TRACE_DEBUG("%s init discovery with UUID: %s", __func__,
-                   uuid.ToString().c_str());
+  LOG_VERBOSE("%s init discovery with UUID: %s", __func__,
+              uuid.ToString().c_str());
   get_legacy_stack_sdp_api()->service.SDP_InitDiscoveryDb(
       p_bta_sdp_cfg->p_sdp_db, p_bta_sdp_cfg->sdp_db_size, 1, &uuid, 0, NULL);
 

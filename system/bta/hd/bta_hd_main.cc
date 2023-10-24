@@ -178,7 +178,7 @@ static void bta_hd_better_state_machine(uint16_t event, tBTA_HD_DATA* p_data) {
  *
  ******************************************************************************/
 bool bta_hd_hdl_event(const BT_HDR_RIGID* p_msg) {
-  APPL_TRACE_API("%s: p_msg->event=%d", __func__, p_msg->event);
+  LOG_VERBOSE("%s: p_msg->event=%d", __func__, p_msg->event);
 
   switch (p_msg->event) {
     case BTA_HD_API_ENABLE_EVT:
@@ -187,8 +187,7 @@ bool bta_hd_hdl_event(const BT_HDR_RIGID* p_msg) {
 
     case BTA_HD_API_DISABLE_EVT:
       if (bta_hd_cb.state == BTA_HD_CONN_ST) {
-        APPL_TRACE_WARNING("%s: host connected, disconnect before disabling",
-                           __func__);
+        LOG_WARN("%s: host connected, disconnect before disabling", __func__);
 
         // unregister (and disconnect)
         bta_hd_cb.disable_w4_close = TRUE;

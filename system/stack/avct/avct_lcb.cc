@@ -170,8 +170,8 @@ void avct_lcb_event(tAVCT_LCB* p_lcb, uint8_t event, tAVCT_LCB_EVT* p_data) {
   uint8_t action;
   int i;
 
-  AVCT_TRACE_EVENT("LCB lcb=%d event=%s state=%s", p_lcb->allocated,
-                   avct_lcb_evt_str[event], avct_lcb_st_str[p_lcb->state]);
+  LOG_VERBOSE("LCB lcb=%d event=%s state=%s", p_lcb->allocated,
+              avct_lcb_evt_str[event], avct_lcb_st_str[p_lcb->state]);
 
   /* look up the state table for the current state */
   state_table = avct_lcb_st_tbl[p_lcb->state];
@@ -209,8 +209,8 @@ void avct_bcb_event(tAVCT_BCB* p_bcb, uint8_t event, tAVCT_LCB_EVT* p_data) {
   uint8_t action;
   int i;
 
-  AVCT_TRACE_EVENT("BCB lcb=%d event=%s state=%s", p_bcb->allocated,
-                   avct_lcb_evt_str[event], avct_lcb_st_str[p_bcb->state]);
+  LOG_VERBOSE("BCB lcb=%d event=%s state=%s", p_bcb->allocated,
+              avct_lcb_evt_str[event], avct_lcb_st_str[p_bcb->state]);
 
   /* look up the state table for the current state */
   state_table = avct_lcb_st_tbl[p_bcb->state];
@@ -277,7 +277,7 @@ tAVCT_LCB* avct_lcb_alloc(const RawAddress& bd_addr) {
     if (!p_lcb->allocated) {
       p_lcb->allocated = (uint8_t)(i + 1);
       p_lcb->peer_addr = bd_addr;
-      AVCT_TRACE_DEBUG("avct_lcb_alloc %d", p_lcb->allocated);
+      LOG_VERBOSE("avct_lcb_alloc %d", p_lcb->allocated);
       p_lcb->tx_q = fixed_queue_new(SIZE_MAX);
       p_lcb->peer_mtu = L2CAP_LE_MIN_MTU;
       break;
@@ -287,7 +287,7 @@ tAVCT_LCB* avct_lcb_alloc(const RawAddress& bd_addr) {
   if (i == AVCT_NUM_LINKS) {
     /* out of lcbs */
     p_lcb = NULL;
-    AVCT_TRACE_WARNING("Out of lcbs");
+    LOG_WARN("Out of lcbs");
   }
   return p_lcb;
 }
@@ -303,21 +303,21 @@ tAVCT_LCB* avct_lcb_alloc(const RawAddress& bd_addr) {
  *
  ******************************************************************************/
 void avct_lcb_dealloc(tAVCT_LCB* p_lcb, UNUSED_ATTR tAVCT_LCB_EVT* p_data) {
-  AVCT_TRACE_DEBUG("%s allocated: %d", __func__, p_lcb->allocated);
+  LOG_VERBOSE("%s allocated: %d", __func__, p_lcb->allocated);
 
   // Check if the LCB is still referenced
 
   tAVCT_CCB* p_ccb = &avct_cb.ccb[0];
   for (size_t i = 0; i < AVCT_NUM_CONN; i++, p_ccb++) {
     if (p_ccb->allocated && p_ccb->p_lcb == p_lcb) {
-      AVCT_TRACE_DEBUG("%s LCB in use; lcb index: %zu", __func__, i);
+      LOG_VERBOSE("%s LCB in use; lcb index: %zu", __func__, i);
       return;
     }
   }
 
   // If not, de-allocate now...
 
-  AVCT_TRACE_DEBUG("%s Freeing LCB", __func__);
+  LOG_VERBOSE("%s Freeing LCB", __func__);
   osi_free(p_lcb->p_rx_msg);
   fixed_queue_free(p_lcb->tx_q, NULL);
   memset(p_lcb, 0, sizeof(tAVCT_LCB));
@@ -347,7 +347,7 @@ tAVCT_LCB* avct_lcb_by_lcid(uint16_t lcid) {
   if (i == AVCT_NUM_LINKS) {
     /* out of lcbs */
     p_lcb = NULL;
-    AVCT_TRACE_WARNING("No lcb for lcid %x", lcid);
+    LOG_WARN("No lcb for lcid %x", lcid);
   }
 
   return p_lcb;
@@ -389,11 +389,10 @@ bool avct_lcb_last_ccb(tAVCT_LCB* p_lcb, tAVCT_CCB* p_ccb_last) {
   tAVCT_CCB* p_ccb = &avct_cb.ccb[0];
   int i;
 
-  AVCT_TRACE_WARNING("avct_lcb_last_ccb");
+  LOG_WARN("avct_lcb_last_ccb");
   for (i = 0; i < AVCT_NUM_CONN; i++, p_ccb++) {
-    AVCT_TRACE_WARNING("%x: aloc:%d, lcb:0x%p/0x%p, ccb:0x%p/0x%p", i,
-                       p_ccb->allocated, p_ccb->p_lcb, p_lcb, p_ccb,
-                       p_ccb_last);
+    LOG_WARN("%x: aloc:%d, lcb:0x%p/0x%p, ccb:0x%p/0x%p", i, p_ccb->allocated,
+             p_ccb->p_lcb, p_lcb, p_ccb, p_ccb_last);
     if (p_ccb->allocated && (p_ccb->p_lcb == p_lcb) && (p_ccb != p_ccb_last)) {
       return false;
     }

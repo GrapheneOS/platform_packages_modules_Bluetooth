@@ -443,7 +443,7 @@ void sdpu_release_ccb(tCONN_CB& ccb) {
   ccb.is_attr_search = false;
 
   /* Free the response buffer */
-  if (ccb.rsp_list) SDP_TRACE_DEBUG("releasing SDP rsp_list");
+  if (ccb.rsp_list) LOG_VERBOSE("releasing SDP rsp_list");
   osi_free_and_reset((void**)&ccb.rsp_list);
 }
 
@@ -719,8 +719,8 @@ void sdpu_build_n_send_error(tCONN_CB* p_ccb, uint16_t trans_num,
   uint16_t rsp_param_len;
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(SDP_DATA_BUF_SIZE);
 
-  SDP_TRACE_WARNING("SDP - sdpu_build_n_send_error  code: 0x%x  CID: 0x%x",
-                    error_code, p_ccb->connection_id);
+  LOG_WARN("SDP - sdpu_build_n_send_error  code: 0x%x  CID: 0x%x", error_code,
+           p_ccb->connection_id);
 
   /* Send the packet to L2CAP */
   p_buf->offset = L2CAP_MIN_OFFSET;
@@ -1070,7 +1070,7 @@ bool sdpu_compare_uuid_arrays(const uint8_t* p_uuid1, uint32_t len1,
 
   if (((len1 != 2) && (len1 != 4) && (len1 != 16)) ||
       ((len2 != 2) && (len2 != 4) && (len2 != 16))) {
-    SDP_TRACE_ERROR("%s: invalid length", __func__);
+    LOG_ERROR("%s: invalid length", __func__);
     return false;
   }
 
@@ -1334,7 +1334,7 @@ uint8_t* sdpu_build_partial_attrib_entry(uint8_t* p_out,
   uint16_t attr_len = sdpu_get_attrib_entry_len(p_attr);
 
   if (len > SDP_MAX_ATTR_LEN) {
-    SDP_TRACE_ERROR("%s len %d exceeds SDP_MAX_ATTR_LEN", __func__, len);
+    LOG_ERROR("%s len %d exceeds SDP_MAX_ATTR_LEN", __func__, len);
     len = SDP_MAX_ATTR_LEN;
   }
 

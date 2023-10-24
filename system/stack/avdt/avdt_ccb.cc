@@ -370,9 +370,9 @@ void avdt_ccb_event(AvdtpCcb* p_ccb, uint8_t event, tAVDT_CCB_EVT* p_data) {
   int i;
 
 #if (AVDT_DEBUG == TRUE)
-  AVDT_TRACE_EVENT("%s: CCB ccb=%d event=%s state=%s p_ccb=%p", __func__,
-                   avdt_ccb_to_idx(p_ccb), avdt_ccb_evt_str[event],
-                   avdt_ccb_st_str[p_ccb->state], p_ccb);
+  LOG_VERBOSE("%s: CCB ccb=%d event=%s state=%s p_ccb=%p", __func__,
+              avdt_ccb_to_idx(p_ccb), avdt_ccb_evt_str[event],
+              avdt_ccb_st_str[p_ccb->state], p_ccb);
 #endif
 
   /* look up the state table for the current state */
@@ -386,9 +386,8 @@ void avdt_ccb_event(AvdtpCcb* p_ccb, uint8_t event, tAVDT_CCB_EVT* p_data) {
   /* execute action functions */
   for (i = 0; i < AVDT_CCB_ACTIONS; i++) {
     action = state_table[event][i];
-    AVDT_TRACE_DEBUG("%s: event=%s state=%s action=%d", __func__,
-                     avdt_ccb_evt_str[event], avdt_ccb_st_str[p_ccb->state],
-                     action);
+    LOG_VERBOSE("%s: event=%s state=%s action=%d", __func__,
+                avdt_ccb_evt_str[event], avdt_ccb_st_str[p_ccb->state], action);
     if (action != AVDT_CCB_IGNORE) {
       (*avdtp_cb.p_ccb_act[action])(p_ccb, p_data);
     } else {
@@ -443,13 +442,13 @@ AvdtpCcb* avdt_ccb_alloc(const RawAddress& bd_addr) {
   for (int i = 0; i < AVDT_NUM_LINKS; i++, p_ccb++) {
     if (!p_ccb->allocated) {
       p_ccb->Allocate(bd_addr);
-      AVDT_TRACE_DEBUG("%s: allocated (index %d) for peer %s", __func__, i,
-                       ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+      LOG_VERBOSE("%s: allocated (index %d) for peer %s", __func__, i,
+                  ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
       return p_ccb;
     }
   }
 
-  AVDT_TRACE_WARNING("%s: out of AvdtpCcb entries", __func__);
+  LOG_WARN("%s: out of AvdtpCcb entries", __func__);
   return nullptr;
 }
 
@@ -457,21 +456,19 @@ AvdtpCcb* avdt_ccb_alloc_by_channel_index(const RawAddress& bd_addr,
                                           uint8_t channel_index) {
   // Allocate the entry for the specified channel index
   if (channel_index >= AVDT_NUM_LINKS) {
-    AVDT_TRACE_ERROR("%s: peer %s invalid channel index %d (max %d)", __func__,
-                     ADDRESS_TO_LOGGABLE_CSTR(bd_addr), channel_index,
-                     AVDT_NUM_LINKS);
+    LOG_ERROR("%s: peer %s invalid channel index %d (max %d)", __func__,
+              ADDRESS_TO_LOGGABLE_CSTR(bd_addr), channel_index, AVDT_NUM_LINKS);
     return nullptr;
   }
   AvdtpCcb* p_ccb = &avdtp_cb.ccb[channel_index];
   if (p_ccb->allocated) {
-    AVDT_TRACE_ERROR("%s: peer %s channel index %d already allocated", __func__,
-                     ADDRESS_TO_LOGGABLE_CSTR(bd_addr), channel_index);
+    LOG_ERROR("%s: peer %s channel index %d already allocated", __func__,
+              ADDRESS_TO_LOGGABLE_CSTR(bd_addr), channel_index);
     return nullptr;
   }
   p_ccb->Allocate(bd_addr);
-  AVDT_TRACE_DEBUG("%s: allocated (index %d) peer=%s p_ccb=%p", __func__,
-                   channel_index, ADDRESS_TO_LOGGABLE_CSTR(p_ccb->peer_addr),
-                   p_ccb);
+  LOG_VERBOSE("%s: allocated (index %d) peer=%s p_ccb=%p", __func__,
+              channel_index, ADDRESS_TO_LOGGABLE_CSTR(p_ccb->peer_addr), p_ccb);
   return p_ccb;
 }
 
@@ -497,9 +494,9 @@ void AvdtpCcb::Allocate(const RawAddress& peer_address) {
  *
  ******************************************************************************/
 void avdt_ccb_dealloc(AvdtpCcb* p_ccb, UNUSED_ATTR tAVDT_CCB_EVT* p_data) {
-  AVDT_TRACE_DEBUG("%s: deallocated (index %d) peer=%s p_ccb=%p", __func__,
-                   avdt_ccb_to_idx(p_ccb),
-                   ADDRESS_TO_LOGGABLE_CSTR(p_ccb->peer_addr), p_ccb);
+  LOG_VERBOSE("%s: deallocated (index %d) peer=%s p_ccb=%p", __func__,
+              avdt_ccb_to_idx(p_ccb),
+              ADDRESS_TO_LOGGABLE_CSTR(p_ccb->peer_addr), p_ccb);
   p_ccb->ResetCcb();
 }
 
@@ -536,7 +533,7 @@ AvdtpCcb* avdt_ccb_by_idx(uint8_t idx) {
     p_ccb = &avdtp_cb.ccb[idx];
   } else {
     p_ccb = NULL;
-    AVDT_TRACE_WARNING("No ccb for idx %d", idx);
+    LOG_WARN("No ccb for idx %d", idx);
   }
   return p_ccb;
 }

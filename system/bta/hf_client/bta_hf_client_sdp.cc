@@ -63,7 +63,7 @@ static void bta_hf_client_sdp_cback(UNUSED_ATTR const RawAddress& bd_addr,
   tBTA_HF_CLIENT_DISC_RESULT* p_buf = (tBTA_HF_CLIENT_DISC_RESULT*)osi_malloc(
       sizeof(tBTA_HF_CLIENT_DISC_RESULT));
 
-  APPL_TRACE_DEBUG("bta_hf_client_sdp_cback status:0x%x", status);
+  LOG_VERBOSE("bta_hf_client_sdp_cback status:0x%x", status);
   tBTA_HF_CLIENT_CB* client_cb = (tBTA_HF_CLIENT_CB*)data;
 
   /* set event according to int/acp */
@@ -105,7 +105,7 @@ bool bta_hf_client_add_record(const char* p_service_name, uint8_t scn,
   uint8_t buf[2];
   uint16_t sdp_features = 0;
 
-  APPL_TRACE_DEBUG("bta_hf_client_add_record");
+  LOG_VERBOSE("bta_hf_client_add_record");
 
   memset(proto_elem_list, 0,
          BTA_HF_CLIENT_NUM_PROTO_ELEMS * sizeof(tSDP_PROTOCOL_ELEM));
@@ -203,7 +203,7 @@ void bta_hf_client_create_record(tBTA_HF_CLIENT_CB_ARR* client_cb_arr,
  *
  ******************************************************************************/
 void bta_hf_client_del_record(tBTA_HF_CLIENT_CB_ARR* client_cb) {
-  APPL_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   if (client_cb->sdp_handle != 0) {
     get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(client_cb->sdp_handle);
@@ -290,8 +290,8 @@ bool bta_hf_client_sdp_find_attr(tBTA_HF_CLIENT_CB* client_cb) {
     break;
   }
 
-  APPL_TRACE_DEBUG("%s: peer_version=0x%x peer_features=0x%x", __func__,
-                   client_cb->peer_version, client_cb->peer_features);
+  LOG_VERBOSE("%s: peer_version=0x%x peer_features=0x%x", __func__,
+              client_cb->peer_version, client_cb->peer_features);
 
   return result;
 }
@@ -372,8 +372,8 @@ void bta_hf_client_free_db(tBTA_HF_CLIENT_DATA* p_data) {
   tBTA_HF_CLIENT_CB* client_cb =
       bta_hf_client_find_cb_by_handle(p_data->hdr.layer_specific);
   if (client_cb == NULL) {
-    APPL_TRACE_ERROR("%s: cb not found for handle %d", __func__,
-                     p_data->hdr.layer_specific);
+    LOG_ERROR("%s: cb not found for handle %d", __func__,
+              p_data->hdr.layer_specific);
     return;
   }
 

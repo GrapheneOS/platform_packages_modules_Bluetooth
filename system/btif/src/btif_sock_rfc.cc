@@ -683,8 +683,7 @@ static uint32_t rfcomm_cback(tBTA_JV_EVT event, tBTA_JV* p_data,
       break;
 
     case BTA_JV_RFCOMM_CLOSE_EVT:
-      APPL_TRACE_DEBUG("BTA_JV_RFCOMM_CLOSE_EVT: rfcomm_slot_id:%d",
-                       rfcomm_slot_id);
+      LOG_VERBOSE("BTA_JV_RFCOMM_CLOSE_EVT: rfcomm_slot_id:%d", rfcomm_slot_id);
       on_rfc_close(&p_data->rfc_close, rfcomm_slot_id);
       break;
 
@@ -753,7 +752,7 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, uint32_t id) {
     }
 
     case BTA_JV_GET_PSM_EVT: {
-      APPL_TRACE_DEBUG("Received PSM: 0x%04x", p_data->psm);
+      LOG_VERBOSE("Received PSM: 0x%04x", p_data->psm);
       on_l2cap_psm_assigned(id, p_data->psm);
       break;
     }
@@ -896,7 +895,7 @@ static bool flush_incoming_que_on_wr_signal(rfc_slot_t* slot) {
 
   // app is ready to receive data, tell stack to start the data flow
   // fix me: need a jv flow control api to serialize the call in stack
-  APPL_TRACE_DEBUG(
+  LOG_VERBOSE(
       "enable data flow, rfc_handle:0x%x, rfc_port_handle:0x%x, user_id:%d",
       slot->rfc_handle, slot->rfc_port_handle, slot->id);
   PORT_FlowControl_MaxCredit(slot->rfc_port_handle, true);
