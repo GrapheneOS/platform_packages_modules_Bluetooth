@@ -964,7 +964,7 @@ void l2c_OnHciModeChangeSendPendingPackets(RawAddress remote) {
   if (p_lcb != NULL) {
     /* There might be any pending packets due to SNIFF or PENDING state */
     /* Trigger L2C to start transmission of the pending packets. */
-    BTM_TRACE_DEBUG(
+    LOG_VERBOSE(
         "btm mode change to active; check l2c_link for outgoing packets");
     l2c_link_check_send_pkts(p_lcb, 0, NULL);
   }

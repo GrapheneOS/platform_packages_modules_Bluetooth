@@ -76,7 +76,7 @@ bool SDP_InitDiscoveryDb(tSDP_DISCOVERY_DB* p_db, uint32_t len,
   /* verify the parameters */
   if (p_db == NULL || (sizeof(tSDP_DISCOVERY_DB) > len) ||
       num_attr > SDP_MAX_ATTR_FILTERS || num_uuid > SDP_MAX_UUID_FILTERS) {
-    SDP_TRACE_ERROR(
+    LOG_ERROR(
         "SDP_InitDiscoveryDb Illegal param: p_db 0x%x, len %d, num_uuid %d, "
         "num_attr %d",
         PTR_TO_UINT(p_db), len, num_uuid, num_attr);
@@ -394,14 +394,13 @@ tSDP_DISC_REC* SDP_FindServiceInDb(const tSDP_DISCOVERY_DB* p_db,
              p_sattr = p_sattr->p_next_attr) {
           if ((SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE) &&
               (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) == 2)) {
-            SDP_TRACE_DEBUG(
+            LOG_VERBOSE(
                 "SDP_FindServiceInDb - p_sattr value = 0x%x serviceuuid = 0x%x",
                 p_sattr->attr_value.v.u16, service_uuid);
             if (service_uuid == UUID_SERVCLASS_HDP_PROFILE) {
               if ((p_sattr->attr_value.v.u16 == UUID_SERVCLASS_HDP_SOURCE) ||
                   (p_sattr->attr_value.v.u16 == UUID_SERVCLASS_HDP_SINK)) {
-                SDP_TRACE_DEBUG(
-                    "SDP_FindServiceInDb found HDP source or sink\n");
+                LOG_VERBOSE("SDP_FindServiceInDb found HDP source or sink\n");
                 return (p_rec);
               }
             }

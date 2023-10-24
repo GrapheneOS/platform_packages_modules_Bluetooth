@@ -160,7 +160,7 @@ static tBTA_AG_SCB* bta_ag_scb_alloc(void) {
       /* set eSCO mSBC setting to T2 as the preferred */
       p_scb->codec_msbc_settings = BTA_AG_SCO_MSBC_SETTINGS_T2;
       p_scb->codec_lc3_settings = BTA_AG_SCO_LC3_SETTINGS_T2;
-      APPL_TRACE_DEBUG("bta_ag_scb_alloc %d", bta_ag_scb_to_idx(p_scb));
+      LOG_VERBOSE("bta_ag_scb_alloc %d", bta_ag_scb_to_idx(p_scb));
       break;
     }
   }
@@ -187,7 +187,7 @@ void bta_ag_scb_dealloc(tBTA_AG_SCB* p_scb) {
   uint8_t idx;
   bool allocated = false;
 
-  APPL_TRACE_DEBUG("bta_ag_scb_dealloc %d", bta_ag_scb_to_idx(p_scb));
+  LOG_VERBOSE("bta_ag_scb_dealloc %d", bta_ag_scb_to_idx(p_scb));
 
   /* stop and free timers */
   alarm_free(p_scb->ring_timer);
@@ -246,11 +246,11 @@ tBTA_AG_SCB* bta_ag_scb_by_idx(uint16_t idx) {
     p_scb = &bta_ag_cb.scb[idx - 1];
     if (!p_scb->in_use) {
       p_scb = nullptr;
-      APPL_TRACE_WARNING("ag scb idx %d not allocated", idx);
+      LOG_WARN("ag scb idx %d not allocated", idx);
     }
   } else {
     p_scb = nullptr;
-    APPL_TRACE_DEBUG("ag scb idx %d out of range", idx);
+    LOG_VERBOSE("ag scb idx %d out of range", idx);
   }
   return p_scb;
 }
@@ -294,7 +294,7 @@ uint16_t bta_ag_idx_by_bdaddr(const RawAddress* peer_addr) {
   }
 
   /* no scb found */
-  APPL_TRACE_WARNING("No ag scb for peer addr");
+  LOG_WARN("No ag scb for peer addr");
   return 0;
 }
 
@@ -439,7 +439,7 @@ void bta_ag_api_disable() {
   int i;
 
   if (!bta_sys_is_register(BTA_ID_AG)) {
-    APPL_TRACE_ERROR("BTA AG is already disabled, ignoring ...");
+    LOG_ERROR("BTA AG is already disabled, ignoring ...");
     return;
   }
 

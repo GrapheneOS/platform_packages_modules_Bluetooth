@@ -1265,10 +1265,10 @@ uint16_t BTM_GetHCIConnHandle(const RawAddress& remote_bda,
  ******************************************************************************/
 bool BTM_IsPhy2mSupported(const RawAddress& remote_bda, tBT_TRANSPORT transport) {
   tACL_CONN* p;
-  BTM_TRACE_DEBUG("BTM_IsPhy2mSupported");
+  LOG_VERBOSE("BTM_IsPhy2mSupported");
   p = internal_.btm_bda_to_acl(remote_bda, transport);
   if (p == (tACL_CONN*)NULL) {
-    BTM_TRACE_DEBUG("BTM_IsPhy2mSupported: no connection");
+    LOG_VERBOSE("BTM_IsPhy2mSupported: no connection");
     return false;
   }
 

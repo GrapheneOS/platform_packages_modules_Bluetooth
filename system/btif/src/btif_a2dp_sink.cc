@@ -400,9 +400,9 @@ void btif_a2dp_sink_update_decoder(const uint8_t* p_codec_info) {
       reinterpret_cast<tBTIF_MEDIA_SINK_DECODER_UPDATE*>(
           osi_malloc(sizeof(tBTIF_MEDIA_SINK_DECODER_UPDATE)));
 
-  APPL_TRACE_EVENT("%s: p_codec_info[%x:%x:%x:%x:%x:%x]", __func__,
-                   p_codec_info[1], p_codec_info[2], p_codec_info[3],
-                   p_codec_info[4], p_codec_info[5], p_codec_info[6]);
+  LOG_VERBOSE("%s: p_codec_info[%x:%x:%x:%x:%x:%x]", __func__, p_codec_info[1],
+              p_codec_info[2], p_codec_info[3], p_codec_info[4],
+              p_codec_info[5], p_codec_info[6]);
 
   memcpy(p_buf->codec_info, p_codec_info, AVDT_CODEC_SIZE);
   p_buf->hdr.event = BTIF_MEDIA_SINK_DECODER_UPDATE;
@@ -533,7 +533,7 @@ static void btif_a2dp_sink_on_decode_complete(uint8_t* data, uint32_t len) {
 static void btif_a2dp_sink_handle_inc_media(BT_HDR* p_msg) {
   if ((btif_av_get_peer_sep() == AVDT_TSEP_SNK) ||
       (btif_a2dp_sink_cb.rx_flush)) {
-    APPL_TRACE_DEBUG("%s: state changed happened in this tick", __func__);
+    LOG_VERBOSE("%s: state changed happened in this tick", __func__);
     return;
   }
 
@@ -548,14 +548,13 @@ static void btif_a2dp_sink_avk_handle_timer() {
 
   BT_HDR* p_msg;
   if (fixed_queue_is_empty(btif_a2dp_sink_cb.rx_audio_queue)) {
-    APPL_TRACE_DEBUG("%s: empty queue", __func__);
+    LOG_VERBOSE("%s: empty queue", __func__);
     return;
   }
 
   /* Don't do anything in case of focus not granted */
   if (btif_a2dp_sink_cb.rx_focus_state == BTIF_A2DP_SINK_FOCUS_NOT_GRANTED) {
-    APPL_TRACE_DEBUG("%s: skipping frames since focus is not present",
-                     __func__);
+    LOG_VERBOSE("%s: skipping frames since focus is not present", __func__);
     return;
   }
   /* Play only in BTIF_A2DP_SINK_FOCUS_GRANTED case */
@@ -564,20 +563,20 @@ static void btif_a2dp_sink_avk_handle_timer() {
     return;
   }
 
-  APPL_TRACE_DEBUG("%s: process frames begin", __func__);
+  LOG_VERBOSE("%s: process frames begin", __func__);
   while (true) {
     p_msg = (BT_HDR*)fixed_queue_try_dequeue(btif_a2dp_sink_cb.rx_audio_queue);
     if (p_msg == NULL) {
       break;
     }
-    APPL_TRACE_DEBUG("%s: number of packets in queue %zu", __func__,
-                     fixed_queue_length(btif_a2dp_sink_cb.rx_audio_queue));
+    LOG_VERBOSE("%s: number of packets in queue %zu", __func__,
+                fixed_queue_length(btif_a2dp_sink_cb.rx_audio_queue));
 
     /* Queue packet has less frames */
     btif_a2dp_sink_handle_inc_media(p_msg);
     osi_free(p_msg);
   }
-  APPL_TRACE_DEBUG("%s: process frames end", __func__);
+  LOG_VERBOSE("%s: process frames end", __func__);
 }
 
 /* when true media task discards any rx frames */
@@ -599,10 +598,9 @@ static void btif_a2dp_sink_decoder_update_event(
     tBTIF_MEDIA_SINK_DECODER_UPDATE* p_buf) {
   LOG_INFO("%s", __func__);
   LockGuard lock(g_mutex);
-  APPL_TRACE_DEBUG("%s: p_codec_info[%x:%x:%x:%x:%x:%x]", __func__,
-                   p_buf->codec_info[1], p_buf->codec_info[2],
-                   p_buf->codec_info[3], p_buf->codec_info[4],
-                   p_buf->codec_info[5], p_buf->codec_info[6]);
+  LOG_VERBOSE("%s: p_codec_info[%x:%x:%x:%x:%x:%x]", __func__,
+              p_buf->codec_info[1], p_buf->codec_info[2], p_buf->codec_info[3],
+              p_buf->codec_info[4], p_buf->codec_info[5], p_buf->codec_info[6]);
 
   int sample_rate = A2DP_GetTrackSampleRate(p_buf->codec_info);
   if (sample_rate == -1) {
@@ -629,7 +627,7 @@ static void btif_a2dp_sink_decoder_update_event(
   btif_a2dp_sink_cb.channel_count = channel_count;
 
   btif_a2dp_sink_cb.rx_flush = false;
-  APPL_TRACE_DEBUG("%s: reset to Sink role", __func__);
+  LOG_VERBOSE("%s: reset to Sink role", __func__);
 
   bta_av_co_save_codec(p_buf->codec_info);
 
@@ -651,7 +649,7 @@ static void btif_a2dp_sink_decoder_update_event(
     btif_a2dp_sink_cb.decoder_interface->decoder_configure(p_buf->codec_info);
   }
 
-  APPL_TRACE_DEBUG("%s: create audio track", __func__);
+  LOG_VERBOSE("%s: create audio track", __func__);
   btif_a2dp_sink_cb.audio_track =
 #ifdef __ANDROID__
       BtifAvrcpAudioTrackCreate(sample_rate, bits_per_sample, channel_count);
@@ -669,7 +667,7 @@ uint8_t btif_a2dp_sink_enqueue_buf(BT_HDR* p_pkt) {
   if (btif_a2dp_sink_cb.rx_flush) /* Flush enabled, do not enqueue */
     return fixed_queue_length(btif_a2dp_sink_cb.rx_audio_queue);
 
-  BTIF_TRACE_VERBOSE("%s +", __func__);
+  LOG_VERBOSE("%s +", __func__);
   /* Allocate and queue this buffer */
   BT_HDR* p_msg =
       reinterpret_cast<BT_HDR*>(osi_malloc(sizeof(*p_msg) + p_pkt->len));
@@ -689,8 +687,8 @@ uint8_t btif_a2dp_sink_enqueue_buf(BT_HDR* p_pkt) {
   if (btif_a2dp_sink_cb.decode_alarm == nullptr &&
       fixed_queue_length(btif_a2dp_sink_cb.rx_audio_queue) >=
           MAX_A2DP_DELAYED_START_FRAME_COUNT) {
-    BTIF_TRACE_DEBUG("%s: Initiate decoding. Current focus state:%d", __func__,
-                     btif_a2dp_sink_cb.rx_focus_state);
+    LOG_VERBOSE("%s: Initiate decoding. Current focus state:%d", __func__,
+                btif_a2dp_sink_cb.rx_focus_state);
     if (btif_a2dp_sink_cb.rx_focus_state == BTIF_A2DP_SINK_FOCUS_GRANTED) {
       btif_a2dp_sink_audio_handle_start_decoding();
     }
@@ -734,7 +732,7 @@ static void btif_a2dp_sink_set_focus_state_event(
   LOG_INFO("%s: state=%d", __func__, state);
   LockGuard lock(g_mutex);
 
-  APPL_TRACE_DEBUG("%s: setting focus state to %d", __func__, state);
+  LOG_VERBOSE("%s: setting focus state to %d", __func__, state);
   btif_a2dp_sink_cb.rx_focus_state = state;
   if (btif_a2dp_sink_cb.rx_focus_state == BTIF_A2DP_SINK_FOCUS_NOT_GRANTED) {
     fixed_queue_flush(btif_a2dp_sink_cb.rx_audio_queue, osi_free);

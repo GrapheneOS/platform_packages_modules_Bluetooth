@@ -111,7 +111,7 @@ static void avdt_sec_check_complete_orig(const RawAddress* bd_addr,
   AvdtpCcb* p_ccb = NULL;
   AvdtpTransportChannel* p_tbl;
 
-  AVDT_TRACE_DEBUG("avdt_sec_check_complete_orig res: %d", res);
+  LOG_VERBOSE("avdt_sec_check_complete_orig res: %d", res);
   if (bd_addr) p_ccb = avdt_ccb_by_bd(*bd_addr);
   p_tbl = avdt_ad_tc_tbl_by_st(AVDT_CHAN_SIG, p_ccb, AVDT_AD_ST_SEC_INT);
   if (p_tbl == NULL) return;
@@ -238,8 +238,7 @@ void avdt_l2c_connect_cfm_cback(uint16_t lcid, uint16_t result) {
   AvdtpTransportChannel* p_tbl;
   AvdtpCcb* p_ccb;
 
-  AVDT_TRACE_DEBUG("avdt_l2c_connect_cfm_cback lcid: %d, result: %d", lcid,
-                   result);
+  LOG_VERBOSE("avdt_l2c_connect_cfm_cback lcid: %d, result: %d", lcid, result);
   /* look up info for this channel */
   p_tbl = avdt_ad_tc_tbl_by_lcid(lcid);
   if (p_tbl != NULL) {
@@ -301,7 +300,7 @@ void avdt_l2c_config_cfm_cback(uint16_t lcid, uint16_t initiator,
 
   AvdtpTransportChannel* p_tbl;
 
-  AVDT_TRACE_DEBUG("%s: lcid: %d", __func__, lcid);
+  LOG_VERBOSE("%s: lcid: %d", __func__, lcid);
 
   /* look up info for this channel */
   p_tbl = avdt_ad_tc_tbl_by_lcid(lcid);
@@ -328,7 +327,7 @@ void avdt_l2c_config_cfm_cback(uint16_t lcid, uint16_t initiator,
 void avdt_l2c_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO* p_cfg) {
   AvdtpTransportChannel* p_tbl;
 
-  AVDT_TRACE_DEBUG("%s: lcid: %d", __func__, lcid);
+  LOG_VERBOSE("%s: lcid: %d", __func__, lcid);
 
   /* look up info for this channel */
   p_tbl = avdt_ad_tc_tbl_by_lcid(lcid);
@@ -339,8 +338,7 @@ void avdt_l2c_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO* p_cfg) {
     } else {
       p_tbl->peer_mtu = L2CAP_DEFAULT_MTU;
     }
-    AVDT_TRACE_DEBUG("%s: peer_mtu: %d, lcid: %d", __func__, p_tbl->peer_mtu,
-                     lcid);
+    LOG_VERBOSE("%s: peer_mtu: %d, lcid: %d", __func__, p_tbl->peer_mtu, lcid);
   }
 }
 
@@ -357,8 +355,8 @@ void avdt_l2c_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO* p_cfg) {
 void avdt_l2c_disconnect_ind_cback(uint16_t lcid, bool ack_needed) {
   AvdtpTransportChannel* p_tbl;
 
-  AVDT_TRACE_DEBUG("avdt_l2c_disconnect_ind_cback lcid: %d, ack_needed: %d",
-                   lcid, ack_needed);
+  LOG_VERBOSE("avdt_l2c_disconnect_ind_cback lcid: %d, ack_needed: %d", lcid,
+              ack_needed);
   /* look up info for this channel */
   p_tbl = avdt_ad_tc_tbl_by_lcid(lcid);
   if (p_tbl != NULL) {
@@ -370,7 +368,7 @@ void avdt_l2c_disconnect(uint16_t lcid) {
   L2CA_DisconnectReq(lcid);
   AvdtpTransportChannel* p_tbl;
 
-  AVDT_TRACE_DEBUG("avdt_l2c_disconnect_cfm_cback lcid: %d", lcid);
+  LOG_VERBOSE("avdt_l2c_disconnect_cfm_cback lcid: %d", lcid);
   /* look up info for this channel */
   p_tbl = avdt_ad_tc_tbl_by_lcid(lcid);
   if (p_tbl != NULL) {
