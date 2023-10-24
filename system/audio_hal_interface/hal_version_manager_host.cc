@@ -41,6 +41,7 @@ HalVersionManager::GetProvidersFactory_2_0() {
 
 HalVersionManager::HalVersionManager() {
   hal_version_ = BluetoothAudioHalVersion::VERSION_UNAVAILABLE;
+  hal_transport_ = BluetoothAudioHalTransport::UNKNOWN;
 }
 
 }  // namespace audio
