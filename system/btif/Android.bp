@@ -523,6 +523,7 @@ cc_test {
     static_libs: [
         "libbluetooth-types",
         "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libchrome",
         "libcom.android.sysprop.bluetooth",
         "libosi",
