@@ -44,10 +44,6 @@ tSMP_STATUS SMP_Pair(const RawAddress& bd_addr) {
   inc_func_call_count(__func__);
   return SMP_SUCCESS;
 }
-uint8_t SMP_SetTraceLevel(uint8_t new_level) {
-  inc_func_call_count(__func__);
-  return 0;
-}
 void SMP_ConfirmReply(const RawAddress& bd_addr, uint8_t res) {
   inc_func_call_count(__func__);
 }

@@ -46,9 +46,6 @@ using testing::DoAll;
 using testing::Return;
 using testing::SetArrayArgument;
 
-// Global trace level referred in the code under test
-uint8_t appl_trace_level = BT_TRACE_LEVEL_VERBOSE;
-
 bool sdp_dynamic_change_hfp_version(const tSDP_ATTRIBUTE* p_attr,
                                     const RawAddress& remote_address);
 void hfp_fallback(bool& is_hfp_fallback, const tSDP_ATTRIBUTE* p_attr);

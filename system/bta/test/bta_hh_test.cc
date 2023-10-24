@@ -25,9 +25,6 @@
 #include "test/common/mock_functions.h"
 #include "test/mock/mock_osi_allocator.h"
 
-uint8_t appl_trace_level = 0;
-uint8_t btif_trace_level = BT_TRACE_LEVEL_DEBUG;
-
 namespace {
 std::array<uint8_t, 32> data32 = {
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b,

@@ -433,18 +433,6 @@ tPAN_RESULT PAN_SetMulticastFilters(uint16_t handle, uint16_t num_mcast_filters,
 
 /*******************************************************************************
  *
- * Function         PAN_SetTraceLevel
- *
- * Description      This function sets the trace level for PAN. If called with
- *                  a value of 0xFF, it simply reads the current trace level.
- *
- * Returns          the new (current) trace level
- *
- ******************************************************************************/
-uint8_t PAN_SetTraceLevel(uint8_t new_level);
-
-/*******************************************************************************
- *
  * Function         PAN_Init
  *
  * Description      This function initializes the PAN unit. It should be called

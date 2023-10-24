@@ -590,7 +590,6 @@ typedef struct t_l2c_linkcb {
 /* Define the L2CAP control structure
 */
 typedef struct {
-  uint8_t l2cap_trace_level;
   uint16_t controller_xmit_window; /* Total ACL window for all links */
 
   uint16_t round_robin_quota;   /* Round-robin link quota */

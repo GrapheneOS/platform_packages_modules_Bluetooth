@@ -118,7 +118,6 @@ cc_library_static {
         "src/btif_profile_storage.cc",
         "src/btif_rc.cc",
         "src/btif_vc.cc",
-        "src/profile_log_levels.cc",
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",

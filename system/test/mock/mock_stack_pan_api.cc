@@ -43,7 +43,6 @@ struct PAN_SetProtocolFilters PAN_SetProtocolFilters;
 struct PAN_SetRole PAN_SetRole;
 struct PAN_Write PAN_Write;
 struct PAN_WriteBuf PAN_WriteBuf;
-struct PAN_SetTraceLevel PAN_SetTraceLevel;
 struct PAN_Deregister PAN_Deregister;
 struct PAN_Dumpsys PAN_Dumpsys;
 struct PAN_Init PAN_Init;
@@ -96,10 +95,6 @@ tPAN_RESULT PAN_WriteBuf(uint16_t handle, const RawAddress& dst,
   inc_func_call_count(__func__);
   return test::mock::stack_pan_api::PAN_WriteBuf(handle, dst, src, protocol,
                                                  p_buf, ext);
-}
-uint8_t PAN_SetTraceLevel(uint8_t new_level) {
-  inc_func_call_count(__func__);
-  return test::mock::stack_pan_api::PAN_SetTraceLevel(new_level);
 }
 void PAN_Deregister(void) {
   inc_func_call_count(__func__);

@@ -856,12 +856,6 @@ void l2c_init(void) {
   /* Set the default idle timeout */
   l2cb.idle_timeout = L2CAP_LINK_INACTIVITY_TOUT;
 
-#if defined(L2CAP_INITIAL_TRACE_LEVEL)
-  l2cb.l2cap_trace_level = L2CAP_INITIAL_TRACE_LEVEL;
-#else
-  l2cb.l2cap_trace_level = BT_TRACE_LEVEL_NONE; /* No traces */
-#endif
-
 #if (L2CAP_CONFORMANCE_TESTING == TRUE)
   /* Conformance testing needs a dynamic response */
   l2cb.test_info_resp = L2CAP_EXTFEA_SUPPORTED_MASK;

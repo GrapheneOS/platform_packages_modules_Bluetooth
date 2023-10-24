@@ -82,8 +82,6 @@ void sdp_init(void) {
   sdp_cb.max_attr_list_size = SDP_MTU_SIZE - 16;
   sdp_cb.max_recs_per_search = SDP_MAX_DISC_SERVER_RECS;
 
-  sdp_cb.trace_level = BT_TRACE_LEVEL_WARNING;
-
   sdp_cb.reg_info.pL2CA_ConnectInd_Cb = sdp_connect_ind;
   sdp_cb.reg_info.pL2CA_ConnectCfm_Cb = sdp_connect_cfm;
   sdp_cb.reg_info.pL2CA_ConfigInd_Cb = sdp_config_ind;

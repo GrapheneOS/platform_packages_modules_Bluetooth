@@ -250,8 +250,6 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 #define SMP_INITIAL_TRACE_LEVEL BT_TRACE_LEVEL_WARNING
 #endif
 
-extern uint8_t btif_trace_level;
-
 typedef uint8_t tBTTRC_LAYER_ID;
 typedef uint8_t(tBTTRC_SET_TRACE_LEVEL)(uint8_t);
 
@@ -262,10 +260,6 @@ typedef struct {
   const char* trc_name;
   uint8_t trace_level;
 } tBTTRC_FUNC_MAP;
-
-/* External declaration for appl_trace_level here to avoid to add the
- * declaration in all the files using APPL_TRACExxx macros */
-extern uint8_t appl_trace_level;
 
 #ifdef __cplusplus
 }

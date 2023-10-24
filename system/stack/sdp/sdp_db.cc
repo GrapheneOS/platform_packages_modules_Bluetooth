@@ -367,7 +367,9 @@ bool SDP_AddAttribute(uint32_t handle, uint16_t attr_id, uint8_t attr_type,
     return (false);
   }
 
-  if (sdp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) {
+  // TODO(305066880): invoke would_log when implemented to check
+  // if LOG_VERBOSE is displayed.
+  if (true) {
     if ((attr_type == UINT_DESC_TYPE) ||
         (attr_type == TWO_COMP_INT_DESC_TYPE) ||
         (attr_type == UUID_DESC_TYPE) ||

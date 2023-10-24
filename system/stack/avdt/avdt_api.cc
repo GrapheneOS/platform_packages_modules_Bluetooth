@@ -995,36 +995,7 @@ uint16_t AVDT_GetL2CapChannel(uint8_t handle) {
   return (lcid);
 }
 
-/******************************************************************************
- *
- * Function         AVDT_SetTraceLevel
- *
- * Description      Sets the trace level for AVDT. If 0xff is passed, the
- *                  current trace level is returned.
- *
- *                  Input Parameters:
- *                      new_level:  The level to set the AVDT tracing to:
- *                      0xff-returns the current setting.
- *                      0-turns off tracing.
- *                      >= 1-Errors.
- *                      >= 2-Warnings.
- *                      >= 3-APIs.
- *                      >= 4-Events.
- *                      >= 5-Debug.
- *
- * Returns          The new trace level or current trace level if
- *                  the input parameter is 0xff.
- *
- *****************************************************************************/
-uint8_t AVDT_SetTraceLevel(uint8_t new_level) {
-  if (new_level != 0xFF) avdtp_cb.SetTraceLevel(new_level);
-
-  return avdtp_cb.TraceLevel();
-}
-
 void stack_debug_avdtp_api_dump(int fd) {
-  if (appl_trace_level < BT_TRACE_LEVEL_DEBUG) return;
-
   dprintf(fd, "\nAVDTP Stack State:\n");
   dprintf(fd, "  AVDTP signalling L2CAP channel MTU: %d\n",
           avdtp_cb.rcb.ctrl_mtu);
