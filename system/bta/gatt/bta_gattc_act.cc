@@ -1009,6 +1009,11 @@ void bta_gattc_read_multi(tBTA_GATTC_CLCB* p_clcb,
                           const tBTA_GATTC_DATA* p_data) {
   if (bta_gattc_enqueue(p_clcb, p_data) == ENQUEUED_FOR_LATER) return;
 
+  if (p_data->api_read_multi.num_attr > GATT_MAX_READ_MULTI_HANDLES) {
+    LOG(ERROR) << "api_read_multi.num_attr > GATT_MAX_READ_MULTI_HANDLES";
+    return;
+  }
+
   tGATT_READ_PARAM read_param;
   memset(&read_param, 0, sizeof(tGATT_READ_PARAM));
 
