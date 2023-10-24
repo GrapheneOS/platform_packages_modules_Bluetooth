@@ -9,6 +9,7 @@ aconfig_declarations {
     srcs: [
         "hap.aconfig",
         "hfp.aconfig",
+        "leaudio.aconfig",
         "system_service.aconfig",
     ],
 }
@@ -17,6 +18,7 @@ java_aconfig_library {
     name: "bluetooth_flags_java_lib",
     aconfig_declarations: "bluetooth_aconfig_flags",
     visibility: [
+        "//cts/tests/tests/bluetooth:__subpackages__",
         "//packages/modules/Bluetooth/android/app",
         "//packages/modules/Bluetooth/service:__subpackages__",
     ],
