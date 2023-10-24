@@ -206,10 +206,9 @@ static tBTM_SEC_DEV_REC* btm_find_dev_by_identity_addr(
     if (p_dev_rec->ble.identity_address_with_type.bda == bd_addr) {
       if ((p_dev_rec->ble.identity_address_with_type.type &
            (~BLE_ADDR_TYPE_ID_BIT)) != (addr_type & (~BLE_ADDR_TYPE_ID_BIT)))
-        BTM_TRACE_WARNING(
-            "%s find pseudo->random match with diff addr type: %d vs %d",
-            __func__, p_dev_rec->ble.identity_address_with_type.type,
-            addr_type);
+        LOG_WARN("%s find pseudo->random match with diff addr type: %d vs %d",
+                 __func__, p_dev_rec->ble.identity_address_with_type.type,
+                 addr_type);
 
       /* found the match */
       return p_dev_rec;

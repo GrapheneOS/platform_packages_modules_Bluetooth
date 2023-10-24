@@ -113,21 +113,21 @@ void BtaGattQueue::gatt_configure_mtu_op_finished(uint16_t conn_id,
 }
 
 void BtaGattQueue::gatt_execute_next_op(uint16_t conn_id) {
-  APPL_TRACE_DEBUG("%s: conn_id=0x%x", __func__, conn_id);
+  LOG_VERBOSE("%s: conn_id=0x%x", __func__, conn_id);
   if (gatt_op_queue.empty()) {
-    APPL_TRACE_DEBUG("%s: op queue is empty", __func__);
+    LOG_VERBOSE("%s: op queue is empty", __func__);
     return;
   }
 
   auto map_ptr = gatt_op_queue.find(conn_id);
   if (map_ptr == gatt_op_queue.end() || map_ptr->second.empty()) {
-    APPL_TRACE_DEBUG("%s: no more operations queued for conn_id %d", __func__,
-                     conn_id);
+    LOG_VERBOSE("%s: no more operations queued for conn_id %d", __func__,
+                conn_id);
     return;
   }
 
   if (gatt_op_queue_executing.count(conn_id)) {
-    APPL_TRACE_DEBUG("%s: can't enqueue next op, already executing", __func__);
+    LOG_VERBOSE("%s: can't enqueue next op, already executing", __func__);
     return;
   }
 

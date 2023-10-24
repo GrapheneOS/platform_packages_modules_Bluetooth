@@ -67,7 +67,7 @@ static void btif_gatt_set_encryption_cb(UNUSED_ATTR const RawAddress& bd_addr,
                                         UNUSED_ATTR tBT_TRANSPORT transport,
                                         tBTA_STATUS result) {
   if (result != BTA_SUCCESS && result != BTA_BUSY) {
-    BTIF_TRACE_WARNING("%s() - Encryption failed (%d)", __func__, result);
+    LOG_WARN("%s() - Encryption failed (%d)", __func__, result);
   }
 }
 

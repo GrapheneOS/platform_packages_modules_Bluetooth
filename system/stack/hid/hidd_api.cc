@@ -59,7 +59,7 @@ tHID_DEV_CTB hd_cb;
 void HID_DevInit(void) {
   uint8_t log_level = hd_cb.trace_level;
 
-  HIDD_TRACE_API("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   memset(&hd_cb, 0, sizeof(tHID_DEV_CTB));
   hd_cb.trace_level = log_level;
@@ -94,7 +94,7 @@ uint8_t HID_DevSetTraceLevel(uint8_t new_level) {
 tHID_STATUS HID_DevRegister(tHID_DEV_HOST_CALLBACK* host_cback) {
   tHID_STATUS st;
 
-  HIDD_TRACE_API("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   if (hd_cb.reg_flag) {
     log_counter_metrics(
@@ -135,7 +135,7 @@ tHID_STATUS HID_DevRegister(tHID_DEV_HOST_CALLBACK* host_cback) {
  *
  ******************************************************************************/
 tHID_STATUS HID_DevDeregister(void) {
-  HIDD_TRACE_API("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   if (!hd_cb.reg_flag) {
     log_counter_metrics(android::bluetooth::CodePathCounterKeyEnum::
@@ -165,7 +165,7 @@ tHID_STATUS HID_DevAddRecord(uint32_t handle, char* p_name, char* p_description,
                              uint16_t desc_len, uint8_t* p_desc_data) {
   bool result = TRUE;
 
-  HIDD_TRACE_API("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   // Service Class ID List
   if (result) {
@@ -285,8 +285,8 @@ tHID_STATUS HID_DevAddRecord(uint32_t handle, char* p_name, char* p_description,
       uint8_t seq_len = 4 + desc_len;
 
       if (desc_len > HIDD_APP_DESCRIPTOR_LEN) {
-        HIDD_TRACE_ERROR("%s: descriptor length = %d, larger than max %d",
-                         __func__, desc_len, HIDD_APP_DESCRIPTOR_LEN);
+        LOG_ERROR("%s: descriptor length = %d, larger than max %d", __func__,
+                  desc_len, HIDD_APP_DESCRIPTOR_LEN);
         log_counter_metrics(
             android::bluetooth::CodePathCounterKeyEnum::
                 HIDD_ERR_NOT_REGISTERED_DUE_TO_DESCRIPTOR_LENGTH,
@@ -297,8 +297,7 @@ tHID_STATUS HID_DevAddRecord(uint32_t handle, char* p_name, char* p_description,
       p_buf = (uint8_t*)osi_malloc(HIDD_APP_DESCRIPTOR_LEN + 6);
 
       if (p_buf == NULL) {
-        HIDD_TRACE_ERROR("%s: Buffer allocation failure for size = 2048 ",
-                         __func__);
+        LOG_ERROR("%s: Buffer allocation failure for size = 2048 ", __func__);
         log_counter_metrics(
             android::bluetooth::CodePathCounterKeyEnum::
                 HIDD_ERR_NOT_REGISTERED_DUE_TO_BUFFER_ALLOCATION,
@@ -372,7 +371,7 @@ tHID_STATUS HID_DevAddRecord(uint32_t handle, char* p_name, char* p_description,
   }
 
   if (!result) {
-    HIDD_TRACE_ERROR("%s: failed to complete SDP record", __func__);
+    LOG_ERROR("%s: failed to complete SDP record", __func__);
     log_counter_metrics(android::bluetooth::CodePathCounterKeyEnum::
                             HIDD_ERR_NOT_REGISTERED_AT_SDP,
                         1);
@@ -393,8 +392,8 @@ tHID_STATUS HID_DevAddRecord(uint32_t handle, char* p_name, char* p_description,
  ******************************************************************************/
 tHID_STATUS HID_DevSendReport(uint8_t channel, uint8_t type, uint8_t id,
                               uint16_t len, uint8_t* p_data) {
-  HIDD_TRACE_VERBOSE("%s: channel=%d type=%d id=%d len=%d", __func__, channel,
-                     type, id, len);
+  LOG_VERBOSE("%s: channel=%d type=%d id=%d len=%d", __func__, channel, type,
+              id, len);
 
   if (channel == HID_CHANNEL_CTRL) {
     return hidd_conn_send_data(HID_CHANNEL_CTRL, HID_TRANS_DATA, type, id, len,
@@ -422,7 +421,7 @@ tHID_STATUS HID_DevSendReport(uint8_t channel, uint8_t type, uint8_t id,
  *
  ******************************************************************************/
 tHID_STATUS HID_DevVirtualCableUnplug(void) {
-  HIDD_TRACE_API("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   return hidd_conn_send_data(HID_CHANNEL_CTRL, HID_TRANS_CONTROL,
                              HID_PAR_CONTROL_VIRTUAL_CABLE_UNPLUG, 0, 0, NULL);
@@ -569,7 +568,7 @@ tHID_STATUS HID_DevSetIncomingPolicy(bool allow) {
 tHID_STATUS HID_DevReportError(uint8_t error) {
   uint8_t handshake_param;
 
-  HIDD_TRACE_API("%s: error = %d", __func__, error);
+  LOG_VERBOSE("%s: error = %d", __func__, error);
 
   switch (error) {
     case HID_PAR_HANDSHAKE_RSP_SUCCESS:
@@ -600,7 +599,7 @@ tHID_STATUS HID_DevReportError(uint8_t error) {
  *
  ******************************************************************************/
 tHID_STATUS HID_DevGetDevice(RawAddress* addr) {
-  HIDD_TRACE_API("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   if (hd_cb.device.in_use) {
     *addr = hd_cb.device.addr;
@@ -627,7 +626,7 @@ tHID_STATUS HID_DevSetIncomingQos(uint8_t service_type, uint32_t token_rate,
                                   uint32_t token_bucket_size,
                                   uint32_t peak_bandwidth, uint32_t latency,
                                   uint32_t delay_variation) {
-  HIDD_TRACE_API("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   hd_cb.use_in_qos = TRUE;
 
@@ -654,7 +653,7 @@ tHID_STATUS HID_DevSetOutgoingQos(uint8_t service_type, uint32_t token_rate,
                                   uint32_t token_bucket_size,
                                   uint32_t peak_bandwidth, uint32_t latency,
                                   uint32_t delay_variation) {
-  HIDD_TRACE_API("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   hd_cb.l2cap_intr_cfg.qos_present = TRUE;
 

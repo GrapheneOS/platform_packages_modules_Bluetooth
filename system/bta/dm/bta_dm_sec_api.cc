@@ -274,7 +274,7 @@ void BTA_DmBleSecurityGrant(const RawAddress& bd_addr,
 void BTA_DmSetEncryption(const RawAddress& bd_addr, tBT_TRANSPORT transport,
                          tBTA_DM_ENCRYPT_CBACK* p_callback,
                          tBTM_BLE_SEC_ACT sec_act) {
-  APPL_TRACE_API("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
   do_in_main_thread(FROM_HERE, base::BindOnce(bta_dm_set_encryption, bd_addr,
                                               transport, p_callback, sec_act));
 }

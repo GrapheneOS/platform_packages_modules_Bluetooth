@@ -140,7 +140,7 @@ static void avrc_ctrl_cback(uint8_t handle, uint8_t event, uint16_t result,
  *
  *****************************************************************************/
 void avrc_flush_cmd_q(uint8_t handle) {
-  AVRC_TRACE_DEBUG("AVRC: Flushing command queue for handle=0x%02x", handle);
+  LOG_VERBOSE("AVRC: Flushing command queue for handle=0x%02x", handle);
   avrc_cb.ccb_int[handle].flags &= ~AVRC_CB_FLAGS_RSP_PENDING;
 
   alarm_cancel(avrc_cb.ccb_int[handle].tle);
@@ -160,8 +160,8 @@ void avrc_flush_cmd_q(uint8_t handle) {
 void avrc_process_timeout(void* data) {
   tAVRC_PARAM* param = (tAVRC_PARAM*)data;
 
-  AVRC_TRACE_DEBUG("AVRC: command timeout (handle=0x%02x, label=0x%02x)",
-                   param->handle, param->label);
+  LOG_VERBOSE("AVRC: command timeout (handle=0x%02x, label=0x%02x)",
+              param->handle, param->label);
 
   /* Notify app */
   if (avrc_cb.ccb[param->handle].ctrl_cback) {
@@ -195,9 +195,8 @@ void avrc_send_next_vendor_cmd(uint8_t handle) {
     next_label = (p_next_cmd->layer_specific) >> 8; /* extract label */
     p_next_cmd->layer_specific &= 0xFF; /* AVCT_DATA_CTRL or AVCT_DATA_BROWSE */
 
-    AVRC_TRACE_DEBUG(
-        "AVRC: Dequeuing command 0x%p (handle=0x%02x, label=0x%02x)",
-        p_next_cmd, handle, next_label);
+    LOG_VERBOSE("AVRC: Dequeuing command 0x%p (handle=0x%02x, label=0x%02x)",
+                p_next_cmd, handle, next_label);
 
     /* Send the message */
     if ((AVCT_MsgReq(handle, next_label, AVCT_CMD, p_next_cmd)) ==
@@ -230,8 +229,8 @@ void avrc_start_cmd_timer(uint8_t handle, uint8_t label, uint8_t msg_mask) {
   param->label = label;
   param->msg_mask = msg_mask;
 
-  AVRC_TRACE_DEBUG("AVRC: starting timer (handle=0x%02x, label=0x%02x)", handle,
-                   label);
+  LOG_VERBOSE("AVRC: starting timer (handle=0x%02x, label=0x%02x)", handle,
+              label);
 
   alarm_set_on_mloop(avrc_cb.ccb_int[handle].tle, AVRC_CMD_TOUT_MS,
                      avrc_process_timeout, param);
@@ -290,7 +289,7 @@ static void avrc_prep_end_frag(uint8_t handle) {
   uint8_t *p_data, *p_orig_data;
   uint8_t rsp_type;
 
-  AVRC_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
   p_fcb = &avrc_cb.fcb[handle];
 
   /* The response type of the end fragment should be the same as the the PDU of
@@ -337,8 +336,8 @@ static uint16_t avrc_send_continue_frag(uint8_t handle, uint8_t label) {
   p_fcb = &avrc_cb.fcb[handle];
   p_pkt = p_fcb->p_fmsg;
 
-  AVRC_TRACE_DEBUG("%s handle = %u label = %u len = %d", __func__, handle,
-                   label, p_pkt->len);
+  LOG_VERBOSE("%s handle = %u label = %u len = %d", __func__, handle, label,
+              p_pkt->len);
   if (p_pkt->len > AVRC_MAX_CTRL_DATA_LEN) {
     int offset_len = MAX(AVCT_MSG_OFFSET, p_pkt->offset);
     p_pkt_old = p_fcb->p_fmsg;
@@ -394,7 +393,7 @@ static BT_HDR* avrc_proc_vendor_command(uint8_t handle, uint8_t label,
 
   if (pkt_type != AVRC_PKT_SINGLE) {
     /* reject - commands can only be in single packets at AVRCP level */
-    AVRC_TRACE_ERROR("commands must be in single packet pdu:0x%x", *p_data);
+    LOG_ERROR("commands must be in single packet pdu:0x%x", *p_data);
     /* use the current GKI buffer to send the reject */
     status = AVRC_STS_BAD_CMD;
   }
@@ -428,7 +427,7 @@ static BT_HDR* avrc_proc_vendor_command(uint8_t handle, uint8_t label,
           } else {
             /* the pdu id does not match - reject the command using the current
              * GKI buffer */
-            AVRC_TRACE_ERROR(
+            LOG_ERROR(
                 "%s continue pdu: 0x%x does not match the current pdu: 0x%x",
                 __func__, *(p_data + 4), p_fcb->frag_pdu);
             status = AVRC_STS_BAD_PARAM;
@@ -497,7 +496,7 @@ static uint8_t avrc_proc_far_msg(uint8_t handle, uint8_t label, uint8_t cr,
   p_data += AVRC_VENDOR_HDR_SIZE;
 
   pkt_type = *(p_data + 1) & AVRC_PKT_TYPE_MASK;
-  AVRC_TRACE_DEBUG("pkt_type %d", pkt_type);
+  LOG_VERBOSE("pkt_type %d", pkt_type);
   p_rcb = &avrc_cb.rcb[handle];
 
   /* check if the message needs to be re-assembled */
@@ -540,7 +539,7 @@ static uint8_t avrc_proc_far_msg(uint8_t handle, uint8_t label, uint8_t cr,
     } else if (p_rcb->p_rmsg == NULL) {
       /* Received a CONTINUE/END, but no corresponding START
                       (or previous fragmented response was dropped) */
-      AVRC_TRACE_DEBUG(
+      LOG_VERBOSE(
           "Received a CONTINUE/END without no corresponding START \
                                 (or previous fragmented response was dropped)");
       drop_code = 5;
@@ -558,8 +557,7 @@ static uint8_t avrc_proc_far_msg(uint8_t handle, uint8_t label, uint8_t cr,
       p_pkt->len -= (AVRC_VENDOR_HDR_SIZE + AVRC_MIN_META_HDR_SIZE);
       /* verify length */
       if ((p_rcb->p_rmsg->offset + p_pkt->len) > buf_len) {
-        AVRC_TRACE_WARNING(
-            "Fragmented message too big! - report the partial message");
+        LOG_WARN("Fragmented message too big! - report the partial message");
         p_pkt->len = buf_len - p_rcb->p_rmsg->offset;
         pkt_type = AVRC_PKT_END;
         buf_overflow = true;
@@ -584,8 +582,8 @@ static uint8_t avrc_proc_far_msg(uint8_t handle, uint8_t label, uint8_t cr,
         *p_data++ = AVRC_PKT_SINGLE;
         UINT16_TO_BE_STREAM(p_data,
                             (p_msg->vendor_len - AVRC_MIN_META_HDR_SIZE));
-        AVRC_TRACE_DEBUG("end frag:%d, total len:%d, offset:%d", p_pkt->len,
-                         p_pkt_new->len, p_pkt_new->offset);
+        LOG_VERBOSE("end frag:%d, total len:%d, offset:%d", p_pkt->len,
+                    p_pkt_new->len, p_pkt_new->offset);
       } else {
         p_rcb->p_rmsg->offset += p_pkt->len;
         p_rcb->p_rmsg->len += p_pkt->len;
@@ -662,8 +660,8 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
 
   if (cr == AVCT_CMD && (p_pkt->layer_specific & AVCT_DATA_CTRL &&
                          p_pkt->len > AVRC_PACKET_LEN)) {
-    AVRC_TRACE_WARNING("%s: Command length %d too long: must be at most %d",
-                       __func__, p_pkt->len, AVRC_PACKET_LEN);
+    LOG_WARN("%s: Command length %d too long: must be at most %d", __func__,
+             p_pkt->len, AVRC_PACKET_LEN);
     osi_free(p_pkt);
     return;
   }
@@ -676,7 +674,7 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
     return;
   } else if (cr == AVCT_RSP) {
     /* Received response. Stop command timeout timer */
-    AVRC_TRACE_DEBUG("AVRC: stopping timer (handle=0x%02x)", handle);
+    LOG_VERBOSE("AVRC: stopping timer (handle=0x%02x)", handle);
     alarm_cancel(avrc_cb.ccb_int[handle].tle);
   }
 
@@ -691,14 +689,14 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
     msg.browse.p_browse_pkt = p_pkt;
   } else {
     if (p_pkt->len < AVRC_AVC_HDR_SIZE) {
-      AVRC_TRACE_WARNING("%s: message length %d too short: must be at least %d",
-                         __func__, p_pkt->len, AVRC_AVC_HDR_SIZE);
+      LOG_WARN("%s: message length %d too short: must be at least %d", __func__,
+               p_pkt->len, AVRC_AVC_HDR_SIZE);
       osi_free(p_pkt);
       return;
     }
     msg.hdr.ctype = p_data[0] & AVRC_CTYPE_MASK;
-    AVRC_TRACE_DEBUG("%s handle:%d, ctype:%d, offset:%d, len: %d", __func__,
-                     handle, msg.hdr.ctype, p_pkt->offset, p_pkt->len);
+    LOG_VERBOSE("%s handle:%d, ctype:%d, offset:%d, len: %d", __func__, handle,
+                msg.hdr.ctype, p_pkt->offset, p_pkt->len);
     msg.hdr.subunit_type =
         (p_data[1] & AVRC_SUBTYPE_MASK) >> AVRC_SUBTYPE_SHIFT;
     msg.hdr.subunit_id = p_data[1] & AVRC_SUBID_MASK;
@@ -730,9 +728,8 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
         } else {
           /* parse response */
           if (p_pkt->len < AVRC_OP_UNIT_INFO_RSP_LEN) {
-            AVRC_TRACE_WARNING(
-                "%s: message length %d too short: must be at least %d",
-                __func__, p_pkt->len, AVRC_OP_UNIT_INFO_RSP_LEN);
+            LOG_WARN("%s: message length %d too short: must be at least %d",
+                     __func__, p_pkt->len, AVRC_OP_UNIT_INFO_RSP_LEN);
             drop = true;
             p_drop_msg = "UNIT_INFO_RSP too short";
             break;
@@ -767,9 +764,8 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
         } else {
           /* parse response */
           if (p_pkt->len < AVRC_OP_SUB_UNIT_INFO_RSP_LEN) {
-            AVRC_TRACE_WARNING(
-                "%s: message length %d too short: must be at least %d",
-                __func__, p_pkt->len, AVRC_OP_SUB_UNIT_INFO_RSP_LEN);
+            LOG_WARN("%s: message length %d too short: must be at least %d",
+                     __func__, p_pkt->len, AVRC_OP_SUB_UNIT_INFO_RSP_LEN);
             drop = true;
             p_drop_msg = "SUB_UNIT_INFO_RSP too short";
             break;
@@ -914,9 +910,8 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
     msg.hdr.opcode = opcode;
     avrc_cb.ccb[handle].msg_cback.Run(handle, label, opcode, &msg);
   } else {
-    AVRC_TRACE_WARNING("%s %s msg handle:%d, control:%d, cr:%d, opcode:x%x",
-                       __func__, p_drop_msg, handle,
-                       avrc_cb.ccb[handle].control, cr, opcode);
+    LOG_WARN("%s %s msg handle:%d, control:%d, cr:%d, opcode:x%x", __func__,
+             p_drop_msg, handle, avrc_cb.ccb[handle].control, cr, opcode);
   }
 
   if (opcode == AVRC_OP_BROWSE && msg.browse.p_browse_pkt == NULL) {
@@ -1100,8 +1095,8 @@ uint16_t AVRC_Open(uint8_t* p_handle, tAVRC_CONN_CB* p_ccb,
     avrc_cb.ccb_int[*p_handle].tle = alarm_new("avrcp.commandTimer");
     avrc_cb.ccb_int[*p_handle].cmd_q = fixed_queue_new(SIZE_MAX);
   }
-  AVRC_TRACE_DEBUG("%s role: %d, control:%d status:%d, handle:%d", __func__,
-                   cc.role, cc.control, status, *p_handle);
+  LOG_VERBOSE("%s role: %d, control:%d status:%d, handle:%d", __func__, cc.role,
+              cc.control, status, *p_handle);
 
   return status;
 }
@@ -1125,7 +1120,7 @@ uint16_t AVRC_Open(uint8_t* p_handle, tAVRC_CONN_CB* p_ccb,
  *
  *****************************************************************************/
 uint16_t AVRC_Close(uint8_t handle) {
-  AVRC_TRACE_DEBUG("%s handle:%d", __func__, handle);
+  LOG_VERBOSE("%s handle:%d", __func__, handle);
   avrc_flush_cmd_q(handle);
   return AVCT_RemoveConn(handle);
 }
@@ -1196,8 +1191,8 @@ uint16_t AVRC_MsgReq(uint8_t handle, uint8_t label, uint8_t ctype,
 
   if (!p_pkt) return AVRC_BAD_PARAM;
 
-  AVRC_TRACE_DEBUG("%s handle = %u label = %u ctype = %u len = %d", __func__,
-                   handle, label, ctype, p_pkt->len);
+  LOG_VERBOSE("%s handle = %u label = %u ctype = %u len = %d", __func__, handle,
+              label, ctype, p_pkt->len);
   /* Handle for AVRCP fragment */
 #ifdef __ANDROID__
   if (!android::sysprop::bluetooth::A2dp::src_sink_coexist().value_or(false))
@@ -1250,9 +1245,8 @@ uint16_t AVRC_MsgReq(uint8_t handle, uint8_t label, uint8_t ctype,
       peer_mtu = AVCT_GetPeerMtu(handle);
     }
     if (p_pkt->len > (peer_mtu - AVCT_HDR_LEN_SINGLE)) {
-      AVRC_TRACE_ERROR(
-          "%s bigger than peer mtu (p_pkt->len(%d) > peer_mtu(%d-%d))",
-          __func__, p_pkt->len, peer_mtu, AVCT_HDR_LEN_SINGLE);
+      LOG_ERROR("%s bigger than peer mtu (p_pkt->len(%d) > peer_mtu(%d-%d))",
+                __func__, p_pkt->len, peer_mtu, AVCT_HDR_LEN_SINGLE);
       osi_free(p_pkt);
       return AVRC_MSG_TOO_BIG;
     }
@@ -1262,7 +1256,7 @@ uint16_t AVRC_MsgReq(uint8_t handle, uint8_t label, uint8_t ctype,
   p_fcb = &avrc_cb.fcb[handle];
 
   if (p_fcb == NULL) {
-    AVRC_TRACE_ERROR("%s p_fcb is NULL", __func__);
+    LOG_ERROR("%s p_fcb is NULL", __func__);
     osi_free(p_pkt);
     return AVRC_NOT_OPEN;
   }
@@ -1304,11 +1298,11 @@ uint16_t AVRC_MsgReq(uint8_t handle, uint8_t label, uint8_t ctype,
 
         /* prepare the left over for as an end fragment */
         avrc_prep_end_frag(handle);
-        AVRC_TRACE_DEBUG("%s p_pkt len:%d/%d, next len:%d", __func__,
-                         p_pkt->len, len, p_fcb->p_fmsg->len);
+        LOG_VERBOSE("%s p_pkt len:%d/%d, next len:%d", __func__, p_pkt->len,
+                    len, p_fcb->p_fmsg->len);
       } else {
         /* TODO: Is this "else" block valid? Remove it? */
-        AVRC_TRACE_ERROR("%s no buffers for fragmentation", __func__);
+        LOG_ERROR("%s no buffers for fragmentation", __func__);
         osi_free(p_pkt);
         return AVRC_NO_RESOURCES;
       }
@@ -1322,9 +1316,8 @@ uint16_t AVRC_MsgReq(uint8_t handle, uint8_t label, uint8_t ctype,
      * command
      * is received (exception is continuation request command
      * must sent that to get additional response frags) */
-    AVRC_TRACE_DEBUG(
-        "AVRC: Enqueuing command 0x%p (handle=0x%02x, label=0x%02x)", p_pkt,
-        handle, label);
+    LOG_VERBOSE("AVRC: Enqueuing command 0x%p (handle=0x%02x, label=0x%02x)",
+                p_pkt, handle, label);
 
     /* label in BT_HDR (will need this later when the command is dequeued) */
     p_pkt->layer_specific = (label << 8) | (p_pkt->layer_specific & 0xFF);

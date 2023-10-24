@@ -192,7 +192,7 @@ void L2CA_Deregister(uint16_t psm) {
   tL2C_LCB* p_lcb;
   int ii;
 
-  L2CAP_TRACE_API("L2CAP - L2CA_Deregister() called for PSM: 0x%04x", psm);
+  LOG_VERBOSE("L2CAP - L2CA_Deregister() called for PSM: 0x%04x", psm);
 
   p_rcb = l2cu_find_rcb_by_psm(psm);
   if (p_rcb != NULL) {
@@ -217,8 +217,7 @@ void L2CA_Deregister(uint16_t psm) {
     }
     l2cu_release_rcb(p_rcb);
   } else {
-    L2CAP_TRACE_WARNING("L2CAP - PSM: 0x%04x not found for deregistration",
-                        psm);
+    LOG_WARN("L2CAP - PSM: 0x%04x not found for deregistration", psm);
   }
 }
 
@@ -236,11 +235,11 @@ uint16_t L2CA_AllocateLePSM(void) {
   uint16_t psm = l2cb.le_dyn_psm;
   uint16_t count = 0;
 
-  L2CAP_TRACE_API("%s: last psm=%d", __func__, psm);
+  LOG_VERBOSE("%s: last psm=%d", __func__, psm);
   while (!done) {
     count++;
     if (count > LE_DYNAMIC_PSM_RANGE) {
-      L2CAP_TRACE_ERROR("%s: Out of free BLE PSM", __func__);
+      LOG_ERROR("%s: Out of free BLE PSM", __func__);
       return 0;
     }
 
@@ -252,13 +251,13 @@ uint16_t L2CA_AllocateLePSM(void) {
     if (!l2cb.le_dyn_psm_assigned[psm - LE_DYNAMIC_PSM_START]) {
       /* make sure the newly allocated psm is not used right now */
       if (l2cu_find_ble_rcb_by_psm(psm)) {
-        L2CAP_TRACE_WARNING("%s: supposedly-free PSM=%d have allocated rcb!",
-                            __func__, psm);
+        LOG_WARN("%s: supposedly-free PSM=%d have allocated rcb!", __func__,
+                 psm);
         continue;
       }
 
       l2cb.le_dyn_psm_assigned[psm - LE_DYNAMIC_PSM_START] = true;
-      L2CAP_TRACE_DEBUG("%s: assigned PSM=%d", __func__, psm);
+      LOG_VERBOSE("%s: assigned PSM=%d", __func__, psm);
       done = true;
       break;
     }
@@ -278,15 +277,15 @@ uint16_t L2CA_AllocateLePSM(void) {
  *
  ******************************************************************************/
 void L2CA_FreeLePSM(uint16_t psm) {
-  L2CAP_TRACE_API("%s: to free psm=%d", __func__, psm);
+  LOG_VERBOSE("%s: to free psm=%d", __func__, psm);
 
   if ((psm < LE_DYNAMIC_PSM_START) || (psm > LE_DYNAMIC_PSM_END)) {
-    L2CAP_TRACE_ERROR("%s: Invalid PSM=%d value!", __func__, psm);
+    LOG_ERROR("%s: Invalid PSM=%d value!", __func__, psm);
     return;
   }
 
   if (!l2cb.le_dyn_psm_assigned[psm - LE_DYNAMIC_PSM_START]) {
-    L2CAP_TRACE_WARNING("%s: PSM=%d was not allocated!", __func__, psm);
+    LOG_WARN("%s: PSM=%d was not allocated!", __func__, psm);
   }
   l2cb.le_dyn_psm_assigned[psm - LE_DYNAMIC_PSM_START] = false;
 }
@@ -364,14 +363,14 @@ uint16_t L2CA_ConnectReq(uint16_t psm, const RawAddress& p_bd_addr) {
      * ccb will be automatically retried after link disconnect
      * arrives
      */
-    L2CAP_TRACE_DEBUG("L2CAP API - link disconnecting: RETRY LATER");
+    LOG_VERBOSE("L2CAP API - link disconnecting: RETRY LATER");
 
     /* Save ccb so it can be started after disconnect is finished */
     p_lcb->p_pending_ccb = p_ccb;
   }
 
-  L2CAP_TRACE_API("L2CAP - L2CA_conn_req(psm: 0x%04x) returned CID: 0x%04x",
-                  psm, p_ccb->local_cid);
+  LOG_VERBOSE("L2CAP - L2CA_conn_req(psm: 0x%04x) returned CID: 0x%04x", psm,
+              p_ccb->local_cid);
 
   /* Return the local CID as our handle */
   return p_ccb->local_cid;
@@ -461,12 +460,11 @@ uint16_t L2CA_RegisterLECoc(uint16_t psm, const tL2CAP_APPL_INFO& p_cb_info,
  *
  ******************************************************************************/
 void L2CA_DeregisterLECoc(uint16_t psm) {
-  L2CAP_TRACE_API("%s called for PSM: 0x%04x", __func__, psm);
+  LOG_VERBOSE("%s called for PSM: 0x%04x", __func__, psm);
 
   tL2C_RCB* p_rcb = l2cu_find_ble_rcb_by_psm(psm);
   if (p_rcb == NULL) {
-    L2CAP_TRACE_WARNING("%s PSM: 0x%04x not found for deregistration", __func__,
-                        psm);
+    LOG_WARN("%s PSM: 0x%04x not found for deregistration", __func__, psm);
     return;
   }
 
@@ -514,14 +512,14 @@ uint16_t L2CA_ConnectLECocReq(uint16_t psm, const RawAddress& p_bd_addr,
 
   /* Fail if we have not established communications with the controller */
   if (!BTM_IsDeviceUp()) {
-    L2CAP_TRACE_WARNING("%s BTU not ready", __func__);
+    LOG_WARN("%s BTU not ready", __func__);
     return 0;
   }
 
   /* Fail if the PSM is not registered */
   tL2C_RCB* p_rcb = l2cu_find_ble_rcb_by_psm(psm);
   if (p_rcb == NULL) {
-    L2CAP_TRACE_WARNING("%s No BLE RCB, PSM: 0x%04x", __func__, psm);
+    LOG_WARN("%s No BLE RCB, PSM: 0x%04x", __func__, psm);
     return 0;
   }
 
@@ -533,8 +531,8 @@ uint16_t L2CA_ConnectLECocReq(uint16_t psm, const RawAddress& p_bd_addr,
     if ((p_lcb == NULL)
         /* currently use BR/EDR for ERTM mode l2cap connection */
         || (!l2cu_create_conn_le(p_lcb))) {
-      L2CAP_TRACE_WARNING("%s conn not started for PSM: 0x%04x  p_lcb: 0x%p",
-                          __func__, psm, p_lcb);
+      LOG_WARN("%s conn not started for PSM: 0x%04x  p_lcb: 0x%p", __func__,
+               psm, p_lcb);
       return 0;
     }
   }
@@ -542,7 +540,7 @@ uint16_t L2CA_ConnectLECocReq(uint16_t psm, const RawAddress& p_bd_addr,
   /* Allocate a channel control block */
   tL2C_CCB* p_ccb = l2cu_allocate_ccb(p_lcb, 0);
   if (p_ccb == NULL) {
-    L2CAP_TRACE_WARNING("%s no CCB, PSM: 0x%04x", __func__, psm);
+    LOG_WARN("%s no CCB, PSM: 0x%04x", __func__, psm);
     return 0;
   }
 
@@ -560,7 +558,7 @@ uint16_t L2CA_ConnectLECocReq(uint16_t psm, const RawAddress& p_bd_addr,
   /* If link is up, start the L2CAP connection */
   if (p_lcb->link_state == LST_CONNECTED) {
     if (p_ccb->p_lcb->transport == BT_TRANSPORT_LE) {
-      L2CAP_TRACE_DEBUG("%s LE Link is up", __func__);
+      LOG_VERBOSE("%s LE Link is up", __func__);
       // post this asynchronously to avoid out-of-order callback invocation
       // should this operation fail
       do_in_main_thread(
@@ -576,14 +574,14 @@ uint16_t L2CA_ConnectLECocReq(uint16_t psm, const RawAddress& p_bd_addr,
    * arrives
    */
   else if (p_lcb->link_state == LST_DISCONNECTING) {
-    L2CAP_TRACE_DEBUG("%s link disconnecting: RETRY LATER", __func__);
+    LOG_VERBOSE("%s link disconnecting: RETRY LATER", __func__);
 
     /* Save ccb so it can be started after disconnect is finished */
     p_lcb->p_pending_ccb = p_ccb;
   }
 
-  L2CAP_TRACE_API("%s(psm: 0x%04x) returned CID: 0x%04x", __func__, psm,
-                  p_ccb->local_cid);
+  LOG_VERBOSE("%s(psm: 0x%04x) returned CID: 0x%04x", __func__, psm,
+              p_ccb->local_cid);
 
   /* Return the local CID as our handle */
   return p_ccb->local_cid;
@@ -603,11 +601,11 @@ uint16_t L2CA_ConnectLECocReq(uint16_t psm, const RawAddress& p_bd_addr,
  *
  ******************************************************************************/
 bool L2CA_GetPeerLECocConfig(uint16_t lcid, tL2CAP_LE_CFG_INFO* peer_cfg) {
-  L2CAP_TRACE_API("%s CID: 0x%04x", __func__, lcid);
+  LOG_VERBOSE("%s CID: 0x%04x", __func__, lcid);
 
   tL2C_CCB* p_ccb = l2cu_find_ccb_by_cid(NULL, lcid);
   if (p_ccb == NULL) {
-    L2CAP_TRACE_ERROR("%s No CCB for CID:0x%04x", __func__, lcid);
+    LOG_ERROR("%s No CCB for CID:0x%04x", __func__, lcid);
     return false;
   }
 
@@ -632,13 +630,13 @@ uint16_t L2CA_GetPeerLECocCredit(const RawAddress& bd_addr, uint16_t lcid) {
   tL2C_LCB* p_lcb = l2cu_find_lcb_by_bd_addr(bd_addr, BT_TRANSPORT_LE);
   if (p_lcb == NULL) {
     /* No link. Get an LCB and start link establishment */
-    L2CAP_TRACE_WARNING("%s no LCB", __func__);
+    LOG_WARN("%s no LCB", __func__);
     return L2CAP_LE_CREDIT_MAX;
   }
 
   tL2C_CCB* p_ccb = l2cu_find_ccb_by_cid(p_lcb, lcid);
   if (p_ccb == NULL) {
-    L2CAP_TRACE_ERROR("%s No CCB for CID:0x%04x", __func__, lcid);
+    LOG_ERROR("%s No CCB for CID:0x%04x", __func__, lcid);
     return L2CAP_LE_CREDIT_MAX;
   }
 
@@ -672,7 +670,7 @@ bool L2CA_ConnectCreditBasedRsp(const RawAddress& p_bd_addr, uint8_t id,
   tL2C_LCB* p_lcb = l2cu_find_lcb_by_bd_addr(p_bd_addr, BT_TRANSPORT_LE);
   if (p_lcb == NULL) {
     /* No link. Get an LCB and start link establishment */
-    L2CAP_TRACE_WARNING("%s no LCB", __func__);
+    LOG_WARN("%s no LCB", __func__);
     return false;
   }
 
@@ -681,14 +679,14 @@ bool L2CA_ConnectCreditBasedRsp(const RawAddress& p_bd_addr, uint8_t id,
   tL2C_CCB* p_ccb = l2cu_find_ccb_by_cid(p_lcb, p_lcb->pending_lead_cid);
 
   if (!p_ccb) {
-    L2CAP_TRACE_ERROR("%s No CCB for CID:0x%04x", __func__, p_lcb->pending_lead_cid);
+    LOG_ERROR("%s No CCB for CID:0x%04x", __func__, p_lcb->pending_lead_cid);
     return false;
   }
 
   for (uint16_t cid : accepted_lcids) {
     tL2C_CCB* temp_p_ccb = l2cu_find_ccb_by_cid(p_lcb, cid);
     if (temp_p_ccb == NULL) {
-      L2CAP_TRACE_WARNING("%s no CCB", __func__);
+      LOG_WARN("%s no CCB", __func__);
       return false;
     }
 
@@ -700,8 +698,8 @@ bool L2CA_ConnectCreditBasedRsp(const RawAddress& p_bd_addr, uint8_t id,
 
   /* The IDs must match */
   if (p_ccb->remote_id != id) {
-    L2CAP_TRACE_WARNING("%s bad id. Expected: %d  Got: %d", __func__,
-                        p_ccb->remote_id, id);
+    LOG_WARN("%s bad id. Expected: %d  Got: %d", __func__, p_ccb->remote_id,
+             id);
     return false;
   }
 
@@ -743,36 +741,35 @@ std::vector<uint16_t> L2CA_ConnectCreditBasedReq(uint16_t psm,
 
   /* Fail if we have not established communications with the controller */
   if (!BTM_IsDeviceUp()) {
-    L2CAP_TRACE_WARNING("%s BTU not ready", __func__);
+    LOG_WARN("%s BTU not ready", __func__);
     return allocated_cids;
   }
 
   if (!p_cfg) {
-    L2CAP_TRACE_WARNING("%s p_cfg is NULL", __func__);
+    LOG_WARN("%s p_cfg is NULL", __func__);
     return allocated_cids;
   }
 
   /* Fail if the PSM is not registered */
   tL2C_RCB* p_rcb = l2cu_find_ble_rcb_by_psm(psm);
   if (p_rcb == NULL) {
-    L2CAP_TRACE_WARNING("%s No BLE RCB, PSM: 0x%04x", __func__, psm);
+    LOG_WARN("%s No BLE RCB, PSM: 0x%04x", __func__, psm);
     return allocated_cids;
   }
 
   /* First, see if we already have a le link to the remote */
   tL2C_LCB* p_lcb = l2cu_find_lcb_by_bd_addr(p_bd_addr, BT_TRANSPORT_LE);
   if (p_lcb == NULL) {
-    L2CAP_TRACE_WARNING("%s No link available", __func__);
+    LOG_WARN("%s No link available", __func__);
     return allocated_cids;
   }
 
   if (p_lcb->link_state != LST_CONNECTED) {
-    L2CAP_TRACE_WARNING("%s incorrect link state: %d", __func__,
-                        p_lcb->link_state);
+    LOG_WARN("%s incorrect link state: %d", __func__, p_lcb->link_state);
     return allocated_cids;
   }
 
-  L2CAP_TRACE_DEBUG("%s LE Link is up", __func__);
+  LOG_VERBOSE("%s LE Link is up", __func__);
 
   /* Check if there is no ongoing connection request */
   if (p_lcb->pending_ecoc_conn_cnt > 0) {
@@ -794,7 +791,7 @@ std::vector<uint16_t> L2CA_ConnectCreditBasedReq(uint16_t psm,
         l2cu_allocate_ccb(p_lcb, 0, psm == BT_PSM_EATT /* is_eatt */);
     if (p_ccb == NULL) {
       if (i == 0) {
-        L2CAP_TRACE_WARNING("%s no CCB, PSM: 0x%04x", __func__, psm);
+        LOG_WARN("%s no CCB, PSM: 0x%04x", __func__, psm);
         return allocated_cids;
       } else {
         break;
@@ -826,8 +823,8 @@ std::vector<uint16_t> L2CA_ConnectCreditBasedReq(uint16_t psm,
   p_lcb->pending_ecoc_conn_cnt = (uint16_t)(allocated_cids.size());
   l2c_csm_execute(p_ccb_primary, L2CEVT_L2CA_CREDIT_BASED_CONNECT_REQ, NULL);
 
-  L2CAP_TRACE_API("%s(psm: 0x%04x) returned CID: 0x%04x", __func__, psm,
-                  p_ccb_primary->local_cid);
+  LOG_VERBOSE("%s(psm: 0x%04x) returned CID: 0x%04x", __func__, psm,
+              p_ccb_primary->local_cid);
 
   return allocated_cids;
 }
@@ -850,10 +847,10 @@ bool L2CA_ReconfigCreditBasedConnsReq(const RawAddress& bda,
                                       tL2CAP_LE_CFG_INFO* p_cfg) {
   tL2C_CCB* p_ccb;
 
-  L2CAP_TRACE_API("L2CA_ReconfigCreditBasedConnsReq() ");
+  LOG_VERBOSE("L2CA_ReconfigCreditBasedConnsReq() ");
 
   if (lcids.empty()) {
-    L2CAP_TRACE_WARNING("L2CAP - no lcids given to %s", __func__);
+    LOG_WARN("L2CAP - no lcids given to %s", __func__);
     return (false);
   }
 
@@ -861,25 +858,25 @@ bool L2CA_ReconfigCreditBasedConnsReq(const RawAddress& bda,
     p_ccb = l2cu_find_ccb_by_cid(NULL, cid);
 
     if (!p_ccb) {
-      L2CAP_TRACE_WARNING("L2CAP - no CCB for L2CA_cfg_req, CID: %d", cid);
+      LOG_WARN("L2CAP - no CCB for L2CA_cfg_req, CID: %d", cid);
       return (false);
     }
 
     if ((p_ccb->local_conn_cfg.mtu > p_cfg->mtu) ||
         (p_ccb->local_conn_cfg.mps > p_cfg->mps)) {
-      L2CAP_TRACE_WARNING("L2CAP - MPS or MTU reduction, CID: %d", cid);
+      LOG_WARN("L2CAP - MPS or MTU reduction, CID: %d", cid);
       return (false);
     }
   }
 
   if (p_cfg->mtu > L2CAP_MTU_SIZE) {
-    L2CAP_TRACE_WARNING("L2CAP - adjust MTU: %u too large", p_cfg->mtu);
+    LOG_WARN("L2CAP - adjust MTU: %u too large", p_cfg->mtu);
     p_cfg->mtu = L2CAP_MTU_SIZE;
   }
 
   /* Mark all the p_ccbs which going to be reconfigured */
   for (uint16_t cid : lcids) {
-    L2CAP_TRACE_API(" cid: %d", cid);
+    LOG_VERBOSE(" cid: %d", cid);
     p_ccb = l2cu_find_ccb_by_cid(NULL, cid);
     if (!p_ccb) {
       LOG(ERROR) << __func__ << "Missing cid? " << int(cid);
@@ -1073,13 +1070,12 @@ bool L2CA_SetAclLatency(const RawAddress& bd_addr, tL2CAP_LATENCY latency) {
 bool L2CA_SetTxPriority(uint16_t cid, tL2CAP_CHNL_PRIORITY priority) {
   tL2C_CCB* p_ccb;
 
-  L2CAP_TRACE_API("L2CA_SetTxPriority()  CID: 0x%04x, priority:%d", cid,
-                  priority);
+  LOG_VERBOSE("L2CA_SetTxPriority()  CID: 0x%04x, priority:%d", cid, priority);
 
   /* Find the channel control block. We don't know the link it is on. */
   p_ccb = l2cu_find_ccb_by_cid(NULL, cid);
   if (p_ccb == NULL) {
-    L2CAP_TRACE_WARNING("L2CAP - no CCB for L2CA_SetTxPriority, CID: %d", cid);
+    LOG_WARN("L2CAP - no CCB for L2CA_SetTxPriority, CID: %d", cid);
     return (false);
   }
 
@@ -1406,7 +1402,7 @@ bool L2CA_RemoveFixedChnl(uint16_t fixed_cid, const RawAddress& rem_bda) {
       (fixed_cid > L2CAP_LAST_FIXED_CHNL) ||
       (l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb ==
        NULL)) {
-    L2CAP_TRACE_ERROR("L2CA_RemoveFixedChnl()  Invalid CID: 0x%04x", fixed_cid);
+    LOG_ERROR("L2CA_RemoveFixedChnl()  Invalid CID: 0x%04x", fixed_cid);
     return (false);
   }
 
@@ -1511,7 +1507,7 @@ bool L2CA_MarkLeLinkAsActive(const RawAddress& rem_bda) {
  *
  ******************************************************************************/
 uint8_t L2CA_DataWrite(uint16_t cid, BT_HDR* p_data) {
-  L2CAP_TRACE_API("L2CA_DataWrite()  CID: 0x%04x  Len: %d", cid, p_data->len);
+  LOG_VERBOSE("L2CA_DataWrite()  CID: 0x%04x  Len: %d", cid, p_data->len);
   return l2c_data_write(cid, p_data, L2CAP_FLUSHABLE_CH_BASED);
 }
 
@@ -1535,15 +1531,14 @@ bool L2CA_SetChnlFlushability(uint16_t cid, bool is_flushable) {
   /* Find the channel control block. We don't know the link it is on. */
   p_ccb = l2cu_find_ccb_by_cid(NULL, cid);
   if (p_ccb == NULL) {
-    L2CAP_TRACE_WARNING("L2CAP - no CCB for L2CA_SetChnlFlushability, CID: %d",
-                        cid);
+    LOG_WARN("L2CAP - no CCB for L2CA_SetChnlFlushability, CID: %d", cid);
     return (false);
   }
 
   p_ccb->is_flushable = is_flushable;
 
-  L2CAP_TRACE_API("L2CA_SetChnlFlushability()  CID: 0x%04x  is_flushable: %d",
-                  cid, is_flushable);
+  LOG_VERBOSE("L2CA_SetChnlFlushability()  CID: 0x%04x  is_flushable: %d", cid,
+              is_flushable);
 
   return (true);
 }
@@ -1570,20 +1565,19 @@ uint16_t L2CA_FlushChannel(uint16_t lcid, uint16_t num_to_flush) {
   p_ccb = l2cu_find_ccb_by_cid(NULL, lcid);
 
   if (!p_ccb || (p_ccb->p_lcb == NULL)) {
-    L2CAP_TRACE_WARNING(
-        "L2CA_FlushChannel()  abnormally returning 0  CID: 0x%04x", lcid);
+    LOG_WARN("L2CA_FlushChannel()  abnormally returning 0  CID: 0x%04x", lcid);
     return (0);
   }
   p_lcb = p_ccb->p_lcb;
 
   if (num_to_flush != L2CAP_FLUSH_CHANS_GET) {
-    L2CAP_TRACE_API(
+    LOG_VERBOSE(
         "L2CA_FlushChannel (FLUSH)  CID: 0x%04x  NumToFlush: %d  QC: %zu  "
         "pFirst: 0x%p",
         lcid, num_to_flush, fixed_queue_length(p_ccb->xmit_hold_q),
         fixed_queue_try_peek_first(p_ccb->xmit_hold_q));
   } else {
-    L2CAP_TRACE_API("L2CA_FlushChannel (QUERY)  CID: 0x%04x", lcid);
+    LOG_VERBOSE("L2CA_FlushChannel (QUERY)  CID: 0x%04x", lcid);
   }
 
   /* Cannot flush eRTM buffers once they have a sequence number */
@@ -1641,8 +1635,8 @@ uint16_t L2CA_FlushChannel(uint16_t lcid, uint16_t num_to_flush) {
   num_left += fixed_queue_length(p_ccb->xmit_hold_q);
 
   /* Return the local number of buffers left for the CID */
-  L2CAP_TRACE_DEBUG("L2CA_FlushChannel()  flushed: %u + %u,  num_left: %u",
-                    num_flushed1, num_flushed2, num_left);
+  LOG_VERBOSE("L2CA_FlushChannel()  flushed: %u + %u,  num_left: %u",
+              num_flushed1, num_flushed2, num_left);
 
   /* If we were congested, and now we are not, tell the app */
   l2cu_check_channel_congestion(p_ccb);
@@ -1695,8 +1689,7 @@ void L2CA_SetMediaStreamChannel(uint16_t local_media_cid, bool status) {
     }
 
     if (set_channel < 0) {
-      L2CAP_TRACE_ERROR("%s: No empty slot found to set media channel",
-                        __func__);
+      LOG_ERROR("%s: No empty slot found to set media channel", __func__);
       return;
     }
 
@@ -1714,7 +1707,7 @@ void L2CA_SetMediaStreamChannel(uint16_t local_media_cid, bool status) {
         av_media_channels[set_channel].local_cid,
         av_media_channels[set_channel].p_ccb->remote_cid);
 
-    L2CAP_TRACE_EVENT(
+    LOG_VERBOSE(
         "%s: Set A2DP media snoop filtering for local_cid: %d, remote_cid: %d",
         __func__, local_media_cid,
         av_media_channels[set_channel].p_ccb->remote_cid);
@@ -1728,8 +1721,8 @@ void L2CA_SetMediaStreamChannel(uint16_t local_media_cid, bool status) {
     }
 
     if (set_channel < 0) {
-      L2CAP_TRACE_ERROR("%s: The channel %d not found in active media channels",
-                        __func__, local_media_cid);
+      LOG_ERROR("%s: The channel %d not found in active media channels",
+                __func__, local_media_cid);
       return;
     }
 
@@ -1742,8 +1735,8 @@ void L2CA_SetMediaStreamChannel(uint16_t local_media_cid, bool status) {
         av_media_channels[set_channel].p_ccb->p_lcb->Handle(),
         av_media_channels[set_channel].local_cid);
 
-    L2CAP_TRACE_EVENT("%s: Reset A2DP media snoop filtering for local_cid: %d",
-                      __func__, local_media_cid);
+    LOG_VERBOSE("%s: Reset A2DP media snoop filtering for local_cid: %d",
+                __func__, local_media_cid);
   }
 
   av_media_channels[set_channel].is_active = status;

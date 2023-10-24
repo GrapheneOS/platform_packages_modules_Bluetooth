@@ -494,8 +494,7 @@ void bta_dm_remove_device(const RawAddress& bd_addr) {
 
   tBT_TRANSPORT other_transport = BT_TRANSPORT_AUTO;
   if (is_bd_addr_connected) {
-    APPL_TRACE_DEBUG("%s: ACL Up count: %d", __func__,
-                     bta_dm_cb.device_list.count);
+    LOG_VERBOSE("%s: ACL Up count: %d", __func__, bta_dm_cb.device_list.count);
 
     /* Take the link down first, and mark the device for removal when
      * disconnected */
@@ -508,7 +507,7 @@ void bta_dm_remove_device(const RawAddress& bd_addr) {
         GATT_CancelConnect(0, bd_addr, false);
 
         btm_remove_acl(bd_addr, peer_device.transport);
-        APPL_TRACE_DEBUG("%s: transport: %d", __func__, peer_device.transport);
+        LOG_VERBOSE("%s: transport: %d", __func__, peer_device.transport);
 
         /* save the other transport to check if device is connected on
          * other_transport */
@@ -581,7 +580,7 @@ void bta_dm_close_acl(const RawAddress& bd_addr, bool remove_dev,
                       tBT_TRANSPORT transport) {
   uint8_t index;
 
-  APPL_TRACE_DEBUG("bta_dm_close_acl");
+  LOG_VERBOSE("bta_dm_close_acl");
 
   if (BTM_IsAclConnectionUp(bd_addr, transport)) {
     for (index = 0; index < bta_dm_cb.device_list.count; index++) {
@@ -595,7 +594,7 @@ void bta_dm_close_acl(const RawAddress& bd_addr, bool remove_dev,
         bta_dm_cb.device_list.peer_device[index].remove_dev_pending = true;
       }
     } else {
-      APPL_TRACE_ERROR("unknown device, remove ACL failed");
+      LOG_ERROR("unknown device, remove ACL failed");
     }
 
     /* Make sure device is not in acceptlist before we disconnect */
@@ -801,8 +800,8 @@ static void bta_dm_acl_down(const RawAddress& bd_addr,
       /* remove all cached GATT information */
       get_gatt_interface().BTA_GATTC_Refresh(bd_addr);
 
-      APPL_TRACE_DEBUG("%s: Unpairing: issue unpair CB = %d ", __func__,
-                       issue_unpair_cb);
+      LOG_VERBOSE("%s: Unpairing: issue unpair CB = %d ", __func__,
+                  issue_unpair_cb);
     }
 
     remove_device = device->remove_dev_pending;
@@ -832,7 +831,7 @@ static void bta_dm_acl_down(const RawAddress& bd_addr,
     bta_dm_search_cb.wait_disc = false;
 
     if (bta_dm_search_cb.sdp_results) {
-      APPL_TRACE_EVENT(" timer stopped  ");
+      LOG_VERBOSE(" timer stopped  ");
       alarm_cancel(bta_dm_search_cb.search_timer);
       bta_dm_disc_discover_next_device();
     }
@@ -896,8 +895,8 @@ static void bta_dm_check_av() {
     LOG_INFO("av_count:%d", bta_dm_cb.cur_av_count);
     for (i = 0; i < bta_dm_cb.device_list.count; i++) {
       p_dev = &bta_dm_cb.device_list.peer_device[i];
-      APPL_TRACE_WARNING("[%d]: state:%d, info:%s", i, p_dev->conn_state,
-                         p_dev->info_text().c_str());
+      LOG_WARN("[%d]: state:%d, info:%s", i, p_dev->conn_state,
+               p_dev->info_text().c_str());
       if ((p_dev->conn_state == BTA_DM_CONNECTED) && p_dev->is_av_active()) {
         /* make central and take away the role switch policy */
         BTM_SwitchRoleToCentral(p_dev->peer_bdaddr);
@@ -1006,7 +1005,7 @@ static void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, tBTA_SYS_ID id,
  *
  ******************************************************************************/
 static void bta_dm_delay_role_switch_cback(UNUSED_ATTR void* data) {
-  APPL_TRACE_EVENT("%s: initiating Delayed RS", __func__);
+  LOG_VERBOSE("%s: initiating Delayed RS", __func__);
   bta_dm_adjust_roles(false);
 }
 
@@ -1118,7 +1117,7 @@ static void bta_dm_set_eir(char* local_name) {
   /* if local name is not provided, get it from controller */
   if (local_name == NULL) {
     if (BTM_ReadLocalDeviceName((const char**)&local_name) != BTM_SUCCESS) {
-      APPL_TRACE_ERROR("Fail to read local device name for EIR");
+      LOG_ERROR("Fail to read local device name for EIR");
     }
   }
 #endif  // BTA_EIR_CANNED_UUID_LIST
@@ -1155,8 +1154,7 @@ static void bta_dm_set_eir(char* local_name) {
     if (local_name_len > (free_eir_length - 4 - num_uuid * Uuid::kNumBytes16)) {
       local_name_len = find_utf8_char_boundary(
           local_name, p_bta_dm_eir_cfg->bta_dm_eir_min_name_len);
-      APPL_TRACE_WARNING("%s local name is shortened (%d)", __func__,
-                         local_name_len);
+      LOG_WARN("%s local name is shortened (%d)", __func__, local_name_len);
       data_type = HCI_EIR_SHORTENED_LOCAL_NAME_TYPE;
     } else {
       data_type = HCI_EIR_COMPLETE_LOCAL_NAME_TYPE;
@@ -1184,7 +1182,7 @@ static void bta_dm_set_eir(char* local_name) {
         data_type = HCI_EIR_COMPLETE_16BITS_UUID_TYPE;
       } else /* not enough room for all UUIDs */
       {
-        APPL_TRACE_WARNING("BTA EIR: UUID 16-bit list is truncated");
+        LOG_WARN("BTA EIR: UUID 16-bit list is truncated");
         num_uuid = free_eir_length / Uuid::kNumBytes16;
         data_type = HCI_EIR_MORE_16BITS_UUID_TYPE;
       }
@@ -1208,7 +1206,7 @@ static void bta_dm_set_eir(char* local_name) {
         bta_dm_cb.eir_uuid, &p, max_num_uuid, &num_uuid);
 
     if (data_type == HCI_EIR_MORE_16BITS_UUID_TYPE) {
-      APPL_TRACE_WARNING("BTA EIR: UUID 16-bit list is truncated");
+      LOG_WARN("BTA EIR: UUID 16-bit list is truncated");
     }
 #if (BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
     else {
@@ -1222,7 +1220,7 @@ static void bta_dm_set_eir(char* local_name) {
             num_uuid++;
           } else {
             data_type = HCI_EIR_MORE_16BITS_UUID_TYPE;
-            APPL_TRACE_WARNING("BTA EIR: UUID 16-bit list is truncated");
+            LOG_WARN("BTA EIR: UUID 16-bit list is truncated");
             break;
           }
         }
@@ -1255,7 +1253,7 @@ static void bta_dm_set_eir(char* local_name) {
           num_uuid++;
         } else {
           data_type = HCI_EIR_MORE_32BITS_UUID_TYPE;
-          APPL_TRACE_WARNING("BTA EIR: UUID 32-bit list is truncated");
+          LOG_WARN("BTA EIR: UUID 32-bit list is truncated");
           break;
         }
       }
@@ -1284,7 +1282,7 @@ static void bta_dm_set_eir(char* local_name) {
           num_uuid++;
         } else {
           data_type = HCI_EIR_MORE_128BITS_UUID_TYPE;
-          APPL_TRACE_WARNING("BTA EIR: UUID 128-bit list is truncated");
+          LOG_WARN("BTA EIR: UUID 128-bit list is truncated");
           break;
         }
       }
@@ -1384,7 +1382,7 @@ static void bta_dm_update_cust_uuid(uint8_t c_uu_idx, const Uuid& uuid, uint32_t
     curr.custom_uuid.UpdateUuid(uuid);
     curr.handle = handle;
   } else {
-    APPL_TRACE_ERROR("%s invalid uuid index %d", __func__, c_uu_idx);
+    LOG_ERROR("%s invalid uuid index %d", __func__, c_uu_idx);
   }
 #endif
 }
@@ -1399,7 +1397,7 @@ static void bta_dm_update_cust_uuid(uint8_t c_uu_idx, const Uuid& uuid, uint32_t
  *
  ******************************************************************************/
 void bta_dm_eir_update_cust_uuid(const tBTA_CUSTOM_UUID& curr, bool adding) {
-  APPL_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 #if (BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
   uint8_t c_uu_idx = 0;
   if (adding) {
@@ -1456,14 +1454,14 @@ tBTA_DM_PEER_DEVICE* find_connected_device(
 }
 
 bool bta_dm_check_if_only_hd_connected(const RawAddress& peer_addr) {
-  APPL_TRACE_DEBUG("%s: count(%d)", __func__, bta_dm_conn_srvcs.count);
+  LOG_VERBOSE("%s: count(%d)", __func__, bta_dm_conn_srvcs.count);
 
   for (uint8_t j = 0; j < bta_dm_conn_srvcs.count; j++) {
     // Check if profiles other than hid are connected
     if ((bta_dm_conn_srvcs.conn_srvc[j].id != BTA_ID_HD) &&
         bta_dm_conn_srvcs.conn_srvc[j].peer_bdaddr == peer_addr) {
-      APPL_TRACE_DEBUG("%s: Another profile (id=%d) is connected", __func__,
-                       bta_dm_conn_srvcs.conn_srvc[j].id);
+      LOG_VERBOSE("%s: Another profile (id=%d) is connected", __func__,
+                  bta_dm_conn_srvcs.conn_srvc[j].id);
       return false;
     }
   }
@@ -1493,7 +1491,7 @@ void bta_dm_ble_update_conn_params(const RawAddress& bd_addr, uint16_t min_int,
 
   if (!L2CA_UpdateBleConnParams(bd_addr, min_int, max_int, latency, timeout,
                                 min_ce_len, max_ce_len)) {
-    APPL_TRACE_ERROR("Update connection parameters failed!");
+    LOG_ERROR("Update connection parameters failed!");
   }
 }
 
@@ -1711,13 +1709,12 @@ void bta_dm_ble_reset_id(void) {
  *
  ******************************************************************************/
 static void bta_dm_ctrl_features_rd_cmpl_cback(tHCI_STATUS result) {
-  APPL_TRACE_DEBUG("%s  status = %d ", __func__, result);
+  LOG_VERBOSE("%s  status = %d ", __func__, result);
   if (result == HCI_SUCCESS) {
     if (bta_dm_acl_cb.p_acl_cback)
       bta_dm_acl_cb.p_acl_cback(BTA_DM_LE_FEATURES_READ, NULL);
   } else {
-    APPL_TRACE_ERROR("%s Ctrl BLE feature read failed: status :%d", __func__,
-                     result);
+    LOG_ERROR("%s Ctrl BLE feature read failed: status :%d", __func__, result);
   }
 }
 
