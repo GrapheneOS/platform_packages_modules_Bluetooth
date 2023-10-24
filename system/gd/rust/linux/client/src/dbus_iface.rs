@@ -1433,7 +1433,7 @@ impl IBluetoothGatt for BluetoothGattDBus {
     fn start_scan(
         &mut self,
         _scanner_id: u8,
-        _settings: ScanSettings,
+        _settings: Option<ScanSettings>,
         _filter: Option<ScanFilter>,
     ) -> BtStatus {
         dbus_generated!()
