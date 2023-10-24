@@ -1,5 +1,4 @@
 /*
- *
  *  Copyright 2020 The Android Open Source Project
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,32 +20,21 @@
 
 #include <iomanip>
 #include <iostream>
-#include <map>
 #include <sstream>
-#include <vector>
 
-#include "btif/include/btif_hh.h"
-#include "common/init_flags.h"
 #include "hci/hci_layer_mock.h"
 #include "hci/include/hci_layer.h"
-#include "internal_include/stack_config.h"
-#include "osi/include/allocator.h"
-#include "osi/include/osi.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/btm_sco.h"
 #include "stack/btm/btm_sec.h"
-#include "stack/btm/security_device_record.h"
+#include "stack/btm/btm_sec_int_types.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/btm_client_interface.h"
-#include "stack/include/hcidefs.h"
-#include "stack/include/sec_hci_link_interface.h"
 #include "stack/l2cap/l2c_int.h"
 #include "test/common/mock_functions.h"
-#include "test/mock/mock_device_iot_config.h"
 #include "test/mock/mock_main_shim_entry.h"
-#include "test/mock/mock_osi_list.h"
 #include "test/mock/mock_stack_hcic_hcicmds.h"
 #include "types/raw_address.h"
 
@@ -59,7 +47,6 @@ extern tBTM_CB btm_cb;
 
 uint8_t btif_trace_level = BT_TRACE_LEVEL_DEBUG;
 uint8_t appl_trace_level = BT_TRACE_LEVEL_VERBOSE;
-btif_hh_cb_t btif_hh_cb;
 tL2C_CB l2cb;
 
 const hci_t* hci_layer_get_interface() { return nullptr; }
@@ -70,20 +57,8 @@ const std::string kBroadcastAudioConfigOptions(
 
 namespace {
 
-using testing::_;
-using testing::DoAll;
-using testing::NotNull;
-using testing::Pointee;
 using testing::Return;
-using testing::SaveArg;
-using testing::SaveArgPointee;
-using testing::StrEq;
-using testing::StrictMock;
 using testing::Test;
-
-// NOTE: The production code allows N+1 device records.
-constexpr size_t kBtmSecMaxDeviceRecords =
-    static_cast<size_t>(BTM_SEC_MAX_DEVICE_RECORDS + 1);
 
 std::string Hex16(int n) {
   std::ostringstream oss;
@@ -140,9 +115,12 @@ class StackBtmWithInitFreeTest : public StackBtmWithQueuesTest {
     StackBtmWithQueuesTest::SetUp();
     EXPECT_CALL(mock_hci_, GetScoQueueEnd())
         .WillOnce(Return(sco_queue_.GetUpEnd()));
-    btm_cb.Init(BTM_SEC_MODE_SC);
+
+    btm_cb.Init();
+    btm_sec_cb.Init(BTM_SEC_MODE_SC);
   }
   void TearDown() override {
+    btm_sec_cb.Free();
     btm_cb.Free();
     StackBtmWithQueuesTest::TearDown();
   }
@@ -163,7 +141,7 @@ TEST_F(StackBtmTest, DynamicLifecycle) {
 TEST_F(StackBtmWithQueuesTest, InitFree) {
   EXPECT_CALL(mock_hci_, GetScoQueueEnd())
       .WillOnce(Return(sco_queue_.GetUpEnd()));
-  btm_cb.Init(0x1);
+  btm_cb.Init();
   btm_cb.Free();
 }
 
@@ -299,82 +277,6 @@ TEST_F(StackBtmWithInitFreeTest, btm_sec_rmt_name_request_complete) {
   ASSERT_EQ(bd_addr, btm_test.bd_addr);
 }
 
-TEST_F(StackBtmWithInitFreeTest, btm_sec_encrypt_change) {
-  bluetooth::common::InitFlags::SetAllForTesting();
-
-  RawAddress bd_addr = RawAddress({0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6});
-  const uint16_t classic_handle = 0x1234;
-  const uint16_t ble_handle = 0x9876;
-
-  // Check the collision conditionals
-  btm_cb.collision_start_time = 0UL;
-  btm_sec_encrypt_change(classic_handle, HCI_ERR_LMP_ERR_TRANS_COLLISION, 0x01);
-  uint64_t collision_start_time = btm_cb.collision_start_time;
-  ASSERT_NE(0UL, collision_start_time);
-
-  btm_cb.collision_start_time = 0UL;
-  btm_sec_encrypt_change(classic_handle, HCI_ERR_DIFF_TRANSACTION_COLLISION,
-                         0x01);
-  collision_start_time = btm_cb.collision_start_time;
-  ASSERT_NE(0UL, collision_start_time);
-
-  // No device
-  btm_cb.collision_start_time = 0;
-  btm_sec_encrypt_change(classic_handle, HCI_SUCCESS, 0x01);
-  ASSERT_EQ(0UL, btm_cb.collision_start_time);
-
-  // Setup device
-  tBTM_SEC_DEV_REC* device_record = btm_sec_allocate_dev_rec();
-  ASSERT_NE(nullptr, device_record);
-  ASSERT_EQ(BTM_SEC_IN_USE, device_record->sec_flags);
-  device_record->bd_addr = bd_addr;
-  device_record->hci_handle = classic_handle;
-  device_record->ble_hci_handle = ble_handle;
-
-  // With classic device encryption enable
-  btm_sec_encrypt_change(classic_handle, HCI_SUCCESS, 0x01);
-  ASSERT_EQ(BTM_SEC_IN_USE | BTM_SEC_AUTHENTICATED | BTM_SEC_ENCRYPTED,
-            device_record->sec_flags);
-
-  // With classic device encryption disable
-  btm_sec_encrypt_change(classic_handle, HCI_SUCCESS, 0x00);
-  ASSERT_EQ(BTM_SEC_IN_USE | BTM_SEC_AUTHENTICATED, device_record->sec_flags);
-  device_record->sec_flags = BTM_SEC_IN_USE;
-
-  // With le device encryption enable
-  btm_sec_encrypt_change(ble_handle, HCI_SUCCESS, 0x01);
-  ASSERT_EQ(BTM_SEC_IN_USE | BTM_SEC_LE_ENCRYPTED, device_record->sec_flags);
-
-  // With le device encryption disable
-  btm_sec_encrypt_change(ble_handle, HCI_SUCCESS, 0x00);
-  ASSERT_EQ(BTM_SEC_IN_USE, device_record->sec_flags);
-  device_record->sec_flags = BTM_SEC_IN_USE;
-
-  wipe_secrets_and_remove(device_record);
-}
-
-TEST_F(StackBtmWithInitFreeTest, BTM_SetEncryption) {
-  const RawAddress bd_addr = RawAddress({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
-  const tBT_TRANSPORT transport{BT_TRANSPORT_LE};
-  tBTM_SEC_CALLBACK* p_callback{nullptr};
-  tBTM_BLE_SEC_ACT sec_act{BTM_BLE_SEC_ENCRYPT};
-
-  // No device
-  ASSERT_EQ(BTM_WRONG_MODE, BTM_SetEncryption(bd_addr, transport, p_callback,
-                                              nullptr, sec_act));
-
-  // With device
-  tBTM_SEC_DEV_REC* device_record = btm_sec_allocate_dev_rec();
-  ASSERT_NE(nullptr, device_record);
-  device_record->bd_addr = bd_addr;
-  device_record->hci_handle = 0x1234;
-
-  ASSERT_EQ(BTM_WRONG_MODE, BTM_SetEncryption(bd_addr, transport, p_callback,
-                                              nullptr, sec_act));
-
-  wipe_secrets_and_remove(device_record);
-}
-
 TEST_F(StackBtmTest, sco_state_text) {
   std::vector<std::pair<tSCO_STATE, std::string>> states = {
       std::make_pair(SCO_ST_UNUSED, "SCO_ST_UNUSED"),
@@ -396,99 +298,6 @@ TEST_F(StackBtmTest, sco_state_text) {
                sco_state_text(static_cast<tSCO_STATE>(
                                   std::numeric_limits<std::uint16_t>::max()))
                    .c_str());
-}
-
-TEST_F(StackBtmTest, btm_ble_sec_req_act_text) {
-  ASSERT_EQ("BTM_BLE_SEC_REQ_ACT_NONE",
-            btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_NONE));
-  ASSERT_EQ("BTM_BLE_SEC_REQ_ACT_ENCRYPT",
-            btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_ENCRYPT));
-  ASSERT_EQ("BTM_BLE_SEC_REQ_ACT_PAIR",
-            btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_PAIR));
-  ASSERT_EQ("BTM_BLE_SEC_REQ_ACT_DISCARD",
-            btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_DISCARD));
-}
-
-TEST_F(StackBtmWithInitFreeTest, btm_sec_allocate_dev_rec__all) {
-  tBTM_SEC_DEV_REC* records[kBtmSecMaxDeviceRecords];
-
-  // Fill up the records
-  for (size_t i = 0; i < kBtmSecMaxDeviceRecords; i++) {
-    ASSERT_EQ(i, list_length(btm_cb.sec_dev_rec));
-    records[i] = btm_sec_allocate_dev_rec();
-    ASSERT_NE(nullptr, records[i]);
-  }
-
-  // Second pass up the records
-  for (size_t i = 0; i < kBtmSecMaxDeviceRecords; i++) {
-    ASSERT_EQ(kBtmSecMaxDeviceRecords, list_length(btm_cb.sec_dev_rec));
-    records[i] = btm_sec_allocate_dev_rec();
-    ASSERT_NE(nullptr, records[i]);
-  }
-
-  // NOTE: The memory allocated for each record is automatically
-  // allocated by the btm module and freed when the device record
-  // list is freed.
-  // Further, the memory for each record is reused when necessary.
-}
-
-TEST_F(StackBtmTest, btm_oob_data_text) {
-  std::vector<std::pair<tBTM_OOB_DATA, std::string>> datas = {
-      std::make_pair(BTM_OOB_NONE, "BTM_OOB_NONE"),
-      std::make_pair(BTM_OOB_PRESENT_192, "BTM_OOB_PRESENT_192"),
-      std::make_pair(BTM_OOB_PRESENT_256, "BTM_OOB_PRESENT_256"),
-      std::make_pair(BTM_OOB_PRESENT_192_AND_256,
-                     "BTM_OOB_PRESENT_192_AND_256"),
-      std::make_pair(BTM_OOB_UNKNOWN, "BTM_OOB_UNKNOWN"),
-  };
-  for (const auto& data : datas) {
-    ASSERT_STREQ(data.second.c_str(), btm_oob_data_text(data.first).c_str());
-  }
-  auto unknown = base::StringPrintf("UNKNOWN[%hhu]",
-                                    std::numeric_limits<std::uint8_t>::max());
-  ASSERT_STREQ(unknown.c_str(),
-               btm_oob_data_text(static_cast<tBTM_OOB_DATA>(
-                                     std::numeric_limits<std::uint8_t>::max()))
-                   .c_str());
-}
-
-TEST_F(StackBtmTest, bond_type_text) {
-  std::vector<std::pair<tBTM_SEC_DEV_REC::tBTM_BOND_TYPE, std::string>> datas =
-      {
-          std::make_pair(tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN,
-                         "tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN"),
-          std::make_pair(tBTM_SEC_DEV_REC::BOND_TYPE_PERSISTENT,
-                         "tBTM_SEC_DEV_REC::BOND_TYPE_PERSISTENT"),
-          std::make_pair(tBTM_SEC_DEV_REC::BOND_TYPE_TEMPORARY,
-                         "tBTM_SEC_DEV_REC::BOND_TYPE_TEMPORARY"),
-      };
-  for (const auto& data : datas) {
-    ASSERT_STREQ(data.second.c_str(), bond_type_text(data.first).c_str());
-  }
-  auto unknown = base::StringPrintf("UNKNOWN[%hhu]",
-                                    std::numeric_limits<std::uint8_t>::max());
-  ASSERT_STREQ(unknown.c_str(),
-               bond_type_text(static_cast<tBTM_SEC_DEV_REC::tBTM_BOND_TYPE>(
-                                  std::numeric_limits<std::uint8_t>::max()))
-                   .c_str());
-}
-
-TEST_F(StackBtmWithInitFreeTest, wipe_secrets_and_remove) {
-  bluetooth::common::InitFlags::SetAllForTesting();
-
-  RawAddress bd_addr = RawAddress({0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6});
-  const uint16_t classic_handle = 0x1234;
-  const uint16_t ble_handle = 0x9876;
-
-  // Setup device
-  tBTM_SEC_DEV_REC* device_record = btm_sec_allocate_dev_rec();
-  ASSERT_NE(nullptr, device_record);
-  ASSERT_EQ(BTM_SEC_IN_USE, device_record->sec_flags);
-  device_record->bd_addr = bd_addr;
-  device_record->hci_handle = classic_handle;
-  device_record->ble_hci_handle = ble_handle;
-
-  wipe_secrets_and_remove(device_record);
 }
 
 bool is_disconnect_reason_valid(const tHCI_REASON& reason);

@@ -19,6 +19,7 @@
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
+#include "stack/btm/btm_sec_int_types.h"
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/l2cap_hci_link_interface.h"
@@ -37,7 +38,7 @@ static bool acl_ble_common_connection(
     bool is_in_security_db, uint16_t conn_interval, uint16_t conn_latency,
     uint16_t conn_timeout, bool can_read_discoverable_characteristics) {
   if (role == HCI_ROLE_CENTRAL) {
-    btm_cb.ble_ctr_cb.set_connection_state_idle();
+    btm_sec_cb.ble_ctr_cb.set_connection_state_idle();
     btm_ble_clear_topology_mask(BTM_BLE_STATE_INIT_BIT);
   }
 
@@ -135,7 +136,7 @@ void acl_ble_connection_fail(const tBLE_BD_ADDR& address_with_type,
   btm_acl_create_failed(address_with_type.bda, BT_TRANSPORT_LE, status);
 
   if (status != HCI_ERR_ADVERTISING_TIMEOUT) {
-    btm_cb.ble_ctr_cb.set_connection_state_idle();
+    btm_sec_cb.ble_ctr_cb.set_connection_state_idle();
     btm_ble_clear_topology_mask(BTM_BLE_STATE_INIT_BIT);
     tBLE_BD_ADDR resolved_address_with_type;
     maybe_resolve_received_address(address_with_type,
@@ -150,7 +151,7 @@ void acl_ble_connection_fail(const tBLE_BD_ADDR& address_with_type,
              ADDRESS_TO_LOGGABLE_CSTR(resolved_address_with_type.bda),
              hci_status_code_text(status).c_str());
   } else {
-    btm_cb.ble_ctr_cb.inq_var.adv_mode = BTM_BLE_ADV_DISABLE;
+    btm_sec_cb.ble_ctr_cb.inq_var.adv_mode = BTM_BLE_ADV_DISABLE;
   }
   btm_ble_update_mode_operation(HCI_ROLE_UNKNOWN, &address_with_type.bda,
                                 status);
