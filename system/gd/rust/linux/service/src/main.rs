@@ -59,6 +59,8 @@ const VERBOSE_ONLY_LOG_TAGS: &[&str] = &[
     "uipc",      // Userspace IPC implementation
 ];
 
+const INIT_LOGGING_MAX_RETRY: u8 = 3;
+
 /// Runs the Bluetooth daemon serving D-Bus IPC.
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = App::new("Bluetooth Adapter Daemon")
@@ -125,7 +127,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Forward --hci to Fluoride.
     init_flags.push(format!("--hci={}", hci_index));
+
     let logging = Arc::new(Mutex::new(Box::new(BluetoothLogging::new(is_debug, log_output))));
+    // TODO(b/307171804): Investigate why connecting to unix syslog might fail.
+    // Retry it a few times. Ignore the failure if fails too many times.
+    for _ in 0..INIT_LOGGING_MAX_RETRY {
+        match logging.lock().unwrap().initialize() {
+            Ok(_) => break,
+            Err(_) => continue,
+        }
+    }
 
     // Always treat discovery as classic only
     init_flags.push(String::from("INIT_classic_discovery_only=true"));
