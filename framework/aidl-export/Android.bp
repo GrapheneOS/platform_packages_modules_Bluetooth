@@ -6,6 +6,6 @@ filegroup {
     name: "framework-bluetooth-updatable-exported-aidl-sources",
     srcs: ["**/*.aidl"],
     visibility: [
-        "//packages/modules/Bluetooth/system/binder",
+        "//packages/modules/Bluetooth/android/app/aidl",
     ],
 }
