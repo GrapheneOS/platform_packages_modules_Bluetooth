@@ -518,6 +518,12 @@ class LeAudioClientImpl : public LeAudioClient {
     } while (leAudioDevice);
   }
 
+  void OnDeviceAutonomousStateTransitionTimeout(LeAudioDevice* leAudioDevice) {
+    LOG_ERROR("Device %s, failed to complete autonomous transition",
+              ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
+    DisconnectDevice(leAudioDevice, true);
+  }
+
   void UpdateLocationsAndContextsAvailability(LeAudioDeviceGroup* group) {
     bool group_conf_changed = group->ReloadAudioLocations();
     group_conf_changed |= group->ReloadAudioDirections();
@@ -5528,6 +5534,12 @@ class CallbacksImpl : public LeAudioGroupStateMachine::Callbacks {
 
   void OnStateTransitionTimeout(int group_id) override {
     if (instance) instance->OnLeAudioDeviceSetStateTimeout(group_id);
+  }
+
+  void OnDeviceAutonomousStateTransitionTimeout(
+      LeAudioDevice* leAudioDevice) override {
+    if (instance)
+      instance->OnDeviceAutonomousStateTransitionTimeout(leAudioDevice);
   }
 
   void OnUpdatedCisConfiguration(int group_id, uint8_t direction) {
