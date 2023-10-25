@@ -384,6 +384,8 @@ TEST_F(BtifCoreTest, dump_hf_client_event) {
                      "BTA_HF_CLIENT_AUDIO_OPEN_EVT"),
       std::make_pair(BTA_HF_CLIENT_AUDIO_MSBC_OPEN_EVT,
                      "BTA_HF_CLIENT_AUDIO_MSBC_OPEN_EVT"),
+      std::make_pair(BTA_HF_CLIENT_AUDIO_LC3_OPEN_EVT,
+                     "BTA_HF_CLIENT_AUDIO_LC3_OPEN_EVT"),
       std::make_pair(BTA_HF_CLIENT_AUDIO_CLOSE_EVT,
                      "BTA_HF_CLIENT_AUDIO_CLOSE_EVT"),
       std::make_pair(BTA_HF_CLIENT_SPK_EVT, "BTA_HF_CLIENT_SPK_EVT"),
