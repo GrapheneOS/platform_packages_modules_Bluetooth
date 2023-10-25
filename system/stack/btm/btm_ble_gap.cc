@@ -1413,7 +1413,7 @@ void BTM_BlePeriodicSyncTransfer(RawAddress addr, uint16_t service_data,
 
   int index = btm_ble_get_free_sync_transfer_index();
   if (index == MAX_SYNC_TRANSACTION) {
-    BTM_TRACE_ERROR("Failed to get sync transfer index");
+    LOG_ERROR("Failed to get sync transfer index");
     cb.Run(BTM_ILLEGAL_VALUE, addr);
     return;
   }
@@ -1458,7 +1458,7 @@ void BTM_BlePeriodicSyncSetInfo(RawAddress addr, uint16_t service_data,
 
   int index = btm_ble_get_free_sync_transfer_index();
   if (index == MAX_SYNC_TRANSACTION) {
-    BTM_TRACE_ERROR("Failed to get sync transfer index");
+    LOG_ERROR("Failed to get sync transfer index");
     cb.Run(BTM_ILLEGAL_VALUE, addr);
     return;
   }
