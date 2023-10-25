@@ -420,7 +420,6 @@ cc_test {
     },
     include_dirs: btifCommonIncludes,
     srcs: [
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestMockCommon",
         ":TestMockOsi",
@@ -512,7 +511,6 @@ cc_test {
     test_suites: ["device-tests"],
     include_dirs: btifCommonIncludes,
     srcs: [
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestFakeOsi",
         ":TestMockStack",
