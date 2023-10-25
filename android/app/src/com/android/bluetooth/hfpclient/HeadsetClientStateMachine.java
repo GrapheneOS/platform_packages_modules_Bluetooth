@@ -197,7 +197,10 @@ public class HeadsetClientStateMachine extends StateMachine {
     private final int mInBandRingtonePolicyProperty;
     private final boolean mForceSetAudioPolicyProperty;
 
-    private boolean mAudioWbs;
+    @VisibleForTesting boolean mAudioWbs;
+
+    @VisibleForTesting boolean mAudioSWB;
+
     private int mVoiceRecognitionActive;
     private final BluetoothAdapter mAdapter;
 
@@ -237,6 +240,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         }
         ProfileService.println(sb, "  mAudioState: " + mAudioState);
         ProfileService.println(sb, "  mAudioWbs: " + mAudioWbs);
+        ProfileService.println(sb, "  mAudioSWB: " + mAudioSWB);
         ProfileService.println(sb, "  mIndicatorNetworkState: " + mIndicatorNetworkState);
         ProfileService.println(sb, "  mIndicatorNetworkType: " + mIndicatorNetworkType);
         ProfileService.println(sb, "  mIndicatorNetworkSignal: " + mIndicatorNetworkSignal);
@@ -893,6 +897,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mAudioState = BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED;
         mAudioWbs = false;
+        mAudioSWB = false;
         mVoiceRecognitionActive = HeadsetClientHalConstants.VR_STATE_STOPPED;
 
         mAudioRouteAllowed = context.getResources().getBoolean(
@@ -1030,6 +1035,7 @@ public class HeadsetClientStateMachine extends StateMachine {
             mInBandRing = false;
 
             mAudioWbs = false;
+            mAudioSWB = false;
 
             // will be set on connect
 
@@ -1344,6 +1350,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         public void enter() {
             logD("Enter Connected: " + getCurrentMessage().what);
             mAudioWbs = false;
+            mAudioSWB = false;
             mCommandedSpeakerVolume = -1;
 
             if (mPrevState == mConnecting) {
@@ -1782,10 +1789,11 @@ public class HeadsetClientStateMachine extends StateMachine {
             }
 
             switch (state) {
-                case HeadsetClientHalConstants.AUDIO_STATE_CONNECTED_MSBC:
-                    mAudioWbs = true;
-                    // fall through
-                case HeadsetClientHalConstants.AUDIO_STATE_CONNECTED:
+                case HeadsetClientHalConstants.AUDIO_STATE_CONNECTED,
+                        HeadsetClientHalConstants.AUDIO_STATE_CONNECTED_LC3,
+                        HeadsetClientHalConstants.AUDIO_STATE_CONNECTED_MSBC:
+                    mAudioSWB = state == HeadsetClientHalConstants.AUDIO_STATE_CONNECTED_LC3;
+                    mAudioWbs = state == HeadsetClientHalConstants.AUDIO_STATE_CONNECTED_MSBC;
                     if (DBG) {
                         Log.d(TAG, "mAudioRouteAllowed=" + mAudioRouteAllowed);
                     }
@@ -1820,8 +1828,13 @@ public class HeadsetClientStateMachine extends StateMachine {
                     final int amVol = mAudioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
                     final int hfVol = amToHfVol(amVol);
 
+                    logD("hfp_enable=true mAudioSWB is " + mAudioSWB);
                     logD("hfp_enable=true mAudioWbs is " + mAudioWbs);
-                    if (mAudioWbs) {
+
+                    if (mAudioSWB) {
+                        logD("Setting sampling rate as 32000");
+                        mAudioManager.setHfpSamplingRate(32000);
+                    } else if (mAudioWbs) {
                         logD("Setting sampling rate as 16000");
                         mAudioManager.setHfpSamplingRate(16000);
                     } else {
@@ -2007,11 +2020,18 @@ public class HeadsetClientStateMachine extends StateMachine {
 
     @VisibleForTesting
     void broadcastAudioState(BluetoothDevice device, int newState, int prevState) {
-        BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_SCO_CONNECTION_STATE_CHANGED,
+        int sco_codec = BluetoothHfpProtoEnums.SCO_CODEC_CVSD;
+        if (mAudioSWB) {
+            sco_codec = BluetoothHfpProtoEnums.SCO_CODEC_LC3;
+        } else if (mAudioWbs) {
+            sco_codec = BluetoothHfpProtoEnums.SCO_CODEC_MSBC;
+        }
+
+        BluetoothStatsLog.write(
+                BluetoothStatsLog.BLUETOOTH_SCO_CONNECTION_STATE_CHANGED,
                 AdapterService.getAdapterService().obfuscateAddress(device),
-                getConnectionStateFromAudioState(newState), mAudioWbs
-                        ? BluetoothHfpProtoEnums.SCO_CODEC_MSBC
-                        : BluetoothHfpProtoEnums.SCO_CODEC_CVSD,
+                getConnectionStateFromAudioState(newState),
+                sco_codec,
                 AdapterService.getAdapterService().getMetricId(device));
         Intent intent = new Intent(BluetoothHeadsetClient.ACTION_AUDIO_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);

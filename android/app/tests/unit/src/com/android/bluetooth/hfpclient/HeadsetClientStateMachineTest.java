@@ -1573,6 +1573,38 @@ public class HeadsetClientStateMachineTest {
                 IsInstanceOf.instanceOf(HeadsetClientStateMachine.Connected.class));
     }
 
+    @Test
+    public void testProcessStackEvent_CodecSelection_onConnectedState() {
+        initToConnectedState();
+        Assert.assertThat(
+                mHeadsetClientStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(HeadsetClientStateMachine.Connected.class));
+
+        // Trigger a MSBC codec stack event. Expect to mAudioWbs = true.
+        mHeadsetClientStateMachine.mAudioWbs = false;
+        mHeadsetClientStateMachine.mAudioSWB = false;
+        StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_AUDIO_STATE_CHANGED);
+        event.valueInt = HeadsetClientHalConstants.AUDIO_STATE_CONNECTED_MSBC;
+        event.device = mTestDevice;
+        mHeadsetClientStateMachine.sendMessage(
+                mHeadsetClientStateMachine.obtainMessage(StackEvent.STACK_EVENT, event));
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        Assert.assertTrue(mHeadsetClientStateMachine.mAudioWbs);
+        Assert.assertFalse(mHeadsetClientStateMachine.mAudioSWB);
+
+        // Trigger a LC3 codec stack event. Expect to mAudioSWB = true.
+        mHeadsetClientStateMachine.mAudioWbs = false;
+        mHeadsetClientStateMachine.mAudioSWB = false;
+        event = new StackEvent(StackEvent.EVENT_TYPE_AUDIO_STATE_CHANGED);
+        event.valueInt = HeadsetClientHalConstants.AUDIO_STATE_CONNECTED_LC3;
+        event.device = mTestDevice;
+        mHeadsetClientStateMachine.sendMessage(
+                mHeadsetClientStateMachine.obtainMessage(StackEvent.STACK_EVENT, event));
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        Assert.assertFalse(mHeadsetClientStateMachine.mAudioWbs);
+        Assert.assertTrue(mHeadsetClientStateMachine.mAudioSWB);
+    }
+
     /**
      * Allow/disallow connection to any device
      *
