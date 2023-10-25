@@ -102,7 +102,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let is_verbose_debug = matches.is_present("verbose-debug");
     let log_output = matches.value_of("log-output").unwrap_or("syslog");
 
-    let adapter_index = matches.value_of("index").map_or(0, |idx| idx.parse::<i32>().unwrap_or(0));
+    let virt_index = matches.value_of("index").map_or(0, |idx| idx.parse::<i32>().unwrap_or(0));
     let hci_index = matches.value_of("hci").map_or(0, |idx| idx.parse::<i32>().unwrap_or(0));
 
     // The remaining flags are passed down to Fluoride as is.
@@ -175,7 +175,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         tx.clone(),
     ))));
     let bluetooth = Arc::new(Mutex::new(Box::new(Bluetooth::new(
-        adapter_index,
+        virt_index,
         hci_index,
         tx.clone(),
         api_tx.clone(),
@@ -237,7 +237,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         tokio::spawn(interface_manager::InterfaceManager::dispatch(
             api_rx,
-            adapter_index,
+            virt_index,
             conn.clone(),
             disconnect_watcher.clone(),
             bluetooth.clone(),
