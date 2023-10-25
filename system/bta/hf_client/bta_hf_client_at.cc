@@ -486,8 +486,22 @@ static void bta_hf_client_handle_bcs(tBTA_HF_CLIENT_CB* client_cb,
                                      uint32_t codec) {
   LOG_VERBOSE("%s: codec: %u sco listen state: %d", __func__, codec,
               client_cb->sco_state);
-  if (codec == BTM_SCO_CODEC_CVSD || codec == BTM_SCO_CODEC_MSBC) {
-    client_cb->negotiated_codec = codec;
+  if (codec == UUID_CODEC_CVSD || codec == UUID_CODEC_MSBC ||
+      (bta_hf_client_cb_arr.is_support_lc3 && codec == UUID_CODEC_LC3)) {
+    switch (codec) {
+      case UUID_CODEC_CVSD:
+        client_cb->negotiated_codec = BTM_SCO_CODEC_CVSD;
+        break;
+      case UUID_CODEC_MSBC:
+        client_cb->negotiated_codec = BTM_SCO_CODEC_MSBC;
+        break;
+      case UUID_CODEC_LC3:
+        client_cb->negotiated_codec = BTM_SCO_CODEC_LC3;
+        break;
+      default:
+        client_cb->negotiated_codec = BTM_SCO_CODEC_CVSD;
+        break;
+    }
     bta_hf_client_send_at_bcs(client_cb, codec);
   } else {
     client_cb->negotiated_codec = BTM_SCO_CODEC_CVSD;
@@ -1783,7 +1797,11 @@ void bta_hf_client_send_at_bac(tBTA_HF_CLIENT_CB* client_cb) {
 
   LOG_VERBOSE("%s", __func__);
 
-  buf = "AT+BAC=1,2\r";
+  if (bta_hf_client_cb_arr.is_support_lc3) {
+    buf = "AT+BAC=1,2,3\r";
+  } else {
+    buf = "AT+BAC=1,2\r";
+  }
 
   bta_hf_client_send_at(client_cb, BTA_HF_CLIENT_AT_BAC, buf, strlen(buf));
 }
