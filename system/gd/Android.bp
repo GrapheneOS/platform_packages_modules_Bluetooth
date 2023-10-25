@@ -603,7 +603,7 @@ rust_library {
     rustlibs: [
         "libbytes",
         "liblog_rust",
-        "libnum_traits",
+        "libpdl_runtime",
         "libthiserror",
     ],
     apex_available: [
@@ -629,7 +629,7 @@ rust_test_host {
     rustlibs: [
         "libbytes",
         "liblog_rust",
-        "libnum_traits",
+        "libpdl_runtime",
         "libthiserror",
     ],
 }
