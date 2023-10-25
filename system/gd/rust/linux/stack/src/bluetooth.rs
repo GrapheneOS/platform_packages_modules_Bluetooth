@@ -487,7 +487,7 @@ pub trait IBluetoothConnectionCallback: RPCProxy {
 pub struct Bluetooth {
     intf: Arc<Mutex<BluetoothInterface>>,
 
-    adapter_index: i32,
+    virt_index: i32,
     hci_index: i32,
     bonded_devices: HashMap<String, BluetoothDeviceContext>,
     ble_scanner_id: Option<u8>,
@@ -528,7 +528,7 @@ pub struct Bluetooth {
 impl Bluetooth {
     /// Constructs the IBluetooth implementation.
     pub fn new(
-        adapter_index: i32,
+        virt_index: i32,
         hci_index: i32,
         tx: Sender<Message>,
         api_tx: Sender<APIMessage>,
@@ -539,7 +539,7 @@ impl Bluetooth {
         bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
     ) -> Bluetooth {
         Bluetooth {
-            adapter_index,
+            virt_index,
             hci_index,
             bonded_devices: HashMap::new(),
             callbacks: Callbacks::new(tx.clone(), Message::AdapterCallbackDisconnected),
@@ -1047,7 +1047,7 @@ impl Bluetooth {
 
     /// Creates a file to notify btmanagerd the adapter is enabled.
     fn create_pid_file(&self) -> std::io::Result<()> {
-        let file_name = format!("{}/bluetooth{}.pid", PID_DIR, self.adapter_index);
+        let file_name = format!("{}/bluetooth{}.pid", PID_DIR, self.virt_index);
         let mut f = File::create(&file_name)?;
         f.write_all(process::id().to_string().as_bytes())?;
         Ok(())
@@ -1055,7 +1055,7 @@ impl Bluetooth {
 
     /// Removes the file to notify btmanagerd the adapter is disabled.
     fn remove_pid_file(&self) -> std::io::Result<()> {
-        let file_name = format!("{}/bluetooth{}.pid", PID_DIR, self.adapter_index);
+        let file_name = format!("{}/bluetooth{}.pid", PID_DIR, self.virt_index);
         std::fs::remove_file(&file_name)?;
         Ok(())
     }

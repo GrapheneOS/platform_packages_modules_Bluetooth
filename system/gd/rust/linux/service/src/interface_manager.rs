@@ -37,7 +37,7 @@ impl InterfaceManager {
 
     pub async fn dispatch(
         mut rx: Receiver<APIMessage>,
-        adapter_index: i32,
+        virt_index: i32,
         conn: Arc<SyncConnection>,
         disconnect_watcher: Arc<Mutex<DisconnectWatcher>>,
         bluetooth: Arc<Mutex<Box<Bluetooth>>>,
@@ -169,32 +169,32 @@ impl InterfaceManager {
                 APIMessage::IsReady(api) => match api {
                     BluetoothAPI::Adapter => {
                         cr.lock().unwrap().insert(
-                            Self::make_object_name(adapter_index, "adapter"),
+                            Self::make_object_name(virt_index, "adapter"),
                             &[adapter_iface, qa_legacy_iface, socket_mgr_iface, suspend_iface],
                             mixin.clone(),
                         );
 
                         cr.lock().unwrap().insert(
-                            Self::make_object_name(adapter_index, "admin"),
+                            Self::make_object_name(virt_index, "admin"),
                             &[admin_iface],
                             bluetooth_admin.clone(),
                         );
 
                         cr.lock().unwrap().insert(
-                            Self::make_object_name(adapter_index, "logging"),
+                            Self::make_object_name(virt_index, "logging"),
                             &[logging_iface],
                             logging.clone(),
                         );
 
                         cr.lock().unwrap().insert(
-                            Self::make_object_name(adapter_index, "qa"),
+                            Self::make_object_name(virt_index, "qa"),
                             &[qa_iface],
                             bluetooth_qa.clone(),
                         );
                     }
                     BluetoothAPI::Gatt => {
                         cr.lock().unwrap().insert(
-                            Self::make_object_name(adapter_index, "gatt"),
+                            Self::make_object_name(virt_index, "gatt"),
                             &[gatt_iface],
                             bluetooth_gatt.clone(),
                         );
@@ -208,26 +208,26 @@ impl InterfaceManager {
                     }
                     BluetoothAPI::Media => {
                         cr.lock().unwrap().insert(
-                            Self::make_object_name(adapter_index, "media"),
+                            Self::make_object_name(virt_index, "media"),
                             &[media_iface],
                             bluetooth_media.clone(),
                         );
 
                         cr.lock().unwrap().insert(
-                            Self::make_object_name(adapter_index, "telephony"),
+                            Self::make_object_name(virt_index, "telephony"),
                             &[telephony_iface],
                             bluetooth_media.clone(),
                         );
                     }
                     BluetoothAPI::Battery => {
                         cr.lock().unwrap().insert(
-                            Self::make_object_name(adapter_index, "battery_provider_manager"),
+                            Self::make_object_name(virt_index, "battery_provider_manager"),
                             &[battery_provider_manager_iface],
                             battery_provider_manager.clone(),
                         );
 
                         cr.lock().unwrap().insert(
-                            Self::make_object_name(adapter_index, "battery_manager"),
+                            Self::make_object_name(virt_index, "battery_manager"),
                             &[battery_manager_iface],
                             battery_manager.clone(),
                         );
