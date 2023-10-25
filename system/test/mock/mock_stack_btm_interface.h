@@ -18,4 +18,6 @@
 
 #include "stack/include/btm_client_interface.h"
 
-extern struct btm_client_interface_t btm_client_interface;
+void reset_mock_btm_client_interface();
+
+extern struct btm_client_interface_t mock_btm_client_interface;
