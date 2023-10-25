@@ -465,7 +465,8 @@ void btm_sec_conn_req(const RawAddress& bda, const DEV_CLASS dc);
  * Returns          void
  *
  ******************************************************************************/
-void btm_create_conn_cancel_complete(const uint8_t* p, uint16_t evt_len);
+void btm_create_conn_cancel_complete(uint8_t status, const RawAddress bd_addr,
+                                     uint32_t value);
 
 /*******************************************************************************
  *
@@ -531,7 +532,7 @@ void btm_sec_rmt_host_support_feat_evt(const uint8_t* p);
  * Returns          void
  *
  ******************************************************************************/
-void btm_io_capabilities_req(const RawAddress& p);
+void btm_io_capabilities_req(RawAddress p);
 
 /*******************************************************************************
  *

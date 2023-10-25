@@ -2128,17 +2128,7 @@ static void btm_sec_bond_cancel_complete(void) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_create_conn_cancel_complete(const uint8_t* p, uint16_t evt_len) {
-  uint8_t status;
-
-  if (evt_len < 1 + BD_ADDR_LEN) {
-    LOG_ERROR("%s malformatted event packet, too short", __func__);
-    return;
-  }
-
-  STREAM_TO_UINT8(status, p);
-  RawAddress bd_addr;
-  STREAM_TO_BDADDR(bd_addr, p);
+void btm_create_conn_cancel_complete(uint8_t status, const RawAddress bd_addr) {
   LOG_VERBOSE("btm_create_conn_cancel_complete(): in State: %s  status:%d",
               btm_pair_state_descr(btm_sec_cb.pairing_state), status);
   log_link_layer_connection_event(
@@ -2614,7 +2604,7 @@ void btm_sec_rmt_host_support_feat_evt(const uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_io_capabilities_req(const RawAddress& p) {
+void btm_io_capabilities_req(RawAddress p) {
   if (btm_sec_is_a_bonded_dev(p)) {
     LOG_WARN("%s: Incoming bond request, but %s is already bonded (removing)",
              __func__, ADDRESS_TO_LOGGABLE_CSTR(p));

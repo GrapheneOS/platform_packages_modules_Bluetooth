@@ -443,12 +443,14 @@ struct NotifyBondingCanceled {
 extern struct NotifyBondingCanceled NotifyBondingCanceled;
 
 // Name: btm_create_conn_cancel_complete
-// Params: const uint8_t* p
+// Params: uint8_t status, RawAddress bd_addr
 // Return: void
 struct btm_create_conn_cancel_complete {
-  std::function<void(const uint8_t* p, uint16_t evt_len)> body{
-      [](const uint8_t* p, uint16_t evt_len) {}};
-  void operator()(const uint8_t* p, uint16_t evt_len) { body(p, evt_len); };
+  std::function<void(uint8_t status, const RawAddress bd_addr)> body{
+      [](uint8_t status, const RawAddress bd_addr) {}};
+  void operator()(uint8_t status, const RawAddress bd_addr) {
+    body(status, bd_addr);
+  };
 };
 extern struct btm_create_conn_cancel_complete btm_create_conn_cancel_complete;
 
@@ -464,11 +466,11 @@ struct btm_get_dev_class {
 extern struct btm_get_dev_class btm_get_dev_class;
 
 // Name: btm_io_capabilities_req
-// Params: const RawAddress& p
+// Params: RawAddress p
 // Return: void
 struct btm_io_capabilities_req {
-  std::function<void(const RawAddress& p)> body{[](const RawAddress& p) {}};
-  void operator()(const RawAddress& p) { body(p); };
+  std::function<void(RawAddress p)> body{[](RawAddress /* p */) {}};
+  void operator()(RawAddress p) { body(p); };
 };
 extern struct btm_io_capabilities_req btm_io_capabilities_req;
 

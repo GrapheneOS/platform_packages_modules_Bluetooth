@@ -46,9 +46,11 @@
 #include "stack/include/ble_acl_interface.h"
 #include "stack/include/ble_hci_link_interface.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/btm_ble_addr.h"
 #include "stack/include/btm_ble_api.h"
 #include "stack/include/btm_iso_api.h"
+#include "stack/include/btm_sec_api_types.h"
 #include "stack/include/dev_hci_link_interface.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/hci_evt_length.h"
@@ -90,6 +92,11 @@ static void btu_hcif_link_key_notification_evt(const uint8_t* p);
 static void btu_hcif_read_clock_off_comp_evt(uint8_t* p);
 static void btu_hcif_esco_connection_comp_evt(const uint8_t* p);
 static void btu_hcif_esco_connection_chg_evt(uint8_t* p);
+
+/* Parsing functions for btm functions */
+
+static void btu_hcif_create_conn_cancel_complete(const uint8_t* p,
+                                                 uint16_t evt_len);
 
 /* Simple Pairing Events */
 static void btu_hcif_io_cap_request_evt(const uint8_t* p);
@@ -1105,7 +1112,7 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
       break;
 
     case HCI_CREATE_CONNECTION_CANCEL:
-      btm_create_conn_cancel_complete(p, evt_len);
+      btu_hcif_create_conn_cancel_complete(p, evt_len);
       break;
 
     case HCI_READ_LOCAL_OOB_DATA:
@@ -1408,6 +1415,22 @@ static void btu_hcif_mode_change_evt(uint8_t* p) {
 #if (HID_DEV_INCLUDED == TRUE && HID_DEV_PM_INCLUDED == TRUE)
   hidd_pm_proc_mode_change(status, current_mode, interval);
 #endif
+}
+
+/* Parsing functions for btm functions */
+
+void btu_hcif_create_conn_cancel_complete(const uint8_t* p, uint16_t evt_len) {
+  uint8_t status;
+
+  if (evt_len < 1 + BD_ADDR_LEN) {
+    LOG_ERROR("%s malformatted event packet, too short", __func__);
+    return;
+  }
+
+  STREAM_TO_UINT8(status, p);
+  RawAddress bd_addr;
+  STREAM_TO_BDADDR(bd_addr, p);
+  btm_create_conn_cancel_complete(status, bd_addr);
 }
 
 /*******************************************************************************
