@@ -202,6 +202,7 @@ typedef struct {
   tBTA_HF_CLIENT_FEAT features;  /* features registered by application */
   uint16_t serv_handle;          /* RFCOMM server handle */
   bool deregister;               /* true if service shutting down */
+  bool is_support_lc3;           /* true if enable lc3 codec support (HFP1.9) */
 
   // Maximum number of control blocks supported by the BTA layer.
   tBTA_HF_CLIENT_CB cb[HF_CLIENT_MAX_DEVICES];
