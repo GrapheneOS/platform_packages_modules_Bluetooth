@@ -1151,6 +1151,7 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
       btm_ble_read_resolving_list_entry_complete(p, evt_len);
       break;
 
+    // Explicitly handled command complete events
     case HCI_BLE_READ_RESOLVABLE_ADDR_LOCAL:
     case HCI_BLE_SET_ADDR_RESOLUTION_ENABLE:
     case HCI_BLE_SET_RAND_PRIV_ADDR_TIMOUT:
@@ -1161,6 +1162,7 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
     case HCI_WRITE_INQSCAN_TYPE:
     case HCI_WRITE_INQUIRYSCAN_CFG:
     case HCI_WRITE_INQUIRY_MODE:
+    case HCI_WRITE_LINK_SUPER_TOUT:
     case HCI_WRITE_PAGESCAN_CFG:
     case HCI_WRITE_PAGESCAN_TYPE:
     case HCI_WRITE_PAGE_TOUT:
