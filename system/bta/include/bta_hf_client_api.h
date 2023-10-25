@@ -134,7 +134,8 @@ typedef uint8_t tBTA_HF_CLIENT_AT_RESULT_TYPE;
 #define BTA_HF_CLIENT_RING_INDICATION 21 /* HF Client ring indication */
 
 #define BTA_HF_CLIENT_UNKNOWN_EVT 22 /* Unknown or vendor specific Event */
-
+#define BTA_HF_CLIENT_AUDIO_LC3_OPEN_EVT \
+  23 /* Audio connection with LC3 codec open */
 #define BTA_HF_CLIENT_DISABLE_EVT 30     /* HF Client disabled */
 
 typedef uint8_t tBTA_HF_CLIENT_EVT;
