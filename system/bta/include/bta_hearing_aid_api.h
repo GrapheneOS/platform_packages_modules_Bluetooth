@@ -36,7 +36,8 @@ constexpr uint16_t HA_INTERVAL_20_MS = 20;
 // Masks for checking capability support
 constexpr uint8_t CAPABILITY_SIDE = 0x01;
 constexpr uint8_t CAPABILITY_BINAURAL = 0x02;
-constexpr uint8_t CAPABILITY_RESERVED = 0xFC;
+constexpr uint8_t CAPABILITY_CSIS = 0x04;
+constexpr uint8_t CAPABILITY_RESERVED = 0xF8;
 
 // Number of retry for phy update. This targets to reduce phy update collision.
 const static uint8_t PHY_UPDATE_RETRY_LIMIT =

@@ -905,8 +905,10 @@ class HearingAidImpl : public HearingAid {
     hearingDevice->capabilities = capabilities;
     bool side = capabilities & CAPABILITY_SIDE;
     bool standalone = capabilities & CAPABILITY_BINAURAL;
-    LOG_DEBUG("capabilities: %s, %s", (side ? "right" : "left"),
-              (standalone ? "binaural" : "monaural"));
+    bool csis_capable = capabilities & CAPABILITY_CSIS;
+    LOG_DEBUG("capabilities: %s, %s, CSIS %s", (side ? "right" : "left"),
+              (standalone ? "binaural" : "monaural"),
+              (csis_capable ? "capable" : "not capable"));
 
     if (capabilities & CAPABILITY_RESERVED) {
       LOG_WARN("reserved capabilities are set");
