@@ -2,6 +2,9 @@ use log::{error, info, warn};
 
 use std::collections::HashMap;
 use std::process::Command;
+use std::sync::{Arc, Mutex};
+
+use crate::powerd_suspend_manager::SuspendManagerContext;
 
 use crate::iface_bluetooth_experimental::IBluetoothExperimental;
 use crate::iface_bluetooth_manager::{
@@ -19,11 +22,16 @@ const INVALID_VER: u16 = 0xffff;
 pub struct BluetoothManager {
     proxy: StateMachineProxy,
     callbacks: HashMap<u32, Box<dyn IBluetoothManagerCallback + Send>>,
+    suspend_manager_context: Option<Arc<Mutex<SuspendManagerContext>>>,
 }
 
 impl BluetoothManager {
     pub fn new(proxy: StateMachineProxy) -> BluetoothManager {
-        BluetoothManager { proxy, callbacks: HashMap::new() }
+        BluetoothManager { proxy, callbacks: HashMap::new(), suspend_manager_context: None }
+    }
+
+    pub fn set_suspend_manager_context(&mut self, context: Arc<Mutex<SuspendManagerContext>>) {
+        self.suspend_manager_context = Some(context);
     }
 
     fn is_adapter_enabled(&self, hci_device: VirtualHciIndex) -> bool {
@@ -189,6 +197,13 @@ impl IBluetoothManager for BluetoothManager {
         let major = env!("CARGO_PKG_VERSION_MAJOR").parse::<u16>().unwrap_or(INVALID_VER);
         let minor = env!("CARGO_PKG_VERSION_MINOR").parse::<u16>().unwrap_or(INVALID_VER);
         ((major as u32) << 16) | (minor as u32)
+    }
+
+    fn set_tablet_mode(&mut self, tablet_mode: bool) {
+        match &self.suspend_manager_context {
+            Some(ctx) => ctx.lock().unwrap().tablet_mode = tablet_mode,
+            None => warn!("Context not available to set tablet mode."),
+        }
     }
 }
 
