@@ -57,6 +57,7 @@
 #include "btif_util.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
+#include "stack/btm/btm_sco_hfp_hal.h"
 #include "stack/include/bt_uuid16.h"
 #include "types/raw_address.h"
 
@@ -1024,7 +1025,10 @@ static void btif_hf_client_upstreams_evt(uint16_t event, char* p_param) {
       HAL_CBACK(bt_hf_client_callbacks, audio_state_cb, &cb->peer_bda,
                 BTHF_CLIENT_AUDIO_STATE_CONNECTED_MSBC);
       break;
-
+    case BTA_HF_CLIENT_AUDIO_LC3_OPEN_EVT:
+      HAL_CBACK(bt_hf_client_callbacks, audio_state_cb, &cb->peer_bda,
+                BTHF_CLIENT_AUDIO_STATE_CONNECTED_LC3);
+      break;
     case BTA_HF_CLIENT_AUDIO_CLOSE_EVT:
       HAL_CBACK(bt_hf_client_callbacks, audio_state_cb, &cb->peer_bda,
                 BTHF_CLIENT_AUDIO_STATE_DISCONNECTED);
@@ -1079,6 +1083,10 @@ bt_status_t btif_hf_client_execute_service(bool b_enable) {
 
   tBTA_HF_CLIENT_FEAT features = get_default_hf_client_features();
   uint16_t hfp_version = get_default_hfp_version();
+  if (hfp_version >= HFP_VERSION_1_9 &&
+      hfp_hal_interface::get_swb_supported()) {
+    features |= BTA_HF_CLIENT_FEAT_SWB;
+  }
   if (hfp_version >= HFP_VERSION_1_7) {
     features |= BTA_HF_CLIENT_FEAT_ESCO_S4;
   }
