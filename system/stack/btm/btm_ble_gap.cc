@@ -51,6 +51,7 @@
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/btm_sec.h"
+#include "stack/btm/btm_sec_int_types.h"
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/advertise_data_parser.h"
@@ -480,18 +481,18 @@ inline bool BTM_LE_STATES_SUPPORTED(const uint8_t* x, uint8_t bit_num) {
 void BTM_BleOpportunisticObserve(bool enable,
                                  tBTM_INQ_RESULTS_CB* p_results_cb) {
   if (enable) {
-    btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb = p_results_cb;
+    btm_sec_cb.ble_ctr_cb.p_opportunistic_obs_results_cb = p_results_cb;
   } else {
-    btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb = NULL;
+    btm_sec_cb.ble_ctr_cb.p_opportunistic_obs_results_cb = NULL;
   }
 }
 
 void BTM_BleTargetAnnouncementObserve(bool enable,
                                       tBTM_INQ_RESULTS_CB* p_results_cb) {
   if (enable) {
-    btm_cb.ble_ctr_cb.p_target_announcement_obs_results_cb = p_results_cb;
+    btm_sec_cb.ble_ctr_cb.p_target_announcement_obs_results_cb = p_results_cb;
   } else {
-    btm_cb.ble_ctr_cb.p_target_announcement_obs_results_cb = NULL;
+    btm_sec_cb.ble_ctr_cb.p_target_announcement_obs_results_cb = NULL;
   }
 }
 
@@ -515,7 +516,7 @@ void BTM_BleTargetAnnouncementObserve(bool enable,
 tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
                            tBTM_INQ_RESULTS_CB* p_results_cb,
                            tBTM_CMPL_CB* p_cmpl_cb, bool low_latency_scan) {
-  tBTM_BLE_INQ_CB* p_inq = &btm_cb.ble_ctr_cb.inq_var;
+  tBTM_BLE_INQ_CB* p_inq = &btm_sec_cb.ble_ctr_cb.inq_var;
   tBTM_STATUS status = BTM_WRONG_MODE;
 
   uint32_t scan_interval =
@@ -538,16 +539,16 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
     /* shared inquiry database, do not allow observe if any inquiry is active.
      * except we are doing CSIS active scanning
      */
-    if (btm_cb.ble_ctr_cb.is_ble_observe_active()) {
+    if (btm_sec_cb.ble_ctr_cb.is_ble_observe_active()) {
       if (duration == 0) {
-        if (alarm_is_scheduled(btm_cb.ble_ctr_cb.observer_timer)) {
-          alarm_cancel(btm_cb.ble_ctr_cb.observer_timer);
+        if (alarm_is_scheduled(btm_sec_cb.ble_ctr_cb.observer_timer)) {
+          alarm_cancel(btm_sec_cb.ble_ctr_cb.observer_timer);
         } else {
           BTM_TRACE_ERROR("%s Scan with no duration started twice!", __func__);
         }
       } else {
         if (!low_latency_scan &&
-            alarm_is_scheduled(btm_cb.ble_ctr_cb.observer_timer)) {
+            alarm_is_scheduled(btm_sec_cb.ble_ctr_cb.observer_timer)) {
           BTM_TRACE_ERROR("%s Scan with duration started twice!", __func__);
         }
       }
@@ -568,12 +569,12 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
       btm_ble_stop_observe();
     }
 
-    btm_cb.ble_ctr_cb.p_obs_results_cb = p_results_cb;
-    btm_cb.ble_ctr_cb.p_obs_cmpl_cb = p_cmpl_cb;
+    btm_sec_cb.ble_ctr_cb.p_obs_results_cb = p_results_cb;
+    btm_sec_cb.ble_ctr_cb.p_obs_cmpl_cb = p_cmpl_cb;
     status = BTM_CMD_STARTED;
 
     /* scan is not started */
-    if (!btm_cb.ble_ctr_cb.is_ble_scan_active()) {
+    if (!btm_sec_cb.ble_ctr_cb.is_ble_scan_active()) {
       /* allow config of scan type */
       cache.ClearAll();
       p_inq->scan_type = (p_inq->scan_type == BTM_BLE_SCAN_MODE_NONE)
@@ -581,7 +582,8 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
                              : p_inq->scan_type;
       btm_send_hci_set_scan_params(
           p_inq->scan_type, (uint16_t)scan_interval, (uint16_t)scan_window,
-          btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, BTM_BLE_DEFAULT_SFP);
+          btm_sec_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type,
+          BTM_BLE_DEFAULT_SFP);
 
       btm_ble_start_scan();
     }
@@ -596,15 +598,15 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
                                       low_latency_scan));
 
     if (status == BTM_CMD_STARTED) {
-      btm_cb.ble_ctr_cb.set_ble_observe_active();
+      btm_sec_cb.ble_ctr_cb.set_ble_observe_active();
       if (duration != 0) {
         /* start observer timer */
         uint64_t duration_ms = duration * 1000;
-        alarm_set_on_mloop(btm_cb.ble_ctr_cb.observer_timer, duration_ms,
+        alarm_set_on_mloop(btm_sec_cb.ble_ctr_cb.observer_timer, duration_ms,
                            btm_ble_observer_timer_timeout, NULL);
       }
     }
-  } else if (btm_cb.ble_ctr_cb.is_ble_observe_active()) {
+  } else if (btm_sec_cb.ble_ctr_cb.is_ble_observe_active()) {
     const unsigned long long duration_timestamp =
         timestamper_in_milliseconds.GetTimestamp() -
         btm_cb.neighbor.le_observe.start_time_ms;
@@ -846,7 +848,7 @@ void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK* p_vsc_cback) {
  *
  ******************************************************************************/
 bool BTM_BleConfigPrivacy(bool privacy_mode) {
-  tBTM_BLE_CB* p_cb = &btm_cb.ble_ctr_cb;
+  tBTM_BLE_CB* p_cb = &btm_sec_cb.ble_ctr_cb;
 
   BTM_TRACE_WARNING("%s %d", __func__, (int)privacy_mode);
 
@@ -909,7 +911,7 @@ uint8_t BTM_BleMaxMultiAdvInstanceCount(void) {
  *
  ******************************************************************************/
 bool BTM_BleLocalPrivacyEnabled(void) {
-  return (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE);
+  return (btm_sec_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE);
 }
 
 static bool is_resolving_list_bit_set(void* data, void* context) {
@@ -1604,7 +1606,7 @@ void BTM_BlePeriodicSyncTxParameters(RawAddress addr, uint8_t mode,
 static uint8_t btm_set_conn_mode_adv_init_addr(
     RawAddress& p_peer_addr_ptr, tBLE_ADDR_TYPE* p_peer_addr_type,
     tBLE_ADDR_TYPE* p_own_addr_type) {
-  tBTM_BLE_INQ_CB* p_cb = &btm_cb.ble_ctr_cb.inq_var;
+  tBTM_BLE_INQ_CB* p_cb = &btm_sec_cb.ble_ctr_cb.inq_var;
   uint8_t evt_type;
   tBTM_SEC_DEV_REC* p_dev_rec;
 
@@ -1634,8 +1636,8 @@ static uint8_t btm_set_conn_mode_adv_init_addr(
             p_cb->directed_conn) == BTM_BLE_CONNECT_LO_DUTY_DIR_EVT) {
       /* for privacy 1.2, convert peer address as static, own address set as ID
        * addr */
-      if (btm_cb.ble_ctr_cb.privacy_mode == BTM_PRIVACY_1_2 ||
-          btm_cb.ble_ctr_cb.privacy_mode == BTM_PRIVACY_MIXED) {
+      if (btm_sec_cb.ble_ctr_cb.privacy_mode == BTM_PRIVACY_1_2 ||
+          btm_sec_cb.ble_ctr_cb.privacy_mode == BTM_PRIVACY_MIXED) {
         /* only do so for bonded device */
         if ((p_dev_rec = btm_find_or_alloc_dev(p_cb->direct_bda.bda)) != NULL &&
             p_dev_rec->ble.in_controller_list & BTM_RESOLVING_LIST_BIT) {
@@ -1655,11 +1657,11 @@ static uint8_t btm_set_conn_mode_adv_init_addr(
 
   /* undirect adv mode or non-connectable mode*/
   /* when privacy 1.2 privacy only mode is used, or mixed mode */
-  if ((btm_cb.ble_ctr_cb.privacy_mode == BTM_PRIVACY_1_2 &&
+  if ((btm_sec_cb.ble_ctr_cb.privacy_mode == BTM_PRIVACY_1_2 &&
        p_cb->afp != AP_SCAN_CONN_ALL) ||
-      btm_cb.ble_ctr_cb.privacy_mode == BTM_PRIVACY_MIXED) {
+      btm_sec_cb.ble_ctr_cb.privacy_mode == BTM_PRIVACY_MIXED) {
     list_node_t* n =
-        list_foreach(btm_cb.sec_dev_rec, is_resolving_list_bit_set, NULL);
+        list_foreach(btm_sec_cb.sec_dev_rec, is_resolving_list_bit_set, NULL);
     if (n) {
       /* if enhanced privacy is required, set Identity address and matching IRK
        * peer */
@@ -1677,7 +1679,7 @@ static uint8_t btm_set_conn_mode_adv_init_addr(
   /* privacy 1.1, or privacy 1.2, general discoverable/connectable mode, disable
      privacy in */
   /* controller fall back to host based privacy */
-  else if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE) {
+  else if (btm_sec_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE) {
     *p_own_addr_type = BLE_ADDR_RANDOM;
   }
 
@@ -1705,7 +1707,7 @@ void BTM_BleSetScanParams(uint32_t scan_interval, uint32_t scan_window,
     max_scan_window = BTM_BLE_SCAN_WIN_MAX;
   }
 
-  tBTM_BLE_INQ_CB* p_cb = &btm_cb.ble_ctr_cb.inq_var;
+  tBTM_BLE_INQ_CB* p_cb = &btm_sec_cb.ble_ctr_cb.inq_var;
   if (BTM_BLE_ISVALID_PARAM(scan_interval, BTM_BLE_SCAN_INT_MIN,
                             max_scan_interval) &&
       BTM_BLE_ISVALID_PARAM(scan_window, BTM_BLE_SCAN_WIN_MIN,
@@ -1738,7 +1740,7 @@ void BTM_BleSetScanParams(uint32_t scan_interval, uint32_t scan_window,
 uint16_t BTM_BleReadDiscoverability() {
   BTM_TRACE_API("%s", __func__);
 
-  return (btm_cb.ble_ctr_cb.inq_var.discoverable_mode);
+  return (btm_sec_cb.ble_ctr_cb.inq_var.discoverable_mode);
 }
 
 /*******************************************************************************
@@ -1754,7 +1756,7 @@ uint16_t BTM_BleReadDiscoverability() {
 uint16_t BTM_BleReadConnectability() {
   BTM_TRACE_API("%s", __func__);
 
-  return (btm_cb.ble_ctr_cb.inq_var.connectable_mode);
+  return (btm_sec_cb.ble_ctr_cb.inq_var.connectable_mode);
 }
 
 /*******************************************************************************
@@ -1840,7 +1842,7 @@ void btm_ble_update_dmt_flag_bits(uint8_t* adv_flag_value,
  ******************************************************************************/
 void btm_ble_set_adv_flag(uint16_t connect_mode, uint16_t disc_mode) {
   uint8_t flag = 0, old_flag = 0;
-  tBTM_BLE_LOCAL_ADV_DATA* p_adv_data = &btm_cb.ble_ctr_cb.inq_var.adv_data;
+  tBTM_BLE_LOCAL_ADV_DATA* p_adv_data = &btm_sec_cb.ble_ctr_cb.inq_var.adv_data;
 
   if (p_adv_data->p_flags != NULL) flag = old_flag = *(p_adv_data->p_flags);
 
@@ -1875,8 +1877,8 @@ void btm_ble_set_adv_flag(uint16_t connect_mode, uint16_t disc_mode) {
  *
  ******************************************************************************/
 tBTM_STATUS btm_ble_set_discoverability(uint16_t combined_mode) {
-  tBTM_LE_RANDOM_CB* p_addr_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
-  tBTM_BLE_INQ_CB* p_cb = &btm_cb.ble_ctr_cb.inq_var;
+  tBTM_LE_RANDOM_CB* p_addr_cb = &btm_sec_cb.ble_ctr_cb.addr_mgnt_cb;
+  tBTM_BLE_INQ_CB* p_cb = &btm_sec_cb.ble_ctr_cb.inq_var;
   uint16_t mode = (combined_mode & BTM_BLE_DISCOVERABLE_MASK);
   uint8_t new_mode = BTM_BLE_ADV_ENABLE;
   uint8_t evt_type;
@@ -1963,8 +1965,8 @@ tBTM_STATUS btm_ble_set_discoverability(uint16_t combined_mode) {
  *
  ******************************************************************************/
 tBTM_STATUS btm_ble_set_connectability(uint16_t combined_mode) {
-  tBTM_LE_RANDOM_CB* p_addr_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
-  tBTM_BLE_INQ_CB* p_cb = &btm_cb.ble_ctr_cb.inq_var;
+  tBTM_LE_RANDOM_CB* p_addr_cb = &btm_sec_cb.ble_ctr_cb.addr_mgnt_cb;
+  tBTM_BLE_INQ_CB* p_cb = &btm_sec_cb.ble_ctr_cb.inq_var;
   uint16_t mode = (combined_mode & BTM_BLE_CONNECTABLE_MASK);
   uint8_t new_mode = BTM_BLE_ADV_ENABLE;
   uint8_t evt_type;
@@ -2078,7 +2080,7 @@ static void btm_ble_scan_filt_param_cfg_evt(uint8_t avbl_space,
  *
  ******************************************************************************/
 tBTM_STATUS btm_ble_start_inquiry(uint8_t duration) {
-  tBTM_BLE_CB* p_ble_cb = &btm_cb.ble_ctr_cb;
+  tBTM_BLE_CB* p_ble_cb = &btm_sec_cb.ble_ctr_cb;
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
 
   BTM_TRACE_DEBUG("btm_ble_start_inquiry: inq_active = 0x%02x",
@@ -2116,7 +2118,7 @@ tBTM_STATUS btm_ble_start_inquiry(uint8_t duration) {
     cache.ClearAll();
     btm_send_hci_set_scan_params(
         BTM_BLE_SCAN_MODE_ACTI, scan_interval, scan_window,
-        btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, SP_ADV_ALL);
+        btm_sec_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, SP_ADV_ALL);
     p_ble_cb->inq_var.scan_type = BTM_BLE_SCAN_MODE_ACTI;
     btm_ble_start_scan();
   } else if ((p_ble_cb->inq_var.scan_interval != scan_interval) ||
@@ -2126,7 +2128,7 @@ tBTM_STATUS btm_ble_start_inquiry(uint8_t duration) {
     btm_send_hci_scan_enable(BTM_BLE_SCAN_DISABLE, BTM_BLE_DUPLICATE_ENABLE);
     btm_send_hci_set_scan_params(
         BTM_BLE_SCAN_MODE_ACTI, scan_interval, scan_window,
-        btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, SP_ADV_ALL);
+        btm_sec_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, SP_ADV_ALL);
     btm_send_hci_scan_enable(BTM_BLE_SCAN_ENABLE, BTM_BLE_DUPLICATE_DISABLE);
   }
 
@@ -2257,7 +2259,7 @@ bool btm_ble_cancel_remote_name(const RawAddress& remote_bda) {
  *
  ******************************************************************************/
 static void btm_ble_update_adv_flag(uint8_t flag) {
-  tBTM_BLE_LOCAL_ADV_DATA* p_adv_data = &btm_cb.ble_ctr_cb.inq_var.adv_data;
+  tBTM_BLE_LOCAL_ADV_DATA* p_adv_data = &btm_sec_cb.ble_ctr_cb.inq_var.adv_data;
   uint8_t* p;
 
   BTM_TRACE_DEBUG("btm_ble_update_adv_flag new=0x%x", flag);
@@ -2296,7 +2298,7 @@ static uint8_t btm_ble_is_discoverable(const RawAddress& bda,
   uint8_t scan_state = BTM_BLE_NOT_SCANNING;
 
   /* for observer, always "discoverable */
-  if (btm_cb.ble_ctr_cb.is_ble_observe_active())
+  if (btm_sec_cb.ble_ctr_cb.is_ble_observe_active())
     scan_state |= BTM_BLE_OBS_RESULT;
 
   if (!adv_data.empty()) {
@@ -2509,7 +2511,7 @@ void btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
   p_cur->ble_tx_power = tx_power;
   p_cur->ble_periodic_adv_int = periodic_adv_int;
 
-  if (btm_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI &&
+  if (btm_sec_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI &&
       ble_evt_type_is_scannable(evt_type) &&
       !ble_evt_type_is_scan_resp(evt_type)) {
     p_i->scan_rsp = false;
@@ -2623,7 +2625,7 @@ void btm_ble_process_ext_adv_pkt(uint8_t data_len, const uint8_t* data) {
   size_t bytes_to_process;
 
   /* Only process the results if the inquiry is still active */
-  if (!btm_cb.ble_ctr_cb.is_ble_scan_active()) return;
+  if (!btm_sec_cb.ble_ctr_cb.is_ble_scan_active()) return;
 
   bytes_to_process = 1;
 
@@ -2700,7 +2702,7 @@ void btm_ble_process_adv_pkt(uint8_t data_len, const uint8_t* data) {
   size_t bytes_to_process;
 
   /* Only process the results if the inquiry is still active */
-  if (!btm_cb.ble_ctr_cb.is_ble_scan_active()) return;
+  if (!btm_sec_cb.ble_ctr_cb.is_ble_scan_active()) return;
 
   bytes_to_process = 1;
 
@@ -2833,7 +2835,7 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, tBLE_ADDR_TYPE addr_type,
   }
 
   bool is_active_scan =
-      btm_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI;
+      btm_sec_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI;
   if (is_active_scan && is_scannable && !is_scan_resp) {
     // If we didn't receive scan response yet, don't report the device.
     DVLOG(1) << " Waiting for scan response " << bda;
@@ -2864,7 +2866,7 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, tBLE_ADDR_TYPE addr_type,
                 (!p_i->scan_rsp) ||
                 (!p_i->inq_info.results.include_rsi && include_rsi))) {
       update = true;
-    } else if (btm_cb.ble_ctr_cb.is_ble_observe_active()) {
+    } else if (btm_sec_cb.ble_ctr_cb.is_ble_observe_active()) {
       update = false;
     } else {
       /* if yes, skip it */
@@ -2898,7 +2900,7 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, tBLE_ADDR_TYPE addr_type,
   }
 
   tBTM_INQ_RESULTS_CB* p_opportunistic_obs_results_cb =
-      btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb;
+      btm_sec_cb.ble_ctr_cb.p_opportunistic_obs_results_cb;
   if (p_opportunistic_obs_results_cb) {
     (p_opportunistic_obs_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
                                      const_cast<uint8_t*>(adv_data.data()),
@@ -2906,7 +2908,7 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, tBLE_ADDR_TYPE addr_type,
   }
 
   tBTM_INQ_RESULTS_CB* p_target_announcement_obs_results_cb =
-      btm_cb.ble_ctr_cb.p_target_announcement_obs_results_cb;
+      btm_sec_cb.ble_ctr_cb.p_target_announcement_obs_results_cb;
   if (p_target_announcement_obs_results_cb) {
     (p_target_announcement_obs_results_cb)(
         (tBTM_INQ_RESULTS*)&p_i->inq_info.results,
@@ -2931,7 +2933,8 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, tBLE_ADDR_TYPE addr_type,
   // Pass address up to GattService#onScanResult
   p_i->inq_info.results.original_bda = original_bda;
 
-  tBTM_INQ_RESULTS_CB* p_obs_results_cb = btm_cb.ble_ctr_cb.p_obs_results_cb;
+  tBTM_INQ_RESULTS_CB* p_obs_results_cb =
+      btm_sec_cb.ble_ctr_cb.p_obs_results_cb;
   if (p_obs_results_cb && (result & BTM_BLE_OBS_RESULT)) {
     (p_obs_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
                        const_cast<uint8_t*>(adv_data.data()), adv_data.size());
@@ -2969,7 +2972,7 @@ void btm_ble_process_adv_pkt_cont_for_inquiry(
                 (!p_i->scan_rsp) ||
                 (!p_i->inq_info.results.include_rsi && include_rsi))) {
       update = true;
-    } else if (btm_cb.ble_ctr_cb.is_ble_observe_active()) {
+    } else if (btm_sec_cb.ble_ctr_cb.is_ble_observe_active()) {
       btm_cb.neighbor.le_observe.results++;
       update = false;
     } else {
@@ -3008,7 +3011,7 @@ void btm_ble_process_adv_pkt_cont_for_inquiry(
   }
 
   tBTM_INQ_RESULTS_CB* p_opportunistic_obs_results_cb =
-      btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb;
+      btm_sec_cb.ble_ctr_cb.p_opportunistic_obs_results_cb;
   if (p_opportunistic_obs_results_cb) {
     (p_opportunistic_obs_results_cb)(
         (tBTM_INQ_RESULTS*)&p_i->inq_info.results,
@@ -3016,7 +3019,7 @@ void btm_ble_process_adv_pkt_cont_for_inquiry(
   }
 
   tBTM_INQ_RESULTS_CB* p_target_announcement_obs_results_cb =
-      btm_cb.ble_ctr_cb.p_target_announcement_obs_results_cb;
+      btm_sec_cb.ble_ctr_cb.p_target_announcement_obs_results_cb;
   if (p_target_announcement_obs_results_cb) {
     (p_target_announcement_obs_results_cb)(
         (tBTM_INQ_RESULTS*)&p_i->inq_info.results,
@@ -3074,7 +3077,7 @@ static void btm_ble_start_scan() {
   /* start scan, disable duplicate filtering */
   btm_send_hci_scan_enable(BTM_BLE_SCAN_ENABLE, BTM_BLE_DUPLICATE_DISABLE);
 
-  if (btm_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI)
+  if (btm_sec_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI)
     btm_ble_set_topology_mask(BTM_BLE_STATE_ACTIVE_SCAN_BIT);
   else
     btm_ble_set_topology_mask(BTM_BLE_STATE_PASSIVE_SCAN_BIT);
@@ -3090,13 +3093,13 @@ static void btm_ble_start_scan() {
  *
  ******************************************************************************/
 static void btm_ble_stop_scan(void) {
-  if (btm_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI)
+  if (btm_sec_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI)
     btm_ble_clear_topology_mask(BTM_BLE_STATE_ACTIVE_SCAN_BIT);
   else
     btm_ble_clear_topology_mask(BTM_BLE_STATE_PASSIVE_SCAN_BIT);
 
   /* Clear the inquiry callback if set */
-  btm_cb.ble_ctr_cb.inq_var.scan_type = BTM_BLE_SCAN_MODE_NONE;
+  btm_sec_cb.ble_ctr_cb.inq_var.scan_type = BTM_BLE_SCAN_MODE_NONE;
 
   /* stop discovery now */
   const unsigned long long duration_timestamp =
@@ -3121,7 +3124,7 @@ static void btm_ble_stop_scan(void) {
  ******************************************************************************/
 void btm_ble_stop_inquiry(void) {
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
-  tBTM_BLE_CB* p_ble_cb = &btm_cb.ble_ctr_cb;
+  tBTM_BLE_CB* p_ble_cb = &btm_sec_cb.ble_ctr_cb;
 
   alarm_cancel(p_ble_cb->inq_var.inquiry_timer);
 
@@ -3168,7 +3171,7 @@ void btm_ble_stop_inquiry(void) {
  *
  ******************************************************************************/
 static void btm_ble_stop_observe(void) {
-  tBTM_BLE_CB* p_ble_cb = &btm_cb.ble_ctr_cb;
+  tBTM_BLE_CB* p_ble_cb = &btm_sec_cb.ble_ctr_cb;
   tBTM_CMPL_CB* p_obs_cb = p_ble_cb->p_obs_cmpl_cb;
 
   alarm_cancel(p_ble_cb->observer_timer);
@@ -3236,7 +3239,7 @@ static bool btm_ble_adv_states_operation(BTM_TOPOLOGY_FUNC_PTR* p_handler,
  *
  ******************************************************************************/
 static tBTM_STATUS btm_ble_start_adv(void) {
-  tBTM_BLE_INQ_CB* p_cb = &btm_cb.ble_ctr_cb.inq_var;
+  tBTM_BLE_INQ_CB* p_cb = &btm_sec_cb.ble_ctr_cb.inq_var;
 
   if (!btm_ble_adv_states_operation(btm_ble_topology_check, p_cb->evt_type))
     return BTM_WRONG_MODE;
@@ -3259,7 +3262,7 @@ static tBTM_STATUS btm_ble_start_adv(void) {
  *
  ******************************************************************************/
 static tBTM_STATUS btm_ble_stop_adv(void) {
-  tBTM_BLE_INQ_CB* p_cb = &btm_cb.ble_ctr_cb.inq_var;
+  tBTM_BLE_INQ_CB* p_cb = &btm_sec_cb.ble_ctr_cb.inq_var;
 
   if (p_cb->adv_mode == BTM_BLE_ADV_ENABLE) {
     btsnd_hcic_ble_set_adv_enable(BTM_BLE_ADV_DISABLE);
@@ -3288,10 +3291,10 @@ static void btm_ble_fast_adv_timer_timeout(UNUSED_ATTR void* data) {
  *
  ******************************************************************************/
 static void btm_ble_start_slow_adv(void) {
-  tBTM_BLE_INQ_CB* p_cb = &btm_cb.ble_ctr_cb.inq_var;
+  tBTM_BLE_INQ_CB* p_cb = &btm_sec_cb.ble_ctr_cb.inq_var;
 
   if (p_cb->adv_mode == BTM_BLE_ADV_ENABLE) {
-    tBTM_LE_RANDOM_CB* p_addr_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
+    tBTM_LE_RANDOM_CB* p_addr_cb = &btm_sec_cb.ble_ctr_cb.addr_mgnt_cb;
     RawAddress address = RawAddress::kEmpty;
     tBLE_ADDR_TYPE init_addr_type = BLE_ADDR_PUBLIC;
     tBLE_ADDR_TYPE own_addr_type = p_addr_cb->own_addr_type;
@@ -3390,7 +3393,7 @@ err_out:
  *
  ******************************************************************************/
 void btm_ble_write_adv_enable_complete(uint8_t* p, uint16_t evt_len) {
-  tBTM_BLE_INQ_CB* p_cb = &btm_cb.ble_ctr_cb.inq_var;
+  tBTM_BLE_INQ_CB* p_cb = &btm_sec_cb.ble_ctr_cb.inq_var;
 
   /* if write adv enable/disbale not succeed */
   if (evt_len < 1 || *p != HCI_SUCCESS) {
@@ -3409,10 +3412,10 @@ void btm_ble_write_adv_enable_complete(uint8_t* p, uint16_t evt_len) {
  *
  ******************************************************************************/
 void btm_ble_dir_adv_tout(void) {
-  btm_cb.ble_ctr_cb.inq_var.adv_mode = BTM_BLE_ADV_DISABLE;
+  btm_sec_cb.ble_ctr_cb.inq_var.adv_mode = BTM_BLE_ADV_DISABLE;
 
   /* make device fall back into undirected adv mode by default */
-  btm_cb.ble_ctr_cb.inq_var.directed_conn = BTM_BLE_ADV_IND_EVT;
+  btm_sec_cb.ble_ctr_cb.inq_var.directed_conn = BTM_BLE_ADV_IND_EVT;
 }
 
 /*******************************************************************************
@@ -3426,7 +3429,8 @@ void btm_ble_dir_adv_tout(void) {
  ******************************************************************************/
 bool btm_ble_set_topology_mask(tBTM_BLE_STATE_MASK request_state_mask) {
   request_state_mask &= BTM_BLE_STATE_ALL_MASK;
-  btm_cb.ble_ctr_cb.cur_states |= (request_state_mask & BTM_BLE_STATE_ALL_MASK);
+  btm_sec_cb.ble_ctr_cb.cur_states |=
+      (request_state_mask & BTM_BLE_STATE_ALL_MASK);
   return true;
 }
 
@@ -3441,7 +3445,7 @@ bool btm_ble_set_topology_mask(tBTM_BLE_STATE_MASK request_state_mask) {
  ******************************************************************************/
 bool btm_ble_clear_topology_mask(tBTM_BLE_STATE_MASK request_state_mask) {
   request_state_mask &= BTM_BLE_STATE_ALL_MASK;
-  btm_cb.ble_ctr_cb.cur_states &= ~request_state_mask;
+  btm_sec_cb.ble_ctr_cb.cur_states &= ~request_state_mask;
   return true;
 }
 
@@ -3459,20 +3463,20 @@ static void btm_ble_update_link_topology_mask(uint8_t link_role,
   btm_ble_clear_topology_mask(BTM_BLE_STATE_ALL_CONN_MASK);
 
   if (increase)
-    btm_cb.ble_ctr_cb.link_count[link_role]++;
-  else if (btm_cb.ble_ctr_cb.link_count[link_role] > 0)
-    btm_cb.ble_ctr_cb.link_count[link_role]--;
+    btm_sec_cb.ble_ctr_cb.link_count[link_role]++;
+  else if (btm_sec_cb.ble_ctr_cb.link_count[link_role] > 0)
+    btm_sec_cb.ble_ctr_cb.link_count[link_role]--;
 
-  if (btm_cb.ble_ctr_cb.link_count[HCI_ROLE_CENTRAL])
+  if (btm_sec_cb.ble_ctr_cb.link_count[HCI_ROLE_CENTRAL])
     btm_ble_set_topology_mask(BTM_BLE_STATE_CENTRAL_BIT);
 
-  if (btm_cb.ble_ctr_cb.link_count[HCI_ROLE_PERIPHERAL])
+  if (btm_sec_cb.ble_ctr_cb.link_count[HCI_ROLE_PERIPHERAL])
     btm_ble_set_topology_mask(BTM_BLE_STATE_PERIPHERAL_BIT);
 
   if (link_role == HCI_ROLE_PERIPHERAL && increase) {
-    btm_cb.ble_ctr_cb.inq_var.adv_mode = BTM_BLE_ADV_DISABLE;
+    btm_sec_cb.ble_ctr_cb.inq_var.adv_mode = BTM_BLE_ADV_DISABLE;
     /* make device fall back into undirected adv mode by default */
-    btm_cb.ble_ctr_cb.inq_var.directed_conn = BTM_BLE_ADV_IND_EVT;
+    btm_sec_cb.ble_ctr_cb.inq_var.directed_conn = BTM_BLE_ADV_IND_EVT;
     /* clear all adv states */
     btm_ble_clear_topology_mask(BTM_BLE_STATE_ALL_ADV_MASK);
   }
@@ -3499,16 +3503,16 @@ void btm_ble_decrement_link_topology_mask(uint8_t link_role) {
 void btm_ble_update_mode_operation(uint8_t link_role, const RawAddress* bd_addr,
                                    tHCI_STATUS status) {
   if (status == HCI_ERR_ADVERTISING_TIMEOUT) {
-    btm_cb.ble_ctr_cb.inq_var.adv_mode = BTM_BLE_ADV_DISABLE;
+    btm_sec_cb.ble_ctr_cb.inq_var.adv_mode = BTM_BLE_ADV_DISABLE;
     /* make device fall back into undirected adv mode by default */
-    btm_cb.ble_ctr_cb.inq_var.directed_conn = BTM_BLE_ADV_IND_EVT;
+    btm_sec_cb.ble_ctr_cb.inq_var.directed_conn = BTM_BLE_ADV_IND_EVT;
     /* clear all adv states */
     btm_ble_clear_topology_mask(BTM_BLE_STATE_ALL_ADV_MASK);
   }
 
-  if (btm_cb.ble_ctr_cb.inq_var.connectable_mode == BTM_BLE_CONNECTABLE) {
+  if (btm_sec_cb.ble_ctr_cb.inq_var.connectable_mode == BTM_BLE_CONNECTABLE) {
     btm_ble_set_connectability(btm_cb.btm_inq_vars.connectable_mode |
-                               btm_cb.ble_ctr_cb.inq_var.connectable_mode);
+                               btm_sec_cb.ble_ctr_cb.inq_var.connectable_mode);
   }
 
   /* in case of disconnected, we must cancel bgconn and restart
@@ -3522,11 +3526,11 @@ void btm_ble_update_mode_operation(uint8_t link_role, const RawAddress* bd_addr,
      due to resource limitation, start next direct connection or background
      connection
      now in order */
-  if (btm_cb.ble_ctr_cb.is_connection_state_idle() &&
+  if (btm_sec_cb.ble_ctr_cb.is_connection_state_idle() &&
       status != HCI_ERR_HOST_REJECT_RESOURCES &&
       status != HCI_ERR_MAX_NUM_OF_CONNECTIONS) {
-    LOG_DEBUG("Resuming le background connections");
-    btm_ble_resume_bg_conn();
+      LOG_DEBUG("Resuming le background connections");
+      btm_ble_resume_bg_conn();
   }
 }
 
@@ -3540,7 +3544,7 @@ void btm_ble_update_mode_operation(uint8_t link_role, const RawAddress* bd_addr,
  *
  ******************************************************************************/
 void btm_ble_init(void) {
-  tBTM_BLE_CB* p_cb = &btm_cb.ble_ctr_cb;
+  tBTM_BLE_CB* p_cb = &btm_sec_cb.ble_ctr_cb;
 
   BTM_TRACE_DEBUG("%s", __func__);
 
@@ -3576,7 +3580,7 @@ void btm_ble_init(void) {
 
 // Clean up btm ble control block
 void btm_ble_free() {
-  tBTM_BLE_CB* p_cb = &btm_cb.ble_ctr_cb;
+  tBTM_BLE_CB* p_cb = &btm_sec_cb.ble_ctr_cb;
   alarm_free(p_cb->addr_mgnt_cb.refresh_raddr_timer);
 }
 
@@ -3594,7 +3598,7 @@ bool btm_ble_topology_check(tBTM_BLE_STATE_MASK request_state_mask) {
   bool rt = false;
 
   uint8_t state_offset = 0;
-  uint16_t cur_states = btm_cb.ble_ctr_cb.cur_states;
+  uint16_t cur_states = btm_sec_cb.ble_ctr_cb.cur_states;
   uint8_t request_state = 0;
 
   /* check only one bit is set and within valid range */

@@ -1276,6 +1276,14 @@ static tBT_TRANSPORT bta_dm_determine_discovery_transport(
     BTM_ReadDevInfo(remote_bd_addr, &dev_type, &addr_type);
     if (dev_type == BT_DEVICE_TYPE_BLE || addr_type == BLE_ADDR_RANDOM) {
       transport = BT_TRANSPORT_LE;
+    } else if (dev_type == BT_DEVICE_TYPE_DUMO) {
+      if (get_btm_client_interface().peer.BTM_IsAclConnectionUp(
+              remote_bd_addr, BT_TRANSPORT_BR_EDR)) {
+        transport = BT_TRANSPORT_BR_EDR;
+      } else if (get_btm_client_interface().peer.BTM_IsAclConnectionUp(
+                     remote_bd_addr, BT_TRANSPORT_LE)) {
+        transport = BT_TRANSPORT_LE;
+      }
     }
   } else {
     transport = bta_dm_search_cb.transport;

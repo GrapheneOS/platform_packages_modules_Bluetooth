@@ -44,18 +44,7 @@ BluetoothAudioHalVersion HalVersionManager::GetHalVersion() {
 }
 
 BluetoothAudioHalTransport HalVersionManager::GetHalTransport() {
-  switch (GetHalVersion()) {
-    case BluetoothAudioHalVersion::VERSION_AIDL_V1:
-    case BluetoothAudioHalVersion::VERSION_AIDL_V2:
-    case BluetoothAudioHalVersion::VERSION_AIDL_V3:
-    case BluetoothAudioHalVersion::VERSION_AIDL_V4:
-      return BluetoothAudioHalTransport::AIDL;
-    case BluetoothAudioHalVersion::VERSION_2_0:
-    case BluetoothAudioHalVersion::VERSION_2_1:
-      return BluetoothAudioHalTransport::HIDL;
-    default:
-      return BluetoothAudioHalTransport::UNKNOWN;
-  }
+  return instance_ptr->hal_transport_;
 }
 
 android::sp<IBluetoothAudioProvidersFactory_2_1>
@@ -131,9 +120,11 @@ BluetoothAudioHalVersion GetAidlInterfaceVersion() {
 }
 
 HalVersionManager::HalVersionManager() {
+  hal_transport_ = BluetoothAudioHalTransport::UNKNOWN;
   if (AServiceManager_checkService(
           kDefaultAudioProviderFactoryInterface.c_str()) != nullptr) {
     hal_version_ = GetAidlInterfaceVersion();
+    hal_transport_ = BluetoothAudioHalTransport::AIDL;
     return;
   }
 
@@ -155,6 +146,7 @@ HalVersionManager::HalVersionManager() {
 
   if (instance_count > 0) {
     hal_version_ = BluetoothAudioHalVersion::VERSION_2_1;
+    hal_transport_ = BluetoothAudioHalTransport::HIDL;
     return;
   }
 
@@ -168,6 +160,7 @@ HalVersionManager::HalVersionManager() {
 
   if (instance_count > 0) {
     hal_version_ = BluetoothAudioHalVersion::VERSION_2_0;
+    hal_transport_ = BluetoothAudioHalTransport::HIDL;
     return;
   }
 

@@ -335,6 +335,9 @@ void LeAudioDevice::ClearPACs(void) {
 
 LeAudioDevice::~LeAudioDevice(void) {
   alarm_free(link_quality_timer);
+  for (auto& ase : ases_) {
+    alarm_free(ase.autonomous_operation_timer_);
+  }
   this->ClearPACs();
 }
 
@@ -945,6 +948,11 @@ void LeAudioDevice::DeactivateAllAses(void) {
           ADDRESS_TO_LOGGABLE_CSTR(address_), ase.id, ase.cis_id,
           ase.cis_conn_hdl, bluetooth::common::ToString(ase.cis_state).c_str(),
           bluetooth::common::ToString(ase.data_path_state).c_str());
+    }
+    if (alarm_is_scheduled(ase.autonomous_operation_timer_)) {
+      alarm_free(ase.autonomous_operation_timer_);
+      ase.autonomous_operation_timer_ = NULL;
+      ase.autonomous_target_state_ = AseState::BTA_LE_AUDIO_ASE_STATE_IDLE;
     }
     ase.state = AseState::BTA_LE_AUDIO_ASE_STATE_IDLE;
     ase.cis_state = CisState::IDLE;
