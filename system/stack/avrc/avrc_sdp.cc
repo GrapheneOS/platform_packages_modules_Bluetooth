@@ -269,7 +269,7 @@ uint16_t AVRC_AddRecord(uint16_t service_uuid, const char* p_service_name,
     /* If we support browsing then add the list */
     if (browse_supported) {
       LOG_VERBOSE(
-          "%s: Add Browsing PSM to additonal protocol descriptor"
+          "%s: Add Browsing PSM to additional protocol descriptor"
           " lists",
           __func__);
       num_additional_protocols++;
@@ -293,7 +293,7 @@ uint16_t AVRC_AddRecord(uint16_t service_uuid, const char* p_service_name,
         service_uuid == UUID_SERVCLASS_AV_REM_CTRL_TARGET &&
         cover_art_psm > 0) {
       LOG_VERBOSE(
-          "%s: Add AVRCP BIP PSM to additonal protocol descriptor"
+          "%s: Add AVRCP BIP PSM to additional protocol descriptor"
           " lists, psm: 0x%x",
           __func__, cover_art_psm);
       num_additional_protocols++;
@@ -312,7 +312,7 @@ uint16_t AVRC_AddRecord(uint16_t service_uuid, const char* p_service_name,
 
     /* Add the additional lists if we support any */
     if (num_additional_protocols > 0) {
-      LOG_VERBOSE("%s: Add %d additonal protocol descriptor lists", __func__,
+      LOG_VERBOSE("%s: Add %d additional protocol descriptor lists", __func__,
                   num_additional_protocols);
       result &= get_legacy_stack_sdp_api()->handle.SDP_AddAdditionProtoLists(
           sdp_handle, num_additional_protocols, avrc_add_proto_desc_lists);

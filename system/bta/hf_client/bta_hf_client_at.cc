@@ -789,8 +789,8 @@ void bta_hf_client_unknown_response(tBTA_HF_CLIENT_CB* client_cb,
   tBTA_HF_CLIENT evt = {};
 
   strlcpy(evt.unknown.event_string, evt_buffer,
-          BTA_HF_CLIENT_UNKOWN_EVENT_LEN + 1);
-  evt.unknown.event_string[BTA_HF_CLIENT_UNKOWN_EVENT_LEN] = '\0';
+          BTA_HF_CLIENT_UNKNOWN_EVENT_LEN + 1);
+  evt.unknown.event_string[BTA_HF_CLIENT_UNKNOWN_EVENT_LEN] = '\0';
 
   evt.unknown.bd_addr = client_cb->peer_addr;
   bta_hf_client_app_callback(BTA_HF_CLIENT_UNKNOWN_EVT, &evt);
@@ -1552,14 +1552,14 @@ static char* bta_hf_client_process_unknown(tBTA_HF_CLIENT_CB* client_cb,
 
   int evt_size = end - start + 1;
 
-  char tmp_buf[BTA_HF_CLIENT_UNKOWN_EVENT_LEN];
-  if (evt_size < BTA_HF_CLIENT_UNKOWN_EVENT_LEN) {
+  char tmp_buf[BTA_HF_CLIENT_UNKNOWN_EVENT_LEN];
+  if (evt_size < BTA_HF_CLIENT_UNKNOWN_EVENT_LEN) {
     strlcpy(tmp_buf, start, evt_size);
     bta_hf_client_unknown_response(client_cb, tmp_buf);
     AT_CHECK_RN(end);
   } else {
     LOG_ERROR("%s: exceed event buffer size. (%d, %d)", __func__, evt_size,
-              BTA_HF_CLIENT_UNKOWN_EVENT_LEN);
+              BTA_HF_CLIENT_UNKNOWN_EVENT_LEN);
   }
 
   LOG_VERBOSE("%s: %s", __func__, buffer);

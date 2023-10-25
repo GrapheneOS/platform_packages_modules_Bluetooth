@@ -93,7 +93,7 @@ int port_open_continue(tPORT* p_port) {
   } else {
     // MX state machine ignores RFC_MX_EVENT_START_REQ in these states
     // When it enters RFC_MX_STATE_CONNECTED, it will check any openning ports
-    LOG_VERBOSE("port_open_continue: mx state(%d) mx channel is openning",
+    LOG_VERBOSE("port_open_continue: mx state(%d) mx channel is opening",
                 p_mcb->state);
   }
   return (PORT_SUCCESS);
