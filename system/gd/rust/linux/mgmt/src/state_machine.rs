@@ -49,7 +49,7 @@ pub enum ProcessState {
 /// Check whether adapter is enabled by checking internal state.
 pub fn state_to_enabled(state: ProcessState) -> bool {
     match state {
-        ProcessState::On => true,
+        ProcessState::On | ProcessState::TurningOff => true,
         _ => false,
     }
 }
@@ -726,13 +726,13 @@ pub async fn mainloop(
                 );
 
                 // Only emit enabled event for certain transitions
-                if next_state != prev_state
-                    && (next_state == ProcessState::On || prev_state == ProcessState::On)
-                {
+                let prev_enabled = state_to_enabled(prev_state);
+                let next_enabled = state_to_enabled(next_state);
+                if prev_enabled != next_enabled {
                     bluetooth_manager
                         .lock()
                         .unwrap()
-                        .callback_hci_enabled_change(hci, next_state == ProcessState::On);
+                        .callback_hci_enabled_change(hci, next_enabled);
                 }
             }
 
