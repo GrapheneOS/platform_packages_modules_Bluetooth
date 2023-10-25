@@ -108,7 +108,6 @@ import android.util.SparseArray;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.BluetoothStatsLog;
-import com.android.bluetooth.Flags;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
@@ -695,7 +694,7 @@ public class AdapterService extends Service {
             Log.i(TAG, "Phone policy disabled");
         }
 
-        if (Flags.audioRoutingCentralization()) {
+        if (featureFlags.audioRoutingCentralization()) {
             mActiveDeviceManager = new AudioRoutingManager(this, new ServiceFactory());
         } else {
             mActiveDeviceManager = new ActiveDeviceManager(this, new ServiceFactory());
