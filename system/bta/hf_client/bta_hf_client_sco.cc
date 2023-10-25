@@ -111,6 +111,9 @@ static void bta_hf_client_sco_conn_rsp(tBTA_HF_CLIENT_CB* client_cb,
     if (p_data->link_type == BTM_LINK_TYPE_SCO) {
       // SCO
       resp = esco_parameters_for_codec(SCO_CODEC_CVSD_D1, true);
+    } else if (client_cb->negotiated_codec == BTM_SCO_CODEC_LC3) {
+      // eSCO LC3, HFP 1.9
+      resp = esco_parameters_for_codec(ESCO_CODEC_LC3_T2, true);
     } else if (client_cb->negotiated_codec == BTM_SCO_CODEC_MSBC) {
       // eSCO mSBC
       resp = esco_parameters_for_codec(ESCO_CODEC_MSBC_T2, true);
@@ -567,7 +570,9 @@ void bta_hf_client_sco_conn_open(tBTA_HF_CLIENT_DATA* p_data) {
 
   bta_sys_sco_open(BTA_ID_HS, 1, client_cb->peer_addr);
 
-  if (client_cb->negotiated_codec == BTM_SCO_CODEC_MSBC) {
+  if (client_cb->negotiated_codec == BTM_SCO_CODEC_LC3) {
+    bta_hf_client_cback_sco(client_cb, BTA_HF_CLIENT_AUDIO_LC3_OPEN_EVT);
+  } else if (client_cb->negotiated_codec == BTM_SCO_CODEC_MSBC) {
     bta_hf_client_cback_sco(client_cb, BTA_HF_CLIENT_AUDIO_MSBC_OPEN_EVT);
   } else {
     bta_hf_client_cback_sco(client_cb, BTA_HF_CLIENT_AUDIO_OPEN_EVT);
