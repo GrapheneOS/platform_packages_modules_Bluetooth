@@ -168,6 +168,7 @@ pub struct SuspendManagerContext {
     powerd_session: Option<PowerdSession>,
     adapter_suspend_dbus: Option<SuspendDBus>,
     pending_suspend_imminent: Option<SuspendImminent>,
+    pub tablet_mode: bool,
 }
 
 /// Coordinates suspend events of Chromium OS's powerd with btadapter Suspend API.
@@ -191,11 +192,16 @@ impl PowerdSuspendManager {
                 powerd_session: None,
                 adapter_suspend_dbus: None,
                 pending_suspend_imminent: None,
+                tablet_mode: false,
             })),
             conn,
             tx,
             rx,
         }
+    }
+
+    pub fn get_suspend_manager_context(&mut self) -> Arc<Mutex<SuspendManagerContext>> {
+        return self.context.clone();
     }
 
     /// Sets up all required D-Bus listeners.
@@ -445,15 +451,26 @@ impl PowerdSuspendManager {
             // Anonymous block to contain locked `self.context` which needs to be called multiple
             // times in the `if let` block below. Prevent deadlock by locking only once.
             let mut context_locked = self.context.lock().unwrap();
+            let tablet_mode = context_locked.tablet_mode;
+
             if let Some(adapter_suspend_dbus) = &mut context_locked.adapter_suspend_dbus {
                 let mut suspend_dbus_rpc = adapter_suspend_dbus.rpc.clone();
                 tokio::spawn(async move {
                     let result = suspend_dbus_rpc
                         .suspend(
-                            match suspend_imminent.get_reason() {
-                                SuspendImminent_Reason::IDLE => SuspendType::AllowWakeFromHid,
-                                SuspendImminent_Reason::LID_CLOSED => SuspendType::NoWakesAllowed,
-                                SuspendImminent_Reason::OTHER => SuspendType::Other,
+                            match (tablet_mode, suspend_imminent.get_reason()) {
+                                // No wakes allowed on tablet mode.
+                                (true, _) => SuspendType::NoWakesAllowed,
+
+                                // When not in tablet mode, choose wake type based on suspend
+                                // reason.
+                                (false, SuspendImminent_Reason::IDLE) => {
+                                    SuspendType::AllowWakeFromHid
+                                }
+                                (false, SuspendImminent_Reason::LID_CLOSED) => {
+                                    SuspendType::NoWakesAllowed
+                                }
+                                (false, SuspendImminent_Reason::OTHER) => SuspendType::Other,
                             },
                             suspend_imminent.get_suspend_id(),
                         )
