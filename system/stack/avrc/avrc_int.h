@@ -151,7 +151,6 @@ typedef struct {
   tAVRC_FIND_CBACK find_cback; /* sdp discovery callback */
   tSDP_DISCOVERY_DB* p_db;   /* pointer to discovery database */
   uint16_t service_uuid;     /* service UUID to search */
-  uint8_t trace_level;
 } tAVRC_CB;
 
 /******************************************************************************

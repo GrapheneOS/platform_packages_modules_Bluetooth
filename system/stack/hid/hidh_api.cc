@@ -278,25 +278,7 @@ static void hidh_search_callback(UNUSED_ATTR const RawAddress& bd_addr,
  *
  ******************************************************************************/
 void HID_HostInit(void) {
-  uint8_t log_level = hh_cb.trace_level;
   memset(&hh_cb, 0, sizeof(tHID_HOST_CTB));
-  hh_cb.trace_level = log_level;
-}
-
-/*******************************************************************************
- *
- * Function         HID_HostSetTraceLevel
- *
- * Description      This function sets the trace level for HID Host. If called
- *                  with 0xFF, it simply reads the current trace level.
- *
- * Returns          the new (current) trace level
- *
- ******************************************************************************/
-uint8_t HID_HostSetTraceLevel(uint8_t new_level) {
-  if (new_level != 0xFF) hh_cb.trace_level = new_level;
-
-  return (hh_cb.trace_level);
 }
 
 /*******************************************************************************

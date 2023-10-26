@@ -53,7 +53,6 @@ struct L2CA_DisconnectReq L2CA_DisconnectReq;
 struct L2CA_DisconnectLECocReq L2CA_DisconnectLECocReq;
 struct L2CA_GetRemoteCid L2CA_GetRemoteCid;
 struct L2CA_SetIdleTimeoutByBdAddr L2CA_SetIdleTimeoutByBdAddr;
-struct L2CA_SetTraceLevel L2CA_SetTraceLevel;
 struct L2CA_UseLatencyMode L2CA_UseLatencyMode;
 struct L2CA_SetAclPriority L2CA_SetAclPriority;
 struct L2CA_SetAclLatency L2CA_SetAclLatency;
@@ -183,10 +182,6 @@ bool L2CA_SetIdleTimeoutByBdAddr(const RawAddress& bd_addr, uint16_t timeout,
   inc_func_call_count(__func__);
   return test::mock::stack_l2cap_api::L2CA_SetIdleTimeoutByBdAddr(
       bd_addr, timeout, transport);
-}
-uint8_t L2CA_SetTraceLevel(uint8_t new_level) {
-  inc_func_call_count(__func__);
-  return test::mock::stack_l2cap_api::L2CA_SetTraceLevel(new_level);
 }
 bool L2CA_UseLatencyMode(const RawAddress& bd_addr, bool use_latency_mode) {
   inc_func_call_count(__func__);

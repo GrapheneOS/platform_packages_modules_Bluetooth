@@ -69,9 +69,5 @@ tBNEP_RESULT BNEP_WriteBuf(uint16_t handle, const RawAddress& p_dest_addr,
   inc_func_call_count(__func__);
   return 0;
 }
-uint8_t BNEP_SetTraceLevel(uint8_t new_level) {
-  inc_func_call_count(__func__);
-  return 0;
-}
 void BNEP_Deregister(void) { inc_func_call_count(__func__); }
 void BNEP_Init(void) { inc_func_call_count(__func__); }

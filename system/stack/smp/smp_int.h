@@ -237,7 +237,6 @@ typedef struct {
   uint8_t init_security_mode{0};
   tSMP_CALLBACK* p_callback;
   alarm_t* smp_rsp_timer_ent;
-  uint8_t trace_level;
   RawAddress pairing_bda;
   tSMP_STATE state;
   bool derive_lk;

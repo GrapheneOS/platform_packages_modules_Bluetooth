@@ -370,33 +370,6 @@ uint16_t AVRC_RemoveRecord(uint32_t sdp_handle) {
   return (result ? AVRC_SUCCESS : AVRC_FAIL);
 }
 
-/******************************************************************************
- *
- * Function         AVRC_SetTraceLevel
- *
- * Description      Sets the trace level for AVRC. If 0xff is passed, the
- *                  current trace level is returned.
- *
- *                  Input Parameters:
- *                      new_level:  The level to set the AVRC tracing to:
- *                      0xff-returns the current setting.
- *                      0-turns off tracing.
- *                      >= 1-Errors.
- *                      >= 2-Warnings.
- *                      >= 3-APIs.
- *                      >= 4-Events.
- *                      >= 5-Debug.
- *
- * Returns          The new trace level or current trace level if
- *                  the input parameter is 0xff.
- *
- *****************************************************************************/
-uint8_t AVRC_SetTraceLevel(uint8_t new_level) {
-  if (new_level != 0xFF) avrc_cb.trace_level = new_level;
-
-  return (avrc_cb.trace_level);
-}
-
 /*******************************************************************************
  *
  * Function         AVRC_Init
@@ -410,10 +383,4 @@ uint8_t AVRC_SetTraceLevel(uint8_t new_level) {
  ******************************************************************************/
 void AVRC_Init(void) {
   memset(&avrc_cb, 0, sizeof(tAVRC_CB));
-
-#if defined(AVRC_INITIAL_TRACE_LEVEL)
-  avrc_cb.trace_level = AVRC_INITIAL_TRACE_LEVEL;
-#else
-  avrc_cb.trace_level = BT_TRACE_LEVEL_NONE;
-#endif
 }

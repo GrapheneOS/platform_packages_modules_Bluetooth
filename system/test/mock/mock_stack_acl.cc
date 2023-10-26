@@ -92,7 +92,6 @@ struct BTM_GetMaxPacketSize BTM_GetMaxPacketSize;
 struct BTM_GetNumAclLinks BTM_GetNumAclLinks;
 struct acl_get_supported_packet_types acl_get_supported_packet_types;
 struct BTM_GetPeerSCA BTM_GetPeerSCA;
-struct BTM_SetTraceLevel BTM_SetTraceLevel;
 struct acl_link_role_from_handle acl_link_role_from_handle;
 struct btm_handle_to_acl_index btm_handle_to_acl_index;
 struct BTM_ReadRemoteFeatures BTM_ReadRemoteFeatures;
@@ -392,10 +391,6 @@ uint16_t acl_get_supported_packet_types() {
 uint8_t BTM_GetPeerSCA(const RawAddress& remote_bda, tBT_TRANSPORT transport) {
   inc_func_call_count(__func__);
   return test::mock::stack_acl::BTM_GetPeerSCA(remote_bda, transport);
-}
-uint8_t BTM_SetTraceLevel(uint8_t new_level) {
-  inc_func_call_count(__func__);
-  return test::mock::stack_acl::BTM_SetTraceLevel(new_level);
 }
 uint8_t acl_link_role_from_handle(uint16_t handle) {
   inc_func_call_count(__func__);

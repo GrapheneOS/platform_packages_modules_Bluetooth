@@ -32,18 +32,6 @@
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
-/*******************************************************************************
- *
- * Function         SDP_SetTraceLevel
- *
- * Description      This function sets the trace level for SDP. If called with
- *                  a value of 0xFF, it simply reads the current trace level.
- *
- * Returns          the new (current) trace level
- *
- ******************************************************************************/
-uint8_t SDP_SetTraceLevel(uint8_t new_level);
-
 namespace bluetooth {
 namespace legacy {
 namespace stack {

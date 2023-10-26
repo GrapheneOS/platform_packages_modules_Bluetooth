@@ -284,10 +284,6 @@ void HeadlessStack::SetUp() {
   while (bt_state_ != BT_STATE_ON) adapter_state_cv_.wait(lck);
   LOG_INFO("%s HeadlessStack stack is operational", __func__);
 
-  // Logging can only be enabled after the stack has started up to override
-  // the default logging levels built into the stack.
-  enable_logging();
-
   bluetooth::test::headless::start_messenger();
 
   LOG_CONSOLE("%s Headless stack has started up successfully", kHeadlessIcon);
@@ -296,7 +292,6 @@ void HeadlessStack::SetUp() {
 void HeadlessStack::TearDown() {
   bluetooth::test::headless::stop_messenger();
 
-  log_logging();
   LOG_INFO("Stack has disabled");
   int status = bluetoothInterface.disable();
 
