@@ -709,6 +709,7 @@ cc_test {
         "libstatssocket",
         "libutils",
         "libz",
+        "server_configurable_flags",
     ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",

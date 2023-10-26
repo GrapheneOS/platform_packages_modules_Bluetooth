@@ -194,7 +194,7 @@ public class LeAudioStackEvent {
                 return "{group_id: " + value + "}";
             case EVENT_TYPE_HEALTH_BASED_DEV_RECOMMENDATION:
                 switch (value) {
-                    case HEALTH_RECOMMENDATION_ACTION_NONE:
+                    case HEALTH_RECOMMENDATION_ACTION_DISABLE:
                         return "ACTION_DISABLE";
                     case HEALTH_RECOMMENDATION_ACTION_CONSIDER_DISABLING:
                         return "ACTION_CONSIDER_DISABLING";
@@ -236,7 +236,7 @@ public class LeAudioStackEvent {
                 return "{state:" + broadcastStateToString(value) + "}";
             case EVENT_TYPE_HEALTH_BASED_GROUP_RECOMMENDATION:
                 switch (value) {
-                    case HEALTH_RECOMMENDATION_ACTION_NONE:
+                    case HEALTH_RECOMMENDATION_ACTION_DISABLE:
                         return "ACTION_DISABLE";
                     case HEALTH_RECOMMENDATION_ACTION_CONSIDER_DISABLING:
                         return "ACTION_CONSIDER_DISABLING";

@@ -48,6 +48,7 @@ cc_defaults {
         "libstatslog",
         "libstatssocket",
         "libz",
+        "server_configurable_flags",
     ],
     static_libs: [
         "libFraunhoferAAC",
