@@ -116,3 +116,9 @@ void btif_storage_remove_leaudio_has(const RawAddress& address) {
   LOG_ASSERT(btif_storage_interface) << "Mock storage module not set!";
   btif_storage_interface->RemoveLeaudioHas(address);
 }
+
+bt_status_t btif_storage_get_remote_device_property(const RawAddress* address,
+                                                    bt_property_t* property) {
+  LOG_ASSERT(btif_storage_interface) << "Mock storage module not set!";
+  return btif_storage_interface->GetRemoteDeviceProperty(address, property);
+}

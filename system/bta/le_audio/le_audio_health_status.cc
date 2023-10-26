@@ -20,10 +20,13 @@
 
 #include "bta/include/bta_groups.h"
 #include "gd/common/strings.h"
+#include "main/shim/metrics_api.h"
 #include "osi/include/log.h"
+#include "osi/include/properties.h"
 
 using bluetooth::common::ToString;
 using bluetooth::groups::kGroupUnknown;
+using le_audio::LeAudioDevice;
 using le_audio::LeAudioHealthStatus;
 using le_audio::LeAudioRecommendationActionCb;
 
@@ -47,8 +50,14 @@ class LeAudioHealthStatusImpl : public LeAudioHealthStatus {
     remove_group(group_id);
   }
 
-  void AddStatisticForDevice(const RawAddress& address,
+  void AddStatisticForDevice(const LeAudioDevice* device,
                              LeAudioHealthDeviceStatType type) override {
+    if (device == nullptr) {
+      LOG_ERROR("device is null");
+      return;
+    }
+
+    const RawAddress& address = device->address_;
     LOG_DEBUG("%s, %s", ADDRESS_TO_LOGGABLE_CSTR(address),
               ToString(type).c_str());
 
@@ -61,6 +70,8 @@ class LeAudioHealthStatusImpl : public LeAudioHealthStatus {
         return;
       }
     }
+    // log counter metrics
+    log_counter_metrics_for_device(type, device->allowlist_flag_);
 
     LeAudioHealthBasedAction action;
     switch (type) {
@@ -89,8 +100,14 @@ class LeAudioHealthStatusImpl : public LeAudioHealthStatus {
     }
   }
 
-  void AddStatisticForGroup(int group_id,
+  void AddStatisticForGroup(const LeAudioDeviceGroup* device_group,
                             LeAudioHealthGroupStatType type) override {
+    if (device_group == nullptr) {
+      LOG_ERROR("device_group is null");
+      return;
+    }
+
+    int group_id = device_group->group_id_;
     LOG_DEBUG("group_id: %d, %s", group_id, ToString(type).c_str());
 
     auto group = find_group(group_id);
@@ -102,6 +119,15 @@ class LeAudioHealthStatusImpl : public LeAudioHealthStatus {
         return;
       }
     }
+
+    LeAudioDevice* device = device_group->GetFirstDevice();
+    if (device == nullptr) {
+      LOG_ERROR("Front device is null. Number of devices: %d",
+                device_group->Size());
+      return;
+    }
+    // log counter metrics
+    log_counter_metrics_for_group(type, device->allowlist_flag_);
 
     switch (type) {
       case LeAudioHealthGroupStatType::STREAM_CREATE_SUCCESS:
@@ -259,6 +285,98 @@ class LeAudioHealthStatusImpl : public LeAudioHealthStatus {
     if (iter == group_stats_.end()) return nullptr;
 
     return &(*iter);
+  }
+
+  void log_counter_metrics_for_device(LeAudioHealthDeviceStatType type,
+                                      bool in_allowlist) {
+    LOG_DEBUG("in_allowlist: %d, type: %s", in_allowlist,
+              ToString(type).c_str());
+    android::bluetooth::CodePathCounterKeyEnum key;
+    if (in_allowlist) {
+      switch (type) {
+        case LeAudioHealthDeviceStatType::VALID_DB:
+        case LeAudioHealthDeviceStatType::VALID_CSIS:
+          key = android::bluetooth::CodePathCounterKeyEnum::
+              LE_AUDIO_ALLOWLIST_DEVICE_HEALTH_STATUS_GOOD;
+          break;
+        case LeAudioHealthDeviceStatType::INVALID_DB:
+          key = android::bluetooth::CodePathCounterKeyEnum::
+              LE_AUDIO_ALLOWLIST_DEVICE_HEALTH_STATUS_BAD_INVALID_DB;
+          break;
+        case LeAudioHealthDeviceStatType::INVALID_CSIS:
+          key = android::bluetooth::CodePathCounterKeyEnum::
+              LE_AUDIO_ALLOWLIST_DEVICE_HEALTH_STATUS_BAD_INVALID_CSIS;
+          break;
+        default:
+          LOG_ERROR("Metric unhandled %d", type);
+          return;
+      }
+    } else {
+      switch (type) {
+        case LeAudioHealthDeviceStatType::VALID_DB:
+        case LeAudioHealthDeviceStatType::VALID_CSIS:
+          key = android::bluetooth::CodePathCounterKeyEnum::
+              LE_AUDIO_NONALLOWLIST_DEVICE_HEALTH_STATUS_GOOD;
+          break;
+        case LeAudioHealthDeviceStatType::INVALID_DB:
+          key = android::bluetooth::CodePathCounterKeyEnum::
+              LE_AUDIO_NONALLOWLIST_DEVICE_HEALTH_STATUS_BAD_INVALID_DB;
+          break;
+        case LeAudioHealthDeviceStatType::INVALID_CSIS:
+          key = android::bluetooth::CodePathCounterKeyEnum::
+              LE_AUDIO_NONALLOWLIST_DEVICE_HEALTH_STATUS_BAD_INVALID_CSIS;
+          break;
+        default:
+          LOG_ERROR("Metric unhandled %d", type);
+          return;
+      }
+    }
+    bluetooth::shim::CountCounterMetrics(key, 1);
+  }
+
+  void log_counter_metrics_for_group(LeAudioHealthGroupStatType type,
+                                     bool in_allowlist) {
+    LOG_DEBUG("in_allowlist: %d, type: %s", in_allowlist,
+              ToString(type).c_str());
+    android::bluetooth::CodePathCounterKeyEnum key;
+    if (in_allowlist) {
+      switch (type) {
+        case LeAudioHealthGroupStatType::STREAM_CREATE_SUCCESS:
+          key = android::bluetooth::CodePathCounterKeyEnum::
+              LE_AUDIO_ALLOWLIST_GROUP_HEALTH_STATUS_GOOD;
+          break;
+        case LeAudioHealthGroupStatType::STREAM_CREATE_CIS_FAILED:
+          key = android::bluetooth::CodePathCounterKeyEnum::
+              LE_AUDIO_ALLOWLIST_GROUP_HEALTH_STATUS_BAD_ONCE_CIS_FAILED;
+          break;
+        case LeAudioHealthGroupStatType::STREAM_CREATE_SIGNALING_FAILED:
+          key = android::bluetooth::CodePathCounterKeyEnum::
+              LE_AUDIO_ALLOWLIST_GROUP_HEALTH_STATUS_BAD_ONCE_SIGNALING_FAILED;
+          break;
+        default:
+          LOG_ERROR("Metric unhandled %d", type);
+          return;
+      }
+    } else {
+      switch (type) {
+        case LeAudioHealthGroupStatType::STREAM_CREATE_SUCCESS:
+          key = android::bluetooth::CodePathCounterKeyEnum::
+              LE_AUDIO_NONALLOWLIST_GROUP_HEALTH_STATUS_GOOD;
+          break;
+        case LeAudioHealthGroupStatType::STREAM_CREATE_CIS_FAILED:
+          key = android::bluetooth::CodePathCounterKeyEnum::
+              LE_AUDIO_NONALLOWLIST_GROUP_HEALTH_STATUS_BAD_ONCE_CIS_FAILED;
+          break;
+        case LeAudioHealthGroupStatType::STREAM_CREATE_SIGNALING_FAILED:
+          key = android::bluetooth::CodePathCounterKeyEnum::
+              LE_AUDIO_NONALLOWLIST_GROUP_HEALTH_STATUS_BAD_ONCE_SIGNALING_FAILED;
+          break;
+        default:
+          LOG_ERROR("Metric unhandled %d", type);
+          return;
+      }
+    }
+    bluetooth::shim::CountCounterMetrics(key, 1);
   }
 };
 }  // namespace le_audio

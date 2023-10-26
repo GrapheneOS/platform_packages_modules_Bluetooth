@@ -20,6 +20,8 @@
 
 #include <ostream>
 
+#include "device_groups.h"
+#include "devices.h"
 #include "hardware/bt_le_audio.h"
 #include "types/raw_address.h"
 
@@ -70,9 +72,9 @@ class LeAudioHealthStatus {
   static void DebugDump(int fd);
 
   virtual void RegisterCallback(LeAudioRecommendationActionCb cb) = 0;
-  virtual void AddStatisticForDevice(const RawAddress& address,
+  virtual void AddStatisticForDevice(const LeAudioDevice* device,
                                      LeAudioHealthDeviceStatType type) = 0;
-  virtual void AddStatisticForGroup(int group_id,
+  virtual void AddStatisticForGroup(const LeAudioDeviceGroup* group,
                                     LeAudioHealthGroupStatType type) = 0;
   virtual void RemoveStatistics(const RawAddress& address, int group) = 0;
 
