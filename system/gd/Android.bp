@@ -33,7 +33,7 @@ cc_defaults {
     cflags: [
         "-DEXPORT_SYMBOL=__attribute__((visibility(\"default\")))",
         "-DGOOGLE_PROTOBUF_NO_RTTI",
-        "-DLOG_NDEBUG=1",
+        "-DLOG_NDEBUG=0",
         "-Wno-unused-result",
         "-fvisibility=hidden",
     ],
