@@ -17,8 +17,9 @@
  * Generated mock file from original source file
  *   Functions generated:24
  *
- *  mockcify.pl ver 0.6.1
+ *  mockcify.pl ver 0.6.3
  */
+
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_bta_av_api.h"
 
