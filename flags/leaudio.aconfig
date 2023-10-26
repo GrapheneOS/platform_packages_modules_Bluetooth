@@ -13,3 +13,10 @@ flag {
     description: "Allow volume control for connected devices"
     bug: "307408418"
 }
+
+flag {
+    name: "leaudio_enable_health_based_actions"
+    namespace: "bluetooth"
+    description: "Le audio device and group health actions for fallback mechanism"
+    bug: "290845728"
+}
