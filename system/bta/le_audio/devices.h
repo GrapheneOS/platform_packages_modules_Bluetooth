@@ -117,6 +117,8 @@ class LeAudioDevice {
   std::vector<struct types::ase> ases_;
   struct types::hdl_pair ctp_hdls_;
   uint16_t tmap_role_hdl_;
+  std::string model_name_;
+  bool allowlist_flag_;
 
   alarm_t* link_quality_timer;
   uint16_t link_quality_timer_data;
@@ -135,6 +137,8 @@ class LeAudioDevice {
         group_id_(group_id),
         csis_member_(false),
         audio_directions_(0),
+        model_name_(""),
+        allowlist_flag_(false),
         link_quality_timer(nullptr) {}
   ~LeAudioDevice(void);
 
@@ -238,9 +242,14 @@ class LeAudioDevice {
       const types::BidirectionalPair<types::AudioContexts>& context_types,
       const types::BidirectionalPair<std::vector<uint8_t>>& ccid_lists);
 
+  void GetDeviceModelName(void);
+  void UpdateDeviceAllowlistFlag(void);
+
  private:
   types::BidirectionalPair<types::AudioContexts> avail_contexts_;
   types::BidirectionalPair<types::AudioContexts> supp_contexts_;
+  static constexpr char kLeAudioDeviceAllowListProp[] =
+      "persist.bluetooth.leaudio.allow_list";
 
   void DumpPacsDebugState(std::stringstream& stream,
                           types::PublishedAudioCapabilities pacs);

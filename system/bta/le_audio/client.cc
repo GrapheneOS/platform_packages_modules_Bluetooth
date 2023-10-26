@@ -17,6 +17,9 @@
 
 #include <base/functional/bind.h>
 #include <base/strings/string_number_conversions.h>
+#ifdef __ANDROID__
+#include <com_android_bluetooth_flags.h>
+#endif
 #include <lc3.h>
 
 #include <deque>
@@ -163,9 +166,11 @@ std::ostream& operator<<(std::ostream& os, const AudioState& audio_state) {
 namespace {
 void le_audio_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data);
 
+#ifdef __ANDROID__
 static void le_audio_health_status_callback(const RawAddress& addr,
                                             int group_id,
                                             LeAudioHealthBasedAction action);
+#endif
 
 class LeAudioClientImpl;
 LeAudioClientImpl* instance;
@@ -249,12 +254,14 @@ class LeAudioClientImpl : public LeAudioClient {
       reconnection_mode_ = BTM_BLE_BKG_CONNECT_ALLOW_LIST;
     }
 
-    if (bluetooth::common::InitFlags::IsLeAudioHealthBasedActionsEnabled()) {
+#ifdef __ANDROID__
+    if (com::android::bluetooth::flags::leaudio_enable_health_based_actions()) {
       LOG_INFO("Loading health status module");
       leAudioHealthStatus_ = LeAudioHealthStatus::Get();
       leAudioHealthStatus_->RegisterCallback(
           base::BindRepeating(le_audio_health_status_callback));
     }
+#endif
 
     BTA_GATTC_AppRegister(
         le_audio_gattc_callback,
@@ -416,7 +423,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (leAudioHealthStatus_) {
       leAudioHealthStatus_->AddStatisticForDevice(
-          address, LeAudioHealthDeviceStatType::VALID_CSIS);
+          leAudioDevice, LeAudioHealthDeviceStatType::VALID_CSIS);
     }
 
     group_add_node(group_id, address);
@@ -471,7 +478,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (leAudioHealthStatus_) {
       leAudioHealthStatus_->AddStatisticForGroup(
-          group_id, LeAudioHealthGroupStatType::STREAM_CREATE_SIGNALING_FAILED);
+          group, LeAudioHealthGroupStatType::STREAM_CREATE_SIGNALING_FAILED);
     }
 
     LOG_ERROR(
@@ -1918,7 +1925,8 @@ class LeAudioClientImpl : public LeAudioClient {
 
     leAudioDevice->conn_id_ = conn_id;
     leAudioDevice->mtu_ = mtu;
-
+    /* Check if the device is in allow list and update the flag */
+    leAudioDevice->UpdateDeviceAllowlistFlag();
     if (BTM_SecIsSecurityPending(address)) {
       /* if security collision happened, wait for encryption done
        * (BTA_GATTC_ENC_CMPL_CB_EVT) */
@@ -2460,8 +2468,7 @@ class LeAudioClientImpl : public LeAudioClient {
     LOG_ERROR("%s, %s", ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
               error_string.c_str());
     if (leAudioHealthStatus_) {
-      leAudioHealthStatus_->AddStatisticForDevice(leAudioDevice->address_,
-                                                  stat);
+      leAudioHealthStatus_->AddStatisticForDevice(leAudioDevice, stat);
     }
     DisconnectDevice(leAudioDevice);
   }
@@ -2838,7 +2845,7 @@ class LeAudioClientImpl : public LeAudioClient {
     leAudioDevice->notify_connected_after_read_ = true;
     if (leAudioHealthStatus_) {
       leAudioHealthStatus_->AddStatisticForDevice(
-          leAudioDevice->address_, LeAudioHealthDeviceStatType::VALID_DB);
+          leAudioDevice, LeAudioHealthDeviceStatType::VALID_DB);
     }
 
     /* If already known group id */
@@ -4978,8 +4985,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
         if (leAudioHealthStatus_ && (event->status != HCI_SUCCESS)) {
           leAudioHealthStatus_->AddStatisticForGroup(
-              leAudioDevice->group_id_,
-              LeAudioHealthGroupStatType::STREAM_CREATE_CIS_FAILED);
+              group, LeAudioHealthGroupStatType::STREAM_CREATE_CIS_FAILED);
         }
 
         groupStateMachine_->ProcessHciNotifCisEstablished(group, leAudioDevice,
@@ -5165,7 +5171,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
         if (leAudioHealthStatus_) {
           leAudioHealthStatus_->AddStatisticForGroup(
-              group_id, LeAudioHealthGroupStatType::STREAM_CREATE_SUCCESS);
+              group, LeAudioHealthGroupStatType::STREAM_CREATE_SUCCESS);
         }
 
         if (!group) {
@@ -5418,12 +5424,14 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 };
 
+#ifdef __ANDROID__
 void le_audio_health_status_callback(const RawAddress& addr, int group_id,
                                      LeAudioHealthBasedAction action) {
   if (instance) {
     instance->LeAudioHealthSendRecommendation(addr, group_id, action);
   }
 }
+#endif
 
 /* This is a generic callback method for gatt client which handles every client
  * application events.

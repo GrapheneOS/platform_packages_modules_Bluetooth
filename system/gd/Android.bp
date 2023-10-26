@@ -158,11 +158,13 @@ cc_defaults {
     shared_libs: [
         "libcrypto",
         "libflatbuffers-cpp",
+        "server_configurable_flags",
     ],
     export_shared_lib_headers: [
         "libflatbuffers-cpp",
     ],
     whole_static_libs: [
+        "bluetooth_flags_c_lib",
         "libbluetooth_hci_pdl",
         "libbluetooth_l2cap_pdl",
         "libbluetooth_smp_pdl",

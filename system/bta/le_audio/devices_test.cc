@@ -20,6 +20,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "btif_storage_mock.h"
 #include "btm_api_mock.h"
 #include "device_groups.h"
 #include "le_audio_set_configuration_provider.h"
@@ -66,17 +67,20 @@ class LeAudioDevicesTest : public Test {
     devices_ = new LeAudioDevices();
     bluetooth::manager::SetMockBtmInterface(&btm_interface);
     controller::SetMockControllerInterface(&controller_interface_);
+    bluetooth::storage::SetMockBtifStorageInterface(&mock_btif_storage_);
   }
 
   void TearDown() override {
     controller::SetMockControllerInterface(nullptr);
     bluetooth::manager::SetMockBtmInterface(nullptr);
+    bluetooth::storage::SetMockBtifStorageInterface(nullptr);
     delete devices_;
   }
 
   LeAudioDevices* devices_ = nullptr;
   bluetooth::manager::MockBtmInterface btm_interface;
   controller::MockControllerInterface controller_interface_;
+  bluetooth::storage::MockBtifStorageInterface mock_btif_storage_;
 };
 
 TEST_F(LeAudioDevicesTest, test_add) {
@@ -167,6 +171,32 @@ TEST_F(LeAudioDevicesTest, test_find_by_conn_id_failed) {
   devices_->Add(GetTestAddress(0), DeviceConnectState::CONNECTING_BY_USER);
   devices_->Add(GetTestAddress(4), DeviceConnectState::CONNECTING_BY_USER);
   ASSERT_EQ(nullptr, devices_->FindByConnId(0x0006));
+}
+
+TEST_F(LeAudioDevicesTest, test_get_device_model_name_success) {
+  RawAddress test_address_0 = GetTestAddress(0);
+  devices_->Add(test_address_0, DeviceConnectState::CONNECTING_BY_USER);
+  std::shared_ptr<LeAudioDevice> device =
+      devices_->GetByAddress(test_address_0);
+  ASSERT_NE(nullptr, device);
+  device->model_name_ = "Test";
+  ON_CALL(mock_btif_storage_, GetRemoteDeviceProperty(_, _))
+      .WillByDefault(Return(BT_STATUS_SUCCESS));
+  device->GetDeviceModelName();
+  ASSERT_EQ("", device->model_name_);
+}
+
+TEST_F(LeAudioDevicesTest, test_get_device_model_name_failed) {
+  RawAddress test_address_0 = GetTestAddress(0);
+  devices_->Add(test_address_0, DeviceConnectState::CONNECTING_BY_USER);
+  std::shared_ptr<LeAudioDevice> device =
+      devices_->GetByAddress(test_address_0);
+  ASSERT_NE(nullptr, device);
+  device->model_name_ = "Test";
+  ON_CALL(mock_btif_storage_, GetRemoteDeviceProperty(_, _))
+      .WillByDefault(Return(BT_STATUS_FAIL));
+  device->GetDeviceModelName();
+  ASSERT_EQ("Test", device->model_name_);
 }
 
 /* TODO: Add FindByCisConnHdl test cases (ASE) */
