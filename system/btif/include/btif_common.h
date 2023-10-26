@@ -81,7 +81,7 @@
 #define HAL_CBACK(P_CB, P_CBACK, ...)                              \
   do {                                                             \
     if ((P_CB) && (P_CB)->P_CBACK) {                               \
-      BTIF_TRACE_API("%s: HAL %s->%s", __func__, #P_CB, #P_CBACK); \
+      LOG_VERBOSE("%s: HAL %s->%s", __func__, #P_CB, #P_CBACK);    \
       (P_CB)->P_CBACK(__VA_ARGS__);                                \
     } else {                                                       \
       ASSERTC(0, "Callback is NULL", 0);                           \
