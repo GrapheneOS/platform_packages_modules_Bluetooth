@@ -377,7 +377,6 @@ init_flags!(
         hfp_dynamic_version = true,
         irk_rotation,
         leaudio_targeted_announcement_reconnection_mode = true,
-        leaudio_enable_health_based_actions,
         pbap_pse_dynamic_version_upgrade = false,
         periodic_advertising_adi = true,
         private_gatt = true,

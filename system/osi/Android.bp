@@ -43,6 +43,9 @@ cc_library_static {
         "fluoride_defaults",
         "fluoride_osi_defaults",
     ],
+    whole_static_libs: [
+        "bluetooth_flags_c_lib",
+    ],
     // TODO(mcchou): Remove socket_utils sources after platform specific
     // dependencies are abstracted.
     srcs: [

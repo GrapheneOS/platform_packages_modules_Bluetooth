@@ -130,5 +130,8 @@ cc_test {
         "libchrome",
         "libevent",
     ],
+    shared_libs: [
+        "server_configurable_flags",
+    ],
     cflags: ["-Wno-unused-parameter"],
 }
