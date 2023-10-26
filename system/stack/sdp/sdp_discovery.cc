@@ -879,7 +879,7 @@ static uint8_t* add_attr(uint8_t* p, uint8_t* p_end, tSDP_DISCOVERY_DB* p_db,
           p_db->mem_free -= sizeof(tSDP_DISC_ATTR);
           total_len = 0;
 
-          /* SDP_TRACE_DEBUG ("SDP - attr nest level:%d(list)", nest_level); */
+          /* LOG_VERBOSE ("SDP - attr nest level:%d(list)", nest_level); */
           if (nest_level >= MAX_NEST_LEVELS) {
             LOG_ERROR("SDP - attr nesting too deep");
             return p_attr_end;
@@ -958,7 +958,7 @@ static uint8_t* add_attr(uint8_t* p, uint8_t* p_end, tSDP_DISCOVERY_DB* p_db,
       p_db->mem_free -= sizeof(tSDP_DISC_ATTR);
       total_len = 0;
 
-      /* SDP_TRACE_DEBUG ("SDP - attr nest level:%d", nest_level); */
+      /* LOG_VERBOSE ("SDP - attr nest level:%d", nest_level); */
       if (nest_level >= MAX_NEST_LEVELS) {
         LOG_ERROR("SDP - attr nesting too deep");
         return p_attr_end;
@@ -966,7 +966,7 @@ static uint8_t* add_attr(uint8_t* p, uint8_t* p_end, tSDP_DISCOVERY_DB* p_db,
       if (is_additional_list != 0 ||
           attr_id == ATTR_ID_ADDITION_PROTO_DESC_LISTS)
         nest_level |= SDP_ADDITIONAL_LIST_MASK;
-      /* SDP_TRACE_DEBUG ("SDP - attr nest level:0x%x(finish)", nest_level); */
+      /* LOG_VERBOSE ("SDP - attr nest level:0x%x(finish)", nest_level); */
 
       while (p < p_attr_end) {
         /* Now, add the list entry */
@@ -1014,17 +1014,17 @@ static uint8_t* add_attr(uint8_t* p, uint8_t* p_end, tSDP_DISCOVERY_DB* p_db,
   } else {
     if (!p_parent_attr->attr_value.v.p_sub_attr) {
       p_parent_attr->attr_value.v.p_sub_attr = p_attr;
-      /* SDP_TRACE_DEBUG ("parent:0x%x(id:%d), ch:0x%x(id:%d)",
+      /* LOG_VERBOSE ("parent:0x%x(id:%d), ch:0x%x(id:%d)",
           p_parent_attr, p_parent_attr->attr_id, p_attr, p_attr->attr_id); */
     } else {
       tSDP_DISC_ATTR* p_attr1 = p_parent_attr->attr_value.v.p_sub_attr;
-      /* SDP_TRACE_DEBUG ("parent:0x%x(id:%d), ch1:0x%x(id:%d)",
+      /* LOG_VERBOSE ("parent:0x%x(id:%d), ch1:0x%x(id:%d)",
           p_parent_attr, p_parent_attr->attr_id, p_attr1, p_attr1->attr_id); */
 
       while (p_attr1->p_next_attr) p_attr1 = p_attr1->p_next_attr;
 
       p_attr1->p_next_attr = p_attr;
-      /* SDP_TRACE_DEBUG ("new ch:0x%x(id:%d)", p_attr, p_attr->attr_id); */
+      /* LOG_VERBOSE ("new ch:0x%x(id:%d)", p_attr, p_attr->attr_id); */
     }
   }
 
