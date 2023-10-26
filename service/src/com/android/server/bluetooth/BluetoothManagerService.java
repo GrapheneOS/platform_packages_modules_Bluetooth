@@ -2037,7 +2037,9 @@ class BluetoothManagerService {
                     IBluetoothStateChangeCallback unregCallback =
                             (IBluetoothStateChangeCallback)msg.obj;
                     try {
+                        // LINT.IfChange
                         unregCallback.onBluetoothStateChange(false);
+                        // LINT.ThenChange(/framework/tests/unit/src/android/bluetooth/BluetoothProfileConnectorTest.java)
                     } catch (RemoteException e) {
                         Log.e(TAG, "UNREGISTER_STATE_CHANGE_CALLBACK: callback failed", e);
                     }
