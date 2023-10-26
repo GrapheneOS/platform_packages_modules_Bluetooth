@@ -273,15 +273,6 @@ struct L2CA_SetIdleTimeoutByBdAddr {
   };
 };
 extern struct L2CA_SetIdleTimeoutByBdAddr L2CA_SetIdleTimeoutByBdAddr;
-// Name: L2CA_SetTraceLevel
-// Params: uint8_t new_level
-// Returns: uint8_t
-struct L2CA_SetTraceLevel {
-  std::function<uint8_t(uint8_t new_level)> body{
-      [](uint8_t new_level) { return 0; }};
-  uint8_t operator()(uint8_t new_level) { return body(new_level); };
-};
-extern struct L2CA_SetTraceLevel L2CA_SetTraceLevel;
 // Name: L2CA_UseLatencyMode
 // Params: const RawAddress& bd_addr, bool use_latency_mode
 // Returns: bool

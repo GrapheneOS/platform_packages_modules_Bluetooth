@@ -989,22 +989,6 @@ bool L2CA_SetIdleTimeoutByBdAddr(const RawAddress& bd_addr, uint16_t timeout,
 
 /*******************************************************************************
  *
- * Function         L2CA_SetTraceLevel
- *
- * Description      This function sets the trace level for L2CAP. If called with
- *                  a value of 0xFF, it simply reads the current trace level.
- *
- * Returns          the new (current) trace level
- *
- ******************************************************************************/
-uint8_t L2CA_SetTraceLevel(uint8_t new_level) {
-  if (new_level != 0xFF) l2cb.l2cap_trace_level = new_level;
-
-  return (l2cb.l2cap_trace_level);
-}
-
-/*******************************************************************************
- *
  * Function         L2CA_UseLatencyMode
  *
  * Description      Sets acl use latency mode.

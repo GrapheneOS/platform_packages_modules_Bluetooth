@@ -248,7 +248,6 @@ typedef struct {
   tL2CAP_APPL_INFO reg_info;    /* L2CAP Registration info */
   uint16_t max_attr_list_size;  /* Max attribute list size to use   */
   uint16_t max_recs_per_search; /* Max records we want per seaarch  */
-  uint8_t trace_level;
 } tSDP_CB;
 
 /* Global SDP data */

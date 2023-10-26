@@ -911,29 +911,6 @@ uint16_t AVDT_DisconnectReq(const RawAddress& bd_addr,
  ******************************************************************************/
 uint16_t AVDT_GetL2CapChannel(uint8_t handle);
 
-/******************************************************************************
- *
- * Function         AVDT_SetTraceLevel
- *
- * Description      Sets the trace level for AVDT. If 0xff is passed, the
- *                  current trace level is returned.
- *
- *                  Input Parameters:
- *                      new_level:  The level to set the AVDT tracing to:
- *                      0xff-returns the current setting.
- *                      0-turns off tracing.
- *                      >= 1-Errors.
- *                      >= 2-Warnings.
- *                      >= 3-APIs.
- *                      >= 4-Events.
- *                      >= 5-Debug.
- *
- * Returns          The new trace level or current trace level if
- *                  the input parameter is 0xff.
- *
- *****************************************************************************/
-uint8_t AVDT_SetTraceLevel(uint8_t new_level);
-
 /**
  * Dump debug-related information for the Stack AVDTP module.
  *

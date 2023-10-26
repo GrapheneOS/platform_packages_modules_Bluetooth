@@ -46,7 +46,6 @@ static void ConsumeData(const uint8_t* data, size_t size) {
 }
 
 tBTM_CB btm_cb;
-uint8_t appl_trace_level;
 
 bt_status_t do_in_main_thread(base::Location const&,
                               base::OnceCallback<void()>) {

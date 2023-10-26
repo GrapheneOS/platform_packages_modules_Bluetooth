@@ -31,9 +31,6 @@ extern tL2C_CB l2cb;
 void l2c_link_send_to_lower_br_edr(tL2C_LCB* p_lcb, BT_HDR* p_buf);
 void l2c_link_send_to_lower_ble(tL2C_LCB* p_lcb, BT_HDR* p_buf);
 
-// Global trace level referred in the code under test
-uint8_t appl_trace_level = BT_TRACE_LEVEL_VERBOSE;
-
 namespace {
 constexpr uint16_t kAclBufferCountClassic = 123;
 constexpr uint8_t kAclBufferCountBle = 45;

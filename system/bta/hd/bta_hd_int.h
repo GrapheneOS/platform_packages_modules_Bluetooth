@@ -137,7 +137,6 @@ typedef struct {
 typedef struct {
   tBTA_HD_CBACK* p_cback;
   uint32_t sdp_handle;
-  uint8_t trace_level;
   uint8_t state;
   RawAddress bd_addr;
   bool use_report_id;

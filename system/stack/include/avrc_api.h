@@ -689,29 +689,6 @@ uint16_t AVRC_VendorCmd(uint8_t handle, uint8_t label, tAVRC_MSG_VENDOR* p_msg);
  *****************************************************************************/
 uint16_t AVRC_VendorRsp(uint8_t handle, uint8_t label, tAVRC_MSG_VENDOR* p_msg);
 
-/******************************************************************************
- *
- * Function         AVRC_SetTraceLevel
- *
- * Description      Sets the trace level for AVRC. If 0xff is passed, the
- *                  current trace level is returned.
- *
- *                  Input Parameters:
- *                      new_level:  The level to set the AVRC tracing to:
- *                      0xff-returns the current setting.
- *                      0-turns off tracing.
- *                      >= 1-Errors.
- *                      >= 2-Warnings.
- *                      >= 3-APIs.
- *                      >= 4-Events.
- *                      >= 5-Debug.
- *
- * Returns          The new trace level or current trace level if
- *                  the input parameter is 0xff.
- *
- *****************************************************************************/
-uint8_t AVRC_SetTraceLevel(uint8_t new_level);
-
 /*******************************************************************************
  *
  * Function         AVRC_Init

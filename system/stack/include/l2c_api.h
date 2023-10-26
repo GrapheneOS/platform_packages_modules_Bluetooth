@@ -609,18 +609,6 @@ bool L2CA_SetIdleTimeoutByBdAddr(const RawAddress& bd_addr, uint16_t timeout,
 
 /*******************************************************************************
  *
- * Function         L2CA_SetTraceLevel
- *
- * Description      This function sets the trace level for L2CAP. If called with
- *                  a value of 0xFF, it simply reads the current trace level.
- *
- * Returns          the new (current) trace level
- *
- ******************************************************************************/
-uint8_t L2CA_SetTraceLevel(uint8_t trace_level);
-
-/*******************************************************************************
- *
  * Function     L2CA_FlushChannel
  *
  * Description  This function flushes none, some or all buffers queued up

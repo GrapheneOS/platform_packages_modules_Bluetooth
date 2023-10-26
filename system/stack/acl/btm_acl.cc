@@ -2167,22 +2167,6 @@ tBTM_STATUS btm_remove_acl(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
   return BTM_SUCCESS;
 }
 
-/*******************************************************************************
- *
- * Function         BTM_SetTraceLevel
- *
- * Description      This function sets the trace level for BTM.  If called with
- *                  a value of 0xFF, it simply returns the current trace level.
- *
- * Returns          The new or current trace level
- *
- ******************************************************************************/
-uint8_t BTM_SetTraceLevel(uint8_t new_level) {
-  if (new_level != 0xFF) btm_cb.trace_level = new_level;
-
-  return (btm_cb.trace_level);
-}
-
 void btm_cont_rswitch_from_handle(uint16_t hci_handle) {
   tACL_CONN* p = internal_.acl_get_connection_from_handle(hci_handle);
   if (p == nullptr) {

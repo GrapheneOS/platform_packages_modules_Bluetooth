@@ -177,7 +177,6 @@ typedef struct tBTM_SEC_CB {
 
   RawAddress connecting_bda;
   DEV_CLASS connecting_dc;
-  uint8_t trace_level;
 
   fixed_queue_t* sec_pending_q{nullptr}; /* pending sequrity requests in
                                             tBTM_SEC_QUEUE_ENTRY format */
@@ -199,11 +198,6 @@ typedef struct tBTM_SEC_CB {
     pairing_timer = alarm_new("btm.pairing_timer");
     execution_wait_timer = alarm_new("btm.execution_wait_timer");
 
-#if defined(BTM_INITIAL_TRACE_LEVEL)
-    trace_level = BTM_INITIAL_TRACE_LEVEL;
-#else
-    trace_level = BT_TRACE_LEVEL_NONE; /* No traces */
-#endif
     security_mode = initial_security_mode;
     pairing_bda = RawAddress::kAny;
     sec_dev_rec = list_new([](void* ptr) {

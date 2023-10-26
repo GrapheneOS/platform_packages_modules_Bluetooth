@@ -105,10 +105,6 @@ uint16_t AVDT_WriteReqOpt(uint8_t handle, BT_HDR* p_pkt, uint32_t time_stamp,
   inc_func_call_count(__func__);
   return 0;
 }
-uint8_t AVDT_SetTraceLevel(uint8_t new_level) {
-  inc_func_call_count(__func__);
-  return 0;
-}
 void AVDT_AbortReq(uint8_t handle) { inc_func_call_count(__func__); }
 void AVDT_Deregister(void) { inc_func_call_count(__func__); }
 void AVDT_Register(AvdtpRcb* p_reg, tAVDT_CTRL_CBACK* p_cback) {

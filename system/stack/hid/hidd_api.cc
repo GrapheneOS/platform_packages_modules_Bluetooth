@@ -57,29 +57,9 @@ tHID_DEV_CTB hd_cb;
  *
  ******************************************************************************/
 void HID_DevInit(void) {
-  uint8_t log_level = hd_cb.trace_level;
-
   LOG_VERBOSE("%s", __func__);
 
   memset(&hd_cb, 0, sizeof(tHID_DEV_CTB));
-  hd_cb.trace_level = log_level;
-}
-
-/*******************************************************************************
- *
- * Function         HID_DevSetTraceLevel
- *
- * Description      This function sets the trace level for HID Dev. If called
-*with
- *                  a value of 0xFF, it simply reads the current trace level.
- *
- * Returns          the new (current) trace level
- *
- ******************************************************************************/
-uint8_t HID_DevSetTraceLevel(uint8_t new_level) {
-  if (new_level != 0xFF) hd_cb.trace_level = new_level;
-
-  return (hd_cb.trace_level);
 }
 
 /*******************************************************************************

@@ -105,10 +105,6 @@ int RFCOMM_RemoveServer(uint16_t handle) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint8_t PORT_SetTraceLevel(uint8_t new_level) {
-  inc_func_call_count(__func__);
-  return 0;
-}
 int PORT_GetSecurityMask(uint16_t handle, uint16_t* sec_mask) {
   inc_func_call_count(__func__);
   return 0;
