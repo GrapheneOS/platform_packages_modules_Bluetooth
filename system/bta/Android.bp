@@ -222,7 +222,6 @@ cc_test {
     test_suites: ["device-tests"],
     srcs: [
         ":LegacyStackSdp",
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestFakeOsi",
         ":TestMockBtif",
@@ -282,7 +281,6 @@ cc_test {
     ],
     test_suites: ["device-tests"],
     srcs: [
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestMockBtif",
         ":TestMockDevice",
@@ -337,7 +335,6 @@ cc_test {
         ":BtaDmSources",
         ":LegacyStackSdp",
         ":OsiCompatSources",
-        ":TestCommonLogMsg",
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
         ":TestFakeOsi",
@@ -1249,7 +1246,6 @@ cc_test {
     ],
     srcs: [
         ":BtaDmSources",
-        ":TestCommonLogMsg",
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
         ":TestMockBtaGatt",
