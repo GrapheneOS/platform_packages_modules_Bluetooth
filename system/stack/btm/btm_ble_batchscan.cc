@@ -26,7 +26,7 @@
 
 #include "bt_target.h"
 #include "btm_ble_api.h"
-#include "btm_sec_int_types.h"
+#include "btm_sec_cb.h"
 #include "device/include/controller.h"
 #include "osi/include/log.h"
 #include "stack/btm/btm_int_types.h"
