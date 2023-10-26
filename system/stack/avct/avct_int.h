@@ -133,7 +133,6 @@ typedef struct {
   tAVCT_LCB lcb[AVCT_NUM_LINKS]; /* link control blocks */
   tAVCT_BCB bcb[AVCT_NUM_LINKS]; /* browse control blocks */
   tAVCT_CCB ccb[AVCT_NUM_CONN];  /* connection control blocks */
-  uint8_t trace_level;           /* trace level */
 } tAVCT_CB;
 
 /*****************************************************************************

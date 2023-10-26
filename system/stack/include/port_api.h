@@ -429,18 +429,6 @@ void RFCOMM_Init(void);
 
 /*******************************************************************************
  *
- * Function         PORT_SetTraceLevel
- *
- * Description      Set the trace level for RFCOMM. If called with
- *                  a value of 0xFF, it simply reads the current trace level.
- *
- * Returns          the new (current) trace level
- *
- ******************************************************************************/
-uint8_t PORT_SetTraceLevel(uint8_t new_level);
-
-/*******************************************************************************
- *
  * Function         PORT_GetResultString
  *
  * Description      This function returns the human-readable string for a given

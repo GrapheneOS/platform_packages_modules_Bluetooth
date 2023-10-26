@@ -649,25 +649,6 @@ tPAN_RESULT PAN_SetMulticastFilters(uint16_t handle, uint16_t num_mcast_filters,
 
 /*******************************************************************************
  *
- * Function         PAN_SetTraceLevel
- *
- * Description      This function sets the trace level for PAN. If called with
- *                  a value of 0xFF, it simply reads the current trace level.
- *
- * Returns          the new (current) trace level
- *
- ******************************************************************************/
-uint8_t PAN_SetTraceLevel(uint8_t new_level) {
-  if (new_level != 0xFF)
-    pan_cb.trace_level = new_level;
-  else
-    pan_dump_status();
-
-  return (pan_cb.trace_level);
-}
-
-/*******************************************************************************
- *
  * Function         PAN_Init
  *
  * Description      This function initializes the PAN module variables
@@ -679,12 +660,6 @@ uint8_t PAN_SetTraceLevel(uint8_t new_level) {
  ******************************************************************************/
 void PAN_Init(void) {
   memset(&pan_cb, 0, sizeof(tPAN_CB));
-
-#if defined(PAN_INITIAL_TRACE_LEVEL)
-  pan_cb.trace_level = PAN_INITIAL_TRACE_LEVEL;
-#else
-  pan_cb.trace_level = BT_TRACE_LEVEL_NONE; /* No traces */
-#endif
 }
 
 #define DUMPSYS_TAG "shim::legacy::pan"

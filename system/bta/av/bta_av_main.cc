@@ -1524,8 +1524,6 @@ const char* bta_av_evt_code(uint16_t evt_code) {
 }
 
 void bta_debug_av_dump(int fd) {
-  if (appl_trace_level < BT_TRACE_LEVEL_DEBUG) return;
-
   dprintf(fd, "\nBTA AV State:\n");
   dprintf(fd, "  State Machine State: %s\n", bta_av_st_code(bta_av_cb.state));
   dprintf(fd, "  SDP A2DP source handle: %d\n", bta_av_cb.sdp_a2dp_handle);

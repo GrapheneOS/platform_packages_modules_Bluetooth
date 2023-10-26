@@ -1039,22 +1039,6 @@ uint16_t SDP_SetLocalDiRecord(const tSDP_DI_RECORD* p_device_info,
   return result;
 }
 
-/*******************************************************************************
- *
- * Function         SDP_SetTraceLevel
- *
- * Description      This function sets the trace level for SDP. If called with
- *                  a value of 0xFF, it simply reads the current trace level.
- *
- * Returns          the new (current) trace level
- *
- ******************************************************************************/
-uint8_t SDP_SetTraceLevel(uint8_t new_level) {
-  if (new_level != 0xFF) sdp_cb.trace_level = new_level;
-
-  return (sdp_cb.trace_level);
-}
-
 namespace {
 bluetooth::legacy::stack::sdp::tSdpApi api_ = {
     .service =

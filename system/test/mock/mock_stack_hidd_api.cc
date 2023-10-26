@@ -92,8 +92,4 @@ tHID_STATUS HID_DevVirtualCableUnplug(void) {
   inc_func_call_count(__func__);
   return HID_SUCCESS;
 }
-uint8_t HID_DevSetTraceLevel(uint8_t new_level) {
-  inc_func_call_count(__func__);
-  return 0;
-}
 void HID_DevInit(void) { inc_func_call_count(__func__); }

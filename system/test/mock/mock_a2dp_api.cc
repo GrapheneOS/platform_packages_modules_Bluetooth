@@ -43,10 +43,6 @@ uint8_t A2DP_BitsSet(uint64_t num) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint8_t A2DP_SetTraceLevel(uint8_t new_level) {
-  inc_func_call_count(__func__);
-  return 0;
-}
 void A2DP_Init(void) { inc_func_call_count(__func__); }
 void a2dp_set_avdt_sdp_ver(uint16_t avdt_sdp_ver) {
   inc_func_call_count(__func__);

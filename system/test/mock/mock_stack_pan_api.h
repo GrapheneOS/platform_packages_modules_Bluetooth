@@ -137,15 +137,6 @@ struct PAN_WriteBuf {
   };
 };
 extern struct PAN_WriteBuf PAN_WriteBuf;
-// Name: PAN_SetTraceLevel
-// Params: uint8_t new_level
-// Returns: uint8_t
-struct PAN_SetTraceLevel {
-  std::function<uint8_t(uint8_t new_level)> body{
-      [](uint8_t new_level) { return 0; }};
-  uint8_t operator()(uint8_t new_level) { return body(new_level); };
-};
-extern struct PAN_SetTraceLevel PAN_SetTraceLevel;
 // Name: PAN_Deregister
 // Params: void
 // Returns: void

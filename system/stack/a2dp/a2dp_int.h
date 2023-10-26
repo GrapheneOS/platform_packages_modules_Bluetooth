@@ -50,7 +50,6 @@ typedef struct {
 
 typedef struct {
   tA2DP_FIND_CB find; /* find service control block */
-  uint8_t trace_level;
   uint16_t avdt_sdp_ver; /* AVDTP version */
 } tA2DP_CB;
 

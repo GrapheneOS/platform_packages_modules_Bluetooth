@@ -60,7 +60,6 @@ typedef struct host_ctb {
   tSDP_DISCOVERY_DB* p_sdp_db;
   tHID_DEV_SDP_INFO sdp_rec;
   bool reg_flag;
-  uint8_t trace_level;
 } tHID_HOST_CTB;
 
 tHID_STATUS hidh_conn_snd_data(uint8_t dhandle, uint8_t trans_type,

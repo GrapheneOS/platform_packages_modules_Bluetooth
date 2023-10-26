@@ -154,7 +154,6 @@ typedef struct {
   tL2CAP_APPL_INFO reg_info;
 
   bool profile_registered; /* true when we got our BD addr */
-  uint8_t trace_level;
 
 } tBNEP_CB;
 
