@@ -39,9 +39,10 @@ genrule {
         "aprotoc",
         "protoc-gen-grpc-cpp-plugin",
     ],
-    cmd: "$(location aprotoc) -Ipackages/modules/Bluetooth/system -Iexternal/protobuf/src --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-cpp-plugin) $(in) --grpc_out=$(genDir) --cpp_out=$(genDir)",
+    cmd: "$(location aprotoc) -Ipackages/modules/Bluetooth/system -Iexternal/protobuf/src --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-cpp-plugin) $(locations :BlueberryFacadeProto) --grpc_out=$(genDir) --cpp_out=$(genDir)",
     srcs: [
         ":BlueberryFacadeProto",
+        ":libprotobuf-internal-protos",
     ],
     out: [
         "blueberry/facade/common.grpc.pb.h",
@@ -85,9 +86,10 @@ genrule {
         "aprotoc",
         "protoc-gen-grpc-cpp-plugin",
     ],
-    cmd: "$(location aprotoc) -Ipackages/modules/Bluetooth/system -Iexternal/protobuf/src --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-cpp-plugin) $(in) --grpc_out=$(genDir) --cpp_out=$(genDir)",
+    cmd: "$(location aprotoc) -Ipackages/modules/Bluetooth/system -Iexternal/protobuf/src --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-cpp-plugin) $(locations :BlueberryFacadeProto) --grpc_out=$(genDir) --cpp_out=$(genDir)",
     srcs: [
         ":BlueberryFacadeProto",
+        ":libprotobuf-internal-protos",
     ],
     out: [
         "blueberry/facade/common.grpc.pb.cc",
@@ -133,11 +135,12 @@ genrule {
         "soong_zip",
     ],
     cmd: "mkdir -p $(genDir)/files && " +
-        "$(location aprotoc) -Ipackages/modules/Bluetooth/system -Iexternal/protobuf/src --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) $(in) --grpc_out=$(genDir)/files --python_out=$(genDir)/files && " +
+        "$(location aprotoc) -Ipackages/modules/Bluetooth/system -Iexternal/protobuf/src --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) $(locations :BlueberryFacadeProto) --grpc_out=$(genDir)/files --python_out=$(genDir)/files && " +
         "find $(genDir)/files -type d -exec touch {}/__init__.py \\; &&" +
         "$(location soong_zip) -C $(genDir)/files -D $(genDir)/files -o $(out)",
     srcs: [
         ":BlueberryFacadeProto",
+        ":libprotobuf-internal-protos",
     ],
     out: ["blueberry_facade_generated_py.zip"],
 }
@@ -175,8 +178,11 @@ genrule {
         "protoc-gen-grpc-python-plugin",
         "soong_zip",
     ],
-    cmd: "$(location aprotoc) --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) -Iexternal/protobuf/src -Ipackages/modules/Bluetooth/system $(in) --grpc_out=$(genDir) --python_out=$(genDir)",
-    srcs: ["blueberry/facade/topshim/facade.proto"],
+    cmd: "$(location aprotoc) --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) -Iexternal/protobuf/src -Ipackages/modules/Bluetooth/system $(location blueberry/facade/topshim/facade.proto) --grpc_out=$(genDir) --python_out=$(genDir)",
+    srcs: [
+        ":libprotobuf-internal-protos",
+        "blueberry/facade/topshim/facade.proto",
+    ],
     out: [
         "blueberry/facade/topshim/facade_pb2.py",
         "blueberry/facade/topshim/facade_pb2_grpc.py",
