@@ -1664,7 +1664,6 @@ cc_test {
         ":TestMockStackL2cap",
         ":TestMockStackMetrics",
         ":TestMockStackSdp",
-        ":TestStubLegacyTrace",
         "hid/hidd_api.cc",
         "hid/hidd_conn.cc",
         "hid/hidh_api.cc",

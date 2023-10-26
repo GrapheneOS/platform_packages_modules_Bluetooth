@@ -275,15 +275,6 @@ struct SDP_GetNumDiRecords {
   uint8_t operator()(const tSDP_DISCOVERY_DB* p_db) { return body(p_db); };
 };
 extern struct SDP_GetNumDiRecords SDP_GetNumDiRecords;
-// Name: SDP_SetTraceLevel
-// Params: uint8_t new_level
-// Returns: uint8_t
-struct SDP_SetTraceLevel {
-  std::function<uint8_t(uint8_t new_level)> body{
-      [](uint8_t new_level) { return 0; }};
-  uint8_t operator()(uint8_t new_level) { return body(new_level); };
-};
-extern struct SDP_SetTraceLevel SDP_SetTraceLevel;
 
 }  // namespace stack_sdp_api
 }  // namespace mock

@@ -376,13 +376,6 @@ filegroup {
 }
 
 filegroup {
-    name: "TestStubLegacyTrace",
-    srcs: [
-        "stub/legacy_trace.cc",
-    ],
-}
-
-filegroup {
     name: "TestStubOsi",
     srcs: [
         "stub/osi.cc",
@@ -570,11 +563,6 @@ filegroup {
         ":TestMockOsi",
         "fake/fake_osi.cc",
     ],
-}
-
-filegroup {
-    name: "TestCommonBtifTraceLevel",
-    srcs: ["common/btif_trace_level.cc"],
 }
 
 filegroup {

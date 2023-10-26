@@ -835,18 +835,6 @@ void BTM_VendorSpecificCommand(uint16_t opcode, uint8_t param_len,
 
 /*******************************************************************************
  *
- * Function         BTM_SetTraceLevel
- *
- * Description      This function sets the trace level for BTM.  If called with
- *                  a value of 0xFF, it simply returns the current trace level.
- *
- * Returns          The new or current trace level
- *
- ******************************************************************************/
-uint8_t BTM_SetTraceLevel(uint8_t new_level);
-
-/*******************************************************************************
- *
  * Function         BTM_WritePageTimeout
  *
  * Description      Send HCI Wite Page Timeout.

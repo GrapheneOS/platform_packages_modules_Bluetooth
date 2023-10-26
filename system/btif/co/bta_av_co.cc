@@ -1736,8 +1736,6 @@ void BtaAvCo::DebugDump(int fd) {
     }
   }
 
-  if (appl_trace_level < BT_TRACE_LEVEL_DEBUG) return;
-
   dprintf(fd, "\nA2DP Peers State:\n");
   dprintf(fd, "  Active peer: %s\n",
           (active_peer_ != nullptr)

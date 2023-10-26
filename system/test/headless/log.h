@@ -28,8 +28,6 @@
 
 #include "build_timestamp.h"  // generated
 
-void enable_logging();
-void log_logging();
 long long GetTimestampMs();
 
 // Internal to headless below

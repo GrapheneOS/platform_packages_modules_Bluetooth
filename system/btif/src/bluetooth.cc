@@ -98,7 +98,6 @@
 #include "osi/include/osi.h"
 #include "osi/include/stack_power_telemetry.h"
 #include "osi/include/wakelock.h"
-#include "profile_log_levels.h"
 #include "stack/btm/btm_sco_hfp_hal.h"
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/a2dp_api.h"
@@ -460,12 +459,6 @@ static void start_profiles() {
   HID_HostInit();
 #endif
   bta_ar_init();
-
-  // initialize profile-specific logging levels
-  const auto stack_config = stack_config_get_interface();
-  if (stack_config->get_trace_config_enabled()) {
-    load_levels_from_config(stack_config->get_all());
-  }
 }
 
 static void stop_profiles() {

@@ -84,9 +84,6 @@ void cleanupSdpFuzz() {
 
   // Delete Databases
   sdp_db_vect.clear();
-
-  // Set SDP Trace level back to default
-  SDP_SetTraceLevel(0);
 }
 
 std::vector<uint16_t> generateArbitraryAttrList(FuzzedDataProvider* fdp) {

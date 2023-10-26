@@ -99,7 +99,6 @@ typedef struct {
   uint32_t pan_gn_sdp_handle;
   uint32_t pan_nap_sdp_handle;
   uint8_t num_conns;
-  uint8_t trace_level;
 } tPAN_CB;
 
 /* Global PAN data

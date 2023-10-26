@@ -174,29 +174,6 @@ tA2DP_STATUS A2DP_FindService(uint16_t service_uuid, const RawAddress& bd_addr,
 uint16_t A2DP_GetAvdtpVersion(void);
 
 /******************************************************************************
- *
- * Function         A2DP_SetTraceLevel
- *
- * Description      Sets the trace level for A2D. If 0xff is passed, the
- *                  current trace level is returned.
- *
- *                  Input Parameters:
- *                      new_level:  The level to set the A2DP tracing to:
- *                      0xff-returns the current setting.
- *                      0-turns off tracing.
- *                      >= 1-Errors.
- *                      >= 2-Warnings.
- *                      >= 3-APIs.
- *                      >= 4-Events.
- *                      >= 5-Debug.
- *
- * Returns          The new trace level or current trace level if
- *                  the input parameter is 0xff.
- *
- *****************************************************************************/
-uint8_t A2DP_SetTraceLevel(uint8_t new_level);
-
-/******************************************************************************
  * Function         A2DP_BitsSet
  *
  * Description      Check the given num for the number of bits set
