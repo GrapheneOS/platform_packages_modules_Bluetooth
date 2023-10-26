@@ -414,7 +414,6 @@ cc_fuzz {
     ],
     srcs: [
         ":LegacyStackSdp",
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestFakeOsi",
         ":TestMockBtif",
@@ -448,7 +447,6 @@ cc_fuzz {
         "BluetoothGeneratedDumpsysDataSchema_h",
     ],
     srcs: crypto_toolbox_srcs + [
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestCommonStackConfig",
         ":TestFakeOsi",
@@ -496,7 +494,6 @@ cc_fuzz {
         "BluetoothGeneratedDumpsysDataSchema_h",
     ],
     srcs: crypto_toolbox_srcs + [
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestCommonStackConfig",
         ":TestFakeOsi",
@@ -539,7 +536,6 @@ cc_fuzz {
         "BluetoothGeneratedDumpsysDataSchema_h",
     ],
     srcs: [
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestCommonStackConfig",
         ":TestFakeOsi",
@@ -582,7 +578,6 @@ cc_fuzz {
         "BluetoothGeneratedDumpsysDataSchema_h",
     ],
     srcs: [
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestCommonStackConfig",
         ":TestFakeOsi",
@@ -635,7 +630,6 @@ cc_fuzz {
         "BluetoothGeneratedDumpsysDataSchema_h",
     ],
     srcs: [
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestCommonStackConfig",
         ":TestFakeOsi",
@@ -776,7 +770,6 @@ cc_test {
         "packages/modules/Bluetooth/system/internal_include",
     ],
     srcs: [
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestMockHci",
         ":TestMockMainShim",
@@ -861,7 +854,6 @@ cc_test {
         "packages/modules/Bluetooth/system/internal_include",
     ],
     srcs: crypto_toolbox_srcs + [
-        ":TestCommonLogMsg",
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
         ":TestMockBtif",
@@ -1071,7 +1063,6 @@ cc_test {
         "packages/modules/Bluetooth/system/stack/include",
     ],
     srcs: [
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestMockBta",
         ":TestMockDevice",
@@ -1298,7 +1289,6 @@ cc_test {
     ],
     srcs: crypto_toolbox_srcs + [
         ":LegacyStackSdp",
-        ":TestCommonLogMsg",
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
         ":TestMockBtif",
@@ -1493,7 +1483,6 @@ cc_test {
         ":BluetoothHalSources_hci_host",
         ":BluetoothOsSources_host",
         ":OsiCompatSources",
-        ":TestCommonLogMsg",
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
         ":TestCommonStackConfig",
@@ -1729,7 +1718,6 @@ cc_test {
         "BluetoothGeneratedDumpsysDataSchema_h",
     ],
     srcs: [
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestMockBta",
         ":TestMockBtif",
@@ -1896,7 +1884,6 @@ cc_test {
     ],
     srcs: [
         ":OsiCompatSources",
-        ":TestCommonLogMsg",
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
         ":TestCommonStackConfig",
@@ -1986,7 +1973,6 @@ cc_test {
     ],
     srcs: [
         ":OsiCompatSources",
-        ":TestCommonLogMsg",
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
         ":TestCommonStackConfig",
@@ -2073,7 +2059,6 @@ cc_test {
     ],
     srcs: [
         ":LegacyStackSdp",
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestMockBtif",
         ":TestMockOsi",
