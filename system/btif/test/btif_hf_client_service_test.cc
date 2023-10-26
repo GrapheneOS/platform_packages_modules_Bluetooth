@@ -70,4 +70,7 @@ TEST_F(BtifHfClientTest, test_btif_hf_cleint_service) {
   btif_hf_client_execute_service(enable);
   ASSERT_EQ((gFeatures & BTA_HF_CLIENT_FEAT_ESCO_S4) > 0,
             get_default_hfp_version() >= HFP_VERSION_1_7);
+
+  ASSERT_EQ((gFeatures & BTA_HF_CLIENT_FEAT_SWB) > 0,
+            get_default_hfp_version() >= HFP_VERSION_1_9);
 }

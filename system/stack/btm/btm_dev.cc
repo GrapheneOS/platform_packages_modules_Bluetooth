@@ -306,35 +306,34 @@ tBTM_SEC_DEV_REC* btm_sec_alloc_dev(const RawAddress& bd_addr) {
  ******************************************************************************/
 bool btm_dev_support_role_switch(const RawAddress& bd_addr) {
   if (BTM_IsScoActiveByBdaddr(bd_addr)) {
-    BTM_TRACE_DEBUG("%s Role switch is not allowed if a SCO is up", __func__);
+    LOG_VERBOSE("%s Role switch is not allowed if a SCO is up", __func__);
     return false;
   }
 
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
   if (p_dev_rec == nullptr) {
-    BTM_TRACE_DEBUG("%s Unknown address for role switch", __func__);
+    LOG_VERBOSE("%s Unknown address for role switch", __func__);
     return false;
   }
 
   if (!controller_get_interface()->supports_central_peripheral_role_switch()) {
-    BTM_TRACE_DEBUG("%s Local controller does not support role switch",
-                    __func__);
+    LOG_VERBOSE("%s Local controller does not support role switch", __func__);
     return false;
   }
 
   if (p_dev_rec->remote_supports_hci_role_switch) {
-    BTM_TRACE_DEBUG("%s Peer controller supports role switch", __func__);
+    LOG_VERBOSE("%s Peer controller supports role switch", __func__);
     return true;
   }
 
   if (!p_dev_rec->remote_feature_received) {
-    BTM_TRACE_DEBUG(
+    LOG_VERBOSE(
         "%s Unknown peer capabilities, assuming peer supports role switch",
         __func__);
     return true;
   }
 
-  BTM_TRACE_DEBUG("%s Peer controller does not support role switch", __func__);
+  LOG_VERBOSE("%s Peer controller does not support role switch", __func__);
   return false;
 }
 
@@ -436,7 +435,7 @@ tBTM_SEC_DEV_REC* btm_find_dev_with_lenc(const RawAddress& bd_addr) {
 void btm_consolidate_dev(tBTM_SEC_DEV_REC* p_target_rec) {
   tBTM_SEC_DEV_REC temp_rec = *p_target_rec;
 
-  BTM_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   list_node_t* end = list_end(btm_sec_cb.sec_dev_rec);
   list_node_t* node = list_begin(btm_sec_cb.sec_dev_rec);
@@ -561,7 +560,7 @@ void btm_dev_consolidate_existing_connections(const RawAddress& bd_addr) {
  ******************************************************************************/
 tBTM_SEC_DEV_REC* btm_find_or_alloc_dev(const RawAddress& bd_addr) {
   tBTM_SEC_DEV_REC* p_dev_rec;
-  BTM_TRACE_EVENT("btm_find_or_alloc_dev");
+  LOG_VERBOSE("btm_find_or_alloc_dev");
   p_dev_rec = btm_find_dev(bd_addr);
   if (p_dev_rec == NULL) {
     /* Allocate a new device record or reuse the oldest one */

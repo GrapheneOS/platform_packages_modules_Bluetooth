@@ -14,22 +14,26 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 
-my $MOCKCIFY="./test/tool/mockcify.pl";
+package Mockcify;
 
-my @tests=(
-    "osi/src/allocator.cc",
-    "osi/src/list.cc",
-    "osi/src/mutex.cc",
-);
+use diagnostics;
+use strict;
+use warnings;
 
-print;
-foreach (@tests) {
-    print(STDOUT "\33[2K\r$_\r");
-    my $cmd = "$MOCKCIFY TEST < $_";
-    my $rc = system("$cmd > /dev/null 2&>1");
-    if ($rc != 0) {
-        print(STDERR "\nFAILED \'$_\' cmd:\'$cmd\'\n");
-        exit 1;
-    }
-}
-print(STDERR "\33[2K\rPASSED\n");
+use lib "$ENV{ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/test/tool";
+require 'mockcify_util.pl';
+
+printf("MOCKCIFY unit test\n");
+
+"void" eq comment_out_input_vars("void")
+    || die("FAIL file:",  __FILE__, " line:", __LINE__, "\n");
+"one /* two */" eq comment_out_input_vars("one two")
+    || die("FAIL file:",  __FILE__, " line:", __LINE__, "\n");
+"one /* two */, three /* four */, five /* six */" eq comment_out_input_vars("one two, three four, five six")
+    || die("FAIL file:",  __FILE__, " line:", __LINE__, "\n");
+"std::string /* s */, tSOME_STRUCT /* struct */" eq comment_out_input_vars("std::string   s  ,   tSOME_STRUCT  struct")
+    || die("FAIL file:",  __FILE__, " line:", __LINE__, "\n");
+"const std::string& /* s */, tSOME_STRUCT /* struct */" eq comment_out_input_vars("   const   std::string&   s  ,   tSOME_STRUCT  struct")
+    || die("FAIL file:",  __FILE__, " line:", __LINE__, "\n");
+
+printf("SUCCESS\n");

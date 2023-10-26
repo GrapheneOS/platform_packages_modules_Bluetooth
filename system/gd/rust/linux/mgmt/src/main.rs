@@ -152,6 +152,11 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut powerd_suspend_manager = PowerdSuspendManager::new(conn.clone(), cr);
 
+    bluetooth_manager
+        .lock()
+        .unwrap()
+        .set_suspend_manager_context(powerd_suspend_manager.get_suspend_manager_context());
+
     tokio::spawn(async move {
         powerd_suspend_manager.init().await;
         powerd_suspend_manager.mainloop().await;

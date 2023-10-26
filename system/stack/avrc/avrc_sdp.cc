@@ -65,7 +65,7 @@ static uint16_t a2dp_attr_list_sdp[] = {
  *****************************************************************************/
 static void avrc_sdp_cback(UNUSED_ATTR const RawAddress& bd_addr,
                            tSDP_STATUS status) {
-  AVRC_TRACE_API("%s status: %d", __func__, status);
+  LOG_VERBOSE("%s status: %d", __func__, status);
 
   /* reset service_uuid, so can start another find service */
   avrc_cb.service_uuid = 0;
@@ -120,7 +120,7 @@ uint16_t AVRC_FindService(uint16_t service_uuid, const RawAddress& bd_addr,
                           const tAVRC_FIND_CBACK& find_cback) {
   bool result = true;
 
-  AVRC_TRACE_API("%s uuid: %x", __func__, service_uuid);
+  LOG_VERBOSE("%s uuid: %x", __func__, service_uuid);
   if ((service_uuid != UUID_SERVCLASS_AV_REM_CTRL_TARGET &&
        service_uuid != UUID_SERVCLASS_AV_REMOTE_CONTROL) ||
       p_db == NULL || p_db->p_db == NULL || find_cback.is_null())
@@ -153,8 +153,8 @@ uint16_t AVRC_FindService(uint16_t service_uuid, const RawAddress& bd_addr,
             bd_addr, p_db->p_db, avrc_sdp_cback);
 
     if (!result) {
-      AVRC_TRACE_ERROR("%s: Failed to init SDP for peer %s", __func__,
-                       ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+      LOG_ERROR("%s: Failed to init SDP for peer %s", __func__,
+                ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
       avrc_sdp_cback(bd_addr, SDP_GENERIC_ERROR);
     }
   }
@@ -216,9 +216,10 @@ uint16_t AVRC_AddRecord(uint16_t service_uuid, const char* p_service_name,
   uint8_t index = 0;
   uint16_t class_list[2];
 
-  AVRC_TRACE_API("%s: Add AVRCP SDP record, uuid: %x, profile_version: 0x%x, "
-      "supported_features: 0x%x, psm: 0x%x", __func__, service_uuid,
-      profile_version, categories, cover_art_psm);
+  LOG_VERBOSE(
+      "%s: Add AVRCP SDP record, uuid: %x, profile_version: 0x%x, "
+      "supported_features: 0x%x, psm: 0x%x",
+      __func__, service_uuid, profile_version, categories, cover_art_psm);
 
   if (service_uuid != UUID_SERVCLASS_AV_REM_CTRL_TARGET &&
       service_uuid != UUID_SERVCLASS_AV_REMOTE_CONTROL)
@@ -267,8 +268,10 @@ uint16_t AVRC_AddRecord(uint16_t service_uuid, const char* p_service_name,
 
     /* If we support browsing then add the list */
     if (browse_supported) {
-      AVRC_TRACE_API("%s: Add Browsing PSM to additonal protocol descriptor"
-                     " lists", __func__);
+      LOG_VERBOSE(
+          "%s: Add Browsing PSM to additional protocol descriptor"
+          " lists",
+          __func__);
       num_additional_protocols++;
       avrc_add_proto_desc_lists[i].num_elems = 2;
       avrc_add_proto_desc_lists[i].list_elem[0].num_params = 1;
@@ -289,8 +292,10 @@ uint16_t AVRC_AddRecord(uint16_t service_uuid, const char* p_service_name,
     if (profile_version >= AVRC_REV_1_6 &&
         service_uuid == UUID_SERVCLASS_AV_REM_CTRL_TARGET &&
         cover_art_psm > 0) {
-      AVRC_TRACE_API("%s: Add AVRCP BIP PSM to additonal protocol descriptor"
-                     " lists, psm: 0x%x", __func__, cover_art_psm);
+      LOG_VERBOSE(
+          "%s: Add AVRCP BIP PSM to additional protocol descriptor"
+          " lists, psm: 0x%x",
+          __func__, cover_art_psm);
       num_additional_protocols++;
       avrc_add_proto_desc_lists[i].num_elems = 2;
       avrc_add_proto_desc_lists[i].list_elem[0].num_params = 1;
@@ -307,8 +312,8 @@ uint16_t AVRC_AddRecord(uint16_t service_uuid, const char* p_service_name,
 
     /* Add the additional lists if we support any */
     if (num_additional_protocols > 0) {
-      AVRC_TRACE_API("%s: Add %d additonal protocol descriptor lists",
-                     __func__, num_additional_protocols);
+      LOG_VERBOSE("%s: Add %d additional protocol descriptor lists", __func__,
+                  num_additional_protocols);
       result &= get_legacy_stack_sdp_api()->handle.SDP_AddAdditionProtoLists(
           sdp_handle, num_additional_protocols, avrc_add_proto_desc_lists);
     }
@@ -360,7 +365,7 @@ uint16_t AVRC_AddRecord(uint16_t service_uuid, const char* p_service_name,
  *
  *******************************************************************************/
 uint16_t AVRC_RemoveRecord(uint32_t sdp_handle) {
-  AVRC_TRACE_API("%s: remove AVRCP SDP record", __func__);
+  LOG_VERBOSE("%s: remove AVRCP SDP record", __func__);
   bool result = get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(sdp_handle);
   return (result ? AVRC_SUCCESS : AVRC_FAIL);
 }

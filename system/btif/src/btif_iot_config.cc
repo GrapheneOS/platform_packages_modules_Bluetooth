@@ -100,9 +100,9 @@ void btif_iot_update_remote_info(tBTA_DM_AUTH_CMPL* p_auth_cmpl, bool is_ble,
   if (btif_storage_get_remote_device_property(&p_auth_cmpl->bd_addr,
                                               &properties[num_properties]) ==
       BT_STATUS_SUCCESS)
-    BTIF_TRACE_DEBUG("%s cod retrieved from storage is 0x%06x", __func__, cod);
+    LOG_VERBOSE("%s cod retrieved from storage is 0x%06x", __func__, cod);
   if (cod == 0) {
-    BTIF_TRACE_DEBUG("%s cod is 0, set as unclassified", __func__);
+    LOG_VERBOSE("%s cod is 0, set as unclassified", __func__);
     cod = COD_UNCLASSIFIED;
   }
   DEVICE_IOT_CONFIG_ADDR_SET_INT(p_auth_cmpl->bd_addr, IOT_CONF_KEY_DEVCLASS,
@@ -118,7 +118,7 @@ void btif_iot_update_remote_info(tBTA_DM_AUTH_CMPL* p_auth_cmpl, bool is_ble,
   if (btif_storage_get_remote_device_property(&p_auth_cmpl->bd_addr,
                                               &properties[num_properties]) ==
       BT_STATUS_SUCCESS) {
-    BTIF_TRACE_DEBUG("%s retrieve dev type from storage", __func__);
+    LOG_VERBOSE("%s retrieve dev type from storage", __func__);
     dev_type = (bt_device_type_t)(remote_dev_type | p_auth_cmpl->dev_type);
   } else {
     dev_type = (bt_device_type_t)(p_auth_cmpl->dev_type);

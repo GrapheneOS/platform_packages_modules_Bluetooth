@@ -100,7 +100,7 @@ void RFCOMM_ConnectInd(const RawAddress& bd_addr, uint16_t lcid,
        * continues as initiator */
       /* if timeout, local device disconnects outgoing connection and continues
        * as acceptor */
-      RFCOMM_TRACE_DEBUG(
+      LOG_VERBOSE(
           "RFCOMM_ConnectInd start timer for collision, initiator's "
           "LCID(0x%x), acceptor's LCID(0x%x)",
           p_mcb->lcid, p_mcb->pending_lcid);
@@ -141,7 +141,7 @@ void RFCOMM_ConnectCnf(uint16_t lcid, uint16_t result) {
   tRFC_MCB* p_mcb = rfc_find_lcid_mcb(lcid);
 
   if (!p_mcb) {
-    RFCOMM_TRACE_ERROR("RFCOMM_ConnectCnf LCID:0x%x", lcid);
+    LOG_ERROR("RFCOMM_ConnectCnf LCID:0x%x", lcid);
     return;
   }
 
@@ -151,8 +151,8 @@ void RFCOMM_ConnectCnf(uint16_t lcid, uint16_t result) {
     if (result != L2CAP_CONN_OK) {
       return;
     } else {
-      RFCOMM_TRACE_DEBUG("RFCOMM_ConnectCnf peer gave up pending LCID(0x%x)",
-                         p_mcb->pending_lcid);
+      LOG_VERBOSE("RFCOMM_ConnectCnf peer gave up pending LCID(0x%x)",
+                  p_mcb->pending_lcid);
 
       /* Peer gave up its connection request, make sure cleaning up L2CAP
        * channel */
@@ -186,7 +186,7 @@ void RFCOMM_ConfigInd(uint16_t lcid, tL2CAP_CFG_INFO* p_cfg) {
   tRFC_MCB* p_mcb = rfc_find_lcid_mcb(lcid);
 
   if (!p_mcb) {
-    RFCOMM_TRACE_ERROR("RFCOMM_ConfigInd LCID:0x%x", lcid);
+    LOG_ERROR("RFCOMM_ConfigInd LCID:0x%x", lcid);
     for (auto& [cid, mcb] : rfc_lcid_mcb) {
       if (mcb != nullptr && mcb->pending_lcid == lcid) {
         tL2CAP_CFG_INFO l2cap_cfg_info(*p_cfg);
@@ -217,7 +217,7 @@ void RFCOMM_ConfigCnf(uint16_t lcid, UNUSED_ATTR uint16_t initiator,
   tRFC_MCB* p_mcb = rfc_find_lcid_mcb(lcid);
 
   if (!p_mcb) {
-    RFCOMM_TRACE_ERROR("RFCOMM_ConfigCnf no MCB LCID:0x%x", lcid);
+    LOG_ERROR("RFCOMM_ConfigCnf no MCB LCID:0x%x", lcid);
     return;
   }
   uintptr_t result_as_ptr = L2CAP_CFG_OK;
@@ -274,8 +274,8 @@ void RFCOMM_BufDataInd(uint16_t lcid, BT_HDR* p_buf) {
   }
 
   if (rfc_cb.rfc.rx_frame.dlci == RFCOMM_MX_DLCI) {
-    RFCOMM_TRACE_DEBUG("%s: handle multiplexer event %d, p_mcb=%p", __func__,
-                       event, p_mcb);
+    LOG_VERBOSE("%s: handle multiplexer event %d, p_mcb=%p", __func__, event,
+                p_mcb);
     /* Take special care of the Multiplexer Control Messages */
     if (event == RFC_EVENT_UIH) {
       rfc_process_mx_message(p_mcb, p_buf);
@@ -316,17 +316,17 @@ void RFCOMM_BufDataInd(uint16_t lcid, BT_HDR* p_buf) {
       osi_free(p_buf);
       return;
     }
-    RFCOMM_TRACE_DEBUG("%s: port_handles[dlci=%d]:%d->%d, p_mcb=%p", __func__,
-                       rfc_cb.rfc.rx_frame.dlci,
-                       p_mcb->port_handles[rfc_cb.rfc.rx_frame.dlci],
-                       p_port->handle, p_mcb);
+    LOG_VERBOSE("%s: port_handles[dlci=%d]:%d->%d, p_mcb=%p", __func__,
+                rfc_cb.rfc.rx_frame.dlci,
+                p_mcb->port_handles[rfc_cb.rfc.rx_frame.dlci], p_port->handle,
+                p_mcb);
     p_mcb->port_handles[rfc_cb.rfc.rx_frame.dlci] = p_port->handle;
     p_port->rfc.p_mcb = p_mcb;
   }
 
   if (event == RFC_EVENT_UIH) {
-    RFCOMM_TRACE_DEBUG("%s: Handling UIH event, buf_len=%u, credit=%u",
-                       __func__, p_buf->len, rfc_cb.rfc.rx_frame.credit);
+    LOG_VERBOSE("%s: Handling UIH event, buf_len=%u, credit=%u", __func__,
+                p_buf->len, rfc_cb.rfc.rx_frame.credit);
     if (p_buf->len > 0) {
       rfc_port_sm_execute(p_port, static_cast<tRFC_PORT_EVENT>(event), p_buf);
     } else {
@@ -355,10 +355,10 @@ void RFCOMM_CongestionStatusInd(uint16_t lcid, bool is_congested) {
   tRFC_MCB* p_mcb = rfc_find_lcid_mcb(lcid);
 
   if (!p_mcb) {
-    RFCOMM_TRACE_ERROR("RFCOMM_CongestionStatusInd dropped LCID:0x%x", lcid);
+    LOG_ERROR("RFCOMM_CongestionStatusInd dropped LCID:0x%x", lcid);
     return;
   } else {
-    RFCOMM_TRACE_EVENT("RFCOMM_CongestionStatusInd LCID:0x%x", lcid);
+    LOG_VERBOSE("RFCOMM_CongestionStatusInd LCID:0x%x", lcid);
   }
   rfc_process_l2cap_congestion(p_mcb, is_congested);
 }

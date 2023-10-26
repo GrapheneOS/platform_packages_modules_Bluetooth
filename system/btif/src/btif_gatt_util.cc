@@ -18,6 +18,8 @@
 
 #define LOG_TAG "bt_btif_gatt"
 
+#include <algorithm>
+
 #include "btif_gatt_util.h"
 
 #include <hardware/bluetooth.h>
@@ -49,9 +51,9 @@ using bluetooth::Uuid;
 void btif_to_bta_response(tGATTS_RSP* p_dest, btgatt_response_t* p_src) {
   p_dest->attr_value.auth_req = p_src->attr_value.auth_req;
   p_dest->attr_value.handle = p_src->attr_value.handle;
-  p_dest->attr_value.len = p_src->attr_value.len;
+  p_dest->attr_value.len = std::min<uint16_t>(p_src->attr_value.len, GATT_MAX_ATTR_LEN);
   p_dest->attr_value.offset = p_src->attr_value.offset;
-  memcpy(p_dest->attr_value.value, p_src->attr_value.value, GATT_MAX_ATTR_LEN);
+  memcpy(p_dest->attr_value.value, p_src->attr_value.value, p_dest->attr_value.len);
 }
 
 /*******************************************************************************
@@ -67,7 +69,7 @@ static void btif_gatt_set_encryption_cb(UNUSED_ATTR const RawAddress& bd_addr,
                                         UNUSED_ATTR tBT_TRANSPORT transport,
                                         tBTA_STATUS result) {
   if (result != BTA_SUCCESS && result != BTA_BUSY) {
-    BTIF_TRACE_WARNING("%s() - Encryption failed (%d)", __func__, result);
+    LOG_WARN("%s() - Encryption failed (%d)", __func__, result);
   }
 }
 

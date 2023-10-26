@@ -68,6 +68,11 @@ typedef uint16_t tBTA_HF_CLIENT_PEER_FEAT;
 #define BTA_HF_CLIENT_FEAT_CODEC 0x00000080 /* Codec Negotiation */
 #define BTA_HF_CLIENT_FEAT_HF_IND 0x00000100  /* HF Indicators */
 #define BTA_HF_CLIENT_FEAT_ESCO_S4 0x00000200 /* ESCO S4 link setting */
+#define BTA_HF_CLIENT_FEAT_SWB 0x00000400     /* SWB feature (HFP 1.9) */
+
+/* FP SDP feature masks */
+#define BTA_HF_CLIENT_WBS_SUPPORT 0x0020      /* Supports WBS */
+#define BTA_HF_CLIENT_FEAT_SWB_SUPPORT 0x0100 /* Supports SWB */
 
 /* HFP HF extended call handling - masks not related to any spec */
 #define BTA_HF_CLIENT_CHLD_REL \
@@ -129,7 +134,8 @@ typedef uint8_t tBTA_HF_CLIENT_AT_RESULT_TYPE;
 #define BTA_HF_CLIENT_RING_INDICATION 21 /* HF Client ring indication */
 
 #define BTA_HF_CLIENT_UNKNOWN_EVT 22 /* Unknown or vendor specific Event */
-
+#define BTA_HF_CLIENT_AUDIO_LC3_OPEN_EVT \
+  23 /* Audio connection with LC3 codec open */
 #define BTA_HF_CLIENT_DISABLE_EVT 30     /* HF Client disabled */
 
 typedef uint8_t tBTA_HF_CLIENT_EVT;
@@ -249,10 +255,10 @@ typedef struct {
 } tBTA_HF_CLIENT_VAL;
 
 /* data associated with BTA_HF_CLIENT_UNKNOWN_EVT event */
-#define BTA_HF_CLIENT_UNKOWN_EVENT_LEN 32
+#define BTA_HF_CLIENT_UNKNOWN_EVENT_LEN 32
 typedef struct {
   RawAddress bd_addr;
-  char event_string[BTA_HF_CLIENT_UNKOWN_EVENT_LEN + 1];
+  char event_string[BTA_HF_CLIENT_UNKNOWN_EVENT_LEN + 1];
 } tBTA_HF_CLIENT_UNKNOWN;
 
 /* union of data associated with AG callback */

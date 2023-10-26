@@ -87,7 +87,7 @@ void BTA_sys_signal_hw_error() {
 static void bta_sys_event(BT_HDR_RIGID* p_msg) {
   bool freebuf = true;
 
-  APPL_TRACE_EVENT("%s: Event 0x%x", __func__, p_msg->event);
+  LOG_VERBOSE("%s: Event 0x%x", __func__, p_msg->event);
 
   /* get subsystem id from event */
   uint8_t id = (uint8_t)(p_msg->event >> 8);

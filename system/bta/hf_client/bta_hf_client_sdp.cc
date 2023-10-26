@@ -30,6 +30,7 @@
 #include "bta/include/bta_hf_client_api.h"
 #include "bta/include/bta_rfcomm_scn.h"
 #include "bta/sys/bta_sys.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_uuid16.h"
@@ -63,7 +64,7 @@ static void bta_hf_client_sdp_cback(UNUSED_ATTR const RawAddress& bd_addr,
   tBTA_HF_CLIENT_DISC_RESULT* p_buf = (tBTA_HF_CLIENT_DISC_RESULT*)osi_malloc(
       sizeof(tBTA_HF_CLIENT_DISC_RESULT));
 
-  APPL_TRACE_DEBUG("bta_hf_client_sdp_cback status:0x%x", status);
+  LOG_VERBOSE("bta_hf_client_sdp_cback status:0x%x", status);
   tBTA_HF_CLIENT_CB* client_cb = (tBTA_HF_CLIENT_CB*)data;
 
   /* set event according to int/acp */
@@ -105,7 +106,8 @@ bool bta_hf_client_add_record(const char* p_service_name, uint8_t scn,
   uint8_t buf[2];
   uint16_t sdp_features = 0;
 
-  APPL_TRACE_DEBUG("bta_hf_client_add_record");
+  LOG_VERBOSE("bta_hf_client_add_record");
+  LOG_INFO("features: %d", features);
 
   memset(proto_elem_list, 0,
          BTA_HF_CLIENT_NUM_PROTO_ELEMS * sizeof(tSDP_PROTOCOL_ELEM));
@@ -154,7 +156,12 @@ bool bta_hf_client_add_record(const char* p_service_name, uint8_t scn,
   if (features & BTA_HF_CLIENT_FEAT_VOL) sdp_features |= BTA_HF_CLIENT_FEAT_VOL;
 
   /* Codec bit position is different in SDP (bit 5) and in BRSF (bit 7) */
-  if (features & BTA_HF_CLIENT_FEAT_CODEC) sdp_features |= 0x0020;
+  if (features & BTA_HF_CLIENT_FEAT_CODEC)
+    sdp_features |= BTA_HF_CLIENT_WBS_SUPPORT;
+
+  /* Support swb */
+  if (features & BTA_HF_CLIENT_FEAT_SWB)
+    features |= BTA_HF_CLIENT_FEAT_SWB_SUPPORT;
 
   UINT16_TO_BE_FIELD(buf, sdp_features);
   result &= get_legacy_stack_sdp_api()->handle.SDP_AddAttribute(
@@ -203,7 +210,7 @@ void bta_hf_client_create_record(tBTA_HF_CLIENT_CB_ARR* client_cb_arr,
  *
  ******************************************************************************/
 void bta_hf_client_del_record(tBTA_HF_CLIENT_CB_ARR* client_cb) {
-  APPL_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   if (client_cb->sdp_handle != 0) {
     get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(client_cb->sdp_handle);
@@ -290,8 +297,8 @@ bool bta_hf_client_sdp_find_attr(tBTA_HF_CLIENT_CB* client_cb) {
     break;
   }
 
-  APPL_TRACE_DEBUG("%s: peer_version=0x%x peer_features=0x%x", __func__,
-                   client_cb->peer_version, client_cb->peer_features);
+  LOG_VERBOSE("%s: peer_version=0x%x peer_features=0x%x", __func__,
+              client_cb->peer_version, client_cb->peer_features);
 
   return result;
 }
@@ -372,8 +379,8 @@ void bta_hf_client_free_db(tBTA_HF_CLIENT_DATA* p_data) {
   tBTA_HF_CLIENT_CB* client_cb =
       bta_hf_client_find_cb_by_handle(p_data->hdr.layer_specific);
   if (client_cb == NULL) {
-    APPL_TRACE_ERROR("%s: cb not found for handle %d", __func__,
-                     p_data->hdr.layer_specific);
+    LOG_ERROR("%s: cb not found for handle %d", __func__,
+              p_data->hdr.layer_specific);
     return;
   }
 

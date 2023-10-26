@@ -249,7 +249,7 @@ static bool prop2cfg(const RawAddress* remote_bd_addr, bt_property_t* prop) {
       btif_config_set_str(bdstr, BT_CONFIG_KEY_DIS_MODEL_NUM, value);
     } break;
     default:
-      BTIF_TRACE_ERROR("Unknown prop type:%d", prop->type);
+      LOG_ERROR("Unknown prop type:%d", prop->type);
       return false;
   }
 
@@ -418,7 +418,7 @@ static bool cfg2prop(const RawAddress* remote_bd_addr, bt_property_t* prop) {
     } break;
 
     default:
-      BTIF_TRACE_ERROR("Unknow prop type:%d", prop->type);
+      LOG_ERROR("Unknown prop type:%d", prop->type);
       return false;
   }
   return ret;
@@ -477,7 +477,7 @@ static bt_status_t btif_in_fetch_bonded_devices(
   for (const auto& bd_addr : btif_config_get_paired_devices()) {
     auto name = bd_addr.ToString();
 
-    BTIF_TRACE_DEBUG("Remote device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+    LOG_VERBOSE("Remote device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
     LinkKey link_key;
     size_t size = sizeof(link_key);
     if (btif_config_get_bin(name, BTIF_STORAGE_KEY_LINK_KEY, link_key.data(),
@@ -505,8 +505,7 @@ static bt_status_t btif_in_fetch_bonded_devices(
         if (p_bonded_devices->num_devices < BTM_SEC_MAX_DEVICE_RECORDS) {
           p_bonded_devices->devices[p_bonded_devices->num_devices++] = bd_addr;
         } else {
-          BTIF_TRACE_WARNING("%s: exceed the max number of bonded devices",
-                             __func__);
+          LOG_WARN("%s: exceed the max number of bonded devices", __func__);
         }
       } else {
         bt_linkkey_file_found = false;
@@ -539,8 +538,8 @@ static void btif_read_le_key(const uint8_t key_type, const size_t key_len,
         *device_added = true;
       }
 
-      BTIF_TRACE_DEBUG("%s() Adding key type %d for %s", __func__, key_type,
-                       ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+      LOG_VERBOSE("%s() Adding key type %d for %s", __func__, key_type,
+                  ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
       BTA_DmAddBleKey(bd_addr, &key, key_type);
     }
 
@@ -670,7 +669,7 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t* property) {
 
     btif_in_fetch_bonded_devices(&bonded_devices, 0);
 
-    BTIF_TRACE_DEBUG(
+    LOG_VERBOSE(
         "%s: Number of bonded devices: %d "
         "Property:BT_PROPERTY_ADAPTER_BONDED_DEVICES",
         __func__, bonded_devices.num_devices);
@@ -1103,8 +1102,8 @@ bt_status_t btif_storage_load_bonded_devices(void) {
     osi_free(devices_list);
   }
 
-  BTIF_TRACE_EVENT("%s: %d bonded devices found", __func__,
-                   bonded_devices.num_devices);
+  LOG_VERBOSE("%s: %d bonded devices found", __func__,
+              bonded_devices.num_devices);
 
   {
     for (i = 0; i < bonded_devices.num_devices; i++) {
@@ -1352,8 +1351,8 @@ bt_status_t btif_in_fetch_bonded_ble_device(
 
   if ((device_type & BT_DEVICE_TYPE_BLE) == BT_DEVICE_TYPE_BLE ||
       btif_has_ble_keys(remote_bd_addr)) {
-    BTIF_TRACE_DEBUG("%s Found a LE device: %s", __func__,
-                     ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+    LOG_VERBOSE("%s Found a LE device: %s", __func__,
+                ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
     if (btif_storage_get_remote_addr_type(&bd_addr, &addr_type) !=
         BT_STATUS_SUCCESS) {
@@ -1372,8 +1371,7 @@ bt_status_t btif_in_fetch_bonded_ble_device(
       if (p_bonded_devices->num_devices < BTM_SEC_MAX_DEVICE_RECORDS) {
         p_bonded_devices->devices[p_bonded_devices->num_devices++] = bd_addr;
       } else {
-        BTIF_TRACE_WARNING("%s: exceed the max number of bonded devices",
-                           __func__);
+        LOG_WARN("%s: exceed the max number of bonded devices", __func__);
       }
       btif_gatts_add_bonded_dev_from_nv(bd_addr);
     }
@@ -1489,8 +1487,8 @@ uint8_t btif_storage_get_sr_supp_feat(const RawAddress& bd_addr) {
 
   int value = 0;
   btif_config_get_int(name, BTIF_STORAGE_KEY_GATT_SERVER_SUPPORTED, &value);
-  BTIF_TRACE_DEBUG("Remote device: %s GATT server supported features 0x%02x",
-                   ADDRESS_TO_LOGGABLE_CSTR(bd_addr), value);
+  LOG_VERBOSE("Remote device: %s GATT server supported features 0x%02x",
+              ADDRESS_TO_LOGGABLE_CSTR(bd_addr), value);
 
   return value;
 }
@@ -1551,8 +1549,8 @@ uint8_t btif_storage_get_gatt_cl_supp_feat(const RawAddress& bd_addr) {
 
   int value = 0;
   btif_config_get_int(name, BTIF_STORAGE_KEY_GATT_CLIENT_SUPPORTED, &value);
-  BTIF_TRACE_DEBUG("Remote device: %s GATT client supported features 0x%02x",
-                   ADDRESS_TO_LOGGABLE_CSTR(bd_addr), value);
+  LOG_VERBOSE("Remote device: %s GATT client supported features 0x%02x",
+              ADDRESS_TO_LOGGABLE_CSTR(bd_addr), value);
 
   return value;
 }

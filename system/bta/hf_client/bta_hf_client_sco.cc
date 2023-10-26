@@ -51,13 +51,13 @@ static bool bta_hf_client_sco_remove(tBTA_HF_CLIENT_CB* client_cb) {
   bool removed_started = false;
   tBTM_STATUS status;
 
-  APPL_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   if (client_cb->sco_idx != BTM_INVALID_SCO_INDEX) {
     status = BTM_RemoveSco(client_cb->sco_idx);
 
-    APPL_TRACE_DEBUG("%s: idx 0x%04x, status:0x%x", __func__,
-                     client_cb->sco_idx, status);
+    LOG_VERBOSE("%s: idx 0x%04x, status:0x%x", __func__, client_cb->sco_idx,
+                status);
 
     if (status == BTM_CMD_STARTED) {
       removed_started = true;
@@ -105,12 +105,15 @@ static void bta_hf_client_sco_conn_rsp(tBTA_HF_CLIENT_CB* client_cb,
   enh_esco_params_t resp;
   uint8_t hci_status = HCI_SUCCESS;
 
-  APPL_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   if (client_cb->sco_state == BTA_HF_CLIENT_SCO_LISTEN_ST) {
     if (p_data->link_type == BTM_LINK_TYPE_SCO) {
       // SCO
       resp = esco_parameters_for_codec(SCO_CODEC_CVSD_D1, true);
+    } else if (client_cb->negotiated_codec == BTM_SCO_CODEC_LC3) {
+      // eSCO LC3, HFP 1.9
+      resp = esco_parameters_for_codec(ESCO_CODEC_LC3_T2, true);
     } else if (client_cb->negotiated_codec == BTM_SCO_CODEC_MSBC) {
       // eSCO mSBC
       resp = esco_parameters_for_codec(ESCO_CODEC_MSBC_T2, true);
@@ -143,13 +146,13 @@ static void bta_hf_client_sco_conn_rsp(tBTA_HF_CLIENT_CB* client_cb,
  ******************************************************************************/
 static void bta_hf_client_esco_connreq_cback(tBTM_ESCO_EVT event,
                                              tBTM_ESCO_EVT_DATA* p_data) {
-  APPL_TRACE_DEBUG("%s: %d", __func__, event);
+  LOG_VERBOSE("%s: %d", __func__, event);
 
   tBTA_HF_CLIENT_CB* client_cb =
       bta_hf_client_find_cb_by_sco_handle(p_data->conn_evt.sco_inx);
   if (client_cb == NULL) {
-    APPL_TRACE_ERROR("%s: wrong SCO handle to control block %d", __func__,
-                     p_data->conn_evt.sco_inx);
+    LOG_ERROR("%s: wrong SCO handle to control block %d", __func__,
+              p_data->conn_evt.sco_inx);
     return;
   }
 
@@ -173,12 +176,11 @@ static void bta_hf_client_esco_connreq_cback(tBTM_ESCO_EVT event,
  *
  ******************************************************************************/
 static void bta_hf_client_sco_conn_cback(uint16_t sco_idx) {
-  APPL_TRACE_DEBUG("%s: %d", __func__, sco_idx);
+  LOG_VERBOSE("%s: %d", __func__, sco_idx);
 
   tBTA_HF_CLIENT_CB* client_cb = bta_hf_client_find_cb_by_sco_handle(sco_idx);
   if (client_cb == NULL) {
-    APPL_TRACE_ERROR("%s: wrong SCO handle to control block %d", __func__,
-                     sco_idx);
+    LOG_ERROR("%s: wrong SCO handle to control block %d", __func__, sco_idx);
     return;
   }
 
@@ -199,11 +201,11 @@ static void bta_hf_client_sco_conn_cback(uint16_t sco_idx) {
  *
  ******************************************************************************/
 static void bta_hf_client_sco_disc_cback(uint16_t sco_idx) {
-  APPL_TRACE_DEBUG("%s: sco_idx %d", __func__, sco_idx);
+  LOG_VERBOSE("%s: sco_idx %d", __func__, sco_idx);
 
   tBTA_HF_CLIENT_CB* client_cb = bta_hf_client_find_cb_by_sco_handle(sco_idx);
   if (client_cb == NULL) {
-    APPL_TRACE_ERROR("%s: wrong handle to control block %d", __func__, sco_idx);
+    LOG_ERROR("%s: wrong handle to control block %d", __func__, sco_idx);
     return;
   }
 
@@ -227,12 +229,11 @@ static void bta_hf_client_sco_create(tBTA_HF_CLIENT_CB* client_cb,
                                      bool is_orig) {
   tBTM_STATUS status;
 
-  APPL_TRACE_DEBUG("%s: %d", __func__, is_orig);
+  LOG_VERBOSE("%s: %d", __func__, is_orig);
 
   /* Make sure this SCO handle is not already in use */
   if (client_cb->sco_idx != BTM_INVALID_SCO_INDEX) {
-    APPL_TRACE_WARNING("%s: Index 0x%04x already in use", __func__,
-                       client_cb->sco_idx);
+    LOG_WARN("%s: Index 0x%04x already in use", __func__, client_cb->sco_idx);
     return;
   }
 
@@ -263,12 +264,12 @@ static void bta_hf_client_sco_create(tBTA_HF_CLIENT_CB* client_cb,
   if (status == BTM_CMD_STARTED && !is_orig) {
     if (!BTM_RegForEScoEvts(client_cb->sco_idx,
                             bta_hf_client_esco_connreq_cback))
-      APPL_TRACE_DEBUG("%s: SCO registration success", __func__);
+      LOG_VERBOSE("%s: SCO registration success", __func__);
   }
 
-  APPL_TRACE_API("%s: orig %d, inx 0x%04x, status 0x%x, pkt types 0x%04x",
-                 __func__, is_orig, client_cb->sco_idx, status,
-                 params.packet_types);
+  LOG_VERBOSE("%s: orig %d, inx 0x%04x, status 0x%x, pkt types 0x%04x",
+              __func__, is_orig, client_cb->sco_idx, status,
+              params.packet_types);
 }
 
 /*******************************************************************************
@@ -283,8 +284,8 @@ static void bta_hf_client_sco_create(tBTA_HF_CLIENT_CB* client_cb,
  ******************************************************************************/
 static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
                                     uint8_t event) {
-  APPL_TRACE_DEBUG("%s: before state: %d event: %d", __func__,
-                   client_cb->sco_state, event);
+  LOG_VERBOSE("%s: before state: %d event: %d", __func__, client_cb->sco_state,
+              event);
 
   switch (client_cb->sco_state) {
     case BTA_HF_CLIENT_SCO_SHUTDOWN_ST:
@@ -309,8 +310,7 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
           break;
 
         default:
-          APPL_TRACE_WARNING("BTA_HF_CLIENT_SCO_SHUTDOWN_ST: Ignoring event %d",
-                             event);
+          LOG_WARN("BTA_HF_CLIENT_SCO_SHUTDOWN_ST: Ignoring event %d", event);
           break;
       }
       break;
@@ -345,9 +345,8 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
           break;
 
         default:
-          APPL_TRACE_WARNING(
-              "%s: BTA_HF_CLIENT_SCO_LISTEN_ST: Ignoring event %d", __func__,
-              event);
+          LOG_WARN("%s: BTA_HF_CLIENT_SCO_LISTEN_ST: Ignoring event %d",
+                   __func__, event);
           break;
       }
       break;
@@ -373,8 +372,7 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
           break;
 
         default:
-          APPL_TRACE_WARNING("BTA_HF_CLIENT_SCO_OPENING_ST: Ignoring event %d",
-                             event);
+          LOG_WARN("BTA_HF_CLIENT_SCO_OPENING_ST: Ignoring event %d", event);
           break;
       }
       break;
@@ -403,8 +401,7 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
           break;
 
         default:
-          APPL_TRACE_WARNING("BTA_HF_CLIENT_SCO_OPEN_CL_ST: Ignoring event %d",
-                             event);
+          LOG_WARN("BTA_HF_CLIENT_SCO_OPEN_CL_ST: Ignoring event %d", event);
           break;
       }
       break;
@@ -431,8 +428,7 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
           break;
 
         default:
-          APPL_TRACE_WARNING("BTA_HF_CLIENT_SCO_OPEN_ST: Ignoring event %d",
-                             event);
+          LOG_WARN("BTA_HF_CLIENT_SCO_OPEN_ST: Ignoring event %d", event);
           break;
       }
       break;
@@ -454,8 +450,7 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
           break;
 
         default:
-          APPL_TRACE_WARNING("BTA_HF_CLIENT_SCO_CLOSING_ST: Ignoring event %d",
-                             event);
+          LOG_WARN("BTA_HF_CLIENT_SCO_CLOSING_ST: Ignoring event %d", event);
           break;
       }
       break;
@@ -477,8 +472,7 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
           break;
 
         default:
-          APPL_TRACE_WARNING("BTA_HF_CLIENT_SCO_CLOSE_OP_ST: Ignoring event %d",
-                             event);
+          LOG_WARN("BTA_HF_CLIENT_SCO_CLOSE_OP_ST: Ignoring event %d", event);
           break;
       }
       break;
@@ -499,8 +493,7 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
           break;
 
         default:
-          APPL_TRACE_WARNING("BTA_HF_CLIENT_SCO_SHUTTING_ST: Ignoring event %d",
-                             event);
+          LOG_WARN("BTA_HF_CLIENT_SCO_SHUTTING_ST: Ignoring event %d", event);
           break;
       }
       break;
@@ -509,7 +502,7 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
       break;
   }
 
-  APPL_TRACE_DEBUG("%s: after state: %d", __func__, client_cb->sco_state);
+  LOG_VERBOSE("%s: after state: %d", __func__, client_cb->sco_state);
 }
 
 /*******************************************************************************
@@ -523,13 +516,13 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
  *
  ******************************************************************************/
 void bta_hf_client_sco_listen(tBTA_HF_CLIENT_DATA* p_data) {
-  APPL_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   tBTA_HF_CLIENT_CB* client_cb =
       bta_hf_client_find_cb_by_handle(p_data->hdr.layer_specific);
   if (client_cb == NULL) {
-    APPL_TRACE_ERROR("%s: wrong handle to control block %d", __func__,
-                     p_data->hdr.layer_specific);
+    LOG_ERROR("%s: wrong handle to control block %d", __func__,
+              p_data->hdr.layer_specific);
     return;
   }
 
@@ -547,7 +540,7 @@ void bta_hf_client_sco_listen(tBTA_HF_CLIENT_DATA* p_data) {
  *
  ******************************************************************************/
 void bta_hf_client_sco_shutdown(tBTA_HF_CLIENT_CB* client_cb) {
-  APPL_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   bta_hf_client_sco_event(client_cb, BTA_HF_CLIENT_SCO_SHUTDOWN_E);
 }
@@ -563,13 +556,13 @@ void bta_hf_client_sco_shutdown(tBTA_HF_CLIENT_CB* client_cb) {
  *
  ******************************************************************************/
 void bta_hf_client_sco_conn_open(tBTA_HF_CLIENT_DATA* p_data) {
-  APPL_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   tBTA_HF_CLIENT_CB* client_cb =
       bta_hf_client_find_cb_by_handle(p_data->hdr.layer_specific);
   if (client_cb == NULL) {
-    APPL_TRACE_ERROR("%s: wrong handle to control block %d", __func__,
-                     p_data->hdr.layer_specific);
+    LOG_ERROR("%s: wrong handle to control block %d", __func__,
+              p_data->hdr.layer_specific);
     return;
   }
 
@@ -577,7 +570,9 @@ void bta_hf_client_sco_conn_open(tBTA_HF_CLIENT_DATA* p_data) {
 
   bta_sys_sco_open(BTA_ID_HS, 1, client_cb->peer_addr);
 
-  if (client_cb->negotiated_codec == BTM_SCO_CODEC_MSBC) {
+  if (client_cb->negotiated_codec == BTM_SCO_CODEC_LC3) {
+    bta_hf_client_cback_sco(client_cb, BTA_HF_CLIENT_AUDIO_LC3_OPEN_EVT);
+  } else if (client_cb->negotiated_codec == BTM_SCO_CODEC_MSBC) {
     bta_hf_client_cback_sco(client_cb, BTA_HF_CLIENT_AUDIO_MSBC_OPEN_EVT);
   } else {
     bta_hf_client_cback_sco(client_cb, BTA_HF_CLIENT_AUDIO_OPEN_EVT);
@@ -595,13 +590,13 @@ void bta_hf_client_sco_conn_open(tBTA_HF_CLIENT_DATA* p_data) {
  *
  ******************************************************************************/
 void bta_hf_client_sco_conn_close(tBTA_HF_CLIENT_DATA* p_data) {
-  APPL_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   tBTA_HF_CLIENT_CB* client_cb =
       bta_hf_client_find_cb_by_handle(p_data->hdr.layer_specific);
   if (client_cb == NULL) {
-    APPL_TRACE_ERROR("%s: wrong handle to control block %d", __func__,
-                     p_data->hdr.layer_specific);
+    LOG_ERROR("%s: wrong handle to control block %d", __func__,
+              p_data->hdr.layer_specific);
     return;
   }
 
@@ -634,13 +629,13 @@ void bta_hf_client_sco_conn_close(tBTA_HF_CLIENT_DATA* p_data) {
  *
  ******************************************************************************/
 void bta_hf_client_sco_open(tBTA_HF_CLIENT_DATA* p_data) {
-  APPL_TRACE_DEBUG("%s", __func__);
+  LOG_VERBOSE("%s", __func__);
 
   tBTA_HF_CLIENT_CB* client_cb =
       bta_hf_client_find_cb_by_handle(p_data->hdr.layer_specific);
   if (client_cb == NULL) {
-    APPL_TRACE_ERROR("%s: wrong handle to control block %d", __func__,
-                     p_data->hdr.layer_specific);
+    LOG_ERROR("%s: wrong handle to control block %d", __func__,
+              p_data->hdr.layer_specific);
     return;
   }
 
@@ -661,12 +656,12 @@ void bta_hf_client_sco_close(tBTA_HF_CLIENT_DATA* p_data) {
   tBTA_HF_CLIENT_CB* client_cb =
       bta_hf_client_find_cb_by_handle(p_data->hdr.layer_specific);
   if (client_cb == NULL) {
-    APPL_TRACE_ERROR("%s: wrong handle to control block %d", __func__,
-                     p_data->hdr.layer_specific);
+    LOG_ERROR("%s: wrong handle to control block %d", __func__,
+              p_data->hdr.layer_specific);
     return;
   }
 
-  APPL_TRACE_DEBUG("%s: sco_idx 0x%x", __func__, client_cb->sco_idx);
+  LOG_VERBOSE("%s: sco_idx 0x%x", __func__, client_cb->sco_idx);
 
   if (client_cb->sco_idx != BTM_INVALID_SCO_INDEX) {
     bta_hf_client_sco_event(client_cb, BTA_HF_CLIENT_SCO_CLOSE_E);

@@ -490,13 +490,13 @@ tHID_STATUS HID_HostWriteDev(uint8_t dev_handle, uint8_t t_type, uint8_t param,
   tHID_STATUS status = HID_SUCCESS;
 
   if (!hh_cb.reg_flag) {
-    HIDH_TRACE_ERROR("HID_ERR_NOT_REGISTERED");
+    LOG_ERROR("HID_ERR_NOT_REGISTERED");
     status = HID_ERR_NOT_REGISTERED;
   }
 
   if ((dev_handle >= HID_HOST_MAX_DEVICES) ||
       (!hh_cb.devices[dev_handle].in_use)) {
-    HIDH_TRACE_ERROR("HID_ERR_INVALID_PARAM");
+    LOG_ERROR("HID_ERR_INVALID_PARAM");
     log_counter_metrics(android::bluetooth::CodePathCounterKeyEnum::
                             HIDH_ERR_INVALID_PARAM_AT_HOST_WRITE_DEV,
                         1);
@@ -504,7 +504,7 @@ tHID_STATUS HID_HostWriteDev(uint8_t dev_handle, uint8_t t_type, uint8_t param,
   }
 
   else if (hh_cb.devices[dev_handle].state != HID_DEV_CONNECTED) {
-    HIDH_TRACE_ERROR("HID_ERR_NO_CONNECTION dev_handle %d", dev_handle);
+    LOG_ERROR("HID_ERR_NO_CONNECTION dev_handle %d", dev_handle);
     log_counter_metrics(android::bluetooth::CodePathCounterKeyEnum::
                             HIDH_ERR_NO_CONNECTION_AT_HOST_WRITE_DEV,
                         1);

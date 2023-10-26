@@ -213,13 +213,13 @@ static void bta_ag_sco_disc_cback(uint16_t sco_idx) {
         if (bta_ag_cb.sco.p_curr_scb->inuse_codec == UUID_CODEC_LC3) {
           if (bta_ag_cb.sco.p_curr_scb->codec_lc3_settings ==
               BTA_AG_SCO_LC3_SETTINGS_T2) {
-            APPL_TRACE_WARNING(
+            LOG_WARN(
                 "%s: eSCO/SCO failed to open, falling back to LC3 T1 settings",
                 __func__);
             bta_ag_cb.sco.p_curr_scb->codec_lc3_settings =
                 BTA_AG_SCO_LC3_SETTINGS_T1;
           } else {
-            APPL_TRACE_WARNING(
+            LOG_WARN(
                 "%s: eSCO/SCO failed to open, falling back to CVSD settings",
                 __func__);
             bta_ag_cb.sco.p_curr_scb->inuse_codec = UUID_CODEC_CVSD;
@@ -228,23 +228,22 @@ static void bta_ag_sco_disc_cback(uint16_t sco_idx) {
         } else {
           if (bta_ag_cb.sco.p_curr_scb->codec_msbc_settings ==
               BTA_AG_SCO_MSBC_SETTINGS_T2) {
-            APPL_TRACE_WARNING(
+            LOG_WARN(
                 "%s: eSCO/SCO failed to open, falling back to mSBC T1 settings",
                 __func__);
             bta_ag_cb.sco.p_curr_scb->codec_msbc_settings =
                 BTA_AG_SCO_MSBC_SETTINGS_T1;
 
           } else {
-            APPL_TRACE_WARNING(
-                "%s: eSCO/SCO failed to open, falling back to CVSD", __func__);
+            LOG_WARN("%s: eSCO/SCO failed to open, falling back to CVSD",
+                     __func__);
             bta_ag_cb.sco.p_curr_scb->inuse_codec = UUID_CODEC_CVSD;
             bta_ag_cb.sco.p_curr_scb->codec_fallback = true;
           }
         }
       }
     } else if (bta_ag_sco_is_opening(bta_ag_cb.sco.p_curr_scb)) {
-      APPL_TRACE_ERROR("%s: eSCO/SCO failed to open, no more fall back",
-                       __func__);
+      LOG_ERROR("%s: eSCO/SCO failed to open, no more fall back", __func__);
     }
 
     bta_ag_cb.sco.p_curr_scb->inuse_codec = BTM_SCO_CODEC_NONE;
@@ -254,7 +253,7 @@ static void bta_ag_sco_disc_cback(uint16_t sco_idx) {
                                   BTA_AG_SCO_CLOSE_EVT, tBTA_AG_DATA::kEmpty));
   } else {
     /* no match found */
-    APPL_TRACE_DEBUG("no scb for ag_sco_disc_cback");
+    LOG_VERBOSE("no scb for ag_sco_disc_cback");
 
     /* sco could be closed after scb dealloc'ed */
     if (bta_ag_cb.sco.p_curr_scb != nullptr) {
@@ -318,8 +317,8 @@ static void bta_ag_esco_connreq_cback(tBTM_ESCO_EVT event,
 
       /* If no other SCO active, allow this one */
       if (!bta_ag_cb.sco.p_curr_scb) {
-        APPL_TRACE_EVENT("%s: Accept Conn Request (sco_inx 0x%04x)", __func__,
-                         sco_inx);
+        LOG_VERBOSE("%s: Accept Conn Request (sco_inx 0x%04x)", __func__,
+                    sco_inx);
         bta_ag_sco_conn_rsp(p_scb, &p_data->conn_evt);
 
         bta_ag_cb.sco.state = BTA_AG_SCO_OPENING_ST;
@@ -327,13 +326,13 @@ static void bta_ag_esco_connreq_cback(tBTM_ESCO_EVT event,
         bta_ag_cb.sco.cur_idx = p_scb->sco_idx;
       } else {
         /* Begin a transfer: Close current SCO before responding */
-        APPL_TRACE_DEBUG("bta_ag_esco_connreq_cback: Begin XFER");
+        LOG_VERBOSE("bta_ag_esco_connreq_cback: Begin XFER");
         bta_ag_cb.sco.p_xfer_scb = p_scb;
         bta_ag_cb.sco.conn_data = p_data->conn_evt;
         bta_ag_cb.sco.state = BTA_AG_SCO_OPEN_XFER_ST;
 
         if (!bta_ag_remove_sco(bta_ag_cb.sco.p_curr_scb, true)) {
-          APPL_TRACE_ERROR(
+          LOG_ERROR(
               "%s: Nothing to remove,so accept Conn Request(sco_inx 0x%04x)",
               __func__, sco_inx);
           bta_ag_cb.sco.p_xfer_scb = nullptr;
@@ -400,9 +399,8 @@ void bta_ag_create_sco(tBTA_AG_SCB* p_scb, bool is_orig) {
   }
   /* Make sure this SCO handle is not already in use */
   if (p_scb->sco_idx != BTM_INVALID_SCO_INDEX) {
-    APPL_TRACE_ERROR("%s: device %s, index 0x%04x already in use!", __func__,
-                     ADDRESS_TO_LOGGABLE_CSTR(p_scb->peer_addr),
-                     p_scb->sco_idx);
+    LOG_ERROR("%s: device %s, index 0x%04x already in use!", __func__,
+              ADDRESS_TO_LOGGABLE_CSTR(p_scb->peer_addr), p_scb->sco_idx);
     return;
   }
 
@@ -556,7 +554,7 @@ void bta_ag_create_pending_sco(tBTA_AG_SCB* p_scb, bool is_local) {
       /* Configure input/output data. */
       hfp_hal_interface::set_codec_datapath(esco_codec);
     }
-    APPL_TRACE_DEBUG("%s: initiated SCO connection", __func__);
+    LOG_VERBOSE("%s: initiated SCO connection", __func__);
   } else {
     // Local device accepted SCO connection from peer(HF)
     // Because HF devices usually do not send AT+BAC and +BCS command,
@@ -582,7 +580,7 @@ void bta_ag_create_pending_sco(tBTA_AG_SCB* p_scb, bool is_local) {
     }
 
     BTM_EScoConnRsp(p_scb->sco_idx, HCI_SUCCESS, &params);
-    APPL_TRACE_DEBUG("%s: listening for SCO connection", __func__);
+    LOG_VERBOSE("%s: listening for SCO connection", __func__);
   }
 }
 
@@ -1295,7 +1293,7 @@ void bta_ag_sco_close(tBTA_AG_SCB* p_scb,
    * state. */
   if ((p_scb->sco_idx != BTM_INVALID_SCO_INDEX) ||
       (bta_ag_cb.sco.state == BTA_AG_SCO_CODEC_ST)) {
-    APPL_TRACE_DEBUG("bta_ag_sco_close: sco_inx = %d", p_scb->sco_idx);
+    LOG_VERBOSE("bta_ag_sco_close: sco_inx = %d", p_scb->sco_idx);
     bta_ag_sco_event(p_scb, BTA_AG_SCO_CLOSE_E);
   }
 }
@@ -1426,10 +1424,10 @@ void bta_ag_sco_conn_rsp(tBTA_AG_SCB* p_scb,
                          tBTM_ESCO_CONN_REQ_EVT_DATA* p_data) {
   bta_ag_cb.sco.is_local = false;
 
-  APPL_TRACE_DEBUG("%s: eSCO %d, state %d", __func__,
-                   controller_get_interface()
-                       ->supports_enhanced_setup_synchronous_connection(),
-                   bta_ag_cb.sco.state);
+  LOG_VERBOSE("%s: eSCO %d, state %d", __func__,
+              controller_get_interface()
+                  ->supports_enhanced_setup_synchronous_connection(),
+              bta_ag_cb.sco.state);
 
   if (bta_ag_cb.sco.state == BTA_AG_SCO_LISTEN_ST ||
       bta_ag_cb.sco.state == BTA_AG_SCO_CLOSE_XFER_ST ||
@@ -1451,8 +1449,7 @@ void bta_ag_set_sco_offload_enabled(bool value) {
 
 void bta_ag_set_sco_allowed(bool value) {
   sco_allowed = value;
-  APPL_TRACE_DEBUG("%s",
-                   sco_allowed ? "sco now allowed" : "sco now not allowed");
+  LOG_VERBOSE("%s", sco_allowed ? "sco now allowed" : "sco now not allowed");
 }
 
 const RawAddress& bta_ag_get_active_device() { return active_device_addr; }
@@ -1464,7 +1461,7 @@ void bta_clear_active_device() {
 
 void bta_ag_api_set_active_device(const RawAddress& new_active_device) {
   if (new_active_device.IsEmpty()) {
-    APPL_TRACE_ERROR("%s: empty device", __func__);
+    LOG_ERROR("%s: empty device", __func__);
     return;
   }
   active_device_addr = new_active_device;

@@ -70,8 +70,7 @@ bt_status_t btif_transfer_context(tBTIF_CBACK* p_cback, uint16_t event,
   tBTIF_CONTEXT_SWITCH_CBACK* p_msg = (tBTIF_CONTEXT_SWITCH_CBACK*)osi_malloc(
       sizeof(tBTIF_CONTEXT_SWITCH_CBACK) + param_len);
 
-  BTIF_TRACE_VERBOSE("btif_transfer_context event %d, len %d", event,
-                     param_len);
+  LOG_VERBOSE("btif_transfer_context event %d, len %d", event, param_len);
 
   /* allocate and send message that will be executed in btif context */
   p_msg->hdr.event = BT_EVT_CONTEXT_SWITCH_EVT; /* internal event */

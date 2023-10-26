@@ -51,6 +51,10 @@ pub trait IBluetoothManager {
     /// Returns Floss API verion.The MSB 16-bit is the major version and
     /// LSB 16-bit is the minor version
     fn get_floss_api_version(&mut self) -> u32;
+
+    /// Set the tablet mode of the device. The device that is in tablet mode does not allow
+    /// wakeup by the HID devices.
+    fn set_tablet_mode(&mut self, tablet_mode: bool);
 }
 
 /// Interface of Bluetooth Manager callbacks.

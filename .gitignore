@@ -13,3 +13,5 @@ compile_commands.json
 *.profraw
 *.iml
 **/.idea
+**/__pycache__/
+*.py[cod]

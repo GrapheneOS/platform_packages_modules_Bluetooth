@@ -454,7 +454,7 @@ void bta_av_ssm_execute(tBTA_AV_SCB* p_scb, uint16_t event,
                         tBTA_AV_DATA* p_data) {
   if (p_scb == NULL) {
     /* this stream is not registered */
-    APPL_TRACE_EVENT("%s: AV channel not registered", __func__);
+    LOG_VERBOSE("%s: AV channel not registered", __func__);
     return;
   }
 
@@ -518,7 +518,7 @@ void bta_av_set_scb_sst_init(tBTA_AV_SCB* p_scb) {
 
   uint8_t next_state = BTA_AV_INIT_SST;
 
-  APPL_TRACE_VERBOSE(
+  LOG_VERBOSE(
       "%s: peer %s AV (hndl=0x%x) state=%d(%s) next state=%d(%s) p_scb=%p",
       __func__, ADDRESS_TO_LOGGABLE_CSTR(p_scb->PeerAddress()), p_scb->hndl,
       p_scb->state, bta_av_sst_code(p_scb->state), next_state,
