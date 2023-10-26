@@ -113,17 +113,6 @@ struct AVRC_RemoveRecord {
 };
 extern struct AVRC_RemoveRecord AVRC_RemoveRecord;
 
-// Name: AVRC_SetTraceLevel
-// Params: uint8_t new_level
-// Return: uint8_t
-struct AVRC_SetTraceLevel {
-  static uint8_t return_value;
-  std::function<uint8_t(uint8_t new_level)> body{
-      [](uint8_t new_level) { return return_value; }};
-  uint8_t operator()(uint8_t new_level) { return body(new_level); };
-};
-extern struct AVRC_SetTraceLevel AVRC_SetTraceLevel;
-
 }  // namespace stack_avrc_sdp
 }  // namespace mock
 }  // namespace test

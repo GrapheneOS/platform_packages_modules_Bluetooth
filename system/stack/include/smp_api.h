@@ -49,18 +49,6 @@ void SMP_Init(uint8_t init_security_mode);
 
 /*******************************************************************************
  *
- * Function         SMP_SetTraceLevel
- *
- * Description      This function sets the trace level for SMP.  If called with
- *                  a value of 0xFF, it simply returns the current trace level.
- *
- * Returns          The new or current trace level
- *
- ******************************************************************************/
-uint8_t SMP_SetTraceLevel(uint8_t new_level);
-
-/*******************************************************************************
- *
  * Function         SMP_Register
  *
  * Description      This function register for the SMP service callback.

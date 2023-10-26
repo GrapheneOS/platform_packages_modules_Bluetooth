@@ -168,7 +168,6 @@ typedef struct {
 typedef struct {
   tRFCOMM_CB rfc;
   tPORT_CB port;
-  uint8_t trace_level;
 } tRFC_CB;
 
 extern tRFC_CB rfc_cb;

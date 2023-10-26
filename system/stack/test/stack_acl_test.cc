@@ -29,7 +29,6 @@
 #include "types/hci_role.h"
 #include "types/raw_address.h"
 
-uint8_t btif_trace_level = BT_TRACE_LEVEL_DEBUG;
 tBTM_CB btm_cb;
 tBTM_SEC_CB btm_sec_cb;
 

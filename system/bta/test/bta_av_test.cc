@@ -51,17 +51,13 @@ struct alarm_t {
   int any_value;
 };
 
-extern uint8_t appl_trace_level;
-
 class BtaAvTest : public testing::Test {
  protected:
   void SetUp() override {
     reset_mock_function_count_map();
     bluetooth::common::InitFlags::SetAllForTesting();
-    appl_trace_level = BT_TRACE_LEVEL_VERBOSE;
   }
   void TearDown() override {
-    LOG_INFO("appl_trace_level:%hhu", appl_trace_level);
   }
 };
 

@@ -51,12 +51,6 @@ using bluetooth::Uuid;
  ******************************************************************************/
 void BNEP_Init(void) {
   memset(&bnep_cb, 0, sizeof(tBNEP_CB));
-
-#if defined(BNEP_INITIAL_TRACE_LEVEL)
-  bnep_cb.trace_level = BNEP_INITIAL_TRACE_LEVEL;
-#else
-  bnep_cb.trace_level = BT_TRACE_LEVEL_NONE; /* No traces */
-#endif
 }
 
 /*******************************************************************************
@@ -636,20 +630,3 @@ tBNEP_RESULT BNEP_SetMulticastFilters(uint16_t handle, uint16_t num_filters,
 
   return (BNEP_SUCCESS);
 }
-
-/*******************************************************************************
- *
- * Function         BNEP_SetTraceLevel
- *
- * Description      This function sets the trace level for BNEP. If called with
- *                  a value of 0xFF, it simply reads the current trace level.
- *
- * Returns          the new (current) trace level
- *
- ******************************************************************************/
-uint8_t BNEP_SetTraceLevel(uint8_t new_level) {
-  if (new_level != 0xFF) bnep_cb.trace_level = new_level;
-
-  return (bnep_cb.trace_level);
-}
-

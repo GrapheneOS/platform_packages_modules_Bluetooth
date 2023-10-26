@@ -82,9 +82,6 @@ int AVRC_BldResponse_ = 0;
 int AVRC_BldCmd_ = 0;
 }  // namespace
 
-uint8_t appl_trace_level = BT_TRACE_LEVEL_WARNING;
-uint8_t btif_trace_level = BT_TRACE_LEVEL_WARNING;
-
 const RawAddress kDeviceAddress({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 bool avrcp_absolute_volume_is_enabled() { return true; }
 

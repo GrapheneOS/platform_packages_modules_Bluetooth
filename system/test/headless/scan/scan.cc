@@ -104,8 +104,6 @@ int bluetooth::test::headless::Scan::Run() {
     return -1;
   }
   return RunOnHeadlessStack<int>([this]() {
-    btif_trace_level = BT_TRACE_LEVEL_DEBUG;
-    appl_trace_level = BT_TRACE_LEVEL_DEBUG;
     return start_scan(options_.loop_);
   });
 }

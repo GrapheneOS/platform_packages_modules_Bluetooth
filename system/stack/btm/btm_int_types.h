@@ -156,7 +156,6 @@ typedef struct tBTM_CB {
 
   uint16_t disc_handle{0};          /* for legacy devices */
   uint8_t disc_reason{0};           /* for legacy devices */
-  uint8_t trace_level;
   bool is_inquiry{false}; /* true, if inquiry is in progess */
 
   fixed_queue_t* sec_pending_q{nullptr}; /* pending sequrity requests in
@@ -194,12 +193,6 @@ typedef struct tBTM_CB {
 
     acl_cb_ = {};
     neighbor = {};
-
-#if defined(BTM_INITIAL_TRACE_LEVEL)
-    trace_level = BTM_INITIAL_TRACE_LEVEL;
-#else
-    trace_level = BT_TRACE_LEVEL_NONE; /* No traces */
-#endif
 
     /* Initialize BTM component structures */
     btm_inq_vars.Init(); /* Inquiry Database and Structures */

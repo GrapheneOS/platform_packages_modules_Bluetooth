@@ -39,7 +39,6 @@ int get_default_hf_client_features() {
 #endif
 }
 
-uint8_t btif_trace_level = BT_TRACE_LEVEL_WARNING;
 tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK* p_cback,
                                tBTA_HF_CLIENT_FEAT features,
                                const char* p_service_name) {

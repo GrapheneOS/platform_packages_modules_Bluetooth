@@ -32,9 +32,6 @@
 #define UNUSED_ATTR
 #endif
 
-// Global trace level referred in the code under test
-uint8_t appl_trace_level = BT_TRACE_LEVEL_VERBOSE;
-
 class StackAvdtpTest : public ::testing::Test {
  protected:
   StackAvdtpTest() = default;
