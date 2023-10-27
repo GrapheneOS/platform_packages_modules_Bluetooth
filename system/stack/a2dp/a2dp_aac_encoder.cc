@@ -39,11 +39,7 @@
 #define A2DP_AAC_ENCODER_INTERVAL_MS 20
 
 // offset
-#if (BTA_AV_CO_CP_SCMS_T == TRUE)
-#define A2DP_AAC_OFFSET (AVDT_MEDIA_OFFSET + 1)
-#else
 #define A2DP_AAC_OFFSET AVDT_MEDIA_OFFSET
-#endif
 
 typedef struct {
   uint32_t sample_rate;
@@ -135,10 +131,7 @@ void a2dp_aac_encoder_init(const tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params,
   a2dp_aac_encoder_cb.peer_params = *p_peer_params;
   a2dp_aac_encoder_cb.timestamp = 0;
 
-  a2dp_aac_encoder_cb.use_SCMS_T = false;  // TODO: should be a parameter
-#if (BTA_AV_CO_CP_SCMS_T == TRUE)
-  a2dp_aac_encoder_cb.use_SCMS_T = true;
-#endif
+  a2dp_aac_encoder_cb.use_SCMS_T = false;
 
   // NOTE: Ignore the restart_input / restart_output flags - this initization
   // happens when the audio session is (re)started.

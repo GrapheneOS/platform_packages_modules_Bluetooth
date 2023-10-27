@@ -48,11 +48,7 @@
 #define A2DP_LDAC_MEDIA_BYTES_PER_FRAME 128
 
 // offset
-#if (BTA_AV_CO_CP_SCMS_T == TRUE)
-#define A2DP_LDAC_OFFSET (AVDT_MEDIA_OFFSET + A2DP_LDAC_MPL_HDR_LEN + 1)
-#else
 #define A2DP_LDAC_OFFSET (AVDT_MEDIA_OFFSET + A2DP_LDAC_MPL_HDR_LEN)
-#endif
 
 typedef struct {
   uint32_t sample_rate;
@@ -152,10 +148,7 @@ void a2dp_vendor_ldac_encoder_init(
   a2dp_ldac_encoder_cb.last_ldac_abr_eqmid = -1;
   a2dp_ldac_encoder_cb.ldac_abr_adjustments = 0;
 
-  a2dp_ldac_encoder_cb.use_SCMS_T = false;  // TODO: should be a parameter
-#if (BTA_AV_CO_CP_SCMS_T == TRUE)
-  a2dp_ldac_encoder_cb.use_SCMS_T = true;
-#endif
+  a2dp_ldac_encoder_cb.use_SCMS_T = false;
 
   // NOTE: Ignore the restart_input / restart_output flags - this initization
   // happens when the audio session is (re)started.
