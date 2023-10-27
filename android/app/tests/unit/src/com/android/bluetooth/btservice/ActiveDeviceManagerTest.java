@@ -22,6 +22,8 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -36,12 +38,14 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSinkAudioPolicy;
 import android.content.Context;
 import android.media.AudioManager;
+import android.os.test.TestLooper;
 import android.util.ArrayMap;
 import android.util.SparseIntArray;
 
 import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
@@ -61,6 +65,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,6 +94,7 @@ public class ActiveDeviceManagerTest {
             ActiveDeviceManager.A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS + 2_000;
     private boolean mOriginalDualModeAudioState;
     private TestDatabaseManager mDatabaseManager;
+    private TestLooper mTestLooper;
 
     @Mock private AdapterService mAdapterService;
     @Mock private ServiceFactory mServiceFactory;
@@ -97,15 +103,20 @@ public class ActiveDeviceManagerTest {
     @Mock private HearingAidService mHearingAidService;
     @Mock private LeAudioService mLeAudioService;
     @Mock private AudioManager mAudioManager;
+    @Spy private BluetoothMethodProxy mMethodProxy = BluetoothMethodProxy.getInstance();
 
     @Before
     public void setUp() throws Exception {
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
+        mTestLooper = new TestLooper();
+        BluetoothMethodProxy.setInstanceForTesting(mMethodProxy);
+        doReturn(mTestLooper.getLooper()).when(mMethodProxy).handlerThreadGetLooper(any());
+        doNothing().when(mMethodProxy).threadStart(any());
+        mTestLooper.startAutoDispatch();
         TestUtils.setAdapterService(mAdapterService);
 
         mDatabaseManager = new TestDatabaseManager(mAdapterService, new FakeFeatureFlagsImpl());
-
         when(mAdapterService.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mAudioManager);
         when(mAdapterService.getSystemServiceName(AudioManager.class))
                 .thenReturn(Context.AUDIO_SERVICE);
@@ -165,6 +176,8 @@ public class ActiveDeviceManagerTest {
 
     @After
     public void tearDown() throws Exception {
+        mTestLooper.stopAutoDispatchAndIgnoreExceptions();
+        BluetoothMethodProxy.setInstanceForTesting(null);
         mActiveDeviceManager.cleanup();
         TestUtils.clearAdapterService(mAdapterService);
         Utils.setDualModeAudioStateForTesting(mOriginalDualModeAudioState);
@@ -191,6 +204,18 @@ public class ActiveDeviceManagerTest {
         headsetConnected(mA2dpHeadsetDevice, true);
         verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpHeadsetDevice);
         verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpHeadsetDevice);
+    }
+
+    @Test
+    public void a2dpAndHfpConnectedAtTheSameTime_setA2dpActiveShouldBeCalled() {
+        mTestLooper.stopAutoDispatchAndIgnoreExceptions();
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_IN_CALL);
+
+        a2dpConnected(mA2dpHeadsetDevice, true);
+        headsetConnected(mA2dpHeadsetDevice, true);
+        mTestLooper.dispatchAll();
+        verify(mA2dpService).setActiveDevice(mA2dpHeadsetDevice);
+        verify(mHeadsetService).setActiveDevice(mA2dpHeadsetDevice);
     }
 
     /**
@@ -324,20 +349,30 @@ public class ActiveDeviceManagerTest {
 
     @Test
     public void a2dpConnectedButHeadsetNotConnected_setA2dpActive() {
+        mTestLooper.stopAutoDispatchAndIgnoreExceptions();
         when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_IN_CALL);
-
         a2dpConnected(mA2dpHeadsetDevice, true);
-        verify(mA2dpService, timeout(A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS))
-                .setActiveDevice(mA2dpHeadsetDevice);
+
+        mTestLooper.moveTimeForward(ActiveDeviceManager.A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS / 2);
+        mTestLooper.dispatchAll();
+        verify(mA2dpService, never()).setActiveDevice(mA2dpHeadsetDevice);
+        mTestLooper.moveTimeForward(A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS);
+        mTestLooper.dispatchAll();
+        verify(mA2dpService).setActiveDevice(mA2dpHeadsetDevice);
     }
 
     @Test
     public void headsetConnectedButA2dpNotConnected_setHeadsetActive() {
+        mTestLooper.stopAutoDispatchAndIgnoreExceptions();
         when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
-
         headsetConnected(mA2dpHeadsetDevice, true);
-        verify(mHeadsetService, timeout(A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS))
-                .setActiveDevice(mA2dpHeadsetDevice);
+
+        mTestLooper.moveTimeForward(ActiveDeviceManager.A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS / 2);
+        mTestLooper.dispatchAll();
+        verify(mHeadsetService, never()).setActiveDevice(mA2dpHeadsetDevice);
+        mTestLooper.moveTimeForward(A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS);
+        mTestLooper.dispatchAll();
+        verify(mHeadsetService).setActiveDevice(mA2dpHeadsetDevice);
     }
 
     @Test
@@ -367,25 +402,27 @@ public class ActiveDeviceManagerTest {
 
     @Test
     public void hfpActivatedAfterTimeout_shouldActivateA2dpAgain() {
+        mTestLooper.stopAutoDispatchAndIgnoreExceptions();
         a2dpConnected(mA2dpHeadsetDevice, true);
         headsetConnected(mA2dpHeadsetDevice, true);
         a2dpActiveDeviceChanged(null);
         headsetActiveDeviceChanged(null);
 
-        TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
+        mTestLooper.dispatchAll();
         Mockito.clearInvocations(mHeadsetService);
         Mockito.clearInvocations(mA2dpService);
 
         // When A2DP is activated, then it should activate HFP
         a2dpActiveDeviceChanged(mA2dpHeadsetDevice);
-        verify(mA2dpService, after(A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS).never())
-                .setActiveDevice(any());
+        mTestLooper.moveTimeForward(A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS);
+        mTestLooper.dispatchAll();
+        verify(mA2dpService, never()).setActiveDevice(any());
         verify(mHeadsetService).setActiveDevice(mA2dpHeadsetDevice);
 
         a2dpActiveDeviceChanged(null);
         // When HFP activated after timeout, it should activate A2DP again
         headsetActiveDeviceChanged(mA2dpHeadsetDevice);
-        TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
+        mTestLooper.dispatchAll();
         verify(mA2dpService).setActiveDevice(mA2dpHeadsetDevice);
     }
 
