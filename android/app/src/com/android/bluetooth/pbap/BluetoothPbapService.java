@@ -65,6 +65,7 @@ import android.sysprop.BluetoothProperties;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.IObexConnectionHandler;
 import com.android.bluetooth.ObexServerSockets;
 import com.android.bluetooth.R;
@@ -468,7 +469,6 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                 sNotificationManager.cancelAll();
             }
         }
-
     }
     private class PbapHandler extends Handler {
         private PbapHandler(Looper looper) {
@@ -710,8 +710,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         mContext = this;
         mContactsLoaded = false;
         mHandlerThread = new HandlerThread("PbapHandlerThread");
-        mHandlerThread.start();
-        mSessionStatusHandler = new PbapHandler(mHandlerThread.getLooper());
+        BluetoothMethodProxy mp = BluetoothMethodProxy.getInstance();
+        mp.threadStart(mHandlerThread);
+        mSessionStatusHandler = new PbapHandler(mp.handlerThreadGetLooper(mHandlerThread));
         IntentFilter filter = new IntentFilter();
         filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
