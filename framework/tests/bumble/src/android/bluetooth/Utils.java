@@ -16,7 +16,11 @@
 
 package android.bluetooth;
 
+import static com.google.common.io.BaseEncoding.base16;
+
 import com.google.protobuf.ByteString;
+
+import java.util.Locale;
 
 public final class Utils {
     public static final String BUMBLE_RANDOM_ADDRESS = "51:F7:A8:75:AC:5E";
@@ -30,5 +34,13 @@ public final class Utils {
             refAddrBuilder.append(String.format("%02X", bs.byteAt(i)));
         }
         return refAddrBuilder.toString();
+    }
+
+    /**
+     * @param address String representing Bluetooth address (case insensitive).
+     * @return Decoded address.
+     */
+    public static byte[] addressBytesFromString(String address) {
+        return base16().upperCase().withSeparator(":", 2).decode(address.toUpperCase(Locale.US));
     }
 }
