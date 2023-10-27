@@ -17,10 +17,9 @@ import logging
 
 from bumble.core import UUID as BumbleUUID, AdvertisingData
 from bumble.device import Device
-from bumble.gatt import TemplateService, Characteristic, CharacteristicValue
-from bumble.pandora import utils
+from bumble.gatt import Characteristic, CharacteristicValue, TemplateService
 from bumble.l2cap import Channel
-
+from bumble.pandora import utils
 from google.protobuf.empty_pb2 import Empty
 from pandora_experimental.dck_grpc_aio import DckServicer
 from typing import Optional
@@ -37,14 +36,14 @@ class DckGattService(TemplateService):
     def __init__(self, device: Device):
         logger = logging.getLogger(__name__)
 
-        def on_l2cap_server(channel: Channel):
+        def on_l2cap_server(channel: Channel) -> None:
             logger.info(f"--- DckGattService on_l2cap_server")
 
-        self.device_dk_version_value = 0
+        self.device_dk_version_value = None
         self.psm = device.register_l2cap_channel_server(0, on_l2cap_server)  # type: ignore
 
-        def on_device_version_write(value: bytes):
-            logger.info(f"--- DK Device Version Write: {value}")
+        def on_device_version_write(value: bytes) -> None:
+            logger.info(f"--- DK Device Version Write: {value!r}")
             self.device_dk_version_value = value
 
         characteristics = [
@@ -52,26 +51,26 @@ class DckGattService(TemplateService):
                 DckGattService.UUID_SPSM,
                 Characteristic.Properties.READ,
                 Characteristic.READABLE,
-                CharacteristicValue(read=bytes(self.psm))  # type: ignore[no-untyped-call]
+                CharacteristicValue(read=bytes(self.psm)),  # type: ignore[no-untyped-call]
             ),
             Characteristic(
                 DckGattService.UUID_SPSM_DK_VERSION,
                 Characteristic.Properties.READ,
                 Characteristic.READ_REQUIRES_ENCRYPTION,
-                CharacteristicValue(read=b'')  # type: ignore[no-untyped-call]
+                CharacteristicValue(read=b''),  # type: ignore[no-untyped-call]
             ),
             Characteristic(
                 DckGattService.UUID_DEVICE_DK_VERSION,
                 Characteristic.Properties.WRITE,
                 Characteristic.READ_REQUIRES_ENCRYPTION,
-                CharacteristicValue(write=on_device_version_write)  # type: ignore[no-untyped-call]
+                CharacteristicValue(write=on_device_version_write),  # type: ignore[no-untyped-call]
             ),
             Characteristic(
                 DckGattService.UUID_ANTENNA_IDENTIFIER,
                 Characteristic.READ,
                 Characteristic.READABLE,
-                CharacteristicValue(read=b'')  # type: ignore[no-untyped-call]
-            )
+                CharacteristicValue(read=b''),  # type: ignore[no-untyped-call]
+            ),
         ]
 
         super().__init__(characteristics)  # type: ignore[no-untyped-call]
@@ -84,7 +83,6 @@ class DckGattService(TemplateService):
 
 
 class DckService(DckServicer):
-
     device: Device
     dck_gatt_service: Optional[DckGattService]
 
