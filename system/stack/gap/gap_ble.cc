@@ -151,7 +151,6 @@ tGATT_STATUS read_attr_value(uint16_t handle, tGATT_VALUE* p_value,
             p_value->len -= offset;
             p_dev_name += offset;
             ARRAY_TO_STREAM(p, p_dev_name, p_value->len);
-            DVLOG(1) << "GATT_UUID_GAP_DEVICE_NAME len=" << +p_value->len;
           }
           break;
 
@@ -204,8 +203,6 @@ void server_attr_request_cback(uint16_t conn_id, uint32_t trans_id,
   tGATT_STATUS status = GATT_INVALID_PDU;
   bool ignore = false;
 
-  DVLOG(1) << StringPrintf("%s: recv type (0x%02x)", __func__, type);
-
   tGATTS_RSP rsp_msg;
   memset(&rsp_msg, 0, sizeof(tGATTS_RSP));
 
@@ -224,17 +221,17 @@ void server_attr_request_cback(uint16_t conn_id, uint32_t trans_id,
 
     case GATTS_REQ_TYPE_WRITE_EXEC:
       ignore = true;
-      DVLOG(1) << "Ignore GATTS_REQ_TYPE_WRITE_EXEC";
+      VLOG(1) << "Ignore GATTS_REQ_TYPE_WRITE_EXEC";
       break;
 
     case GATTS_REQ_TYPE_MTU:
-      DVLOG(1) << "Get MTU exchange new mtu size: " << +p_data->mtu;
+      VLOG(1) << "Get MTU exchange new mtu size: " << +p_data->mtu;
       ignore = true;
       break;
 
     default:
-      DVLOG(1) << StringPrintf("Unknown/unexpected LE GAP ATT request: 0x%02x",
-                               type);
+      VLOG(1) << StringPrintf("Unknown/unexpected LE GAP ATT request: 0x%02x",
+                              type);
       break;
   }
 
@@ -275,13 +272,10 @@ void cl_op_cmpl(tGAP_CLCB& clcb, bool status, uint16_t len, uint8_t* p_name) {
   tGAP_BLE_CMPL_CBACK* p_cback = clcb.p_cback;
   uint16_t op = clcb.cl_op_uuid;
 
-  DVLOG(1) << StringPrintf("%s: status: %d", __func__, status);
-
   clcb.cl_op_uuid = 0;
   clcb.p_cback = NULL;
 
   if (p_cback && op) {
-    DVLOG(1) << __func__ << ": calling";
     (*p_cback)(status, clcb.bda, len, (char*)p_name);
   }
 
@@ -333,9 +327,6 @@ void client_cmpl_cback(uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STATUS status,
 
   op_type = p_clcb->cl_op_uuid;
 
-  DVLOG(1) << StringPrintf(
-      "%s: - op_code: 0x%02x  status: 0x%02x  read_type: 0x%04x", __func__, op,
-      status, op_type);
   /* Currently we only issue read commands */
   if (op != GATTC_OPTYPE_READ) return;
 
@@ -378,9 +369,6 @@ bool accept_client_operation(const RawAddress& peer_bda, uint16_t uuid,
   if (p_clcb == NULL) {
     p_clcb = clcb_alloc(peer_bda);
   }
-
-  DVLOG(1) << __func__ << ": BDA: " << ADDRESS_TO_LOGGABLE_STR(peer_bda)
-           << StringPrintf(" cl_op_uuid: 0x%04x", uuid);
 
   if (GATT_GetConnIdIfConnected(gatt_if, peer_bda, &p_clcb->conn_id,
                                 BT_TRANSPORT_LE))
@@ -459,8 +447,6 @@ void gap_attr_db_init(void) {
                    sizeof(service) / sizeof(btgatt_db_element_t));
   service_handle = service[0].attribute_handle;
 
-  DVLOG(1) << __func__ << ": service_handle = " << +service_handle;
-
   gatt_attr[0].uuid = GATT_UUID_GAP_DEVICE_NAME;
   gatt_attr[0].handle = service[1].attribute_handle;
 
@@ -491,12 +477,8 @@ void gap_attr_db_init(void) {
  *
  ******************************************************************************/
 void GAP_BleAttrDBUpdate(uint16_t attr_uuid, tGAP_BLE_ATTR_VALUE* p_value) {
-  DVLOG(1) << StringPrintf("%s: attr_uuid=0x%04x", __func__, attr_uuid);
-
   for (tGAP_ATTR& db_attr : gatt_attr) {
     if (db_attr.uuid == attr_uuid) {
-      DVLOG(1) << StringPrintf("Found attr_uuid=0x%04x", attr_uuid);
-
       switch (attr_uuid) {
         case GATT_UUID_GAP_ICON:
           db_attr.attr_value.icon = p_value->icon;
@@ -563,10 +545,6 @@ bool GAP_BleReadPeerDevName(const RawAddress& peer_bda,
  ******************************************************************************/
 bool GAP_BleCancelReadPeerDevName(const RawAddress& peer_bda) {
   tGAP_CLCB* p_clcb = find_clcb_by_bd_addr(peer_bda);
-
-  DVLOG(1) << __func__ << ": BDA: " << ADDRESS_TO_LOGGABLE_STR(peer_bda)
-           << StringPrintf(" cl_op_uuid: 0x%04x",
-                           (p_clcb == NULL) ? 0 : p_clcb->cl_op_uuid);
 
   if (p_clcb == NULL) {
     LOG(ERROR) << "Cannot cancel current op is not get dev name";

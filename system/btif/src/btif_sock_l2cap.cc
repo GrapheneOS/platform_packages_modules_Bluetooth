@@ -932,7 +932,6 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id) {
            reported total size of awaiting packets. Hence, we adjust the buffer
            length. */
         buffer->len = count;
-        DVLOG(2) << __func__ << ": bytes received from socket: " << count;
 
         // will take care of freeing buffer
         BTA_JvL2capWrite(sock->handle, PTR_TO_UINT(buffer), buffer, user_id);
