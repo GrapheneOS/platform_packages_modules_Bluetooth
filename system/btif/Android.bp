@@ -118,7 +118,6 @@ cc_library_static {
         "src/btif_profile_storage.cc",
         "src/btif_rc.cc",
         "src/btif_vc.cc",
-        "src/profile_log_levels.cc",
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
@@ -283,6 +282,7 @@ cc_test {
         "liblog",
         "libstatssocket",
         "libutils",
+        "server_configurable_flags",
     ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
@@ -420,7 +420,6 @@ cc_test {
     },
     include_dirs: btifCommonIncludes,
     srcs: [
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestMockCommon",
         ":TestMockOsi",
@@ -512,7 +511,6 @@ cc_test {
     test_suites: ["device-tests"],
     include_dirs: btifCommonIncludes,
     srcs: [
-        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestFakeOsi",
         ":TestMockStack",

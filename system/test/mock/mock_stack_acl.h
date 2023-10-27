@@ -552,15 +552,6 @@ struct BTM_GetPeerSCA {
   };
 };
 extern struct BTM_GetPeerSCA BTM_GetPeerSCA;
-// Name: BTM_SetTraceLevel
-// Params: uint8_t new_level
-// Returns: uint8_t
-struct BTM_SetTraceLevel {
-  std::function<uint8_t(uint8_t new_level)> body{
-      [](uint8_t new_level) { return 0; }};
-  uint8_t operator()(uint8_t new_level) { return body(new_level); };
-};
-extern struct BTM_SetTraceLevel BTM_SetTraceLevel;
 // Name: acl_link_role_from_handle
 // Params: uint16_t handle
 // Returns: uint8_t

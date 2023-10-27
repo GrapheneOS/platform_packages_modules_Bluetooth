@@ -60,7 +60,6 @@ typedef struct dev_ctb {
   FLOW_SPEC in_qos;
 
   bool reg_flag;
-  uint8_t trace_level;
 
   bool allow_incoming;
 

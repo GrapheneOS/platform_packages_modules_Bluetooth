@@ -1156,29 +1156,7 @@ void RFCOMM_Init(void) {
 
   rfc_cb.rfc.last_mux = MAX_BD_CONNECTIONS;
 
-#if defined(RFCOMM_INITIAL_TRACE_LEVEL)
-  rfc_cb.trace_level = RFCOMM_INITIAL_TRACE_LEVEL;
-#else
-  rfc_cb.trace_level = BT_TRACE_LEVEL_NONE; /* No traces */
-#endif
-
   rfcomm_l2cap_if_init();
-}
-
-/*******************************************************************************
- *
- * Function         PORT_SetTraceLevel
- *
- * Description      Set the trace level for RFCOMM. If called with 0xFF, it
- *                  simply reads the current trace level.
- *
- * Returns          the new (current) trace level
- *
- ******************************************************************************/
-uint8_t PORT_SetTraceLevel(uint8_t new_level) {
-  if (new_level != 0xFF) rfc_cb.trace_level = new_level;
-
-  return (rfc_cb.trace_level);
 }
 
 /*******************************************************************************

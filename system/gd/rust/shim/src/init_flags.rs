@@ -33,7 +33,6 @@ mod ffi {
         fn hfp_dynamic_version_is_enabled() -> bool;
         fn irk_rotation_is_enabled() -> bool;
         fn leaudio_targeted_announcement_reconnection_mode_is_enabled() -> bool;
-        fn leaudio_enable_health_based_actions_is_enabled() -> bool;
         fn pbap_pse_dynamic_version_upgrade_is_enabled() -> bool;
         fn periodic_advertising_adi_is_enabled() -> bool;
         fn private_gatt_is_enabled() -> bool;

@@ -178,7 +178,6 @@ void Fuzz(const uint8_t* data, size_t size) {
 
   SMP_Init(BTM_SEC_MODE_SP);
   SMP_Register(smp_callback);
-  SMP_SetTraceLevel(BT_TRACE_LEVEL_DEBUG);
   SMP_ClearLocScOobData();
 
   auto is_br = fdp.ConsumeBool();

@@ -376,13 +376,6 @@ filegroup {
 }
 
 filegroup {
-    name: "TestStubLegacyTrace",
-    srcs: [
-        "stub/legacy_trace.cc",
-    ],
-}
-
-filegroup {
     name: "TestStubOsi",
     srcs: [
         "stub/osi.cc",
@@ -523,13 +516,6 @@ filegroup {
 }
 
 filegroup {
-    name: "TestCommonLogMsg",
-    srcs: [
-        "common/log_msg.cc",
-    ],
-}
-
-filegroup {
     name: "TestMockBluetoothInterface",
     srcs: [
         "mock/mock_bluetooth_interface.cc",
@@ -573,11 +559,6 @@ filegroup {
 }
 
 filegroup {
-    name: "TestCommonBtifTraceLevel",
-    srcs: ["common/btif_trace_level.cc"],
-}
-
-filegroup {
     name: "TestFakeThread",
     srcs: [
         "fake/fake_thread.cc",
@@ -607,39 +588,5 @@ cc_defaults {
         lib64: {
             suffix: "64",
         },
-    },
-}
-
-cc_test {
-    name: "net_test_common",
-    host_supported: true,
-    local_include_dirs: [
-        "common",
-    ],
-    include_dirs: [
-        "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/gd",
-        "packages/modules/Bluetooth/system/include",
-    ],
-    srcs: [
-        "common/log_msg.cc",
-        "common/log_msg_test.cc",
-    ],
-    shared_libs: [
-        "libchrome",
-    ],
-    cflags: [
-        "-Wall",
-        "-Werror",
-        "-Wextra",
-        // there are too many unused parameters in all the code.
-        "-Wno-unused-parameter",
-        // http://b/264549607
-        "-Wno-deprecated-builtins",
-    ],
-    sanitize: {
-        address: true,
-        cfi: true,
-        misc_undefined: ["bounds"],
     },
 }

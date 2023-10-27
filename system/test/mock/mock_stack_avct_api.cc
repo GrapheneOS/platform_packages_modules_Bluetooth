@@ -55,7 +55,3 @@ uint16_t AVCT_RemoveConn(uint8_t handle) {
 }
 void AVCT_Deregister(void) { inc_func_call_count(__func__); }
 void AVCT_Register() { inc_func_call_count(__func__); }
-uint8_t AVCT_SetTraceLevel(uint8_t new_level) {
-  inc_func_call_count(__func__);
-  return 0;
-}

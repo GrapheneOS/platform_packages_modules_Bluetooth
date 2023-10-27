@@ -12,7 +12,7 @@ cc_defaults {
     defaults: ["bluetooth_cflags"],
     cflags: [
         "-DEXPORT_SYMBOL=__attribute__((visibility(\"default\")))",
-        "-DLOG_NDEBUG=1",
+        "-DLOG_NDEBUG=0",
         "-fvisibility=hidden",
     ],
     target: {

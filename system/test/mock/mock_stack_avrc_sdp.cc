@@ -42,7 +42,6 @@ struct AVRC_AddRecord AVRC_AddRecord;
 struct AVRC_FindService AVRC_FindService;
 struct AVRC_Init AVRC_Init;
 struct AVRC_RemoveRecord AVRC_RemoveRecord;
-struct AVRC_SetTraceLevel AVRC_SetTraceLevel;
 
 }  // namespace stack_avrc_sdp
 }  // namespace mock
@@ -56,7 +55,6 @@ namespace stack_avrc_sdp {
 uint16_t AVRC_AddRecord::return_value = 0;
 uint16_t AVRC_FindService::return_value = 0;
 uint16_t AVRC_RemoveRecord::return_value = 0;
-uint8_t AVRC_SetTraceLevel::return_value = 0;
 
 }  // namespace stack_avrc_sdp
 }  // namespace mock
@@ -86,10 +84,6 @@ void AVRC_Init(void) {
 uint16_t AVRC_RemoveRecord(uint32_t sdp_handle) {
   inc_func_call_count(__func__);
   return test::mock::stack_avrc_sdp::AVRC_RemoveRecord(sdp_handle);
-}
-uint8_t AVRC_SetTraceLevel(uint8_t new_level) {
-  inc_func_call_count(__func__);
-  return test::mock::stack_avrc_sdp::AVRC_SetTraceLevel(new_level);
 }
 // Mocked functions complete
 // END mockcify generation

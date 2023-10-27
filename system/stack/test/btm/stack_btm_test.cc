@@ -45,8 +45,6 @@ namespace mock = test::mock::stack_hcic_hcicmds;
 
 extern tBTM_CB btm_cb;
 
-uint8_t btif_trace_level = BT_TRACE_LEVEL_DEBUG;
-uint8_t appl_trace_level = BT_TRACE_LEVEL_VERBOSE;
 tL2C_CB l2cb;
 
 const hci_t* hci_layer_get_interface() { return nullptr; }

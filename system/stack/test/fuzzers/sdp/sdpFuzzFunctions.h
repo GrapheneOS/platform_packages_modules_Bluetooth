@@ -321,11 +321,6 @@ static const std::vector<std::function<void(FuzzedDataProvider*)>>
               getArbitraryVectorElement(fdp, sdp_db_vect, true).get());
         },
 
-        // ::SDP_SetTraceLevel
-        [](FuzzedDataProvider* fdp) -> void {
-          SDP_SetTraceLevel(fdp->ConsumeIntegral<uint8_t>());
-        },
-
         // ::SDP_FindServiceUUIDInRec
         [](FuzzedDataProvider* fdp) -> void {
           tSDP_DISC_REC* p_rec =

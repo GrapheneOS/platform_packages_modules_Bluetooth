@@ -597,7 +597,7 @@ static bool sdp_fill_proto_elem(const tSDP_DISC_ATTR* p_attr,
     /* Now, see if the entry contains the layer we are interested in */
     for (p_sattr = p_attr->attr_value.v.p_sub_attr; p_sattr;
          p_sattr = p_sattr->p_next_attr) {
-      /* SDP_TRACE_DEBUG ("SDP - p_sattr 0x%x, layer_uuid:0x%x, u16:0x%x####",
+      /* LOG_VERBOSE ("SDP - p_sattr 0x%x, layer_uuid:0x%x, u16:0x%x####",
           p_sattr, layer_uuid, p_sattr->attr_value.v.u16); */
 
       if ((SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE) &&
@@ -1061,22 +1061,6 @@ uint16_t SDP_SetLocalDiRecord(const tSDP_DI_RECORD* p_device_info,
     sdp_cb.server_db.di_primary_handle = handle;
 
   return result;
-}
-
-/*******************************************************************************
- *
- * Function         SDP_SetTraceLevel
- *
- * Description      This function sets the trace level for SDP. If called with
- *                  a value of 0xFF, it simply reads the current trace level.
- *
- * Returns          the new (current) trace level
- *
- ******************************************************************************/
-uint8_t SDP_SetTraceLevel(uint8_t new_level) {
-  if (new_level != 0xFF) sdp_cb.trace_level = new_level;
-
-  return (sdp_cb.trace_level);
 }
 
 namespace {

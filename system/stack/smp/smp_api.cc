@@ -56,11 +56,6 @@ void SMP_Init(uint8_t init_security_mode) {
   smp_cb.smp_rsp_timer_ent = alarm_new("smp.smp_rsp_timer_ent");
   smp_cb.delayed_auth_timer_ent = alarm_new("smp.delayed_auth_timer_ent");
 
-#if defined(SMP_INITIAL_TRACE_LEVEL)
-  smp_cb.trace_level = SMP_INITIAL_TRACE_LEVEL;
-#else
-  smp_cb.trace_level = BT_TRACE_LEVEL_NONE; /* No traces */
-#endif
   LOG_VERBOSE("%s", __func__);
 
   smp_l2cap_if_init();
@@ -73,32 +68,6 @@ void SMP_Init(uint8_t init_security_mode) {
   if (smp_cb.cert_failure)
     LOG_ERROR("%s PTS FAILURE MODE IN EFFECT (CASE %d)", __func__,
               smp_cb.cert_failure);
-}
-
-/*******************************************************************************
- *
- * Function         SMP_SetTraceLevel
- *
- * Description      This function sets the trace level for SMP.  If called with
- *                  a value of 0xFF, it simply returns the current trace level.
- *
- *                  Input Parameters:
- *                      level:  The level to set the GATT tracing to:
- *                      0xff-returns the current setting.
- *                      0-turns off tracing.
- *                      >= 1-Errors.
- *                      >= 2-Warnings.
- *                      >= 3-APIs.
- *                      >= 4-Events.
- *                      >= 5-Debug.
- *
- * Returns          The new or current trace level
- *
- ******************************************************************************/
-uint8_t SMP_SetTraceLevel(uint8_t new_level) {
-  if (new_level != 0xFF) smp_cb.trace_level = new_level;
-
-  return (smp_cb.trace_level);
 }
 
 /*******************************************************************************

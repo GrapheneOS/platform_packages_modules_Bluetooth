@@ -20,6 +20,9 @@
 #include <base/functional/bind.h>
 #include <base/functional/callback.h>
 #include <base/strings/string_number_conversions.h>
+#ifdef __ANDROID__
+#include <com_android_bluetooth_flags.h>
+#endif
 
 #include <map>
 
@@ -307,16 +310,19 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     state_machine_callbacks_->StatusReportCb(group->group_id_, status);
   }
 
-  void notifyLeAudioHealth(int group_id,
+  void notifyLeAudioHealth(LeAudioDeviceGroup* group,
                            le_audio::LeAudioHealthGroupStatType stat) {
-    if (!bluetooth::common::InitFlags::IsLeAudioHealthBasedActionsEnabled()) {
+#ifdef __ANDROID__
+    if (!com::android::bluetooth::flags::
+            leaudio_enable_health_based_actions()) {
       return;
     }
 
     auto leAudioHealthStatus = le_audio::LeAudioHealthStatus::Get();
     if (leAudioHealthStatus) {
-      leAudioHealthStatus->AddStatisticForGroup(group_id, stat);
+      leAudioHealthStatus->AddStatisticForGroup(group, stat);
     }
+#endif
   }
 
   void ProcessGattCtpNotification(LeAudioDeviceGroup* group, uint8_t* value,
@@ -367,9 +373,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
             "0x%02x, reason: 0x%02x",
             entry.ase_id, entry.response_code, entry.reason);
 
-        notifyLeAudioHealth(group->group_id_,
-                            le_audio::LeAudioHealthGroupStatType::
-                                STREAM_CREATE_SIGNALING_FAILED);
+        notifyLeAudioHealth(group, le_audio::LeAudioHealthGroupStatType::
+                                       STREAM_CREATE_SIGNALING_FAILED);
         StopStream(group);
         return;
       }

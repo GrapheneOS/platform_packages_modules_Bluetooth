@@ -235,18 +235,6 @@ tHID_STATUS HID_DevSetOutgoingQos(uint8_t service_type, uint32_t token_rate,
                                   uint32_t peak_bandwidth, uint32_t latency,
                                   uint32_t delay_variation);
 
-/*******************************************************************************
- *
- * Function         HID_DevSetTraceLevel
- *
- * Description      This function sets the trace level for HID Dev. If called
- *                  with a value of 0xFF, it simply reads the current trace level.
- *
- * Returns          the new (current) trace level
- *
- ******************************************************************************/
-uint8_t HID_DevSetTraceLevel(uint8_t new_level);
-
 #ifdef __cplusplus
 }
 #endif

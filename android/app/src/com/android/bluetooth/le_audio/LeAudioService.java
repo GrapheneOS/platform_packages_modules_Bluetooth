@@ -19,6 +19,7 @@ package com.android.bluetooth.le_audio;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.bluetooth.IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID;
+
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 import static com.android.modules.utils.build.SdkLevel.isAtLeastU;
 
@@ -34,6 +35,7 @@ import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.bluetooth.BluetoothLeBroadcastSettings;
 import android.bluetooth.BluetoothLeBroadcastSubgroupSettings;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothLeAudio;
@@ -67,6 +69,7 @@ import android.util.Pair;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
@@ -1111,8 +1114,8 @@ public class LeAudioService extends ProfileService {
                 || (oldSupportedByDeviceInput != newSupportedByDeviceInput)) {
             mActiveAudioInDevice = newSupportedByDeviceInput ? device : null;
             if (DBG) {
-                Log.d(TAG, " handleBluetoothActiveDeviceChanged  previousInDevice: "
-                        + previousInDevice + ", mActiveAudioInDevice" + mActiveAudioInDevice
+                Log.d(TAG, " handleBluetoothActiveDeviceChanged previousInDevice: "
+                        + previousInDevice + ", mActiveAudioInDevice: " + mActiveAudioInDevice
                         + " isLeOutput: false");
             }
 
@@ -1176,7 +1179,7 @@ public class LeAudioService extends ProfileService {
             mActiveAudioOutDevice = newSupportedByDeviceOutput ? device : null;
             if (DBG) {
                 Log.d(TAG, " handleBluetoothActiveDeviceChanged previousOutDevice: "
-                        + previousOutDevice + ", mActiveOutDevice: " + mActiveAudioOutDevice
+                        + previousOutDevice + ", mActiveAudioOutDevice: " + mActiveAudioOutDevice
                         + " isLeOutput: true");
             }
             return true;
@@ -1451,7 +1454,7 @@ public class LeAudioService extends ProfileService {
                     TAG,
                     "suppressNoisyIntent: "
                             + suppressNoisyIntent
-                            + ", hasFallbackDevice"
+                            + ", hasFallbackDevice: "
                             + hasFallbackDevice);
             final BluetoothProfileConnectionInfo connectionInfo;
             if (isAtLeastU()) {
@@ -1729,20 +1732,28 @@ public class LeAudioService extends ProfileService {
     }
 
     private void handleDeviceHealthAction(BluetoothDevice device, int action) {
-        // To implement
         if (DBG) {
             Log.d(
                     TAG,
-                    "handleDeviceHealthAction: "
+                    "handleDeviceHealthAction: device: "
                             + device
                             + " action: "
                             + action
                             + ", not implemented");
         }
+        if (action == LeAudioStackEvent.HEALTH_RECOMMENDATION_ACTION_DISABLE) {
+            MetricsLogger.getInstance()
+                    .count(
+                            mAdapterService.isLeAudioAllowed(device)
+                                    ? BluetoothProtoEnums
+                                            .LE_AUDIO_ALLOWLIST_DEVICE_HEALTH_STATUS_BAD
+                                    : BluetoothProtoEnums
+                                            .LE_AUDIO_NONALLOWLIST_DEVICE_HEALTH_STATUS_BAD,
+                            1);
+        }
     }
 
     private void handleGroupHealthAction(int groupId, int action) {
-        // To implement
         if (DBG) {
             Log.d(
                     TAG,
@@ -1751,6 +1762,31 @@ public class LeAudioService extends ProfileService {
                             + " action: "
                             + action
                             + ", not implemented");
+        }
+        BluetoothDevice device = getLeadDeviceForTheGroup(groupId);
+        switch (action) {
+            case LeAudioStackEvent.HEALTH_RECOMMENDATION_ACTION_DISABLE:
+                MetricsLogger.getInstance()
+                        .count(
+                                mAdapterService.isLeAudioAllowed(device)
+                                        ? BluetoothProtoEnums
+                                                .LE_AUDIO_ALLOWLIST_GROUP_HEALTH_STATUS_BAD
+                                        : BluetoothProtoEnums
+                                                .LE_AUDIO_NONALLOWLIST_GROUP_HEALTH_STATUS_BAD,
+                                1);
+                break;
+            case LeAudioStackEvent.HEALTH_RECOMMENDATION_ACTION_CONSIDER_DISABLING:
+                MetricsLogger.getInstance()
+                        .count(
+                                mAdapterService.isLeAudioAllowed(device)
+                                        ? BluetoothProtoEnums
+                                                .LE_AUDIO_ALLOWLIST_GROUP_HEALTH_STATUS_TRENDING_BAD
+                                        : BluetoothProtoEnums
+                                                .LE_AUDIO_NONALLOWLIST_GROUP_HEALTH_STATUS_TRENDING_BAD,
+                                1);
+                break;
+            default:
+                break;
         }
     }
 
@@ -2197,7 +2233,7 @@ public class LeAudioService extends ProfileService {
                 == LeAudioStackEvent.EVENT_TYPE_HEALTH_BASED_DEV_RECOMMENDATION) {
             handleDeviceHealthAction(stackEvent.device, stackEvent.valueInt1);
         } else if (stackEvent.type
-                == LeAudioStackEvent.EVENT_TYPE_HEALTH_BASED_DEV_RECOMMENDATION) {
+                == LeAudioStackEvent.EVENT_TYPE_HEALTH_BASED_GROUP_RECOMMENDATION) {
             handleGroupHealthAction(stackEvent.valueInt1, stackEvent.valueInt2);
         } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_BROADCAST_CREATED) {
             int broadcastId = stackEvent.valueInt1;

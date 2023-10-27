@@ -33,7 +33,7 @@ cc_defaults {
     cflags: [
         "-DEXPORT_SYMBOL=__attribute__((visibility(\"default\")))",
         "-DGOOGLE_PROTOBUF_NO_RTTI",
-        "-DLOG_NDEBUG=1",
+        "-DLOG_NDEBUG=0",
         "-Wno-unused-result",
         "-fvisibility=hidden",
     ],
@@ -158,11 +158,13 @@ cc_defaults {
     shared_libs: [
         "libcrypto",
         "libflatbuffers-cpp",
+        "server_configurable_flags",
     ],
     export_shared_lib_headers: [
         "libflatbuffers-cpp",
     ],
     whole_static_libs: [
+        "bluetooth_flags_c_lib",
         "libbluetooth_hci_pdl",
         "libbluetooth_l2cap_pdl",
         "libbluetooth_smp_pdl",
@@ -646,6 +648,7 @@ genrule {
         "hci/hci_acl_manager.fbs",
         "hci/hci_controller.fbs",
         "l2cap/classic/l2cap_classic_module.fbs",
+        "module_unittest.fbs",
         "os/wakelock_manager.fbs",
         "shim/dumpsys.fbs",
     ],
@@ -672,6 +675,7 @@ genrule {
         "hci/hci_acl_manager.fbs",
         "hci/hci_controller.fbs",
         "l2cap/classic/l2cap_classic_module.fbs",
+        "module_unittest.fbs",
         "os/wakelock_manager.fbs",
         "shim/dumpsys.fbs",
     ],

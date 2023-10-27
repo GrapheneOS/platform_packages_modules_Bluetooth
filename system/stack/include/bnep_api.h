@@ -373,18 +373,6 @@ tBNEP_RESULT BNEP_SetMulticastFilters(uint16_t handle, uint16_t num_filters,
 
 /*******************************************************************************
  *
- * Function         BNEP_SetTraceLevel
- *
- * Description      This function sets the trace level for BNEP. If called with
- *                  a value of 0xFF, it simply reads the current trace level.
- *
- * Returns          the new (current) trace level
- *
- ******************************************************************************/
-uint8_t BNEP_SetTraceLevel(uint8_t new_level);
-
-/*******************************************************************************
- *
  * Function         BNEP_Init
  *
  * Description      This function initializes the BNEP unit. It should be called
