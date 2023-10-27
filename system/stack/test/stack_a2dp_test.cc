@@ -933,13 +933,6 @@ TEST_F(StackA2dpTest, test_a2dp_init_codec_config) {
   for (size_t i = 0; i < codec_info_sbc_capability[0] + 1; i++) {
     EXPECT_EQ(avdt_cfg.codec_info[i], codec_info_sbc_capability[i]);
   }
-// Test for content protection
-#if (BTA_AV_CO_CP_SCMS_T == TRUE)
-  EXPECT_EQ(avdt_cfg.protect_info[0], AVDT_CP_LOSC);
-  EXPECT_EQ(avdt_cfg.protect_info[1], (AVDT_CP_SCMS_T_ID & 0xFF));
-  EXPECT_EQ(avdt_cfg.protect_info[2], ((AVDT_CP_SCMS_T_ID >> 8) & 0xFF));
-  EXPECT_EQ(avdt_cfg.num_protect, 1);
-#endif
 
   //
   // Test for SBC Sink
@@ -970,14 +963,6 @@ TEST_F(StackA2dpTest, test_a2dp_init_codec_config) {
       ASSERT_EQ(avdt_cfg.codec_info[i], codec_info_aac_capability[i]);
     }
   }
-
-// Test for content protection
-#if (BTA_AV_CO_CP_SCMS_T == TRUE)
-  EXPECT_EQ(avdt_cfg.protect_info[0], AVDT_CP_LOSC);
-  EXPECT_EQ(avdt_cfg.protect_info[1], (AVDT_CP_SCMS_T_ID & 0xFF));
-  EXPECT_EQ(avdt_cfg.protect_info[2], ((AVDT_CP_SCMS_T_ID >> 8) & 0xFF));
-  EXPECT_EQ(avdt_cfg.num_protect, 1);
-#endif
 }
 
 TEST_F(A2dpCodecConfigTest, createCodec) {

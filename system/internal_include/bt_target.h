@@ -85,11 +85,6 @@
 #define BTA_AV_RET_TOUT 15
 #endif
 
-/* TRUE to use SCMS-T content protection */
-#ifndef BTA_AV_CO_CP_SCMS_T
-#define BTA_AV_CO_CP_SCMS_T FALSE
-#endif
-
 #ifndef BTA_DM_SDP_DB_SIZE
 #define BTA_DM_SDP_DB_SIZE 20000
 #endif
