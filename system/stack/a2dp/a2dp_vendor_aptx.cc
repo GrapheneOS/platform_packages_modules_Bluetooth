@@ -229,12 +229,8 @@ static tA2DP_STATUS A2DP_CodecInfoMatchesCapabilityAptx(
 
 bool A2DP_VendorUsesRtpHeaderAptx(UNUSED_ATTR bool content_protection_enabled,
                                   UNUSED_ATTR const uint8_t* p_codec_info) {
-#if (BTA_AV_CO_CP_SCMS_T == TRUE)
-  return true;
-#else
   // no RTP header for aptX classic and no Copy Protection byte
   return false;
-#endif
 }
 
 const char* A2DP_VendorCodecNameAptx(UNUSED_ATTR const uint8_t* p_codec_info) {
@@ -421,14 +417,6 @@ bool A2DP_VendorInitCodecConfigAptx(AvdtpSepConfig* p_cfg) {
                          p_cfg->codec_info) != A2DP_SUCCESS) {
     return false;
   }
-
-#if (BTA_AV_CO_CP_SCMS_T == TRUE)
-  /* Content protection info - support SCMS-T */
-  uint8_t* p = p_cfg->protect_info;
-  *p++ = AVDT_CP_LOSC;
-  UINT16_TO_STREAM(p, AVDT_CP_SCMS_T_ID);
-  p_cfg->num_protect = 1;
-#endif
 
   return true;
 }
