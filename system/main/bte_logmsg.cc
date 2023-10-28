@@ -21,20 +21,13 @@
 #include <cstdarg>
 #include <cstdint>
 
-#include "internal_include/bt_trace.h"
+#include "bt_trace.h"
 #include "internal_include/stack_config.h"
 #include "main/main_int.h"
-#include "osi/include/log.h"
 
 static future_t* init(void) {
   const stack_config_t* stack_config = stack_config_get_interface();
-  if (!stack_config->get_trace_config_enabled()) {
-    LOG_INFO("using compile default trace settings");
-    return NULL;
-  }
-
   init_cpp_logging(stack_config->get_all());
-
   return NULL;
 }
 

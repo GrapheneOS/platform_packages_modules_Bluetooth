@@ -68,7 +68,7 @@ class SecurityService(security_grpc_aio.SecurityServicer):
                 answer = pairing_answer.WhichOneof('answer')
                 address = utils.address_from(pairing_answer.event.connection.cookie.value)
 
-                logging.info(f'pairing_answer: {pairing_answer} address: {address}')
+                logging.info('pairing_answer: %s address: %s', pairing_answer, address)
 
                 if answer == 'confirm':
                     self.bluetooth.set_pairing_confirmation(address, True)

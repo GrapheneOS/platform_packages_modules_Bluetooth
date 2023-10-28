@@ -38,9 +38,6 @@ struct cmd_with_cb_data {
   base::Location posted_from;
 };
 
-void btu_hcif_log_event_metrics(uint8_t evt_code, uint8_t* p_event) {
-  inc_func_call_count(__func__);
-}
 void btu_hcif_process_event(uint8_t controller_id, BT_HDR* p_msg) {
   inc_func_call_count(__func__);
 }
