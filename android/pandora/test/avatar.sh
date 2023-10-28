@@ -52,7 +52,6 @@ if [[ "$1" =~ ^('format'|'lint'|'run')$ ]]; then
     'types-protobuf==4.24.0.1' \
     'black==23.7.0' \
     'isort==5.12.0'
-  export PYTHONPATH="$(IFS=:; echo "${_PANDORA_PYTHON_PATHS[*]}"):${PYTHONPATH}"
 fi
 
 case "$1" in
@@ -61,6 +60,7 @@ case "$1" in
     isort --profile black -l 119 --ds --lbt 1 --ca "$@" "${_PY_SOURCES[@]}"
   ;;
   'lint') shift
+    export PYTHONPATH="$(IFS=:; echo "${_PANDORA_PYTHON_PATHS[*]}"):${PYTHONPATH}"
     mypy \
       --pretty --show-column-numbers --strict --no-warn-unused-ignores --ignore-missing-imports \
       "$@" "${_PY_SOURCES[@]}" || exit 1
