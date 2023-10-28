@@ -104,7 +104,8 @@ static void btu_ble_rc_param_req_evt(uint8_t* p, uint8_t len);
  * @param evt_code event code
  * @param p_event pointer to event parameter, skipping paremter length
  */
-void btu_hcif_log_event_metrics(uint8_t evt_code, const uint8_t* p_event) {
+static void btu_hcif_log_event_metrics(uint8_t evt_code,
+                                       const uint8_t* p_event) {
   uint32_t cmd = android::bluetooth::hci::CMD_UNKNOWN;
   uint16_t status = android::bluetooth::hci::STATUS_UNKNOWN;
   uint16_t reason = android::bluetooth::hci::STATUS_UNKNOWN;
