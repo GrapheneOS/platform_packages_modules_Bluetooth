@@ -20,25 +20,18 @@
 
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_ble_api_types.h"
-#include "stack/include/btm_ble_sec_api.h"
 #include "stack/include/btm_ble_sec_api_types.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack/include/btm_sec_api.h"
 #include "stack/include/btm_sec_api_types.h"
 #include "types/raw_address.h"
 
-namespace {
-
+// Test accessible feature page
 uint8_t hci_feature_bytes_per_page[HCI_FEATURE_BYTES_PER_PAGE] = {};
 
-}
+namespace {
 
-void BTM_BleReadControllerFeatures(void (*cb)(tHCI_ERROR_CODE)) {}
-tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK* p_ener_cback) {
-  return BTM_SUCCESS;
-}
-
-struct btm_client_interface_t btm_client_interface = {
+struct btm_client_interface_t default_btm_client_interface = {
     .lifecycle = {
         .BTM_PmRegister = [](uint8_t mask, uint8_t* p_pm_id,
                              tBTM_PM_STATUS_CBACK* p_cb) -> tBTM_STATUS {
@@ -165,6 +158,9 @@ struct btm_client_interface_t btm_client_interface = {
                                  tBT_TRANSPORT transport) -> bool {
           return false;
         },
+        .BTM_BleSirkConfirmDeviceReply = [](const RawAddress& bd_addr,
+                                            uint8_t res) {},
+        .BTM_GetSecurityMode = []() -> uint8_t { return 0; },
     },
     .ble = {
         .BTM_BleGetEnergyInfo = [](tBTM_BLE_ENERGY_INFO_CBACK* p_ener_cback)
@@ -184,6 +180,8 @@ struct btm_client_interface_t btm_client_interface = {
                                   uint32_t passkey) {},
         .BTM_BleReadControllerFeatures =
             [](tBTM_BLE_CTRL_FEATURES_CBACK* p_vsc_cback) {},
+        .BTM_BleSetConnScanParams = [](uint32_t scan_interval,
+                                       uint32_t scan_window) {},
         .BTM_BleSetPhy = [](const RawAddress& bd_addr, uint8_t tx_phys,
                             uint8_t rx_phys, uint16_t phy_options) {},
         .BTM_BleSetPrefConnParams =
@@ -192,7 +190,8 @@ struct btm_client_interface_t btm_client_interface = {
                uint16_t supervision_tout) {},
         .BTM_UseLeLink = [](const RawAddress& bd_addr) -> bool {
           return false;
-        }},
+        },
+    },
     .sco =
         {
             .BTM_CreateSco = BTM_CreateSco,
@@ -235,6 +234,23 @@ struct btm_client_interface_t btm_client_interface = {
         },
 };
 
+}  // namespace
+
+void BTM_BleReadControllerFeatures(void (*cb)(tHCI_ERROR_CODE)) {}
+tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK* p_ener_cback) {
+  return BTM_SUCCESS;
+}
+
+// Initialize the working btm client interface to the default
+struct btm_client_interface_t mock_btm_client_interface =
+    default_btm_client_interface;
+
+// Reset the working btm client interface to the default
+void reset_mock_btm_client_interface() {
+  mock_btm_client_interface = default_btm_client_interface;
+}
+
+// Serve the working btm client interface
 struct btm_client_interface_t& get_btm_client_interface() {
-  return btm_client_interface;
+  return mock_btm_client_interface;
 }

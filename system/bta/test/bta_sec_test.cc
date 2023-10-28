@@ -20,6 +20,7 @@
 #include <sys/socket.h>
 
 #include "bta/dm/bta_dm_sec_int.h"
+#include "bta/test/bta_base_test.h"
 #include "test/mock/mock_stack_btm_inq.h"
 #include "test/mock/mock_stack_btm_interface.h"
 #include "types/raw_address.h"
@@ -47,17 +48,17 @@ void btm_set_local_io_caps(uint8_t io_caps);
 }  // namespace legacy
 }  // namespace bluetooth
 
-class BtaSecTest : public testing::Test {
+class BtaSecTest : public BtaBaseTest {
  protected:
-  void SetUp() override {}
+  void SetUp() override { BtaBaseTest::SetUp(); }
 
-  void TearDown() override {}
+  void TearDown() override { BtaBaseTest::TearDown(); }
 };
 
 TEST_F(BtaSecTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithName) {
   constexpr uint32_t kNumVal = 1234;
   static bool callback_sent = false;
-  btm_client_interface.peer.BTM_ReadRemoteDeviceName =
+  mock_btm_client_interface.peer.BTM_ReadRemoteDeviceName =
       [](const RawAddress& remote_bda, tBTM_NAME_CMPL_CB* p_cb,
          tBT_TRANSPORT transport) -> tBTM_STATUS { return BTM_CMD_STARTED; };
 
@@ -149,7 +150,7 @@ TEST_F(BtaSecTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithoutName_RNRSuccess) {
 TEST_F(BtaSecTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithoutName_RNRFail) {
   constexpr uint32_t kNumVal = 1234;
   static bool callback_sent = false;
-  btm_client_interface.peer.BTM_ReadRemoteDeviceName =
+  mock_btm_client_interface.peer.BTM_ReadRemoteDeviceName =
       [](const RawAddress& remote_bda, tBTM_NAME_CMPL_CB* p_cb,
          tBT_TRANSPORT transport) -> tBTM_STATUS { return BTM_SUCCESS; };
 
@@ -198,7 +199,7 @@ TEST_F(BtaSecTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithoutName_RNRFail) {
 TEST_F(BtaSecTest, bta_dm_sp_cback__BTM_SP_KEY_NOTIF_EVT) {
   constexpr uint32_t kPassKey = 1234;
   static bool callback_sent = false;
-  btm_client_interface.peer.BTM_ReadRemoteDeviceName =
+  mock_btm_client_interface.peer.BTM_ReadRemoteDeviceName =
       [](const RawAddress& remote_bda, tBTM_NAME_CMPL_CB* p_cb,
          tBT_TRANSPORT transport) -> tBTM_STATUS { return BTM_CMD_STARTED; };
 
