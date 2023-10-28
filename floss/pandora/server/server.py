@@ -16,7 +16,7 @@
 import asyncio
 import logging
 
-from floss.pandora.server import bluetooth as bluetoot_module
+from floss.pandora.server import bluetooth as bluetooth_module
 from floss.pandora.server import host
 from floss.pandora.server import security
 import grpc
@@ -31,10 +31,12 @@ async def serve(port):
 
     try:
         while True:
-            server = grpc.aio.server()
-            bluetooth = bluetoot_module.Bluetooth()
+            bluetooth = bluetooth_module.Bluetooth()
             bluetooth.reset()
 
+            logging.info("bluetooth initialized")
+
+            server = grpc.aio.server()
             host_service = host.HostService(server, bluetooth)
             host_grpc_aio.add_HostServicer_to_server(host_service, server)
 
@@ -44,10 +46,10 @@ async def serve(port):
             security_storage_service = security.SecurityStorageService(server, bluetooth)
             security_grpc_aio.add_SecurityStorageServicer_to_server(security_storage_service, server)
 
-            server.add_insecure_port(f'localhost:{port}')
+            server.add_insecure_port(f'[::]:{port}')
+
             await server.start()
             await server.wait_for_termination()
-
             bluetooth.cleanup()
             del bluetooth
     finally:
