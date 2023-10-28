@@ -61,6 +61,7 @@ import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.PackageManager.PackageInfoFlags;
 import android.content.res.Resources;
@@ -294,6 +295,7 @@ public class GattService extends ProfileService {
     private String mExposureNotificationPackage;
     private Handler mTestModeHandler;
     private ActivityManager mActivityManager;
+    private PackageManager mPackageManager;
     private final Object mTestModeLock = new Object();
 
     public GattService(Context ctx) {
@@ -367,6 +369,7 @@ public class GattService extends ProfileService {
                 .createDistanceMeasurementManager(mAdapterService);
 
         mActivityManager = getSystemService(ActivityManager.class);
+        mPackageManager = mAdapterService.getPackageManager();
 
         return true;
     }
@@ -3646,32 +3649,7 @@ public class GattService extends ProfileService {
         }
         statsLogAppPackage(address, attributionSource.getUid(), clientIf);
 
-        boolean isForegroundService =
-                mActivityManager.getUidImportance(attributionSource.getUid())
-                        == IMPORTANCE_FOREGROUND_SERVICE;
-
-        if (isDirect) {
-            MetricsLogger.getInstance().count(BluetoothProtoEnums.GATT_CLIENT_CONNECT_IS_DIRECT, 1);
-            MetricsLogger.getInstance()
-                    .count(
-                            isForegroundService
-                                    ? BluetoothProtoEnums
-                                            .GATT_CLIENT_CONNECT_IS_DIRECT_IN_FOREGROUND
-                                    : BluetoothProtoEnums
-                                            .GATT_CLIENT_CONNECT_IS_DIRECT_NOT_IN_FOREGROUND,
-                            1);
-        } else {
-            MetricsLogger.getInstance()
-                    .count(BluetoothProtoEnums.GATT_CLIENT_CONNECT_IS_AUTOCONNECT, 1);
-            MetricsLogger.getInstance()
-                    .count(
-                            isForegroundService
-                                    ? BluetoothProtoEnums
-                                            .GATT_CLIENT_CONNECT_IS_AUTOCONNECT_IN_FOREGROUND
-                                    : BluetoothProtoEnums
-                                            .GATT_CLIENT_CONNECT_IS_AUTOCONNECT_NOT_IN_FOREGROUND,
-                            1);
-        }
+        logClientForegroundInfo(attributionSource.getUid(), isDirect);
 
         statsLogGattConnectionStateChange(
                 BluetoothProfile.GATT, address, clientIf,
@@ -4567,26 +4545,7 @@ public class GattService extends ProfileService {
             Log.d(TAG, "serverConnect() - address=" + address);
         }
 
-        int importance = mActivityManager.getUidImportance(attributionSource.getUid());
-        if (importance == IMPORTANCE_FOREGROUND_SERVICE) {
-            MetricsLogger.getInstance()
-                    .count(
-                            isDirect
-                                    ? BluetoothProtoEnums
-                                            .GATT_SERVER_CONNECT_IS_DIRECT_IN_FOREGROUND
-                                    : BluetoothProtoEnums
-                                            .GATT_SERVER_CONNECT_IS_AUTOCONNECT_IN_FOREGROUND,
-                            1);
-        } else {
-            MetricsLogger.getInstance()
-                    .count(
-                            isDirect
-                                    ? BluetoothProtoEnums
-                                            .GATT_SERVER_CONNECT_IS_DIRECT_NOT_IN_FOREGROUND
-                                    : BluetoothProtoEnums
-                                            .GATT_SERVER_CONNECT_IS_AUTOCONNECT_NOT_IN_FOREGROUND,
-                            1);
-        }
+        logServerForegroundInfo(attributionSource.getUid(), isDirect);
 
         mNativeInterface.gattServerConnect(serverIf, address, isDirect, transport);
     }
@@ -4900,6 +4859,62 @@ public class GattService extends ProfileService {
     private void enforceImpersonatationPermissionIfNeeded(WorkSource workSource) {
         if (workSource != null) {
             enforceImpersonatationPermission();
+        }
+    }
+
+    private void logClientForegroundInfo(int uid, boolean isDirect) {
+        if (mPackageManager == null) {
+            return;
+        }
+
+        String packageName = mPackageManager.getPackagesForUid(uid)[0];
+        int importance = mActivityManager.getPackageImportance(packageName);
+        if (importance == IMPORTANCE_FOREGROUND_SERVICE) {
+            MetricsLogger.getInstance()
+                    .count(
+                            isDirect
+                                    ? BluetoothProtoEnums
+                                            .GATT_CLIENT_CONNECT_IS_DIRECT_IN_FOREGROUND
+                                    : BluetoothProtoEnums
+                                            .GATT_CLIENT_CONNECT_IS_AUTOCONNECT_IN_FOREGROUND,
+                            1);
+        } else {
+            MetricsLogger.getInstance()
+                    .count(
+                            isDirect
+                                    ? BluetoothProtoEnums
+                                            .GATT_CLIENT_CONNECT_IS_DIRECT_NOT_IN_FOREGROUND
+                                    : BluetoothProtoEnums
+                                            .GATT_CLIENT_CONNECT_IS_AUTOCONNECT_NOT_IN_FOREGROUND,
+                            1);
+        }
+    }
+
+    private void logServerForegroundInfo(int uid, boolean isDirect) {
+        if (mPackageManager == null) {
+            return;
+        }
+
+        String packageName = mPackageManager.getPackagesForUid(uid)[0];
+        int importance = mActivityManager.getPackageImportance(packageName);
+        if (importance == IMPORTANCE_FOREGROUND_SERVICE) {
+            MetricsLogger.getInstance()
+                    .count(
+                            isDirect
+                                    ? BluetoothProtoEnums
+                                            .GATT_SERVER_CONNECT_IS_DIRECT_IN_FOREGROUND
+                                    : BluetoothProtoEnums
+                                            .GATT_SERVER_CONNECT_IS_AUTOCONNECT_IN_FOREGROUND,
+                            1);
+        } else {
+            MetricsLogger.getInstance()
+                    .count(
+                            isDirect
+                                    ? BluetoothProtoEnums
+                                            .GATT_SERVER_CONNECT_IS_DIRECT_NOT_IN_FOREGROUND
+                                    : BluetoothProtoEnums
+                                            .GATT_SERVER_CONNECT_IS_AUTOCONNECT_NOT_IN_FOREGROUND,
+                            1);
         }
     }
 

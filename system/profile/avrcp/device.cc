@@ -1878,29 +1878,25 @@ static std::string volumeToStr(int8_t volume) {
 
 std::ostream& operator<<(std::ostream& out, const Device& d) {
   // TODO: whether this should be turned into LOGGABLE STRING?
-  out << ADDRESS_TO_LOGGABLE_STR(d.address_);
+  out << "  " << ADDRESS_TO_LOGGABLE_STR(d.address_);
   if (d.IsActive()) out << " <Active>";
   out << std::endl;
-  ScopedIndent indent(out);
-  out << "Current Volume: " << volumeToStr(d.volume_) << std::endl;
-  out << "Current Browsed Player ID: " << d.curr_browsed_player_id_
+  out << "    Current Volume: " << volumeToStr(d.volume_) << std::endl;
+  out << "    Current Browsed Player ID: " << d.curr_browsed_player_id_
       << std::endl;
-  out << "Registered Notifications:\n";
-  {
-    ScopedIndent indent(out);
-    if (d.track_changed_.first) out << "Track Changed\n";
-    if (d.play_status_changed_.first) out << "Play Status\n";
-    if (d.play_pos_changed_.first) out << "Play Position\n";
-    if (d.player_setting_changed_.first) out << "Player Setting Changed\n";
-    if (d.now_playing_changed_.first) out << "Now Playing\n";
-    if (d.addr_player_changed_.first) out << "Addressed Player\n";
-    if (d.avail_players_changed_.first) out << "Available Players\n";
-    if (d.uids_changed_.first) out << "UIDs Changed\n";
-  }
-  out << "Last Play State: " << d.last_play_status_.state << std::endl;
-  out << "Last Song Sent ID: \"" << d.last_song_info_.media_id << "\"\n";
-  out << "Current Folder: \"" << d.CurrentFolder() << "\"\n";
-  out << "MTU Sizes: CTRL=" << d.ctrl_mtu_ << " BROWSE=" << d.browse_mtu_
+  out << "    Registered Notifications:\n";
+  if (d.track_changed_.first) out << "        Track Changed\n";
+  if (d.play_status_changed_.first) out << "        Play Status\n";
+  if (d.play_pos_changed_.first) out << "        Play Position\n";
+  if (d.player_setting_changed_.first) out << "        Player Setting Changed\n";
+  if (d.now_playing_changed_.first) out << "        Now Playing\n";
+  if (d.addr_player_changed_.first) out << "        Addressed Player\n";
+  if (d.avail_players_changed_.first) out << "        Available Players\n";
+  if (d.uids_changed_.first) out << "        UIDs Changed\n";
+  out << "    Last Play State: " << d.last_play_status_.state << std::endl;
+  out << "    Last Song Sent ID: \"" << d.last_song_info_.media_id << "\"\n";
+  out << "    Current Folder: \"" << d.CurrentFolder() << "\"\n";
+  out << "    MTU Sizes: CTRL=" << d.ctrl_mtu_ << " BROWSE=" << d.browse_mtu_
       << std::endl;
   // TODO (apanicke): Add supported features as well as media keys
   return out;
