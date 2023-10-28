@@ -17,13 +17,12 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <memory>
 #include <string>
 
 #include "bta/dm/bta_dm_int.h"
+#include "bta/test/bta_base_test.h"
 #include "osi/include/allocator.h"
 #include "test/common/main_handler.h"
-#include "test/fake/fake_osi.h"
 #include "test/mock/mock_stack_btm_interface.h"
 #include "test/mock/mock_stack_gatt_api.h"
 
@@ -44,24 +43,24 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data);
 }  // namespace legacy
 }  // namespace bluetooth
 
-class BtaSdpTest : public testing::Test {
+class BtaSdpTest : public BtaBaseTest {
  protected:
   void SetUp() override {
-    fake_osi_ = std::make_unique<test::fake::FakeOsi>();
+    BtaBaseTest::SetUp();
     test::mock::stack_gatt_api::GATT_Register.body =
         [](const bluetooth::Uuid& p_app_uuid128, const std::string name,
            tGATT_CBACK* p_cb_info, bool eatt_support) { return 5; };
-    btm_client_interface = {};
-    btm_client_interface.eir.BTM_GetEirSupportedServices =
+    mock_btm_client_interface.eir.BTM_GetEirSupportedServices =
         [](uint32_t* p_eir_uuid, uint8_t** p, uint8_t max_num_uuid16,
            uint8_t* p_num_uuid16) -> uint8_t { return 0; };
-    btm_client_interface.eir.BTM_WriteEIR = [](BT_HDR* p_buf) -> tBTM_STATUS {
+    mock_btm_client_interface.eir.BTM_WriteEIR =
+        [](BT_HDR* p_buf) -> tBTM_STATUS {
       osi_free(p_buf);
       return BTM_SUCCESS;
     };
-    btm_client_interface.local.BTM_ReadLocalDeviceNameFromController =
+    mock_btm_client_interface.local.BTM_ReadLocalDeviceNameFromController =
         [](tBTM_CMPL_CB* cb) -> tBTM_STATUS { return BTM_CMD_STARTED; };
-    btm_client_interface.security.BTM_SecRegister =
+    mock_btm_client_interface.security.BTM_SecRegister =
         [](const tBTM_APPL_INFO* p_cb_info) -> bool { return true; };
 
     main_thread_start_up();
@@ -77,9 +76,8 @@ class BtaSdpTest : public testing::Test {
     main_thread_shut_down();
 
     test::mock::stack_gatt_api::GATT_Register = {};
-    btm_client_interface = {};
+    BtaBaseTest::TearDown();
   }
-  std::unique_ptr<test::fake::FakeOsi> fake_osi_;
 };
 
 class BtaSdpRegisteredTest : public BtaSdpTest {
@@ -111,12 +109,13 @@ TEST_F(BtaSdpRegisteredTest, bta_dm_sdp_result_SDP_SUCCESS) {
   tBTA_DM_MSG msg = {
       .sdp_event =
           {
+              .hdr = {},
               .sdp_result = SDP_SUCCESS,
           },
   };
-  btm_client_interface.security.BTM_SecReadDevName =
+  mock_btm_client_interface.security.BTM_SecReadDevName =
       [](const RawAddress& bd_addr) -> const char* { return kName; };
-  btm_client_interface.security.BTM_SecDeleteRmtNameNotifyCallback =
+  mock_btm_client_interface.security.BTM_SecDeleteRmtNameNotifyCallback =
       [](tBTM_RMT_NAME_CALLBACK*) -> bool { return true; };
   bluetooth::legacy::testing::bta_dm_sdp_result(&msg);
 }
