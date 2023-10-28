@@ -43,7 +43,6 @@ tBTM_CB btm_cb;
 const std::string kSmpOptions("mock smp options");
 const std::string kBroadcastAudioConfigOptions(
     "mock broadcast audio config options");
-bool get_trace_config_enabled(void) { return false; }
 bool get_pts_avrcp_test(void) { return false; }
 bool get_pts_secure_only_mode(void) { return false; }
 bool get_pts_conn_updates_disabled(void) { return false; }
@@ -71,7 +70,6 @@ config_t* get_all(void) { return nullptr; }
 const packet_fragmenter_t* packet_fragmenter_get_interface() { return nullptr; }
 
 stack_config_t mock_stack_config{
-    .get_trace_config_enabled = get_trace_config_enabled,
     .get_pts_avrcp_test = get_pts_avrcp_test,
     .get_pts_secure_only_mode = get_pts_secure_only_mode,
     .get_pts_conn_updates_disabled = get_pts_conn_updates_disabled,
