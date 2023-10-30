@@ -1606,10 +1606,10 @@ void print128(const Octet16& x, const uint8_t* key_name) {
   if (VLOG_IS_ON(2) && DLOG_IS_ON(INFO)) {
     uint8_t* p = (uint8_t*)x.data();
 
-    DVLOG(2) << key_name << " (MSB ~ LSB) = ";
+    VLOG(1) << key_name << " (MSB ~ LSB) = ";
     for (int i = 0; i < 4; i++) {
-      DVLOG(2) << +p[OCTET16_LEN - i * 4 - 1] << +p[OCTET16_LEN - i * 4 - 2]
-               << +p[OCTET16_LEN - i * 4 - 3] << +p[OCTET16_LEN - i * 4 - 4];
+      VLOG(1) << +p[OCTET16_LEN - i * 4 - 1] << +p[OCTET16_LEN - i * 4 - 2]
+              << +p[OCTET16_LEN - i * 4 - 3] << +p[OCTET16_LEN - i * 4 - 4];
     }
   }
 }
