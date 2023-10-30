@@ -74,6 +74,8 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
+import com.android.bluetooth.flags.FeatureFlags;
+import com.android.bluetooth.flags.FeatureFlagsImpl;
 import com.android.bluetooth.hap.HapClientService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.mcp.McpService;
@@ -130,6 +132,7 @@ public class LeAudioService extends ProfileService {
     private BluetoothDevice mExposedActiveDevice;
     private LeAudioCodecConfig mLeAudioCodecConfig;
     private final Object mGroupLock = new Object();
+    private final FeatureFlags mFeatureFlags = new FeatureFlagsImpl();
     ServiceFactory mServiceFactory = new ServiceFactory();
 
     LeAudioNativeInterface mLeAudioNativeInterface;
@@ -147,7 +150,6 @@ public class LeAudioService extends ProfileService {
     private boolean mAwaitingBroadcastCreateResponse = false;
     private final LinkedList<BluetoothLeBroadcastSettings> mCreateBroadcastQueue =
             new LinkedList<>();
-
 
     @VisibleForTesting
     TbsService mTbsService;
@@ -2410,8 +2412,13 @@ public class LeAudioService extends ProfileService {
             Log.d(TAG, "Creating a new state machine for " + device);
         }
 
-        sm = LeAudioStateMachine.make(device, this,
-                mLeAudioNativeInterface, mStateMachinesThread.getLooper());
+        sm =
+                LeAudioStateMachine.make(
+                        device,
+                        this,
+                        mLeAudioNativeInterface,
+                        mStateMachinesThread.getLooper(),
+                        mFeatureFlags);
         descriptor.mStateMachine = sm;
         return sm;
     }
