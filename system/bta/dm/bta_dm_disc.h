@@ -20,6 +20,10 @@
 #include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
 
+// Bta module start and stop entry points
+void bta_dm_disc_start(bool delay_close_gatt);
+void bta_dm_disc_stop();
+
 // Bta subsystem entrypoint and lifecycle
 bool bta_dm_search_sm_execute(const BT_HDR_RIGID* p_msg);
 void bta_dm_search_sm_disable();
