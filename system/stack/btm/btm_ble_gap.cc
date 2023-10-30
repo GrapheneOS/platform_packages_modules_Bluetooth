@@ -2823,7 +2823,7 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, tBLE_ADDR_TYPE addr_type,
 
   if (!data_complete) {
     // If we didn't receive whole adv data yet, don't report the device.
-    DVLOG(1) << "Data not complete yet, waiting for more " << bda;
+    VLOG(1) << "Data not complete yet, waiting for more " << bda;
     return;
   }
 
@@ -2831,13 +2831,13 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, tBLE_ADDR_TYPE addr_type,
       btm_sec_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI;
   if (is_active_scan && is_scannable && !is_scan_resp) {
     // If we didn't receive scan response yet, don't report the device.
-    DVLOG(1) << " Waiting for scan response " << bda;
+    VLOG(1) << " Waiting for scan response " << bda;
     return;
   }
 
   if (!AdvertiseDataParser::IsValid(adv_data)) {
-    DVLOG(1) << __func__ << "Dropping bad advertisement packet: "
-             << base::HexEncode(adv_data.data(), adv_data.size());
+    VLOG(1) << __func__ << "Dropping bad advertisement packet: "
+            << base::HexEncode(adv_data.data(), adv_data.size());
     cache.Clear(addr_type, bda);
     return;
   }
