@@ -37,7 +37,6 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/bt_types.h"
 #include "stack/include/main_thread.h"
 
 void BTIF_dm_on_hw_error();
