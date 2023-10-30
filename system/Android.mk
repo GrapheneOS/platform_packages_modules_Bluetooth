@@ -29,6 +29,8 @@ LOCAL_host_python_extension_libraries := \
 
 LOCAL_host_libraries := \
 	$(HOST_OUT_SHARED_LIBRARIES)/libbase.so \
+	$(HOST_OUT_SHARED_LIBRARIES)/libbinder.so \
+	$(HOST_OUT_SHARED_LIBRARIES)/libbinder_ndk.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libbluetooth.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libbluetooth_gd.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libc++.so \
@@ -44,6 +46,7 @@ LOCAL_host_libraries := \
 	$(HOST_OUT_SHARED_LIBRARIES)/libz-host.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libprotobuf-cpp-full.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libunwindstack.so \
+	$(HOST_OUT_SHARED_LIBRARIES)/libutils.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/liblzma.so
 
 LOCAL_target_executables := \
