@@ -27,7 +27,7 @@
 #include "hci/hci_layer_mock.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
-#include "stack/btm/btm_sec_int_types.h"
+#include "stack/btm/btm_sec_cb.h"
 #include "stack/btm/security_device_record.h"
 #include "test/common/mock_functions.h"
 #include "test/mock/mock_main_shim_entry.h"
