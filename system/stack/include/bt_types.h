@@ -21,19 +21,15 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#ifdef __cplusplus
-#include <string>
-#endif  // __cplusplus
 
+#include <string>
+
+#include "include/hardware/bluetooth.h"
 #include "stack/include/bt_dev_class.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/bt_octets.h"
-#ifdef __cplusplus
-#include "include/hardware/bluetooth.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-#endif  // __cplusplus
 
 /* READ WELL !!
  *
