@@ -54,18 +54,6 @@ struct maybe_resolve_address {
   };
 };
 extern struct maybe_resolve_address maybe_resolve_address;
-// Name: btm_ble_conn_complete
-// Params: uint8_t* p, uint16_t evt_len, bool enhanced
-// Returns: void
-struct btm_ble_conn_complete {
-  std::function<void(uint8_t* p, uint16_t evt_len, bool enhanced)> body{
-      [](uint8_t* p, uint16_t evt_len, bool enhanced) {}};
-  void operator()(uint8_t* p, uint16_t evt_len, bool enhanced) {
-    body(p, evt_len, enhanced);
-  };
-};
-extern struct btm_ble_conn_complete btm_ble_conn_complete;
-
 }  // namespace stack_acl_btm_ble_connection_establishment
 }  // namespace mock
 }  // namespace test
