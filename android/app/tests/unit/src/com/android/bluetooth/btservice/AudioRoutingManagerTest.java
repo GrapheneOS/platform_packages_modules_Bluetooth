@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.btservice;
 
+import static android.bluetooth.IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID;
+
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -150,6 +152,7 @@ public class AudioRoutingManagerTest {
         when(mHearingAidService.setActiveDevice(any())).thenReturn(true);
         when(mLeAudioService.setActiveDevice(any())).thenReturn(true);
         when(mLeAudioService.removeActiveDevice(anyBoolean())).thenReturn(true);
+        when(mLeAudioService.getGroupId(any())).thenReturn(LE_AUDIO_GROUP_ID_INVALID);
 
         List<BluetoothDevice> connectedHearingAidDevices = new ArrayList<>();
         connectedHearingAidDevices.add(mHearingAidDevice);
@@ -782,7 +785,6 @@ public class AudioRoutingManagerTest {
 
         verify(mLeAudioService, never()).removeActiveDevice(false);
         verify(mLeAudioService, never()).setActiveDevice(mLeAudioDevice2);
-        verify(mLeAudioService, timeout(TIMEOUT_MS)).deviceDisconnected(mLeAudioDevice, false);
     }
 
     /**
@@ -809,7 +811,6 @@ public class AudioRoutingManagerTest {
         leAudioDisconnected(mLeAudioDevice2);
 
         verify(mLeAudioService, timeout(TIMEOUT_MS)).removeActiveDevice(false);
-        verify(mLeAudioService, timeout(TIMEOUT_MS)).deviceDisconnected(mLeAudioDevice2, false);
     }
 
     /**
@@ -832,7 +833,6 @@ public class AudioRoutingManagerTest {
         leAudioDisconnected(mLeAudioDevice2);
 
         verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
-        verify(mLeAudioService, timeout(TIMEOUT_MS)).deviceDisconnected(mLeAudioDevice2, true);
     }
 
     /**
@@ -890,16 +890,16 @@ public class AudioRoutingManagerTest {
         verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeHearingAidDevice);
     }
 
-    /** LE audio is connected after LE Hearing Aid device. Keep LE hearing Aid active. */
+    /** LE audio is connected after LE Hearing Aid device. LE audio active. */
     @Test
-    public void leAudioConnectedAfterLeHearingAid_setLeAudioActiveShouldNotBeCalled() {
+    public void leAudioConnectedAfterLeHearingAid_callsSetLeAudioActive() {
         leHearingAidConnected(mLeHearingAidDevice);
         leAudioConnected(mLeHearingAidDevice);
         verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeHearingAidDevice);
 
         leAudioConnected(mLeAudioDevice);
         TestUtils.waitForLooperToFinishScheduledTask(mAudioRoutingManager.getHandlerLooper());
-        verify(mLeAudioService, never()).setActiveDevice(mLeAudioDevice);
+        verify(mLeAudioService).setActiveDevice(mLeAudioDevice);
     }
 
     /**
