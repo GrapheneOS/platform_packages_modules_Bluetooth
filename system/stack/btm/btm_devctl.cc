@@ -33,6 +33,7 @@
 #include "btcore/include/module.h"
 #include "btif/include/btif_bqr.h"
 #include "btm_ble_int.h"
+#include "btm_sec_cb.h"
 #include "btm_sec_int_types.h"
 #include "common/message_loop_thread.h"
 #include "hci/include/hci_layer.h"
