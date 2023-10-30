@@ -27,6 +27,7 @@
 #include "ble_advertiser.h"
 #include "bt_target.h"
 #include "btm_dev.h"
+#include "btm_sec_cb.h"
 #include "btm_sec_int_types.h"
 #include "device/include/controller.h"
 #include "main/shim/acl_api.h"
