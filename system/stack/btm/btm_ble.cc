@@ -735,7 +735,6 @@ void read_phy_cb(
   STREAM_TO_UINT8(tx_phy, pp);
   STREAM_TO_UINT8(rx_phy, pp);
 
-  DVLOG(1) << __func__ << " Received read_phy_cb";
   cb.Run(tx_phy, rx_phy, status);
 }
 
@@ -1056,7 +1055,6 @@ bool btm_ble_get_enc_key_type(const RawAddress& bd_addr, uint8_t* p_key_types) {
 bool btm_get_local_div(const RawAddress& bd_addr, uint16_t* p_div) {
   tBTM_SEC_DEV_REC* p_dev_rec;
   bool status = false;
-  VLOG(1) << __func__ << " bd_addr: " << bd_addr;
 
   *p_div = 0;
   p_dev_rec = btm_find_dev(bd_addr);
@@ -1091,8 +1089,6 @@ void btm_sec_save_le_key(const RawAddress& bd_addr, tBTM_LE_KEY_TYPE key_type,
   LOG_VERBOSE("btm_sec_save_le_key key_type=0x%x pass_to_application=%d",
               key_type, pass_to_application);
   /* Store the updated key in the device database */
-
-  VLOG(1) << "bd_addr:" << bd_addr;
 
   if ((p_rec = btm_find_dev(bd_addr)) != NULL &&
       (p_keys || key_type == BTM_LE_KEY_LID)) {
@@ -1847,7 +1843,6 @@ tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
               "btm_sec_cb.pairing_state=%x pairing_flags=%x pin_code_len=%x",
               btm_sec_cb.pairing_state, btm_sec_cb.pairing_flags,
               btm_sec_cb.pin_code_len);
-          VLOG(1) << "btm_sec_cb.pairing_bda: " << btm_sec_cb.pairing_bda;
 
           /* Reset btm state only if the callback address matches pairing
            * address*/

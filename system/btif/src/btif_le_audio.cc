@@ -149,11 +149,10 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
   }
 
   void Cleanup(void) override {
-    DVLOG(2) << __func__;
     if (!initialized || !LeAudioClient::IsLeAudioClientRunning()) {
-      DVLOG(2) << __func__
-               << " call ignored, due to already started cleanup procedure or "
-                  "service being not read";
+      VLOG(1) << __func__
+              << " call ignored, due to already started cleanup procedure or "
+                 "service being not read";
       return;
     }
 
@@ -163,12 +162,10 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
   }
 
   void RemoveDevice(const RawAddress& address) override {
-    DVLOG(2) << __func__ << " address: " << ADDRESS_TO_LOGGABLE_STR(address);
-
     if (!initialized || !LeAudioClient::IsLeAudioClientRunning()) {
-      DVLOG(2) << __func__
-               << " call ignored, due to already started cleanup procedure or "
-                  "service being not read";
+      VLOG(1) << __func__
+              << " call ignored, due to already started cleanup procedure or "
+                 "service being not read";
 
       do_in_jni_thread(FROM_HERE, Bind(&btif_storage_remove_leaudio, address));
       return;
@@ -182,12 +179,10 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
   }
 
   void Connect(const RawAddress& address) override {
-    DVLOG(2) << __func__ << " address: " << ADDRESS_TO_LOGGABLE_STR(address);
-
     if (!initialized || !LeAudioClient::IsLeAudioClientRunning()) {
-      DVLOG(2) << __func__
-               << " call ignored, due to already started cleanup procedure or "
-                  "service being not read";
+      VLOG(1) << __func__
+              << " call ignored, due to already started cleanup procedure or "
+                 "service being not read";
       return;
     }
 
@@ -197,12 +192,10 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
   }
 
   void Disconnect(const RawAddress& address) override {
-    DVLOG(2) << __func__ << " address: " << ADDRESS_TO_LOGGABLE_STR(address);
-
     if (!initialized || !LeAudioClient::IsLeAudioClientRunning()) {
-      DVLOG(2) << __func__
-               << " call ignored, due to already started cleanup procedure or "
-                  "service being not read";
+      VLOG(1) << __func__
+              << " call ignored, due to already started cleanup procedure or "
+                 "service being not read";
       return;
     }
 
@@ -212,12 +205,10 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
   }
 
   void SetEnableState(const RawAddress& address, bool enabled) override {
-    DVLOG(2) << __func__ << " address: " << address << ", enabled: " << enabled;
-
     if (!initialized || !LeAudioClient::IsLeAudioClientRunning()) {
-      DVLOG(2) << __func__
-               << " call ignored, due to already started cleanup procedure or "
-                  "service being not read";
+      VLOG(1) << __func__
+              << " call ignored, due to already started cleanup procedure or "
+                 "service being not read";
       return;
     }
 
@@ -227,13 +218,10 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
   }
 
   void GroupAddNode(const int group_id, const RawAddress& address) override {
-    DVLOG(2) << __func__ << " group_id: " << group_id
-             << " address: " << ADDRESS_TO_LOGGABLE_STR(address);
-
     if (!initialized || !LeAudioClient::IsLeAudioClientRunning()) {
-      DVLOG(2) << __func__
-               << " call ignored, due to already started cleanup procedure or "
-                  "service being not read";
+      VLOG(1) << __func__
+              << " call ignored, due to already started cleanup procedure or "
+                 "service being not read";
       return;
     }
 
@@ -243,12 +231,10 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
   }
 
   void GroupRemoveNode(const int group_id, const RawAddress& address) override {
-    DVLOG(2) << __func__ << " group_id: " << group_id
-             << " address: " << ADDRESS_TO_LOGGABLE_STR(address);
     if (!initialized || !LeAudioClient::IsLeAudioClientRunning()) {
-      DVLOG(2) << __func__
-               << " call ignored, due to already started cleanup procedure or "
-                  "service being not read";
+      VLOG(1) << __func__
+              << " call ignored, due to already started cleanup procedure or "
+                 "service being not read";
       return;
     }
 
@@ -258,11 +244,10 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
   }
 
   void GroupSetActive(const int group_id) override {
-    DVLOG(2) << __func__ << " group_id: " << group_id;
     if (!initialized || !LeAudioClient::IsLeAudioClientRunning()) {
-      DVLOG(2) << __func__
-               << " call ignored, due to already started cleanup procedure or "
-                  "service being not read";
+      VLOG(1) << __func__
+              << " call ignored, due to already started cleanup procedure or "
+                 "service being not read";
       return;
     }
 
@@ -274,11 +259,10 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
   void SetCodecConfigPreference(int group_id,
                                 btle_audio_codec_config_t input_codec_config,
                                 btle_audio_codec_config_t output_codec_config) {
-    DVLOG(2) << __func__ << " group_id: " << group_id;
     if (!initialized || !LeAudioClient::IsLeAudioClientRunning()) {
-      DVLOG(2) << __func__
-               << " call ignored, due to already started cleanup procedure or "
-                  "service being not read";
+      VLOG(1) << __func__
+              << " call ignored, due to already started cleanup procedure or "
+                 "service being not read";
       return;
     }
     do_in_main_thread(FROM_HERE,
@@ -288,12 +272,10 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
   }
 
   void SetCcidInformation(int ccid, int context_type) {
-    DVLOG(2) << __func__ << " ccid: " << ccid << " context_type"
-             << context_type;
     if (!initialized || !LeAudioClient::IsLeAudioClientRunning()) {
-      DVLOG(2) << __func__
-               << " call ignored, due to already started cleanup procedure or "
-                  "service being not read";
+      VLOG(1) << __func__
+              << " call ignored, due to already started cleanup procedure or "
+                 "service being not read";
       return;
     }
 
@@ -303,11 +285,10 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
   }
 
   void SetInCall(bool in_call) {
-    DVLOG(2) << __func__ << " in_call: " << in_call;
     if (!initialized || !LeAudioClient::IsLeAudioClientRunning()) {
-      DVLOG(2) << __func__
-               << " call ignored, due to already started cleanup procedure or "
-                  "service being not read";
+      VLOG(1) << __func__
+              << " call ignored, due to already started cleanup procedure or "
+                 "service being not read";
       return;
     }
 
@@ -319,15 +300,10 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
   void SendAudioProfilePreferences(int group_id,
                                    bool is_output_preference_le_audio,
                                    bool is_duplex_preference_le_audio) {
-    DVLOG(2) << __func__ << " group_id: " << group_id
-             << ", is_output_preference_le_audio: "
-             << is_output_preference_le_audio
-             << ", is_duplex_preference_le_audio: "
-             << is_duplex_preference_le_audio;
     if (!initialized || !LeAudioClient::IsLeAudioClientRunning()) {
-      DVLOG(2) << __func__
-               << " call ignored, due to already started cleanup procedure or "
-                  "service being not read";
+      VLOG(1) << __func__
+              << " call ignored, due to already started cleanup procedure or "
+                 "service being not read";
       return;
     }
 
