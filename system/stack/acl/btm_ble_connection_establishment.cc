@@ -20,7 +20,7 @@
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/hci/enums.pb.h>
 
-#include "btm_sec_int_types.h"
+#include "btm_sec_cb.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/ble_hci_link_interface.h"

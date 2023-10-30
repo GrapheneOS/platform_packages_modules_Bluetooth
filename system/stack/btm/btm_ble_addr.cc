@@ -27,7 +27,7 @@
 
 #include "btm_ble_int.h"
 #include "btm_dev.h"
-#include "btm_sec_int_types.h"
+#include "btm_sec_cb.h"
 #include "device/include/controller.h"
 #include "gap_api.h"
 #include "main/shim/shim.h"

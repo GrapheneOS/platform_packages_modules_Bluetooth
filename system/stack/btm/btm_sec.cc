@@ -47,6 +47,7 @@
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
+#include "stack/btm/btm_sec_cb.h"
 #include "stack/btm/btm_sec_int_types.h"
 #include "stack/btm/security_device_record.h"
 #include "stack/include/acl_api.h"
