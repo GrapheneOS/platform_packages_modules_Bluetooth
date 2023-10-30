@@ -242,6 +242,7 @@ cc_test {
         ":TestMockStackPan",
         ":TestMockStackRfcomm",
         "test/bta_ag_sco_test.cc",
+        "test/bta_ag_test.cc",
         "test/bta_api_test.cc",
         "test/bta_av_test.cc",
         "test/bta_dip_test.cc",
@@ -284,7 +285,9 @@ cc_test {
         "libchrome",
         "libcom.android.sysprop.bluetooth.wrapped",
         "libevent",
+        "libflagtest",
         "libgmock",
+        "server_configurable_flags",
     ],
     data: [
         ":audio_set_configurations_bfbs",
