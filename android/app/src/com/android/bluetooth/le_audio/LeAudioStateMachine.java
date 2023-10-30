@@ -53,6 +53,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.flags.FeatureFlags;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -87,13 +88,19 @@ final class LeAudioStateMachine extends StateMachine {
     private LeAudioNativeInterface mNativeInterface;
 
     private final BluetoothDevice mDevice;
+    private final FeatureFlags mFeatureFlags;
 
-    LeAudioStateMachine(BluetoothDevice device, LeAudioService svc,
-            LeAudioNativeInterface nativeInterface, Looper looper) {
+    LeAudioStateMachine(
+            BluetoothDevice device,
+            LeAudioService svc,
+            LeAudioNativeInterface nativeInterface,
+            Looper looper,
+            FeatureFlags featureFlags) {
         super(TAG, looper);
         mDevice = device;
         mService = svc;
         mNativeInterface = nativeInterface;
+        mFeatureFlags = featureFlags;
 
         mDisconnected = new Disconnected();
         mConnecting = new Connecting();
@@ -108,10 +115,15 @@ final class LeAudioStateMachine extends StateMachine {
         setInitialState(mDisconnected);
     }
 
-    static LeAudioStateMachine make(BluetoothDevice device, LeAudioService svc,
-            LeAudioNativeInterface nativeInterface, Looper looper) {
+    static LeAudioStateMachine make(
+            BluetoothDevice device,
+            LeAudioService svc,
+            LeAudioNativeInterface nativeInterface,
+            Looper looper,
+            FeatureFlags featureFlags) {
         Log.i(TAG, "make for device");
-        LeAudioStateMachine LeAudioSm = new LeAudioStateMachine(device, svc, nativeInterface, looper);
+        LeAudioStateMachine LeAudioSm =
+                new LeAudioStateMachine(device, svc, nativeInterface, looper, featureFlags);
         LeAudioSm.start();
         return LeAudioSm;
     }
@@ -139,6 +151,9 @@ final class LeAudioStateMachine extends StateMachine {
                 // Don't broadcast during startup
                 broadcastConnectionState(BluetoothProfile.STATE_DISCONNECTED,
                         mLastConnectionState);
+                if (mFeatureFlags.audioRoutingCentralization()) {
+                    mService.deviceDisconnected(mDevice, false);
+                }
             }
         }
 
@@ -426,6 +441,9 @@ final class LeAudioStateMachine extends StateMachine {
                     + messageWhatToString(getCurrentMessage().what));
             mConnectionState = BluetoothProfile.STATE_CONNECTED;
             removeDeferredMessages(CONNECT);
+            if (mFeatureFlags.audioRoutingCentralization()) {
+                mService.deviceConnected(mDevice);
+            }
             broadcastConnectionState(BluetoothProfile.STATE_CONNECTED, mLastConnectionState);
         }
 
