@@ -37,7 +37,6 @@ LOCAL_host_libraries := \
 	$(HOST_OUT_SHARED_LIBRARIES)/libcutils.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libevent-host.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libflatbuffers-cpp.so \
-	$(HOST_OUT_SHARED_LIBRARIES)/libgrpc++_unsecure.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libgrpc++.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libgrpc_wrap.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/liblog.so \
@@ -61,7 +60,6 @@ LOCAL_target_libraries := \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libcrypto.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libcutils.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc_wrap.so \
-	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc++_unsecure.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc++.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libhidlbase.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/liblog.so \

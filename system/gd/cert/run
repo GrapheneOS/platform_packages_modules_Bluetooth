@@ -353,7 +353,6 @@ function incremental_venv {
     cp {$HOST_LIB,$DEST_LIB_DIR}/libchrome.so
     cp {$HOST_LIB,$DEST_LIB_DIR}/libcrypto-host.so
     cp {$HOST_LIB,$DEST_LIB_DIR}/libevent-host.so
-    cp {$HOST_LIB,$DEST_LIB_DIR}/libgrpc++_unsecure.so
     cp {$HOST_LIB,$DEST_LIB_DIR}/libgrpc++.so
     cp {$HOST_LIB,$DEST_LIB_DIR}/libgrpc_wrap.so
     cp {$HOST_LIB,$DEST_LIB_DIR}/liblog.so
