@@ -193,7 +193,7 @@ cc_library {
 
 cc_test {
     name: "bluetooth_flatbuffer_tests",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_cflags",
         "bluetooth_gtest_x86_asan_workaround",

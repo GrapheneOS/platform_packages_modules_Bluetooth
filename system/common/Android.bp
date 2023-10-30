@@ -62,7 +62,7 @@ cc_library_static {
 
 cc_test {
     name: "bluetooth_test_common",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
@@ -123,7 +123,7 @@ cc_test {
         "fluoride_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     include_dirs: ["packages/modules/Bluetooth/system"],
     host_supported: true,
     srcs: [

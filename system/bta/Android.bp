@@ -219,7 +219,7 @@ cc_test {
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     srcs: [
         ":LegacyStackSdp",
         ":TestCommonMockFunctions",
@@ -279,7 +279,7 @@ cc_test {
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     srcs: [
         ":TestCommonMockFunctions",
         ":TestMockBtif",
@@ -322,7 +322,7 @@ cc_test {
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     include_dirs: [
         "packages/modules/Bluetooth/system",
@@ -458,7 +458,7 @@ cc_test {
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     include_dirs: [
         "packages/modules/Bluetooth/system",
@@ -518,7 +518,7 @@ cc_test {
 // csis unit tests for host
 cc_test {
     name: "bluetooth_csis_test",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_bta_defaults",
@@ -579,7 +579,7 @@ cc_test {
 // groups unit tests for host
 cc_test {
     name: "bluetooth_groups_test",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_bta_defaults",
@@ -627,7 +627,7 @@ cc_test {
 // bta unit tests for host
 cc_test {
     name: "bluetooth_vc_test",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_bta_defaults",
@@ -753,7 +753,7 @@ prebuilt_etc {
 // ========================================================
 cc_test {
     name: "bluetooth_le_audio_codec_manager_test",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
@@ -829,7 +829,7 @@ cc_test {
 
 cc_test {
     name: "bluetooth_le_audio_test",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
@@ -932,7 +932,7 @@ cc_test {
 
 cc_test {
     name: "bluetooth_le_audio_client_test",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "fluoride_bta_defaults",
         "mts_defaults",
@@ -1039,7 +1039,7 @@ cc_test {
 
 cc_test {
     name: "bluetooth_test_broadcaster_state_machine",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_bta_defaults",
@@ -1097,7 +1097,7 @@ cc_test {
 
 cc_test {
     name: "bluetooth_test_broadcaster",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_bta_defaults",
@@ -1167,7 +1167,7 @@ cc_test {
 
 cc_test {
     name: "bluetooth_has_test",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_bta_defaults",
@@ -1229,7 +1229,7 @@ cc_test {
 
 cc_test {
     name: "bluetooth_hh_test",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_bta_defaults",
