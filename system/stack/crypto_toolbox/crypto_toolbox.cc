@@ -40,10 +40,10 @@ Octet16 f4(const uint8_t* u, const uint8_t* v, const Octet16& x, uint8_t z) {
   constexpr size_t msg_len = BT_OCTET32_LEN /* U size */ +
                              BT_OCTET32_LEN /* V size */ + 1 /* Z size */;
 
-  DVLOG(2) << "U=" << HexEncode(u, BT_OCTET32_LEN)
-           << ", V=" << HexEncode(v, BT_OCTET32_LEN)
-           << ", X=" << HexEncode(x.data(), x.size()) << ", Z=" << std::hex
-           << +z;
+  // VLOG(1) << "U=" << HexEncode(u, BT_OCTET32_LEN)
+  //          << ", V=" << HexEncode(v, BT_OCTET32_LEN)
+  //          << ", X=" << HexEncode(x.data(), x.size()) << ", Z=" << std::hex
+  //          << +z;
 
   std::array<uint8_t, msg_len> msg;
   auto it = msg.begin();
@@ -77,16 +77,16 @@ static Octet16 calculate_mac_key_or_ltk(const Octet16& t, uint8_t counter,
 
 void f5(const uint8_t* w, const Octet16& n1, const Octet16& n2, uint8_t* a1,
         uint8_t* a2, Octet16* mac_key, Octet16* ltk) {
-  DVLOG(2) << __func__ << "W=" << HexEncode(w, BT_OCTET32_LEN)
-           << ", N1=" << HexEncode(n1.data(), n1.size())
-           << ", N2=" << HexEncode(n2.data(), n2.size())
-           << ", A1=" << HexEncode(a1, 7) << ", A2=" << HexEncode(a2, 7);
+  // VLOG(1) << __func__ << "W=" << HexEncode(w, BT_OCTET32_LEN)
+  //          << ", N1=" << HexEncode(n1.data(), n1.size())
+  //          << ", N2=" << HexEncode(n2.data(), n2.size())
+  //          << ", A1=" << HexEncode(a1, 7) << ", A2=" << HexEncode(a2, 7);
 
   const Octet16 salt{0xBE, 0x83, 0x60, 0x5A, 0xDB, 0x0B, 0x37, 0x60,
                      0x38, 0xA5, 0xF5, 0xAA, 0x91, 0x83, 0x88, 0x6C};
   Octet16 t = aes_cmac(salt, w, BT_OCTET32_LEN);
 
-  DVLOG(2) << "T=" << HexEncode(t.data(), t.size());
+  // VLOG(1) << "T=" << HexEncode(t.data(), t.size());
 
   uint8_t key_id[4] = {0x65, 0x6c, 0x74, 0x62}; /* 0x62746c65 */
   uint8_t length[2] = {0x00, 0x01};             /* 0x0100 */
@@ -95,8 +95,8 @@ void f5(const uint8_t* w, const Octet16& n1, const Octet16& n2, uint8_t* a1,
 
   *ltk = calculate_mac_key_or_ltk(t, 1, key_id, n1, n2, a1, a2, length);
 
-  DVLOG(2) << "mac_key=" << HexEncode(mac_key->data(), mac_key->size());
-  DVLOG(2) << "ltk=" << HexEncode(ltk->data(), ltk->size());
+  // VLOG(1) << "mac_key=" << HexEncode(mac_key->data(), mac_key->size());
+  // VLOG(1) << "ltk=" << HexEncode(ltk->data(), ltk->size());
 }
 
 Octet16 f6(const Octet16& w, const Octet16& n1, const Octet16& n2,
@@ -106,12 +106,13 @@ Octet16 f6(const Octet16& w, const Octet16& n1, const Octet16& n2,
                           3 /* IOcap size */ + 7 /* A1 size*/
                           + 7 /* A2 size*/;
 
-  DVLOG(2) << __func__ << "W=" << HexEncode(w.data(), w.size())
-           << ", N1=" << HexEncode(n1.data(), n1.size())
-           << ", N2=" << HexEncode(n2.data(), n2.size())
-           << ", R=" << HexEncode(r.data(), r.size())
-           << ", IOcap=" << HexEncode(iocap, 3) << ", A1=" << HexEncode(a1, 7)
-           << ", A2=" << HexEncode(a2, 7);
+  // VLOG(1) << __func__ << "W=" << HexEncode(w.data(), w.size())
+  //          << ", N1=" << HexEncode(n1.data(), n1.size())
+  //          << ", N2=" << HexEncode(n2.data(), n2.size())
+  //          << ", R=" << HexEncode(r.data(), r.size())
+  //          << ", IOcap=" << HexEncode(iocap, 3) << ", A1=" << HexEncode(a1,
+  //          7)
+  //          << ", A2=" << HexEncode(a2, 7);
 
   std::array<uint8_t, msg_len> msg;
   auto it = msg.begin();
@@ -131,10 +132,10 @@ uint32_t g2(const uint8_t* u, const uint8_t* v, const Octet16& x,
                              BT_OCTET32_LEN /* V size */
                              + OCTET16_LEN /* Y size */;
 
-  DVLOG(2) << __func__ << "U=" << HexEncode(u, BT_OCTET32_LEN)
-           << ", V=" << HexEncode(v, BT_OCTET32_LEN)
-           << ", X=" << HexEncode(x.data(), x.size())
-           << ", Y=" << HexEncode(y.data(), y.size());
+  // VLOG(1) << __func__ << "U=" << HexEncode(u, BT_OCTET32_LEN)
+  //          << ", V=" << HexEncode(v, BT_OCTET32_LEN)
+  //          << ", X=" << HexEncode(x.data(), x.size())
+  //          << ", Y=" << HexEncode(y.data(), y.size());
 
   std::array<uint8_t, msg_len> msg;
   auto it = msg.begin();
