@@ -39,7 +39,7 @@ cc_library_static {
 // Bluetooth device unit tests for target
 cc_test {
     name: "net_test_device",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
@@ -69,7 +69,7 @@ cc_test {
 // Bluetooth device unit tests for target
 cc_test {
     name: "net_test_device_iot_config",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
