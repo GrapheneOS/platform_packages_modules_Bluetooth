@@ -523,7 +523,6 @@ class GdAndroidDevice(GdDeviceBase):
         self.push_or_die(*generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "libcutils.so"), overwrite_existing=False)
         self.push_or_die(
             *generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "libgrpc_wrap.so"), overwrite_existing=False)
-        self.push_or_die(*generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "libgrpc++_unsecure.so"))
         self.push_or_die(*generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "libgrpc++.so"))
         self.push_or_die(*generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "libhidlbase.so"), overwrite_existing=False)
         self.push_or_die(*generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "liblog.so"), overwrite_existing=False)

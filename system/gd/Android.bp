@@ -300,7 +300,6 @@ cc_binary {
     shared_libs: [
         "libcrypto",
         "libgrpc++",
-        "libgrpc++_unsecure",
         "libgrpc_wrap",
         "libprotobuf-cpp-full",
         "libunwindstack",
