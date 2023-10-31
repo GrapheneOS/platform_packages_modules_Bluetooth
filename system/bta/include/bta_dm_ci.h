@@ -26,7 +26,7 @@
 
 #include <cstdint>
 
-#include "stack/include/bt_octets.h"
+#include "stack/include/bt_types.h"
 #include "types/raw_address.h"
 
 /*****************************************************************************

@@ -18,6 +18,7 @@
 
 #include "adapter/bluetooth_test.h"
 #include "btcore/include/property.h"
+#include "stack/include/bt_types.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 

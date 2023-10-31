@@ -38,6 +38,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 #include "types/raw_address.h"
 
 /*****************************************************************************

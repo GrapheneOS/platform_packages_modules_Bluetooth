@@ -37,6 +37,7 @@
 #include "osi/include/osi.h"
 #include "stack/btm/security_device_record.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 #include "types/raw_address.h"
 
 struct packet {

@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "stack/include/bt_types.h"
 #include "stack/include/hcidefs.h"
 
 #define BD_FEATURES_LEN 8
