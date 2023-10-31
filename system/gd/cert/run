@@ -43,7 +43,7 @@ function sad_hedgehog {
     echo -e "{$NOCOLOR}"
 }
 
-PYTHON_BIN="python3.10"
+PYTHON_BIN="python3.11"
 
 function check_environment {
     if [[ -z "${ANDROID_BUILD_TOP}" ]] || [[ -z "${ANDROID_HOST_OUT}" ]] ; then
@@ -60,10 +60,9 @@ function check_environment {
       echo -e "${RED}You must have ${PYTHON_BIN} installed${NOCOLOR}"
       exit 1
     fi
-    ${PYTHON_BIN} -m virtualenv --version
+    ${PYTHON_BIN} -m venv -h > /dev/null
     if [[ $? -ne 0 ]] ; then
-        echo -e "${RED}virtualenv not installed for ${PYTHON_BIN}${NOCOLOR}"
-        echo -e "${RED}Please run '${PYTHON_BIN} -m pip install virtualenv' to install it${NOCOLOR}"
+        echo -e "${RED}venv not available for ${PYTHON_BIN}${NOCOLOR}"
         exit 1
     fi
 }
@@ -319,7 +318,7 @@ function setup_venv {
             echo -e "${NOCOLOR}"
         fi
     fi
-    ${PYTHON_BIN} -m virtualenv --python `which "${PYTHON_BIN}"` "${CERT_TEST_VENV}"
+    ${PYTHON_BIN} -m venv --clear "${CERT_TEST_VENV}"
     if [[ $? -ne 0 ]] ; then
         echo -e "${RED}Error setting up virtualenv${NOCOLOR}"
         exit 1
@@ -353,7 +352,6 @@ function incremental_venv {
     cp {$HOST_LIB,$DEST_LIB_DIR}/libchrome.so
     cp {$HOST_LIB,$DEST_LIB_DIR}/libcrypto-host.so
     cp {$HOST_LIB,$DEST_LIB_DIR}/libevent-host.so
-    cp {$HOST_LIB,$DEST_LIB_DIR}/libgrpc++_unsecure.so
     cp {$HOST_LIB,$DEST_LIB_DIR}/libgrpc++.so
     cp {$HOST_LIB,$DEST_LIB_DIR}/libgrpc_wrap.so
     cp {$HOST_LIB,$DEST_LIB_DIR}/liblog.so

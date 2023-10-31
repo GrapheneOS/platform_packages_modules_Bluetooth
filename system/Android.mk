@@ -29,6 +29,8 @@ LOCAL_host_python_extension_libraries := \
 
 LOCAL_host_libraries := \
 	$(HOST_OUT_SHARED_LIBRARIES)/libbase.so \
+	$(HOST_OUT_SHARED_LIBRARIES)/libbinder.so \
+	$(HOST_OUT_SHARED_LIBRARIES)/libbinder_ndk.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libbluetooth.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libbluetooth_gd.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libc++.so \
@@ -37,7 +39,6 @@ LOCAL_host_libraries := \
 	$(HOST_OUT_SHARED_LIBRARIES)/libcutils.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libevent-host.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libflatbuffers-cpp.so \
-	$(HOST_OUT_SHARED_LIBRARIES)/libgrpc++_unsecure.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libgrpc++.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libgrpc_wrap.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/liblog.so \
@@ -45,6 +46,7 @@ LOCAL_host_libraries := \
 	$(HOST_OUT_SHARED_LIBRARIES)/libz-host.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libprotobuf-cpp-full.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libunwindstack.so \
+	$(HOST_OUT_SHARED_LIBRARIES)/libutils.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/liblzma.so
 
 LOCAL_target_executables := \
@@ -61,7 +63,6 @@ LOCAL_target_libraries := \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libcrypto.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libcutils.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc_wrap.so \
-	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc++_unsecure.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc++.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libhidlbase.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/liblog.so \
