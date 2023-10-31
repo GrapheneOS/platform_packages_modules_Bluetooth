@@ -61,7 +61,7 @@ cc_test {
         "libchrome",
         "libosi", // strlcpy
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
