@@ -21,7 +21,6 @@
 
 #include <algorithm>
 
-#include "aes.h"
 #include "stack/include/bt_octets.h"
 
 using base::HexEncode;
@@ -147,8 +146,7 @@ uint32_t g2(const uint8_t* u, const uint8_t* v, const Octet16& x,
 
   /* vres = cmac mod 2**32 mod 10**6 */
   uint32_t vres;
-  uint8_t* p = cmac.data();
-  STREAM_TO_UINT32(vres, p);
+  std::copy(cmac.data(), cmac.data() + sizeof(uint32_t), (uint8_t*)&vres);
 
   vres = vres % 1000000;
   return vres;

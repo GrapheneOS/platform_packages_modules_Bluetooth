@@ -23,9 +23,9 @@
  ******************************************************************************/
 
 #include <base/logging.h>
-#include <base/strings/string_number_conversions.h>
 
-#include "check.h"
+#include <algorithm>
+
 #include "aes.h"
 #include "crypto_toolbox.h"
 #include "stack/include/bt_octets.h"
@@ -50,7 +50,6 @@ Octet16 const_Rb{0x87, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
  * length of OCTET16_LEN. Result is stored in first argument.
  */
 static void xor_128(Octet16* a, const Octet16& b) {
-  CHECK(a);
   uint8_t i, *aa = a->data();
   const uint8_t* bb = b.data();
 
