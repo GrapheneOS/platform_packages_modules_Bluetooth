@@ -1,3 +1,5 @@
+use crate::state_machine::{RealHciIndex, VirtualHciIndex};
+
 use log::LevelFilter;
 use serde_json::{Map, Value};
 use std::convert::TryInto;
@@ -25,7 +27,7 @@ const FLOSS_COREDUMP_CONF_PATH: &str = "/var/run/bluetooth/coredump_disabled";
 const DEFAULT_ADAPTER_KEY: &str = "default_adapter";
 
 /// In the absence of other values, default to hci0.
-const DEFAULT_ADAPTER_VALUE: i32 = 0;
+const DEFAULT_ADAPTER: VirtualHciIndex = VirtualHciIndex(0);
 
 pub fn is_floss_enabled() -> bool {
     match std::fs::read(BLUETOOTH_DAEMON_CURRENT) {
@@ -69,17 +71,14 @@ fn get_log_level_internal(config: String) -> Option<LevelFilter> {
 }
 
 /// Returns whether hci N is enabled in config; defaults to true.
-pub fn is_hci_n_enabled(n: i32) -> bool {
-    match read_config().ok().and_then(|config| is_hci_n_enabled_internal(config, n)) {
-        Some(v) => v,
-        _ => true,
-    }
+pub fn is_hci_n_enabled(hci: VirtualHciIndex) -> bool {
+    read_config().ok().and_then(|config| is_hci_n_enabled_internal(config, hci)).unwrap_or(true)
 }
 
-fn is_hci_n_enabled_internal(config: String, n: i32) -> Option<bool> {
+fn is_hci_n_enabled_internal(config: String, hci: VirtualHciIndex) -> Option<bool> {
     serde_json::from_str::<Value>(config.as_str())
         .ok()?
-        .get(format!("hci{}", n))?
+        .get(format!("hci{}", hci.to_i32()))?
         .as_object()?
         .get("enabled")?
         .as_bool()
@@ -96,24 +95,25 @@ pub fn fix_config_file_format() -> bool {
     }
 }
 
-pub fn modify_hci_n_enabled(n: i32, enabled: bool) -> bool {
+pub fn modify_hci_n_enabled(hci: VirtualHciIndex, enabled: bool) -> bool {
     if !fix_config_file_format() {
-        false
-    } else {
-        match read_config()
-            .ok()
-            .and_then(|config| modify_hci_n_enabled_internal(config, n, enabled))
-        {
-            Some(s) => std::fs::write(BTMANAGERD_CONF, s).is_ok(),
-            _ => false,
-        }
+        return false;
+    }
+    match read_config().ok().and_then(|config| modify_hci_n_enabled_internal(config, hci, enabled))
+    {
+        Some(s) => std::fs::write(BTMANAGERD_CONF, s).is_ok(),
+        _ => false,
     }
 }
 
-fn modify_hci_n_enabled_internal(config: String, n: i32, enabled: bool) -> Option<String> {
-    let hci_interface = format!("hci{}", n);
+fn modify_hci_n_enabled_internal(
+    config: String,
+    hci: VirtualHciIndex,
+    enabled: bool,
+) -> Option<String> {
+    let hci_str = format!("hci{}", hci.to_i32());
     let mut o = serde_json::from_str::<Value>(config.as_str()).ok()?;
-    match o.get_mut(hci_interface.clone()) {
+    match o.get_mut(hci_str.clone()) {
         Some(section) => {
             section.as_object_mut()?.insert("enabled".to_string(), Value::Bool(enabled));
             serde_json::ser::to_string_pretty(&o).ok()
@@ -121,34 +121,36 @@ fn modify_hci_n_enabled_internal(config: String, n: i32, enabled: bool) -> Optio
         _ => {
             let mut entry_map = Map::new();
             entry_map.insert("enabled".to_string(), Value::Bool(enabled));
-            o.as_object_mut()?.insert(hci_interface, Value::Object(entry_map));
+            o.as_object_mut()?.insert(hci_str, Value::Object(entry_map));
             serde_json::ser::to_string_pretty(&o).ok()
         }
     }
 }
 
-pub fn get_default_adapter() -> i32 {
-    match read_config().ok().and_then(|config| {
-        serde_json::from_str::<Value>(config.as_str()).ok()?.get(DEFAULT_ADAPTER_KEY)?.as_i64()
-    }) {
-        Some(v) => v.try_into().unwrap_or(DEFAULT_ADAPTER_VALUE),
-        None => DEFAULT_ADAPTER_VALUE,
-    }
+pub fn get_default_adapter() -> VirtualHciIndex {
+    read_config()
+        .ok()
+        .and_then(|config| {
+            serde_json::from_str::<Value>(config.as_str())
+                .ok()?
+                .get(DEFAULT_ADAPTER_KEY)?
+                .as_i64()?
+                .try_into()
+                .ok()
+        })
+        .map(|i| VirtualHciIndex(i))
+        .unwrap_or(DEFAULT_ADAPTER)
 }
 
-pub fn set_default_adapter(adapter: i32) -> bool {
+pub fn set_default_adapter(hci: VirtualHciIndex) -> bool {
     match read_config().ok().and_then(|config| {
         let mut cfg = serde_json::from_str::<Value>(config.as_str()).ok()?;
-        cfg[DEFAULT_ADAPTER_KEY] = serde_json::to_value(adapter).ok().unwrap();
+        cfg[DEFAULT_ADAPTER_KEY] = serde_json::to_value(hci.to_i32()).ok().unwrap();
         serde_json::ser::to_string_pretty(&cfg).ok()
     }) {
         Some(s) => std::fs::write(BTMANAGERD_CONF, s).is_ok(),
         None => false,
     }
-}
-
-pub fn list_hci_devices() -> Vec<i32> {
-    hci_devices_string_to_int(list_hci_devices_string())
 }
 
 fn list_hci_devices_string() -> Vec<String> {
@@ -161,27 +163,21 @@ fn list_hci_devices_string() -> Vec<String> {
 }
 
 /// Check whether a certain hci device exists in sysfs.
-pub fn check_hci_device_exists(hci: i32) -> bool {
-    Path::new(format!("{}/hci{}", HCI_DEVICES_DIR, hci).as_str()).exists()
+pub fn check_hci_device_exists(hci: RealHciIndex) -> bool {
+    Path::new(format!("{}/hci{}", HCI_DEVICES_DIR, hci.to_i32()).as_str()).exists()
 }
 
 /// Get the devpath for a given hci index. This gives a stable path that can be
 /// used to identify a device even as the hci index fluctuates.
-pub fn get_devpath_for_hci(hci: i32) -> Option<String> {
-    match std::fs::canonicalize(format!("{}/hci{}/device", HCI_DEVICES_DIR, hci).as_str()) {
+pub fn get_devpath_for_hci(hci: RealHciIndex) -> Option<String> {
+    match std::fs::canonicalize(format!("{}/hci{}/device", HCI_DEVICES_DIR, hci.to_i32()).as_str())
+    {
         Ok(p) => Some(p.into_os_string().into_string().ok()?),
         Err(e) => {
-            log::debug!("Failed to get devpath for hci{} with error: {}", hci, e);
+            log::debug!("Failed to get devpath for {} with error: {}", hci, e);
             None
         }
     }
-}
-
-fn hci_devices_string_to_int(devices: Vec<String>) -> Vec<i32> {
-    devices
-        .into_iter()
-        .filter_map(|e| if e.starts_with("hci") { e[3..].parse::<i32>().ok() } else { None })
-        .collect()
 }
 
 pub fn list_pid_files(pid_dir: &str) -> Vec<String> {
@@ -194,8 +190,8 @@ pub fn list_pid_files(pid_dir: &str) -> Vec<String> {
 }
 
 /// Calls the reset sysfs entry for an hci device. Returns True if the write succeeds.
-pub fn reset_hci_device(hci: i32) -> bool {
-    let path = format!("/sys/class/bluetooth/hci{}/reset", hci);
+pub fn reset_hci_device(hci: RealHciIndex) -> bool {
+    let path = format!("/sys/class/bluetooth/hci{}/reset", hci.to_i32());
     std::fs::write(path, "1").is_ok()
 }
 
@@ -259,7 +255,7 @@ mod tests {
     use super::*;
 
     fn is_hci_n_enabled_internal_wrapper(config: String, n: i32) -> bool {
-        is_hci_n_enabled_internal(config, n).or(Some(true)).unwrap()
+        is_hci_n_enabled_internal(config, VirtualHciIndex(n)).unwrap_or(true)
     }
 
     #[test]
@@ -300,15 +296,19 @@ mod tests {
 
     #[test]
     fn modify_hci0_enabled() {
-        let modified_string =
-            modify_hci_n_enabled_internal("{\"hci0\":\n{\"enabled\": false}}".to_string(), 0, true)
-                .unwrap();
+        let modified_string = modify_hci_n_enabled_internal(
+            "{\"hci0\":\n{\"enabled\": false}}".to_string(),
+            VirtualHciIndex(0),
+            true,
+        )
+        .unwrap();
         assert_eq!(is_hci_n_enabled_internal_wrapper(modified_string, 0), true);
     }
 
     #[test]
     fn modify_hci0_enabled_from_empty() {
-        let modified_string = modify_hci_n_enabled_internal("{}".to_string(), 0, true).unwrap();
+        let modified_string =
+            modify_hci_n_enabled_internal("{}".to_string(), VirtualHciIndex(0), true).unwrap();
         assert_eq!(is_hci_n_enabled_internal_wrapper(modified_string, 0), true);
     }
 
@@ -325,24 +325,6 @@ mod tests {
         assert_eq!(
             is_hci_n_enabled_internal_wrapper("{\"hci0\":\n{\"enabled\": true}}".to_string(), 1),
             true
-        );
-    }
-
-    #[test]
-    fn test_hci_devices_string_to_int_none() {
-        assert_eq!(hci_devices_string_to_int(vec!["somethingelse".to_string()]), Vec::<i32>::new());
-    }
-
-    #[test]
-    fn test_hci_devices_string_to_int_one() {
-        assert_eq!(hci_devices_string_to_int(vec!["hci0".to_string()]), vec![0]);
-    }
-
-    #[test]
-    fn test_hci_devices_string_to_int_two() {
-        assert_eq!(
-            hci_devices_string_to_int(vec!["hci0".to_string(), "hci1".to_string()]),
-            vec![0, 1]
         );
     }
 }
