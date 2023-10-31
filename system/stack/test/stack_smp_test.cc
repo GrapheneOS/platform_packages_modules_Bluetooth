@@ -278,7 +278,7 @@ TEST_F(SmpCalculateConfirmTest, test_aes_128_as_central) {
   char p1_xor_r_str[2 * OCTET16_LEN + 1];
   dump_uint128_reverse(p1, p1_xor_r_str);
   ASSERT_THAT(p1_xor_r_str, StrEq(expected_p1_xor_r_str));
-  Octet16 output = crypto_toolbox::aes_128(p_cb_.tk, p1.data(), OCTET16_LEN);
+  Octet16 output = crypto_toolbox::aes_128(p_cb_.tk, p1);
   const char expected_p1_prime_str[] = "02c7aa2a9857ac866ff91232df0e3c95";
   char p1_prime_str[2 * OCTET16_LEN + 1];
   dump_uint128_reverse(output, p1_prime_str);
