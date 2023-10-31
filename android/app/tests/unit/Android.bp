@@ -46,7 +46,7 @@ java_defaults {
 
     test_suites: [
         "automotive-tests",
-        "device-tests",
+        "general-tests",
         "mts-bluetooth",
     ],
 
