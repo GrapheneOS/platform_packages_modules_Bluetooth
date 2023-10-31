@@ -18,6 +18,7 @@
 
 #include <cstdint>
 
+#include "stack/include/bt_types.h"
 #include "stack/include/btm_status.h"
 #include "types/raw_address.h"
 

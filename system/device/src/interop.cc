@@ -37,6 +37,7 @@
 #include <string>
 #include <utility>
 
+#include "bt_types.h"
 #include "btcore/include/module.h"
 #include "btif/include/btif_storage.h"
 #include "check.h"
