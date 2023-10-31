@@ -58,7 +58,7 @@ cc_library_static {
 // Audio A2DP library unit tests for target and host
 cc_test {
     name: "net_test_audio_a2dp_hw",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "audio_a2dp_hw_defaults",
         "bluetooth_gtest_x86_asan_workaround",
