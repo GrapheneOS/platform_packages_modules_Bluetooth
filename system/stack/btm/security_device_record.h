@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <string>
 
+#include "bt_target.h"
 #include "main/shim/dumpsys.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/bt_name.h"

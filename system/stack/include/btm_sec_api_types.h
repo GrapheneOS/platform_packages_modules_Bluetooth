@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <string>
 
+#include "stack/include/bt_dev_class.h"
 #include "stack/include/bt_name.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/hcidefs.h"
