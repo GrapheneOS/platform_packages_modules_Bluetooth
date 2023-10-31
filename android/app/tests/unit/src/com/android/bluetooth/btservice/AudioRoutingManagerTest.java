@@ -1050,7 +1050,7 @@ public class AudioRoutingManagerTest {
         leAudioConnected(mLeHearingAidDevice);
         leHearingAidConnected(mLeHearingAidDevice);
         TestUtils.waitForLooperToFinishScheduledTask(mAudioRoutingManager.getHandlerLooper());
-        verify(mLeAudioService, times(2)).setActiveDevice(mLeHearingAidDevice);
+        verify(mLeAudioService).setActiveDevice(mLeHearingAidDevice);
         verify(mA2dpService).removeActiveDevice(anyBoolean());
         verify(mHeadsetService).setActiveDevice(null);
         verify(mHearingAidService).removeActiveDevice(anyBoolean());
