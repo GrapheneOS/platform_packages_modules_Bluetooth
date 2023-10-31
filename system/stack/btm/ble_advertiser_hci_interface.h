@@ -23,7 +23,6 @@
 
 #include <vector>
 
-#include "stack/include/bt_types.h"
 #include "types/raw_address.h"
 
 /* This class is an abstraction of HCI commands used for managing
