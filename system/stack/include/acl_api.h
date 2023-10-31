@@ -19,6 +19,7 @@
 
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_api_types.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/btm_status.h"
 #include "stack/include/hci_error_code.h"
 #include "types/raw_address.h"
