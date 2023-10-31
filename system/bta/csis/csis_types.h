@@ -490,15 +490,15 @@ class CsisGroup {
    * Resolving Key |sirk| */
   static bool is_rsi_match_sirk(const RawAddress& rsi, const Octet16& sirk) {
     /* use the 3 MSB of bd address as prand */
-    uint8_t rand[3];
+    Octet16 rand{};
     rand[0] = rsi.address[2];
     rand[1] = rsi.address[1];
     rand[2] = rsi.address[0];
-    DLOG(INFO) << "Prand " << base::HexEncode(rand, 3);
+    DLOG(INFO) << "Prand " << base::HexEncode(rand.data(), 3);
 
     DLOG(INFO) << "SIRK " << base::HexEncode(sirk.data(), 16);
     /* generate X = E irk(R0, R1, R2) and R is random address 3 LSO */
-    Octet16 x = crypto_toolbox::aes_128(sirk, &rand[0], 3);
+    Octet16 x = crypto_toolbox::aes_128(sirk, rand);
 
     DLOG(INFO) << "X" << base::HexEncode(x.data(), 16);
 
@@ -506,7 +506,7 @@ class CsisGroup {
     rand[1] = rsi.address[4];
     rand[2] = rsi.address[3];
 
-    DLOG(INFO) << "Hash " << base::HexEncode(rand, 3);
+    DLOG(INFO) << "Hash " << base::HexEncode(rand.data(), 3);
 
     if (memcmp(x.data(), &rand[0], 3) == 0) {
       // match
