@@ -24,17 +24,11 @@
 #include <cstdint>
 #include <string>
 
-#include "internal_include/bt_target.h"
 #include "stack/include/bt_dev_class.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/bt_name.h"
-#include "stack/include/bt_octets.h"
-#include "stack/include/btm_status.h"
 #include "stack/include/hci_mode.h"
 #include "stack/include/hcidefs.h"
 #include "stack/include/sdpdefs.h"
-#include "types/ble_address_with_type.h"
-#include "types/bt_transport.h"
 #include "types/raw_address.h"
 
 /* Structure returned with Vendor Specific Command complete callback */

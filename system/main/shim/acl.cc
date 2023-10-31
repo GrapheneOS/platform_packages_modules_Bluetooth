@@ -56,6 +56,7 @@
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/btm_sec_cb.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/btm_log_history.h"
 #include "stack/l2cap/l2c_int.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"

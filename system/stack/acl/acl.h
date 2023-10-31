@@ -18,13 +18,12 @@
 
 #include <cstdint>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
+#include "bt_target.h"
 #include "stack/acl/peer_packet_types.h"
-#include "stack/include/acl_api_types.h"
-#include "stack/include/bt_types.h"
 #include "stack/include/btm_api_types.h"
+#include "stack/include/btm_status.h"
 #include "stack/include/hcimsgs.h"
 #include "types/bt_transport.h"
 #include "types/hci_role.h"

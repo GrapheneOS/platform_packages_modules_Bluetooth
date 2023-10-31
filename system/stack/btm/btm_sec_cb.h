@@ -19,7 +19,6 @@
 
 #include <cstdint>
 
-#include "osi/include/allocator.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/list.h"
 #include "stack/btm/btm_ble_int_types.h"

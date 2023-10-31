@@ -18,21 +18,11 @@
 #pragma once
 
 #include <cstdint>
-#include <memory>
-#include <string>
 
-#include "osi/include/allocator.h"
-#include "osi/include/fixed_queue.h"
-#include "osi/include/list.h"
-#include "stack/acl/acl.h"
-#include "stack/btm/btm_ble_int_types.h"
-#include "stack/btm/btm_sco.h"
-#include "stack/btm/neighbor_inquiry.h"
-#include "stack/btm/security_device_record.h"
 #include "stack/include/bt_octets.h"
-#include "stack/include/btm_ble_api_types.h"
-#include "stack/include/rfcdefs.h"
-#include "stack/include/security_client_callbacks.h"
+#include "stack/include/btm_api_types.h"  // tBTM_CMPL_CB
+#include "stack/include/btm_ble_sec_api_types.h"
+#include "stack/include/btm_sec_api_types.h"
 #include "types/raw_address.h"
 
 /*

@@ -18,6 +18,7 @@
 #pragma once
 #include <cstdint>
 
+#include "stack/include/btm_status.h"
 #include "types/raw_address.h"
 
 // This header contains functions for Security Module to invoke
