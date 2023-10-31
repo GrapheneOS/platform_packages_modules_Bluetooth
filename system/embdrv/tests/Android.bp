@@ -13,7 +13,7 @@ cc_test {
         "bluetooth_gtest_x86_asan_workaround",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     test_options: {
         unit_test: true,
@@ -33,7 +33,7 @@ cc_test {
         "bluetooth_gtest_x86_asan_workaround",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     test_options: {
         unit_test: true,
