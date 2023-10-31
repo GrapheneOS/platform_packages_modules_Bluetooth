@@ -17,8 +17,6 @@
 
 #include "has_preset.h"
 
-#include "stack/include/bt_types.h"
-
 namespace le_audio {
 namespace has {
 
