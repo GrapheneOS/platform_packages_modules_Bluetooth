@@ -23,7 +23,9 @@ android_test {
     static_libs: [
         "androidx.test.ext.truth",
         "androidx.test.rules",
+        "frameworks-base-testutils",
         "junit",
+        "mockito-target",
         "modules-utils-bytesmatcher",
     ],
     test_suites: [
