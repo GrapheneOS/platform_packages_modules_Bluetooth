@@ -31,7 +31,6 @@
 #endif
 
 #include "audio_hal_client/audio_hal_client.h"
-#include "bt_types.h"
 #include "bta_groups.h"
 #include "btm_iso_api_types.h"
 #include "gatt_api.h"

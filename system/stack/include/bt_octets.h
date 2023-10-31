@@ -16,25 +16,19 @@
 
 #pragma once
 
-/* Some C files include this header file */
-#ifdef __cplusplus
-
-#include <array>
 #include <cstdint>
 
-constexpr int OCTET16_LEN = 16;
-typedef std::array<uint8_t, OCTET16_LEN> Octet16;
+#include "gd/hci/octets.h"
 
-constexpr int LINK_KEY_LEN = OCTET16_LEN;
-typedef Octet16 LinkKey; /* Link Key */
+using Octet16 = bluetooth::hci::Octet16;
+using LinkKey = bluetooth::hci::Octet16; /* Link Key */
+static constexpr int OCTET16_LEN = bluetooth::hci::kOctet16Length;
 
 /* Sample LTK from BT Spec 5.1 | Vol 6, Part C 1
  * 0x4C68384139F574D836BCF34E9DFB01BF */
 constexpr Octet16 SAMPLE_LTK = {0xbf, 0x01, 0xfb, 0x9d, 0x4e, 0xf3, 0xbc, 0x36,
                                 0xd8, 0x74, 0xf5, 0x39, 0x41, 0x38, 0x68, 0x4c};
 inline bool is_sample_ltk(const Octet16& ltk) { return ltk == SAMPLE_LTK; }
-
-#endif
 
 #define BT_OCTET8_LEN 8
 typedef uint8_t BT_OCTET8[BT_OCTET8_LEN]; /* octet array: size 16 */

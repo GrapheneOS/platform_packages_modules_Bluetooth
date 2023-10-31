@@ -22,7 +22,7 @@
 #include "bluetooth/uuid.h"
 #include "packet.h"
 #include "sdp_common.h"
-#include "stack/include/bt_types.h"
+#include "stack/include/bt_octets.h"
 
 namespace bluetooth {
 namespace sdp {
