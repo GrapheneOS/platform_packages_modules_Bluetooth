@@ -22,6 +22,7 @@
 #include <optional>
 #include <string>
 
+#include "bt_types.h"
 #include "hardware/bt_has.h"
 
 namespace le_audio {
