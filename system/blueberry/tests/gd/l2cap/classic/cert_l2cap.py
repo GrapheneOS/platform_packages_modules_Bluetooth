@@ -15,6 +15,7 @@
 #   limitations under the License.
 
 import logging
+from queue import SimpleQueue
 
 from blueberry.tests.gd.cert.behavior import IHasBehaviors, SingleArgumentBehavior, ReplyStage
 from blueberry.tests.gd.cert.captures import L2capCaptures
@@ -151,7 +152,7 @@ class CertL2capControlChannelBehaviors(object):
         def _send_configuration_response(self, request, result=ConfigurationResponseResult.SUCCESS, options=None):
             dcid = request.GetDestinationCid()
             if dcid not in self.parent.scid_to_channel:
-                logging.warning("Received config request with unknown dcid")
+                logging.warning("_send_configuration_response with unknown dcid 0x{:X}".format(dcid))
                 return
             self.parent.scid_to_channel[dcid].send_configuration_response(request, result, options)
 
@@ -172,6 +173,7 @@ class CertL2cap(Closable, IHasBehaviors):
             CommandCode.INFORMATION_REQUEST: self._on_information_request_default,
             CommandCode.INFORMATION_RESPONSE: self._on_information_response_default
         }
+        self.pending_configuration_requests = SimpleQueue()
 
         self.scid_to_channel = {}
 
@@ -191,8 +193,12 @@ class CertL2cap(Closable, IHasBehaviors):
     def connect_acl(self, remote_addr):
         self._acl_manager.initiate_connection(remote_addr)
         self._acl = self._acl_manager.complete_outgoing_connection()
-        self.control_channel = CertL2capChannel(
-            self._device, 1, 1, self._acl.acl_stream, self._acl, control_channel=None)
+        self.control_channel = CertL2capChannel(self._device,
+                                                1,
+                                                1,
+                                                self._acl.acl_stream,
+                                                self._acl,
+                                                control_channel=None)
         self._acl.acl_stream.register_callback(self._handle_control_packet)
 
     def accept_incoming_connection(self):
@@ -208,11 +214,14 @@ class CertL2cap(Closable, IHasBehaviors):
                                    response.get().GetDestinationCid(), self._acl.acl_stream, self._acl,
                                    self.control_channel, fcs)
         self.scid_to_channel[scid] = channel
+        while not self.pending_configuration_requests.empty():
+            l2cap_control_view = self.pending_configuration_requests.get_nowait()
+            logging.info("Handling deferred configuration requests")
+            self._on_configuration_request_default(l2cap_control_view, defer_unknown_dcid=False)
 
         return channel
 
     def verify_and_respond_open_channel_from_remote(self, psm=0x33, scid=None, fcs=None):
-
         request = L2capCaptures.ConnectionRequest(psm)
         assertThat(self.control_channel).emits(request)
 
@@ -259,18 +268,22 @@ class CertL2cap(Closable, IHasBehaviors):
     def get_control_channel(self):
         return self.control_channel
 
-    # Disable ERTM when exchange extened feature
+    # Disable ERTM when exchange extended feature
     def claim_ertm_unsupported(self):
         self.support_ertm = False
 
     def _on_connection_response_default(self, l2cap_control_view):
         pass
 
-    def _on_configuration_request_default(self, l2cap_control_view):
+    def _on_configuration_request_default(self, l2cap_control_view, defer_unknown_dcid=True):
         request = l2cap_packets.ConfigurationRequestView(l2cap_control_view)
         dcid = request.GetDestinationCid()
         if dcid not in self.scid_to_channel:
-            logging.warning("Received config request with unknown dcid")
+            if defer_unknown_dcid:
+                logging.info("Received config request with unknown dcid 0x{:X} deferring".format(dcid))
+                self.pending_configuration_requests.put(l2cap_control_view)
+            else:
+                logging.warning("Received config request with unknown dcid 0x{:X}".format(dcid))
             return
         self._control_behaviors.on_config_req_behavior.run(request)
 
