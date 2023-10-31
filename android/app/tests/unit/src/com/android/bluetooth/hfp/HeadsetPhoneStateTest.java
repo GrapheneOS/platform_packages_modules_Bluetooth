@@ -73,7 +73,8 @@ public class HeadsetPhoneStateTest {
         SubscriptionManager.disableCaching();
         TelephonyManager.disableServiceHandleCaching();
         // Mock SubscriptionManager.getDefaultSubscriptionId() to return a valid value
-        when(mISub.getDefaultSubId()).thenReturn(SubscriptionManager.DEFAULT_SUBSCRIPTION_ID);
+        when(mISub.getDefaultSubIdAsUser(anyInt()))
+                .thenReturn(SubscriptionManager.DEFAULT_SUBSCRIPTION_ID);
         when(mISubBinder.queryLocalInterface(anyString())).thenReturn(mISub);
         mServiceManagerMockedServices.put("isub", mISubBinder);
         mServiceManagerOriginalServices =
