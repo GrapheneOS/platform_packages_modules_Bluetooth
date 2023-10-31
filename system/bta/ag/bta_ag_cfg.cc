@@ -29,6 +29,7 @@
 #include "device/include/esco_parameters.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
+#include "stack/include/bt_types.h"
 
 #ifndef BTA_AG_CIND_INFO
 #define BTA_AG_CIND_INFO                                                       \

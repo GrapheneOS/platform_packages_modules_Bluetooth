@@ -16,10 +16,12 @@
  *
  */
 
-#include "stack/acl/peer_packet_types.h"
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <map>
+
+#include "stack/acl/peer_packet_types.h"
+#include "stack/include/bt_types.h"
 
 namespace {
 
