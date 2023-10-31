@@ -23,9 +23,10 @@
  ******************************************************************************/
 
 #include "sbc_encoder.h"
-#include <string.h>
-#include "bt_target.h"
+
 #include "sbc_enc_func_declare.h"
+
+#define abs32(x) (((x) >= 0) ? (x) : (-(x)))
 
 int16_t EncMaxShiftCounter;
 

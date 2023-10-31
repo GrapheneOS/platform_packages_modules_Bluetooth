@@ -18,7 +18,6 @@
 
 #include <cstdint>
 
-#include "stack/include/bt_types.h"
 #include "stack/include/hci_error_code.h"
 #include "types/bt_transport.h"
 #include "types/hci_role.h"
