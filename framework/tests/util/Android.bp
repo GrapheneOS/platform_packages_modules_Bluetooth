@@ -20,9 +20,9 @@ java_library {
     name: "bluetooth-test-util-lib",
     defaults: ["cts_defaults"],
     static_libs: [
-        "junit",
-        "compatibility-device-util-axt",
         "PlatformProperties",
+        "compatibility-device-util-axt",
+        "junit",
     ],
     srcs: ["src/**/*.java"],
     sdk_version: "test_current",

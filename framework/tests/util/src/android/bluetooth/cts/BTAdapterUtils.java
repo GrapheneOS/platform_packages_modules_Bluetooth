@@ -32,9 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-/**
- * Utility for controlling the Bluetooth adapter from CTS test.
- */
+/** Utility for controlling the Bluetooth adapter from CTS test. */
 public class BTAdapterUtils {
     private static final String TAG = "BTAdapterUtils";
 
@@ -51,6 +49,7 @@ public class BTAdapterUtils {
     public static final int STATE_BLE_TURNING_OFF = 16;
 
     private static final SparseIntArray sStateTimeouts = new SparseIntArray();
+
     static {
         sStateTimeouts.put(BluetoothAdapter.STATE_OFF, ADAPTER_DISABLE_TIMEOUT_MS);
         sStateTimeouts.put(BluetoothAdapter.STATE_TURNING_ON, ADAPTER_ENABLE_TIMEOUT_MS);
@@ -69,9 +68,7 @@ public class BTAdapterUtils {
     private static int sDesiredState;
     private static int sAdapterState;
 
-    /**
-     * Handles BluetoothAdapter state changes and signals when we have reached a desired state
-     */
+    /** Handles BluetoothAdapter state changes and signals when we have reached a desired state */
     private static class BluetoothAdapterReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -95,9 +92,7 @@ public class BTAdapterUtils {
         }
     }
 
-    /**
-     * Initialize all static state variables
-     */
+    /** Initialize all static state variables */
     private static void initAdapterStateVariables(Context context) {
         Log.d(TAG, "Initializing adapter state variables");
         sAdapterReceiver = new BluetoothAdapterReceiver();
@@ -113,7 +108,7 @@ public class BTAdapterUtils {
     /**
      * Wait for the bluetooth adapter to be in a given state
      *
-     * Assumes all state variables are initialized. Assumes it's being run with
+     * <p>Assumes all state variables are initialized. Assumes it's being run with
      * sBluetoothAdapterLock in the locked state.
      */
     private static boolean waitForAdapterStateLocked(int desiredState, BluetoothAdapter adapter)
@@ -136,8 +131,12 @@ public class BTAdapterUtils {
                     Log.d(TAG, "adapter isLeEnabled: " + adapter.isLeEnabled());
                     return adapter.isLeEnabled();
                 }
-                Log.e(TAG, "Timeout while waiting for Bluetooth adapter state " + desiredState
-                        + " while current state is " + sAdapterState);
+                Log.e(
+                        TAG,
+                        "Timeout while waiting for Bluetooth adapter state "
+                                + desiredState
+                                + " while current state is "
+                                + sAdapterState);
                 break;
             }
         }
@@ -147,9 +146,7 @@ public class BTAdapterUtils {
         return sAdapterState == desiredState;
     }
 
-    /**
-     * Utility method to wait on any specific adapter state
-     */
+    /** Utility method to wait on any specific adapter state */
     public static boolean waitForAdapterState(int desiredState, BluetoothAdapter adapter) {
         sBluetoothAdapterLock.lock();
         try {
@@ -162,9 +159,7 @@ public class BTAdapterUtils {
         return false;
     }
 
-    /**
-     * Enables Bluetooth to a Low Energy only mode
-     */
+    /** Enables Bluetooth to a Low Energy only mode */
     public static boolean enableBLE(BluetoothAdapter bluetoothAdapter, Context context) {
         if (!sAdapterVarsInitialized) {
             initAdapterStateVariables(context);
@@ -190,9 +185,7 @@ public class BTAdapterUtils {
         return false;
     }
 
-    /**
-     * Disable Bluetooth Low Energy mode
-     */
+    /** Disable Bluetooth Low Energy mode */
     public static boolean disableBLE(BluetoothAdapter bluetoothAdapter, Context context) {
         if (!sAdapterVarsInitialized) {
             initAdapterStateVariables(context);
@@ -215,9 +208,7 @@ public class BTAdapterUtils {
         return false;
     }
 
-    /**
-     * Enables the Bluetooth Adapter. Return true if it is already enabled or is enabled.
-     */
+    /** Enables the Bluetooth Adapter. Return true if it is already enabled or is enabled. */
     public static boolean enableAdapter(BluetoothAdapter bluetoothAdapter, Context context) {
         if (!sAdapterVarsInitialized) {
             initAdapterStateVariables(context);
@@ -247,9 +238,7 @@ public class BTAdapterUtils {
         return false;
     }
 
-    /**
-     * Disable the Bluetooth Adapter. Return true if it is already disabled or is disabled.
-     */
+    /** Disable the Bluetooth Adapter. Return true if it is already disabled or is disabled. */
     public static boolean disableAdapter(BluetoothAdapter bluetoothAdapter, Context context) {
         return disableAdapter(bluetoothAdapter, true, context);
     }
@@ -257,10 +246,10 @@ public class BTAdapterUtils {
     /**
      * Disable the Bluetooth Adapter with then option to persist the off state or not.
      *
-     * Returns true if the adapter is already disabled or was disabled.
+     * <p>Returns true if the adapter is already disabled or was disabled.
      */
-    public static boolean disableAdapter(BluetoothAdapter bluetoothAdapter, boolean persist,
-            Context context) {
+    public static boolean disableAdapter(
+            BluetoothAdapter bluetoothAdapter, boolean persist, Context context) {
         if (!sAdapterVarsInitialized) {
             initAdapterStateVariables(context);
         }
@@ -289,4 +278,3 @@ public class BTAdapterUtils {
         return false;
     }
 }
-
