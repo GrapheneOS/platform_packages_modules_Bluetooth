@@ -85,7 +85,7 @@ const bluetooth::legacy::hci::Interface& GetLegacyHciInterface() {
 };  // namespace
 
 // forward declaration for dequeueing packets
-void btm_route_sco_data(bluetooth::hci::ScoView valid_packet);
+static void btm_route_sco_data(bluetooth::hci::ScoView valid_packet);
 
 namespace cpp {
 bluetooth::common::BidiQueueEnd<bluetooth::hci::ScoBuilder,
@@ -282,7 +282,7 @@ static tSCO_CONN* btm_get_active_sco() {
  * Returns          void
  *
  ******************************************************************************/
-void btm_route_sco_data(bluetooth::hci::ScoView valid_packet) {
+static void btm_route_sco_data(bluetooth::hci::ScoView valid_packet) {
   uint16_t handle = valid_packet.GetHandle();
   if (handle > HCI_HANDLE_MAX) {
     LOG_ERROR("Dropping SCO data with invalid handle: 0x%X > 0x%X, ", handle,
