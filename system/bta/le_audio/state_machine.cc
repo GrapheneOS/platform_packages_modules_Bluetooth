@@ -26,7 +26,6 @@
 
 #include <map>
 
-#include "bt_types.h"
 #include "bta_gatt_queue.h"
 #include "bta_le_audio_api.h"
 #include "btm_iso_api.h"
