@@ -578,8 +578,6 @@ tGATT_STATUS attp_send_cl_msg(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
             op_code);
         return GATT_ILLEGAL_PARAMETER;
       }
-
-      tcb.payload_size = p_msg->mtu;
       p_cmd = attp_build_mtu_cmd(GATT_REQ_MTU, p_msg->mtu);
       break;
 
