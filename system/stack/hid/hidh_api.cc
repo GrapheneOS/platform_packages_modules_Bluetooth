@@ -340,6 +340,7 @@ tHID_STATUS HID_HostDeregister(void) {
   for (i = 0; i < HID_HOST_MAX_DEVICES; i++) {
     HID_HostRemoveDev(i);
     alarm_free(hh_cb.devices[i].conn.process_repage_timer);
+    hh_cb.devices[i].conn.process_repage_timer = NULL;
   }
 
   hidh_conn_dereg();
