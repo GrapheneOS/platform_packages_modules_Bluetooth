@@ -350,8 +350,6 @@ void bta_gattc_start_disc_char_dscp(uint16_t conn_id,
 
 descriptor_discovery_done:
   /* all characteristic has been explored, start with next service if any */
-  DVLOG(3) << "all characteristics explored";
-
   bta_gattc_explore_next_service(conn_id, p_srvc_cb);
   return;
 }
