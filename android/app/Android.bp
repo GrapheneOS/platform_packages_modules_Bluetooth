@@ -238,6 +238,7 @@ android_app {
         "framework-bluetooth",
     ],
     static_libs: [
+        "BluetoothApiShims",
         "android.hardware.radio-V1.0-java",
         "android.hardware.radio.sap-V1-java",
         "androidx.annotation_annotation",
@@ -245,7 +246,6 @@ android_app {
         "androidx.lifecycle_lifecycle-livedata",
         "androidx.media_media",
         "androidx.room_room-runtime",
-        "BluetoothApiShims",
         "bluetooth-proto-enums-java-gen",
         "bluetooth-protos-lite",
         "bluetooth.change-ids",
