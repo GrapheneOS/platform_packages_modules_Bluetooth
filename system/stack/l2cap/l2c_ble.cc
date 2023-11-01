@@ -41,6 +41,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
+#include "stack/btm/btm_int_types.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/btm/btm_sec_int_types.h"
 #include "stack/include/acl_api.h"

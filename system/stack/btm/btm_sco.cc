@@ -41,6 +41,8 @@
 #include "main/shim/entry.h"
 #include "osi/include/properties.h"
 #include "osi/include/stack_power_telemetry.h"
+#include "stack/btm/btm_int_types.h"
+#include "stack/btm/btm_sco.h"
 #include "stack/btm/btm_sco_hfp_hal.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/acl_api.h"
