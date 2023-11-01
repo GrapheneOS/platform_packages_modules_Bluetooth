@@ -118,7 +118,7 @@ impl AdapterService for AdapterServiceImpl {
                 match event {
                     BaseCallbacks::AdapterState(_state) => {
                         let mut rsp = FetchEventsResponse::new();
-                        rsp.event_type = EventType::ADAPTER_STATE;
+                        rsp.event_type = EventType::ADAPTER_STATE.into();
                         rsp.params.insert(
                             String::from("state"),
                             event_data_from_string(String::from("ON")),
@@ -128,7 +128,7 @@ impl AdapterService for AdapterServiceImpl {
                     BaseCallbacks::SspRequest(_, _, _, _, _) => {}
                     BaseCallbacks::LeRandCallback(random) => {
                         let mut rsp = FetchEventsResponse::new();
-                        rsp.event_type = EventType::LE_RAND;
+                        rsp.event_type = EventType::LE_RAND.into();
                         rsp.params.insert(
                             String::from("data"),
                             event_data_from_string(random.to_string()),
@@ -137,7 +137,7 @@ impl AdapterService for AdapterServiceImpl {
                     }
                     BaseCallbacks::GenerateLocalOobData(transport, data) => {
                         let mut rsp = FetchEventsResponse::new();
-                        rsp.event_type = EventType::GENERATE_LOCAL_OOB_DATA;
+                        rsp.event_type = EventType::GENERATE_LOCAL_OOB_DATA.into();
                         rsp.params.insert(
                             String::from("is_valid"),
                             event_data_from_string(String::from(if data.is_valid {
@@ -166,7 +166,7 @@ impl AdapterService for AdapterServiceImpl {
                     }
                     BaseCallbacks::AdapterProperties(status, _, properties) => {
                         let mut rsp = FetchEventsResponse::new();
-                        rsp.event_type = EventType::ADAPTER_PROPERTY;
+                        rsp.event_type = EventType::ADAPTER_PROPERTY.into();
                         rsp.params.insert(
                             String::from("status"),
                             event_data_from_string(format!("{:?}", status)),
@@ -182,7 +182,7 @@ impl AdapterService for AdapterServiceImpl {
                     }
                     BaseCallbacks::DiscoveryState(state) => {
                         let mut rsp = FetchEventsResponse::new();
-                        rsp.event_type = EventType::DISCOVERY_STATE;
+                        rsp.event_type = EventType::DISCOVERY_STATE.into();
                         rsp.params.insert(
                             String::from("discovery_state"),
                             event_data_from_string(format!("{:?}", state)),
@@ -191,7 +191,7 @@ impl AdapterService for AdapterServiceImpl {
                     }
                     BaseCallbacks::DeviceFound(_, properties) => {
                         let mut rsp = FetchEventsResponse::new();
-                        rsp.event_type = EventType::DEVICE_FOUND;
+                        rsp.event_type = EventType::DEVICE_FOUND.into();
                         for property in properties.clone() {
                             let (key, event_data) = bluetooth_property_to_event_data(property);
                             if key == "skip" {
@@ -203,7 +203,7 @@ impl AdapterService for AdapterServiceImpl {
                     }
                     BaseCallbacks::BondState(_, address, state, _) => {
                         let mut rsp = FetchEventsResponse::new();
-                        rsp.event_type = EventType::BOND_STATE;
+                        rsp.event_type = EventType::BOND_STATE.into();
                         rsp.params.insert(
                             String::from("bond_state"),
                             event_data_from_string(format!("{:?}", state)),

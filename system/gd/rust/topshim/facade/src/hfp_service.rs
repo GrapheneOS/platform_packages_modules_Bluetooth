@@ -202,7 +202,7 @@ impl HfpService for HfpServiceImpl {
             while let Some(event) = rx.recv().await {
                 if let HfpCallbacks::ConnectionState(state, address) = event {
                     let mut rsp = FetchEventsResponse::new();
-                    rsp.event_type = EventType::HFP_CONNECTION_STATE;
+                    rsp.event_type = EventType::HFP_CONNECTION_STATE.into();
                     rsp.data = format!("{:?}, {}", state, address.to_string());
                     sink.send((rsp, WriteFlags::default())).await.unwrap();
                 }
