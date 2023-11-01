@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
+#define LOG_TAG "acl"
+
 #include <cstdint>
 
+#include "gd/common/init_flags.h"
+#include "os/log.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"

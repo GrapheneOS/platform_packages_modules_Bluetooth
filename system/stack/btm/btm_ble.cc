@@ -25,21 +25,20 @@
 
 #define LOG_TAG "bt_btm_ble"
 
-#include <base/logging.h>
 #include <base/strings/stringprintf.h>
 
 #include <cstdint>
 
 #include "btif/include/btif_storage.h"
 #include "device/include/controller.h"
-#include "main/shim/btm_api.h"
-#include "main/shim/l2c_api.h"
-#include "main/shim/shim.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/properties.h"
 #include "platform_ssl_mem.h"
+#include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/btm/btm_sec.h"
 #include "stack/btm/btm_sec_cb.h"
 #include "stack/btm/btm_sec_int_types.h"
 #include "stack/btm/security_device_record.h"

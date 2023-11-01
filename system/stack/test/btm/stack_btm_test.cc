@@ -22,6 +22,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "gd/common/init_flags.h"
 #include "hci/hci_layer_mock.h"
 #include "hci/include/hci_layer.h"
 #include "stack/btm/btm_dev.h"
