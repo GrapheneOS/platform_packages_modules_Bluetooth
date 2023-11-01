@@ -214,6 +214,9 @@ class CertL2cap(Closable, IHasBehaviors):
                                    response.get().GetDestinationCid(), self._acl.acl_stream, self._acl,
                                    self.control_channel, fcs)
         self.scid_to_channel[scid] = channel
+        logging.debug("Opened channel for PSM 0x{:X} SCID 0x{:X} DCID 0x{:X}".format(
+            psm, scid,
+            response.get().GetDestinationCid()))
         while not self.pending_configuration_requests.empty():
             l2cap_control_view = self.pending_configuration_requests.get_nowait()
             logging.info("Handling deferred configuration requests")
