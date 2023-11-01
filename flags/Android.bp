@@ -9,6 +9,7 @@ aconfig_declarations {
     srcs: [
         "a2dp.aconfig",
         "audio_routing.aconfig",
+        "gap.aconfig",
         "gatt.aconfig",
         "hap.aconfig",
         "hfp.aconfig",
