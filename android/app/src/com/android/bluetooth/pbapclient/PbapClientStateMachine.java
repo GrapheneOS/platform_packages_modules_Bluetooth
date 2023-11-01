@@ -268,7 +268,11 @@ class PbapClientStateMachine extends StateMachine {
             }
 
             public void unregister() {
-                mService.unregisterReceiver(this);
+                try {
+                    mService.unregisterReceiver(this);
+                } catch (IllegalArgumentException ex) {
+                    Log.e(TAG, "IAE happened in SDPBroadcastReceiver.unregister()", ex);
+                }
             }
         }
     }
