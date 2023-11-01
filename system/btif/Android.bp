@@ -264,7 +264,7 @@ cc_test {
         "latest_android_media_audio_common_types_ndk_static",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     include_dirs: btifCommonIncludes,
     srcs: [
         "test/btif_storage_test.cc",
@@ -344,7 +344,7 @@ cc_test {
         "fluoride_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     include_dirs: btifCommonIncludes,
     srcs: [
         "src/btif_profile_queue.cc",
@@ -377,7 +377,7 @@ cc_test {
         "fluoride_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     include_dirs: btifCommonIncludes + [
         "frameworks/av/media/libaaudio/include",
     ],
@@ -413,7 +413,7 @@ cc_test {
         "fluoride_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     test_options: {
         unit_test: true,
@@ -465,7 +465,7 @@ cc_test {
         "fluoride_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     test_options: {
         unit_test: true,
@@ -508,7 +508,7 @@ cc_test {
         "fluoride_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     include_dirs: btifCommonIncludes,
     srcs: [
         ":TestCommonMockFunctions",
@@ -546,7 +546,7 @@ cc_test {
         "latest_android_media_audio_common_types_ndk_static",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     include_dirs: [
         "frameworks/av/media/libaaudio/include",
         "packages/modules/Bluetooth/system",
@@ -685,7 +685,7 @@ cc_test {
         "latest_android_media_audio_common_types_ndk_static",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     include_dirs: [
         "frameworks/av/media/libaaudio/include",
         "packages/modules/Bluetooth/system",

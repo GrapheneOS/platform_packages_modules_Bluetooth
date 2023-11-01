@@ -39,7 +39,7 @@
 #include "main/shim/le_scanning_manager.h"
 #include "main/shim/shim.h"
 #include "stack/btm/btm_int_types.h"
-#include "stack/btm/btm_sec_int_types.h"
+#include "stack/btm/btm_sec_cb.h"
 #include "stack/include/btm_log_history.h"
 #include "storage/device.h"
 #include "storage/le_device.h"

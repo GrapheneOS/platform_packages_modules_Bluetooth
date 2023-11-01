@@ -15,11 +15,9 @@
  */
 
 #pragma once
-#include <base/logging.h>
+#include <cstring>
 
-#include "check.h"
 #include "stack/include/bt_octets.h"
-#include "stack/include/bt_types.h"
 
 namespace crypto_toolbox {
 
@@ -36,17 +34,6 @@ uint32_t g2(const uint8_t* u, const uint8_t* v, const Octet16& x,
             const Octet16& y);
 Octet16 ltk_to_link_key(const Octet16& ltk, bool use_h7);
 Octet16 link_key_to_ltk(const Octet16& link_key, bool use_h7);
-
-/* This function computes AES_128(key, message). |key| must be 128bit.
- * |message| can be at most 16 bytes long, it's length in bytes is given in
- * |length| */
-inline Octet16 aes_128(const Octet16& key, const uint8_t* message,
-                       const uint8_t length) {
-  CHECK(length <= OCTET16_LEN) << "you tried aes_128 more than 16 bytes!";
-  Octet16 msg{0};
-  std::copy(message, message + length, msg.begin());
-  return aes_128(key, msg);
-}
 
 // |tlen| - lenth of mac desired
 // |p_signature| - data pointer to where signed data to be stored, tlen long.

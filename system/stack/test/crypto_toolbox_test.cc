@@ -310,7 +310,11 @@ TEST(CryptoToolboxTest, bt_spec_example_d_7_test) {
   std::reverse(std::begin(expected_aes_128), std::end(expected_aes_128));
   std::reverse(std::begin(expected_ah), std::end(expected_ah));
 
-  Octet16 result = aes_128(IRK, prand.data(), 3);
+  Octet16 prand_3{};
+  prand_3[0] = prand[0];
+  prand_3[1] = prand[1];
+  prand_3[2] = prand[2];
+  Octet16 result = aes_128(IRK, prand);
   EXPECT_EQ(expected_aes_128, result);
 
   // little/big endian 24 bits

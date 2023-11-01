@@ -258,6 +258,7 @@ cc_library_static {
         "btm/btm_sco_hci.cc",
         "btm/btm_sco_hfp_hal.cc",
         "btm/btm_sec.cc",
+        "btm/btm_sec_cb.cc",
         "btu/btu_event.cc",
         "btu/btu_hcif.cc",
         "eatt/eatt.cc",
@@ -674,7 +675,7 @@ cc_test {
         "latest_android_media_audio_common_types_ndk_static",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     local_include_dirs: [
         "include",
     ],
@@ -753,7 +754,7 @@ cc_test {
         "fluoride_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     local_include_dirs: [
         "btm",
@@ -841,7 +842,7 @@ cc_test {
         "mts_defaults",
     ],
     host_supported: true,
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     local_include_dirs: [
         "btm",
         "include",
@@ -913,7 +914,7 @@ cc_test {
         "fluoride_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     local_include_dirs: [
         "include",
     ],
@@ -986,7 +987,7 @@ cc_test {
         "fluoride_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     test_options: {
         unit_test: true,
@@ -1051,7 +1052,7 @@ cc_test {
         "fluoride_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     test_options: {
         unit_test: true,
@@ -1122,7 +1123,7 @@ cc_test {
         "-DUNIT_TESTS",
         "-Wno-unused-parameter",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     test_options: {
         unit_test: true,
@@ -1234,7 +1235,7 @@ cc_test {
         "fluoride_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     test_options: {
         unit_test: true,
@@ -1278,7 +1279,7 @@ cc_test {
         "fluoride_defaults",
         "mts_defaults",
     ],
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     include_dirs: [
         "packages/modules/Bluetooth/system",
@@ -1336,7 +1337,7 @@ cc_test {
 // Iso manager unit tests
 cc_test {
     name: "net_test_btm_iso",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     test_options: {
         unit_test: true,
@@ -1389,7 +1390,7 @@ cc_test {
 // EATT unit tests
 cc_test {
     name: "net_test_eatt",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     test_options: {
         unit_test: true,
@@ -1456,7 +1457,7 @@ cc_test {
 
 cc_test {
     name: "net_test_stack_btm",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     test_options: {
         unit_test: true,
@@ -1529,6 +1530,7 @@ cc_test {
         "btm/btm_sco_hci.cc",
         "btm/btm_sco_hfp_hal.cc",
         "btm/btm_sec.cc",
+        "btm/btm_sec_cb.cc",
         "btm/hfp_lc3_decoder.cc",
         "btm/hfp_lc3_encoder.cc",
         "btm/hfp_msbc_decoder.cc",
@@ -1583,7 +1585,7 @@ cc_test {
 
 cc_test {
     name: "net_test_stack_hci",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
@@ -1631,7 +1633,7 @@ cc_test {
 
 cc_test {
     name: "net_test_stack_hid",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
@@ -1698,7 +1700,7 @@ cc_test {
 
 cc_test {
     name: "net_test_stack_btu",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
@@ -1769,7 +1771,7 @@ cc_test {
 
 cc_test {
     name: "net_test_stack_gatt",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
@@ -1863,7 +1865,7 @@ cc_test {
 
 cc_test {
     name: "net_test_stack_l2cap",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
@@ -1952,7 +1954,7 @@ cc_test {
 
 cc_test {
     name: "net_test_stack_acl",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
@@ -2039,7 +2041,7 @@ cc_test {
 // Bluetooth stack connection multiplexing
 cc_test {
     name: "net_test_stack_sdp",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",

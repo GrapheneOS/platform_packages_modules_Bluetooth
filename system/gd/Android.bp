@@ -300,7 +300,6 @@ cc_binary {
     shared_libs: [
         "libcrypto",
         "libgrpc++",
-        "libgrpc++_unsecure",
         "libgrpc_wrap",
         "libprotobuf-cpp-full",
         "libunwindstack",
@@ -335,7 +334,7 @@ cc_binary {
 
 cc_test {
     name: "bluetooth_test_gd_unit",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "gd_defaults",
@@ -439,7 +438,7 @@ cc_test {
 
 cc_test {
     name: "bluetooth_packet_parser_test",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "gd_defaults",

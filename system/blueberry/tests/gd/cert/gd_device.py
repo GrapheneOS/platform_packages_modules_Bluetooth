@@ -203,18 +203,21 @@ class GdDeviceBase(ABC):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True)
-        asserts.assert_true(
-            self.backing_process, msg="[%s] failed to open backing process for %s" % (self.type_identifier, self.label))
-        self.is_backing_process_alive = is_subprocess_alive(self.backing_process)
-        asserts.assert_true(
-            self.is_backing_process_alive,
-            msg="[%s] backing process for %s died after starting" % (self.type_identifier, self.label))
 
         self.backing_process_logger = AsyncSubprocessLogger(
             self.backing_process, [self.backing_process_log_path],
             log_to_stdout=self.verbose_mode,
             tag=self.label,
             color=self.terminal_color)
+
+        asserts.assert_true(
+            self.backing_process, msg="[%s] failed to open backing process for %s" % (self.type_identifier, self.label))
+        self.is_backing_process_alive = is_subprocess_alive(self.backing_process)
+
+        asserts.assert_true(
+            self.is_backing_process_alive,
+            msg="[%s] backing process for %s died after starting" % (self.type_identifier, self.label))
+
 
         # If gRPC root server port is not specified, we can skip settings up the root server
         if self.grpc_root_server_port != -1:
@@ -523,7 +526,6 @@ class GdAndroidDevice(GdDeviceBase):
         self.push_or_die(*generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "libcutils.so"), overwrite_existing=False)
         self.push_or_die(
             *generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "libgrpc_wrap.so"), overwrite_existing=False)
-        self.push_or_die(*generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "libgrpc++_unsecure.so"))
         self.push_or_die(*generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "libgrpc++.so"))
         self.push_or_die(*generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "libhidlbase.so"), overwrite_existing=False)
         self.push_or_die(*generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "liblog.so"), overwrite_existing=False)

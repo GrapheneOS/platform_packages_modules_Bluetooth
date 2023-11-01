@@ -28,9 +28,7 @@
 #define ENCODER_VERSION "0025"
 
 #include <stdbool.h>
-#include <string.h>
-
-#include "bt_target.h"
+#include <stdint.h>
 
 /*DEFINES*/
 #ifndef FALSE
@@ -162,8 +160,6 @@
 #define SBC_MAX_PCM_BUFFER_SIZE                                          \
   (SBC_MAX_NUM_FRAME * SBC_MAX_NUM_OF_BLOCKS * SBC_MAX_NUM_OF_CHANNELS * \
    SBC_MAX_NUM_OF_SUBBANDS)
-
-#include "sbc_types.h"
 
 typedef struct SBC_ENC_PARAMS_TAG {
   int16_t s16SamplingFreq;  /* 16k, 32k, 44.1k or 48k*/

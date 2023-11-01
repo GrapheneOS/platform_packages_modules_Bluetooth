@@ -27,7 +27,7 @@
 
 #include "btm_ble_int.h"
 #include "btm_dev.h"
-#include "btm_sec_int_types.h"
+#include "btm_sec_cb.h"
 #include "device/include/controller.h"
 #include "gap_api.h"
 #include "main/shim/shim.h"
@@ -55,7 +55,11 @@ static RawAddress generate_rpa_from_irk_and_rand(const Octet16& irk,
   address.address[0] = random[2];
 
   /* encrypt with IRK */
-  Octet16 p = crypto_toolbox::aes_128(irk, random, 3);
+  Octet16 r{};
+  r[0] = random[0];
+  r[1] = random[1];
+  r[2] = random[2];
+  Octet16 p = crypto_toolbox::aes_128(irk, r);
 
   /* set hash to be LSB of rpAddress */
   address.address[5] = p[0];
@@ -120,19 +124,19 @@ bool btm_ble_init_pseudo_addr(tBTM_SEC_DEV_REC* p_dev_rec,
  * Resolving Key |irk| */
 static bool rpa_matches_irk(const RawAddress& rpa, const Octet16& irk) {
   /* use the 3 MSB of bd address as prand */
-  uint8_t rand[3];
+  Octet16 rand{};
   rand[0] = rpa.address[2];
   rand[1] = rpa.address[1];
   rand[2] = rpa.address[0];
 
   /* generate X = E irk(R0, R1, R2) and R is random address 3 LSO */
-  Octet16 x = crypto_toolbox::aes_128(irk, &rand[0], 3);
+  Octet16 x = crypto_toolbox::aes_128(irk, rand);
 
   rand[0] = rpa.address[5];
   rand[1] = rpa.address[4];
   rand[2] = rpa.address[3];
 
-  if (memcmp(x.data(), &rand[0], 3) == 0) {
+  if (memcmp(x.data(), rand.data(), 3) == 0) {
     // match
     return true;
   }

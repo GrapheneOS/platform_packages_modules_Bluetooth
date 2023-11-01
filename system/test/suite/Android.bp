@@ -104,7 +104,7 @@ cc_defaults {
 
 cc_test {
     name: "net_test_bluetooth",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "latest_android_hardware_audio_common_ndk_static",

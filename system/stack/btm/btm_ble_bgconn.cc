@@ -28,7 +28,7 @@
 #include <cstdint>
 #include <unordered_map>
 
-#include "btm_sec_int_types.h"
+#include "btm_sec_cb.h"
 #include "device/include/controller.h"
 #include "main/shim/acl_api.h"
 #include "main/shim/shim.h"

@@ -35,20 +35,20 @@
 
 #include <cstdint>
 
-#include "btif/include/btif_config.h"
 #include "common/metrics.h"
 #include "device/include/controller.h"
 #include "gd/common/init_flags.h"
 #include "main/shim/hci_layer.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
+#include "stack/btm/neighbor_inquiry.h"
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/ble_acl_interface.h"
 #include "stack/include/ble_hci_link_interface.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/btm_ble_api.h"
 #include "stack/include/btm_iso_api.h"
 #include "stack/include/dev_hci_link_interface.h"
-#include "stack/include/gatt_api.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/hci_evt_length.h"
 #include "stack/include/inq_hci_link_interface.h"
@@ -1222,6 +1222,8 @@ static void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,
   CHECK_NE(p_cmd, nullptr) << "Null command for opcode 0x" << loghex(opcode);
   p_cmd++;  // Skip parameter total length
 
+  const tHCI_STATUS hci_status = to_hci_status_code(status);
+
   RawAddress bd_addr;
   uint16_t handle;
 
@@ -1230,48 +1232,41 @@ static void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,
     case HCI_INQUIRY:
       if (status != HCI_SUCCESS) {
         // Tell inquiry processing that we are done
-        btm_process_inq_complete(to_hci_status_code(status),
-                                 BTM_BR_INQUIRY_MASK);
+        btm_process_inq_complete(hci_status, BTM_BR_INQUIRY_MASK);
       }
       break;
     case HCI_SWITCH_ROLE:
       if (status != HCI_SUCCESS) {
         // Tell BTM that the command failed
         STREAM_TO_BDADDR(bd_addr, p_cmd);
-        btm_acl_role_changed(static_cast<tHCI_STATUS>(status), bd_addr,
-                             HCI_ROLE_UNKNOWN);
+        btm_acl_role_changed(hci_status, bd_addr, HCI_ROLE_UNKNOWN);
       }
       break;
     case HCI_CREATE_CONNECTION:
       if (status != HCI_SUCCESS) {
         STREAM_TO_BDADDR(bd_addr, p_cmd);
-        btm_acl_connected(bd_addr, HCI_INVALID_HANDLE,
-                          static_cast<tHCI_STATUS>(status), 0);
+        btm_acl_connected(bd_addr, HCI_INVALID_HANDLE, hci_status, 0);
       }
       break;
     case HCI_AUTHENTICATION_REQUESTED:
       if (status != HCI_SUCCESS) {
         // Device refused to start authentication
         // This is treated as an authentication failure
-        btm_sec_auth_complete(HCI_INVALID_HANDLE,
-                              static_cast<tHCI_STATUS>(status));
+        btm_sec_auth_complete(HCI_INVALID_HANDLE, hci_status);
       }
       break;
     case HCI_SET_CONN_ENCRYPTION:
       if (status != HCI_SUCCESS) {
         // Device refused to start encryption
         // This is treated as an encryption failure
-        btm_sec_encrypt_change(HCI_INVALID_HANDLE,
-                               static_cast<tHCI_STATUS>(status), false);
+        btm_sec_encrypt_change(HCI_INVALID_HANDLE, hci_status, false);
       }
       break;
     case HCI_RMT_NAME_REQUEST:
       if (status != HCI_SUCCESS) {
         // Tell inquiry processing that we are done
-        btm_process_remote_name(nullptr, nullptr, 0,
-                                to_hci_status_code(status));
-        btm_sec_rmt_name_request_complete(nullptr, nullptr,
-                                          to_hci_status_code(status));
+        btm_process_remote_name(nullptr, nullptr, 0, hci_status);
+        btm_sec_rmt_name_request_complete(nullptr, nullptr, hci_status);
       }
       break;
     case HCI_READ_RMT_EXT_FEATURES:
@@ -1285,8 +1280,7 @@ static void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,
       if (status != HCI_SUCCESS) {
         STREAM_TO_UINT16(handle, p_cmd);
         RawAddress addr(RawAddress::kEmpty);
-        btm_sco_connection_failed(static_cast<tHCI_STATUS>(status), addr,
-                                  handle, nullptr);
+        btm_sco_connection_failed(hci_status, addr, handle, nullptr);
       }
       break;
 
@@ -1294,7 +1288,7 @@ static void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,
     case HCI_BLE_CREATE_LL_CONN:
     case HCI_LE_EXTENDED_CREATE_CONNECTION:
       if (status != HCI_SUCCESS) {
-        btm_ble_create_ll_conn_complete(static_cast<tHCI_STATUS>(status));
+        btm_ble_create_ll_conn_complete(hci_status);
       }
       break;
     case HCI_BLE_START_ENC:
@@ -1312,18 +1306,20 @@ static void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,
       if (status != HCI_SUCCESS) {
         // Allow SCO initiation to continue if waiting for change mode event
         STREAM_TO_UINT16(handle, p_cmd);
-        btm_sco_chk_pend_unpark(static_cast<tHCI_STATUS>(status), handle);
+        btm_sco_chk_pend_unpark(hci_status, handle);
       }
       FALLTHROUGH_INTENDED; /* FALLTHROUGH */
     case HCI_HOLD_MODE:
     case HCI_SNIFF_MODE:
     case HCI_PARK_MODE:
-      btm_pm_proc_cmd_status(static_cast<tHCI_STATUS>(status));
+      btm_pm_proc_cmd_status(hci_status);
       break;
 
     default:
-      LOG_ERROR("Command status for opcode:0x%02x should not be handled here",
-                opcode);
+      LOG_ERROR(
+          "Command status for opcode:0x%02x should not be handled here "
+          "status:%s",
+          opcode, hci_status_code_text(hci_status).c_str());
   }
 }
 

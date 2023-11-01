@@ -58,7 +58,7 @@
 #include "os/thread.h"
 #include "packet/packet_view.h"
 #include "stack/btm/btm_int_types.h"
-#include "stack/btm/btm_sec_int_types.h"
+#include "stack/btm/btm_sec_cb.h"
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/ble_acl_interface.h"
 #include "stack/include/bt_hdr.h"

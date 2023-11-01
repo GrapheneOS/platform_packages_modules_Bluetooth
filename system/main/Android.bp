@@ -161,7 +161,7 @@ cc_library_static {
 
 cc_test {
     name: "net_test_main_shim",
-    test_suites: ["device-tests"],
+    test_suites: ["general-tests"],
     host_supported: true,
     test_options: {
         unit_test: true,

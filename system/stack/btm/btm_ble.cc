@@ -40,6 +40,7 @@
 #include "platform_ssl_mem.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/btm/btm_sec_cb.h"
 #include "stack/btm/btm_sec_int_types.h"
 #include "stack/btm/security_device_record.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
@@ -2068,16 +2069,18 @@ static void btm_notify_new_key(uint8_t key_type) {
 static void btm_ble_reset_id_impl(const Octet16& rand1, const Octet16& rand2) {
   /* Regenerate Identity Root */
   btm_sec_cb.devcb.id_keys.ir = rand1;
-  uint8_t btm_ble_dhk_pt = 0x03;
+  Octet16 btm_ble_dhk_pt{};
+  btm_ble_dhk_pt[0] = 0x03;
 
   /* generate DHK= Eir({0x03, 0x00, 0x00 ...}) */
   btm_sec_cb.devcb.id_keys.dhk =
-      crypto_toolbox::aes_128(btm_sec_cb.devcb.id_keys.ir, &btm_ble_dhk_pt, 1);
+      crypto_toolbox::aes_128(btm_sec_cb.devcb.id_keys.ir, btm_ble_dhk_pt);
 
-  uint8_t btm_ble_irk_pt = 0x01;
+  Octet16 btm_ble_irk_pt{};
+  btm_ble_irk_pt[0] = 0x01;
   /* IRK = D1(IR, 1) */
   btm_sec_cb.devcb.id_keys.irk =
-      crypto_toolbox::aes_128(btm_sec_cb.devcb.id_keys.ir, &btm_ble_irk_pt, 1);
+      crypto_toolbox::aes_128(btm_sec_cb.devcb.id_keys.ir, btm_ble_irk_pt);
 
   btm_notify_new_key(BTM_BLE_KEY_TYPE_ID);
 
