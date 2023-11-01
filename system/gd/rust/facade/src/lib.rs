@@ -76,7 +76,7 @@ struct FacadeServer {
 impl FacadeServer {
     async fn start(stack: Stack, req: StartStackRequest, grpc_port: u16) -> Self {
         let mut services = Vec::new();
-        match req.get_module_under_test() {
+        match req.module_under_test.unwrap() {
             BluetoothModule::HAL => {
                 services.push(stack.get_grpc::<HciHalFacadeService>().await);
             }

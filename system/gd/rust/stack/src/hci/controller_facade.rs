@@ -50,7 +50,7 @@ impl ControllerFacade for ControllerFacadeService {
         ctx.spawn(async move {
             let mut address = BluetoothAddress::new();
             let address_bytes: [u8; 6] = clone.exports.address.into();
-            address.set_address(address_bytes.to_vec());
+            address.address = address_bytes.to_vec();
             sink.success(address).await.unwrap();
         });
     }
@@ -58,7 +58,7 @@ impl ControllerFacade for ControllerFacadeService {
     fn write_local_name(&mut self, ctx: RpcContext<'_>, req: NameMsg, sink: UnarySink<Empty>) {
         let mut clone = self.clone();
         let mut builder = WriteLocalNameBuilder { local_name: [0; 248] };
-        builder.local_name[0..req.get_name().len()].copy_from_slice(req.get_name());
+        builder.local_name[0..req.name.len()].copy_from_slice(&req.name);
         ctx.spawn(async move {
             clone.hci.commands.send(builder.build()).await;
             sink.success(Empty::default()).await.unwrap();
@@ -72,8 +72,7 @@ impl ControllerFacade for ControllerFacadeService {
                 clone.hci.commands.send(ReadLocalNameBuilder {}).await.get_local_name(),
             )
             .into_bytes();
-            let mut msg = NameMsg::new();
-            msg.set_name(local_name);
+            let msg = NameMsg { name: local_name, ..NameMsg::default() };
             sink.success(msg).await.unwrap();
         });
     }
@@ -85,10 +84,12 @@ impl ControllerFacade for ControllerFacadeService {
         sink: UnarySink<SupportedMsg>,
     ) {
         let clone = self.clone();
-        let opcode = OpCode::try_from(u16::try_from(op_code_msg.get_op_code()).unwrap()).unwrap();
+        let opcode = OpCode::try_from(u16::try_from(op_code_msg.op_code).unwrap()).unwrap();
         ctx.spawn(async move {
-            let mut supported_msg = SupportedMsg::new();
-            supported_msg.set_supported(clone.exports.commands.is_supported(opcode));
+            let supported_msg = SupportedMsg {
+                supported: clone.exports.commands.is_supported(opcode),
+                ..SupportedMsg::default()
+            };
             sink.success(supported_msg).await.unwrap();
         });
     }
@@ -101,8 +102,10 @@ impl ControllerFacade for ControllerFacadeService {
     ) {
         let clone = self.clone();
         ctx.spawn(async move {
-            let mut msg = SingleValueMsg::new();
-            msg.set_value(clone.exports.le_supported_advertising_sets.into());
+            let msg = SingleValueMsg {
+                value: clone.exports.le_supported_advertising_sets.into(),
+                ..SingleValueMsg::default()
+            };
             sink.success(msg).await.unwrap();
         });
     }
@@ -343,8 +346,10 @@ impl ControllerFacade for ControllerFacadeService {
     ) {
         let clone = self.clone();
         ctx.spawn(async move {
-            let mut supported_msg = SupportedMsg::new();
-            supported_msg.set_supported(clone.exports.le_features.extended_advertising);
+            let supported_msg = SupportedMsg {
+                supported: clone.exports.le_features.extended_advertising,
+                ..SupportedMsg::default()
+            };
             sink.success(supported_msg).await.unwrap();
         });
     }
