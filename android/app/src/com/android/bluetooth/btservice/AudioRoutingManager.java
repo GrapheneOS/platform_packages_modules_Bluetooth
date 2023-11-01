@@ -684,18 +684,10 @@ public class AudioRoutingManager extends ActiveDeviceManager {
         List<BluetoothDevice> fallbackCandidates = new ArrayList<>();
         fallbackCandidates.addAll(mLeAudioConnectedDevices);
 
-        HeadsetService headsetService = mFactory.getHeadsetService();
-        switch (mAudioManager.getMode()) {
-            case AudioManager.MODE_NORMAL:
-                fallbackCandidates.addAll(mA2dpConnectedDevices);
-                break;
-            case AudioManager.MODE_RINGTONE:
-                if (headsetService.isInbandRingingEnabled()) {
-                    fallbackCandidates.addAll(hfpFallbackCandidates);
-                }
-                break;
-            default:
-                fallbackCandidates.addAll(hfpFallbackCandidates);
+        if (mAudioManager.getMode() == AudioManager.MODE_NORMAL) {
+            fallbackCandidates.addAll(mA2dpConnectedDevices);
+        } else {
+            fallbackCandidates.addAll(hfpFallbackCandidates);
         }
         BluetoothDevice device =
                 mDbManager.getMostRecentlyConnectedDevicesInList(fallbackCandidates);
