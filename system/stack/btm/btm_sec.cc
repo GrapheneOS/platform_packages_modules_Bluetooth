@@ -52,6 +52,7 @@
 #include "stack/btm/security_device_record.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_psm_types.h"
+#include "stack/include/btm_log_history.h"
 #include "stack/include/btm_sec_api.h"
 #include "stack/include/btm_status.h"
 #include "stack/include/l2cap_security_interface.h"

@@ -24,17 +24,11 @@
 #include <cstdint>
 #include <string>
 
-#include "internal_include/bt_target.h"
 #include "stack/include/bt_dev_class.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/bt_name.h"
-#include "stack/include/bt_octets.h"
-#include "stack/include/btm_status.h"
 #include "stack/include/hci_mode.h"
 #include "stack/include/hcidefs.h"
 #include "stack/include/sdpdefs.h"
-#include "types/ble_address_with_type.h"
-#include "types/bt_transport.h"
 #include "types/raw_address.h"
 
 /* Structure returned with Vendor Specific Command complete callback */
@@ -383,18 +377,4 @@ typedef uint8_t tBTM_CONTRL_STATE;
 // Bluetooth Quality Report - Report receiver
 typedef void(tBTM_BT_QUALITY_REPORT_RECEIVER)(uint8_t len,
                                               const uint8_t* p_stream);
-
-struct tREMOTE_VERSION_INFO {
-  uint8_t lmp_version{0};
-  uint16_t lmp_subversion{0};
-  uint16_t manufacturer{0};
-  bool valid{false};
-  std::string ToString() const {
-    return (valid) ? base::StringPrintf("%02hhu-%05hu-%05hu", lmp_version,
-                                        lmp_subversion, manufacturer)
-                   : std::string("UNKNOWN");
-  }
-};
-using remote_version_info = tREMOTE_VERSION_INFO;
-
 #endif  // BTM_API_TYPES_H

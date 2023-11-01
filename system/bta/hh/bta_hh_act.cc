@@ -39,6 +39,7 @@
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_uuid16.h"
+#include "stack/include/btm_log_history.h"
 #include "stack/include/hiddefs.h"
 #include "stack/include/hidh_api.h"
 #include "stack/include/sdp_api.h"

@@ -44,6 +44,7 @@
 #include "rust/src/connection/ffi/connection_shim.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btm_log_history.h"
 #include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;

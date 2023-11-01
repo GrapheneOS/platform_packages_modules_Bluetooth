@@ -22,11 +22,9 @@
 #include <hardware/bt_common_types.h>
 
 #include <cstdint>
-#include <memory>
 
 #include "btm_ble_api_types.h"
 #include "btm_ble_sec_api_types.h"
-#include "types/bt_transport.h"
 #include "types/raw_address.h"
 
 /*******************************************************************************
