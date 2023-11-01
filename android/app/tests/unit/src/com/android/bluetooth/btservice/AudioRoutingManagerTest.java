@@ -319,6 +319,21 @@ public class AudioRoutingManagerTest {
     }
 
     @Test
+    public void headsetSecondDeviceDisconnected_fallbackDeviceActiveWhileRinging() {
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_RINGTONE);
+
+        headsetConnected(mHeadsetDevice, false);
+        verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mHeadsetDevice);
+
+        headsetConnected(mSecondaryAudioDevice, false);
+        verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mSecondaryAudioDevice);
+
+        Mockito.clearInvocations(mHeadsetService);
+        headsetDisconnected(mSecondaryAudioDevice);
+        verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mHeadsetDevice);
+    }
+
+    @Test
     public void a2dpConnectedButHeadsetNotConnected_setA2dpActive() {
         mTestLooper.stopAutoDispatchAndIgnoreExceptions();
         when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_IN_CALL);
