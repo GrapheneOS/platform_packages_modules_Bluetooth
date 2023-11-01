@@ -18,12 +18,11 @@
 
 #define LOG_TAG "bluetooth"
 
-#include "bt_target.h"
-
 #include <string.h>
-#include "smp_int.h"
 
 #include "osi/include/log.h"
+#include "smp_int.h"
+#include "stack/include/btm_log_history.h"
 
 namespace {
 

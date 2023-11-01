@@ -20,9 +20,9 @@
 #include <cstdint>
 #include <functional>
 #include <mutex>
-#include <unordered_map>
 #include <vector>
 
+#include "bt_transport.h"
 #include "gd/common/callback.h"
 #include "gd/hci/le_advertising_manager.h"
 #include "gd/hci/le_scanning_manager.h"
@@ -30,8 +30,6 @@
 #include "gd/os/alarm.h"
 #include "hci/hci_packets.h"
 #include "stack/btm/neighbor_inquiry.h"
-#include "stack/include/btm_api_types.h"
-#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 //

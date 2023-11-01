@@ -25,14 +25,16 @@
 #ifndef BTA_API_H
 #define BTA_API_H
 
-#include <base/strings/stringprintf.h>
 #include <base/functional/callback.h>
+#include <base/strings/stringprintf.h>
 
 #include <cstdint>
 #include <vector>
 
 #include "bt_target.h"  // Must be first to define build configuration
+#include "bta_api_data_types.h"
 #include "osi/include/log.h"
+#include "stack/include/bt_name.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_api_types.h"
@@ -43,8 +45,6 @@
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
-#include "bta_api_data_types.h"
-
 
 /*
  * Service ID
