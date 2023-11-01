@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-#include <unordered_set>
-
-#include "main/shim/dumpsys.h"
-#include "osi/include/log.h"
 #include "stack/acl/acl.h"
 #include "types/raw_address.h"
 

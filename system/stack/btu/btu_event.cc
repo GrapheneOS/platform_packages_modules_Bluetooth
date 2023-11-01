@@ -17,6 +17,7 @@
 #include "btm_iso_api.h"
 #include "osi/include/allocator.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/btu_hcif.h"
 
 using bluetooth::hci::IsoManager;
