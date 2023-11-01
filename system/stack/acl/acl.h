@@ -28,6 +28,7 @@
 #include "types/bt_transport.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
+#include "types/remote_version_type.h"
 
 enum btm_acl_encrypt_state_t {
   BTM_ACL_ENCRYPT_STATE_IDLE = 0,
