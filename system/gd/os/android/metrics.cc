@@ -494,7 +494,12 @@ void LogMetricBluetoothRemoteSupportedFeatures(
   if (!address.IsEmpty()) {
     metric_id = MetricIdManager::GetInstance().AllocateId(address);
   }
-  int ret = stats_write(BLUETOOTH_REMOTE_SUPPORTED_FEATURES_REPORTED, metric_id, page, features, connection_handle);
+  int ret = stats_write(
+      BLUETOOTH_REMOTE_SUPPORTED_FEATURES_REPORTED,
+      metric_id,
+      page,
+      static_cast<int64_t>(features),
+      connection_handle);
   if (ret < 0) {
     LOG_WARN(
         "Failed for LogMetricBluetoothRemoteSupportedFeatures, "
