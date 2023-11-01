@@ -1,0 +1,8 @@
+package: "com.android.bluetooth.flags"
+
+flag {
+    name: "a2dp_offload_codec_extensibility"
+    namespace: "bluetooth"
+    description: "Enable a2dp offload codec extensibility"
+    bug: "308686081"
+}
