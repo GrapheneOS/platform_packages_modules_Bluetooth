@@ -37,6 +37,7 @@
 #include "device/include/controller.h"
 #include "embdrv/g722/g722_enc_dec.h"
 #include "os/log.h"
+#include "osi/include/allocator.h"
 #include "osi/include/properties.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/acl_api.h"        // BTM_ReadRSSI

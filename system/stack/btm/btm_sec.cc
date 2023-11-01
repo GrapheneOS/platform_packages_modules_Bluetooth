@@ -32,9 +32,8 @@
 #include <base/strings/stringprintf.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/hci/enums.pb.h>
-#include <string.h>
 
-#include <type_traits>
+#include <string>
 
 #include "btif/include/btif_storage.h"
 #include "common/metrics.h"
@@ -42,9 +41,6 @@
 #include "device/include/controller.h"
 #include "device/include/device_iot_config.h"
 #include "l2c_api.h"
-#include "osi/include/allocator.h"
-#include "osi/include/compat.h"
-#include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec_cb.h"
@@ -3616,7 +3612,7 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
  * Returns          Pointer to the TLE struct
  *
  ******************************************************************************/
-static void btm_sec_connect_after_reject_timeout(UNUSED_ATTR void* data) {
+static void btm_sec_connect_after_reject_timeout(void* /* data */) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_sec_cb.p_collided_dev_rec;
 
   LOG_VERBOSE("%s", __func__);
@@ -4250,7 +4246,7 @@ void btm_sec_link_key_request(const uint8_t* p_event) {
  * Returns          Pointer to the TLE struct
  *
  ******************************************************************************/
-static void btm_sec_pairing_timeout(UNUSED_ATTR void* data) {
+static void btm_sec_pairing_timeout(void* /* data */) {
   tBTM_SEC_CB* p_cb = &btm_sec_cb;
   tBTM_SEC_DEV_REC* p_dev_rec;
   tBTM_AUTH_REQ auth_req = (btm_sec_cb.devcb.loc_io_caps == BTM_IO_CAP_NONE)
@@ -4791,7 +4787,7 @@ tBTM_SEC_SERV_REC* btm_sec_find_first_serv(bool is_originator, uint16_t psm) {
  * Returns          Pointer to the TLE struct
  *
  ******************************************************************************/
-static void btm_sec_collision_timeout(UNUSED_ATTR void* data) {
+static void btm_sec_collision_timeout(void* /* data */) {
   LOG_VERBOSE("%s()", __func__);
 
   tBTM_STATUS status = btm_sec_execute_procedure(btm_sec_cb.p_collided_dev_rec);
