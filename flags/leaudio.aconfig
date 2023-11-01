@@ -20,3 +20,10 @@ flag {
     description: "Le audio device and group health actions for fallback mechanism"
     bug: "290845728"
 }
+
+flag {
+    name: "leaudio_broadcast_audio_handover_policies"
+    namespace: "bluetooth"
+    description: "Support le audio broadcast audio routing policies"
+    bug: "308171251"
+}
