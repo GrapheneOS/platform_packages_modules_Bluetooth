@@ -104,11 +104,32 @@ void btsnd_hcic_term_big(uint8_t big_handle, uint8_t reason) {
   hcic_interface->TerminateBig(big_handle, reason);
 }
 
-bluetooth::legacy::hci::Interface interface_ = {
-    .Disconnect = btsnd_hcic_disconnect,
-};
+namespace bluetooth::legacy::hci {
 
-const bluetooth::legacy::hci::Interface&
-bluetooth::legacy::hci::GetInterface() {
-  return interface_;
-}
+class MockInterface : public Interface {
+ public:
+  virtual void StartInquiry(const LAP inq_lap, uint8_t duration,
+                            uint8_t response_cnt) const override {
+    FAIL();
+  }
+  virtual void InquiryCancel() const override { FAIL(); }
+  virtual void Disconnect(uint16_t handle, uint8_t reason) const override {
+    btsnd_hcic_disconnect(handle, reason);
+  }
+  virtual void ChangeConnectionPacketType(
+      uint16_t handle, uint16_t packet_types) const override {
+    FAIL();
+  }
+  virtual void StartRoleSwitch(const RawAddress& bd_addr,
+                               uint8_t role) const override {
+    FAIL();
+  }
+  virtual void ConfigureDataPath(
+      hci_data_direction_t data_path_direction, uint8_t data_path_id,
+      std::vector<uint8_t> vendor_config) const override {
+    FAIL();
+  }
+} interface_;
+
+const Interface& GetInterface() { return interface_; }
+}  // namespace bluetooth::legacy::hci

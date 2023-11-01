@@ -532,7 +532,7 @@ filegroup {
 filegroup {
     name: "TestMockLegacyHciInterface",
     srcs: [
-        "mock/mock_legacy_hci_iterface.cc",
+        "mock/mock_legacy_hci_interface.cc",
     ],
 }
 
