@@ -53,7 +53,6 @@ class PyNeighbor(object):
 
     def __init__(self, device):
         self.device = device
-        self.remote_host_supported_features_notification_registered = False
 
     def set_inquiry_mode(self, inquiry_msg):
         """
