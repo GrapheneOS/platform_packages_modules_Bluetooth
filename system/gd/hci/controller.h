@@ -184,6 +184,9 @@ class Controller : public Module {
 
   virtual uint8_t GetLePeriodicAdvertiserListSize() const;
 
+  // 7.4.8 Read Local Supported Codecs command v1 only returns codecs on the BR/EDR transport
+  virtual std::vector<uint8_t> GetLocalSupportedBrEdrCodecIds() const;
+
   struct VendorCapabilities {
     uint8_t is_supported_;
     uint8_t max_advt_instances_;
