@@ -25,7 +25,7 @@
 #include <string>
 
 #include "bt_target.h"
-#include "main/shim/dumpsys.h"
+#include "os/logging/log_adapter.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/bt_name.h"
 #include "stack/include/bt_octets.h"
