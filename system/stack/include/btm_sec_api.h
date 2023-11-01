@@ -18,7 +18,10 @@
 #pragma once
 
 #include <cstdint>
-#include "types/bt_transport.h"
+
+#include "stack/include/bt_dev_class.h"
+#include "stack/include/bt_name.h"
+#include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
 
 /*****************************************************************************

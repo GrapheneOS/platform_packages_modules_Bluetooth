@@ -33,7 +33,6 @@
 
 #include "btm_api.h"
 #include "btm_ble_api_types.h"
-#include "osi/include/alarm.h"
 #include "stack/btm/neighbor_inquiry.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"

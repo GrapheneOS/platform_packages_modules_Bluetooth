@@ -48,6 +48,7 @@
 #include "main/shim/acl.h"
 #include "main/shim/acl_legacy_interface.h"
 #include "main/shim/ble_scanner_interface_impl.h"
+#include "main/shim/dumpsys.h"
 #include "main/shim/helpers.h"
 #include "main/shim/le_advertising_manager.h"
 #include "main/shim/utils.h"

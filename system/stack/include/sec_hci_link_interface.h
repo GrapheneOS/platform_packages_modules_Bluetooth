@@ -19,7 +19,6 @@
 
 #include <cstdint>
 
-#include "stack/include/bt_types.h"
 #include "stack/include/btm_sec_api_types.h"
 #include "types/raw_address.h"
 
@@ -30,7 +29,6 @@ void btm_create_conn_cancel_complete(const uint8_t* p, uint16_t evt_len);
 void btm_io_capabilities_req(const RawAddress& p);
 void btm_io_capabilities_rsp(const uint8_t* p);
 void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p);
-void btm_read_inq_tx_power_complete(uint8_t* p);
 void btm_read_local_oob_complete(uint8_t* p, uint16_t evt_len);
 void btm_rem_oob_req(const uint8_t* p);
 void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status);
