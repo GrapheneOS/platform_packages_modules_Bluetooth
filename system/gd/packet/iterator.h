@@ -76,15 +76,15 @@ class Iterator : public IteratorTraits {
 
   Iterator Subrange(size_t index, size_t length) const;
 
-  // Get the next sizeof(FixedWidthPODType) bytes and return the filled type
-  template <typename FixedWidthPODType, typename std::enable_if<std::is_pod<FixedWidthPODType>::value, int>::type = 0>
-  FixedWidthPODType extract() {
-    static_assert(std::is_pod<FixedWidthPODType>::value, "Iterator::extract requires a fixed-width type.");
-    FixedWidthPODType extracted_value{};
+  // Get the next sizeof(T) bytes and return the filled type
+  template <typename T, typename std::enable_if<std::is_trivial<T>::value, int>::type = 0>
+  T extract() {
+    static_assert(std::is_trivial<T>::value, "Iterator::extract requires a fixed-width type.");
+    T extracted_value{};
     uint8_t* value_ptr = (uint8_t*)&extracted_value;
 
-    for (size_t i = 0; i < sizeof(FixedWidthPODType); i++) {
-      size_t index = (little_endian ? i : sizeof(FixedWidthPODType) - i - 1);
+    for (size_t i = 0; i < sizeof(T); i++) {
+      size_t index = (little_endian ? i : sizeof(T) - i - 1);
       value_ptr[index] = this->operator*();
       this->operator++();
     }
