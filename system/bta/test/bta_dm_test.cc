@@ -21,6 +21,7 @@
 
 #include <string>
 
+#include "bta/dm/bta_dm_disc.h"
 #include "bta/dm/bta_dm_int.h"
 #include "bta/dm/bta_dm_sec_int.h"
 #include "bta/hf_client/bta_hf_client_int.h"
@@ -556,3 +557,8 @@ TEST_F(BtaDmTest, bta_dm_remote_name_cmpl) {
   bluetooth::legacy::testing::bta_dm_remote_name_cmpl(&msg);
   ASSERT_EQ(1, get_func_call_count("BTM_InqDbRead"));
 }
+
+TEST_F(BtaDmTest, bta_dm_disc_start__true) { bta_dm_disc_start(true); }
+TEST_F(BtaDmTest, bta_dm_disc_start__false) { bta_dm_disc_start(false); }
+
+TEST_F(BtaDmTest, bta_dm_disc_stop) { bta_dm_disc_stop(); }
