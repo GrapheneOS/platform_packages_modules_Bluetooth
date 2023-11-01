@@ -133,6 +133,7 @@ cc_library_shared {
         "libstatslog_bt",
         "libudrv-uipc",
         "libutils",
+        "server_configurable_flags",
     ],
     shared_libs: [
         "libaaudio",
@@ -142,7 +143,6 @@ cc_library_shared {
         "libnativehelper",
         "libstatssocket",
         "libvndksupport",
-        "server_configurable_flags",
     ],
     sanitize: {
         scs: true,
