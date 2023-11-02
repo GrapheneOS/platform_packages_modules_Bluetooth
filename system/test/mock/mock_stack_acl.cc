@@ -71,8 +71,6 @@ struct acl_peer_supports_ble_connection_subrating_host
 struct acl_refresh_remote_address acl_refresh_remote_address;
 struct acl_set_peer_le_features_from_handle
     acl_set_peer_le_features_from_handle;
-struct sco_peer_supports_esco_2m_phy sco_peer_supports_esco_2m_phy;
-struct sco_peer_supports_esco_3m_phy sco_peer_supports_esco_3m_phy;
 struct acl_create_classic_connection acl_create_classic_connection;
 struct acl_get_connection_from_address acl_get_connection_from_address;
 struct btm_acl_for_bda btm_acl_for_bda;
@@ -293,14 +291,6 @@ bool acl_set_peer_le_features_from_handle(uint16_t hci_handle,
   inc_func_call_count(__func__);
   return test::mock::stack_acl::acl_set_peer_le_features_from_handle(hci_handle,
                                                                      p);
-}
-bool sco_peer_supports_esco_2m_phy(const RawAddress& remote_bda) {
-  inc_func_call_count(__func__);
-  return test::mock::stack_acl::sco_peer_supports_esco_2m_phy(remote_bda);
-}
-bool sco_peer_supports_esco_3m_phy(const RawAddress& remote_bda) {
-  inc_func_call_count(__func__);
-  return test::mock::stack_acl::sco_peer_supports_esco_3m_phy(remote_bda);
 }
 void acl_send_data_packet_br_edr(const RawAddress& bd_addr, BT_HDR* p_buf) {
   inc_func_call_count(__func__);
