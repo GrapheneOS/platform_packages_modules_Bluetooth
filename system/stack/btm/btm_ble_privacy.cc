@@ -21,16 +21,17 @@
  *  This file contains functions for BLE controller based privacy.
  *
  ******************************************************************************/
-#include <base/logging.h>
-#include <string.h>
+#define LOG_TAG "ble_priv"
 
-#include "ble_advertiser.h"
-#include "bt_target.h"
 #include "btm_dev.h"
 #include "btm_sec_cb.h"
 #include "btm_sec_int_types.h"
 #include "device/include/controller.h"
 #include "main/shim/acl_api.h"
+#include "os/log.h"
+#include "osi/include/allocator.h"
+#include "stack/btm/btm_ble_int.h"
+#include "stack/btm/btm_int_types.h"
 #include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
 

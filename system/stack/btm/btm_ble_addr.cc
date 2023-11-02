@@ -22,6 +22,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "ble"
+
 #include <base/functional/bind.h>
 #include <string.h>
 
@@ -29,14 +31,11 @@
 #include "btm_dev.h"
 #include "btm_sec_cb.h"
 #include "device/include/controller.h"
-#include "gap_api.h"
-#include "main/shim/shim.h"
-#include "osi/include/osi.h"  // UNUSED_ATTR
+#include "os/log.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btm_ble_sec_api.h"
-#include "stack/include/btm_sec_api.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 

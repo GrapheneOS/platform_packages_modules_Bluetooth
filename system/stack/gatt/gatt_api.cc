@@ -21,11 +21,11 @@
  *  this file contains GATT interface functions
  *
  ******************************************************************************/
+#define LOG_TAG "gatt_api"
+
 #include "stack/include/gatt_api.h"
 
-#include <base/logging.h>
 #include <base/strings/string_number_conversions.h>
-#include <stdio.h>
 
 #include <string>
 
@@ -34,6 +34,7 @@
 #include "gd/os/system_properties.h"
 #include "internal_include/stack_config.h"
 #include "l2c_api.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
 #include "rust/src/connection/ffi/connection_shim.h"
 #include "stack/arbiter/acl_arbiter.h"
