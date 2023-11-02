@@ -319,24 +319,6 @@ struct acl_set_peer_le_features_from_handle {
 };
 extern struct acl_set_peer_le_features_from_handle
     acl_set_peer_le_features_from_handle;
-// Name: sco_peer_supports_esco_2m_phy
-// Params: const RawAddress& remote_bda
-// Returns: bool
-struct sco_peer_supports_esco_2m_phy {
-  std::function<bool(const RawAddress& remote_bda)> body{
-      [](const RawAddress& remote_bda) { return false; }};
-  bool operator()(const RawAddress& remote_bda) { return body(remote_bda); };
-};
-extern struct sco_peer_supports_esco_2m_phy sco_peer_supports_esco_2m_phy;
-// Name: sco_peer_supports_esco_3m_phy
-// Params: const RawAddress& remote_bda
-// Returns: bool
-struct sco_peer_supports_esco_3m_phy {
-  std::function<bool(const RawAddress& remote_bda)> body{
-      [](const RawAddress& remote_bda) { return false; }};
-  bool operator()(const RawAddress& remote_bda) { return body(remote_bda); };
-};
-extern struct sco_peer_supports_esco_3m_phy sco_peer_supports_esco_3m_phy;
 // Name: acl_create_classic_connection
 // Params: const RawAddress& bd_addr, bool there_are_high_priority_channels,
 // bool is_bonding Returns: constexpr uint16_t kDefaultPacketTypes =
