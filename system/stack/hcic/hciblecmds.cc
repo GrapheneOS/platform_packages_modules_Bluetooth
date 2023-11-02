@@ -36,7 +36,6 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btu_hcif.h"
-#include "stack/include/main_thread.h"
 #include "types/raw_address.h"
 
 /*******************************************************************************
