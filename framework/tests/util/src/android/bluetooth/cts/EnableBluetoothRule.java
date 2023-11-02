@@ -18,13 +18,13 @@ package android.bluetooth.cts;
 
 import static com.android.compatibility.common.util.SystemUtil.runShellCommandOrThrow;
 
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
+
 import static org.junit.Assume.assumeTrue;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
-import android.content.pm.PackageManager;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 
@@ -41,35 +41,47 @@ import org.junit.runners.model.Statement;
  */
 public class EnableBluetoothRule extends BeforeAfterRule {
     private final Context mContext = InstrumentationRegistry.getInstrumentation().getContext();
-    private final BluetoothManager mBluetoothManager =
-            mContext.getSystemService(BluetoothManager.class);
-    private final BluetoothAdapter mBluetoothAdapter = mBluetoothManager.getAdapter();
+    private final BluetoothAdapter mBluetoothAdapter =
+            mContext.getSystemService(BluetoothManager.class).getAdapter();
     private final boolean mEnableTestMode;
+    private final boolean mToggleBluetooth;
 
     private boolean mWasBluetoothAdapterEnabled = true;
 
+    /** Empty constructor */
     public EnableBluetoothRule() {
         mEnableTestMode = false;
+        mToggleBluetooth = false;
     }
 
+    /**
+     * Constructor that allows test mode
+     *
+     * @param enableTestMode whether test mode is enabled
+     * @param toggleBluetooth whether to toggle Bluetooth at the beginning of the test if it is
+     *     already enabled
+     */
+    public EnableBluetoothRule(boolean enableTestMode, boolean toggleBluetooth) {
+        mEnableTestMode = enableTestMode;
+        mToggleBluetooth = toggleBluetooth;
+    }
+
+    /**
+     * Constructor that allows test mode
+     *
+     * @param enableTestMode whether test mode is enabled
+     */
     public EnableBluetoothRule(boolean enableTestMode) {
         mEnableTestMode = enableTestMode;
-    }
-
-    private boolean supportsBluetooth() {
-        return mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH);
-    }
-
-    private boolean isBluetoothEnabled() {
-        return mBluetoothAdapter.isEnabled();
+        mToggleBluetooth = false;
     }
 
     private void enableBluetoothAdapter() {
-        assertTrue(BTAdapterUtils.enableAdapter(mBluetoothAdapter, mContext));
+        assertThat(BTAdapterUtils.enableAdapter(mBluetoothAdapter, mContext)).isTrue();
     }
 
     private void disableBluetoothAdapter() {
-        assertTrue(BTAdapterUtils.disableAdapter(mBluetoothAdapter, mContext));
+        assertThat(BTAdapterUtils.disableAdapter(mBluetoothAdapter, mContext)).isTrue();
     }
 
     private void enableBluetoothTestMode() {
@@ -86,9 +98,12 @@ public class EnableBluetoothRule extends BeforeAfterRule {
 
     @Override
     protected void onBefore(Statement base, Description description) {
-        assumeTrue(supportsBluetooth());
-        mWasBluetoothAdapterEnabled = isBluetoothEnabled();
+        assumeTrue(TestUtils.hasBluetooth());
+        mWasBluetoothAdapterEnabled = mBluetoothAdapter.isEnabled();
         if (!mWasBluetoothAdapterEnabled) {
+            enableBluetoothAdapter();
+        } else if (mToggleBluetooth) {
+            disableBluetoothAdapter();
             enableBluetoothAdapter();
         }
         if (mEnableTestMode) {
@@ -98,7 +113,7 @@ public class EnableBluetoothRule extends BeforeAfterRule {
 
     @Override
     protected void onAfter(Statement base, Description description) {
-        assumeTrue(supportsBluetooth());
+        assumeTrue(TestUtils.hasBluetooth());
         disableBluetoothTestMode();
         if (!mWasBluetoothAdapterEnabled) {
             disableBluetoothAdapter();
