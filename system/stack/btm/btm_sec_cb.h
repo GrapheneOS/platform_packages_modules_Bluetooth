@@ -19,9 +19,9 @@
 
 #include <cstdint>
 
+#include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/list.h"
-#include "stack/btm/btm_ble_int_types.h"
 #include "stack/btm/btm_sec_int_types.h"
 #include "stack/btm/security_device_record.h"
 #include "stack/include/bt_octets.h"
@@ -33,14 +33,9 @@ class tBTM_SEC_CB {
   tBTM_CFG cfg; /* Device configuration */
 
   /*****************************************************
-  **      Device control
+  **     Local Device control block (on security)
   *****************************************************/
   tBTM_SEC_DEVCB devcb;
-
-  /*****************************************************
-  **      BLE Device controllers
-  *****************************************************/
-  tBTM_BLE_CB ble_ctr_cb;
 
  private:
   friend void btm_ble_ltk_request_reply(const RawAddress& bda, bool use_stk,
@@ -83,16 +78,18 @@ class tBTM_SEC_CB {
   RawAddress pairing_bda;                 /* The device currently pairing */
   alarm_t* pairing_timer{nullptr};        /* Timer for pairing process    */
   alarm_t* execution_wait_timer{nullptr}; /* To avoid concurrent auth request */
-  tBTM_SEC_SERV_REC sec_serv_rec[BTM_SEC_MAX_SERVICE_RECORDS];
   list_t* sec_dev_rec{nullptr}; /* list of tBTM_SEC_DEV_REC */
   tBTM_SEC_SERV_REC* p_out_serv{nullptr};
   tBTM_MKEY_CALLBACK* mkey_cback{nullptr};
 
   RawAddress connecting_bda;
-  DEV_CLASS connecting_dc;
 
   fixed_queue_t* sec_pending_q{nullptr}; /* pending sequrity requests in
                                             tBTM_SEC_QUEUE_ENTRY format */
+
+  tBTM_SEC_SERV_REC sec_serv_rec[BTM_SEC_MAX_SERVICE_RECORDS];
+
+  DEV_CLASS connecting_dc;
 
   void Init(uint8_t initial_security_mode);
   void Free();
