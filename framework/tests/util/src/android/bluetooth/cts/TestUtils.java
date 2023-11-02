@@ -16,8 +16,7 @@
 
 package android.bluetooth.cts;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static com.google.common.truth.Truth.assertThat;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
@@ -35,7 +34,8 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.time.Duration;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -43,6 +43,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /** Utility class for Bluetooth CTS test. */
 public class TestUtils {
+    private static final String TAG = TestUtils.class.getSimpleName();
     /**
      * Checks whether this device has Bluetooth feature
      *
@@ -53,29 +54,50 @@ public class TestUtils {
         return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH);
     }
 
-    /** Get the current enabled status of a given profile */
+    /**
+     * Get the current enabled status of a given profile.
+     *
+     * <p>This method also adds default value to profile enable state based on the designed logic of
+     * the Android framework. For example: <br>
+     * {@link BluetoothProfile#GATT} is always enabled by default <br>
+     * {@link BluetoothProfile#HEARING_AID} should be enabled by default except for Watch,
+     * Automotive, and TV
+     *
+     * @param profile a Bluetooth profile from {@link BluetoothProfile}
+     * @return true if the profile should be enabled
+     * @deprecated one should use functions from {@link BluetoothProperties} as much as possible
+     */
+    @Deprecated
     public static boolean isProfileEnabled(int profile) {
         switch (profile) {
-            case BluetoothProfile.A2DP:
+            case BluetoothProfile.A2DP -> {
                 return BluetoothProperties.isProfileA2dpSourceEnabled().orElse(false);
-            case BluetoothProfile.A2DP_SINK:
+            }
+            case BluetoothProfile.A2DP_SINK -> {
                 return BluetoothProperties.isProfileA2dpSinkEnabled().orElse(false);
+            }
                 // Hidden profile
                 // case BluetoothProfile.AVRCP:
                 //     return BluetoothProperties.isProfileAvrcpTargetEnabled().orElse(false);
-            case BluetoothProfile.AVRCP_CONTROLLER:
+            case BluetoothProfile.AVRCP_CONTROLLER -> {
                 return BluetoothProperties.isProfileAvrcpControllerEnabled().orElse(false);
-            case BluetoothProfile.CSIP_SET_COORDINATOR:
+            }
+            case BluetoothProfile.CSIP_SET_COORDINATOR -> {
                 return BluetoothProperties.isProfileCsipSetCoordinatorEnabled().orElse(false);
-            case BluetoothProfile.GATT:
+            }
+            case BluetoothProfile.GATT -> {
                 return BluetoothProperties.isProfileGattEnabled().orElse(true);
-            case BluetoothProfile.HAP_CLIENT:
+            }
+            case BluetoothProfile.HAP_CLIENT -> {
                 return BluetoothProperties.isProfileHapClientEnabled().orElse(false);
-            case BluetoothProfile.HEADSET:
+            }
+            case BluetoothProfile.HEADSET -> {
                 return BluetoothProperties.isProfileHfpAgEnabled().orElse(false);
-            case BluetoothProfile.HEADSET_CLIENT:
+            }
+            case BluetoothProfile.HEADSET_CLIENT -> {
                 return BluetoothProperties.isProfileHfpHfEnabled().orElse(false);
-            case BluetoothProfile.HEARING_AID:
+            }
+            case BluetoothProfile.HEARING_AID -> {
                 Context context = InstrumentationRegistry.getInstrumentation().getContext();
                 if (!isBleSupported(context)) {
                     return false;
@@ -85,41 +107,56 @@ public class TestUtils {
                     default_value = false;
                 }
                 return BluetoothProperties.isProfileAshaCentralEnabled().orElse(default_value);
-            case BluetoothProfile.HID_DEVICE:
+            }
+            case BluetoothProfile.HID_DEVICE -> {
                 return BluetoothProperties.isProfileHidDeviceEnabled().orElse(false);
-            case BluetoothProfile.HID_HOST:
+            }
+            case BluetoothProfile.HID_HOST -> {
                 return BluetoothProperties.isProfileHidHostEnabled().orElse(false);
-            case BluetoothProfile.LE_AUDIO:
+            }
+            case BluetoothProfile.LE_AUDIO -> {
                 return BluetoothProperties.isProfileBapUnicastClientEnabled().orElse(false);
-            case BluetoothProfile.LE_AUDIO_BROADCAST:
+            }
+            case BluetoothProfile.LE_AUDIO_BROADCAST -> {
                 return BluetoothProperties.isProfileBapBroadcastSourceEnabled().orElse(false);
-            case BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT:
+            }
+            case BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT -> {
                 return BluetoothProperties.isProfileBapBroadcastAssistEnabled().orElse(false);
+            }
                 // Hidden profile
                 // case BluetoothProfile.LE_CALL_CONTROL:
                 //     return BluetoothProperties.isProfileCcpServerEnabled().orElse(false);
-            case BluetoothProfile.MAP:
+            case BluetoothProfile.MAP -> {
                 return BluetoothProperties.isProfileMapServerEnabled().orElse(false);
-            case BluetoothProfile.MAP_CLIENT:
+            }
+            case BluetoothProfile.MAP_CLIENT -> {
                 return BluetoothProperties.isProfileMapClientEnabled().orElse(false);
+            }
                 // Hidden profile
                 // case BluetoothProfile.MCP_SERVER:
                 //     return BluetoothProperties.isProfileMcpServerEnabled().orElse(false);
-            case BluetoothProfile.OPP:
+            case BluetoothProfile.OPP -> {
                 return BluetoothProperties.isProfileOppEnabled().orElse(false);
-            case BluetoothProfile.PAN:
+            }
+            case BluetoothProfile.PAN -> {
                 return BluetoothProperties.isProfilePanNapEnabled().orElse(false)
                         || BluetoothProperties.isProfilePanPanuEnabled().orElse(false);
-            case BluetoothProfile.PBAP:
+            }
+            case BluetoothProfile.PBAP -> {
                 return BluetoothProperties.isProfilePbapServerEnabled().orElse(false);
-            case BluetoothProfile.PBAP_CLIENT:
+            }
+            case BluetoothProfile.PBAP_CLIENT -> {
                 return BluetoothProperties.isProfilePbapClientEnabled().orElse(false);
-            case BluetoothProfile.SAP:
+            }
+            case BluetoothProfile.SAP -> {
                 return BluetoothProperties.isProfileSapServerEnabled().orElse(false);
-            case BluetoothProfile.VOLUME_CONTROL:
+            }
+            case BluetoothProfile.VOLUME_CONTROL -> {
                 return BluetoothProperties.isProfileVcpControllerEnabled().orElse(false);
-            default:
+            }
+            default -> {
                 return false;
+            }
         }
     }
 
@@ -142,7 +179,7 @@ public class TestUtils {
     }
 
     /**
-     * @return permissions adopted from Shell
+     * @return permissions adopted from Shell on this process
      */
     public static Set<String> getAdoptedShellPermissions() {
         return InstrumentationRegistry.getInstrumentation()
@@ -155,18 +192,26 @@ public class TestUtils {
      * {@link BluetoothAdapter} is null
      *
      * @return instance of {@link BluetoothAdapter}
+     * @deprecated keeping assert here as many tests currently depend on this method to fail if
+     *     adapter is null
      */
+    @Deprecated
     @NonNull
     public static BluetoothAdapter getBluetoothAdapterOrDie() {
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
         BluetoothManager manager = context.getSystemService(BluetoothManager.class);
-        assertNotNull(manager);
+        assertThat(manager).isNotNull();
         BluetoothAdapter adapter = manager.getAdapter();
-        assertNotNull(adapter);
+        assertThat(adapter).isNotNull();
         return adapter;
     }
 
-    /** Utility method to call hidden ScanRecord.parseFromBytes method. */
+    /**
+     * Utility method to call hidden ScanRecord.parseFromBytes method.
+     *
+     * @param bytes Raw bytes from BLE payload
+     * @return parsed {@link ScanRecord}, null if parsing failed
+     */
     public static ScanRecord parseScanRecord(byte[] bytes) {
         Class<?> scanRecordClass = ScanRecord.class;
         try {
@@ -180,19 +225,29 @@ public class TestUtils {
         }
     }
 
-    /** Assert two byte arrays are equal. */
+    /**
+     * Utility method to assert two byte arrays are equal.
+     *
+     * @param expected expected value
+     * @param actual actual value
+     * @deprecated Please use {@link com.google.common.truth.Truth},
+     *     "assertThat(actual).isEqualTo(expected)". Keeping it here since some tests are still
+     *     using it.
+     */
+    @Deprecated
     public static void assertArrayEquals(byte[] expected, byte[] actual) {
-        if (!Arrays.equals(expected, actual)) {
-            fail(
-                    "expected:<"
-                            + Arrays.toString(expected)
-                            + "> but was:<"
-                            + Arrays.toString(actual)
-                            + ">");
-        }
+        assertThat(actual).isEqualTo(expected);
     }
 
-    /** Get current location mode settings. */
+    /**
+     * Get current location mode settings.
+     *
+     * @param context current running context
+     * @return values among {@link Settings.Secure#LOCATION_MODE_OFF}, {@link
+     *     Settings.Secure#LOCATION_MODE_ON}, {@link Settings.Secure#LOCATION_MODE_SENSORS_ONLY},
+     *     {@link Settings.Secure#LOCATION_MODE_HIGH_ACCURACY}, {@link
+     *     Settings.Secure#LOCATION_MODE_BATTERY_SAVING}
+     */
     public static int getLocationMode(Context context) {
         return Settings.Secure.getInt(
                 context.getContentResolver(),
@@ -200,12 +255,26 @@ public class TestUtils {
                 Settings.Secure.LOCATION_MODE_OFF);
     }
 
-    /** Set location settings mode. */
+    /**
+     * Set location settings mode.
+     *
+     * @param context current running context
+     * @param mode a value for {@link Settings.Secure#LOCATION_MODE} among {@link
+     *     Settings.Secure#LOCATION_MODE_OFF}, {@link Settings.Secure#LOCATION_MODE_ON}, {@link
+     *     Settings.Secure#LOCATION_MODE_SENSORS_ONLY}, {@link
+     *     Settings.Secure#LOCATION_MODE_HIGH_ACCURACY}, {@link
+     *     Settings.Secure#LOCATION_MODE_BATTERY_SAVING}
+     */
     public static void setLocationMode(Context context, int mode) {
         Settings.Secure.putInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE, mode);
     }
 
-    /** Return true if location is on. */
+    /**
+     * Return true if location is on.
+     *
+     * @param context current running context
+     * @return true if location mode is in one of the enabled value
+     */
     public static boolean isLocationOn(Context context) {
         return getLocationMode(context) != Settings.Secure.LOCATION_MODE_OFF;
     }
@@ -215,7 +284,11 @@ public class TestUtils {
         setLocationMode(context, Settings.Secure.LOCATION_MODE_SENSORS_ONLY);
     }
 
-    /** Disable location. */
+    /**
+     * Disable location by setting is to {@link Settings.Secure#LOCATION_MODE_OFF}
+     *
+     * @param context current running context
+     */
     public static void disableLocation(Context context) {
         setLocationMode(context, Settings.Secure.LOCATION_MODE_OFF);
     }
@@ -263,21 +336,26 @@ public class TestUtils {
     }
 
     /**
-     * Put the current thread to sleep.
+     * DANGER: Put the current thread to sleep. Please only use this when it is ok to block the
+     * current thread.
      *
      * @param sleepMillis number of milliseconds to sleep for
+     * @deprecated Please try to avoid using this method at all cost, but use asynchronous wait to
+     *     handle timing conditions
      */
+    @Deprecated
     public static void sleep(int sleepMillis) {
         try {
             Thread.sleep(sleepMillis);
         } catch (InterruptedException e) {
-            Log.e(TestUtils.class.getSimpleName(), "interrupted", e);
+            Log.e(TAG, "interrupted", e);
         }
     }
 
     /** Boilerplate class for profile listener */
     public static class BluetoothCtsServiceConnector {
-        private static final int PROXY_CONNECTION_TIMEOUT_MS = 500; // ms timeout for Proxy Connect
+        // Timeout for Proxy Connect
+        private static final Duration PROXY_CONNECTION_TIMEOUT = Duration.ofMillis(500);
         private BluetoothProfile mProfileProxy = null;
         private boolean mIsProfileReady = false;
         private boolean mIsProfileConnecting = false;
@@ -290,21 +368,19 @@ public class TestUtils {
 
         public BluetoothCtsServiceConnector(
                 String logTag, int profileId, BluetoothAdapter adapter, Context context) {
-            mLogTag = logTag;
+            mLogTag = Objects.requireNonNull(logTag);
             mProfileId = profileId;
-            mAdapter = adapter;
-            mContext = context;
+            mAdapter = Objects.requireNonNull(adapter);
+            mContext = Objects.requireNonNull(context);
             mProfileConnectionLock = new ReentrantLock();
             mConditionProfileConnection = mProfileConnectionLock.newCondition();
-            assertNotNull(mLogTag);
-            assertNotNull(mAdapter);
-            assertNotNull(mContext);
         }
 
         public BluetoothProfile getProfileProxy() {
             return mProfileProxy;
         }
 
+        /** Close profile proxy */
         public void closeProfileProxy() {
             if (mProfileProxy != null) {
                 mAdapter.closeProfileProxy(mProfileId, mProfileProxy);
@@ -313,16 +389,44 @@ public class TestUtils {
             }
         }
 
+        /**
+         * Open profile proxy
+         *
+         * @return true if the profile proxy is opened successfully
+         */
         public boolean openProfileProxyAsync() {
             mIsProfileConnecting = mAdapter.getProfileProxy(mContext, mServiceListener, mProfileId);
             return mIsProfileConnecting;
         }
 
+        /**
+         * Wait for profile service to connect
+         *
+         * @return true if the service is connected on time
+         */
         public boolean waitForProfileConnect() {
-            return waitForProfileConnect(PROXY_CONNECTION_TIMEOUT_MS);
+            return waitForProfileConnect(PROXY_CONNECTION_TIMEOUT);
         }
 
+        /**
+         * Wait for profile service to connect with timeouts
+         *
+         * @param timeoutMs duration of the timeout in milliseconds
+         * @return true if the service is connected on time
+         * @deprecated Please use {@link #waitForProfileConnect(Duration)} instead
+         */
+        @Deprecated
         public boolean waitForProfileConnect(int timeoutMs) {
+            return waitForProfileConnect(Duration.ofMillis(timeoutMs));
+        }
+
+        /**
+         * Wait for profile service to connect with timeouts
+         *
+         * @param timeout duration of the timeout
+         * @return true if the service is connected on time
+         */
+        public boolean waitForProfileConnect(Duration timeout) {
             if (!mIsProfileConnecting) {
                 mIsProfileConnecting =
                         mAdapter.getProfileProxy(mContext, mServiceListener, mProfileId);
@@ -334,7 +438,8 @@ public class TestUtils {
             try {
                 // Wait for the Adapter to be disabled
                 while (!mIsProfileReady) {
-                    if (!mConditionProfileConnection.await(timeoutMs, TimeUnit.MILLISECONDS)) {
+                    if (!mConditionProfileConnection.await(
+                            timeout.toMillis(), TimeUnit.MILLISECONDS)) {
                         // Timeout
                         Log.e(mLogTag, "Timeout while waiting for Profile Connect");
                         break;
