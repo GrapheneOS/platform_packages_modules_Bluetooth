@@ -25,8 +25,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
-import android.util.SparseIntArray;
 
+import java.time.Duration;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -34,33 +35,35 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /** Utility for controlling the Bluetooth adapter from CTS test. */
 public class BTAdapterUtils {
-    private static final String TAG = "BTAdapterUtils";
+    private static final String TAG = BTAdapterUtils.class.getSimpleName();
 
-    // ADAPTER_ENABLE_TIMEOUT_MS = AdapterState.BLE_START_TIMEOUT_DELAY +
-    //                             AdapterState.BREDR_START_TIMEOUT_DELAY +
-    //                             (10 seconds of additional delay)
-    private static final int ADAPTER_ENABLE_TIMEOUT_MS = 18000;
-    // ADAPTER_DISABLE_TIMEOUT_MS = AdapterState.BLE_STOP_TIMEOUT_DELAY +
-    //                                  AdapterState.BREDR_STOP_TIMEOUT_DELAY
-    private static final int ADAPTER_DISABLE_TIMEOUT_MS = 5000;
+    /**
+     * ADAPTER_ENABLE_TIMEOUT_MS = AdapterState.BLE_START_TIMEOUT_DELAY +
+     * AdapterState.BREDR_START_TIMEOUT_DELAY + (10 seconds of additional delay)
+     */
+    private static final Duration ADAPTER_ENABLE_TIMEOUT = Duration.ofSeconds(18);
+    /**
+     * ADAPTER_DISABLE_TIMEOUT_MS = AdapterState.BLE_STOP_TIMEOUT_DELAY +
+     * AdapterState.BREDR_STOP_TIMEOUT_DELAY
+     */
+    private static final Duration ADAPTER_DISABLE_TIMEOUT = Duration.ofSeconds(5);
 
+    /** Redefined from {@link BluetoothAdapter} because of hidden APIs */
     public static final int STATE_BLE_TURNING_ON = 14;
-    public static final int STATE_BLE_ON = 15;
+
     public static final int STATE_BLE_TURNING_OFF = 16;
 
-    private static final SparseIntArray sStateTimeouts = new SparseIntArray();
+    private static final HashMap<Integer, Duration> sStateTimeouts = new HashMap<>();
 
     static {
-        sStateTimeouts.put(BluetoothAdapter.STATE_OFF, ADAPTER_DISABLE_TIMEOUT_MS);
-        sStateTimeouts.put(BluetoothAdapter.STATE_TURNING_ON, ADAPTER_ENABLE_TIMEOUT_MS);
-        sStateTimeouts.put(BluetoothAdapter.STATE_ON, ADAPTER_ENABLE_TIMEOUT_MS);
-        sStateTimeouts.put(BluetoothAdapter.STATE_TURNING_OFF, ADAPTER_DISABLE_TIMEOUT_MS);
-        sStateTimeouts.put(STATE_BLE_TURNING_ON, ADAPTER_ENABLE_TIMEOUT_MS);
-        sStateTimeouts.put(STATE_BLE_ON, ADAPTER_ENABLE_TIMEOUT_MS);
-        sStateTimeouts.put(STATE_BLE_TURNING_OFF, ADAPTER_DISABLE_TIMEOUT_MS);
+        sStateTimeouts.put(BluetoothAdapter.STATE_OFF, ADAPTER_DISABLE_TIMEOUT);
+        sStateTimeouts.put(BluetoothAdapter.STATE_TURNING_ON, ADAPTER_ENABLE_TIMEOUT);
+        sStateTimeouts.put(BluetoothAdapter.STATE_ON, ADAPTER_ENABLE_TIMEOUT);
+        sStateTimeouts.put(BluetoothAdapter.STATE_TURNING_OFF, ADAPTER_DISABLE_TIMEOUT);
+        sStateTimeouts.put(STATE_BLE_TURNING_ON, ADAPTER_ENABLE_TIMEOUT);
+        sStateTimeouts.put(BluetoothAdapter.STATE_BLE_ON, ADAPTER_ENABLE_TIMEOUT);
+        sStateTimeouts.put(STATE_BLE_TURNING_OFF, ADAPTER_DISABLE_TIMEOUT);
     }
-
-    private static BluetoothAdapterReceiver sAdapterReceiver;
 
     private static boolean sAdapterVarsInitialized;
     private static ReentrantLock sBluetoothAdapterLock;
@@ -95,7 +98,7 @@ public class BTAdapterUtils {
     /** Initialize all static state variables */
     private static void initAdapterStateVariables(Context context) {
         Log.d(TAG, "Initializing adapter state variables");
-        sAdapterReceiver = new BluetoothAdapterReceiver();
+        BluetoothAdapterReceiver sAdapterReceiver = new BluetoothAdapterReceiver();
         sBluetoothAdapterLock = new ReentrantLock();
         sConditionAdapterStateReached = sBluetoothAdapterLock.newCondition();
         sDesiredState = -1;
@@ -106,43 +109,47 @@ public class BTAdapterUtils {
     }
 
     /**
-     * Wait for the bluetooth adapter to be in a given state
+     * Helper method to wait for the bluetooth adapter to be in a given state
      *
      * <p>Assumes all state variables are initialized. Assumes it's being run with
      * sBluetoothAdapterLock in the locked state.
      */
     private static boolean waitForAdapterStateLocked(int desiredState, BluetoothAdapter adapter)
             throws InterruptedException {
-        int timeout = sStateTimeouts.get(desiredState, ADAPTER_ENABLE_TIMEOUT_MS);
+        Duration timeout = sStateTimeouts.getOrDefault(desiredState, ADAPTER_ENABLE_TIMEOUT);
 
         Log.d(TAG, "Waiting for adapter state " + desiredState);
         sDesiredState = desiredState;
 
         // Wait until we have reached the desired state
+        // Handle spurious wakeup
         while (desiredState != sAdapterState) {
-            if (!sConditionAdapterStateReached.await(timeout, TimeUnit.MILLISECONDS)) {
-                // Handle situation where state change occurs, but we don't receive the broadcast
-                if (desiredState >= BluetoothAdapter.STATE_OFF
-                        && desiredState <= BluetoothAdapter.STATE_TURNING_OFF) {
-                    int currentState = adapter.getState();
-                    Log.d(TAG, "desiredState: " + desiredState + ", currentState: " + currentState);
-                    return desiredState == currentState;
-                } else if (desiredState == STATE_BLE_ON) {
-                    Log.d(TAG, "adapter isLeEnabled: " + adapter.isLeEnabled());
-                    return adapter.isLeEnabled();
-                }
-                Log.e(
-                        TAG,
-                        "Timeout while waiting for Bluetooth adapter state "
-                                + desiredState
-                                + " while current state is "
-                                + sAdapterState);
-                break;
+            if (sConditionAdapterStateReached.await(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
+                // Handle spurious wakeup
+                continue;
             }
+            // Handle timeout cases
+            // Case 1: situation where state change occurs, but we don't receive the broadcast
+            if (desiredState >= BluetoothAdapter.STATE_OFF
+                    && desiredState <= BluetoothAdapter.STATE_TURNING_OFF) {
+                int currentState = adapter.getState();
+                Log.d(TAG, "desiredState: " + desiredState + ", currentState: " + currentState);
+                return desiredState == currentState;
+            } else if (desiredState == BluetoothAdapter.STATE_BLE_ON) {
+                Log.d(TAG, "adapter isLeEnabled: " + adapter.isLeEnabled());
+                return adapter.isLeEnabled();
+            }
+            // Case 2: Actual timeout
+            Log.e(
+                    TAG,
+                    "Timeout while waiting for Bluetooth adapter state "
+                            + desiredState
+                            + " while current state is "
+                            + sAdapterState);
+            break;
         }
 
         Log.d(TAG, "Final state while waiting: " + sAdapterState);
-
         return sAdapterState == desiredState;
     }
 
@@ -176,7 +183,7 @@ public class BTAdapterUtils {
                 Log.e(TAG, "Unable to enable Bluetooth low energy only mode");
                 return false;
             }
-            return waitForAdapterStateLocked(STATE_BLE_ON, bluetoothAdapter);
+            return waitForAdapterStateLocked(BluetoothAdapter.STATE_BLE_ON, bluetoothAdapter);
         } catch (InterruptedException e) {
             Log.w(TAG, "enableBLE(): interrupted", e);
         } finally {
