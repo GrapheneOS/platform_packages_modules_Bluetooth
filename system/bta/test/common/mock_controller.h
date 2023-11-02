@@ -19,8 +19,6 @@
 #include <base/functional/callback.h>
 #include <gmock/gmock.h>
 
-#include "hcimsgs.h"
-
 namespace controller {
 class ControllerInterface {
  public:
