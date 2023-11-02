@@ -24,7 +24,7 @@
 #include "stack/btm/btm_int_types.h"
 #include "test/mock/mock_device_esco_parameters.h"
 
-bool sco_peer_supports_esco_ev3(const RawAddress& remote_bda) { return true; }
+bool btm_peer_supports_esco_ev3(const RawAddress& remote_bda) { return true; }
 tBTM_CB btm_cb;
 LeAudioClient* LeAudioClient::Get() { return nullptr; }
 namespace hfp_hal_interface {
