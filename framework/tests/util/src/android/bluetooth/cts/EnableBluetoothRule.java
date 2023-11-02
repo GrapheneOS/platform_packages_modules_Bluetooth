@@ -34,9 +34,9 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 /**
- * This is a test rule that, when used in a test, will enable Bluetooth before the test starts.
- * When the test is done, Bluetooth will be disabled if and only if it was disabled before the test
- * started.  If setTestMode is set to true, the Bluetooth scanner will return a hardcoded set of
+ * This is a test rule that, when used in a test, will enable Bluetooth before the test starts. When
+ * the test is done, Bluetooth will be disabled if and only if it was disabled before the test
+ * started. If setTestMode is set to true, the Bluetooth scanner will return a hardcoded set of
  * Bluetooth scan results while the test runs .
  */
 public class EnableBluetoothRule extends BeforeAfterRule {
@@ -73,13 +73,15 @@ public class EnableBluetoothRule extends BeforeAfterRule {
     }
 
     private void enableBluetoothTestMode() {
-        runShellCommandOrThrow("dumpsys activity service"
-                + " com.android.bluetooth.btservice.AdapterService set-test-mode enabled");
+        runShellCommandOrThrow(
+                "dumpsys activity service"
+                        + " com.android.bluetooth.btservice.AdapterService set-test-mode enabled");
     }
 
     private void disableBluetoothTestMode() {
-        runShellCommandOrThrow("dumpsys activity service"
-                + " com.android.bluetooth.btservice.AdapterService set-test-mode disabled");
+        runShellCommandOrThrow(
+                "dumpsys activity service"
+                        + " com.android.bluetooth.btservice.AdapterService set-test-mode disabled");
     }
 
     @Override

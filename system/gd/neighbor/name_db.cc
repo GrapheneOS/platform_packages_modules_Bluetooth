@@ -87,12 +87,7 @@ void neighbor::NameDbModule::impl::ReadRemoteNameRequest(
       address,
       hci::RemoteNameRequestBuilder::Create(
           address, page_scan_repetition_mode, clock_offset, clock_offset_valid),
-      handler_->BindOnce(
-          [](neighbor::NameDbModule::impl* self, hci::Address address, hci::ErrorCode status) {
-            self->OnRemoteNameResponse(address, status, {});
-          },
-          common::Unretained(this),
-          address),
+      handler_->BindOnce([](hci::ErrorCode /* status */) {}),
       handler_->BindOnce([&](uint64_t /* features */) {
         LOG_WARN("UNIMPLEMENTED: ignoring host supported features");
       }),

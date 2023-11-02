@@ -184,10 +184,6 @@ class HciMatchers(object):
         return HciMatchers.EventWithCode(hci.EventCode.USER_CONFIRMATION_REQUEST)
 
     @staticmethod
-    def RemoteHostSupportedFeaturesNotification():
-        return HciMatchers.EventWithCode(hci.EventCode.REMOTE_HOST_SUPPORTED_FEATURES_NOTIFICATION)
-
-    @staticmethod
     def LinkKeyNotification():
         return HciMatchers.EventWithCode(hci.EventCode.LINK_KEY_NOTIFICATION)
 

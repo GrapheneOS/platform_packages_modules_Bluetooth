@@ -20,22 +20,22 @@
 
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
-#include <string.h>
 
 #include <cstdint>
 #include <string>
 
-#include "main/shim/dumpsys.h"
+#include "bt_target.h"
+#include "os/logging/log_adapter.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/bt_name.h"
 #include "stack/include/bt_octets.h"
-#include "stack/include/btm_api_types.h"
 #include "stack/include/btm_sec_api_types.h"
 #include "stack/include/btm_status.h"
 #include "stack/include/hci_error_code.h"
 #include "types/ble_address_with_type.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
+#include "types/remote_version_type.h"
 
 typedef struct {
   uint16_t min_conn_int;

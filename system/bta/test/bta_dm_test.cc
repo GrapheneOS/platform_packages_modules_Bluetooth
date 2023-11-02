@@ -21,6 +21,7 @@
 
 #include <string>
 
+#include "bta/dm/bta_dm_disc.h"
 #include "bta/dm/bta_dm_int.h"
 #include "bta/dm/bta_dm_sec_int.h"
 #include "bta/hf_client/bta_hf_client_int.h"
@@ -472,7 +473,7 @@ TEST_F(BtaDmTest,
        bta_dm_determine_discovery_transport__BT_TRANSPORT_AUTO__BR_EDR) {
   bta_dm_search_cb.transport = BT_TRANSPORT_AUTO;
 
-  test::mock::stack_btm_ble::BTM_ReadDevInfo.body =
+  mock_btm_client_interface.peer.BTM_ReadDevInfo =
       [](const RawAddress& remote_bda, tBT_DEVICE_TYPE* p_dev_type,
          tBLE_ADDR_TYPE* p_addr_type) {
         *p_dev_type = BT_DEVICE_TYPE_BREDR;
@@ -482,15 +483,13 @@ TEST_F(BtaDmTest,
   ASSERT_EQ(BT_TRANSPORT_BR_EDR,
             bluetooth::legacy::testing::bta_dm_determine_discovery_transport(
                 kRawAddress));
-
-  test::mock::stack_btm_ble::BTM_ReadDevInfo = {};
 }
 
 TEST_F(BtaDmTest,
        bta_dm_determine_discovery_transport__BT_TRANSPORT_AUTO__BLE__PUBLIC) {
   bta_dm_search_cb.transport = BT_TRANSPORT_AUTO;
 
-  test::mock::stack_btm_ble::BTM_ReadDevInfo.body =
+  mock_btm_client_interface.peer.BTM_ReadDevInfo =
       [](const RawAddress& remote_bda, tBT_DEVICE_TYPE* p_dev_type,
          tBLE_ADDR_TYPE* p_addr_type) {
         *p_dev_type = BT_DEVICE_TYPE_BLE;
@@ -500,15 +499,13 @@ TEST_F(BtaDmTest,
   ASSERT_EQ(BT_TRANSPORT_LE,
             bluetooth::legacy::testing::bta_dm_determine_discovery_transport(
                 kRawAddress));
-
-  test::mock::stack_btm_ble::BTM_ReadDevInfo = {};
 }
 
 TEST_F(BtaDmTest,
        bta_dm_determine_discovery_transport__BT_TRANSPORT_AUTO__DUMO) {
   bta_dm_search_cb.transport = BT_TRANSPORT_AUTO;
 
-  test::mock::stack_btm_ble::BTM_ReadDevInfo.body =
+  mock_btm_client_interface.peer.BTM_ReadDevInfo =
       [](const RawAddress& remote_bda, tBT_DEVICE_TYPE* p_dev_type,
          tBLE_ADDR_TYPE* p_addr_type) {
         *p_dev_type = BT_DEVICE_TYPE_DUMO;
@@ -518,8 +515,6 @@ TEST_F(BtaDmTest,
   ASSERT_EQ(BT_TRANSPORT_BR_EDR,
             bluetooth::legacy::testing::bta_dm_determine_discovery_transport(
                 kRawAddress));
-
-  test::mock::stack_btm_ble::BTM_ReadDevInfo = {};
 }
 
 TEST_F(BtaDmTest, bta_dm_search_evt_text) {
@@ -562,3 +557,8 @@ TEST_F(BtaDmTest, bta_dm_remote_name_cmpl) {
   bluetooth::legacy::testing::bta_dm_remote_name_cmpl(&msg);
   ASSERT_EQ(1, get_func_call_count("BTM_InqDbRead"));
 }
+
+TEST_F(BtaDmTest, bta_dm_disc_start__true) { bta_dm_disc_start(true); }
+TEST_F(BtaDmTest, bta_dm_disc_start__false) { bta_dm_disc_start(false); }
+
+TEST_F(BtaDmTest, bta_dm_disc_stop) { bta_dm_disc_stop(); }

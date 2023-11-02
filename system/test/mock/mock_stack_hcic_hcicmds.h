@@ -27,6 +27,7 @@
 #include <functional>
 
 // Original included files, if any
+#include "base/callback.h"
 #include "device/include/esco_parameters.h"
 #include "hcimsgs.h"
 #include "stack/include/bt_octets.h"

@@ -46,6 +46,7 @@
 #include "stack/include/bt_name.h"
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/btm_client_interface.h"
+#include "stack/include/btm_log_history.h"
 #include "stack/include/gap_api.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/sdp_status.h"
@@ -262,7 +263,7 @@ static void bta_dm_search_start(tBTA_DM_MSG* p_data) {
 
   LOG_VERBOSE("%s avoid_scatter=%d", __func__, p_bta_dm_cfg->avoid_scatter);
 
-  BTM_ClearInqDb(nullptr);
+  get_btm_client_interface().db.BTM_ClearInqDb(nullptr);
   /* save search params */
   bta_dm_search_cb.p_search_cback = p_data->search.p_cback;
   bta_dm_search_cb.services = p_data->search.services;
@@ -302,7 +303,7 @@ static void bta_dm_search_cancel() {
   /* If no Service Search going on then issue cancel remote name in case it is
      active */
   else if (!bta_dm_search_cb.name_discover_done) {
-    BTM_CancelRemoteDeviceName();
+    get_btm_client_interface().peer.BTM_CancelRemoteDeviceName();
     bta_dm_search_cmpl();
   } else {
     bta_dm_inq_cmpl(0);
@@ -330,7 +331,8 @@ static void bta_dm_discover(tBTA_DM_MSG* p_data) {
   bta_dm_search_cb.service_index = 0;
   bta_dm_search_cb.services_found = 0;
   bta_dm_search_cb.peer_name[0] = 0;
-  bta_dm_search_cb.p_btm_inq_info = BTM_InqDbRead(p_data->discover.bd_addr);
+  bta_dm_search_cb.p_btm_inq_info =
+      get_btm_client_interface().db.BTM_InqDbRead(p_data->discover.bd_addr);
   bta_dm_search_cb.transport = p_data->discover.transport;
 
   bta_dm_search_cb.name_discover_done = false;
@@ -385,8 +387,8 @@ static bool bta_dm_read_remote_device_name(const RawAddress& bd_addr,
   bta_dm_search_cb.peer_bdaddr = bd_addr;
   bta_dm_search_cb.peer_name[0] = 0;
 
-  btm_status = BTM_ReadRemoteDeviceName(bta_dm_search_cb.peer_bdaddr,
-                                        bta_dm_remname_cback, transport);
+  btm_status = get_btm_client_interface().peer.BTM_ReadRemoteDeviceName(
+      bta_dm_search_cb.peer_bdaddr, bta_dm_remname_cback, transport);
 
   if (btm_status == BTM_CMD_STARTED) {
     LOG_VERBOSE("%s: BTM_ReadRemoteDeviceName is started", __func__);
@@ -438,7 +440,8 @@ static void bta_dm_inq_cmpl(uint8_t num) {
   data.inq_cmpl.num_resps = num;
   bta_dm_search_cb.p_search_cback(BTA_DM_INQ_CMPL_EVT, &data);
 
-  bta_dm_search_cb.p_btm_inq_info = BTM_InqDbFirst();
+  bta_dm_search_cb.p_btm_inq_info =
+      get_btm_client_interface().db.BTM_InqDbFirst();
   if (bta_dm_search_cb.p_btm_inq_info != NULL) {
     /* start name and service discovery from the first device on inquiry result
      */
@@ -464,7 +467,8 @@ static void bta_dm_remote_name_cmpl(const tBTA_DM_MSG* p_data) {
                      bta_dm_state_text(bta_dm_search_get_state()).c_str(),
                      PRIVATE_NAME(remote_name_msg.bd_name)));
 
-  tBTM_INQ_INFO* p_btm_inq_info = BTM_InqDbRead(remote_name_msg.bd_addr);
+  tBTM_INQ_INFO* p_btm_inq_info =
+      get_btm_client_interface().db.BTM_InqDbRead(remote_name_msg.bd_addr);
   if (!bd_name_is_empty(remote_name_msg.bd_name) && p_btm_inq_info) {
     p_btm_inq_info->appl_knows_rem_name = true;
   }
@@ -1117,7 +1121,7 @@ static void bta_dm_search_cancel_notify() {
     case BTA_DM_SEARCH_ACTIVE:
     case BTA_DM_SEARCH_CANCELLING:
       if (!bta_dm_search_cb.name_discover_done) {
-        BTM_CancelRemoteDeviceName();
+        get_btm_client_interface().peer.BTM_CancelRemoteDeviceName();
       }
       break;
     case BTA_DM_SEARCH_IDLE:
@@ -1237,8 +1241,8 @@ static void bta_dm_discover_next_device(void) {
   LOG_VERBOSE("bta_dm_discover_next_device");
 
   /* searching next device on inquiry result */
-  bta_dm_search_cb.p_btm_inq_info =
-      BTM_InqDbNext(bta_dm_search_cb.p_btm_inq_info);
+  bta_dm_search_cb.p_btm_inq_info = get_btm_client_interface().db.BTM_InqDbNext(
+      bta_dm_search_cb.p_btm_inq_info);
   if (bta_dm_search_cb.p_btm_inq_info != NULL) {
     bta_dm_search_cb.name_discover_done = false;
     bta_dm_search_cb.peer_name[0] = 0;
@@ -1271,7 +1275,8 @@ static tBT_TRANSPORT bta_dm_determine_discovery_transport(
     tBT_DEVICE_TYPE dev_type;
     tBLE_ADDR_TYPE addr_type;
 
-    BTM_ReadDevInfo(remote_bd_addr, &dev_type, &addr_type);
+    get_btm_client_interface().peer.BTM_ReadDevInfo(remote_bd_addr, &dev_type,
+                                                    &addr_type);
     if (dev_type == BT_DEVICE_TYPE_BLE || addr_type == BLE_ADDR_RANDOM) {
       transport = BT_TRANSPORT_LE;
     } else if (dev_type == BT_DEVICE_TYPE_DUMO) {
@@ -1476,7 +1481,8 @@ static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, const uint8_t* p_eir,
 
   result.inq_res.ble_evt_type = p_inq->ble_evt_type;
 
-  p_inq_info = BTM_InqDbRead(p_inq->remote_bd_addr);
+  p_inq_info =
+      get_btm_client_interface().db.BTM_InqDbRead(p_inq->remote_bd_addr);
   if (p_inq_info != NULL) {
     /* initialize remt_name_not_required to false so that we get the name by
      * default */
@@ -1539,9 +1545,9 @@ static void bta_dm_service_search_remname_cback(const RawAddress& bd_addr,
     bta_dm_remname_cback(&rem_name);
   } else {
     /* get name of device */
-    btm_status =
-        BTM_ReadRemoteDeviceName(bta_dm_search_cb.peer_bdaddr,
-                                 bta_dm_remname_cback, BT_TRANSPORT_BR_EDR);
+    btm_status = get_btm_client_interface().peer.BTM_ReadRemoteDeviceName(
+        bta_dm_search_cb.peer_bdaddr, bta_dm_remname_cback,
+        BT_TRANSPORT_BR_EDR);
     if (btm_status == BTM_BUSY) {
       /* wait for next chance(notification of remote name discovery done) */
       LOG_VERBOSE("%s: BTM_ReadRemoteDeviceName is busy", __func__);
@@ -1688,7 +1694,8 @@ static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
   result.inq_res.p_eir = const_cast<uint8_t*>(p_eir);
   result.inq_res.eir_len = eir_len;
 
-  p_inq_info = BTM_InqDbRead(p_inq->remote_bd_addr);
+  p_inq_info =
+      get_btm_client_interface().db.BTM_InqDbRead(p_inq->remote_bd_addr);
   if (p_inq_info != NULL) {
     /* initialize remt_name_not_required to false so that we get the name by
      * default */
@@ -1739,7 +1746,8 @@ static void bta_dm_opportunistic_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
   result.inq_res.p_eir = const_cast<uint8_t*>(p_eir);
   result.inq_res.eir_len = eir_len;
 
-  p_inq_info = BTM_InqDbRead(p_inq->remote_bd_addr);
+  p_inq_info =
+      get_btm_client_interface().db.BTM_InqDbRead(p_inq->remote_bd_addr);
   if (p_inq_info != NULL) {
     /* initialize remt_name_not_required to false so that we get the name by
      * default */
@@ -1783,9 +1791,9 @@ static void bta_dm_observe_cmpl_cb(void* p_result) {
 
 static void bta_dm_start_scan(uint8_t duration_sec,
                               bool low_latency_scan = false) {
-  tBTM_STATUS status =
-      BTM_BleObserve(true, duration_sec, bta_dm_observe_results_cb,
-                     bta_dm_observe_cmpl_cb, low_latency_scan);
+  tBTM_STATUS status = get_btm_client_interface().ble.BTM_BleObserve(
+      true, duration_sec, bta_dm_observe_results_cb, bta_dm_observe_cmpl_cb,
+      low_latency_scan);
 
   if (status != BTM_CMD_STARTED) {
     tBTA_DM_SEARCH data = {
@@ -1808,7 +1816,7 @@ void bta_dm_ble_observe(bool start, uint8_t duration,
                         tBTA_DM_SEARCH_CBACK* p_cback) {
   if (!start) {
     bta_dm_search_cb.p_scan_cback = NULL;
-    BTM_BleObserve(false, 0, NULL, NULL);
+    get_btm_client_interface().ble.BTM_BleObserve(false, 0, NULL, NULL, false);
     return;
   }
 
@@ -1823,7 +1831,7 @@ void bta_dm_ble_scan(bool start, uint8_t duration_sec,
   if (bta_dm_search_cb.p_scan_cback != NULL) return;
 
   if (!start) {
-    BTM_BleObserve(false, 0, NULL, NULL);
+    get_btm_client_interface().ble.BTM_BleObserve(false, 0, NULL, NULL, false);
     return;
   }
 
@@ -2361,6 +2369,24 @@ bool bta_dm_search_sm_execute(const BT_HDR_RIGID* p_msg) {
   }
   return true;
 }
+
+static void bta_dm_disc_reset() {
+  alarm_free(bta_dm_search_cb.search_timer);
+  alarm_free(bta_dm_search_cb.gatt_close_timer);
+  osi_free_and_reset((void**)&bta_dm_search_cb.p_pending_search);
+  fixed_queue_free(bta_dm_search_cb.pending_discovery_queue, osi_free);
+  bta_dm_search_cb = {};
+}
+
+void bta_dm_disc_start(bool delay_close_gatt) {
+  bta_dm_disc_reset();
+  bta_dm_search_cb.search_timer = alarm_new("bta_dm_search.search_timer");
+  bta_dm_search_cb.gatt_close_timer =
+      delay_close_gatt ? alarm_new("bta_dm_search.gatt_close_timer") : nullptr;
+  bta_dm_search_cb.pending_discovery_queue = fixed_queue_new(SIZE_MAX);
+}
+
+void bta_dm_disc_stop() { bta_dm_disc_reset(); }
 
 #define DUMPSYS_TAG "shim::legacy::bta::dm"
 void DumpsysBtaDmDisc(int fd) {
