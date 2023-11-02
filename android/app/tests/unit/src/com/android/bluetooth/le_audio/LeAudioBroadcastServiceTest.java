@@ -105,55 +105,57 @@ public class LeAudioBroadcastServiceTest {
     private boolean mOnBroadcastUpdatedCalled = false;
     private boolean mOnBroadcastUpdateFailedCalled = false;
     private boolean mOnBroadcastMetadataChangedCalled = false;
+    private int mOnBroadcastStartFailedReason = BluetoothStatusCodes.SUCCESS;
 
     private final IBluetoothLeBroadcastCallback mCallbacks =
             new IBluetoothLeBroadcastCallback.Stub() {
-        @Override
-        public void onBroadcastStarted(int reason, int broadcastId) {
-            mOnBroadcastStartedCalled = true;
-        }
+                @Override
+                public void onBroadcastStarted(int reason, int broadcastId) {
+                    mOnBroadcastStartedCalled = true;
+                }
 
-        @Override
-        public void onBroadcastStartFailed(int reason) {
-            mOnBroadcastStartFailedCalled = true;
-        }
+                @Override
+                public void onBroadcastStartFailed(int reason) {
+                    mOnBroadcastStartFailedCalled = true;
+                    mOnBroadcastStartFailedReason = reason;
+                }
 
-        @Override
-        public void onBroadcastStopped(int reason, int broadcastId) {
-            mOnBroadcastStoppedCalled = true;
-        }
+                @Override
+                public void onBroadcastStopped(int reason, int broadcastId) {
+                    mOnBroadcastStoppedCalled = true;
+                }
 
-        @Override
-        public void onBroadcastStopFailed(int reason) {
-            mOnBroadcastStopFailedCalled = true;
-        }
+                @Override
+                public void onBroadcastStopFailed(int reason) {
+                    mOnBroadcastStopFailedCalled = true;
+                }
 
-        @Override
-        public void onPlaybackStarted(int reason, int broadcastId) {
-            mOnPlaybackStartedCalled = true;
-        }
+                @Override
+                public void onPlaybackStarted(int reason, int broadcastId) {
+                    mOnPlaybackStartedCalled = true;
+                }
 
-        @Override
-        public void onPlaybackStopped(int reason, int broadcastId) {
-            mOnPlaybackStoppedCalled = true;
-        }
+                @Override
+                public void onPlaybackStopped(int reason, int broadcastId) {
+                    mOnPlaybackStoppedCalled = true;
+                }
 
-        @Override
-        public void onBroadcastUpdated(int reason, int broadcastId) {
-            mOnBroadcastUpdatedCalled = true;
-        }
+                @Override
+                public void onBroadcastUpdated(int reason, int broadcastId) {
+                    mOnBroadcastUpdatedCalled = true;
+                }
 
-        @Override
-        public void onBroadcastUpdateFailed(int reason, int broadcastId) {
-            mOnBroadcastUpdateFailedCalled = true;
-        }
+                @Override
+                public void onBroadcastUpdateFailed(int reason, int broadcastId) {
+                    mOnBroadcastUpdateFailedCalled = true;
+                }
 
-        @Override
-        public void onBroadcastMetadataChanged(int broadcastId,
-                BluetoothLeBroadcastMetadata metadata) {
-            mOnBroadcastMetadataChangedCalled = true;
-        }
-    };
+                @Override
+                public void onBroadcastMetadataChanged(
+                        int broadcastId, BluetoothLeBroadcastMetadata metadata) {
+                    mOnBroadcastMetadataChangedCalled = true;
+                }
+            };
 
     @Before
     public void setUp() throws Exception {
@@ -632,6 +634,34 @@ public class LeAudioBroadcastServiceTest {
 
         activeGroup = mService.getActiveGroupId();
         Assert.assertEquals(-1, activeGroup);
+    }
+
+    @Test
+    public void testCreateBroadcastMoreThanMaxFailed() {
+        int broadcastId = 243;
+        byte[] code = {0x00, 0x01, 0x00, 0x02};
+
+        mService.mBroadcastCallbacks.register(mCallbacks);
+
+        BluetoothLeAudioContentMetadata.Builder meta_builder =
+                new BluetoothLeAudioContentMetadata.Builder();
+        meta_builder.setLanguage("deu");
+        meta_builder.setProgramInfo("Subgroup broadcast info");
+        BluetoothLeAudioContentMetadata meta = meta_builder.build();
+        BluetoothLeBroadcastSettings settings = buildBroadcastSettingsFromMetadata(meta, code, 1);
+
+        verifyBroadcastStarted(broadcastId, settings);
+        mOnBroadcastStartedCalled = false;
+        mOnBroadcastStartFailedCalled = false;
+
+        // verify creating another broadcast will fail
+        mService.createBroadcast(settings);
+
+        Assert.assertFalse(mOnBroadcastStartedCalled);
+        Assert.assertTrue(mOnBroadcastStartFailedCalled);
+        Assert.assertEquals(
+                BluetoothStatusCodes.ERROR_LOCAL_NOT_ENOUGH_RESOURCES,
+                mOnBroadcastStartFailedReason);
     }
 
     private class LeAudioIntentReceiver extends BroadcastReceiver {
