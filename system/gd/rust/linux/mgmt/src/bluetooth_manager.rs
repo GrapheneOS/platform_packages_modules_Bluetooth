@@ -43,6 +43,11 @@ impl BluetoothManager {
     }
 
     pub(crate) fn callback_hci_device_change(&mut self, hci: VirtualHciIndex, present: bool) {
+        if present {
+            warn!("Presence added: {}", hci);
+        } else {
+            warn!("Presence removed: {}", hci);
+        }
         for (_, callback) in &mut self.callbacks {
             callback.on_hci_device_changed(hci.to_i32(), present);
         }
@@ -178,6 +183,8 @@ impl IBluetoothManager for BluetoothManager {
         self.proxy
             .get_valid_adapters()
             .iter()
+            // Don't present the queued device to the user.
+            .filter(|a| !a.has_queued_present)
             .map(|a| AdapterWithEnabled {
                 hci_interface: a.virt_hci.to_i32(),
                 enabled: state_to_enabled(a.state),
