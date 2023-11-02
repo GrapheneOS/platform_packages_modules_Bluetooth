@@ -18,12 +18,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <iomanip>
-#include <iostream>
-#include <map>
-#include <sstream>
 #include <vector>
 
+#include "gd/common/init_flags.h"
 #include "hci/hci_layer_mock.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"

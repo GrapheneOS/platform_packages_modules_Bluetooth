@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-#include "stack/btm/btm_dev.h"
-
+#include <functional>
 namespace test {
 namespace mock {
 namespace stack_btm_devctl {

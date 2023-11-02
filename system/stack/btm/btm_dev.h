@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-#include <functional>
+#pragma once
 
-#include "osi/include/log.h"
-#include "stack/btm/btm_ble_int.h"
 #include "stack/btm/security_device_record.h"
-#include "stack/include/acl_api.h"
-#include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
 
 void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* p_dev_rec);
