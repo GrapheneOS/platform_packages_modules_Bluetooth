@@ -21,6 +21,8 @@
  *  This file contains security manager protocol utility functions
  *
  ******************************************************************************/
+#define LOG_TAG "smp"
+
 #include <base/functional/bind.h>
 #include <base/functional/callback.h>
 
@@ -28,9 +30,10 @@
 #include <cstring>
 
 #include "bt_target.h"
-#include "btm_ble_sec_api.h"
 #include "btm_ble_int.h"
+#include "btm_ble_sec_api.h"
 #include "device/include/controller.h"
+#include "os/log.h"
 #include "osi/include/osi.h"
 #include "p_256_ecc_pp.h"
 #include "smp_int.h"

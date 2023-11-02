@@ -22,8 +22,7 @@
  *
  ******************************************************************************/
 
-#include <base/functional/bind.h>
-#include <base/logging.h>
+#define LOG_TAG "ble_bgconn"
 
 #include <cstdint>
 #include <unordered_map>
@@ -31,19 +30,15 @@
 #include "btm_sec_cb.h"
 #include "device/include/controller.h"
 #include "main/shim/acl_api.h"
-#include "main/shim/shim.h"
+#include "os/log.h"
+#include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/security_device_record.h"
-#include "stack/include/bt_types.h"
+#include "stack/include/acl_api.h"
 #include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
-
-namespace {
-
-
-}  // namespace
 
 // Unfortunately (for now?) we have to maintain a copy of the device acceptlist
 // on the host to determine if a device is pending to be connected or not. This
