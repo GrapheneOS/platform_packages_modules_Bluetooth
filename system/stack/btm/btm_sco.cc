@@ -504,17 +504,17 @@ static tBTM_STATUS btm_send_connect_request(uint16_t acl_handle,
     /* UPF25:  Only SCO was brought up in this case */
     const RawAddress bd_addr = acl_address_from_handle(acl_handle);
     if (bd_addr != RawAddress::kEmpty) {
-      if (!sco_peer_supports_esco_2m_phy(bd_addr)) {
+      if (!btm_peer_supports_esco_2m_phy(bd_addr)) {
         LOG_VERBOSE("BTM Remote does not support 2-EDR eSCO");
         temp_packet_types |=
             (ESCO_PKT_TYPES_MASK_NO_2_EV3 | ESCO_PKT_TYPES_MASK_NO_2_EV5);
       }
-      if (!sco_peer_supports_esco_3m_phy(bd_addr)) {
+      if (!btm_peer_supports_esco_3m_phy(bd_addr)) {
         LOG_VERBOSE("BTM Remote does not support 3-EDR eSCO");
         temp_packet_types |=
             (ESCO_PKT_TYPES_MASK_NO_3_EV3 | ESCO_PKT_TYPES_MASK_NO_3_EV5);
       }
-      if (!sco_peer_supports_esco_ev3(bd_addr)) {
+      if (!btm_peer_supports_esco_ev3(bd_addr)) {
         LOG_VERBOSE("BTM Remote does not support EV3 eSCO");
         // If EV3 is not supported, EV4 and EV% are not supported, either.
         temp_packet_types &= ~BTM_ESCO_LINK_ONLY_MASK;
@@ -1748,4 +1748,37 @@ tBTM_SCO_DEBUG_DUMP BTM_GetScoDebugDump() {
   data->status_in_hex = pkt_status->data_to_hex_string();
   data->status_in_binary = pkt_status->data_to_binary_string();
   return debug_dump;
+}
+
+bool btm_peer_supports_esco_2m_phy(RawAddress remote_bda) {
+  uint8_t* features = BTM_ReadRemoteFeatures(remote_bda);
+  if (features == nullptr) {
+    LOG_WARN(
+        "Checking remote features but remote feature read is "
+        "incomplete");
+    return false;
+  }
+  return HCI_EDR_ESCO_2MPS_SUPPORTED(features);
+}
+
+bool btm_peer_supports_esco_3m_phy(RawAddress remote_bda) {
+  uint8_t* features = BTM_ReadRemoteFeatures(remote_bda);
+  if (features == nullptr) {
+    LOG_WARN(
+        "Checking remote features but remote feature read is "
+        "incomplete");
+    return false;
+  }
+  return HCI_EDR_ESCO_3MPS_SUPPORTED(features);
+}
+
+bool btm_peer_supports_esco_ev3(RawAddress remote_bda) {
+  uint8_t* features = BTM_ReadRemoteFeatures(remote_bda);
+  if (features == nullptr) {
+    LOG_WARN(
+        "Checking remote features but remote feature read is "
+        "incomplete");
+    return false;
+  }
+  return HCI_ESCO_EV3_SUPPORTED(features);
 }

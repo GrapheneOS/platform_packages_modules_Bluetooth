@@ -2346,39 +2346,6 @@ const RawAddress acl_address_from_handle(uint16_t handle) {
   return p_acl->remote_addr;
 }
 
-bool sco_peer_supports_esco_2m_phy(const RawAddress& remote_bda) {
-  uint8_t* features = BTM_ReadRemoteFeatures(remote_bda);
-  if (features == nullptr) {
-    LOG_WARN(
-        "Checking remote features but remote feature read is "
-        "incomplete");
-    return false;
-  }
-  return HCI_EDR_ESCO_2MPS_SUPPORTED(features);
-}
-
-bool sco_peer_supports_esco_3m_phy(const RawAddress& remote_bda) {
-  uint8_t* features = BTM_ReadRemoteFeatures(remote_bda);
-  if (features == nullptr) {
-    LOG_WARN(
-        "Checking remote features but remote feature read is "
-        "incomplete");
-    return false;
-  }
-  return HCI_EDR_ESCO_3MPS_SUPPORTED(features);
-}
-
-bool sco_peer_supports_esco_ev3(const RawAddress& remote_bda) {
-  uint8_t* features = BTM_ReadRemoteFeatures(remote_bda);
-  if (features == nullptr) {
-    LOG_WARN(
-        "Checking remote features but remote feature read is "
-        "incomplete");
-    return false;
-  }
-  return HCI_ESCO_EV3_SUPPORTED(features);
-}
-
 bool acl_is_switch_role_idle(const RawAddress& bd_addr,
                              tBT_TRANSPORT transport) {
   tACL_CONN* p_acl = internal_.btm_bda_to_acl(bd_addr, transport);
