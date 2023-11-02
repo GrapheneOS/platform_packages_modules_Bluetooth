@@ -32,13 +32,16 @@
 #include "btif/include/btif_storage.h"
 #include "device/include/interop.h"
 #include "device/include/interop_config.h"
+#include "gd/common/init_flags.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sco_hfp_hal.h"
+#include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_uuid16.h"
-#include "stack/include/btm_sec_api.h"
+#include "stack/include/sdpdefs.h"
 #include "stack/sdp/sdpint.h"
 
 /* Maximum number of bytes to reserve out of SDP MTU for response data */

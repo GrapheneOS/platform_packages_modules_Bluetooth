@@ -66,6 +66,7 @@
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
+#include "stack/include/btm_ble_api.h"
 #include "stack/include/btm_iso_api.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/l2cap_acl_interface.h"

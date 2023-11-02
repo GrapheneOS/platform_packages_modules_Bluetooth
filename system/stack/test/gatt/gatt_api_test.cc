@@ -22,6 +22,7 @@
 #include "btm/btm_dev.h"
 #include "btm/btm_sec_cb.h"
 #include "gatt/gatt_int.h"
+#include "osi/include/allocator.h"
 
 extern tBTM_SEC_CB btm_sec_cb;
 
