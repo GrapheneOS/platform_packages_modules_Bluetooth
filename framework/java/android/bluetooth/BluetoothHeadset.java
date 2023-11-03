@@ -271,6 +271,35 @@ public final class BluetoothHeadset implements BluetoothProfile {
     public static final String VENDOR_SPECIFIC_HEADSET_EVENT_XEVENT_BATTERY_LEVEL = "BATTERY";
 
     /**
+     * A vendor-specific AT command that asks for the information about device manufacturer.
+     *
+     * @hide
+     */
+    public static final String VENDOR_SPECIFIC_HEADSET_EVENT_CGMI = "+CGMI";
+
+    /**
+     * A vendor-specific AT command that asks for the information about the model of the device.
+     *
+     * @hide
+     */
+    public static final String VENDOR_SPECIFIC_HEADSET_EVENT_CGMM = "+CGMM";
+
+    /**
+     * A vendor-specific AT command that asks for the revision information, for Android we will
+     * return the OS version and build number.
+     *
+     * @hide
+     */
+    public static final String VENDOR_SPECIFIC_HEADSET_EVENT_CGMR = "+CGMR";
+
+    /**
+     * A vendor-specific AT command that asks for the device's serial number.
+     *
+     * @hide
+     */
+    public static final String VENDOR_SPECIFIC_HEADSET_EVENT_CGSN = "+CGSN";
+
+    /**
      * Headset state when SCO audio is not connected.
      * This state can be one of
      * {@link #EXTRA_STATE} or {@link #EXTRA_PREVIOUS_STATE} of

@@ -32,6 +32,7 @@ import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.os.HandlerThread;
@@ -1374,7 +1375,7 @@ public class HeadsetStateMachineTest {
     }
 
     @Test
-    public void testProcessVendorSpecificAt_withNoEqualSignCommand() {
+    public void testProcessVendorSpecificAt_withNonExceptedNoEqualSignCommand() {
         String atString = "invalid_command";
 
         mHeadsetStateMachine.processVendorSpecificAt(atString, mTestDevice);
@@ -1410,6 +1411,49 @@ public class HeadsetStateMachineTest {
         mHeadsetStateMachine.processVendorSpecificAt(atString, mTestDevice);
 
         verify(mNativeInterface).atResponseString(mTestDevice, "+XAPL=iPhone," + "2");
+        verify(mNativeInterface).atResponseCode(mTestDevice, HeadsetHalConstants.AT_RESPONSE_OK, 0);
+    }
+
+    @Test
+    public void testProcessVendorSpecificAt_withExceptedNoEqualSignCommandCGMI() {
+        String atString = BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_CGMI;
+
+        mHeadsetStateMachine.processVendorSpecificAt(atString, mTestDevice);
+
+        verify(mNativeInterface).atResponseString(mTestDevice, Build.MANUFACTURER);
+        verify(mNativeInterface).atResponseCode(mTestDevice, HeadsetHalConstants.AT_RESPONSE_OK, 0);
+    }
+
+    @Test
+    public void testProcessVendorSpecificAt_withExceptedNoEqualSignCommandCGMM() {
+        String atString = BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_CGMM;
+
+        mHeadsetStateMachine.processVendorSpecificAt(atString, mTestDevice);
+
+        verify(mNativeInterface).atResponseString(mTestDevice, Build.MODEL);
+        verify(mNativeInterface).atResponseCode(mTestDevice, HeadsetHalConstants.AT_RESPONSE_OK, 0);
+    }
+
+    @Test
+    public void testProcessVendorSpecificAt_withExceptedNoEqualSignCommandCGMR() {
+        String atString = BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_CGMR;
+
+        mHeadsetStateMachine.processVendorSpecificAt(atString, mTestDevice);
+
+        verify(mNativeInterface)
+                .atResponseString(
+                        mTestDevice,
+                        String.format("%s (%s)", Build.VERSION.RELEASE, Build.VERSION.INCREMENTAL));
+        verify(mNativeInterface).atResponseCode(mTestDevice, HeadsetHalConstants.AT_RESPONSE_OK, 0);
+    }
+
+    @Test
+    public void testProcessVendorSpecificAt_withExceptedNoEqualSignCommandCGSN() {
+        String atString = BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_CGSN;
+
+        mHeadsetStateMachine.processVendorSpecificAt(atString, mTestDevice);
+
+        verify(mNativeInterface).atResponseString(mTestDevice, Build.getSerial());
         verify(mNativeInterface).atResponseCode(mTestDevice, HeadsetHalConstants.AT_RESPONSE_OK, 0);
     }
 
