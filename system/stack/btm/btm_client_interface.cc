@@ -16,14 +16,12 @@
 
 #include "stack/include/btm_client_interface.h"
 
-#include "stack/btm/btm_dev.h"
-#include "stack/btm/btm_sec.h"
+#include "security_client_callbacks.h"
+#include "stack/btm/btm_ble_int.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_ble_api.h"
 #include "stack/include/btm_ble_sec_api.h"
-#include "stack/include/btm_client_interface.h"
-#include "stack/include/btm_sec_api.h"
 
 struct btm_client_interface_t btm_client_interface = {
     .lifecycle =
@@ -80,32 +78,7 @@ struct btm_client_interface_t btm_client_interface = {
             .BTM_ReadRSSI = BTM_ReadRSSI,
         },
 
-    .security =
-        {
-            .BTM_SecAddDevice = BTM_SecAddDevice,
-            .BTM_SecAddRmtNameNotifyCallback = BTM_SecAddRmtNameNotifyCallback,
-            .BTM_SecDeleteDevice = BTM_SecDeleteDevice,
-            .BTM_SecRegister = BTM_SecRegister,
-            .BTM_SecReadDevName = BTM_SecReadDevName,
-            .BTM_SecBond = BTM_SecBond,
-            .BTM_SecBondCancel = BTM_SecBondCancel,
-            .BTM_SecAddBleKey = BTM_SecAddBleKey,
-            .BTM_SecAddBleDevice = BTM_SecAddBleDevice,
-            .BTM_SecClearSecurityFlags = BTM_SecClearSecurityFlags,
-            .BTM_SecClrService = BTM_SecClrService,
-            .BTM_SecClrServiceByPsm = BTM_SecClrServiceByPsm,
-            .BTM_RemoteOobDataReply = BTM_RemoteOobDataReply,
-            .BTM_PINCodeReply = BTM_PINCodeReply,
-            .BTM_ConfirmReqReply = BTM_ConfirmReqReply,
-            .BTM_SecDeleteRmtNameNotifyCallback =
-                BTM_SecDeleteRmtNameNotifyCallback,
-            .BTM_SetEncryption = BTM_SetEncryption,
-            .BTM_IsEncrypted = BTM_IsEncrypted,
-            .BTM_SecIsSecurityPending = BTM_SecIsSecurityPending,
-            .BTM_IsLinkKeyKnown = BTM_IsLinkKeyKnown,
-            .BTM_BleSirkConfirmDeviceReply = BTM_BleSirkConfirmDeviceReply,
-            .BTM_GetSecurityMode = BTM_GetSecurityMode,
-        },
+    .security = get_security_client_interface(),
 
     .ble =
         {
