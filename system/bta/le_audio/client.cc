@@ -1413,14 +1413,20 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (!DeserializeSinkPacs(leAudioDevice, sink_pacs)) {
+      /* If PACs are invalid, just say whole cache is invalid */
+      leAudioDevice->known_service_handles_ = false;
       LOG_WARN("Could not load sink pacs");
     }
 
     if (!DeserializeSourcePacs(leAudioDevice, source_pacs)) {
+      /* If PACs are invalid, just say whole cache is invalid */
+      leAudioDevice->known_service_handles_ = false;
       LOG_WARN("Could not load source pacs");
     }
 
     if (!DeserializeAses(leAudioDevice, ases)) {
+      /* If ASEs are invalid, just say whole cache is invalid */
+      leAudioDevice->known_service_handles_ = false;
       LOG_WARN("Could not load ases");
     }
 
