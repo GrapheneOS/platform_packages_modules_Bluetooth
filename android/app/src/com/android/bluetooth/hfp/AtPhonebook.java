@@ -555,11 +555,17 @@ public class AtPhonebook {
                 // try caller id lookup
                 // TODO: This code is horribly inefficient. I saw it
                 // take 7 seconds to process 100 missed calls.
-                Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mContentResolver,
-                        Uri.withAppendedPath(PhoneLookup.ENTERPRISE_CONTENT_FILTER_URI, number),
-                        new String[]{
-                                PhoneLookup.DISPLAY_NAME, PhoneLookup.TYPE
-                        }, null, null, null);
+                Cursor c =
+                        BluetoothMethodProxy.getInstance()
+                                .contentResolverQuery(
+                                        mContentResolver,
+                                        Uri.withAppendedPath(
+                                                PhoneLookup.ENTERPRISE_CONTENT_FILTER_URI,
+                                                Uri.encode(number)),
+                                        new String[] {PhoneLookup.DISPLAY_NAME, PhoneLookup.TYPE},
+                                        null,
+                                        null,
+                                        null);
                 if (c != null) {
                     if (c.moveToFirst()) {
                         name = c.getString(0);
