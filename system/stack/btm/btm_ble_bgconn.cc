@@ -63,38 +63,6 @@ struct BgConnHash {
 static std::unordered_map<RawAddress, BackgroundConnection, BgConnHash>
     background_connections;
 
-const tBLE_BD_ADDR convert_to_address_with_type(
-    const RawAddress& bd_addr, const tBTM_SEC_DEV_REC* p_dev_rec) {
-  if (p_dev_rec == nullptr || !p_dev_rec->is_device_type_has_ble()) {
-    return {
-        .type = BLE_ADDR_PUBLIC,
-        .bda = bd_addr,
-    };
-  }
-
-  if (p_dev_rec->ble.identity_address_with_type.bda.IsEmpty()) {
-    return {
-        .type = p_dev_rec->ble.AddressType(),
-        .bda = bd_addr,
-    };
-  } else {
-    // Floss doesn't support LL Privacy (yet). To expedite ARC testing, always
-    // connect to the latest LE random address (if available and LL Privacy is
-    // not enabled) rather than redesign.
-    // TODO(b/235218533): Remove when LL Privacy is implemented.
-#if TARGET_FLOSS
-    if (!p_dev_rec->ble.cur_rand_addr.IsEmpty() &&
-        btm_cb.ble_ctr_cb.privacy_mode < BTM_PRIVACY_1_2) {
-      return {
-          .type = BLE_ADDR_RANDOM,
-          .bda = p_dev_rec->ble.cur_rand_addr,
-      };
-    }
-#endif
-    return p_dev_rec->ble.identity_address_with_type;
-  }
-}
-
 /*******************************************************************************
  *
  * Function         btm_update_scanner_filter_policy
@@ -155,35 +123,6 @@ bool btm_ble_resume_bg_conn(void) {
     return true;
 }
 
-bool BTM_BackgroundConnectAddressKnown(const RawAddress& address) {
-  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(address);
-
-  //  not a known device, or a classic device, we assume public address
-  if (p_dev_rec == NULL || (p_dev_rec->device_type & BT_DEVICE_TYPE_BLE) == 0)
-    return true;
-
-  LOG_WARN("%s, device type not BLE: 0x%02x", ADDRESS_TO_LOGGABLE_CSTR(address),
-           p_dev_rec->device_type);
-
-  // bonded device with identity address known
-  if (!p_dev_rec->ble.identity_address_with_type.bda.IsEmpty()) {
-    return true;
-  }
-
-  // Public address, Random Static, or Random Non-Resolvable Address known
-  if (p_dev_rec->ble.AddressType() == BLE_ADDR_PUBLIC ||
-      !BTM_BLE_IS_RESOLVE_BDA(address)) {
-    return true;
-  }
-
-  LOG_WARN("%s, the address type is 0x%02x", ADDRESS_TO_LOGGABLE_CSTR(address),
-           p_dev_rec->ble.AddressType());
-
-  // Only Resolvable Private Address (RPA) is known, we don't allow it into
-  // the background connection procedure.
-  return false;
-}
-
 /** Adds the device into acceptlist. Returns false if acceptlist is full and
  * device can't be added, true otherwise. */
 bool BTM_AcceptlistAdd(const RawAddress& address) {
@@ -199,10 +138,8 @@ bool BTM_AcceptlistAdd(const RawAddress& address, bool is_direct) {
     return false;
   }
 
-  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(address);
-
   return bluetooth::shim::ACL_AcceptLeConnectionFrom(
-      convert_to_address_with_type(address, p_dev_rec), is_direct);
+      BTM_Sec_GetAddressWithType(address), is_direct);
 }
 
 /** Removes the device from acceptlist */
@@ -212,10 +149,8 @@ void BTM_AcceptlistRemove(const RawAddress& address) {
     return;
   }
 
-  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(address);
-
   bluetooth::shim::ACL_IgnoreLeConnectionFrom(
-      convert_to_address_with_type(address, p_dev_rec));
+      BTM_Sec_GetAddressWithType(address));
   return;
 }
 

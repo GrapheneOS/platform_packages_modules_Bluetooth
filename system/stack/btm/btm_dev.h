@@ -17,6 +17,7 @@
 #pragma once
 
 #include "stack/btm/security_device_record.h"
+#include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
 void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* p_dev_rec);
@@ -206,3 +207,6 @@ bool btm_set_bond_type_dev(const RawAddress& bd_addr,
  *
  ******************************************************************************/
 std::vector<tBTM_SEC_DEV_REC*> btm_get_sec_dev_rec();
+
+bool BTM_Sec_AddressKnown(const RawAddress& address);
+const tBLE_BD_ADDR BTM_Sec_GetAddressWithType(const RawAddress& bd_addr);
