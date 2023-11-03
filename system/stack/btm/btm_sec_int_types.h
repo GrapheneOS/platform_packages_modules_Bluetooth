@@ -94,7 +94,7 @@ typedef struct tBTM_SEC_DEVCB {
   tBTM_BLE_LOCAL_ID_KEYS id_keys;   /* local BLE ID keys */
   Octet16 ble_encryption_key_value; /* BLE encryption key */
 
-#if (BTM_BLE_CONFORMANCE_TESTING == TRUE)
+#ifdef BTM_BLE_CONFORMANCE_TESTING
   bool no_disc_if_pair_fail;
   bool enable_test_mac_val;
   BT_OCTET8 test_mac;
