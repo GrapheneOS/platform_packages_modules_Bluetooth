@@ -1596,7 +1596,7 @@ uint8_t btm_ble_io_capabilities_req(tBTM_SEC_DEV_REC* p_dev_rec,
         BTM_LE_IO_REQ_EVT, p_dev_rec->bd_addr, (tBTM_LE_EVT_DATA*)p_data);
   }
   if ((callback_rc == BTM_SUCCESS) || (BTM_OOB_UNKNOWN != p_data->oob_data)) {
-#if (BTM_BLE_CONFORMANCE_TESTING == TRUE)
+#ifdef BTM_BLE_CONFORMANCE_TESTING
     if (btm_cb.devcb.keep_rfu_in_auth_req) {
       LOG_VERBOSE("btm_ble_io_capabilities_req keep_rfu_in_auth_req = %u",
                   btm_cb.devcb.keep_rfu_in_auth_req);
@@ -1821,7 +1821,7 @@ tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
             LOG_VERBOSE("Pairing Cancel completed");
             (*btm_sec_cb.api.p_bond_cancel_cmpl_callback)(BTM_SUCCESS);
           }
-#if (BTM_BLE_CONFORMANCE_TESTING == TRUE)
+#ifdef BTM_BLE_CONFORMANCE_TESTING
           if (res != BTM_SUCCESS) {
             if (!btm_cb.devcb.no_disc_if_pair_fail &&
                 p_data->cmplt.reason != SMP_CONN_TOUT) {
@@ -2180,7 +2180,7 @@ bool btm_ble_get_acl_remote_addr(uint16_t hci_handle, RawAddress& conn_addr,
   return st;
 }
 
-#if BTM_BLE_CONFORMANCE_TESTING == TRUE
+#ifdef BTM_BLE_CONFORMANCE_TESTING
 /*******************************************************************************
  *
  * Function         btm_ble_set_no_disc_if_pair_fail
