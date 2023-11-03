@@ -26,9 +26,12 @@
 #include <functional>
 
 // Original included files, if any
-#include "device/include/controller.h"
-#include "stack/btm/btm_dev.h"
+#include "stack/btm/btm_ble_int_types.h"
+#include "stack/btm/security_device_record.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btm_ble_api_types.h"
+#include "stack/include/btm_ble_sec_api_types.h"
+#include "stack/include/btm_sec_api_types.h"
 #include "stack/include/l2cdefs.h"
 #include "types/raw_address.h"
 

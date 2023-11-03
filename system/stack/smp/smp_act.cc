@@ -18,25 +18,21 @@
 
 #define LOG_TAG "smp_act"
 
-#include <string.h>
+#include <string>
 
-#include "btif/include/btif_api.h"
 #include "btif/include/btif_common.h"
 #include "btif/include/core_callbacks.h"
 #include "btif/include/stack_manager.h"
 #include "device/include/interop.h"
 #include "internal_include/bt_target.h"
-#include "main/shim/shim.h"
-#include "osi/include/log.h"
-#include "stack/btm/btm_dev.h"
-#include "stack/btm/btm_sec.h"
-#include "stack/include/acl_api.h"
-#include "stack/include/bt_octets.h"
-#include "stack/include/btm_log_history.h"
-#include "stack/include/l2c_api.h"
-#include "stack/include/smp_api_types.h"
 #include "p_256_ecc_pp.h"
 #include "smp_int.h"
+#include "stack/btm/btm_ble_int.h"
+#include "stack/btm/btm_dev.h"
+#include "stack/btm/btm_sec.h"
+#include "stack/include/bt_octets.h"
+#include "stack/include/btm_log_history.h"
+#include "stack/include/smp_api_types.h"
 #include "types/raw_address.h"
 
 namespace {

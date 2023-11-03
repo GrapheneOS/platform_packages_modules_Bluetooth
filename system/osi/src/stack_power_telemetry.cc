@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#define LOG_TAG "stack_power_tel"
+
 #include "osi/include/stack_power_telemetry.h"
 
 #include <base/logging.h>
@@ -25,10 +27,12 @@
 #include <map>
 #include <mutex>
 
+#include "common/init_flags.h"
+#include "os/log.h"
 #include "osi/include/properties.h"
-#include "stack/btm/btm_dev.h"
 #include "stack/include/acl_api_types.h"
 #include "stack/include/bt_psm_types.h"
+#include "stack/include/btm_status.h"
 #include "types/raw_address.h"
 
 time_t get_current_time() { return time(0); }
