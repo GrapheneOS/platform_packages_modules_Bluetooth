@@ -31,6 +31,7 @@ import android.provider.Settings;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothStatsLog;
+import com.android.bluetooth.flags.FeatureFlags;
 import com.android.internal.annotations.VisibleForTesting;
 
 /**
@@ -91,6 +92,7 @@ class BluetoothAirplaneModeListener extends Handler {
     private long mApmEnabledTime = 0;
 
     private final BluetoothManagerService mBluetoothManager;
+    private final FeatureFlags mFeatureFlags;
     private final Context mContext;
     private BluetoothModeChangeHelper mAirplaneHelper;
     private final BluetoothNotificationManager mNotificationManager;
@@ -103,10 +105,12 @@ class BluetoothAirplaneModeListener extends Handler {
             BluetoothManagerService service,
             Looper looper,
             Context context,
-            BluetoothNotificationManager notificationManager) {
+            BluetoothNotificationManager notificationManager,
+            FeatureFlags featureFlags) {
         super(looper);
 
         mBluetoothManager = service;
+        mFeatureFlags = featureFlags;
         mNotificationManager = notificationManager;
         mContext = context;
 
@@ -222,6 +226,14 @@ class BluetoothAirplaneModeListener extends Handler {
             }
             return;
         } else {
+            if (mFeatureFlags.airplaneRessourcesInApp()) {
+                if (isWifiEnabledOnApm()) {
+                    mBluetoothManager.sendAirplaneModeNotification(APM_WIFI_BT_NOTIFICATION);
+                } else {
+                    mBluetoothManager.sendAirplaneModeNotification(APM_BT_NOTIFICATION);
+                }
+                return;
+            }
             if (isWifiEnabledOnApm() && isFirstTimeNotification(APM_WIFI_BT_NOTIFICATION)) {
                 try {
                     sendApmNotification(
@@ -317,6 +329,12 @@ class BluetoothAirplaneModeListener extends Handler {
         if (isApmEnhancementEnabled()) {
             setSettingsSecureInt(BLUETOOTH_APM_STATE, isOn ? BLUETOOTH_ON_APM : BLUETOOTH_OFF_APM);
             setSettingsSecureInt(APM_USER_TOGGLED_BLUETOOTH, USED);
+            if (mFeatureFlags.airplaneRessourcesInApp()) {
+                if (isOn) {
+                    mBluetoothManager.sendAirplaneModeNotification(APM_BT_ENABLED_NOTIFICATION);
+                }
+                return;
+            }
             if (isOn && isFirstTimeNotification(APM_BT_ENABLED_NOTIFICATION)) {
                 // waive WRITE_SECURE_SETTINGS permission check
                 final long callingIdentity = Binder.clearCallingIdentity();
