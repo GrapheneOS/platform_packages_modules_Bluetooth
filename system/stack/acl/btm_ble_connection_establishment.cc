@@ -20,11 +20,13 @@
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/hci/enums.pb.h>
 
-#include "btm_sec_cb.h"
 #include "stack/btm/btm_ble_int.h"
+#include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/ble_hci_link_interface.h"
 #include "types/raw_address.h"
+
+extern tBTM_CB btm_cb;
 
 void btm_ble_advertiser_notify_terminated_legacy(uint8_t status,
                                                  uint16_t connection_handle);
@@ -39,11 +41,11 @@ void btm_ble_create_ll_conn_complete(tHCI_STATUS status) {
                << hci_error_code_text(status);
 
   if (status == HCI_ERR_COMMAND_DISALLOWED) {
-    btm_sec_cb.ble_ctr_cb.set_connection_state_connecting();
+    btm_cb.ble_ctr_cb.set_connection_state_connecting();
     btm_ble_set_topology_mask(BTM_BLE_STATE_INIT_BIT);
     LOG(ERROR) << "LE Create Connection - command disallowed";
   } else {
-    btm_sec_cb.ble_ctr_cb.set_connection_state_idle();
+    btm_cb.ble_ctr_cb.set_connection_state_idle();
     btm_ble_clear_topology_mask(BTM_BLE_STATE_INIT_BIT);
     btm_ble_update_mode_operation(HCI_ROLE_UNKNOWN, NULL, status);
   }

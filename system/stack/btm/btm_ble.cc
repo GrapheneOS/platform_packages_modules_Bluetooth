@@ -1736,7 +1736,7 @@ void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
       p_dev_rec->ble.cur_rand_addr = bda;
     }
   }
-  btm_sec_cb.ble_ctr_cb.inq_var.directed_conn = BTM_BLE_ADV_IND_EVT;
+  btm_cb.ble_ctr_cb.inq_var.directed_conn = BTM_BLE_ADV_IND_EVT;
 }
 
 /*****************************************************************************
@@ -2084,7 +2084,7 @@ static void btm_ble_reset_id_impl(const Octet16& rand1, const Octet16& rand2) {
   btm_notify_new_key(BTM_BLE_KEY_TYPE_ID);
 
   /* if privacy is enabled, new RPA should be calculated */
-  if (btm_sec_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE) {
+  if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE) {
     btm_gen_resolvable_private_addr(base::Bind(&btm_gen_resolve_paddr_low));
   }
 
@@ -2093,7 +2093,7 @@ static void btm_ble_reset_id_impl(const Octet16& rand1, const Octet16& rand2) {
   btm_notify_new_key(BTM_BLE_KEY_TYPE_ER);
 
   /* if privacy is enabled, update the irk and RPA in the LE address manager */
-  if (btm_sec_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE) {
+  if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE) {
     BTM_BleConfigPrivacy(true);
   }
 }
