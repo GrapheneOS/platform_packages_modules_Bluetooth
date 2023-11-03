@@ -94,7 +94,8 @@ void BTM_SecAddBleDevice(const RawAddress& bd_addr, tBT_DEVICE_TYPE dev_type,
     p_dev_rec->conn_params.peripheral_latency = BTM_BLE_CONN_PARAM_UNDEF;
 
     LOG_DEBUG("Device added, handle=0x%x, p_dev_rec=%p, bd_addr=%s",
-              p_dev_rec->ble_hci_handle, p_dev_rec, ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+              p_dev_rec->ble_hci_handle, p_dev_rec,
+              ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
   }
 
   memset(p_dev_rec->sec_bd_name, 0, sizeof(tBTM_BD_NAME));
@@ -156,7 +157,7 @@ bool BTM_GetRemoteDeviceName(const RawAddress& bd_addr, BD_NAME bd_name) {
  * Parameters:      bd_addr          - BD address of the peer
  *                  p_le_key         - LE key values.
  *                  key_type         - LE SMP key type.
-*
+ *
  * Returns          true if added OK, else false
  *
  ******************************************************************************/
@@ -173,8 +174,8 @@ void BTM_SecAddBleKey(const RawAddress& bd_addr, tBTM_LE_KEY_VALUE* p_le_key,
     return;
   }
 
-  LOG_DEBUG("Adding BLE key device:%s key_type:%hhu", ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
-            key_type);
+  LOG_DEBUG("Adding BLE key device:%s key_type:%hhu",
+            ADDRESS_TO_LOGGABLE_CSTR(bd_addr), key_type);
 
   btm_sec_save_le_key(bd_addr, key_type, p_le_key, false);
   // Only set peer irk. Local irk is always the same.
@@ -862,7 +863,7 @@ tBTM_SEC_ACTION btm_ble_determine_security_act(bool is_originator,
     if (security_required & BTM_SEC_IN_MITM) auth_req |= BTM_LE_AUTH_REQ_MITM;
   }
 
-  tBTM_BLE_SEC_REQ_ACT ble_sec_act = { BTM_BLE_SEC_REQ_ACT_NONE };
+  tBTM_BLE_SEC_REQ_ACT ble_sec_act = {BTM_BLE_SEC_REQ_ACT_NONE};
   btm_ble_link_sec_check(bdaddr, auth_req, &ble_sec_act);
 
   LOG_VERBOSE("%s ble_sec_act %d", __func__, ble_sec_act);
@@ -1485,16 +1486,14 @@ void btm_ble_link_encrypted(const RawAddress& bd_addr, uint8_t encr_enable) {
 
   p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
   if (p_dev_rec->p_callback && enc_cback) {
-    if (encr_enable)
-      btm_sec_dev_rec_cback_event(p_dev_rec, BTM_SUCCESS, true);
+    if (encr_enable) btm_sec_dev_rec_cback_event(p_dev_rec, BTM_SUCCESS, true);
     /* LTK missing on peripheral */
-    else if (p_dev_rec->role_central && (p_dev_rec->sec_status == HCI_ERR_KEY_MISSING)) {
+    else if (p_dev_rec->role_central &&
+             (p_dev_rec->sec_status == HCI_ERR_KEY_MISSING)) {
       btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_KEY_MISSING, true);
-    }
-    else if (!(p_dev_rec->sec_flags & BTM_SEC_LE_LINK_KEY_KNOWN)) {
+    } else if (!(p_dev_rec->sec_flags & BTM_SEC_LE_LINK_KEY_KNOWN)) {
       btm_sec_dev_rec_cback_event(p_dev_rec, BTM_FAILED_ON_SECURITY, true);
-    }
-    else if (p_dev_rec->role_central)
+    } else if (p_dev_rec->role_central)
       btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_PROCESSING, true);
   }
 
