@@ -4,10 +4,11 @@
 
 use crate::hal::internal::{InnerHal, RawHal};
 use crate::hal::{Result, H4_HEADER_SIZE};
-use bt_packets::hci::{Acl, Command, Event, Iso, Packet, Sco};
+use bt_packets::hci::{Acl, Command, Event, Iso, Sco};
 use bytes::{BufMut, Bytes, BytesMut};
 use gddi::{module, provides, Stoppable};
 use num_derive::{FromPrimitive, ToPrimitive};
+use pdl_runtime::Packet;
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
 use std::sync::Arc;
