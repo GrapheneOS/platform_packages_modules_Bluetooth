@@ -103,6 +103,16 @@
             </intent-filter>
         </service>
 
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.airplane.NotificationHelperService"
+             android:label="Airplane Notification Helper"
+             android:exported="true"
+             android:permission="android.permission.BLUETOOTH_PRIVILEGED">
+            <intent-filter>
+                <action android:name="android.bluetooth.airplane.action.SEND_NOTIFICATION"/>
+            </intent-filter>
+        </service>
+
         <!--  Advanced Audio Distribution Profile (A2DP) source Profile Service  -->
         <service android:process="@string/process"
              android:name="com.android.bluetooth.a2dp.A2dpService"
