@@ -135,15 +135,7 @@ constexpr uint8_t kAseParamFramingUnframedSupported = 0x00;
 // constexpr uint8_t kAseParamPreferredPhy2M = 0x02;
 // constexpr uint8_t kAseParamPreferredPhyCoded = 0x04;
 
-constexpr uint8_t kAseCtpOpcodeConfigureCodec = 0x01;
-constexpr uint8_t kAseCtpOpcodeConfigureQos = 0x02;
-constexpr uint8_t kAseCtpOpcodeEnable = 0x03;
-constexpr uint8_t kAseCtpOpcodeReceiverStartReady = 0x04;
-constexpr uint8_t kAseCtpOpcodeDisable = 0x05;
-constexpr uint8_t kAseCtpOpcodeReceiverStopReady = 0x06;
-// constexpr uint8_t kAseCtpOpcodeUpdateMetadata = 0x07;
-constexpr uint8_t kAseCtpOpcodeRelease = 0x08;
-constexpr uint8_t kAseCtpOpcodeMaxVal = kAseCtpOpcodeRelease;
+constexpr uint8_t kAseCtpOpcodeMaxVal = client_parser::ascs::kCtpOpcodeRelease;
 
 }  // namespace ascs
 
@@ -169,6 +161,38 @@ class MockLeAudioGroupStateMachineCallbacks
               (int group_id, uint8_t direction), (override));
   MOCK_METHOD((void), OnDeviceAutonomousStateTransitionTimeout,
               (LeAudioDevice * leAudioDevice), (override));
+};
+
+class MockAseRemoteStateMachine {
+ public:
+  MockAseRemoteStateMachine() = default;
+  MockAseRemoteStateMachine& operator=(const MockAseRemoteStateMachine&) =
+      delete;
+  ~MockAseRemoteStateMachine() = default;
+  MOCK_METHOD((void), AseCtpConfigureCodecHandler,
+              (LeAudioDevice * device, std::vector<uint8_t> value,
+               GATT_WRITE_OP_CB cb, void* cb_data));
+  MOCK_METHOD((void), AseCtpConfigureQosHandler,
+              (LeAudioDevice * device, std::vector<uint8_t> value,
+               GATT_WRITE_OP_CB cb, void* cb_data));
+  MOCK_METHOD((void), AseCtpEnableHandler,
+              (LeAudioDevice * device, std::vector<uint8_t> value,
+               GATT_WRITE_OP_CB cb, void* cb_data));
+  MOCK_METHOD((void), AseCtpReceiverStartReadyHandler,
+              (LeAudioDevice * device, std::vector<uint8_t> value,
+               GATT_WRITE_OP_CB cb, void* cb_data));
+  MOCK_METHOD((void), AseCtpDisableHandler,
+              (LeAudioDevice * device, std::vector<uint8_t> value,
+               GATT_WRITE_OP_CB cb, void* cb_data));
+  MOCK_METHOD((void), AseCtpReceiverStopReadyHandler,
+              (LeAudioDevice * device, std::vector<uint8_t> value,
+               GATT_WRITE_OP_CB cb, void* cb_data));
+  MOCK_METHOD((void), AseCtpUpdateMetadataHandler,
+              (LeAudioDevice * device, std::vector<uint8_t> value,
+               GATT_WRITE_OP_CB cb, void* cb_data));
+  MOCK_METHOD((void), AseCtpReleaseHandler,
+              (LeAudioDevice * device, std::vector<uint8_t> value,
+               GATT_WRITE_OP_CB cb, void* cb_data));
 };
 
 class StateMachineTestBase : public Test {
@@ -264,8 +288,42 @@ class StateMachineTestBase : public Test {
     ASSERT_LT(opcode, ascs::kAseCtpOpcodeMaxVal + 1);
     ASSERT_NE(opcode, 0);
 
-    if (ase_ctp_handlers[opcode])
-      ase_ctp_handlers[opcode](device, std::move(value), cb, cb_data);
+    switch (opcode) {
+      case client_parser::ascs::kCtpOpcodeCodecConfiguration:
+        ase_ctp_handler.AseCtpConfigureCodecHandler(device, std::move(value),
+                                                    cb, cb_data);
+        break;
+      case client_parser::ascs::kCtpOpcodeQosConfiguration:
+        ase_ctp_handler.AseCtpConfigureQosHandler(device, std::move(value), cb,
+                                                  cb_data);
+        break;
+      case client_parser::ascs::kCtpOpcodeEnable:
+        ase_ctp_handler.AseCtpEnableHandler(device, std::move(value), cb,
+                                            cb_data);
+        break;
+      case client_parser::ascs::kCtpOpcodeReceiverStartReady:
+        ase_ctp_handler.AseCtpReceiverStartReadyHandler(
+            device, std::move(value), cb, cb_data);
+        break;
+      case client_parser::ascs::kCtpOpcodeDisable:
+        ase_ctp_handler.AseCtpDisableHandler(device, std::move(value), cb,
+                                             cb_data);
+        break;
+      case client_parser::ascs::kCtpOpcodeReceiverStopReady:
+        ase_ctp_handler.AseCtpReceiverStopReadyHandler(device, std::move(value),
+                                                       cb, cb_data);
+        break;
+      case client_parser::ascs::kCtpOpcodeUpdateMetadata:
+        ase_ctp_handler.AseCtpUpdateMetadataHandler(device, std::move(value),
+                                                    cb, cb_data);
+        break;
+      case client_parser::ascs::kCtpOpcodeRelease:
+        ase_ctp_handler.AseCtpReleaseHandler(device, std::move(value), cb,
+                                             cb_data);
+        break;
+      default:
+        break;
+    };
   }
 
 /* Helper function to make a deterministic (and unique on the entire device)
@@ -492,9 +550,6 @@ class StateMachineTestBase : public Test {
     gatt::SetMockBtaGattInterface(nullptr);
     bluetooth::manager::SetMockBtmInterface(nullptr);
     controller::SetMockControllerInterface(nullptr);
-
-    for (auto i = 0u; i <= ascs::kAseCtpOpcodeMaxVal; ++i)
-      ase_ctp_handlers[i] = nullptr;
 
     le_audio_devices_.clear();
     addresses_.clear();
@@ -881,10 +936,11 @@ class StateMachineTestBase : public Test {
   void PrepareConfigureCodecHandler(LeAudioDeviceGroup* group,
                                     int verify_ase_count = 0,
                                     bool caching = false) {
-    ase_ctp_handlers[ascs::kAseCtpOpcodeConfigureCodec] =
-        [group, verify_ase_count, caching, this](
-            LeAudioDevice* device, std::vector<uint8_t> value,
-            GATT_WRITE_OP_CB cb, void* cb_data) {
+    ON_CALL(ase_ctp_handler, AseCtpConfigureCodecHandler)
+        .WillByDefault(Invoke([group, verify_ase_count, caching, this](
+                                  LeAudioDevice* device,
+                                  std::vector<uint8_t> value,
+                                  GATT_WRITE_OP_CB cb, void* cb_data) {
           auto num_ase = value[1];
 
           // Verify ase count if needed
@@ -947,16 +1003,17 @@ class StateMachineTestBase : public Test {
               return;
             }
           }
-        };
+        }));
   }
 
   void PrepareConfigureQosHandler(LeAudioDeviceGroup* group,
                                   int verify_ase_count = 0,
                                   bool caching = false) {
-    ase_ctp_handlers[ascs::kAseCtpOpcodeConfigureQos] =
-        [group, verify_ase_count, caching, this](
-            LeAudioDevice* device, std::vector<uint8_t> value,
-            GATT_WRITE_OP_CB cb, void* cb_data) {
+    ON_CALL(ase_ctp_handler, AseCtpConfigureQosHandler)
+        .WillByDefault(Invoke([group, verify_ase_count, caching, this](
+                                  LeAudioDevice* device,
+                                  std::vector<uint8_t> value,
+                                  GATT_WRITE_OP_CB cb, void* cb_data) {
           auto num_ase = value[1];
 
           // Verify ase count if needed
@@ -1023,15 +1080,14 @@ class StateMachineTestBase : public Test {
                                        ascs::kAseStateQoSConfigured,
                                        &qos_configured_state_params);
           }
-        };
+        }));
   }
 
   void PrepareCtpNotificationError(LeAudioDeviceGroup* group, uint8_t opcode,
                                    uint8_t response_code, uint8_t reason) {
-    ase_ctp_handlers[opcode] = [group, opcode, response_code, reason](
-                                   LeAudioDevice* device,
-                                   std::vector<uint8_t> value,
-                                   GATT_WRITE_OP_CB cb, void* cb_data) {
+    auto foo = [group, opcode, response_code, reason](
+                   LeAudioDevice* device, std::vector<uint8_t> value,
+                   GATT_WRITE_OP_CB cb, void* cb_data) {
       auto num_ase = value[1];
       std::vector<uint8_t> notif_value(
           2 + num_ase * sizeof(struct client_parser::ascs::ctp_ase_entry));
@@ -1067,15 +1123,54 @@ class StateMachineTestBase : public Test {
       LeAudioGroupStateMachine::Get()->ProcessGattCtpNotification(
           group, notif_value.data(), notif_value.size());
     };
+
+    switch (opcode) {
+      case client_parser::ascs::kCtpOpcodeCodecConfiguration:
+        ON_CALL(ase_ctp_handler, AseCtpConfigureCodecHandler)
+            .WillByDefault(Invoke(foo));
+        break;
+      case client_parser::ascs::kCtpOpcodeQosConfiguration:
+        ON_CALL(ase_ctp_handler, AseCtpConfigureQosHandler)
+            .WillByDefault(Invoke(foo));
+        break;
+      case client_parser::ascs::kCtpOpcodeEnable:
+        ON_CALL(ase_ctp_handler, AseCtpEnableHandler)
+            .WillByDefault(Invoke(foo));
+        break;
+      case client_parser::ascs::kCtpOpcodeReceiverStartReady:
+        ON_CALL(ase_ctp_handler, AseCtpReceiverStartReadyHandler)
+            .WillByDefault(Invoke(foo));
+        break;
+      case client_parser::ascs::kCtpOpcodeDisable:
+        ON_CALL(ase_ctp_handler, AseCtpDisableHandler)
+            .WillByDefault(Invoke(foo));
+        break;
+      case client_parser::ascs::kCtpOpcodeReceiverStopReady:
+        ON_CALL(ase_ctp_handler, AseCtpReceiverStopReadyHandler)
+            .WillByDefault(Invoke(foo));
+        break;
+      case client_parser::ascs::kCtpOpcodeUpdateMetadata:
+        ON_CALL(ase_ctp_handler, AseCtpUpdateMetadataHandler)
+            .WillByDefault(Invoke(foo));
+        break;
+      case client_parser::ascs::kCtpOpcodeRelease:
+        ON_CALL(ase_ctp_handler, AseCtpReleaseHandler)
+            .WillByDefault(Invoke(foo));
+        break;
+      default:
+        break;
+    };
   }
 
   void PrepareEnableHandler(LeAudioDeviceGroup* group, int verify_ase_count = 0,
                             bool inject_enabling = true,
                             bool incject_streaming = true) {
-    ase_ctp_handlers[ascs::kAseCtpOpcodeEnable] =
-        [group, verify_ase_count, inject_enabling, incject_streaming, this](
-            LeAudioDevice* device, std::vector<uint8_t> value,
-            GATT_WRITE_OP_CB cb, void* cb_data) {
+    ON_CALL(ase_ctp_handler, AseCtpEnableHandler)
+        .WillByDefault(Invoke([group, verify_ase_count, inject_enabling,
+                               incject_streaming,
+                               this](LeAudioDevice* device,
+                                     std::vector<uint8_t> value,
+                                     GATT_WRITE_OP_CB cb, void* cb_data) {
           auto num_ase = value[1];
 
           // Verify ase count if needed
@@ -1118,15 +1213,16 @@ class StateMachineTestBase : public Test {
                   ase, device, group, ascs::kAseStateEnabling, &enable_params);
             }
           }
-        };
+        }));
   }
 
   void PrepareDisableHandler(LeAudioDeviceGroup* group,
                              int verify_ase_count = 0) {
-    ase_ctp_handlers[ascs::kAseCtpOpcodeDisable] =
-        [group, verify_ase_count, this](LeAudioDevice* device,
-                                        std::vector<uint8_t> value,
-                                        GATT_WRITE_OP_CB cb, void* cb_data) {
+    ON_CALL(ase_ctp_handler, AseCtpDisableHandler)
+        .WillByDefault(Invoke([group, verify_ase_count, this](
+                                  LeAudioDevice* device,
+                                  std::vector<uint8_t> value,
+                                  GATT_WRITE_OP_CB cb, void* cb_data) {
           auto num_ase = value[1];
 
           // Verify ase count if needed
@@ -1164,15 +1260,16 @@ class StateMachineTestBase : public Test {
                                          &qos_configured_state_params);
             }
           }
-        };
+        }));
   }
 
-  void PrepareReceiverStartReady(LeAudioDeviceGroup* group,
-                                 int verify_ase_count = 0) {
-    ase_ctp_handlers[ascs::kAseCtpOpcodeReceiverStartReady] =
-        [group, verify_ase_count, this](LeAudioDevice* device,
-                                        std::vector<uint8_t> value,
-                                        GATT_WRITE_OP_CB cb, void* cb_data) {
+  void PrepareReceiverStartReadyHandler(LeAudioDeviceGroup* group,
+                                        int verify_ase_count = 0) {
+    ON_CALL(ase_ctp_handler, AseCtpReceiverStartReadyHandler)
+        .WillByDefault(Invoke([group, verify_ase_count, this](
+                                  LeAudioDevice* device,
+                                  std::vector<uint8_t> value,
+                                  GATT_WRITE_OP_CB cb, void* cb_data) {
           auto num_ase = value[1];
 
           // Verify ase count if needed
@@ -1197,97 +1294,100 @@ class StateMachineTestBase : public Test {
                                        ascs::kAseStateStreaming,
                                        &streaming_params);
           }
-        };
+        }));
   }
 
   void PrepareReceiverStopReady(LeAudioDeviceGroup* group,
                                 int verify_ase_count = 0) {
-    ase_ctp_handlers[ascs::kAseCtpOpcodeReceiverStopReady] =
-        [group, verify_ase_count, this](LeAudioDevice* device,
-                                        std::vector<uint8_t> value,
-                                        GATT_WRITE_OP_CB cb, void* cb_data) {
-          auto num_ase = value[1];
+    ON_CALL(ase_ctp_handler, AseCtpReceiverStopReadyHandler)
+        .WillByDefault(
+            Invoke([group, verify_ase_count, this](
+                       LeAudioDevice* device, std::vector<uint8_t> value,
+                       GATT_WRITE_OP_CB cb, void* cb_data) {
+              auto num_ase = value[1];
 
-          // Verify ase count if needed
-          if (verify_ase_count) ASSERT_EQ(verify_ase_count, num_ase);
+              // Verify ase count if needed
+              if (verify_ase_count) ASSERT_EQ(verify_ase_count, num_ase);
 
-          // Inject QoS configured ASE state notification for each Source ASE
-          auto* ase_p = &value[2];
-          for (auto i = 0u; i < num_ase; ++i) {
-            /* Check if this is a valid ASE ID  */
-            auto ase_id = *ase_p++;
-            auto it = std::find_if(
-                device->ases_.begin(), device->ases_.end(),
-                [ase_id](auto& ase) { return (ase.id == ase_id); });
-            ASSERT_NE(it, device->ases_.end());
+              // Inject QoS configured ASE state notification for each Source
+              // ASE
+              auto* ase_p = &value[2];
+              for (auto i = 0u; i < num_ase; ++i) {
+                /* Check if this is a valid ASE ID  */
+                auto ase_id = *ase_p++;
+                auto it = std::find_if(
+                    device->ases_.begin(), device->ases_.end(),
+                    [ase_id](auto& ase) { return (ase.id == ase_id); });
+                ASSERT_NE(it, device->ases_.end());
 
-            const auto& ase = &(*it);
+                const auto& ase = &(*it);
 
-            // FIXME: For now our fake peer does not remember qos params
-            client_parser::ascs::ase_qos_configured_state_params
-                qos_configured_state_params;
-            InjectAseStateNotification(ase, device, group,
-                                       ascs::kAseStateQoSConfigured,
-                                       &qos_configured_state_params);
-          }
-        };
+                // FIXME: For now our fake peer does not remember qos params
+                client_parser::ascs::ase_qos_configured_state_params
+                    qos_configured_state_params;
+                InjectAseStateNotification(ase, device, group,
+                                           ascs::kAseStateQoSConfigured,
+                                           &qos_configured_state_params);
+              }
+            }));
   }
 
   void PrepareReleaseHandler(LeAudioDeviceGroup* group,
                              int verify_ase_count = 0,
                              bool inject_disconnect_device = false,
                              LeAudioDevice* dev = nullptr) {
-    ase_ctp_handlers[ascs::kAseCtpOpcodeRelease] =
-        [group, verify_ase_count, inject_disconnect_device, dev, this](
-            LeAudioDevice* device, std::vector<uint8_t> value,
-            GATT_WRITE_OP_CB cb, void* cb_data) {
-          if (dev != nullptr && device != dev) {
-            LOG_INFO("Do nothing for %s",
-                     ADDRESS_TO_LOGGABLE_CSTR(dev->address_));
-            return;
-          }
+    ON_CALL(ase_ctp_handler, AseCtpReleaseHandler)
+        .WillByDefault(
+            Invoke([group, verify_ase_count, inject_disconnect_device, dev,
+                    this](LeAudioDevice* device, std::vector<uint8_t> value,
+                          GATT_WRITE_OP_CB cb, void* cb_data) {
+              if (dev != nullptr && device != dev) {
+                LOG_INFO("Do nothing for %s",
+                         ADDRESS_TO_LOGGABLE_CSTR(dev->address_));
+                return;
+              }
 
-          auto num_ase = value[1];
+              auto num_ase = value[1];
 
-          // Verify ase count if needed
-          if (verify_ase_count) ASSERT_EQ(verify_ase_count, num_ase);
-          ASSERT_EQ(value.size(), 2ul + num_ase);
+              // Verify ase count if needed
+              if (verify_ase_count) ASSERT_EQ(verify_ase_count, num_ase);
+              ASSERT_EQ(value.size(), 2ul + num_ase);
 
-          if (inject_disconnect_device) {
-            InjectAclDisconnected(group, device);
-            return;
-          }
+              if (inject_disconnect_device) {
+                InjectAclDisconnected(group, device);
+                return;
+              }
 
-          // Inject Releasing & Idle ASE state notification for each ASE
-          auto* ase_p = &value[2];
-          for (auto i = 0u; i < num_ase; ++i) {
-            /* Check if this is a valid ASE ID  */
-            auto ase_id = *ase_p++;
-            auto it = std::find_if(
-                device->ases_.begin(), device->ases_.end(),
-                [ase_id](auto& ase) { return (ase.id == ase_id); });
-            ASSERT_NE(it, device->ases_.end());
-            const auto ase = &(*it);
+              // Inject Releasing & Idle ASE state notification for each ASE
+              auto* ase_p = &value[2];
+              for (auto i = 0u; i < num_ase; ++i) {
+                /* Check if this is a valid ASE ID  */
+                auto ase_id = *ase_p++;
+                auto it = std::find_if(
+                    device->ases_.begin(), device->ases_.end(),
+                    [ase_id](auto& ase) { return (ase.id == ase_id); });
+                ASSERT_NE(it, device->ases_.end());
+                const auto ase = &(*it);
 
-            InjectAseStateNotification(ase, device, group,
-                                       ascs::kAseStateReleasing, nullptr);
+                InjectAseStateNotification(ase, device, group,
+                                           ascs::kAseStateReleasing, nullptr);
 
-            if (stay_in_releasing_state_) {
-              continue;
-            }
+                if (stay_in_releasing_state_) {
+                  continue;
+                }
 
-            /* Check if codec configuration is cached */
-            if (cached_codec_configuration_map_.count(ase_id) > 0) {
-              InjectAseStateNotification(
-                  ase, device, group, ascs::kAseStateCodecConfigured,
-                  &cached_codec_configuration_map_[ase_id]);
-            } else {
-              // Release - no caching
-              InjectAseStateNotification(ase, device, group,
-                                         ascs::kAseStateIdle, nullptr);
-            }
-          }
-        };
+                /* Check if codec configuration is cached */
+                if (cached_codec_configuration_map_.count(ase_id) > 0) {
+                  InjectAseStateNotification(
+                      ase, device, group, ascs::kAseStateCodecConfigured,
+                      &cached_codec_configuration_map_[ase_id]);
+                } else {
+                  // Release - no caching
+                  InjectAseStateNotification(ase, device, group,
+                                             ascs::kAseStateIdle, nullptr);
+                }
+              }
+            }));
   }
 
   MockCsisClient mock_csis_client_module_;
@@ -1301,9 +1401,7 @@ class StateMachineTestBase : public Test {
   le_audio::CodecManager* codec_manager_;
   MockCodecManager* mock_codec_manager_;
 
-  std::function<void(LeAudioDevice* device, std::vector<uint8_t> value,
-                     GATT_WRITE_OP_CB cb, void* cb_data)>
-      ase_ctp_handlers[ascs::kAseCtpOpcodeMaxVal + 1] = {nullptr};
+  MockAseRemoteStateMachine ase_ctp_handler;
   std::map<int, client_parser::ascs::ase_codec_configured_state_params>
       cached_codec_configuration_map_;
   std::map<int, client_parser::ascs::ase_qos_configured_state_params>
@@ -1599,7 +1697,7 @@ TEST_F(StateMachineTest, testStreamCreationError) {
   PrepareConfigureCodecHandler(group, 1);
   PrepareConfigureQosHandler(group, 1);
   PrepareCtpNotificationError(
-      group, ascs::kAseCtpOpcodeEnable,
+      group, client_parser::ascs::kCtpOpcodeEnable,
       client_parser::ascs::kCtpResponseCodeUnspecifiedError,
       client_parser::ascs::kCtpResponseNoReason);
   PrepareReleaseHandler(group);
@@ -1767,7 +1865,7 @@ TEST_F(StateMachineTest, testStreamSkipEnablingSinkSource) {
   PrepareConfigureCodecHandler(group, 3);
   PrepareConfigureQosHandler(group, 3);
   PrepareEnableHandler(group, 3, false);
-  PrepareReceiverStartReady(group, 1);
+  PrepareReceiverStartReadyHandler(group, 1);
 
   auto* leAudioDevice = group->GetFirstDevice();
   EXPECT_CALL(gatt_queue,
@@ -1817,7 +1915,7 @@ TEST_F(StateMachineTest, testStreamMultipleMedia_OneMemberHasNoAses) {
   PrepareConfigureCodecHandler(group);
   PrepareConfigureQosHandler(group);
   PrepareEnableHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(AtLeast(1));
@@ -1893,7 +1991,7 @@ TEST_F(StateMachineTest,
   PrepareConfigureCodecHandler(group);
   PrepareConfigureQosHandler(group);
   PrepareEnableHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(AtLeast(1));
@@ -1969,7 +2067,7 @@ TEST_F(StateMachineTest, testStreamMultipleConversational) {
   PrepareConfigureCodecHandler(group);
   PrepareConfigureQosHandler(group);
   PrepareEnableHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(AtLeast(1));
@@ -2030,7 +2128,7 @@ TEST_F(StateMachineTest, testFailedStreamMultipleConversational) {
   PrepareConfigureCodecHandler(group);
   PrepareConfigureQosHandler(group);
   PrepareEnableHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
   PrepareReleaseHandler(group);
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
@@ -2181,7 +2279,7 @@ TEST_F(StateMachineTest, remoteRejectsEnable) {
   PrepareConfigureCodecHandler(group);
   PrepareConfigureQosHandler(group);
   PrepareCtpNotificationError(
-      group, ascs::kAseCtpOpcodeEnable,
+      group, client_parser::ascs::kCtpOpcodeEnable,
       client_parser::ascs::kCtpResponseCodeUnspecifiedError,
       client_parser::ascs::kCtpResponseNoReason);
   PrepareReleaseHandler(group);
@@ -2621,7 +2719,7 @@ TEST_F(StateMachineTest, testDisableBidirectional) {
   PrepareConfigureQosHandler(group, 3);
   PrepareEnableHandler(group, 3);
   PrepareDisableHandler(group, 3);
-  PrepareReceiverStartReady(group, 1);
+  PrepareReceiverStartReadyHandler(group, 1);
   PrepareReceiverStopReady(group, 1);
 
   auto* leAudioDevice = group->GetFirstDevice();
@@ -2971,7 +3069,7 @@ TEST_F(StateMachineTest,
   PrepareConfigureCodecHandler(group, 0, true);
   PrepareConfigureQosHandler(group, 0, true);
   PrepareEnableHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
   PrepareReleaseHandler(group);
 
   /* Ctp messages we expect:
@@ -3236,7 +3334,7 @@ TEST_F(StateMachineTest, testReleaseBidirectional) {
   PrepareConfigureQosHandler(group, 3);
   PrepareEnableHandler(group, 3);
   PrepareDisableHandler(group, 3);
-  PrepareReceiverStartReady(group, 1);
+  PrepareReceiverStartReadyHandler(group, 1);
   PrepareReleaseHandler(group, 3);
 
   auto* leAudioDevice = group->GetFirstDevice();
@@ -3294,7 +3392,7 @@ TEST_F(StateMachineTest, testDisableAndReleaseBidirectional) {
   PrepareConfigureQosHandler(group, 3);
   PrepareEnableHandler(group, 3);
   PrepareDisableHandler(group, 3);
-  PrepareReceiverStartReady(group, 1);
+  PrepareReceiverStartReadyHandler(group, 1);
   PrepareReceiverStopReady(group, 1);
   PrepareReleaseHandler(group, 3);
 
@@ -3409,7 +3507,7 @@ TEST_F(StateMachineTest, testAseAutonomousRelease) {
   PrepareConfigureQosHandler(group, 3);
   PrepareEnableHandler(group, 3);
   PrepareDisableHandler(group, 3);
-  PrepareReceiverStartReady(group, 1);
+  PrepareReceiverStartReadyHandler(group, 1);
   PrepareReceiverStopReady(group, 1);
   PrepareReleaseHandler(group, 3);
 
@@ -3482,7 +3580,7 @@ TEST_F(StateMachineTest, testAseAutonomousRelease2Devices) {
   PrepareConfigureQosHandler(group);
   PrepareEnableHandler(group);
   PrepareDisableHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
   PrepareReceiverStopReady(group);
   PrepareReleaseHandler(group);
 
@@ -3543,7 +3641,7 @@ TEST_F(StateMachineTest, testHandlingCachedCodecConfig2Devices) {
   PrepareConfigureQosHandler(group);
   PrepareEnableHandler(group);
   PrepareDisableHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
   PrepareReceiverStopReady(group);
   PrepareReleaseHandler(group);
 
@@ -3803,7 +3901,7 @@ TEST_F(StateMachineTestAdsp, testStreamConfigurationAdspDownMix) {
   PrepareConfigureCodecHandler(group);
   PrepareConfigureQosHandler(group);
   PrepareEnableHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
 
   InjectInitialIdleNotification(group);
 
@@ -4409,7 +4507,7 @@ TEST_F(StateMachineTest, testStreamToGettingReadyDevice) {
   PrepareConfigureCodecHandler(group);
   PrepareConfigureQosHandler(group);
   PrepareEnableHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
   PrepareDisableHandler(group);
   PrepareReleaseHandler(group);
 
@@ -4458,7 +4556,7 @@ TEST_F(StateMachineTest, testAttachDeviceToTheConversationalStream) {
   PrepareConfigureCodecHandler(group);
   PrepareConfigureQosHandler(group);
   PrepareEnableHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
   PrepareDisableHandler(group);
   PrepareReleaseHandler(group);
 
@@ -4743,7 +4841,7 @@ TEST_F(StateMachineTest, StartStreamCachedConfigReconfigInvalidBehavior) {
   PrepareConfigureQosHandler(group);
   PrepareEnableHandler(group);
   PrepareDisableHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
   PrepareReleaseHandler(group);
 
   InjectInitialIdleNotification(group);
@@ -4851,7 +4949,7 @@ TEST_F(StateMachineTest, BoundedHeadphonesConversationalToMediaChannelCount_2) {
   PrepareEnableHandler(group);
   PrepareDisableHandler(group);
   PrepareReleaseHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
 
   InjectInitialIdleNotification(group);
 
@@ -4947,7 +5045,7 @@ TEST_F(StateMachineTest, BoundedHeadphonesConversationalToMediaChannelCount_1) {
   PrepareEnableHandler(group);
   PrepareDisableHandler(group);
   PrepareReleaseHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
 
   InjectInitialIdleNotification(group);
 
@@ -5305,7 +5403,7 @@ TEST_F(StateMachineTest, StreamReconfigureAfterCisLostTwoDevices) {
   PrepareConfigureCodecHandler(group);
   PrepareConfigureQosHandler(group);
   PrepareEnableHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
 
   /* Prepare DisconnectCis mock to not symulate CisDisconnection */
   ON_CALL(*mock_iso_manager_, DisconnectCis).WillByDefault(Return());
@@ -5524,7 +5622,7 @@ TEST_F(StateMachineTest, VerifyThereIsNoDoubleDataPathRemoval) {
   PrepareConfigureQosHandler(group);
   PrepareEnableHandler(group);
   PrepareReleaseHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
@@ -5586,7 +5684,7 @@ TEST_F(StateMachineTest, StreamStartWithDifferentContextFromConfiguredState) {
   PrepareEnableHandler(group);
   PrepareDisableHandler(group);
   PrepareReleaseHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
 
   InjectInitialIdleNotification(group);
 
@@ -5659,7 +5757,7 @@ TEST_F(StateMachineTest,
   PrepareEnableHandler(group);
   PrepareDisableHandler(group);
   PrepareReleaseHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
 
   InjectInitialIdleNotification(group);
 
@@ -5928,7 +6026,7 @@ TEST_F(StateMachineTest, testAutonomousDisableTimeout) {
   PrepareEnableHandler(group);
   PrepareDisableHandler(group);
   PrepareReleaseHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
 
   auto* leAudioDevice = group->GetFirstDevice();
   LeAudioDevice* lastDevice;
@@ -6014,7 +6112,7 @@ TEST_F(StateMachineTest, testAutonomousDisableSuccess) {
   PrepareEnableHandler(group);
   PrepareDisableHandler(group);
   PrepareReleaseHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
 
   auto* leAudioDevice = group->GetFirstDevice();
   LeAudioDevice* lastDevice;
@@ -6110,7 +6208,7 @@ TEST_F(StateMachineTest, testAutonomousDisableCancelOnDisconnect) {
   PrepareEnableHandler(group);
   PrepareDisableHandler(group);
   PrepareReleaseHandler(group);
-  PrepareReceiverStartReady(group);
+  PrepareReceiverStartReadyHandler(group);
 
   auto* leAudioDevice = group->GetFirstDevice();
   LeAudioDevice* lastDevice;
