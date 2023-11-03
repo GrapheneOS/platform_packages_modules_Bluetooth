@@ -65,10 +65,6 @@ bool btm_ble_init_pseudo_addr(tBTM_SEC_DEV_REC* p_dev_rec,
 void gatt_notify_phy_updated(tHCI_STATUS status, uint16_t handle,
                              uint8_t tx_phy, uint8_t rx_phy);
 
-#ifndef PROPERTY_BLE_PRIVACY_ENABLED
-#define PROPERTY_BLE_PRIVACY_ENABLED "bluetooth.core.gap.le.privacy.enabled"
-#endif
-
 namespace {
 constexpr char kBtmLogTag[] = "SEC";
 }

@@ -1120,31 +1120,6 @@ uint16_t BTM_BleReadDiscoverability();
  ******************************************************************************/
 uint16_t BTM_BleReadConnectability();
 
-/*******************************************************************************
- *
- * Function         BTM_BleConfigPrivacy
- *
- * Description      This function is called to enable or disable the privacy in
- *                  the local device.
- *
- * Parameters       enable: true to enable it; false to disable it.
- *
- * Returns          bool    privacy mode set success; otherwise failed.
- *
- ******************************************************************************/
-bool BTM_BleConfigPrivacy(bool enable);
-
-/*******************************************************************************
- *
- * Function         BTM_BleLocalPrivacyEnabled
- *
- * Description        Checks if local device supports private address
- *
- * Returns          Return true if local privacy is enabled else false
- *
- ******************************************************************************/
-bool BTM_BleLocalPrivacyEnabled(void);
-
 /**
  * This functions are called to configure the adv data payload filter condition
  */
