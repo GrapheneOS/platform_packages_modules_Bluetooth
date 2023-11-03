@@ -13,33 +13,13 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+use pdl_compiler;
 use std::env;
 use std::fs::File;
+use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
 
 fn main() {
-    let packets_prebuilt = match env::var("HCI_PACKETS_PREBUILT") {
-        Ok(dir) => PathBuf::from(dir),
-        Err(_) => PathBuf::from("hci_packets.rs"),
-    };
-
-    if Path::new(packets_prebuilt.as_os_str()).exists() {
-        let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-        let out_file = out_dir.join("hci_packets.rs");
-        std::fs::copy(
-            packets_prebuilt.as_os_str().to_str().unwrap(),
-            out_file.as_os_str().to_str().unwrap(),
-        )
-        .unwrap();
-    } else {
-        generate_packets();
-    }
-}
-
-fn generate_packets() {
-    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-
     let pdl_root = match env::var("PLATFORM_SUBDIR") {
         Ok(dir) => PathBuf::from(dir).join("bt/pdl"),
         // Currently at //platform2/gd/rust/rust/packets
@@ -49,21 +29,34 @@ fn generate_packets() {
     };
 
     let in_file = pdl_root.join("hci/hci_packets.pdl");
-    let out_file = File::create(out_dir.join("hci_packets.rs")).unwrap();
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let out_file = out_dir.join("hci_packets.rs");
 
-    // Expect pdlc to be in the PATH
-    println!("cargo:rerun-if-changed={}", in_file.display());
-    let output = Command::new("pdlc")
-        .arg("--output-format")
-        .arg("rust")
-        .arg(in_file)
-        .stdout(Stdio::from(out_file))
-        .output()
+    let packets_prebuilt = match env::var("HCI_PACKETS_PREBUILT") {
+        Ok(dir) => PathBuf::from(dir),
+        Err(_) => PathBuf::from("hci_packets.rs"),
+    };
+
+    if Path::new(packets_prebuilt.as_os_str()).exists() {
+        std::fs::copy(
+            packets_prebuilt.as_os_str().to_str().unwrap(),
+            out_file.as_os_str().to_str().unwrap(),
+        )
         .unwrap();
+    } else {
+        let mut sources = pdl_compiler::ast::SourceDatabase::new();
+        let file = pdl_compiler::parser::parse_file(
+            &mut sources,
+            &in_file.into_os_string().into_string().unwrap(),
+        )
+        .expect("failed to parse input pdl file");
+        let file =
+            pdl_compiler::analyzer::analyze(&file).expect("failed to validate input pdl file");
+        let generated = pdl_compiler::backends::rust::generate(&sources, &file);
 
-    println!(
-        "Status: {}, stderr: {}",
-        output.status,
-        String::from_utf8_lossy(output.stderr.as_slice())
-    );
+        let mut f = File::create(out_file).unwrap();
+        f.write_all(generated.as_bytes()).unwrap();
+
+        println!("cargo:rerun-if-changed=build.rs");
+    }
 }
