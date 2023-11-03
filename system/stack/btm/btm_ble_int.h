@@ -117,7 +117,7 @@ bool btm_ble_set_topology_mask(tBTM_BLE_STATE_MASK request_state);
 void btm_ble_scanner_init(void);
 void btm_ble_scanner_cleanup(void);
 
-#if (BTM_BLE_CONFORMANCE_TESTING == TRUE)
+#ifdef BTM_BLE_CONFORMANCE_TESTING
 void btm_ble_set_no_disc_if_pair_fail(bool disble_disc);
 void btm_ble_set_test_mac_value(bool enable, uint8_t* p_test_mac_val);
 void btm_ble_set_test_local_sign_cntr_value(bool enable,
