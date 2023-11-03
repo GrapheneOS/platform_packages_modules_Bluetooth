@@ -370,9 +370,9 @@
 #endif
 
 /* Used for conformance testing ONLY */
-#ifndef BTM_BLE_CONFORMANCE_TESTING
-#define BTM_BLE_CONFORMANCE_TESTING FALSE
-#endif
+// uncomment the following line to enable
+// conformance testing
+// #define BTM_BLE_CONFORMANCE_TESTING
 
 /******************************************************************************
  *
