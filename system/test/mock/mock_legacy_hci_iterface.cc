@@ -15,7 +15,6 @@
  */
 
 #include <base/functional/callback.h>
-#include <stddef.h>
 
 #include "stack/include/hcimsgs.h"
 #include "test/common/mock_functions.h"
@@ -33,8 +32,6 @@ struct btsnd_hcic_change_conn_type {
 }  // namespace hcic_hcicmds
 }  // namespace mock
 }  // namespace test
-
-namespace mock = test::mock::hcic_hcicmds;
 
 namespace {
 void btsnd_hcic_disconnect(uint16_t handle, uint8_t reason) {

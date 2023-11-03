@@ -1,0 +1,8 @@
+package: "com.android.bluetooth.flags"
+
+flag {
+    name: "encrypted_advertising_data"
+    namespace: "bluetooth"
+    description: "Enable support for the decryption of Encrypted Advertising Data"
+    bug: "308855997"
+}

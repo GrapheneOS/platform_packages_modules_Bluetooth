@@ -21,6 +21,7 @@
 
 #include "btm_sco_hfp_hal.h"
 #include "device/include/esco_parameters.h"
+#include "raw_address.h"
 #include "stack/btm/sco_pkt_status.h"
 #include "stack/include/btm_api_types.h"
 
@@ -306,3 +307,7 @@ void btm_sco_disc_chk_pend_for_modechange(uint16_t hci_handle);
 
 /* Send a SCO packet */
 void btm_send_sco_packet(std::vector<uint8_t> data);
+
+bool btm_peer_supports_esco_2m_phy(RawAddress remote_bda);
+bool btm_peer_supports_esco_3m_phy(RawAddress remote_bda);
+bool btm_peer_supports_esco_ev3(RawAddress remote_bda);

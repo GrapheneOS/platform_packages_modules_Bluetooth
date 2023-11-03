@@ -38,15 +38,15 @@ class EndianInserter {
   virtual ~EndianInserter() = default;
 
  protected:
-  // Write sizeof(FixedWidthPODType) bytes using the iterator
-  template <typename FixedWidthPODType, typename std::enable_if<std::is_pod<FixedWidthPODType>::value, int>::type = 0>
-  void insert(FixedWidthPODType value, BitInserter& it) const {
+  // Write sizeof(T) bytes using the iterator
+  template <typename T, typename std::enable_if<std::is_trivial<T>::value, int>::type = 0>
+  void insert(T value, BitInserter& it) const {
     uint8_t* raw_bytes = (uint8_t*)&value;
-    for (size_t i = 0; i < sizeof(FixedWidthPODType); i++) {
+    for (size_t i = 0; i < sizeof(T); i++) {
       if (little_endian == true) {
         it.insert_byte(raw_bytes[i]);
       } else {
-        it.insert_byte(raw_bytes[sizeof(FixedWidthPODType) - i - 1]);
+        it.insert_byte(raw_bytes[sizeof(T) - i - 1]);
       }
     }
   }
@@ -67,10 +67,9 @@ class EndianInserter {
   }
 
   // Write num_bits bits using the iterator
-  template <typename FixedWidthIntegerType,
-            typename std::enable_if<std::is_pod<FixedWidthIntegerType>::value, int>::type = 0>
-  void insert(FixedWidthIntegerType value, BitInserter& it, size_t num_bits) const {
-    ASSERT(num_bits <= (sizeof(FixedWidthIntegerType) * 8));
+  template <typename T, typename std::enable_if<std::is_trivial<T>::value, int>::type = 0>
+  void insert(T value, BitInserter& it, size_t num_bits) const {
+    ASSERT(num_bits <= (sizeof(T) * 8));
 
     for (size_t i = 0; i < num_bits / 8; i++) {
       if (little_endian == true) {
@@ -92,11 +91,12 @@ class EndianInserter {
     insert<enum_type>(static_cast<enum_type>(value), it);
   }
 
-  // Write a vector of FixedWidthIntegerType using the iterator
-  template <typename FixedWidthIntegerType>
-  void insert_vector(const std::vector<FixedWidthIntegerType>& vec, BitInserter& it) const {
-    static_assert(std::is_pod<FixedWidthIntegerType>::value,
-                  "EndianInserter::insert requires a vector with elements of a fixed-size.");
+  // Write a vector of T using the iterator
+  template <typename T, typename std::enable_if<std::is_trivial<T>::value, int>::type = 0>
+  void insert_vector(const std::vector<T>& vec, BitInserter& it) const {
+    static_assert(
+        std::is_trivial<T>::value,
+        "EndianInserter::insert requires a vector with elements of a fixed-size.");
     for (const auto& element : vec) {
       insert(element, it);
     }
