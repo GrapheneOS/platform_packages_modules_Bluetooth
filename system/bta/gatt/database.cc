@@ -151,6 +151,8 @@ Database Database::Deserialize(const std::vector<StoredAttribute>& nv_attr,
         .uuid = attr.value.service.uuid,
         .is_primary = (attr.type == PRIMARY_SERVICE),
         .end_handle = attr.value.service.end_handle,
+        .included_services = {},
+        .characteristics = {},
     });
   }
 
@@ -193,6 +195,7 @@ Database Database::Deserialize(const std::vector<StoredAttribute>& nv_attr,
           .uuid = attr.value.characteristic.uuid,
           .value_handle = attr.value.characteristic.value_handle,
           .properties = attr.value.characteristic.properties,
+          .descriptors = {},
       });
 
     } else {
@@ -205,7 +208,11 @@ Database Database::Deserialize(const std::vector<StoredAttribute>& nv_attr,
 
       } else {
         current_service_it->characteristics.back().descriptors.emplace_back(
-            Descriptor{.handle = attr.handle, .uuid = attr.type});
+            Descriptor{
+                .handle = attr.handle,
+                .uuid = attr.type,
+                .characteristic_extended_properties = {},
+            });
       }
     }
   }
