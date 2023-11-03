@@ -912,6 +912,21 @@ struct is_state_getting_name {
 };
 extern struct is_state_getting_name is_state_getting_name;
 
+// Name: BTM_IsRemoteNameKnown
+// Params: const RawAddress& bd_addr, tBT_TRANSPORT transport
+// Return: bool
+struct BTM_IsRemoteNameKnown {
+  static bool return_value;
+  std::function<bool(const RawAddress& bd_addr, tBT_TRANSPORT transport)> body{
+      [](const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+        return return_value;
+      }};
+  bool operator()(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+    return body(bd_addr, transport);
+  };
+};
+extern struct BTM_IsRemoteNameKnown BTM_IsRemoteNameKnown;
+
 }  // namespace stack_btm_sec
 }  // namespace mock
 }  // namespace test
