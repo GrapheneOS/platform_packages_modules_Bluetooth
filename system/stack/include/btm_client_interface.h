@@ -94,51 +94,7 @@ struct btm_client_interface_t {
     tBTM_STATUS (*BTM_ReadRSSI)(const RawAddress& bd_addr, tBTM_CMPL_CB* p_cb);
   } link_controller;
 
-  struct {
-    bool (*BTM_SecAddDevice)(const RawAddress& bd_addr, DEV_CLASS dev_class,
-                             const BD_NAME& bd_name, uint8_t* features,
-                             LinkKey* link_key, uint8_t key_type,
-                             uint8_t pin_length);
-    bool (*BTM_SecAddRmtNameNotifyCallback)(tBTM_RMT_NAME_CALLBACK* p_callback);
-    bool (*BTM_SecDeleteDevice)(const RawAddress& bd_addr);
-    bool (*BTM_SecRegister)(const tBTM_APPL_INFO* p_cb_info);
-    const char* (*BTM_SecReadDevName)(const RawAddress& bd_addr);
-    tBTM_STATUS (*BTM_SecBond)(const RawAddress& bd_addr,
-                               tBLE_ADDR_TYPE addr_type,
-                               tBT_TRANSPORT transport,
-                               tBT_DEVICE_TYPE device_type, uint8_t pin_len,
-                               uint8_t* p_pin);
-    tBTM_STATUS (*BTM_SecBondCancel)(const RawAddress& bd_addr);
-    void (*BTM_SecAddBleKey)(const RawAddress& bd_addr,
-                             tBTM_LE_KEY_VALUE* p_le_key,
-                             tBTM_LE_KEY_TYPE key_type);
-    void (*BTM_SecAddBleDevice)(const RawAddress& bd_addr,
-                                tBT_DEVICE_TYPE dev_type,
-                                tBLE_ADDR_TYPE addr_type);
-    void (*BTM_SecClearSecurityFlags)(const RawAddress& bd_addr);
-    uint8_t (*BTM_SecClrService)(uint8_t service_id);
-    uint8_t (*BTM_SecClrServiceByPsm)(uint16_t psm);
-    void (*BTM_RemoteOobDataReply)(tBTM_STATUS res, const RawAddress& bd_addr,
-                                   const Octet16& c, const Octet16& r);
-    void (*BTM_PINCodeReply)(const RawAddress& bd_addr, tBTM_STATUS res,
-                             uint8_t pin_len, uint8_t* p_pin);
-    void (*BTM_ConfirmReqReply)(tBTM_STATUS res, const RawAddress& bd_addr);
-    bool (*BTM_SecDeleteRmtNameNotifyCallback)(
-        tBTM_RMT_NAME_CALLBACK* p_callback);
-    tBTM_STATUS (*BTM_SetEncryption)(const RawAddress& bd_addr,
-                                     tBT_TRANSPORT transport,
-                                     tBTM_SEC_CALLBACK* p_callback,
-                                     void* p_ref_data,
-                                     tBTM_BLE_SEC_ACT sec_act);
-    bool (*BTM_IsEncrypted)(const RawAddress& bd_addr, tBT_TRANSPORT transport);
-    bool (*BTM_SecIsSecurityPending)(const RawAddress& bd_addr);
-    bool (*BTM_IsLinkKeyKnown)(const RawAddress& bd_addr,
-                               tBT_TRANSPORT transport);
-    void (*BTM_BleSirkConfirmDeviceReply)(const RawAddress& bd_addr,
-                                          uint8_t res);
-    uint8_t (*BTM_GetSecurityMode)();
-  } security;
-
+  SecurityClientInterface security;
   struct {
     tBTM_STATUS (*BTM_BleGetEnergyInfo)(tBTM_BLE_ENERGY_INFO_CBACK* callback);
     tBTM_STATUS (*BTM_BleObserve)(bool start, uint8_t duration,

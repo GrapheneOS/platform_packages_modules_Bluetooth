@@ -126,6 +126,7 @@ source_set("stack") {
     "btm/btm_sco_hfp_hal_linux.cc",
     "btm/btm_sec.cc",
     "btm/btm_sec_cb.cc",
+    "btm/btm_security_client_interface.cc",
     "btm/hfp_lc3_encoder_linux.cc",
     "btm/hfp_lc3_decoder_linux.cc",
     "btm/hfp_msbc_encoder.cc",
