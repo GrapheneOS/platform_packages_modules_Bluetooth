@@ -50,11 +50,6 @@ bool bluetooth::shim::BTM_ReadRemoteConnectionAddr(
   return false;
 }
 
-bool bluetooth::shim::BTM_UseLeLink(const RawAddress& raw_address) {
-  inc_func_call_count(__func__);
-  return false;
-}
-
 tBTM_INQ_INFO* bluetooth::shim::BTM_InqDbFirst(void) {
   inc_func_call_count(__func__);
   return nullptr;
@@ -147,24 +142,11 @@ void bluetooth::shim::BTM_BleAdvFilterParamSetup(
   inc_func_call_count(__func__);
 }
 
-void bluetooth::shim::BTM_BleReadPhy(
-    const RawAddress& bd_addr,
-    base::Callback<void(uint8_t tx_phy, uint8_t rx_phy, uint8_t status)> cb) {
-  inc_func_call_count(__func__);
-}
-void bluetooth::shim::BTM_BleReceiverTest(uint8_t rx_freq,
-                                          tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-  inc_func_call_count(__func__);
-}
-
 void bluetooth::shim::BTM_BleSetConnScanParams(uint32_t scan_interval,
                                                uint32_t scan_window) {
   inc_func_call_count(__func__);
 }
-void bluetooth::shim::BTM_BleSetPhy(const RawAddress& bd_addr, uint8_t tx_phys,
-                                    uint8_t rx_phys, uint16_t phy_options) {
-  inc_func_call_count(__func__);
-}
+
 void bluetooth::shim::BTM_BleSetPrefConnParams(const RawAddress& bd_addr,
                                                uint16_t min_conn_int,
                                                uint16_t max_conn_int,
@@ -172,15 +154,7 @@ void bluetooth::shim::BTM_BleSetPrefConnParams(const RawAddress& bd_addr,
                                                uint16_t supervision_tout) {
   inc_func_call_count(__func__);
 }
-void bluetooth::shim::BTM_BleTestEnd(tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-  inc_func_call_count(__func__);
-}
-void bluetooth::shim::BTM_BleTransmitterTest(uint8_t tx_freq,
-                                             uint8_t test_data_len,
-                                             uint8_t packet_payload,
-                                             tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-  inc_func_call_count(__func__);
-}
+
 void bluetooth::shim::BTM_CancelInquiry(void) { inc_func_call_count(__func__); }
 
 void bluetooth::shim::BTM_EnableInterlacedInquiryScan() {
