@@ -96,3 +96,6 @@ class tBTM_SEC_CB {
 };
 
 extern tBTM_SEC_CB btm_sec_cb;
+
+void BTM_Sec_Init();
+void BTM_Sec_Free();

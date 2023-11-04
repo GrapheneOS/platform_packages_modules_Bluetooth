@@ -23,6 +23,7 @@
 #include "osi/include/fixed_queue.h"
 #include "osi/include/list.h"
 #include "stack/btm/security_device_record.h"
+#include "stack_config.h"
 #include "types/raw_address.h"
 
 void tBTM_SEC_CB::Init(uint8_t initial_security_mode) {
@@ -66,3 +67,13 @@ void tBTM_SEC_CB::Free() {
   alarm_free(execution_wait_timer);
   execution_wait_timer = nullptr;
 }
+
+tBTM_SEC_CB btm_sec_cb;
+
+void BTM_Sec_Init() {
+  btm_sec_cb.Init(stack_config_get_interface()->get_pts_secure_only_mode()
+                      ? BTM_SEC_MODE_SC
+                      : BTM_SEC_MODE_SP);
+}
+
+void BTM_Sec_Free() { btm_sec_cb.Free(); }
