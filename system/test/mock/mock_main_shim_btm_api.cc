@@ -33,11 +33,6 @@
 
 Octet16 octet16;
 
-bool bluetooth::shim::BTM_BleLocalPrivacyEnabled(void) {
-  inc_func_call_count(__func__);
-  return false;
-}
-
 bool bluetooth::shim::BTM_HasEirService(const uint32_t* p_eir_uuid,
                                         uint16_t uuid16) {
   inc_func_call_count(__func__);

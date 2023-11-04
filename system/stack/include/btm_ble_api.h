@@ -580,4 +580,30 @@ void BTM_BlePeriodicSyncSetInfo(RawAddress addr, uint16_t service_data,
 void BTM_BlePeriodicSyncTxParameters(RawAddress addr, uint8_t mode,
                                      uint16_t skip, uint16_t timeout,
                                      StartSyncCb syncCb);
+
+/*******************************************************************************
+ *
+ * Function         BTM_BleConfigPrivacy
+ *
+ * Description      This function is called to enable or disable the privacy in
+ *                  the local device.
+ *
+ * Parameters       enable: true to enable it; false to disable it.
+ *
+ * Returns          bool    privacy mode set success; otherwise failed.
+ *
+ ******************************************************************************/
+bool BTM_BleConfigPrivacy(bool enable);
+
+/*******************************************************************************
+ *
+ * Function         BTM_BleLocalPrivacyEnabled
+ *
+ * Description        Checks if local device supports private address
+ *
+ * Returns          Return true if local privacy is enabled else false
+ *
+ ******************************************************************************/
+bool BTM_BleLocalPrivacyEnabled(void);
+
 #endif
