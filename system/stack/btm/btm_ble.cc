@@ -25,21 +25,20 @@
 
 #define LOG_TAG "bt_btm_ble"
 
-#include <base/logging.h>
 #include <base/strings/stringprintf.h>
 
 #include <cstdint>
 
 #include "btif/include/btif_storage.h"
 #include "device/include/controller.h"
-#include "main/shim/btm_api.h"
-#include "main/shim/l2c_api.h"
-#include "main/shim/shim.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/properties.h"
 #include "platform_ssl_mem.h"
+#include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/btm/btm_sec.h"
 #include "stack/btm/btm_sec_cb.h"
 #include "stack/btm/btm_sec_int_types.h"
 #include "stack/btm/security_device_record.h"
@@ -1597,7 +1596,7 @@ uint8_t btm_ble_io_capabilities_req(tBTM_SEC_DEV_REC* p_dev_rec,
         BTM_LE_IO_REQ_EVT, p_dev_rec->bd_addr, (tBTM_LE_EVT_DATA*)p_data);
   }
   if ((callback_rc == BTM_SUCCESS) || (BTM_OOB_UNKNOWN != p_data->oob_data)) {
-#if (BTM_BLE_CONFORMANCE_TESTING == TRUE)
+#ifdef BTM_BLE_CONFORMANCE_TESTING
     if (btm_cb.devcb.keep_rfu_in_auth_req) {
       LOG_VERBOSE("btm_ble_io_capabilities_req keep_rfu_in_auth_req = %u",
                   btm_cb.devcb.keep_rfu_in_auth_req);
@@ -1737,7 +1736,7 @@ void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
       p_dev_rec->ble.cur_rand_addr = bda;
     }
   }
-  btm_sec_cb.ble_ctr_cb.inq_var.directed_conn = BTM_BLE_ADV_IND_EVT;
+  btm_cb.ble_ctr_cb.inq_var.directed_conn = BTM_BLE_ADV_IND_EVT;
 }
 
 /*****************************************************************************
@@ -1822,7 +1821,7 @@ tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
             LOG_VERBOSE("Pairing Cancel completed");
             (*btm_sec_cb.api.p_bond_cancel_cmpl_callback)(BTM_SUCCESS);
           }
-#if (BTM_BLE_CONFORMANCE_TESTING == TRUE)
+#ifdef BTM_BLE_CONFORMANCE_TESTING
           if (res != BTM_SUCCESS) {
             if (!btm_cb.devcb.no_disc_if_pair_fail &&
                 p_data->cmplt.reason != SMP_CONN_TOUT) {
@@ -2085,7 +2084,7 @@ static void btm_ble_reset_id_impl(const Octet16& rand1, const Octet16& rand2) {
   btm_notify_new_key(BTM_BLE_KEY_TYPE_ID);
 
   /* if privacy is enabled, new RPA should be calculated */
-  if (btm_sec_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE) {
+  if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE) {
     btm_gen_resolvable_private_addr(base::Bind(&btm_gen_resolve_paddr_low));
   }
 
@@ -2094,7 +2093,7 @@ static void btm_ble_reset_id_impl(const Octet16& rand1, const Octet16& rand2) {
   btm_notify_new_key(BTM_BLE_KEY_TYPE_ER);
 
   /* if privacy is enabled, update the irk and RPA in the LE address manager */
-  if (btm_sec_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE) {
+  if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE) {
     BTM_BleConfigPrivacy(true);
   }
 }
@@ -2181,7 +2180,7 @@ bool btm_ble_get_acl_remote_addr(uint16_t hci_handle, RawAddress& conn_addr,
   return st;
 }
 
-#if BTM_BLE_CONFORMANCE_TESTING == TRUE
+#ifdef BTM_BLE_CONFORMANCE_TESTING
 /*******************************************************************************
  *
  * Function         btm_ble_set_no_disc_if_pair_fail

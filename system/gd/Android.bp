@@ -158,7 +158,7 @@ cc_defaults {
     shared_libs: [
         "libcrypto",
         "libflatbuffers-cpp",
-        "server_configurable_flags",
+        "liblog",
     ],
     export_shared_lib_headers: [
         "libflatbuffers-cpp",
@@ -171,6 +171,7 @@ cc_defaults {
         "libc++fs",
     ],
     static_libs: [
+        "libbase",
         "libbluetooth-dumpsys",
         "libbluetooth-protos",
         "libbluetooth-types",
@@ -179,6 +180,7 @@ cc_defaults {
         "libbt_shim_bridge",
         "libbt_shim_ffi",
         "libosi",
+        "server_configurable_flags",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system/include",
@@ -603,7 +605,7 @@ rust_library {
     rustlibs: [
         "libbytes",
         "liblog_rust",
-        "libnum_traits",
+        "libpdl_runtime",
         "libthiserror",
     ],
     apex_available: [
@@ -629,7 +631,7 @@ rust_test_host {
     rustlibs: [
         "libbytes",
         "liblog_rust",
-        "libnum_traits",
+        "libpdl_runtime",
         "libthiserror",
     ],
 }

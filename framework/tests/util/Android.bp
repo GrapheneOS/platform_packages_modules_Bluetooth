@@ -21,6 +21,7 @@ java_library {
     defaults: ["cts_defaults"],
     static_libs: [
         "PlatformProperties",
+        "androidx.test.ext.truth",
         "compatibility-device-util-axt",
         "junit",
     ],

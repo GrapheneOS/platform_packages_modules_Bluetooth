@@ -22,28 +22,22 @@
  *
  ******************************************************************************/
 
-#include <base/functional/bind.h>
-#include <base/logging.h>
+#define LOG_TAG "ble_bgconn"
 
 #include <cstdint>
 #include <unordered_map>
 
-#include "btm_sec_cb.h"
 #include "device/include/controller.h"
 #include "main/shim/acl_api.h"
-#include "main/shim/shim.h"
+#include "os/log.h"
+#include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/security_device_record.h"
-#include "stack/include/bt_types.h"
+#include "stack/include/acl_api.h"
 #include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
-
-namespace {
-
-
-}  // namespace
 
 // Unfortunately (for now?) we have to maintain a copy of the device acceptlist
 // on the host to determine if a device is pending to be connected or not. This
@@ -90,7 +84,7 @@ const tBLE_BD_ADDR convert_to_address_with_type(
     // TODO(b/235218533): Remove when LL Privacy is implemented.
 #if TARGET_FLOSS
     if (!p_dev_rec->ble.cur_rand_addr.IsEmpty() &&
-        btm_sec_cb.ble_ctr_cb.privacy_mode < BTM_PRIVACY_1_2) {
+        btm_cb.ble_ctr_cb.privacy_mode < BTM_PRIVACY_1_2) {
       return {
           .type = BLE_ADDR_RANDOM,
           .bda = p_dev_rec->ble.cur_rand_addr,
@@ -108,7 +102,7 @@ const tBLE_BD_ADDR convert_to_address_with_type(
  * Description      This function updates the filter policy of scanner
  ******************************************************************************/
 void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy) {
-  tBTM_BLE_INQ_CB* p_inq = &btm_sec_cb.ble_ctr_cb.inq_var;
+  tBTM_BLE_INQ_CB* p_inq = &btm_cb.ble_ctr_cb.inq_var;
 
   uint32_t scan_interval =
       !p_inq->scan_interval ? BTM_BLE_GAP_DISC_SCAN_INT : p_inq->scan_interval;
@@ -124,7 +118,7 @@ void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy) {
 
   btm_send_hci_set_scan_params(
       p_inq->scan_type, (uint16_t)scan_interval, (uint16_t)scan_window,
-      btm_sec_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, scan_policy);
+      btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, scan_policy);
 }
 
 /*******************************************************************************

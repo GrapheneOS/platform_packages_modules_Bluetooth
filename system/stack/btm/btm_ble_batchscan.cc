@@ -369,7 +369,7 @@ void btm_ble_set_batchscan_param(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
                                  hci_cmd_cb cb) {
   // Override param and decide addr_type based on own addr type
   // TODO: Remove upper layer parameter?
-  addr_type = btm_sec_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type;
+  addr_type = btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type;
 
   uint8_t len = BTM_BLE_BATCH_SCAN_PARAM_CONFIG_LEN;
   uint8_t param[len];

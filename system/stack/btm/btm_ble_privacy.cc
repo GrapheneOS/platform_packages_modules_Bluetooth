@@ -21,16 +21,17 @@
  *  This file contains functions for BLE controller based privacy.
  *
  ******************************************************************************/
-#include <base/logging.h>
-#include <string.h>
+#define LOG_TAG "ble_priv"
 
-#include "ble_advertiser.h"
-#include "bt_target.h"
 #include "btm_dev.h"
 #include "btm_sec_cb.h"
 #include "btm_sec_int_types.h"
 #include "device/include/controller.h"
 #include "main/shim/acl_api.h"
+#include "os/log.h"
+#include "osi/include/allocator.h"
+#include "stack/btm/btm_ble_int.h"
+#include "stack/btm/btm_int_types.h"
 #include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
 
@@ -70,7 +71,7 @@ extern tBTM_CB btm_cb;
  ******************************************************************************/
 static void btm_ble_enq_resolving_list_pending(const RawAddress& pseudo_bda,
                                                uint8_t op_code) {
-  tBTM_BLE_RESOLVE_Q* p_q = &btm_sec_cb.ble_ctr_cb.resolving_list_pend_q;
+  tBTM_BLE_RESOLVE_Q* p_q = &btm_cb.ble_ctr_cb.resolving_list_pend_q;
 
   p_q->resolve_q_random_pseudo[p_q->q_next] = pseudo_bda;
   p_q->resolve_q_action[p_q->q_next] = op_code;
@@ -92,7 +93,7 @@ static void btm_ble_enq_resolving_list_pending(const RawAddress& pseudo_bda,
  ******************************************************************************/
 static bool btm_ble_brcm_find_resolving_pending_entry(
     const RawAddress& pseudo_addr, uint8_t action) {
-  tBTM_BLE_RESOLVE_Q* p_q = &btm_sec_cb.ble_ctr_cb.resolving_list_pend_q;
+  tBTM_BLE_RESOLVE_Q* p_q = &btm_cb.ble_ctr_cb.resolving_list_pend_q;
 
   for (uint8_t i = p_q->q_pending; i != p_q->q_next;) {
     if (p_q->resolve_q_random_pseudo[i] == pseudo_addr &&
@@ -118,7 +119,7 @@ static bool btm_ble_brcm_find_resolving_pending_entry(
  *
  ******************************************************************************/
 static bool btm_ble_deq_resolving_pending(RawAddress& pseudo_addr) {
-  tBTM_BLE_RESOLVE_Q* p_q = &btm_sec_cb.ble_ctr_cb.resolving_list_pend_q;
+  tBTM_BLE_RESOLVE_Q* p_q = &btm_cb.ble_ctr_cb.resolving_list_pend_q;
 
   if (p_q->q_next != p_q->q_pending) {
     pseudo_addr = p_q->resolve_q_random_pseudo[p_q->q_pending];
@@ -148,7 +149,7 @@ static void btm_ble_clear_irk_index(uint8_t index) {
   if (index < controller_get_interface()->get_ble_resolving_list_max_size()) {
     byte = index / 8;
     bit = index % 8;
-    btm_sec_cb.ble_ctr_cb.irk_list_mask[byte] &= (~(1 << bit));
+    btm_cb.ble_ctr_cb.irk_list_mask[byte] &= (~(1 << bit));
   }
 }
 
@@ -170,8 +171,8 @@ static uint8_t btm_ble_find_irk_index(void) {
     byte = i / 8;
     bit = i % 8;
 
-    if ((btm_sec_cb.ble_ctr_cb.irk_list_mask[byte] & (1 << bit)) == 0) {
-      btm_sec_cb.ble_ctr_cb.irk_list_mask[byte] |= (1 << bit);
+    if ((btm_cb.ble_ctr_cb.irk_list_mask[byte] & (1 << bit)) == 0) {
+      btm_cb.ble_ctr_cb.irk_list_mask[byte] |= (1 << bit);
       return i;
     }
     i++;
@@ -252,14 +253,14 @@ void btm_ble_clear_resolving_list_complete(uint8_t* p, uint16_t evt_len) {
 
       uint8_t irk_mask_size = (irk_list_sz_max % 8) ? (irk_list_sz_max / 8 + 1)
                                                     : (irk_list_sz_max / 8);
-      memset(btm_sec_cb.ble_ctr_cb.irk_list_mask, 0, irk_mask_size);
+      memset(btm_cb.ble_ctr_cb.irk_list_mask, 0, irk_mask_size);
     }
 
-    btm_sec_cb.ble_ctr_cb.resolving_list_avail_size =
+    btm_cb.ble_ctr_cb.resolving_list_avail_size =
         controller_get_interface()->get_ble_resolving_list_max_size();
 
     LOG_VERBOSE("%s resolving_list_avail_size=%d", __func__,
-                btm_sec_cb.ble_ctr_cb.resolving_list_avail_size);
+                btm_cb.ble_ctr_cb.resolving_list_avail_size);
 
     list_foreach(btm_sec_cb.sec_dev_rec, clear_resolving_list_bit, NULL);
   }
@@ -299,13 +300,13 @@ void btm_ble_add_resolving_list_entry_complete(uint8_t* p, uint16_t evt_len) {
     if (evt_len > 2) {
       /* VSC complete has one extra byte for op code, skip it here */
       p++;
-      STREAM_TO_UINT8(btm_sec_cb.ble_ctr_cb.resolving_list_avail_size, p);
+      STREAM_TO_UINT8(btm_cb.ble_ctr_cb.resolving_list_avail_size, p);
     } else
-      btm_sec_cb.ble_ctr_cb.resolving_list_avail_size--;
+      btm_cb.ble_ctr_cb.resolving_list_avail_size--;
   } else if (status ==
              HCI_ERR_MEMORY_FULL) /* BT_ERROR_CODE_MEMORY_CAPACITY_EXCEEDED  */
   {
-    btm_sec_cb.ble_ctr_cb.resolving_list_avail_size = 0;
+    btm_cb.ble_ctr_cb.resolving_list_avail_size = 0;
     LOG_VERBOSE("%s Resolving list Full ", __func__);
   }
 }
@@ -338,9 +339,9 @@ void btm_ble_remove_resolving_list_entry_complete(uint8_t* p,
     /* proprietary: spec does not have these extra bytes */
     if (evt_len > 2) {
       p++; /* skip opcode */
-      STREAM_TO_UINT8(btm_sec_cb.ble_ctr_cb.resolving_list_avail_size, p);
+      STREAM_TO_UINT8(btm_cb.ble_ctr_cb.resolving_list_avail_size, p);
     } else
-      btm_sec_cb.ble_ctr_cb.resolving_list_avail_size++;
+      btm_cb.ble_ctr_cb.resolving_list_avail_size++;
   }
 }
 
@@ -490,7 +491,7 @@ void btm_ble_clear_resolving_list(void) {
  *
  ******************************************************************************/
 bool btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC* p_dev_rec) {
-  if (btm_sec_cb.ble_ctr_cb.privacy_mode < BTM_PRIVACY_1_2) {
+  if (btm_cb.ble_ctr_cb.privacy_mode < BTM_PRIVACY_1_2) {
     LOG_DEBUG("Privacy 1.2 is not enabled");
     return false;
   }
@@ -546,7 +547,7 @@ static bool is_peer_identity_key_valid(const tBTM_SEC_DEV_REC& dev_rec) {
 static Octet16 get_local_irk() { return btm_sec_cb.devcb.id_keys.irk; }
 
 void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& dev_rec) {
-  if (btm_sec_cb.ble_ctr_cb.privacy_mode < BTM_PRIVACY_1_2) {
+  if (btm_cb.ble_ctr_cb.privacy_mode < BTM_PRIVACY_1_2) {
     LOG_DEBUG("Privacy 1.2 is not enabled");
     return;
   }
@@ -609,7 +610,7 @@ void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& dev_rec) {
  *
  ******************************************************************************/
 void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
-  if (btm_sec_cb.ble_ctr_cb.privacy_mode < BTM_PRIVACY_1_2) {
+  if (btm_cb.ble_ctr_cb.privacy_mode < BTM_PRIVACY_1_2) {
     LOG_DEBUG("Privacy 1.2 is not enabled");
     return;
   }
@@ -637,7 +638,7 @@ void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
  *
  ******************************************************************************/
 void btm_ble_resolving_list_init(uint8_t max_irk_list_sz) {
-  tBTM_BLE_RESOLVE_Q* p_q = &btm_sec_cb.ble_ctr_cb.resolving_list_pend_q;
+  tBTM_BLE_RESOLVE_Q* p_q = &btm_cb.ble_ctr_cb.resolving_list_pend_q;
   uint8_t irk_mask_size =
       (max_irk_list_sz % 8) ? (max_irk_list_sz / 8 + 1) : (max_irk_list_sz / 8);
 
@@ -649,14 +650,14 @@ void btm_ble_resolving_list_init(uint8_t max_irk_list_sz) {
     p_q->resolve_q_action = (uint8_t*)osi_malloc(max_irk_list_sz);
 
     /* RPA offloading feature */
-    if (btm_sec_cb.ble_ctr_cb.irk_list_mask == NULL)
+    if (btm_cb.ble_ctr_cb.irk_list_mask == NULL)
       // NOTE: This memory is never freed
-      btm_sec_cb.ble_ctr_cb.irk_list_mask = (uint8_t*)osi_malloc(irk_mask_size);
+      btm_cb.ble_ctr_cb.irk_list_mask = (uint8_t*)osi_malloc(irk_mask_size);
 
     LOG_VERBOSE("%s max_irk_list_sz = %d", __func__, max_irk_list_sz);
   }
 
   controller_get_interface()->set_ble_resolving_list_max_size(max_irk_list_sz);
   btm_ble_clear_resolving_list();
-  btm_sec_cb.ble_ctr_cb.resolving_list_avail_size = max_irk_list_sz;
+  btm_cb.ble_ctr_cb.resolving_list_avail_size = max_irk_list_sz;
 }

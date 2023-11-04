@@ -22,6 +22,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "hidh"
+
 #include "hidh_api.h"
 
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
@@ -31,9 +33,9 @@
 
 #include "hiddefs.h"
 #include "hidh_int.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
-#include "stack/btm/btm_dev.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/stack_metrics_logging.h"

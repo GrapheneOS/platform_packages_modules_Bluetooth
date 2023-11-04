@@ -135,6 +135,7 @@ cc_library_shared {
         "libstatslog_bt",
         "libudrv-uipc",
         "libutils",
+        "server_configurable_flags",
     ],
     shared_libs: [
         "libaaudio",
@@ -144,7 +145,6 @@ cc_library_shared {
         "libnativehelper",
         "libstatssocket",
         "libvndksupport",
-        "server_configurable_flags",
     ],
     sanitize: {
         scs: true,
@@ -208,6 +208,7 @@ android_app {
     srcs: [
         ":statslog-bluetooth-java-gen",
         ":statslog-bt-restricted-java-gen",
+        ":system-messages-proto-src",
         "proto/keystore.proto",
         "src/**/*.java",
     ],

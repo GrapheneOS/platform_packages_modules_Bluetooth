@@ -2,10 +2,11 @@
 
 use crate::hal::internal::RawHal;
 use bt_common::sys_prop;
-use bt_packets::hci::{Acl, Command, Event, Iso, Packet, Sco};
+use bt_packets::hci::{Acl, Command, Event, Iso, Sco};
 use bytes::{BufMut, Bytes, BytesMut};
 use gddi::{module, part_out, provides, Stoppable};
 use log::error;
+use pdl_runtime::Packet;
 use std::convert::TryFrom;
 use std::sync::Arc;
 use std::time::SystemTime;
