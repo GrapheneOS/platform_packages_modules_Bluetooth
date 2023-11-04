@@ -74,7 +74,7 @@ bool maybe_resolve_address(RawAddress* bda, tBLE_ADDR_TYPE* bda_type) {
     if (match_rec) {
       LOG(INFO) << __func__ << ": matched and resolved random address";
       is_in_security_db = true;
-      match_rec->ble.active_addr_type = tBTM_SEC_BLE::BTM_BLE_ADDR_RRA;
+      match_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
       match_rec->ble.cur_rand_addr = *bda;
       if (!btm_ble_init_pseudo_addr(match_rec, *bda)) {
         /* assign the original address to be the current report address */

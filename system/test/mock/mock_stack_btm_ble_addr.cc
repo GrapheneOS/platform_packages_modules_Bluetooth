@@ -109,7 +109,7 @@ bool btm_random_pseudo_to_identity_addr(RawAddress* random_pseudo,
 }
 void btm_ble_refresh_peer_resolvable_private_addr(
     const RawAddress& pseudo_bda, const RawAddress& rpa,
-    tBTM_SEC_BLE::tADDRESS_TYPE rra_type) {
+    tBLE_RAND_ADDR_TYPE rra_type) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_ble_addr::btm_ble_refresh_peer_resolvable_private_addr(
       pseudo_bda, rpa, rra_type);
