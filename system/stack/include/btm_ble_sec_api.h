@@ -25,6 +25,7 @@
 
 #include "btm_ble_api_types.h"
 #include "btm_ble_sec_api_types.h"
+#include "stack/include/bt_device_type.h"
 #include "types/raw_address.h"
 
 /*******************************************************************************
