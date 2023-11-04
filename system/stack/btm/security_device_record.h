@@ -208,10 +208,6 @@ typedef enum : uint8_t {
                              be cleared on \ btm_acl_created */
 } tBTM_SM4_BIT;
 
-inline std::string class_of_device_text(const DEV_CLASS& cod) {
-  return base::StringPrintf("0x%02x%02x%02x", cod[2], cod[1], cod[0]);
-}
-
 /*
  * Define structure for Security Device Record.
  * A record exists for each device authenticated with this device
@@ -467,7 +463,7 @@ struct tBTM_SEC_DEV_REC {
     return base::StringPrintf(
         "%s %6s cod:%s remote_info:%-14s sm4:0x%02x SecureConn:%c name:\"%s\"",
         ADDRESS_TO_LOGGABLE_CSTR(bd_addr), DeviceTypeText(device_type).c_str(),
-        class_of_device_text(dev_class).c_str(),
+        dev_class_text(dev_class).c_str(),
         remote_version_info.ToString().c_str(), sm4,
         (remote_supports_secure_connections) ? 'T' : 'F',
         PRIVATE_NAME(sec_bd_name));
