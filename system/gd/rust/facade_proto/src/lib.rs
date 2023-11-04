@@ -21,5 +21,5 @@ include!(concat!(env!("OUT_DIR"), "/grpc_out/mod.rs"));
 // empty.proto is missing so add a workaround
 // See github.com/stepancheg/grpc-rust/issues/156
 pub mod empty {
-    pub use protobuf::well_known_types::Empty;
+    pub use protobuf::well_known_types::empty::Empty;
 }

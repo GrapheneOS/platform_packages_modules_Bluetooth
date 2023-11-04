@@ -161,6 +161,7 @@ rust_protobuf {
         "com.android.btservices",
     ],
     min_sdk_version: "30",
+    use_protobuf3: true,
 }
 
 rust_protobuf {
@@ -169,6 +170,7 @@ rust_protobuf {
     source_stem: "topshim_facade",
     host_supported: true,
     grpc_protos: ["blueberry/facade/topshim/facade.proto"],
+    use_protobuf3: true,
 }
 
 genrule {

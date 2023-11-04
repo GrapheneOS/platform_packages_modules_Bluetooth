@@ -20,7 +20,7 @@ rust_library {
         "libgddi",
         "libgrpcio",
         "liblog_rust",
-        "libprotobuf_deprecated",
+        "libprotobuf",
         "libtokio",
     ],
 }
@@ -75,7 +75,7 @@ rust_library {
         "libfutures",
         "libgrpcio",
         "liblog_rust",
-        "libprotobuf_deprecated",
+        "libprotobuf",
         "libtokio",
     ],
     min_sdk_version: "30",

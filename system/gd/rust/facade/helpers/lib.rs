@@ -41,8 +41,7 @@ impl<T: 'static + Into<Vec<u8>> + Into<Bytes> + Send> RxAdapter<T> {
         let clone_rx = self.rx.clone();
         ctx.spawn(async move {
             while let Some(payload) = clone_rx.lock().await.recv().await {
-                let mut data = Data::default();
-                data.set_payload(payload.into());
+                let data = Data { payload: payload.into(), ..Default::default() };
                 if let Err(e) = sink.send((data, WriteFlags::default())).await {
                     log::error!("failure sending data: {:?}", e);
                 }
