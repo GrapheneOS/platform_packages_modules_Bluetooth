@@ -1244,7 +1244,7 @@ class CsisClientImpl : public CsisClient {
              base::HexEncode(p_dev_rec->ble.keys.pltk.data(), 16).c_str());
 #endif
 
-    Octet16 T = crypto_toolbox::aes_cmac(s1, p_dev_rec->ble.keys.pltk);
+    Octet16 T = crypto_toolbox::aes_cmac(s1, p_dev_rec->ble_key_info.keys.pltk);
 
 #ifdef CSIS_DEBUG
     LOG_INFO("T (le) %s", base::HexEncode(T.data(), 16).c_str());

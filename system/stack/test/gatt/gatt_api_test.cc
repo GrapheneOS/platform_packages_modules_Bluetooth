@@ -34,7 +34,8 @@ static tBTM_SEC_DEV_REC* make_bonded_ble_device(const RawAddress& bda,
   dev->sec_flags |= BTM_SEC_LE_LINK_KEY_KNOWN;
   dev->bd_addr = bda;
   dev->ble.pseudo_addr = rra;
-  dev->ble.key_type = BTM_LE_KEY_PID | BTM_LE_KEY_PENC | BTM_LE_KEY_LENC;
+  dev->ble_key_info.key_type =
+      BTM_LE_KEY_PID | BTM_LE_KEY_PENC | BTM_LE_KEY_LENC;
   return dev;
 }
 
