@@ -105,6 +105,7 @@ source_set("stack") {
     "bnep/bnep_utils.cc",
     "btm/ble_advertiser_hci_interface.cc",
     "btm/ble_scanner_hci_interface.cc",
+    "btm/btm_ble.cc",
     "btm/btm_ble_addr.cc",
     "btm/btm_ble_adv_filter.cc",
     "btm/btm_ble_batchscan.cc",
