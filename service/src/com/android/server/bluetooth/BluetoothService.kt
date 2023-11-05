@@ -35,9 +35,9 @@ class BluetoothService(context: Context) : SystemService(context) {
             BluetoothManagerService(context, mHandlerThread.getLooper(), FeatureFlagsImpl())
     }
 
-    private fun initialize() {
+    private fun initialize(user: TargetUser) {
         if (!mInitialized) {
-            mBluetoothManagerService.handleOnBootPhase()
+            mBluetoothManagerService.handleOnBootPhase(user.userHandle)
             mInitialized = true
         }
     }
@@ -55,13 +55,13 @@ class BluetoothService(context: Context) : SystemService(context) {
 
     override fun onUserStarting(user: TargetUser) {
         if (!UserManager.isHeadlessSystemUserMode()) {
-            initialize()
+            initialize(user)
         }
     }
 
-    override fun onUserSwitching(from: TargetUser?, to: TargetUser) {
+    override fun onUserSwitching(_from: TargetUser?, to: TargetUser) {
         if (!mInitialized) {
-            initialize()
+            initialize(to)
         } else {
             mBluetoothManagerService.onSwitchUser(to.userHandle)
         }

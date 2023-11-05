@@ -8,6 +8,13 @@ flag {
 }
 
 flag {
+    name: "use_new_airplane_mode"
+    namespace: "bluetooth"
+    description: "Use the new implemention of airplane mode"
+    bug: "309033118"
+}
+
+flag {
     name: "use_new_satellite_mode"
     namespace: "bluetooth"
     description: "Use the new implemention of satellite mode"
