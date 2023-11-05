@@ -90,7 +90,6 @@ void btm_gen_resolvable_private_addr(
 
 tBTM_SEC_DEV_REC* btm_ble_resolve_random_addr(const RawAddress& random_bda);
 void btm_gen_resolve_paddr_low(const RawAddress& address);
-uint64_t btm_get_next_private_addrress_interval_ms();
 
 void btm_ble_batchscan_init(void);
 void btm_ble_adv_filter_init(void);

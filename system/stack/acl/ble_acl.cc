@@ -186,3 +186,11 @@ void acl_ble_data_length_change_event(uint16_t handle, uint16_t max_tx_octets,
       handle, max_tx_octets, max_tx_time, max_rx_octets, max_rx_time);
   l2cble_process_data_length_change_event(handle, max_tx_octets, max_rx_octets);
 }
+
+uint64_t btm_get_next_private_addrress_interval_ms() {
+  /* 7 minutes minimum, 15 minutes maximum for random address refreshing */
+  const uint64_t interval_min_ms = (7 * 60 * 1000);
+  const uint64_t interval_random_part_max_ms = (8 * 60 * 1000);
+
+  return interval_min_ms + std::rand() % interval_random_part_max_ms;
+}
