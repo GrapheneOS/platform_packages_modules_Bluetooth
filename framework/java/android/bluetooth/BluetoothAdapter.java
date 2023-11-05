@@ -2314,8 +2314,8 @@ public final class BluetoothAdapter {
             Log.e(TAG, "Invalid profile param value in getActiveDevices");
             throw new IllegalArgumentException("Profiles must be one of "
                     + "BluetoothProfile.A2DP, "
-                    + "BluetoothProfile.HEARING_AID, or"
-                    + "BluetoothProfile.HEARING_AID"
+                    + "BluetoothProfile.HEADSET, "
+                    + "BluetoothProfile.HEARING_AID, or "
                     + "BluetoothProfile.LE_AUDIO");
         }
         mServiceLock.readLock().lock();
