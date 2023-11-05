@@ -278,7 +278,7 @@ TEST(GattCacheTest,
 
   constexpr size_t len = sizeof(StoredAttribute);
   // clang-format off
-  uint8_t binary_form[len] = {
+  std::vector<uint8_t> binary_form {
       /*handle */ 0x03, 0x00,
       /* type */ 0x00, 0x00, 0x29, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB,
       /* characteristic extended properties */ 0x01, 0x00,
@@ -288,6 +288,268 @@ TEST(GattCacheTest,
 
   // useful for debugging:
   // LOG(ERROR) << " " << base::HexEncode(&attr, len);
-  EXPECT_EQ(memcmp(binary_form, &attr, len), 0);
+  EXPECT_EQ(memcmp(binary_form.data(), &attr, len), 0);
+
+  // Don't use memcmp, for better error messages.
+  std::vector<uint8_t> copied(len, 0);
+  memcpy(copied.data(), &attr, StoredAttribute::kSizeOnDisk);
+
+  EXPECT_EQ(binary_form, copied);
 }
+
+/* This test makes sure that Descriptor represented in StoredAttribute have
+ * proper binary format. */
+TEST(
+    GattCacheTest,
+    stored_attribute_serialized_to_binary_characteristic_extended_properties_test) {
+  StoredAttribute attr;
+
+  attr = {.handle = 0x0003,
+          .type = Uuid::FromString("2900"),
+          .value = {.characteristic_extended_properties = 0x0001}};
+
+  constexpr size_t len = StoredAttribute::kSizeOnDisk;
+  std::vector<uint8_t> serialized;
+  StoredAttribute::SerializeStoredAttribute(attr, serialized);
+
+  // clang-format off
+  std::vector<uint8_t> binary_form {
+      /*handle */ 0x03, 0x00,
+      /* type */ 0x00, 0x00, 0x29, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB,
+      /* characteristic extended properties */ 0x01, 0x00,
+      /* clear padding    */ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                             0x00, 0x00, 0x00, 0x00};
+  // clang-format on
+
+  EXPECT_EQ(binary_form.size(), len);
+  EXPECT_EQ(binary_form.size(), serialized.size());
+  EXPECT_EQ(binary_form, serialized);
+}
+
+/* This test makes sure that Descriptor represented in StoredAttribute have
+ * proper binary format. */
+TEST(GattCacheTest, stored_attributes_serialized_to_binary_test) {
+  // Allocate enough space so that no matter the layout, we don't overflow.
+  uint8_t attr_bytes[StoredAttribute::kSizeOnDisk * 2];
+  // This is the attribute we fill from a binary representation
+  StoredAttribute attr;
+
+  /*
+  // Characteristic extended property
+  attr = {.handle = 0x0003,
+          .type = Uuid::FromString("2900"),
+          .value.characteristic_extended_properties = 0x1234};
+  LOG(ERROR) << " " << base::HexEncode(&attr, StoredAttribute::kSizeOnDisk);
+  */
+
+  memcpy(
+      attr_bytes,
+      "\x03\x00"  // handle
+      "\x00\x00\x29\x00\x00\x00\x10\x00\x80\x00\x00\x80\x5F\x9B\x34\xFB"  // Uuid
+      "\x34\x12" /* extended property */
+      "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+      "\x00",
+      StoredAttribute::kSizeOnDisk);
+  attr = *(StoredAttribute*)attr_bytes;
+
+  std::vector<uint8_t> serialized;
+  StoredAttribute::SerializeStoredAttribute(attr, serialized);
+  std::vector<uint8_t> copied(StoredAttribute::kSizeOnDisk, 0);
+  memcpy(copied.data(), &attr, StoredAttribute::kSizeOnDisk);
+
+  EXPECT_EQ(serialized, copied);
+  serialized.clear();
+  copied = std::vector<uint8_t>(StoredAttribute::kSizeOnDisk, 0);
+  /*
+  // Primary Service
+  attr = {
+      .handle = 0x0203,
+      .type = Uuid::FromString("2800"),
+      .value.service =
+          {
+              .uuid = Uuid::FromString("4203"),
+              .end_handle = 0x1203,
+          },
+  };
+  LOG(ERROR) << " " << base::HexEncode(&attr, StoredAttribute::kSizeOnDisk);
+  */
+  memcpy(
+      attr_bytes,
+      "\x03\x02"  // handle
+      "\x00\x00\x28\x00\x00\x00\x10\x00\x80\x00\x00\x80\x5F\x9B\x34\xFB"  // Type
+      "\x00\x00\x42\x03\x00\x00\x10\x00\x80\x00\x00\x80\x5F\x9B\x34\xFB"  // Uuid
+      "\x03\x12"  // end_handle
+      "\x00\x00",
+      StoredAttribute::kSizeOnDisk);
+  attr = *(StoredAttribute*)attr_bytes;
+
+  StoredAttribute::SerializeStoredAttribute(attr, serialized);
+  memcpy(copied.data(), &attr, StoredAttribute::kSizeOnDisk);
+  EXPECT_EQ(serialized, copied);
+  serialized.clear();
+  copied = std::vector<uint8_t>(StoredAttribute::kSizeOnDisk, 0);
+
+  /*
+  // Secondary Service
+  attr = {
+      .handle = 0x0304,
+      .type = Uuid::FromString("2801"),
+      .value.service =
+          {
+              .uuid = Uuid::FromString("4303"),
+              .end_handle = 0x1203,
+          },
+  };
+
+  LOG(ERROR) << " " << base::HexEncode(&attr, StoredAttribute::kSizeOnDisk);
+  */
+  memcpy(
+      attr_bytes,
+      "\x04\x03"  // handle
+      "\x00\x00\x28\x01\x00\x00\x10\x00\x80\x00\x00\x80\x5F\x9B\x34\xFB"  // type
+      "\x00\x00\x43\x03\x00\x00\x10\x00\x80\x00\x00\x80\x5F\x9B\x34\xFB"  // UUID
+      "\x03\x12"  // end_handle
+      "\x00\x000",
+      StoredAttribute::kSizeOnDisk);
+  attr = *(StoredAttribute*)attr_bytes;
+
+  StoredAttribute::SerializeStoredAttribute(attr, serialized);
+  memcpy(copied.data(), &attr, StoredAttribute::kSizeOnDisk);
+  EXPECT_EQ(serialized, copied);
+  serialized.clear();
+  copied = std::vector<uint8_t>(StoredAttribute::kSizeOnDisk, 0);
+
+  /*
+  // Included Service
+  attr = {
+      .handle = 0x0103,
+      .type = Uuid::FromString("2802"),
+      .value.included_service =
+          {
+              .handle = 0x0134,
+              .end_handle = 0x0138,
+              .uuid = Uuid::FromString("3456"),
+          },
+  };
+  LOG(ERROR) << " " << base::HexEncode(&attr, StoredAttribute::kSizeOnDisk);
+  */
+
+  memcpy(
+      attr_bytes,
+      "\x03\x01"  // handle
+      "\x00\x00\x28\x02\x00\x00\x10\x00\x80\x00\x00\x80\x5F\x9B\x34\xFB"  // type
+      "\x34\x01"  // handle
+      "\x38\x01"  // end_handle
+      "\x00\x00\x34\x56\x00\x00\x10\x00\x80\x00\x00\x80\x5F\x9B\x34\xFB",  // Uuid
+      StoredAttribute::kSizeOnDisk);
+  attr = *(StoredAttribute*)attr_bytes;
+
+  StoredAttribute::SerializeStoredAttribute(attr, serialized);
+  memcpy(copied.data(), &attr, StoredAttribute::kSizeOnDisk);
+  EXPECT_EQ(serialized, copied);
+  serialized.clear();
+  copied = std::vector<uint8_t>(StoredAttribute::kSizeOnDisk, 0);
+
+  /*
+  // characteristic definition
+  attr = {
+      .handle = 0x0103,
+      .type = Uuid::FromString("2803"),
+      .value.characteristic = {.properties = 4,
+                               .value_handle = 0x302,
+                               .uuid = Uuid::FromString("3456")},
+  };
+  LOG(ERROR) << " " << base::HexEncode(&attr, StoredAttribute::kSizeOnDisk);
+  */
+  memcpy(
+      attr_bytes,
+      "\x03\x01"  // handle
+      "\x00\x00\x28\x03\x00\x00\x10\x00\x80\x00\x00\x80\x5F\x9B\x34\xFB"  // type
+      "\x04"      // properties
+      "\x00"      // padding
+      "\x02\x03"  // value_handle
+      "\x00\x00\x34\x56\x00\x00\x10\x00\x80\x00\x00\x80\x5F\x9B\x34\xFB",  // uuid
+      StoredAttribute::kSizeOnDisk);
+  attr = *(StoredAttribute*)attr_bytes;
+
+  StoredAttribute::SerializeStoredAttribute(attr, serialized);
+  memcpy(copied.data(), &attr, StoredAttribute::kSizeOnDisk);
+  EXPECT_EQ(serialized, copied);
+  serialized.clear();
+  copied = std::vector<uint8_t>(StoredAttribute::kSizeOnDisk, 0);
+
+  /*
+  // Unknown Uuid
+  attr = {
+      .handle = 0x0103,
+      .type = Uuid::FromString("4444"),
+      .value.characteristic = {},
+  };
+  LOG(ERROR) << " " << base::HexEncode(&attr, StoredAttribute::kSizeOnDisk);
+  */
+  memcpy(
+      attr_bytes,
+      "\x03\x01"  // handle
+      "\x00\x00\x44\x44\x00\x00\x10\x00\x80\x00\x00\x80\x5F\x9B\x34\xFB"  // type
+      "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+      "\x00\x00",
+      StoredAttribute::kSizeOnDisk);
+  attr = *(StoredAttribute*)attr_bytes;
+
+  StoredAttribute::SerializeStoredAttribute(attr, serialized);
+  memcpy(copied.data(), &attr, StoredAttribute::kSizeOnDisk);
+
+  EXPECT_EQ(serialized, copied);
+  serialized.clear();
+  copied = std::vector<uint8_t>(StoredAttribute::kSizeOnDisk, 0);
+}
+
+// Example from Bluetooth SPEC V5.2, Vol 3, Part G, APPENDIX B
+TEST(GattDatabaseTest, serialized_hash_test) {
+  DatabaseBuilder builder;
+  builder.AddService(0x0001, 0x0005, Uuid::From16Bit(0x1800), true);
+  builder.AddService(0x0006, 0x000D, Uuid::From16Bit(0x1801), true);
+  builder.AddService(0x000E, 0x0013, Uuid::From16Bit(0x1808), true);
+  builder.AddService(0x0014, 0xFFFF, Uuid::From16Bit(0x180F), false);
+
+  builder.AddCharacteristic(0x0002, 0x0003, Uuid::From16Bit(0x2A00), 0x0A);
+  builder.AddCharacteristic(0x0004, 0x0005, Uuid::From16Bit(0x2A01), 0x02);
+
+  builder.AddCharacteristic(0x0007, 0x0008, Uuid::From16Bit(0x2A05), 0x20);
+  builder.AddDescriptor(0x0009, Uuid::From16Bit(0x2902));
+  builder.AddCharacteristic(0x000A, 0x000B, Uuid::From16Bit(0x2B29), 0x0A);
+  builder.AddCharacteristic(0x000C, 0x000D, Uuid::From16Bit(0x2B2A), 0x02);
+
+  builder.AddIncludedService(0x000F, Uuid::From16Bit(0x180F), 0x0014, 0x0016);
+  builder.AddCharacteristic(0x0010, 0x0011, Uuid::From16Bit(0x2A18), 0xA2);
+  builder.AddDescriptor(0x0012, Uuid::From16Bit(0x2902));
+  builder.AddDescriptor(0x0013, Uuid::From16Bit(0x2900));
+
+  builder.AddCharacteristic(0x0015, 0x0016, Uuid::From16Bit(0x2A19), 0x02);
+
+  // set characteristic extended properties descriptor values
+  std::vector<uint16_t> descriptorValues = {0x0000};
+  builder.SetValueOfDescriptors(descriptorValues);
+
+  Database db = builder.Build();
+
+  auto serialized = db.Serialize();
+  std::vector<uint8_t> bytes;
+  for (auto attr : serialized) {
+    StoredAttribute::SerializeStoredAttribute(attr, bytes);
+  }
+  std::vector<StoredAttribute> attr_from_disk(serialized.size());
+  std::copy(bytes.cbegin(), bytes.cend(), (uint8_t*)attr_from_disk.data());
+  bool is_successful = false;
+  Database db_from_disk =
+      gatt::Database::Deserialize(attr_from_disk, &is_successful);
+  ASSERT_TRUE(is_successful);
+  is_successful = false;
+  Database db_from_serialized =
+      gatt::Database::Deserialize(serialized, &is_successful);
+  ASSERT_TRUE(is_successful);
+
+  EXPECT_EQ(db_from_disk.Hash(), db_from_serialized.Hash());
+}
+
 }  // namespace gatt
