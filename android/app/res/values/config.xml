@@ -191,4 +191,9 @@
 
     <!-- Boolean indicating if current platform supports HFP inband ringing -->
     <bool name="config_bluetooth_hfp_inband_ringing_support">true</bool>
+
+     <!-- Link used in airplane mode notification. -->
+    <string name="config_apmLearnMoreLink" translatable="false">
+            https://support.google.com/pixelphone/answer/12639358
+    </string>
 </resources>
