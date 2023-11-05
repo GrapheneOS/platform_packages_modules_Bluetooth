@@ -1,6 +1,6 @@
-/******************************************************************************
- *
- *  Copyright 1999-2012 Broadcom Corporation
+
+/*
+ * Copyright 2023 The Android Open Source Project
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,16 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- ******************************************************************************/
+ */
 
-/******************************************************************************
- *
- *  This file contains functions for BLE device control utilities, and LE
- *  security functions.
- *
- ******************************************************************************/
-
-#define LOG_TAG "bt_btm_ble"
+#define LOG_TAG "ble_sec"
 
 #include <base/strings/stringprintf.h>
 
@@ -50,7 +43,6 @@
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_ble_sec_api.h"
 #include "stack/include/btm_log_history.h"
-#include "stack/include/btu_hcif.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/l2cap_security_interface.h"
 #include "stack/include/l2cdefs.h"
@@ -62,8 +54,6 @@ extern tBTM_CB btm_cb;
 
 bool btm_ble_init_pseudo_addr(tBTM_SEC_DEV_REC* p_dev_rec,
                               const RawAddress& new_pseudo_addr);
-void gatt_notify_phy_updated(tHCI_STATUS status, uint16_t handle,
-                             uint8_t tx_phy, uint8_t rx_phy);
 
 namespace {
 constexpr char kBtmLogTag[] = "SEC";
@@ -495,7 +485,7 @@ void BTM_ReadDevInfo(const RawAddress& remote_bda, tBT_DEVICE_TYPE* p_dev_type,
       /* unknown device, assume BR/EDR */
       LOG_VERBOSE("btm_find_dev_type - unknown device, BR/EDR assumed");
     }
-  } else /* there is a security device record exisitng */
+  } else /* there is a security device record existing */
   {
     /* new inquiry result, merge device type in security device record */
     if (p_inq_info) {
@@ -515,7 +505,7 @@ void BTM_ReadDevInfo(const RawAddress& remote_bda, tBT_DEVICE_TYPE* p_dev_type,
     } else if (p_dev_rec->ble.pseudo_addr == remote_bda) {
       *p_dev_type = BT_DEVICE_TYPE_BLE;
       *p_addr_type = p_dev_rec->ble.AddressType();
-    } else /* matching static adddress only */ {
+    } else /* matching static address only */ {
       if (p_dev_rec->device_type != BT_DEVICE_TYPE_UNKNOWN) {
         *p_dev_type = p_dev_rec->device_type;
       } else {
@@ -573,94 +563,6 @@ bool BTM_ReadConnectedTransportAddress(RawAddress* remote_bda,
   return false;
 }
 
-/*******************************************************************************
- *
- * Function         BTM_BleReceiverTest
- *
- * Description      This function is called to start the LE Receiver test
- *
- * Parameter       rx_freq - Frequency Range
- *               p_cmd_cmpl_cback - Command Complete callback
- *
- ******************************************************************************/
-void BTM_BleReceiverTest(uint8_t rx_freq, tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-  btm_cb.devcb.p_le_test_cmd_cmpl_cb = p_cmd_cmpl_cback;
-
-  btsnd_hcic_ble_receiver_test(rx_freq);
-}
-
-/*******************************************************************************
- *
- * Function         BTM_BleTransmitterTest
- *
- * Description      This function is called to start the LE Transmitter test
- *
- * Parameter       tx_freq - Frequency Range
- *                       test_data_len - Length in bytes of payload data in each
- *                                       packet
- *                       packet_payload - Pattern to use in the payload
- *                       p_cmd_cmpl_cback - Command Complete callback
- *
- ******************************************************************************/
-void BTM_BleTransmitterTest(uint8_t tx_freq, uint8_t test_data_len,
-                            uint8_t packet_payload,
-                            tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-  btm_cb.devcb.p_le_test_cmd_cmpl_cb = p_cmd_cmpl_cback;
-  btsnd_hcic_ble_transmitter_test(tx_freq, test_data_len, packet_payload);
-}
-
-/*******************************************************************************
- *
- * Function         BTM_BleTestEnd
- *
- * Description      This function is called to stop the in-progress TX or RX
- *                  test
- *
- * Parameter       p_cmd_cmpl_cback - Command complete callback
- *
- ******************************************************************************/
-void BTM_BleTestEnd(tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-  btm_cb.devcb.p_le_test_cmd_cmpl_cb = p_cmd_cmpl_cback;
-
-  btsnd_hcic_ble_test_end();
-}
-
-/*******************************************************************************
- * Internal Functions
- ******************************************************************************/
-void btm_ble_test_command_complete(uint8_t* p) {
-  tBTM_CMPL_CB* p_cb = btm_cb.devcb.p_le_test_cmd_cmpl_cb;
-
-  btm_cb.devcb.p_le_test_cmd_cmpl_cb = NULL;
-
-  if (p_cb) {
-    (*p_cb)(p);
-  }
-}
-
-/*******************************************************************************
- *
- * Function         BTM_UseLeLink
- *
- * Description      This function is to select the underlying physical link to
- *                  use.
- *
- * Returns          true to use LE, false use BR/EDR.
- *
- ******************************************************************************/
-bool BTM_UseLeLink(const RawAddress& bd_addr) {
-  if (BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_BR_EDR)) {
-    return false;
-  } else if (BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE)) {
-    return true;
-  }
-
-  tBT_DEVICE_TYPE dev_type;
-  tBLE_ADDR_TYPE addr_type;
-  BTM_ReadDevInfo(bd_addr, &dev_type, &addr_type);
-  return (dev_type == BT_DEVICE_TYPE_BLE);
-}
-
 tBTM_STATUS BTM_SetBleDataLength(const RawAddress& bd_addr,
                                  uint16_t tx_pdu_length) {
   if (!controller_get_interface()->supports_ble_packet_extension()) {
@@ -716,113 +618,6 @@ tBTM_STATUS BTM_SetBleDataLength(const RawAddress& bd_addr,
   p_dev_rec->set_suggested_tx_octect(tx_pdu_length);
 
   return BTM_SUCCESS;
-}
-
-void read_phy_cb(
-    base::Callback<void(uint8_t tx_phy, uint8_t rx_phy, uint8_t status)> cb,
-    uint8_t* data, uint16_t len) {
-  uint8_t status, tx_phy, rx_phy;
-  uint16_t handle;
-
-  LOG_ASSERT(len == 5) << "Received bad response length: " << len;
-  uint8_t* pp = data;
-  STREAM_TO_UINT8(status, pp);
-  STREAM_TO_UINT16(handle, pp);
-  handle = handle & 0x0FFF;
-  STREAM_TO_UINT8(tx_phy, pp);
-  STREAM_TO_UINT8(rx_phy, pp);
-
-  cb.Run(tx_phy, rx_phy, status);
-}
-
-/*******************************************************************************
- *
- * Function         BTM_BleReadPhy
- *
- * Description      To read the current PHYs for specified LE connection
- *
- *
- * Returns          BTM_SUCCESS if command successfully sent to controller,
- *                  BTM_MODE_UNSUPPORTED if local controller doesn't support LE
- *                  2M or LE Coded PHY,
- *                  BTM_WRONG_MODE if Device in wrong mode for request.
- *
- ******************************************************************************/
-void BTM_BleReadPhy(
-    const RawAddress& bd_addr,
-    base::Callback<void(uint8_t tx_phy, uint8_t rx_phy, uint8_t status)> cb) {
-  LOG_VERBOSE("%s", __func__);
-
-  if (!BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE)) {
-    LOG_ERROR("%s: Wrong mode: no LE link exist or LE not supported", __func__);
-    cb.Run(0, 0, HCI_ERR_NO_CONNECTION);
-    return;
-  }
-
-  // checking if local controller supports it!
-  if (!controller_get_interface()->supports_ble_2m_phy() &&
-      !controller_get_interface()->supports_ble_coded_phy()) {
-    LOG_ERROR("%s failed, request not supported in local controller!",
-              __func__);
-    cb.Run(0, 0, GATT_REQ_NOT_SUPPORTED);
-    return;
-  }
-
-  uint16_t handle = BTM_GetHCIConnHandle(bd_addr, BT_TRANSPORT_LE);
-
-  const uint8_t len = HCIC_PARAM_SIZE_BLE_READ_PHY;
-  uint8_t data[len];
-  uint8_t* pp = data;
-  UINT16_TO_STREAM(pp, handle);
-  btu_hcif_send_cmd_with_cb(FROM_HERE, HCI_BLE_READ_PHY, data, len,
-                            base::Bind(&read_phy_cb, std::move(cb)));
-  return;
-}
-
-void doNothing(uint8_t* data, uint16_t len) {}
-
-void BTM_BleSetPhy(const RawAddress& bd_addr, uint8_t tx_phys, uint8_t rx_phys,
-                   uint16_t phy_options) {
-  if (!BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE)) {
-    LOG_INFO(
-        "Unable to set phy preferences because no le acl is connected to "
-        "device");
-    return;
-  }
-
-  uint8_t all_phys = 0;
-  if (tx_phys == 0) all_phys &= 0x01;
-  if (rx_phys == 0) all_phys &= 0x02;
-
-  uint16_t handle = BTM_GetHCIConnHandle(bd_addr, BT_TRANSPORT_LE);
-
-  // checking if local controller supports it!
-  if (!controller_get_interface()->supports_ble_2m_phy() &&
-      !controller_get_interface()->supports_ble_coded_phy()) {
-    LOG_INFO("Local controller unable to support setting of le phy parameters");
-    gatt_notify_phy_updated(static_cast<tHCI_STATUS>(GATT_REQ_NOT_SUPPORTED),
-                            handle, tx_phys, rx_phys);
-    return;
-  }
-
-  if (!acl_peer_supports_ble_2m_phy(handle) &&
-      !acl_peer_supports_ble_coded_phy(handle)) {
-    LOG_INFO("Remote device unable to support setting of le phy parameter");
-    gatt_notify_phy_updated(static_cast<tHCI_STATUS>(GATT_REQ_NOT_SUPPORTED),
-                            handle, tx_phys, rx_phys);
-    return;
-  }
-
-  const uint8_t len = HCIC_PARAM_SIZE_BLE_SET_PHY;
-  uint8_t data[len];
-  uint8_t* pp = data;
-  UINT16_TO_STREAM(pp, handle);
-  UINT8_TO_STREAM(pp, all_phys);
-  UINT8_TO_STREAM(pp, tx_phys);
-  UINT8_TO_STREAM(pp, rx_phys);
-  UINT16_TO_STREAM(pp, phy_options);
-  btu_hcif_send_cmd_with_cb(FROM_HERE, HCI_BLE_SET_PHY, data, len,
-                            base::Bind(doNothing));
 }
 
 /*******************************************************************************
@@ -902,7 +697,7 @@ tBTM_SEC_ACTION btm_ble_determine_security_act(bool is_originator,
  *                  LE link for LE COC.
  *
  * Parameter        bdaddr: remote device address.
- *                  psm : PSM of the LE COC sevice.
+ *                  psm : PSM of the LE COC service.
  *                  is_originator: true if outgoing connection.
  *                  p_callback : Pointer to the callback function.
  *                  p_ref_data : Pointer to be returned along with the callback.
@@ -1023,7 +818,7 @@ void btm_ble_increment_sign_ctr(const RawAddress& bd_addr, bool is_local) {
  * Function         btm_ble_get_enc_key_type
  *
  * Description      This function is to get the BLE key type that has been
- *                  exchanged betweem the local device and the peer device.
+ *                  exchanged between the local device and the peer device.
  *
  * Returns          p_key_type: output parameter to carry the key type value.
  *
@@ -1047,7 +842,7 @@ bool btm_ble_get_enc_key_type(const RawAddress& bd_addr, uint8_t* p_key_types) {
  *
  * Description      This function is called to read the local DIV
  *
- * Returns          TURE - if a valid DIV is availavle
+ * Returns          TRUE - if a valid DIV is availavle
  ******************************************************************************/
 bool btm_get_local_div(const RawAddress& bd_addr, uint16_t* p_div) {
   tBTM_SEC_DEV_REC* p_dev_rec;
@@ -1904,7 +1699,7 @@ tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
  * Function         BTM_BleDataSignature
  *
  * Description      This function is called to sign the data using AES128 CMAC
- *                  algorith.
+ *                  algorithm.
  *
  * Parameter        bd_addr: target device the data to be signed for.
  *                  p_text: singing data
