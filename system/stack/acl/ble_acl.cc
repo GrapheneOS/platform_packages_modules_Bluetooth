@@ -26,6 +26,7 @@
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/btm_ble_addr.h"
+#include "stack/include/btm_ble_privacy.h"
 #include "stack/include/l2cap_hci_link_interface.h"
 #include "types/raw_address.h"
 
