@@ -233,9 +233,6 @@ cc_test {
         "test/bta_dm_cust_uuid_test.cc",
         "test/bta_hf_client_add_record_test.cc",
         "test/bta_hf_client_test.cc",
-        "test/gatt/database_builder_sample_device_test.cc",
-        "test/gatt/database_builder_test.cc",
-        "test/gatt/database_test.cc",
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
@@ -268,6 +265,56 @@ cc_test {
         ":audio_set_configurations_json",
         ":audio_set_scenarios_bfbs",
         ":audio_set_scenarios_json",
+    ],
+    cflags: ["-Wno-unused-parameter"],
+}
+
+// bta GATT unit tests
+cc_test {
+    name: "net_test_bta_gatt",
+    defaults: [
+        "bluetooth_gtest_x86_asan_workaround",
+        "fluoride_bta_defaults",
+        "mts_defaults",
+    ],
+    test_suites: ["general-tests"],
+    srcs: [
+        ":LegacyStackSdp",
+        ":TestCommonMockFunctions",
+        ":TestFakeOsi",
+        ":TestMockBtif",
+        ":TestMockDevice",
+        ":TestMockMainShim",
+        ":TestMockStackBtm",
+        ":TestMockStackL2cap",
+        ":TestMockStackMetrics",
+        "test/gatt/database_builder_sample_device_test.cc",
+        "test/gatt/database_builder_test.cc",
+        "test/gatt/database_test.cc",
+    ],
+    generated_headers: [
+        "BluetoothGeneratedDumpsysDataSchema_h",
+    ],
+    shared_libs: [
+        "libcrypto",
+        "liblog",
+    ],
+    static_libs: [
+        "crypto_toolbox_for_tests",
+        "libbluetooth-types",
+        "libbluetooth_gd",
+        "libbluetooth_hci_pdl",
+        "libbt-audio-hal-interface",
+        "libbt-bta",
+        "libbt-bta-core",
+        "libbt-common",
+        "libbt-platform-protos-lite",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
+        "libbtcore",
+        "libchrome",
+        "libcom.android.sysprop.bluetooth",
+        "libgmock",
     ],
     cflags: ["-Wno-unused-parameter"],
 }
