@@ -49,8 +49,6 @@ public class NotificationHelperService extends Service {
     private static final String NOTIFICATION_TAG = "com.android.bluetooth";
     private static final String APM_NOTIFICATION_CHANNEL = "apm_notification_channel";
     private static final String APM_NOTIFICATION_GROUP = "apm_notification_group";
-    private static final String HELP_PAGE_URL =
-            "https://support.google.com/pixelphone/answer/12639358";
 
     private static final Map<String, Pair<Integer /* titleId */, Integer /* messageId */>>
             NOTIFICATION_MAP =
@@ -112,6 +110,7 @@ public class NotificationHelperService extends Service {
 
         String title = getString(notificationContent.first);
         String message = getString(notificationContent.second);
+        String helpLinkUrl = getString(R.string.config_apmLearnMoreLink);
 
         notificationManager.notify(
                 NOTIFICATION_TAG,
@@ -126,7 +125,7 @@ public class NotificationHelperService extends Service {
                                         this,
                                         PendingIntent.FLAG_UPDATE_CURRENT,
                                         new Intent(Intent.ACTION_VIEW)
-                                                .setData(Uri.parse(HELP_PAGE_URL))
+                                                .setData(Uri.parse(helpLinkUrl))
                                                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                                         PendingIntent.FLAG_IMMUTABLE))
                         .setVisibility(Notification.VISIBILITY_PUBLIC)
