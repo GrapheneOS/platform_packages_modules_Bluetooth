@@ -22,7 +22,6 @@
 
 #include <algorithm>
 #include <list>
-#include <memory>
 #include <sstream>
 
 #include "bt_trace.h"
