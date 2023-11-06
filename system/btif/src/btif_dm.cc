@@ -146,7 +146,7 @@ struct btif_dm_pairing_cb_t {
   bt_bond_state_t state;
   RawAddress static_bdaddr;
   RawAddress bd_addr;
-  tBTM_SEC_DEV_REC::tBTM_BOND_TYPE bond_type;
+  tBTM_BOND_TYPE bond_type;
   uint8_t pin_code_len;
   uint8_t is_ssp;
   uint8_t auth_req;
@@ -565,7 +565,7 @@ static void bond_state_changed(bt_status_t status, const RawAddress& bd_addr,
     return;
   }
 
-  if (pairing_cb.bond_type == tBTM_SEC_DEV_REC::BOND_TYPE_TEMPORARY) {
+  if (pairing_cb.bond_type == BOND_TYPE_TEMPORARY) {
     state = BT_BOND_STATE_NONE;
   }
 
@@ -1047,9 +1047,9 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ* p_ssp_cfm_req) {
       !(p_ssp_cfm_req->loc_auth_req & BTM_AUTH_BONDS) &&
       !(p_ssp_cfm_req->rmt_auth_req & BTM_AUTH_BONDS) &&
       !(check_cod_hid_major(p_ssp_cfm_req->bd_addr, COD_HID_POINTING)))
-    pairing_cb.bond_type = tBTM_SEC_DEV_REC::BOND_TYPE_TEMPORARY;
+    pairing_cb.bond_type = BOND_TYPE_TEMPORARY;
   else
-    pairing_cb.bond_type = tBTM_SEC_DEV_REC::BOND_TYPE_PERSISTENT;
+    pairing_cb.bond_type = BOND_TYPE_PERSISTENT;
 
   btm_set_bond_type_dev(p_ssp_cfm_req->bd_addr, pairing_cb.bond_type);
 
@@ -1060,8 +1060,7 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ* p_ssp_cfm_req) {
     /* Pairing consent for JustWorks NOT needed if:
      * 1. Incoming temporary pairing is detected
      */
-    if (is_incoming &&
-        pairing_cb.bond_type == tBTM_SEC_DEV_REC::BOND_TYPE_TEMPORARY) {
+    if (is_incoming && pairing_cb.bond_type == BOND_TYPE_TEMPORARY) {
       LOG_VERBOSE("%s: Auto-accept JustWorks pairing for temporary incoming",
                   __func__);
       btif_dm_ssp_reply(bd_addr, BT_SSP_VARIANT_CONSENT, true);
@@ -1156,7 +1155,7 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
         (p_auth_cmpl->key_type == HCI_LKEY_TYPE_AUTH_COMB) ||
         (p_auth_cmpl->key_type == HCI_LKEY_TYPE_CHANGED_COMB) ||
         (p_auth_cmpl->key_type == HCI_LKEY_TYPE_AUTH_COMB_P_256) ||
-        pairing_cb.bond_type == tBTM_SEC_DEV_REC::BOND_TYPE_PERSISTENT) {
+        pairing_cb.bond_type == BOND_TYPE_PERSISTENT) {
       bt_status_t ret;
       LOG_VERBOSE("%s: Storing link key. key_type=0x%x, bond_type=%d", __func__,
                   p_auth_cmpl->key_type, pairing_cb.bond_type);
@@ -1172,7 +1171,7 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
     } else {
       LOG_VERBOSE("%s: Temporary key. Not storing. key_type=0x%x, bond_type=%d",
                   __func__, p_auth_cmpl->key_type, pairing_cb.bond_type);
-      if (pairing_cb.bond_type == tBTM_SEC_DEV_REC::BOND_TYPE_TEMPORARY) {
+      if (pairing_cb.bond_type == BOND_TYPE_TEMPORARY) {
         LOG_VERBOSE("%s: sending BT_BOND_STATE_NONE for Temp pairing",
                     __func__);
         btif_storage_remove_bonded_device(&bd_addr);
@@ -2126,7 +2125,7 @@ void BTIF_dm_enable() {
   }
   /* clear control blocks */
   pairing_cb = {};
-  pairing_cb.bond_type = tBTM_SEC_DEV_REC::BOND_TYPE_PERSISTENT;
+  pairing_cb.bond_type = BOND_TYPE_PERSISTENT;
 
   // Enable address consolidation.
   btif_storage_load_le_devices();
@@ -2180,8 +2179,7 @@ void btif_dm_sec_evt(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
     case BTA_DM_BOND_CANCEL_CMPL_EVT:
       if (is_bonding_or_sdp()) {
         bd_addr = pairing_cb.bd_addr;
-        btm_set_bond_type_dev(pairing_cb.bd_addr,
-                              tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN);
+        btm_set_bond_type_dev(pairing_cb.bd_addr, BOND_TYPE_UNKNOWN);
         bond_state_changed((bt_status_t)p_data->bond_cancel_cmpl.result,
                            bd_addr, BT_BOND_STATE_NONE);
       }
@@ -2196,8 +2194,7 @@ void btif_dm_sec_evt(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
 
     case BTA_DM_DEV_UNPAIRED_EVT:
       bd_addr = p_data->dev_unpair.bd_addr;
-      btm_set_bond_type_dev(p_data->dev_unpair.bd_addr,
-                            tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN);
+      btm_set_bond_type_dev(p_data->dev_unpair.bd_addr, BOND_TYPE_UNKNOWN);
 
       GetInterfaceToProfiles()->removeDeviceFromProfiles(bd_addr);
       btif_storage_remove_bonded_device(&bd_addr);
@@ -2383,8 +2380,7 @@ void btif_dm_acl_evt(tBTA_DM_ACL_EVT event, tBTA_DM_ACL* p_data) {
 
     case BTA_DM_LINK_DOWN_EVT: {
       bd_addr = p_data->link_down.bd_addr;
-      btm_set_bond_type_dev(p_data->link_down.bd_addr,
-                            tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN);
+      btm_set_bond_type_dev(p_data->link_down.bd_addr, BOND_TYPE_UNKNOWN);
       GetInterfaceToProfiles()->onLinkDown(bd_addr);
 
       bt_conn_direction_t direction;
@@ -3490,8 +3486,7 @@ static void btif_dm_ble_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
       btif_storage_set_remote_addr_type(&bd_addr, p_auth_cmpl->addr_type);
 
     /* Test for temporary bonding */
-    if (btm_get_bond_type_dev(bd_addr) ==
-        tBTM_SEC_DEV_REC::BOND_TYPE_TEMPORARY) {
+    if (btm_get_bond_type_dev(bd_addr) == BOND_TYPE_TEMPORARY) {
       LOG_VERBOSE("%s: sending BT_BOND_STATE_NONE for Temp pairing", __func__);
       btif_storage_remove_bonded_device(&bd_addr);
       state = BT_BOND_STATE_NONE;
@@ -3690,7 +3685,7 @@ static void btif_dm_ble_sec_req_evt(tBTA_DM_BLE_SEC_REQ* p_ble_req,
 
   bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDING);
 
-  pairing_cb.bond_type = tBTM_SEC_DEV_REC::BOND_TYPE_PERSISTENT;
+  pairing_cb.bond_type = BOND_TYPE_PERSISTENT;
   pairing_cb.is_le_only = true;
   pairing_cb.is_le_nc = false;
   pairing_cb.is_ssp = true;
