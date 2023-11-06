@@ -1665,7 +1665,7 @@ void btsnd_hcic_vendor_spec_cmd(uint16_t opcode, uint8_t len, uint8_t* p_data,
                      base::Unretained(p_cmd_cplt_cback), v_opcode));
 }
 
-void btsnd_hcic_configure_data_path(uint8_t data_path_direction,
+void btsnd_hcic_configure_data_path(hci_data_direction_t data_path_direction,
                                     uint8_t data_path_id,
                                     std::vector<uint8_t> vendor_config) {
   BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
@@ -1686,16 +1686,34 @@ void btsnd_hcic_configure_data_path(uint8_t data_path_direction,
   btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
 }
 
-bluetooth::legacy::hci::Interface interface_ = {
-    // LINK_CONTROL
-    .StartInquiry = btsnd_hcic_inquiry,                   // OCF 0x0401
-    .InquiryCancel = btsnd_hcic_inq_cancel,               // OCF 0x0402
-    .Disconnect = btsnd_hcic_disconnect,                  // OCF 0x0406
-    .ChangeConnectionPacketType = btsnd_hcic_change_conn_type,  // OCF 0x040F,
-    .StartRoleSwitch = btsnd_hcic_switch_role,               // OCF 0x080B,
+namespace bluetooth::legacy::hci {
+class InterfaceImpl : public Interface {
+  void StartInquiry(const uint8_t* inq_lap, uint8_t duration,
+                    uint8_t response_cnt) const override {
+    btsnd_hcic_inquiry(inq_lap, duration, response_cnt);
+  }
+  void InquiryCancel() const override { btsnd_hcic_inq_cancel(); }
+  void Disconnect(uint16_t handle, uint8_t reason) const override {
+    btsnd_hcic_disconnect(handle, reason);
+  }
+  void ChangeConnectionPacketType(uint16_t handle,
+                                  uint16_t packet_types) const override {
+    btsnd_hcic_change_conn_type(handle, packet_types);
+  }
+  void StartRoleSwitch(const RawAddress& bd_addr, uint8_t role) const override {
+    btsnd_hcic_switch_role(bd_addr, role);
+  }
+  void ConfigureDataPath(hci_data_direction_t data_path_direction,
+                         uint8_t data_path_id,
+                         std::vector<uint8_t> vendor_config) const override {
+    btsnd_hcic_configure_data_path(data_path_direction, data_path_id,
+                                   vendor_config);
+  }
 };
 
-const bluetooth::legacy::hci::Interface&
-bluetooth::legacy::hci::GetInterface() {
-  return interface_;
+namespace {
+const InterfaceImpl interface_;
 }
+
+const Interface& GetInterface() { return interface_; }
+}  // namespace bluetooth::legacy::hci

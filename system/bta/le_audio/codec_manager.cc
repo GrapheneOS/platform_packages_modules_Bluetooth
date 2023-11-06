@@ -22,13 +22,13 @@
 #include "le_audio_set_configuration_provider.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
-#include "stack/acl/acl.h"
-#include "stack/include/acl_api.h"
+#include "stack/include/hcimsgs.h"
 
 namespace {
 
 using bluetooth::hci::iso_manager::kIsoDataPathHci;
 using bluetooth::hci::iso_manager::kIsoDataPathPlatformDefault;
+using bluetooth::legacy::hci::GetInterface;
 using le_audio::CodecManager;
 using le_audio::types::CodecLocation;
 
@@ -105,10 +105,10 @@ struct codec_manager_impl {
     }
 
     LOG_INFO("LeAudioCodecManagerImpl: configure_data_path for encode");
-    btm_configure_data_path(btm_data_direction::HOST_TO_CONTROLLER,
-                            kIsoDataPathPlatformDefault, {});
-    btm_configure_data_path(btm_data_direction::CONTROLLER_TO_HOST,
-                            kIsoDataPathPlatformDefault, {});
+    GetInterface().ConfigureDataPath(hci_data_direction_t::HOST_TO_CONTROLLER,
+                                     kIsoDataPathPlatformDefault, {});
+    GetInterface().ConfigureDataPath(hci_data_direction_t::CONTROLLER_TO_HOST,
+                                     kIsoDataPathPlatformDefault, {});
     SetCodecLocation(CodecLocation::ADSP);
   }
   void start(
@@ -118,10 +118,10 @@ struct codec_manager_impl {
   }
   ~codec_manager_impl() {
     if (GetCodecLocation() != CodecLocation::HOST) {
-      btm_configure_data_path(btm_data_direction::HOST_TO_CONTROLLER,
-                              kIsoDataPathHci, {});
-      btm_configure_data_path(btm_data_direction::CONTROLLER_TO_HOST,
-                              kIsoDataPathHci, {});
+      GetInterface().ConfigureDataPath(hci_data_direction_t::HOST_TO_CONTROLLER,
+                                       kIsoDataPathHci, {});
+      GetInterface().ConfigureDataPath(hci_data_direction_t::CONTROLLER_TO_HOST,
+                                       kIsoDataPathHci, {});
     }
     le_audio::AudioSetConfigurationProvider::Cleanup();
   }

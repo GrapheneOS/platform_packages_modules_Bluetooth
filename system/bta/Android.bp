@@ -831,12 +831,12 @@ cc_test {
     srcs: [
         ":TestCommonMockFunctions",
         ":TestMockBtaLeAudioHalVerifier",
+        ":TestMockLegacyHciInterface",
         ":TestStubOsi",
         "le_audio/codec_manager.cc",
         "le_audio/codec_manager_test.cc",
         "le_audio/le_audio_set_configuration_provider_json.cc",
         "le_audio/le_audio_types.cc",
-        "test/common/btm_api_mock.cc",
         "test/common/mock_controller.cc",
     ],
     data: [
