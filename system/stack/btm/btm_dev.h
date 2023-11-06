@@ -210,3 +210,5 @@ std::vector<tBTM_SEC_DEV_REC*> btm_get_sec_dev_rec();
 
 bool BTM_Sec_AddressKnown(const RawAddress& address);
 const tBLE_BD_ADDR BTM_Sec_GetAddressWithType(const RawAddress& bd_addr);
+
+bool BTM_IsRemoteNameKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport);
