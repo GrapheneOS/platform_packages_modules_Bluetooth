@@ -16,6 +16,7 @@
 
 package android.bluetooth;
 
+import android.annotation.FlaggedApi;
 import android.annotation.IntDef;
 import android.annotation.IntRange;
 import android.annotation.NonNull;
@@ -58,6 +59,7 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
     private final byte[] mBroadcastCode;
     private final BluetoothLeAudioContentMetadata mPublicBroadcastMetadata;
     private final @AudioConfigQuality int mAudioConfigQuality;
+    private final int mRssi;
 
     /**
      * Audio configuration quality for this Broadcast Group.
@@ -117,11 +119,19 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
     // Sub group info numSubGroup = mSubGroups.length
     private final List<BluetoothLeBroadcastSubgroup> mSubgroups;
 
-    private BluetoothLeBroadcastMetadata(int sourceAddressType,
-            BluetoothDevice sourceDevice, int sourceAdvertisingSid, int broadcastId,
-            int paSyncInterval, boolean isEncrypted, boolean isPublicBroadcast,
-            String broadcastName, byte[] broadcastCode, int presentationDelay,
+    private BluetoothLeBroadcastMetadata(
+            int sourceAddressType,
+            BluetoothDevice sourceDevice,
+            int sourceAdvertisingSid,
+            int broadcastId,
+            int paSyncInterval,
+            boolean isEncrypted,
+            boolean isPublicBroadcast,
+            String broadcastName,
+            byte[] broadcastCode,
+            int presentationDelay,
             @AudioConfigQuality int audioConfigQuality,
+            int rssi,
             BluetoothLeAudioContentMetadata publicBroadcastMetadata,
             List<BluetoothLeBroadcastSubgroup> subgroups) {
         mSourceAddressType = sourceAddressType;
@@ -135,6 +145,7 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
         mBroadcastCode = broadcastCode;
         mPresentationDelayMicros = presentationDelay;
         mAudioConfigQuality = audioConfigQuality;
+        mRssi = rssi;
         mPublicBroadcastMetadata = publicBroadcastMetadata;
         mSubgroups = subgroups;
     }
@@ -156,16 +167,27 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
                 && Arrays.equals(mBroadcastCode, other.getBroadcastCode())
                 && mPresentationDelayMicros == other.getPresentationDelayMicros()
                 && mAudioConfigQuality == other.getAudioConfigQuality()
+                && mRssi == other.getRssi()
                 && Objects.equals(mPublicBroadcastMetadata, other.getPublicBroadcastMetadata())
                 && mSubgroups.equals(other.getSubgroups());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(mSourceAddressType, mSourceDevice, mSourceAdvertisingSid,
-                mBroadcastId, mPaSyncInterval, mIsEncrypted, mIsPublicBroadcast,
-                mBroadcastName, Arrays.hashCode(mBroadcastCode),
-                mPresentationDelayMicros, mAudioConfigQuality, mPublicBroadcastMetadata,
+        return Objects.hash(
+                mSourceAddressType,
+                mSourceDevice,
+                mSourceAdvertisingSid,
+                mBroadcastId,
+                mPaSyncInterval,
+                mIsEncrypted,
+                mIsPublicBroadcast,
+                mBroadcastName,
+                Arrays.hashCode(mBroadcastCode),
+                mPresentationDelayMicros,
+                mAudioConfigQuality,
+                mRssi,
+                mPublicBroadcastMetadata,
                 mSubgroups);
     }
 
@@ -315,6 +337,31 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
     }
 
     /**
+     * Indicated that rssi value is unknown.
+     *
+     * @hide
+     */
+    @FlaggedApi("com.android.bluetooth.flags.leaudio_broadcast_monitor_source_sync_status")
+    @SystemApi
+    public static final int RSSI_UNKNOWN = 0x7F;
+
+    /**
+     * Get the Received Signal Strength Indication (RSSI) value of this Broadcast Source.
+     *
+     * <p>The valid RSSI range is [-127, 126] and as defined in Volume 4, Part E, Section 7.7.65.13
+     * of Bluetooth Core Specification, Version 5.3, value of 0x7F(127) means that the RSSI is not
+     * available.
+     *
+     * @return the RSSI {@link #RSSI_UNKNOWN} if unknown
+     * @hide
+     */
+    @FlaggedApi("com.android.bluetooth.flags.leaudio_broadcast_monitor_source_sync_status")
+    @SystemApi
+    public @IntRange(from = -127, to = 127) int getRssi() {
+        return mRssi;
+    }
+
+    /**
      * Get public broadcast metadata for this Broadcast Group.
      *
      * @return public broadcast metadata for this Broadcast Group,
@@ -378,6 +425,7 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
         out.writeString(mBroadcastName);
         out.writeInt(mAudioConfigQuality);
         out.writeTypedObject(mPublicBroadcastMetadata, 0);
+        out.writeInt(mRssi);
     }
 
     /**
@@ -385,49 +433,50 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
      *
      * @hide
      */
-    @SystemApi
-    @NonNull
-    public static final Creator<BluetoothLeBroadcastMetadata> CREATOR = new Creator<>() {
-        public @NonNull BluetoothLeBroadcastMetadata createFromParcel(@NonNull Parcel in) {
-            Builder builder = new Builder();
-            final int sourceAddressType = in.readInt();
-            final int deviceExist = in.readInt();
-            BluetoothDevice sourceDevice = null;
-            if (deviceExist == 1) {
-                sourceDevice = in.readTypedObject(BluetoothDevice.CREATOR);
-            }
-            builder.setSourceDevice(sourceDevice, sourceAddressType);
-            builder.setSourceAdvertisingSid(in.readInt());
-            builder.setBroadcastId(in.readInt());
-            builder.setPaSyncInterval(in.readInt());
-            builder.setEncrypted(in.readBoolean());
-            final int codeLen = in.readInt();
-            byte[] broadcastCode = null;
-            if (codeLen != -1) {
-                broadcastCode = new byte[codeLen];
-                if (codeLen >= 0) {
-                    in.readByteArray(broadcastCode);
+    @SystemApi @NonNull
+    public static final Creator<BluetoothLeBroadcastMetadata> CREATOR =
+            new Creator<>() {
+                public @NonNull BluetoothLeBroadcastMetadata createFromParcel(@NonNull Parcel in) {
+                    Builder builder = new Builder();
+                    final int sourceAddressType = in.readInt();
+                    final int deviceExist = in.readInt();
+                    BluetoothDevice sourceDevice = null;
+                    if (deviceExist == 1) {
+                        sourceDevice = in.readTypedObject(BluetoothDevice.CREATOR);
+                    }
+                    builder.setSourceDevice(sourceDevice, sourceAddressType);
+                    builder.setSourceAdvertisingSid(in.readInt());
+                    builder.setBroadcastId(in.readInt());
+                    builder.setPaSyncInterval(in.readInt());
+                    builder.setEncrypted(in.readBoolean());
+                    final int codeLen = in.readInt();
+                    byte[] broadcastCode = null;
+                    if (codeLen != -1) {
+                        broadcastCode = new byte[codeLen];
+                        if (codeLen >= 0) {
+                            in.readByteArray(broadcastCode);
+                        }
+                    }
+                    builder.setBroadcastCode(broadcastCode);
+                    builder.setPresentationDelayMicros(in.readInt());
+                    final List<BluetoothLeBroadcastSubgroup> subgroups = new ArrayList<>();
+                    in.readTypedList(subgroups, BluetoothLeBroadcastSubgroup.CREATOR);
+                    for (BluetoothLeBroadcastSubgroup subgroup : subgroups) {
+                        builder.addSubgroup(subgroup);
+                    }
+                    builder.setPublicBroadcast(in.readBoolean());
+                    builder.setBroadcastName(in.readString());
+                    builder.setAudioConfigQuality(in.readInt());
+                    builder.setPublicBroadcastMetadata(
+                            in.readTypedObject(BluetoothLeAudioContentMetadata.CREATOR));
+                    builder.setRssi(in.readInt());
+                    return builder.build();
                 }
-            }
-            builder.setBroadcastCode(broadcastCode);
-            builder.setPresentationDelayMicros(in.readInt());
-            final List<BluetoothLeBroadcastSubgroup> subgroups = new ArrayList<>();
-            in.readTypedList(subgroups, BluetoothLeBroadcastSubgroup.CREATOR);
-            for (BluetoothLeBroadcastSubgroup subgroup : subgroups) {
-                builder.addSubgroup(subgroup);
-            }
-            builder.setPublicBroadcast(in.readBoolean());
-            builder.setBroadcastName(in.readString());
-            builder.setAudioConfigQuality(in.readInt());
-            builder.setPublicBroadcastMetadata(
-                    in.readTypedObject(BluetoothLeAudioContentMetadata.CREATOR));
-            return builder.build();
-        }
 
-        public @NonNull BluetoothLeBroadcastMetadata[] newArray(int size) {
-            return new BluetoothLeBroadcastMetadata[size];
-        }
-    };
+                public @NonNull BluetoothLeBroadcastMetadata[] newArray(int size) {
+                    return new BluetoothLeBroadcastMetadata[size];
+                }
+            };
 
     private static final int UNKNOWN_VALUE_PLACEHOLDER = -1;
 
@@ -449,6 +498,7 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
         private byte[] mBroadcastCode = null;
         private int mPresentationDelayMicros = UNKNOWN_VALUE_PLACEHOLDER;
         private @AudioConfigQuality int mAudioConfigQuality = AUDIO_CONFIG_QUALITY_NONE;
+        private int mRssi = RSSI_UNKNOWN;
         private BluetoothLeAudioContentMetadata mPublicBroadcastMetadata = null;
         private List<BluetoothLeBroadcastSubgroup> mSubgroups = new ArrayList<>();
 
@@ -479,6 +529,7 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
             mBroadcastCode = original.getBroadcastCode();
             mPresentationDelayMicros = original.getPresentationDelayMicros();
             mAudioConfigQuality = original.getAudioConfigQuality();
+            mRssi = original.getRssi();
             mPublicBroadcastMetadata = original.getPublicBroadcastMetadata();
             mSubgroups = original.getSubgroups();
         }
@@ -665,6 +716,29 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
         }
 
         /**
+         * Set the Received Signal Strength Indication (RSSI) value for this Broadcast metadata.
+         *
+         * <p>The valid RSSI range is [-127, 126] and as defined in Volume 4, Part E, Section
+         * 7.7.65.13 of Bluetooth Core Specification, Version 5.3, value of 0x7F(127) means that the
+         * RSSI is not available.
+         *
+         * @param rssi the RSSI
+         * @return this builder
+         * @throws IllegalArgumentException if rssi is not in the range [-127, 127].
+         * @hide
+         */
+        @FlaggedApi("com.android.bluetooth.flags.leaudio_broadcast_monitor_source_sync_status")
+        @SystemApi
+        @NonNull
+        public Builder setRssi(@IntRange(from = -127, to = 127) int rssi) {
+            if (rssi < -127 || rssi > 127) {
+                throw new IllegalArgumentException("illegal rssi " + rssi);
+            }
+            mRssi = rssi;
+            return this;
+        }
+
+        /**
          * Set public broadcast metadata for this Broadcast Group.
          * PBS should include the Program_Info length-type-value (LTV) structure metadata
          *
@@ -731,11 +805,21 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
             if (mSubgroups.isEmpty()) {
                 throw new IllegalArgumentException("Must contain at least one subgroup");
             }
-            return new BluetoothLeBroadcastMetadata(mSourceAddressType, mSourceDevice,
-                    mSourceAdvertisingSid, mBroadcastId, mPaSyncInterval, mIsEncrypted,
-                    mIsPublicBroadcast, mBroadcastName, mBroadcastCode,
-                    mPresentationDelayMicros, mAudioConfigQuality,
-                    mPublicBroadcastMetadata, mSubgroups);
+            return new BluetoothLeBroadcastMetadata(
+                    mSourceAddressType,
+                    mSourceDevice,
+                    mSourceAdvertisingSid,
+                    mBroadcastId,
+                    mPaSyncInterval,
+                    mIsEncrypted,
+                    mIsPublicBroadcast,
+                    mBroadcastName,
+                    mBroadcastCode,
+                    mPresentationDelayMicros,
+                    mAudioConfigQuality,
+                    mRssi,
+                    mPublicBroadcastMetadata,
+                    mSubgroups);
         }
     }
 }
