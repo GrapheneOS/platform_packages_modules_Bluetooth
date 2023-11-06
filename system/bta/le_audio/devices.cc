@@ -570,9 +570,21 @@ bool LeAudioDevice::HaveAnyUnconfiguredAses(void) {
 bool LeAudioDevice::HaveAllActiveAsesSameState(AseState state) {
   auto iter =
       std::find_if(ases_.begin(), ases_.end(), [&state](const auto& ase) {
-        LOG_INFO("id: %d, active: %d, state: %d", ase.id, ase.active,
-                 (int)ase.state);
+        LOG_VERBOSE("ASE id: %d, active: %d, state: %s", ase.id, ase.active,
+                    bluetooth::common::ToString(ase.state).c_str());
         return ase.active && (ase.state != state);
+      });
+
+  return iter == ases_.end();
+}
+
+bool LeAudioDevice::HaveAllActiveAsesSameDataPathState(
+    types::DataPathState state) const {
+  auto iter =
+      std::find_if(ases_.begin(), ases_.end(), [&state](const auto& ase) {
+        LOG_VERBOSE("ASE id: %d, active: %d, state: %s", ase.id, ase.active,
+                    bluetooth::common::ToString(ase.data_path_state).c_str());
+        return ase.active && (ase.data_path_state != state);
       });
 
   return iter == ases_.end();
@@ -582,6 +594,8 @@ bool LeAudioDevice::IsReadyToCreateStream(void) {
   auto iter = std::find_if(ases_.begin(), ases_.end(), [](const auto& ase) {
     if (!ase.active) return false;
 
+    LOG_VERBOSE("ASE id: %d, state: %s, direction: %d", ase.id,
+                bluetooth::common::ToString(ase.state).c_str(), ase.direction);
     if (ase.direction == types::kLeAudioDirectionSink &&
         (ase.state != AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING &&
          ase.state != AseState::BTA_LE_AUDIO_ASE_STATE_ENABLING))
@@ -615,7 +629,7 @@ bool LeAudioDevice::IsReadyToSuspendStream(void) {
   return iter == ases_.end();
 }
 
-bool LeAudioDevice::HaveAllActiveAsesCisEst(void) {
+bool LeAudioDevice::HaveAllActiveAsesCisEst(void) const {
   if (ases_.empty()) {
     LOG_WARN("No ases for device %s", ADDRESS_TO_LOGGABLE_CSTR(address_));
     /* If there is no ASEs at all, it means we are good here - meaning, it is
@@ -624,11 +638,19 @@ bool LeAudioDevice::HaveAllActiveAsesCisEst(void) {
     return true;
   }
 
-  auto iter = std::find_if(ases_.begin(), ases_.end(), [](const auto& ase) {
+  bool has_active_ase = false;
+  auto iter = std::find_if(ases_.begin(), ases_.end(), [&](const auto& ase) {
+    if (!has_active_ase && ase.active) {
+      has_active_ase = true;
+    }
+    LOG_VERBOSE("ASE id: %d, cis_state: %s, direction: %d", ase.id,
+                bluetooth::common::ToString(ase.cis_state).c_str(),
+                ase.direction);
+
     return ase.active && (ase.cis_state != CisState::CONNECTED);
   });
 
-  return iter == ases_.end();
+  return iter == ases_.end() && has_active_ase;
 }
 
 bool LeAudioDevice::HaveAnyCisConnected(void) {
