@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,16 @@
  * limitations under the License.
  */
 
-/*
- * Generated mock file from original source file
- *   Functions generated:1
- *
- *  mockcify.pl ver 0.2
- */
+#include "test/mock/mock_legacy_hci_interface.h"
 
-// Original included files, if any
+#include <stddef.h>
 
-// Mocked compile conditionals, if any
-namespace test {
-namespace mock {
-namespace hcic_hcicmds {
+#include "stack/include/hcimsgs.h"
 
-struct btsnd_hcic_change_conn_type {
-  uint16_t handle;
-  uint16_t packet_types;
-};
-extern struct btsnd_hcic_change_conn_type btsnd_hcic_change_conn_type;
-
-}  // namespace hcic_hcicmds
-}  // namespace mock
-}  // namespace test
-
-// END mockcify generation
+namespace bluetooth::legacy::hci {
+namespace testing {
+MockInterface interface_;
+MockInterface& GetMock() { return interface_; }
+}  // namespace testing
+const Interface& GetInterface() { return testing::interface_; }
+}  // namespace bluetooth::legacy::hci
