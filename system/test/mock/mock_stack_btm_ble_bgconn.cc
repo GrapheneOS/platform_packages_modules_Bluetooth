@@ -36,11 +36,9 @@ namespace mock {
 namespace stack_btm_ble_bgconn {
 
 // Function state capture and return values, if needed
-struct convert_to_address_with_type convert_to_address_with_type;
 struct btm_update_scanner_filter_policy btm_update_scanner_filter_policy;
 struct btm_ble_suspend_bg_conn btm_ble_suspend_bg_conn;
 struct btm_ble_resume_bg_conn btm_ble_resume_bg_conn;
-struct BTM_BackgroundConnectAddressKnown BTM_BackgroundConnectAddressKnown;
 struct BTM_SetLeConnectionModeToFast BTM_SetLeConnectionModeToFast;
 struct BTM_SetLeConnectionModeToSlow BTM_SetLeConnectionModeToSlow;
 struct BTM_AcceptlistAdd BTM_AcceptlistAdd;
@@ -52,13 +50,6 @@ struct BTM_AcceptlistClear BTM_AcceptlistClear;
 }  // namespace mock
 }  // namespace test
 
-// Mocked functions, if any
-const tBLE_BD_ADDR convert_to_address_with_type(
-    const RawAddress& bd_addr, const tBTM_SEC_DEV_REC* p_dev_rec) {
-  inc_func_call_count(__func__);
-  return test::mock::stack_btm_ble_bgconn::convert_to_address_with_type(
-      bd_addr, p_dev_rec);
-}
 void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_ble_bgconn::btm_update_scanner_filter_policy(
@@ -71,11 +62,6 @@ bool btm_ble_suspend_bg_conn(void) {
 bool btm_ble_resume_bg_conn(void) {
   inc_func_call_count(__func__);
   return test::mock::stack_btm_ble_bgconn::btm_ble_resume_bg_conn();
-}
-bool BTM_BackgroundConnectAddressKnown(const RawAddress& address) {
-  inc_func_call_count(__func__);
-  return test::mock::stack_btm_ble_bgconn::BTM_BackgroundConnectAddressKnown(
-      address);
 }
 bool BTM_SetLeConnectionModeToFast() {
   inc_func_call_count(__func__);
