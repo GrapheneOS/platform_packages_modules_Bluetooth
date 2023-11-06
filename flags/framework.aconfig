@@ -1,0 +1,8 @@
+package: "com.android.bluetooth.flags"
+
+flag {
+    name: "support_metadata_device_types_apis"
+    namespace: "bluetooth"
+    description: "Support more device types in bt device metadata"
+    bug: "289584302"
+}
