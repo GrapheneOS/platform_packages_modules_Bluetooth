@@ -52,7 +52,6 @@ using namespace bluetooth::legacy::stack::sdp;
 
 using bluetooth::Uuid;
 
-bool BTM_BackgroundConnectAddressKnown(const RawAddress& address);
 /**
  * Add an service handle range to the list in decending order of the start
  * handle. Return reference to the newly added element.
@@ -1440,7 +1439,7 @@ bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr,
   } else {
     LOG_DEBUG("Starting background connect gatt_if=%u address=%s", gatt_if,
               ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
-    if (!BTM_BackgroundConnectAddressKnown(bd_addr)) {
+    if (!BTM_Sec_AddressKnown(bd_addr)) {
       //  RPA can rotate, causing address to "expire" in the background
       //  connection list. RPA is allowed for direct connect, as such request
       //  times out after 30 seconds
