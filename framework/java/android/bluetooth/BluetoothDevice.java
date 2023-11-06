@@ -18,6 +18,7 @@ package android.bluetooth;
 
 import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 
+import android.annotation.FlaggedApi;
 import android.annotation.IntDef;
 import android.annotation.IntRange;
 import android.annotation.NonNull;
@@ -835,6 +836,26 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      */
     @SystemApi
     public static final String DEVICE_TYPE_STYLUS = "Stylus";
+
+    /**
+     * Device type which is used in METADATA_DEVICE_TYPE
+     * Indicates this Bluetooth device is a speaker.
+     *
+     * @hide
+     */
+    @FlaggedApi("com.android.bluetooth.flags.support_metadata_device_types_apis")
+    @SystemApi
+    public static final String DEVICE_TYPE_SPEAKER = "Speaker";
+
+    /**
+     * Device type which is used in METADATA_DEVICE_TYPE
+     * Indicates this Bluetooth device is a tethered headset.
+     *
+     * @hide
+     */
+    @FlaggedApi("com.android.bluetooth.flags.support_metadata_device_types_apis")
+    @SystemApi
+    public static final String DEVICE_TYPE_HEADSET = "Headset";
 
     /**
      * Broadcast Action: This intent is used to broadcast the {@link UUID}
