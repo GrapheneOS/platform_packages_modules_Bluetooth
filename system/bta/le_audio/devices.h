@@ -178,8 +178,6 @@ class LeAudioDevice {
   bool IsReadyToSuspendStream(void);
   bool HaveAllActiveAsesCisEst(void) const;
   bool HaveAnyCisConnected(void);
-  bool HasCisId(uint8_t id);
-  uint8_t GetMatchingBidirectionCisId(const struct types::ase* base_ase);
   const struct types::acs_ac_record* GetCodecConfigurationSupportedPac(
       uint8_t direction, const set_configurations::CodecCapabilitySetting&
                              codec_capability_setting);

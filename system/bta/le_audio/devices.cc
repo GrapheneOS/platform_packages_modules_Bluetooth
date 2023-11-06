@@ -664,43 +664,6 @@ bool LeAudioDevice::HaveAnyCisConnected(void) {
   return false;
 }
 
-bool LeAudioDevice::HasCisId(uint8_t id) {
-  struct ase* ase = GetFirstActiveAse();
-
-  while (ase) {
-    if (ase->cis_id == id) return true;
-    ase = GetNextActiveAse(ase);
-  }
-
-  return false;
-}
-
-uint8_t LeAudioDevice::GetMatchingBidirectionCisId(const struct ase* base_ase) {
-  for (auto& ase : ases_) {
-    auto& cis = ase.cis_id;
-    if (!ase.active) continue;
-
-    int num_cises =
-        std::count_if(ases_.begin(), ases_.end(), [&cis](const auto& iter_ase) {
-          return iter_ase.active && iter_ase.cis_id == cis;
-        });
-
-    /*
-     * If there is only one ASE for device with unique CIS ID and opposite to
-     * direction - it may be bi-directional/completive.
-     */
-    if (num_cises == 1 &&
-        ((base_ase->direction == types::kLeAudioDirectionSink &&
-          ase.direction == types::kLeAudioDirectionSource) ||
-         (base_ase->direction == types::kLeAudioDirectionSource &&
-          ase.direction == types::kLeAudioDirectionSink))) {
-      return ase.cis_id;
-    }
-  }
-
-  return kInvalidCisId;
-}
-
 uint8_t LeAudioDevice::GetLc3SupportedChannelCount(uint8_t direction) {
   auto& pacs =
       direction == types::kLeAudioDirectionSink ? snk_pacs_ : src_pacs_;
