@@ -59,6 +59,7 @@
 #include "stack/include/bt_types.h"
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/btm_api_types.h"
+#include "stack/include/btm_ble_addr.h"
 #include "stack/include/btm_log_history.h"
 #include "stack/include/gap_api.h"
 #include "stack/include/hci_error_code.h"
@@ -69,11 +70,6 @@
 extern tBTM_CB btm_cb;
 
 void btm_inq_remote_name_timer_timeout(void* data);
-bool btm_ble_init_pseudo_addr(tBTM_SEC_DEV_REC* p_dev_rec,
-                              const RawAddress& new_pseudo_addr);
-bool btm_identity_addr_to_random_pseudo(RawAddress* bd_addr,
-                                        tBLE_ADDR_TYPE* p_addr_type,
-                                        bool refresh);
 void btm_ble_batchscan_init(void);
 void btm_ble_adv_filter_init(void);
 
