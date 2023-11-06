@@ -88,7 +88,7 @@ struct LeAudioCodecConfiguration {
             (data_interval_us == other.data_interval_us));
   }
 
-  bool IsInvalid() {
+  bool IsInvalid() const {
     return (num_channels == 0) || (sample_rate == 0) ||
            (bits_per_sample == 0) || (data_interval_us == 0);
   }

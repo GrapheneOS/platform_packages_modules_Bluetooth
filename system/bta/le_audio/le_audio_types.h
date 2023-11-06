@@ -214,15 +214,15 @@ inline uint8_t GetAudioChannelCounts(std::bitset<32> allocation) {
 /* LTV Types - same values as in Codec Specific Configurations but 0x03 is
  * named differently.
  */
-constexpr uint8_t kLeAudioLtvTypeSamplingFreq =
+constexpr uint8_t kLeAudioLtvTypeSupportedSamplingFrequencies =
     codec_spec_conf::kLeAudioLtvTypeSamplingFreq;
-constexpr uint8_t kLeAudioLtvTypeFrameDuration =
+constexpr uint8_t kLeAudioLtvTypeSupportedFrameDurations =
     codec_spec_conf::kLeAudioLtvTypeFrameDuration;
-constexpr uint8_t kLeAudioLtvTypeAudioChannelCounts =
+constexpr uint8_t kLeAudioLtvTypeSupportedAudioChannelCounts =
     codec_spec_conf::kLeAudioLtvTypeAudioChannelAllocation;
-constexpr uint8_t kLeAudioLtvTypeOctetsPerCodecFrame =
+constexpr uint8_t kLeAudioLtvTypeSupportedOctetsPerCodecFrame =
     codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame;
-constexpr uint8_t kLeAudioLtvTypeMaxCodecFramesPerSdu =
+constexpr uint8_t kLeAudioLtvTypeSupportedMaxCodecFramesPerSdu =
     codec_spec_conf::kLeAudioLtvTypeCodecFrameBlocksPerSdu;
 
 /* Sampling Frequencies */
@@ -796,7 +796,7 @@ std::ostream& operator<<(std::ostream& os, const AudioContexts& contexts);
 
 namespace set_configurations {
 
-struct CodecCapabilitySetting {
+struct CodecConfigSetting {
   types::LeAudioCodecId id;
 
   /* Codec Specific Configuration variant */
@@ -820,7 +820,7 @@ struct QosConfigSetting {
 
 struct SetConfiguration {
   SetConfiguration(uint8_t direction, uint8_t device_cnt, uint8_t ase_cnt,
-                   CodecCapabilitySetting codec,
+                   CodecConfigSetting codec,
                    QosConfigSetting qos = {.retransmission_number = 0,
                                            .max_transport_latency = 0},
                    le_audio::types::LeAudioConfigurationStrategy strategy =
@@ -842,7 +842,7 @@ struct SetConfiguration {
   /* Datapath ID used to configure an ISO channel for these ASEs */
   uint8_t data_path_id = bluetooth::hci::iso_manager::kIsoDataPathHci;
 
-  CodecCapabilitySetting codec;
+  CodecConfigSetting codec;
   QosConfigSetting qos;
   types::LeAudioConfigurationStrategy strategy;
 };
@@ -875,9 +875,9 @@ bool check_if_may_cover_scenario(
     const AudioSetConfigurations* audio_set_configurations, uint8_t group_size);
 bool check_if_may_cover_scenario(
     const AudioSetConfiguration* audio_set_configuration, uint8_t group_size);
-bool IsCodecCapabilitySettingSupported(
+bool IsCodecConfigSettingSupported(
     const types::acs_ac_record& pac_record,
-    const CodecCapabilitySetting& codec_capability_setting);
+    const CodecConfigSetting& codec_capability_setting);
 uint8_t get_num_of_devices_in_configuration(
     const AudioSetConfiguration* audio_set_configuration);
 }  // namespace set_configurations

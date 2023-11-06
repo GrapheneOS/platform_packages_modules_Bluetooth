@@ -173,7 +173,9 @@ struct codec_manager_impl {
 
   const AudioSetConfigurations* GetOffloadCodecConfig(
       types::LeAudioContextType ctx_type) {
-    return &context_type_offload_config_map_[ctx_type];
+    return context_type_offload_config_map_.count(ctx_type)
+               ? &context_type_offload_config_map_[ctx_type]
+               : nullptr;
   }
 
   void UpdateSupportedBroadcastConfig(
@@ -389,8 +391,8 @@ struct codec_manager_impl {
   }
 
   bool IsLc3ConfigMatched(
-      const set_configurations::CodecCapabilitySetting& adsp_config,
-      const set_configurations::CodecCapabilitySetting& target_config) {
+      const set_configurations::CodecConfigSetting& adsp_config,
+      const set_configurations::CodecConfigSetting& target_config) {
     if (adsp_config.id.coding_format != types::kLeAudioCodingFormatLC3 ||
         target_config.id.coding_format != types::kLeAudioCodingFormatLC3) {
       return false;
