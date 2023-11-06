@@ -868,16 +868,21 @@ bool LeAudioDeviceGroup::IsReleasingOrIdle(void) const {
 }
 
 bool LeAudioDeviceGroup::IsGroupStreamReady(void) const {
-  auto iter =
-      std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(), [](auto& d) {
-        if (d.expired() || (d.lock().get()->GetConnectionState() !=
-                            DeviceConnectState::CONNECTED))
-          return false;
-        else
-          return !(((d.lock()).get())->HaveAllActiveAsesCisEst());
-      });
+  bool is_device_ready = false;
 
-  return iter == leAudioDevices_.end();
+  /* All connected devices must be ready */
+  for (auto& weak : leAudioDevices_) {
+    auto dev = weak.lock();
+    if (!dev) return false;
+
+    if (dev->GetConnectionState() == DeviceConnectState::CONNECTED) {
+      if (!dev->IsReadyToStream()) {
+        return false;
+      }
+      is_device_ready = true;
+    }
+  }
+  return is_device_ready;
 }
 
 bool LeAudioDeviceGroup::HaveAllCisesDisconnected(void) const {
