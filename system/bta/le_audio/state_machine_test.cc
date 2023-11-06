@@ -3788,13 +3788,13 @@ TEST_F(StateMachineTest, testStateIdleNotifyAclDisconnectedRemoveCig) {
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
-  group->SetCigState(types::CigState::CREATED);
+  group->cig.SetState(types::CigState::CREATED);
 
   // Assert current state
   ASSERT_TRUE(group->GetState() ==
               types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
   ASSERT_FALSE(group->IsInTransition());
-  ASSERT_TRUE(group->GetCigState() == types::CigState::CREATED);
+  ASSERT_TRUE(group->cig.GetState() == types::CigState::CREATED);
 
   // Expect RemoveCig to be called
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(group->group_id_, _)).Times(1);
@@ -3805,7 +3805,7 @@ TEST_F(StateMachineTest, testStateIdleNotifyAclDisconnectedRemoveCig) {
       group, leAudioDevice);
 
   // Assert Cig state transition to NONE after REMOVING
-  ASSERT_TRUE(group->GetCigState() == types::CigState::NONE);
+  ASSERT_TRUE(group->cig.GetState() == types::CigState::NONE);
 }
 
 TEST_F(StateMachineTest, testStateTransitionTimeout) {

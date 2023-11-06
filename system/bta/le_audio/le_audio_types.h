@@ -893,6 +893,17 @@ struct stream_parameters {
   int num_of_devices;
   /* cis_handle, audio location*/
   std::vector<std::pair<uint16_t, uint32_t>> stream_locations;
+
+  void clear() {
+    sample_frequency_hz = 0;
+    frame_duration_us = 0;
+    octets_per_codec_frame = 0;
+    audio_channel_allocation = 0;
+    codec_frames_blocks_per_sdu = 0;
+    num_of_channels = 0;
+    num_of_devices = 0;
+    stream_locations.clear();
+  }
 };
 
 struct stream_configuration {
