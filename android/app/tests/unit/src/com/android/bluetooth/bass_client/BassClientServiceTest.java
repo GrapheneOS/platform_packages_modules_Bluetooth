@@ -223,15 +223,24 @@ public class BassClientServiceTest {
         }).when(mAdapterService).getBondedDevices();
 
         // Mock methods in BassObjectsFactory
-        doAnswer(invocation -> {
-            assertThat(mCurrentDevice).isNotNull();
-            final BassClientStateMachine stateMachine = mock(BassClientStateMachine.class);
-            doReturn(new ArrayList<>()).when(stateMachine).getAllSources();
-            doReturn(TEST_NUM_SOURCES).when(stateMachine).getMaximumSourceCapacity();
-            doReturn((BluetoothDevice)invocation.getArgument(0)).when(stateMachine).getDevice();
-            mStateMachines.put((BluetoothDevice)invocation.getArgument(0), stateMachine);
-            return stateMachine;
-        }).when(mObjectsFactory).makeStateMachine(any(), any(), any());
+        doAnswer(
+                        invocation -> {
+                            assertThat(mCurrentDevice).isNotNull();
+                            final BassClientStateMachine stateMachine =
+                                    mock(BassClientStateMachine.class);
+                            doReturn(new ArrayList<>()).when(stateMachine).getAllSources();
+                            doReturn(TEST_NUM_SOURCES)
+                                    .when(stateMachine)
+                                    .getMaximumSourceCapacity();
+                            doReturn((BluetoothDevice) invocation.getArgument(0))
+                                    .when(stateMachine)
+                                    .getDevice();
+                            mStateMachines.put(
+                                    (BluetoothDevice) invocation.getArgument(0), stateMachine);
+                            return stateMachine;
+                        })
+                .when(mObjectsFactory)
+                .makeStateMachine(any(), any(), any(), any());
         doReturn(mBluetoothLeScannerWrapper).when(mObjectsFactory)
                 .getBluetoothLeScannerWrapper(any());
 
@@ -337,8 +346,8 @@ public class BassClientServiceTest {
         mCurrentDevice = TestUtils.getTestDevice(mBluetoothAdapter, 0);
 
         assertThat(mBassClientService.connect(mCurrentDevice)).isTrue();
-        verify(mObjectsFactory).makeStateMachine(
-                eq(mCurrentDevice), eq(mBassClientService), any());
+        verify(mObjectsFactory)
+                .makeStateMachine(eq(mCurrentDevice), eq(mBassClientService), any(), any());
         BassClientStateMachine stateMachine = mStateMachines.get(mCurrentDevice);
         assertThat(stateMachine).isNotNull();
         verify(stateMachine).sendMessage(BassClientStateMachine.CONNECT);
