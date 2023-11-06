@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <base/strings/stringprintf.h>
+
 #include <cstdint>
 #include <string>
 
@@ -471,3 +473,24 @@ typedef struct {
   uint16_t num_keys;
 } tBTM_DELETE_STORED_LINK_KEY_COMPLETE;
 
+enum tBTM_BOND_TYPE : uint8_t {
+  BOND_TYPE_UNKNOWN = 0,
+  BOND_TYPE_PERSISTENT = 1,
+  BOND_TYPE_TEMPORARY = 2
+};
+
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code
+
+inline std::string bond_type_text(const tBTM_BOND_TYPE& bond_type) {
+  switch (bond_type) {
+    CASE_RETURN_TEXT(BOND_TYPE_UNKNOWN);
+    CASE_RETURN_TEXT(BOND_TYPE_PERSISTENT);
+    CASE_RETURN_TEXT(BOND_TYPE_TEMPORARY);
+    default:
+      return base::StringPrintf("UNKNOWN[%hhu]", bond_type);
+  }
+}
+
+#undef CASE_RETURN_TEXT
