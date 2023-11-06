@@ -48,7 +48,6 @@ struct BTM_InqDbFirst BTM_InqDbFirst;
 struct BTM_InqDbNext BTM_InqDbNext;
 struct BTM_InqDbRead BTM_InqDbRead;
 struct BTM_IsInquiryActive BTM_IsInquiryActive;
-struct BTM_IsRemoteNameKnown BTM_IsRemoteNameKnown;
 struct BTM_ReadRemoteDeviceName BTM_ReadRemoteDeviceName;
 struct BTM_RemoveEirService BTM_RemoveEirService;
 struct BTM_SetConnectability BTM_SetConnectability;
@@ -96,7 +95,6 @@ tBTM_INQ_INFO* BTM_InqDbFirst::return_value = nullptr;
 tBTM_INQ_INFO* BTM_InqDbNext::return_value = nullptr;
 tBTM_INQ_INFO* BTM_InqDbRead::return_value = nullptr;
 uint16_t BTM_IsInquiryActive::return_value = 0;
-bool BTM_IsRemoteNameKnown::return_value = false;
 tBTM_STATUS BTM_ReadRemoteDeviceName::return_value = 0;
 tBTM_STATUS BTM_SetConnectability::return_value = 0;
 tBTM_STATUS BTM_SetDiscoverability::return_value = 0;
@@ -171,10 +169,7 @@ uint16_t BTM_IsInquiryActive(void) {
   inc_func_call_count(__func__);
   return test::mock::stack_btm_inq::BTM_IsInquiryActive();
 }
-bool BTM_IsRemoteNameKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
-  inc_func_call_count(__func__);
-  return test::mock::stack_btm_inq::BTM_IsRemoteNameKnown(bd_addr, transport);
-}
+
 tBTM_STATUS BTM_ReadRemoteDeviceName(const RawAddress& remote_bda,
                                      tBTM_NAME_CMPL_CB* p_cb,
                                      tBT_TRANSPORT transport) {

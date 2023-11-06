@@ -106,6 +106,8 @@ struct btm_simple_pair_complete btm_simple_pair_complete;
 struct is_sec_state_equal is_sec_state_equal;
 struct is_state_getting_name is_state_getting_name;
 
+struct BTM_IsRemoteNameKnown BTM_IsRemoteNameKnown;
+
 }  // namespace stack_btm_sec
 }  // namespace mock
 }  // namespace test
@@ -147,6 +149,8 @@ tBTM_STATUS btm_sec_l2cap_access_req_by_requirement::return_value = 0;
 tBTM_STATUS btm_sec_mx_access_request::return_value = 0;
 bool is_sec_state_equal::return_value = false;
 bool is_state_getting_name::return_value = false;
+
+bool BTM_IsRemoteNameKnown::return_value = false;
 
 }  // namespace stack_btm_sec
 }  // namespace mock
@@ -478,5 +482,11 @@ bool is_state_getting_name(void* data, void* context) {
   inc_func_call_count(__func__);
   return test::mock::stack_btm_sec::is_state_getting_name(data, context);
 }
+
+bool BTM_IsRemoteNameKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+  inc_func_call_count(__func__);
+  return test::mock::stack_btm_sec::BTM_IsRemoteNameKnown(bd_addr, transport);
+}
+
 // Mocked functions complete
 // END mockcify generation
