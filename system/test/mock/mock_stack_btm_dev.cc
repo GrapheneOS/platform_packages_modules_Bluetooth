@@ -59,7 +59,7 @@ bool btm_dev_support_role_switch(const RawAddress& bd_addr) {
   return false;
 }
 bool btm_set_bond_type_dev(const RawAddress& bd_addr,
-                           tBTM_SEC_DEV_REC::tBTM_BOND_TYPE bond_type) {
+                           tBTM_BOND_TYPE bond_type) {
   inc_func_call_count(__func__);
   return false;
 }
@@ -95,10 +95,9 @@ tBTM_SEC_DEV_REC* btm_sec_allocate_dev_rec(void) {
   inc_func_call_count(__func__);
   return nullptr;
 }
-tBTM_SEC_DEV_REC::tBTM_BOND_TYPE btm_get_bond_type_dev(
-    const RawAddress& bd_addr) {
+tBTM_BOND_TYPE btm_get_bond_type_dev(const RawAddress& bd_addr) {
   inc_func_call_count(__func__);
-  return tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN;
+  return BOND_TYPE_UNKNOWN;
 }
 void BTM_SecClearSecurityFlags(const RawAddress& bd_addr) {
   inc_func_call_count(__func__);

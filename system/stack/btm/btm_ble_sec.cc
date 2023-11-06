@@ -1645,7 +1645,7 @@ tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
           if (res == BTM_SUCCESS) {
             p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
 
-            if (p_dev_rec->bond_type != tBTM_SEC_DEV_REC::BOND_TYPE_TEMPORARY) {
+            if (p_dev_rec->bond_type != BOND_TYPE_TEMPORARY) {
               // Add all bonded device into resolving list if IRK is available.
               btm_ble_resolving_list_load_dev(*p_dev_rec);
             } else if (p_dev_rec->ble_hci_handle == HCI_INVALID_HANDLE) {
