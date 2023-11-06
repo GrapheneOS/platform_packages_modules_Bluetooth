@@ -36,7 +36,7 @@ using ::aidl::android::hardware::bluetooth::audio::UnicastCapability;
 using ::bluetooth::audio::aidl::BluetoothAudioCtrlAck;
 using ::bluetooth::audio::le_audio::StartRequestState;
 using ::le_audio::set_configurations::AudioSetConfiguration;
-using ::le_audio::set_configurations::CodecCapabilitySetting;
+using ::le_audio::set_configurations::CodecConfigSetting;
 
 constexpr uint8_t kChannelNumberMono = 1;
 constexpr uint8_t kChannelNumberStereo = 2;
@@ -54,16 +54,12 @@ constexpr uint8_t kBitsPerSample32 = 32;
 
 using ::bluetooth::audio::le_audio::StreamCallbacks;
 
-void flush_sink();
 void flush_source();
 bool hal_ucast_capability_to_stack_format(
     const UnicastCapability& ucast_capability,
-    CodecCapabilitySetting& stack_capability);
+    CodecConfigSetting& stack_capability);
 AudioConfiguration offload_config_to_hal_audio_config(
     const ::le_audio::offload_config& offload_config);
-
-bool is_source_hal_enabled();
-bool is_sink_hal_enabled();
 
 std::vector<AudioSetConfiguration> get_offload_capabilities();
 
