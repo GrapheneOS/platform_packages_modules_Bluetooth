@@ -26,7 +26,7 @@ impl BluetoothLogging {
         Self { is_debug, is_stderr, is_initialized: false }
     }
 
-    pub fn initialize(&mut self) -> Result<(), syslog::Error> {
+    pub fn initialize(&mut self) -> Result<(), Error> {
         let level = if self.is_debug { LevelFilter::Debug } else { LevelFilter::Info };
 
         if self.is_stderr {
