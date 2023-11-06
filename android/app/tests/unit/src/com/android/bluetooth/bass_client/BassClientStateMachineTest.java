@@ -70,6 +70,7 @@ import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.bluetooth.BluetoothLeBroadcastReceiveState;
 import android.bluetooth.BluetoothLeBroadcastSubgroup;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.le.PeriodicAdvertisingCallback;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.content.Intent;
@@ -83,6 +84,9 @@ import androidx.test.filters.MediumTest;
 import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.flags.FakeFeatureFlagsImpl;
+import com.android.bluetooth.flags.FeatureFlags;
+import com.android.bluetooth.flags.Flags;
 
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
@@ -118,6 +122,7 @@ public class BassClientStateMachineTest {
     private HandlerThread mHandlerThread;
     private StubBassClientStateMachine mBassClientStateMachine;
     private BluetoothDevice mTestDevice;
+    private FakeFeatureFlagsImpl mFakeFlagsImpl;
 
     @Mock private AdapterService mAdapterService;
     @Mock private BassClientService mBassClientService;
@@ -128,6 +133,8 @@ public class BassClientStateMachineTest {
         TestUtils.setAdapterService(mAdapterService);
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        mFakeFlagsImpl = new FakeFeatureFlagsImpl();
+        mFakeFlagsImpl.setFlag(Flags.FLAG_LEAUDIO_BROADCAST_MONITOR_SOURCE_SYNC_STATUS, false);
         BluetoothMethodProxy.setInstanceForTesting(mMethodProxy);
         doNothing().when(mMethodProxy).periodicAdvertisingManagerTransferSync(
                 any(), any(), anyInt(), anyInt());
@@ -138,8 +145,13 @@ public class BassClientStateMachineTest {
         // Set up thread and looper
         mHandlerThread = new HandlerThread("BassClientStateMachineTestHandlerThread");
         mHandlerThread.start();
-        mBassClientStateMachine = new StubBassClientStateMachine(mTestDevice,
-                mBassClientService, mHandlerThread.getLooper(), CONNECTION_TIMEOUT_MS);
+        mBassClientStateMachine =
+                new StubBassClientStateMachine(
+                        mTestDevice,
+                        mBassClientService,
+                        mHandlerThread.getLooper(),
+                        CONNECTION_TIMEOUT_MS,
+                        mFakeFlagsImpl);
         mBassClientStateMachine.start();
     }
 
@@ -1789,6 +1801,20 @@ public class BassClientStateMachineTest {
                 .isInstanceOf(BassClientStateMachine.Disconnected.class);
     }
 
+    @Test
+    public void periodicAdvertisingCallbackOnSyncLost_notifySourceLost() {
+        mFakeFlagsImpl.setFlag(Flags.FLAG_LEAUDIO_BROADCAST_MONITOR_SOURCE_SYNC_STATUS, true);
+        PeriodicAdvertisingCallback cb = mBassClientStateMachine.mLocalPeriodicAdvCallback;
+        BassClientService.Callbacks callbacks = Mockito.mock(BassClientService.Callbacks.class);
+        int syncHandle = 1;
+        int broadcastId = 2;
+        when(mBassClientService.getBroadcastIdForSyncHandle(syncHandle)).thenReturn(broadcastId);
+        when(mBassClientService.getCallbacks()).thenReturn(callbacks);
+        cb.onSyncLost(syncHandle);
+
+        verify(callbacks).notifySourceLost(broadcastId);
+    }
+
     private void initToConnectingState() {
         allowConnection(true);
         allowConnectGatt(true);
@@ -1904,9 +1930,13 @@ public class BassClientStateMachineTest {
         int mMsgArg2;
         Object mMsgObj;
 
-        StubBassClientStateMachine(BluetoothDevice device, BassClientService service, Looper looper,
-                int connectTimeout) {
-            super(device, service, looper, connectTimeout);
+        StubBassClientStateMachine(
+                BluetoothDevice device,
+                BassClientService service,
+                Looper looper,
+                int connectTimeout,
+                FeatureFlags featureFlags) {
+            super(device, service, looper, connectTimeout, featureFlags);
         }
 
         @Override

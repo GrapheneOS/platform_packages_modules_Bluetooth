@@ -40,4 +40,5 @@ interface IBluetoothLeBroadcastAssistantCallback {
     void onSourceRemoveFailed(in BluetoothDevice sink, in int sourceId, in int reason);
     void onReceiveStateChanged(in BluetoothDevice sink, in int sourceId,
             in BluetoothLeBroadcastReceiveState state);
+    void onSourceLost(in int broadcastId);
 }
