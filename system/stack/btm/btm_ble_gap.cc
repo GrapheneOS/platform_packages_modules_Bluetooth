@@ -76,8 +76,6 @@ bool btm_identity_addr_to_random_pseudo(RawAddress* bd_addr,
                                         bool refresh);
 void btm_ble_batchscan_init(void);
 void btm_ble_adv_filter_init(void);
-extern const tBLE_BD_ADDR convert_to_address_with_type(
-    const RawAddress& bd_addr, const tBTM_SEC_DEV_REC* p_dev_rec);
 
 #define BTM_EXT_BLE_RMT_NAME_TIMEOUT_MS (30 * 1000)
 #define MIN_ADV_LENGTH 2
