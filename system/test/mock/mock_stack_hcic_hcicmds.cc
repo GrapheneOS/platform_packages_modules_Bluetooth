@@ -38,7 +38,6 @@ struct btsnd_hcic_accept_conn btsnd_hcic_accept_conn;
 struct btsnd_hcic_accept_esco_conn btsnd_hcic_accept_esco_conn;
 struct btsnd_hcic_add_SCO_conn btsnd_hcic_add_SCO_conn;
 struct btsnd_hcic_auth_request btsnd_hcic_auth_request;
-struct btsnd_hcic_change_conn_type btsnd_hcic_change_conn_type;
 struct btsnd_hcic_change_name btsnd_hcic_change_name;
 struct btsnd_hcic_create_conn_cancel btsnd_hcic_create_conn_cancel;
 struct btsnd_hcic_delete_stored_key btsnd_hcic_delete_stored_key;
@@ -101,7 +100,6 @@ struct btsnd_hcic_write_pin_type btsnd_hcic_write_pin_type;
 struct btsnd_hcic_write_policy_set btsnd_hcic_write_policy_set;
 struct btsnd_hcic_write_scan_enable btsnd_hcic_write_scan_enable;
 struct btsnd_hcic_write_voice_settings btsnd_hcic_write_voice_settings;
-struct btsnd_hcic_configure_data_path btsnd_hcic_configure_data_path;
 
 }  // namespace stack_hcic_hcicmds
 }  // namespace mock
@@ -130,11 +128,6 @@ void btsnd_hcic_add_SCO_conn(uint16_t handle, uint16_t packet_types) {
 void btsnd_hcic_auth_request(uint16_t handle) {
   inc_func_call_count(__func__);
   test::mock::stack_hcic_hcicmds::btsnd_hcic_auth_request(handle);
-}
-void btsnd_hcic_change_conn_type(uint16_t handle, uint16_t packet_types) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hcicmds::btsnd_hcic_change_conn_type(handle,
-                                                              packet_types);
 }
 void btsnd_hcic_change_name(BD_NAME name) {
   inc_func_call_count(__func__);
@@ -413,14 +406,6 @@ void btsnd_hcic_write_scan_enable(uint8_t flag) {
 void btsnd_hcic_write_voice_settings(uint16_t flags) {
   inc_func_call_count(__func__);
   test::mock::stack_hcic_hcicmds::btsnd_hcic_write_voice_settings(flags);
-}
-
-void btsnd_hcic_configure_data_path(uint8_t data_path_direction,
-                                    uint8_t data_path_id,
-                                    std::vector<uint8_t> vendor_config) {
-  inc_func_call_count(__func__);
-  test::mock::stack_hcic_hcicmds::btsnd_hcic_configure_data_path(
-      data_path_direction, data_path_id, vendor_config);
 }
 // Mocked functions complete
 // END mockcify generation

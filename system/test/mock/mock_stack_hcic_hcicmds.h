@@ -93,18 +93,6 @@ struct btsnd_hcic_auth_request {
 };
 extern struct btsnd_hcic_auth_request btsnd_hcic_auth_request;
 
-// Name: btsnd_hcic_change_conn_type
-// Params: uint16_t handle, uint16_t packet_types
-// Return: void
-struct btsnd_hcic_change_conn_type {
-  std::function<void(uint16_t handle, uint16_t packet_types)> body{
-      [](uint16_t handle, uint16_t packet_types) {}};
-  void operator()(uint16_t handle, uint16_t packet_types) {
-    body(handle, packet_types);
-  };
-};
-extern struct btsnd_hcic_change_conn_type btsnd_hcic_change_conn_type;
-
 // Name: btsnd_hcic_change_name
 // Params: BD_NAME name
 // Return: void
@@ -768,21 +756,6 @@ struct btsnd_hcic_write_voice_settings {
   void operator()(uint16_t flags) { body(flags); };
 };
 extern struct btsnd_hcic_write_voice_settings btsnd_hcic_write_voice_settings;
-
-// Name: btsnd_hcic_configure_data_path
-// Params: uint8_t data_path_direction, uint8_t data_path_id,
-// std::vector<uint8_t> vendor_config Return: void
-struct btsnd_hcic_configure_data_path {
-  std::function<void(uint8_t data_path_direction, uint8_t data_path_id,
-                     std::vector<uint8_t> vendor_config)>
-      body{[](uint8_t data_path_direction, uint8_t data_path_id,
-              std::vector<uint8_t> vendor_config) {}};
-  void operator()(uint8_t data_path_direction, uint8_t data_path_id,
-                  std::vector<uint8_t> vendor_config) {
-    body(data_path_direction, data_path_id, vendor_config);
-  };
-};
-extern struct btsnd_hcic_configure_data_path btsnd_hcic_configure_data_path;
 
 }  // namespace stack_hcic_hcicmds
 }  // namespace mock
