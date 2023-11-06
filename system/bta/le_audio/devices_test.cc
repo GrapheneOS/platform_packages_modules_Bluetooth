@@ -430,7 +430,8 @@ class PublishedAudioCapabilitiesBuilder {
            uint8_t audio_channel_counts) {
     if (setting.id != LeAudioCodecIdLc3) return;
 
-    const LeAudioLc3Config config = std::get<LeAudioLc3Config>(setting.config);
+    const LeAudioCoreCodecConfig config =
+        std::get<LeAudioCoreCodecConfig>(setting.config);
 
     Add(setting.id, *config.sampling_frequency, *config.frame_duration,
         audio_channel_counts, *config.octets_per_codec_frame);

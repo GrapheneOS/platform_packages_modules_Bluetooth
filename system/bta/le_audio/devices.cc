@@ -35,7 +35,7 @@ using le_audio::types::BidirectionalPair;
 using le_audio::types::CisState;
 using le_audio::types::DataPathState;
 using le_audio::types::LeAudioContextType;
-using le_audio::types::LeAudioLc3Config;
+using le_audio::types::LeAudioCoreCodecConfig;
 
 namespace le_audio {
 std::ostream& operator<<(std::ostream& os, const DeviceConnectState& state) {
@@ -270,7 +270,7 @@ bool LeAudioDevice::ConfigureAses(
       ase->target_latency = ent.qos.target_latency;
       ase->codec_id = ent.codec.id;
       /* TODO: find better way to not use LC3 explicitly */
-      ase->codec_config = std::get<LeAudioLc3Config>(ent.codec.config);
+      ase->codec_config = std::get<LeAudioCoreCodecConfig>(ent.codec.config);
 
       /*Let's choose audio channel allocation if not set */
       ase->codec_config.audio_channel_allocation =

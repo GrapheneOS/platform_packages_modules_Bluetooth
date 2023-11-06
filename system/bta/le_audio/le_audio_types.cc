@@ -42,7 +42,7 @@ using types::CodecLocation;
 using types::kLeAudioCodingFormatLC3;
 using types::kLeAudioDirectionSink;
 using types::kLeAudioDirectionSource;
-using types::LeAudioLc3Config;
+using types::LeAudioCoreCodecConfig;
 
 static uint8_t min_req_devices_cnt(
     const AudioSetConfiguration* audio_set_conf) {
@@ -246,8 +246,9 @@ uint8_t get_num_of_devices_in_configuration(
   return min_req_devices_cnt(audio_set_conf);
 }
 
-static bool IsCodecConfigurationSupported(const types::LeAudioLtvMap& pacs,
-                                          const LeAudioLc3Config& lc3_config) {
+static bool IsCodecConfigurationSupported(
+    const types::LeAudioLtvMap& pacs,
+    const LeAudioCoreCodecConfig& lc3_config) {
   const auto& reqs = lc3_config.GetAsLtvMap();
   uint8_t u8_req_val, u8_pac_val;
   uint16_t u16_req_val, u16_pac_val;
@@ -377,7 +378,7 @@ bool IsCodecCapabilitySettingSupported(
     case kLeAudioCodingFormatLC3:
       return IsCodecConfigurationSupported(
           pac.codec_spec_caps,
-          std::get<LeAudioLc3Config>(codec_capability_setting.config));
+          std::get<LeAudioCoreCodecConfig>(codec_capability_setting.config));
     default:
       return false;
   }
@@ -386,7 +387,8 @@ bool IsCodecCapabilitySettingSupported(
 uint32_t CodecCapabilitySetting::GetConfigSamplingFrequency() const {
   switch (id.coding_format) {
     case kLeAudioCodingFormatLC3:
-      return std::get<types::LeAudioLc3Config>(config).GetSamplingFrequencyHz();
+      return std::get<types::LeAudioCoreCodecConfig>(config)
+          .GetSamplingFrequencyHz();
     default:
       LOG_WARN(", invalid codec id: 0x%02x", id.coding_format);
       return 0;
@@ -396,7 +398,8 @@ uint32_t CodecCapabilitySetting::GetConfigSamplingFrequency() const {
 uint32_t CodecCapabilitySetting::GetConfigDataIntervalUs() const {
   switch (id.coding_format) {
     case kLeAudioCodingFormatLC3:
-      return std::get<types::LeAudioLc3Config>(config).GetFrameDurationUs();
+      return std::get<types::LeAudioCoreCodecConfig>(config)
+          .GetFrameDurationUs();
     default:
       LOG_WARN(", invalid codec id: 0x%02x", id.coding_format);
       return 0;
@@ -417,10 +420,11 @@ uint8_t CodecCapabilitySetting::GetConfigBitsPerSample() const {
 uint8_t CodecCapabilitySetting::GetConfigChannelCount() const {
   switch (id.coding_format) {
     case kLeAudioCodingFormatLC3:
-      LOG_DEBUG("count = %d",
-                static_cast<int>(
-                    std::get<types::LeAudioLc3Config>(config).channel_count));
-      return std::get<types::LeAudioLc3Config>(config).channel_count;
+      LOG_DEBUG(
+          "count = %d",
+          static_cast<int>(
+              std::get<types::LeAudioCoreCodecConfig>(config).channel_count));
+      return std::get<types::LeAudioCoreCodecConfig>(config).channel_count;
     default:
       LOG_WARN(", invalid codec id: 0x%02x", id.coding_format);
       return 0;
@@ -430,7 +434,7 @@ uint8_t CodecCapabilitySetting::GetConfigChannelCount() const {
 
 namespace types {
 /* Helper map for matching various frequency notations */
-const std::map<uint8_t, uint32_t> LeAudioLc3Config::sampling_freq_map = {
+const std::map<uint8_t, uint32_t> LeAudioCoreCodecConfig::sampling_freq_map = {
     {codec_spec_conf::kLeAudioSamplingFreq8000Hz,
      LeAudioCodecConfiguration::kSampleRate8000},
     {codec_spec_conf::kLeAudioSamplingFreq16000Hz,
@@ -445,7 +449,7 @@ const std::map<uint8_t, uint32_t> LeAudioLc3Config::sampling_freq_map = {
      LeAudioCodecConfiguration::kSampleRate48000}};
 
 /* Helper map for matching various frame durations notations */
-const std::map<uint8_t, uint32_t> LeAudioLc3Config::frame_duration_map = {
+const std::map<uint8_t, uint32_t> LeAudioCoreCodecConfig::frame_duration_map = {
     {codec_spec_conf::kLeAudioCodecFrameDur7500us,
      LeAudioCodecConfiguration::kInterval7500Us},
     {codec_spec_conf::kLeAudioCodecFrameDur10000us,
@@ -811,8 +815,9 @@ std::ostream& operator<<(std::ostream& os, const types::AseState& state) {
 }
 
 std::ostream& operator<<(std::ostream& os,
-                         const types::LeAudioLc3Config& config) {
-  os << " LeAudioLc3Config(SamplFreq=" << loghex(*config.sampling_frequency)
+                         const types::LeAudioCoreCodecConfig& config) {
+  os << " LeAudioCoreCodecConfig(SamplFreq="
+     << loghex(*config.sampling_frequency)
      << ", FrameDur=" << loghex(*config.frame_duration)
      << ", OctetsPerFrame=" << int(*config.octets_per_codec_frame)
      << ", CodecFramesBlocksPerSDU=" << int(*config.codec_frames_blocks_per_sdu)
