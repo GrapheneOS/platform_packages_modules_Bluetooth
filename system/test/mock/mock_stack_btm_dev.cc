@@ -38,7 +38,7 @@ namespace mock {
 namespace stack_btm_dev {
 
 struct btm_find_dev btm_find_dev;
-
+struct BTM_Sec_AddressKnown BTM_Sec_AddressKnown;
 }
 }  // namespace mock
 }  // namespace test
@@ -123,4 +123,9 @@ std::vector<tBTM_SEC_DEV_REC*> btm_get_sec_dev_rec() {
 
 void BTM_SetConsolidationCallback(BTM_CONSOLIDATION_CB* cb) {
   inc_func_call_count(__func__);
+}
+
+bool BTM_Sec_AddressKnown(const RawAddress& address) {
+  inc_func_call_count(__func__);
+  return test::mock::stack_btm_dev::BTM_Sec_AddressKnown(address);
 }

@@ -31,6 +31,13 @@ struct btm_find_dev {
 };
 extern struct btm_find_dev btm_find_dev;
 
+struct BTM_Sec_AddressKnown {
+  std::function<bool(const RawAddress& address)> body{
+      [](const RawAddress& address) { return false; }};
+  bool operator()(const RawAddress& address) { return body(address); };
+};
+extern struct BTM_Sec_AddressKnown BTM_Sec_AddressKnown;
+
 }  // namespace stack_btm_dev
 }  // namespace mock
 }  // namespace test

@@ -29,9 +29,6 @@
 #include "src/core/ffi/types.h"
 #include "stack/btm/btm_dev.h"
 
-extern const tBLE_BD_ADDR convert_to_address_with_type(
-    const RawAddress& bd_addr, const tBTM_SEC_DEV_REC* p_dev_rec);
-
 namespace bluetooth {
 namespace connection {
 
@@ -177,8 +174,7 @@ void RegisterRustApis(
 }
 
 core::AddressWithType ResolveRawAddress(RawAddress bd_addr) {
-  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
-  tBLE_BD_ADDR address = convert_to_address_with_type(bd_addr, p_dev_rec);
+  tBLE_BD_ADDR address = BTM_Sec_GetAddressWithType(bd_addr);
   return core::ToRustAddress(address);
 }
 
