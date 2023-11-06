@@ -31,7 +31,7 @@ class BluetoothAdapterState {
     private val _uiState = MutableSharedFlow<Int>(1 /* replay only most recent value*/)
 
     init {
-        assert(_uiState.tryEmit(STATE_OFF))
+        set(STATE_OFF)
     }
 
     fun set(s: Int) = runBlocking { _uiState.emit(s) }
