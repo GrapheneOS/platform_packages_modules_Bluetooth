@@ -24,9 +24,10 @@
 #include "gd/common/init_flags.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
-#include "stack/acl/acl.h"
-#include "stack/include/acl_api.h"
+#include "stack/include/hcimsgs.h"
 #include "stack/include/sdpdefs.h"
+
+using bluetooth::legacy::hci::GetInterface;
 
 namespace hfp_hal_interface {
 namespace {
@@ -418,10 +419,10 @@ void set_codec_datapath(int codec_uuid) {
         break;
     }
 
-    btm_configure_data_path(btm_data_direction::CONTROLLER_TO_HOST,
-                            OFFLOAD_DATAPATH, data);
-    btm_configure_data_path(btm_data_direction::HOST_TO_CONTROLLER,
-                            OFFLOAD_DATAPATH, data);
+    GetInterface().ConfigureDataPath(hci_data_direction_t::CONTROLLER_TO_HOST,
+                                     OFFLOAD_DATAPATH, data);
+    GetInterface().ConfigureDataPath(hci_data_direction_t::HOST_TO_CONTROLLER,
+                                     OFFLOAD_DATAPATH, data);
   }
 }
 

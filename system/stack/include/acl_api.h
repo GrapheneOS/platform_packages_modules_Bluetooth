@@ -263,9 +263,6 @@ tBTM_STATUS btm_read_power_mode_state(const RawAddress& remote_bda,
 
 void btm_acl_notif_conn_collision(const RawAddress& bda);
 
-void btm_configure_data_path(uint8_t direction, uint8_t path_id,
-                             std::vector<uint8_t> vendor_config);
-
 /*******************************************************************************
  *
  * Function         BTM_ReadPowerMode

@@ -24,6 +24,7 @@
 #include "stack/btm/security_device_record.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/acl_hci_link_interface.h"
+#include "stack/include/hcidefs.h"
 #include "test/common/mock_functions.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
