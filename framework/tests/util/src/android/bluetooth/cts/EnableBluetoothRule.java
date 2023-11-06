@@ -16,44 +16,7 @@
 
 package android.bluetooth.cts;
 
-import static com.android.compatibility.common.util.SystemUtil.runShellCommandOrThrow;
-
-import static com.google.common.truth.Truth.assertThat;
-
-import static org.junit.Assume.assumeTrue;
-
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothManager;
-import android.content.Context;
-
-import androidx.test.platform.app.InstrumentationRegistry;
-
-import com.android.compatibility.common.util.BeforeAfterRule;
-
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
-
-/**
- * This is a test rule that, when used in a test, will enable Bluetooth before the test starts. When
- * the test is done, Bluetooth will be disabled if and only if it was disabled before the test
- * started. If setTestMode is set to true, the Bluetooth scanner will return a hardcoded set of
- * Bluetooth scan results while the test runs .
- */
-public class EnableBluetoothRule extends BeforeAfterRule {
-    private final Context mContext = InstrumentationRegistry.getInstrumentation().getContext();
-    private final BluetoothAdapter mBluetoothAdapter =
-            mContext.getSystemService(BluetoothManager.class).getAdapter();
-    private final boolean mEnableTestMode;
-    private final boolean mToggleBluetooth;
-
-    private boolean mWasBluetoothAdapterEnabled = true;
-
-    /** Empty constructor */
-    public EnableBluetoothRule() {
-        mEnableTestMode = false;
-        mToggleBluetooth = false;
-    }
-
+public class EnableBluetoothRule extends android.bluetooth.test_utils.EnableBluetoothRule {
     /**
      * Constructor that allows test mode
      *
@@ -62,8 +25,7 @@ public class EnableBluetoothRule extends BeforeAfterRule {
      *     already enabled
      */
     public EnableBluetoothRule(boolean enableTestMode, boolean toggleBluetooth) {
-        mEnableTestMode = enableTestMode;
-        mToggleBluetooth = toggleBluetooth;
+        super(enableTestMode, toggleBluetooth);
     }
 
     /**
@@ -72,51 +34,6 @@ public class EnableBluetoothRule extends BeforeAfterRule {
      * @param enableTestMode whether test mode is enabled
      */
     public EnableBluetoothRule(boolean enableTestMode) {
-        mEnableTestMode = enableTestMode;
-        mToggleBluetooth = false;
-    }
-
-    private void enableBluetoothAdapter() {
-        assertThat(BTAdapterUtils.enableAdapter(mBluetoothAdapter, mContext)).isTrue();
-    }
-
-    private void disableBluetoothAdapter() {
-        assertThat(BTAdapterUtils.disableAdapter(mBluetoothAdapter, mContext)).isTrue();
-    }
-
-    private void enableBluetoothTestMode() {
-        runShellCommandOrThrow(
-                "dumpsys activity service"
-                        + " com.android.bluetooth.btservice.AdapterService set-test-mode enabled");
-    }
-
-    private void disableBluetoothTestMode() {
-        runShellCommandOrThrow(
-                "dumpsys activity service"
-                        + " com.android.bluetooth.btservice.AdapterService set-test-mode disabled");
-    }
-
-    @Override
-    protected void onBefore(Statement base, Description description) {
-        assumeTrue(TestUtils.hasBluetooth());
-        mWasBluetoothAdapterEnabled = mBluetoothAdapter.isEnabled();
-        if (!mWasBluetoothAdapterEnabled) {
-            enableBluetoothAdapter();
-        } else if (mToggleBluetooth) {
-            disableBluetoothAdapter();
-            enableBluetoothAdapter();
-        }
-        if (mEnableTestMode) {
-            enableBluetoothTestMode();
-        }
-    }
-
-    @Override
-    protected void onAfter(Statement base, Description description) {
-        assumeTrue(TestUtils.hasBluetooth());
-        disableBluetoothTestMode();
-        if (!mWasBluetoothAdapterEnabled) {
-            disableBluetoothAdapter();
-        }
+        super(enableTestMode);
     }
 }

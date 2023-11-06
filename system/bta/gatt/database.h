@@ -19,9 +19,7 @@
 #pragma once
 
 #include <list>
-#include <set>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "stack/include/bt_types.h" /* for Octet16 */
@@ -33,6 +31,8 @@ constexpr uint16_t HANDLE_MAX = 0xffff;
 
 /* Representation of GATT attribute for storage */
 struct StoredAttribute {
+  // kSizeOnDisk includes two padding bytes for backward compatibility.
+  static constexpr size_t kSizeOnDisk = 38;
   uint16_t handle;
   bluetooth::Uuid type;
 
@@ -61,6 +61,8 @@ struct StoredAttribute {
      * «Characteristic Extended Properties» */
     uint16_t characteristic_extended_properties;
   } value;
+  static void SerializeStoredAttribute(const StoredAttribute& attr,
+                                       std::vector<uint8_t>& bytes);
 };
 
 struct IncludedService;

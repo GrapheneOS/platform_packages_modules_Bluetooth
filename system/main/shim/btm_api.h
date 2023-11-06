@@ -18,14 +18,9 @@
 
 #include "base/functional/callback.h"
 #include "device/include/esco_parameters.h"
-#include "stack/btm/btm_sec.h"
 #include "stack/btm/neighbor_inquiry.h"
-#include "stack/include/acl_api_types.h"
-#include "stack/include/bt_hdr.h"
-#include "stack/include/bt_octets.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_ble_api_types.h"
-#include "types/bluetooth/uuid.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
 
@@ -428,89 +423,6 @@ void BTM_BleSetPrefConnParams(const RawAddress& bd_addr, uint16_t min_conn_int,
  ******************************************************************************/
 bool BTM_ReadConnectedTransportAddress(RawAddress* remote_bda,
                                        tBT_TRANSPORT transport);
-
-/*******************************************************************************
- *
- * Function         BTM_BleReceiverTest
- *
- * Description      This function is called to start the LE Receiver test
- *
- * Parameter       rx_freq - Frequency Range
- *               p_cmd_cmpl_cback - Command Complete callback
- *
- ******************************************************************************/
-void BTM_BleReceiverTest(uint8_t rx_freq, tBTM_CMPL_CB* p_cmd_cmpl_cback);
-
-/*******************************************************************************
- *
- * Function         BTM_BleTransmitterTest
- *
- * Description      This function is called to start the LE Transmitter test
- *
- * Parameter       tx_freq - Frequency Range
- *                       test_data_len - Length in bytes of payload data in each
- *                                       packet
- *                       packet_payload - Pattern to use in the payload
- *                       p_cmd_cmpl_cback - Command Complete callback
- *
- ******************************************************************************/
-void BTM_BleTransmitterTest(uint8_t tx_freq, uint8_t test_data_len,
-                            uint8_t packet_payload,
-                            tBTM_CMPL_CB* p_cmd_cmpl_cback);
-
-/*******************************************************************************
- *
- * Function         BTM_BleTestEnd
- *
- * Description     This function is called to stop the in-progress TX or RX test
- *
- * Parameter       p_cmd_cmpl_cback - Command complete callback
- *
- ******************************************************************************/
-void BTM_BleTestEnd(tBTM_CMPL_CB* p_cmd_cmpl_cback);
-
-/*******************************************************************************
- *
- * Function         BTM_UseLeLink
- *
- * Description      Select the underlying physical link to use.
- *
- * Returns          true to use LE, false use BR/EDR.
- *
- ******************************************************************************/
-bool BTM_UseLeLink(const RawAddress& bd_addr);
-
-/*******************************************************************************
- *
- * Function         BTM_BleReadPhy
- *
- * Description      To read the current PHYs for specified LE connection
- *
- *
- * Returns          BTM_SUCCESS if success; otherwise failed.
- *
- ******************************************************************************/
-void BTM_BleReadPhy(
-    const RawAddress& bd_addr,
-    base::Callback<void(uint8_t tx_phy, uint8_t rx_phy, uint8_t status)> cb);
-
-/*******************************************************************************
- *
- * Function         BTM_BleSetPhy
- *
- * Description      To set PHY preferences for specified LE connection
- *
- *
- * Returns          BTM_SUCCESS if success; otherwise failed.
- *                  BTM_MODE_UNSUPPORTED if local controller doesn't support LE
- *                  2M or LE Coded PHY,
- *                  BTM_ILLEGAL_VALUE if specified remote doesn't support LE 2M
- *                  or LE Coded PHY,
- *                  BTM_WRONG_MODE if Device in wrong mode for request.
- *
- ******************************************************************************/
-void BTM_BleSetPhy(const RawAddress& bd_addr, uint8_t tx_phys, uint8_t rx_phys,
-                   uint16_t phy_options);
 
 /*******************************************************************************
  *
@@ -1119,31 +1031,6 @@ uint16_t BTM_BleReadDiscoverability();
  *
  ******************************************************************************/
 uint16_t BTM_BleReadConnectability();
-
-/*******************************************************************************
- *
- * Function         BTM_BleConfigPrivacy
- *
- * Description      This function is called to enable or disable the privacy in
- *                  the local device.
- *
- * Parameters       enable: true to enable it; false to disable it.
- *
- * Returns          bool    privacy mode set success; otherwise failed.
- *
- ******************************************************************************/
-bool BTM_BleConfigPrivacy(bool enable);
-
-/*******************************************************************************
- *
- * Function         BTM_BleLocalPrivacyEnabled
- *
- * Description        Checks if local device supports private address
- *
- * Returns          Return true if local privacy is enabled else false
- *
- ******************************************************************************/
-bool BTM_BleLocalPrivacyEnabled(void);
 
 /**
  * This functions are called to configure the adv data payload filter condition

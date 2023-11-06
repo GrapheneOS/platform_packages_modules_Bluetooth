@@ -112,6 +112,12 @@ class TestHciLayer : public HciLayer {
         event_builder =
             ReadLocalSupportedCommandsCompleteBuilder::Create(num_packets, ErrorCode::SUCCESS, supported_commands);
       } break;
+      case (OpCode::READ_LOCAL_SUPPORTED_CODECS_V1): {
+        std::vector<uint8_t> supported_codecs{0, 1, 2, 3, 4, 5, 6};
+        std::vector<uint32_t> supported_vendor_codecs;
+        event_builder = ReadLocalSupportedCodecsV1CompleteBuilder::Create(
+            num_packets, ErrorCode::SUCCESS, supported_codecs, supported_vendor_codecs);
+      } break;
       case (OpCode::READ_LOCAL_EXTENDED_FEATURES): {
         ReadLocalExtendedFeaturesView read_command = ReadLocalExtendedFeaturesView::Create(command);
         ASSERT_TRUE(read_command.IsValid());
@@ -354,6 +360,7 @@ TEST_F(ControllerTest, read_controller_info) {
   ASSERT_EQ(controller_->GetLeMaximumDataLength().supported_max_rx_time_, 0x78);
   ASSERT_EQ(controller_->GetLeMaximumAdvertisingDataLength(), 0x0672);
   ASSERT_EQ(controller_->GetLeNumberOfSupportedAdverisingSets(), 0xF0);
+  ASSERT_TRUE(controller_->GetLocalSupportedBrEdrCodecIds().size() > 0);
 }
 
 TEST_F(ControllerTest, read_write_local_name) {

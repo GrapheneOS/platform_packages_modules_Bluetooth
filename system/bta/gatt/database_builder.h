@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <set>
 #include <utility>
 
 #include "bta/gatt/database.h"
