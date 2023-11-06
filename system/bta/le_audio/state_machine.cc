@@ -1156,7 +1156,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
   void AddCisToStreamConfiguration(LeAudioDeviceGroup* group,
                                    const struct ase* ase) {
-    group->stream_conf.id = ase->codec_id;
+    group->stream_conf.codec_id = ase->codec_id;
 
     auto cis_conn_hdl = ase->cis_conn_hdl;
     auto& params = group->stream_conf.stream_params.get(ase->direction);
