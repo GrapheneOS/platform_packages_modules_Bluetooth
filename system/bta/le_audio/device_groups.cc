@@ -37,7 +37,7 @@ using types::CisState;
 using types::CisType;
 using types::DataPathState;
 using types::LeAudioContextType;
-using types::LeAudioLc3Config;
+using types::LeAudioCoreCodecConfig;
 
 /* LeAudioDeviceGroup Class methods implementation */
 void LeAudioDeviceGroup::AddNode(
@@ -1304,7 +1304,8 @@ bool LeAudioDeviceGroup::IsAudioSetConfigurationSupported(
       /* TODO Make it no Lc3 specific */
       if (!CheckIfStrategySupported(
               strategy, audio_locations,
-              std::get<LeAudioLc3Config>(ent.codec.config).GetChannelCount(),
+              std::get<LeAudioCoreCodecConfig>(ent.codec.config)
+                  .GetChannelCount(),
               device->GetLc3SupportedChannelCount(ent.direction))) {
         LOG_DEBUG(" insufficient device audio allocation: %lu",
                   audio_locations.to_ulong());
@@ -1960,7 +1961,7 @@ void LeAudioDeviceGroup::Dump(int fd, int active_group_id) const {
          << "      stream configuration: "
          << (stream_conf.conf != nullptr ? stream_conf.conf->name : " unknown ")
          << "\n"
-         << "      codec id: " << +(stream_conf.id.coding_format)
+         << "      codec id: " << +(stream_conf.codec_id.coding_format)
          << ",\tpending_configuration: " << stream_conf.pending_configuration
          << "\n"
          << "      num of devices(connected): " << Size() << "("
