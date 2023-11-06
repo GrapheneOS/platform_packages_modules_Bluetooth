@@ -758,11 +758,6 @@ tBTM_STATUS BTM_CancelRemoteDeviceName(void) {
     return (BTM_WRONG_MODE);
 }
 
-bool BTM_IsRemoteNameKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
-  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
-  return (p_dev_rec == nullptr) ? false : p_dev_rec->is_name_known();
-}
-
 /*******************************************************************************
  *
  * Function         BTM_InqDbRead
