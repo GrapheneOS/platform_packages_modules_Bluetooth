@@ -89,11 +89,6 @@ constexpr le_audio::types::LeAudioContextType
     kLeAudioDefaultConfigurationContext =
         le_audio::types::LeAudioContextType::UNSPECIFIED;
 
-static tGATT_STATUS gatt_read_ctp_ccc_status_ = GATT_SUCCESS;
-static uint8_t ccc_stored_byte_val_ = 0x01;
-
-static char* test_tags_ptr_ = nullptr;
-
 static constexpr char kNotifyUpperLayerAboutGroupBeingInIdleDuringCall[] =
     "persist.bluetooth.leaudio.notify.idle.during.call";
 const char* test_flags[] = {
@@ -1404,10 +1399,6 @@ class UnicastTestNoInit : public Test {
             SupportsBleConnectedIsochronousStreamPeripheral)
         .WillByDefault(Return(true));
 
-    gatt_read_ctp_ccc_status_ = GATT_SUCCESS;
-    ccc_stored_byte_val_ = 0x01;
-    test_tags_ptr_ = nullptr;
-
     controller::SetMockControllerInterface(&controller_interface_);
     bluetooth::manager::SetMockBtmInterface(&mock_btm_interface_);
     gatt::SetMockBtaGattInterface(&mock_gatt_interface_);
@@ -2611,6 +2602,13 @@ class UnicastTestNoInit : public Test {
   std::map<uint16_t, std::unique_ptr<NiceMock<MockDeviceWrapper>>> peer_devices;
   std::list<int> group_locks;
   std::map<RawAddress, int> groups;
+
+  /* CCC descriptor data */
+  tGATT_STATUS gatt_read_ctp_ccc_status_ = GATT_SUCCESS;
+  uint8_t ccc_stored_byte_val_ = 0x01;
+
+  /* Audio track metadata */
+  char* test_tags_ptr_ = nullptr;
 };
 
 class UnicastTest : public UnicastTestNoInit {
