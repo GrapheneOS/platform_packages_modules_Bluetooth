@@ -168,10 +168,15 @@ class LeAudioDevice {
   types::BidirectionalPair<struct types::ase*> GetAsesByCisId(uint8_t cis_id);
   bool HaveActiveAse(void);
   bool HaveAllActiveAsesSameState(types::AseState state);
+  bool HaveAllActiveAsesSameDataPathState(types::DataPathState state) const;
   bool HaveAnyUnconfiguredAses(void);
   bool IsReadyToCreateStream(void);
+  bool IsReadyToStream(void) const {
+    return HaveAllActiveAsesCisEst() &&
+           HaveAllActiveAsesSameDataPathState(types::DataPathState::CONFIGURED);
+  }
   bool IsReadyToSuspendStream(void);
-  bool HaveAllActiveAsesCisEst(void);
+  bool HaveAllActiveAsesCisEst(void) const;
   bool HaveAnyCisConnected(void);
   bool HasCisId(uint8_t id);
   uint8_t GetMatchingBidirectionCisId(const struct types::ase* base_ase);
