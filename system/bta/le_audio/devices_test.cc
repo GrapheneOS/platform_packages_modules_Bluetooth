@@ -1482,18 +1482,18 @@ TEST_F(LeAudioAseConfigurationTest, test_reconnection_media) {
                              direction_to_verify);
 
   /* Generate CISes, symulate CIG creation and assign cis handles to ASEs.*/
-  group_->CigGenerateCisIds(LeAudioContextType::MEDIA);
+  group_->cig.GenerateCisIds(LeAudioContextType::MEDIA);
   std::vector<uint16_t> handles = {0x0012, 0x0013};
-  group_->CigAssignCisConnHandles(handles);
-  group_->CigAssignCisIds(left);
-  group_->CigAssignCisIds(right);
+  group_->cig.AssignCisConnHandles(handles);
+  group_->cig.AssignCisIds(left);
+  group_->cig.AssignCisIds(right);
 
   TestActiveAses();
   /* Left got disconnected */
   left->DeactivateAllAses();
 
   /* Unassign from the group*/
-  group_->CigUnassignCis(left);
+  group_->cig.UnassignCis(left);
 
   TestAsesInactivated(left);
 
@@ -1527,8 +1527,8 @@ TEST_F(LeAudioAseConfigurationTest, test_reconnection_media) {
   /* Before device is rejoining, and group already exist, cis handles are
    * assigned before sending codec config
    */
-  group_->CigAssignCisIds(left);
-  group_->CigAssignCisConnHandlesToAses(left);
+  group_->cig.AssignCisIds(left);
+  group_->AssignCisConnHandlesToAses(left);
 
   TestActiveAses();
 }
@@ -1606,14 +1606,14 @@ TEST_F(LeAudioAseConfigurationTest, test_reactivation_conversational) {
 
   /* Generate CISes, simulate CIG creation and assign cis handles to ASEs.*/
   std::vector<uint16_t> handles = {0x0012, 0x0013};
-  group_->CigGenerateCisIds(LeAudioContextType::CONVERSATIONAL);
-  group_->CigAssignCisConnHandles(handles);
-  group_->CigAssignCisIds(tws_headset);
+  group_->cig.GenerateCisIds(LeAudioContextType::CONVERSATIONAL);
+  group_->cig.AssignCisConnHandles(handles);
+  group_->cig.AssignCisIds(tws_headset);
 
   TestActiveAses();
 
   /* Simulate stopping stream with caching codec configuration in ASEs */
-  group_->CigUnassignCis(tws_headset);
+  group_->cig.UnassignCis(tws_headset);
   SetAsesToCachedConfiguration(tws_headset, LeAudioContextType::CONVERSATIONAL,
                                kLeAudioDirectionSink | kLeAudioDirectionSource);
 
@@ -1629,7 +1629,7 @@ TEST_F(LeAudioAseConfigurationTest, test_reactivation_conversational) {
   /* Verify ASEs assigned CISes by counting assigned to bi-directional CISes */
   int bi_dir_ases_count = std::count_if(
       tws_headset->ases_.begin(), tws_headset->ases_.end(), [=](auto& ase) {
-        return this->group_->cises_[ase.cis_id].type ==
+        return this->group_->cig.cises[ase.cis_id].type ==
                CisType::CIS_TYPE_BIDIRECTIONAL;
       });
 
@@ -1713,13 +1713,14 @@ TEST_F(LeAudioAseConfigurationTest, test_getting_cis_count) {
 
   /* Generate CIS, simulate CIG creation and assign cis handles to ASEs.*/
   std::vector<uint16_t> handles = {0x0012};
-  group_->CigGenerateCisIds(LeAudioContextType::MEDIA);
+  group_->cig.GenerateCisIds(LeAudioContextType::MEDIA);
 
   /* Verify prepared CISes by counting generated entries */
-  int snk_cis_count = std::count_if(
-      this->group_->cises_.begin(), this->group_->cises_.end(), [](auto& cis) {
-        return cis.type == CisType::CIS_TYPE_UNIDIRECTIONAL_SINK;
-      });
+  int snk_cis_count =
+      std::count_if(this->group_->cig.cises.begin(),
+                    this->group_->cig.cises.end(), [](auto& cis) {
+                      return cis.type == CisType::CIS_TYPE_UNIDIRECTIONAL_SINK;
+                    });
 
   /* Two CIS should be prepared for dual dev expected set */
   ASSERT_EQ(snk_cis_count, 2);

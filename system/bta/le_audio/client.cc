@@ -487,7 +487,7 @@ class LeAudioClientImpl : public LeAudioClient {
         group_id, ToString(group->GetState()).c_str(),
         ToString(group->GetTargetState()).c_str(), check_if_recovery_needed);
     group->SetTargetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
-    group->CigClearCis();
+    group->ClearAllCises();
     group->PrintDebugState();
 
     /* There is an issue with a setting up stream or any other operation which
@@ -725,9 +725,9 @@ class LeAudioClientImpl : public LeAudioClient {
     }
     LOG_DEBUG("Group %p, id: %d, size: %d, is cig_state %s", group,
               group->group_id_, group->Size(),
-              ToString(group->cig_state_).c_str());
+              ToString(group->cig.GetState()).c_str());
     if (group->IsEmpty() &&
-        (group->cig_state_ == le_audio::types::CigState::NONE)) {
+        (group->cig.GetState() == le_audio::types::CigState::NONE)) {
       aseGroups_.Remove(group->group_id_);
     }
   }
@@ -5374,9 +5374,7 @@ class LeAudioClientImpl : public LeAudioClient {
       LOG_ERROR("Invalid group_id: %d", group_id);
       return;
     }
-    CodecManager::GetInstance()->UpdateCisConfiguration(
-        group->cises_, group->stream_conf.stream_params.get(direction),
-        direction);
+    group->UpdateCisConfiguration(direction);
   }
 
  private:
