@@ -1043,8 +1043,8 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void StartAudioSession(LeAudioDeviceGroup* group,
-                         LeAudioCodecConfiguration* source_config,
-                         LeAudioCodecConfiguration* sink_config) {
+                         const LeAudioCodecConfiguration* source_config,
+                         const LeAudioCodecConfiguration* sink_config) {
     /* This function is called when group is not yet set to active.
      * This is why we don't have to check if session is started already.
      * Just check if it is acquired.

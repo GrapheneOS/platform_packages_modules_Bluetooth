@@ -37,7 +37,7 @@ using types::acs_ac_record;
 using types::LeAudioContextType;
 
 namespace set_configurations {
-using set_configurations::CodecCapabilitySetting;
+using set_configurations::CodecConfigSetting;
 using types::CodecLocation;
 using types::kLeAudioCodingFormatLC3;
 using types::kLeAudioDirectionSink;
@@ -255,7 +255,8 @@ static bool IsCodecConfigurationSupported(
 
   /* Sampling frequency */
   auto req = reqs.Find(codec_spec_conf::kLeAudioLtvTypeSamplingFreq);
-  auto pac = pacs.Find(codec_spec_caps::kLeAudioLtvTypeSamplingFreq);
+  auto pac =
+      pacs.Find(codec_spec_caps::kLeAudioLtvTypeSupportedSamplingFrequencies);
   if (!req || !pac) {
     LOG_DEBUG(", lack of sampling frequency fields");
     return false;
@@ -289,7 +290,7 @@ static bool IsCodecConfigurationSupported(
 
   /* Frame duration */
   req = reqs.Find(codec_spec_conf::kLeAudioLtvTypeFrameDuration);
-  pac = pacs.Find(codec_spec_caps::kLeAudioLtvTypeFrameDuration);
+  pac = pacs.Find(codec_spec_caps::kLeAudioLtvTypeSupportedFrameDurations);
   if (!req || !pac) {
     LOG_DEBUG(", lack of frame duration fields");
     return false;
@@ -309,7 +310,7 @@ static bool IsCodecConfigurationSupported(
   }
 
   uint8_t required_audio_chan_num = lc3_config.GetChannelCount();
-  pac = pacs.Find(codec_spec_caps::kLeAudioLtvTypeAudioChannelCounts);
+  pac = pacs.Find(codec_spec_caps::kLeAudioLtvTypeSupportedAudioChannelCounts);
 
   /*
    * BAP_Validation_r07 1.9.2 Audio channel support requirements
@@ -336,7 +337,7 @@ static bool IsCodecConfigurationSupported(
 
   /* Octets per frame */
   req = reqs.Find(codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame);
-  pac = pacs.Find(codec_spec_caps::kLeAudioLtvTypeOctetsPerCodecFrame);
+  pac = pacs.Find(codec_spec_caps::kLeAudioLtvTypeSupportedOctetsPerCodecFrame);
 
   if (!req || !pac) {
     LOG_DEBUG(", lack of octet per frame fields");
@@ -365,9 +366,9 @@ static bool IsCodecConfigurationSupported(
   return true;
 }
 
-bool IsCodecCapabilitySettingSupported(
+bool IsCodecConfigSettingSupported(
     const acs_ac_record& pac,
-    const CodecCapabilitySetting& codec_capability_setting) {
+    const CodecConfigSetting& codec_capability_setting) {
   const auto& codec_id = codec_capability_setting.id;
 
   if (codec_id != pac.codec_id) return false;
@@ -384,7 +385,7 @@ bool IsCodecCapabilitySettingSupported(
   }
 }
 
-uint32_t CodecCapabilitySetting::GetConfigSamplingFrequency() const {
+uint32_t CodecConfigSetting::GetConfigSamplingFrequency() const {
   switch (id.coding_format) {
     case kLeAudioCodingFormatLC3:
       return std::get<types::LeAudioCoreCodecConfig>(config)
@@ -395,7 +396,7 @@ uint32_t CodecCapabilitySetting::GetConfigSamplingFrequency() const {
   }
 };
 
-uint32_t CodecCapabilitySetting::GetConfigDataIntervalUs() const {
+uint32_t CodecConfigSetting::GetConfigDataIntervalUs() const {
   switch (id.coding_format) {
     case kLeAudioCodingFormatLC3:
       return std::get<types::LeAudioCoreCodecConfig>(config)
@@ -406,7 +407,7 @@ uint32_t CodecCapabilitySetting::GetConfigDataIntervalUs() const {
   }
 };
 
-uint8_t CodecCapabilitySetting::GetConfigBitsPerSample() const {
+uint8_t CodecConfigSetting::GetConfigBitsPerSample() const {
   switch (id.coding_format) {
     case kLeAudioCodingFormatLC3:
       /* XXX LC3 supports 16, 24, 32 */
@@ -417,7 +418,7 @@ uint8_t CodecCapabilitySetting::GetConfigBitsPerSample() const {
   }
 };
 
-uint8_t CodecCapabilitySetting::GetConfigChannelCount() const {
+uint8_t CodecConfigSetting::GetConfigChannelCount() const {
   switch (id.coding_format) {
     case kLeAudioCodingFormatLC3:
       LOG_DEBUG(
@@ -457,15 +458,15 @@ const std::map<uint8_t, uint32_t> LeAudioCoreCodecConfig::frame_duration_map = {
 
 std::string CapabilityTypeToStr(const uint8_t& type) {
   switch (type) {
-    case codec_spec_caps::kLeAudioLtvTypeSamplingFreq:
+    case codec_spec_caps::kLeAudioLtvTypeSupportedSamplingFrequencies:
       return "Supported Sampling Frequencies";
-    case codec_spec_caps::kLeAudioLtvTypeFrameDuration:
+    case codec_spec_caps::kLeAudioLtvTypeSupportedFrameDurations:
       return "Supported Frame Durations";
-    case codec_spec_caps::kLeAudioLtvTypeAudioChannelCounts:
+    case codec_spec_caps::kLeAudioLtvTypeSupportedAudioChannelCounts:
       return "Supported Audio Channel Count";
-    case codec_spec_caps::kLeAudioLtvTypeOctetsPerCodecFrame:
+    case codec_spec_caps::kLeAudioLtvTypeSupportedOctetsPerCodecFrame:
       return "Supported Octets Per Codec Frame";
-    case codec_spec_caps::kLeAudioLtvTypeMaxCodecFramesPerSdu:
+    case codec_spec_caps::kLeAudioLtvTypeSupportedMaxCodecFramesPerSdu:
       return "Supported Max Codec Frames Per SDU";
     default:
       return "Unknown";
@@ -767,7 +768,7 @@ void AppendMetadataLtvEntryForStreamingContext(
 
 uint8_t GetMaxCodecFramesPerSduFromPac(const acs_ac_record* pac) {
   auto tlv_ent = pac->codec_spec_caps.Find(
-      codec_spec_caps::kLeAudioLtvTypeMaxCodecFramesPerSdu);
+      codec_spec_caps::kLeAudioLtvTypeSupportedMaxCodecFramesPerSdu);
 
   if (tlv_ent) return VEC_UINT8_TO_UINT8(tlv_ent.value());
 

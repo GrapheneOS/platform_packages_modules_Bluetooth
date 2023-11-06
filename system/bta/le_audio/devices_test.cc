@@ -388,15 +388,15 @@ class PublishedAudioCapabilitiesBuilder {
     pac_records_.push_back(
         acs_ac_record({.codec_id = codec_id,
                        .codec_spec_caps = LeAudioLtvMap({
-                           {kLeAudioLtvTypeSamplingFreq,
+                           {kLeAudioLtvTypeSupportedSamplingFrequencies,
                             UINT16_TO_VEC_UINT8(sampling_frequencies)},
-                           {kLeAudioLtvTypeFrameDuration,
+                           {kLeAudioLtvTypeSupportedFrameDurations,
                             UINT8_TO_VEC_UINT8(frame_durations)},
-                           {kLeAudioLtvTypeAudioChannelCounts,
+                           {kLeAudioLtvTypeSupportedAudioChannelCounts,
                             UINT8_TO_VEC_UINT8(audio_channel_counts)},
-                           {kLeAudioLtvTypeOctetsPerCodecFrame,
+                           {kLeAudioLtvTypeSupportedOctetsPerCodecFrame,
                             UINT32_TO_VEC_UINT8(octets_per_frame_range)},
-                           {kLeAudioLtvTypeMaxCodecFramesPerSdu,
+                           {kLeAudioLtvTypeSupportedMaxCodecFramesPerSdu,
                             UINT8_TO_VEC_UINT8(max_codec_frames_per_sdu)},
                        }),
                        .metadata = std::vector<uint8_t>(0)}));
@@ -412,22 +412,21 @@ class PublishedAudioCapabilitiesBuilder {
     pac_records_.push_back(
         acs_ac_record({.codec_id = codec_id,
                        .codec_spec_caps = LeAudioLtvMap({
-                           {kLeAudioLtvTypeSamplingFreq,
+                           {kLeAudioLtvTypeSupportedSamplingFrequencies,
                             UINT16_TO_VEC_UINT8(capa_sampling_frequency)},
-                           {kLeAudioLtvTypeFrameDuration,
+                           {kLeAudioLtvTypeSupportedFrameDurations,
                             UINT8_TO_VEC_UINT8(capa_frame_duration)},
-                           {kLeAudioLtvTypeAudioChannelCounts,
+                           {kLeAudioLtvTypeSupportedAudioChannelCounts,
                             UINT8_TO_VEC_UINT8(audio_channel_counts)},
-                           {kLeAudioLtvTypeOctetsPerCodecFrame,
+                           {kLeAudioLtvTypeSupportedOctetsPerCodecFrame,
                             UINT32_TO_VEC_UINT8(octets_per_frame_range)},
-                           {kLeAudioLtvTypeMaxCodecFramesPerSdu,
+                           {kLeAudioLtvTypeSupportedMaxCodecFramesPerSdu,
                             UINT8_TO_VEC_UINT8(codec_frames_per_sdu)},
                        }),
                        .metadata = std::vector<uint8_t>(0)}));
   }
 
-  void Add(const CodecCapabilitySetting& setting,
-           uint8_t audio_channel_counts) {
+  void Add(const CodecConfigSetting& setting, uint8_t audio_channel_counts) {
     if (setting.id != LeAudioCodecIdLc3) return;
 
     const LeAudioCoreCodecConfig config =
