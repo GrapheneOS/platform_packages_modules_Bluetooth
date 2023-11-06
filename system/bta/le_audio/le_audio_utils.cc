@@ -150,6 +150,18 @@ static const char* audioSourceToStr(audio_source_t source) {
   return "UNKNOWN";
 }
 
+static bool isMetadataTagPresent(const char* tags, const char* tag) {
+  std::istringstream iss(tags);
+  std::string t;
+  while (std::getline(iss, t, AUDIO_ATTRIBUTES_TAGS_SEPARATOR)) {
+    LOG_VERBOSE("Tag %s", t.c_str());
+    if (t.compare(tag) == 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 AudioContexts GetAudioContextsFromSourceMetadata(
     const source_metadata_v7& source_metadata) {
   AudioContexts track_contexts;
@@ -162,8 +174,13 @@ AudioContexts GetAudioContextsFromSourceMetadata(
              contentTypeToString(track.content_type).c_str(),
              track.content_type, track.gain, source_metadata.tracks[i].tags);
 
-    track_contexts.set(
-        AudioContentToLeAudioContext(track.content_type, track.usage));
+    if (isMetadataTagPresent(source_metadata.tracks[i].tags,
+                             "VX_AOSP_SAMPLESOUND")) {
+      track_contexts.set(LeAudioContextType::SOUNDEFFECTS);
+    } else {
+      track_contexts.set(
+          AudioContentToLeAudioContext(track.content_type, track.usage));
+    }
   }
   return track_contexts;
 }
