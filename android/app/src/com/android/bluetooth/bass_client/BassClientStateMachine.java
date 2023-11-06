@@ -618,6 +618,13 @@ public class BassClientStateMachine extends StateMachine {
             }
         }
         metaData.setEncrypted(encrypted);
+        if (mFeatureFlags.leaudioBroadcastMonitorSourceSyncStatus()) {
+            // update the rssi value
+            ScanResult scanRes = mService.getCachedBroadcast(result.getBroadcastId());
+            if (scanRes != null) {
+                metaData.setRssi(scanRes.getRssi());
+            }
+        }
         return metaData.build();
     }
 
