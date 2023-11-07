@@ -2403,3 +2403,56 @@ void DumpsysBtaDmDisc(int fd) {
               bta_dm_state_text(bta_dm_search_get_state()).c_str());
 }
 #undef DUMPSYS_TAG
+
+namespace bluetooth {
+namespace legacy {
+namespace testing {
+
+bool bta_dm_read_remote_device_name(const RawAddress& bd_addr,
+                                    tBT_TRANSPORT transport) {
+  return ::bta_dm_read_remote_device_name(bd_addr, transport);
+}
+void bta_dm_discover_next_device() { ::bta_dm_discover_next_device(); }
+
+void bta_dm_execute_queued_request() { ::bta_dm_execute_queued_request(); }
+void bta_dm_find_services(const RawAddress& bd_addr) {
+  ::bta_dm_find_services(bd_addr);
+}
+void bta_dm_inq_cmpl(uint8_t num) { ::bta_dm_inq_cmpl(num); }
+void bta_dm_inq_cmpl_cb(void* p_result) { ::bta_dm_inq_cmpl_cb(p_result); }
+void bta_dm_observe_cmpl_cb(void* p_result) {
+  ::bta_dm_observe_cmpl_cb(p_result);
+}
+void bta_dm_observe_results_cb(tBTM_INQ_RESULTS* p_inq, const uint8_t* p_eir,
+                               uint16_t eir_len) {
+  ::bta_dm_observe_results_cb(p_inq, p_eir, eir_len);
+}
+void bta_dm_opportunistic_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
+                                             const uint8_t* p_eir,
+                                             uint16_t eir_len) {
+  ::bta_dm_opportunistic_observe_results_cb(p_inq, p_eir, eir_len);
+}
+void bta_dm_queue_search(tBTA_DM_MSG* p_data) { ::bta_dm_queue_search(p_data); }
+void bta_dm_search_result(tBTA_DM_MSG* p_data) {
+  ::bta_dm_search_result(p_data);
+}
+void bta_dm_search_timer_cback(void* data) {
+  ::bta_dm_search_timer_cback(data);
+}
+
+void bta_dm_service_search_remname_cback(const RawAddress& bd_addr,
+                                         DEV_CLASS dc, tBTM_BD_NAME bd_name) {
+  ::bta_dm_service_search_remname_cback(bd_addr, dc, bd_name);
+}
+
+void bta_dm_start_scan(uint8_t duration_sec, bool low_latency_scan = false) {
+  ::bta_dm_start_scan(duration_sec, low_latency_scan);
+}
+
+void store_avrcp_profile_feature(tSDP_DISC_REC* sdp_rec) {
+  ::store_avrcp_profile_feature(sdp_rec);
+}
+
+}  // namespace testing
+}  // namespace legacy
+}  // namespace bluetooth
