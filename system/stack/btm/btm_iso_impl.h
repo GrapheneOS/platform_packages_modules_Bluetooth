@@ -40,6 +40,7 @@
 #include "stack/include/btm_log_history.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/hcidefs.h"
+#include "stack/include/hcimsgs.h"
 
 namespace bluetooth {
 namespace hci {

@@ -20,7 +20,7 @@
 
 #include "btm_iso_api.h"
 #include "hci/include/hci_layer.h"
-#include "main/shim/shim.h"
+#include "main/shim/hci_layer.h"
 #include "mock_controller.h"
 #include "mock_hcic_layer.h"
 #include "osi/include/allocator.h"
@@ -28,7 +28,6 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/hcidefs.h"
-#include "test/mock/mock_main_shim_hci_layer.h"
 
 using bluetooth::hci::IsoManager;
 using testing::_;
@@ -84,9 +83,9 @@ static void transmit_downward(uint16_t type, void* data) {
 static hci_t interface = {.set_data_cb = set_data_cb,
                           .transmit_command = transmit_command,
                           .transmit_downward = transmit_downward};
-}  // namespace bluetooth::shim
 
-const hci_t* bluetooth::shim::hci_layer_get_interface() { return &interface; }
+const hci_t* hci_layer_get_interface() { return &interface; }
+}  // namespace bluetooth::shim
 
 namespace {
 class MockCigCallbacks : public bluetooth::hci::iso_manager::CigCallbacks {
