@@ -381,7 +381,7 @@ void btm_ble_read_resolving_list_entry_complete(const uint8_t* p,
       STREAM_TO_BDADDR(rra, p);
     }
     btm_ble_refresh_peer_resolvable_private_addr(
-        pseudo_bda, rra, tBTM_SEC_BLE::tADDRESS_TYPE::BTM_BLE_ADDR_PSEUDO);
+        pseudo_bda, rra, tBLE_RAND_ADDR_TYPE::BTM_BLE_ADDR_PSEUDO);
   }
 }
 /*******************************************************************************

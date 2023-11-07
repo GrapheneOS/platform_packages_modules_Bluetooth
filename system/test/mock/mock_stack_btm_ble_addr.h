@@ -145,14 +145,14 @@ extern struct btm_random_pseudo_to_identity_addr
     btm_random_pseudo_to_identity_addr;
 // Name: btm_ble_refresh_peer_resolvable_private_addr
 // Params:  const RawAddress& pseudo_bda, const RawAddress& rpa,
-// tBTM_SEC_BLE::tADDRESS_TYPE rra_type Returns: void
+// tBLE_RAND_ADDR_TYPE rra_type Returns: void
 struct btm_ble_refresh_peer_resolvable_private_addr {
   std::function<void(const RawAddress& pseudo_bda, const RawAddress& rpa,
-                     tBTM_SEC_BLE::tADDRESS_TYPE rra_type)>
+                     tBLE_RAND_ADDR_TYPE rra_type)>
       body{[](const RawAddress& pseudo_bda, const RawAddress& rpa,
-              tBTM_SEC_BLE::tADDRESS_TYPE rra_type) {}};
+              tBLE_RAND_ADDR_TYPE rra_type) {}};
   void operator()(const RawAddress& pseudo_bda, const RawAddress& rpa,
-                  tBTM_SEC_BLE::tADDRESS_TYPE rra_type) {
+                  tBLE_RAND_ADDR_TYPE rra_type) {
     body(pseudo_bda, rpa, rra_type);
   };
 };

@@ -279,7 +279,7 @@ bool acl_peer_supports_ble_connection_subrating_host(
 bool acl_refresh_remote_address(const RawAddress& identity_address,
                                 tBLE_ADDR_TYPE identity_address_type,
                                 const RawAddress& bda,
-                                tBTM_SEC_BLE::tADDRESS_TYPE rra_type,
+                                tBLE_RAND_ADDR_TYPE rra_type,
                                 const RawAddress& rpa) {
   inc_func_call_count(__func__);
   return test::mock::stack_acl::acl_refresh_remote_address(

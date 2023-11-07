@@ -88,8 +88,8 @@ void acl_ble_enhanced_connection_complete(
   }
 
   if (peer_addr_type & BLE_ADDR_TYPE_ID_BIT)
-    btm_ble_refresh_peer_resolvable_private_addr(
-        address_with_type.bda, peer_rpa, tBTM_SEC_BLE::BTM_BLE_ADDR_RRA);
+    btm_ble_refresh_peer_resolvable_private_addr(address_with_type.bda,
+                                                 peer_rpa, BTM_BLE_ADDR_RRA);
   btm_ble_update_mode_operation(role, &address_with_type.bda, HCI_SUCCESS);
 
   if (role == HCI_ROLE_PERIPHERAL)
