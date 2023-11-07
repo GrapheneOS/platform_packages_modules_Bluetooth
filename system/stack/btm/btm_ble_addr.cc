@@ -24,6 +24,8 @@
 
 #define LOG_TAG "ble"
 
+#include "stack/include/btm_ble_addr.h"
+
 #include <base/functional/bind.h>
 #include <string.h>
 
@@ -35,6 +37,7 @@
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btm_ble_privacy.h"
 #include "stack/include/btm_ble_sec_api.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"

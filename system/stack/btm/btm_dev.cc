@@ -42,6 +42,7 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btm_ble_privacy.h"
 #include "stack/include/btm_log_history.h"
 #include "types/raw_address.h"
 
