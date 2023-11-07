@@ -36,6 +36,7 @@
 #include <string>
 
 #include "btif/include/btif_storage.h"
+#include "common/init_flags.h"
 #include "common/metrics.h"
 #include "common/time_util.h"
 #include "device/include/controller.h"

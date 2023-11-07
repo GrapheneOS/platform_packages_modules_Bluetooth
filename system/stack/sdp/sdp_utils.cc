@@ -37,6 +37,7 @@
 
 #include "btif/include/btif_config.h"
 #include "btif/include/stack_manager.h"
+#include "common/init_flags.h"
 #include "device/include/interop.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
