@@ -90,14 +90,6 @@ void btm_gen_resolvable_private_addr(
       std::move(cb)));
 }
 
-uint64_t btm_get_next_private_addrress_interval_ms() {
-  /* 7 minutes minimum, 15 minutes maximum for random address refreshing */
-  const uint64_t interval_min_ms = (7 * 60 * 1000);
-  const uint64_t interval_random_part_max_ms = (8 * 60 * 1000);
-
-  return interval_min_ms + std::rand() % interval_random_part_max_ms;
-}
-
 /*******************************************************************************
  *  Utility functions for Random address resolving
  ******************************************************************************/

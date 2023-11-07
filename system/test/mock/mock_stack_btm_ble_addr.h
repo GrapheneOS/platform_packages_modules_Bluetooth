@@ -53,15 +53,7 @@ struct btm_gen_resolvable_private_addr {
   void operator()(base::Callback<void(const RawAddress&)> cb) { body(cb); };
 };
 extern struct btm_gen_resolvable_private_addr btm_gen_resolvable_private_addr;
-// Name: btm_get_next_private_addrress_interval_ms
-// Params:
-// Returns: uint64_t
-struct btm_get_next_private_addrress_interval_ms {
-  std::function<uint64_t()> body{[]() { return 0; }};
-  uint64_t operator()() { return body(); };
-};
-extern struct btm_get_next_private_addrress_interval_ms
-    btm_get_next_private_addrress_interval_ms;
+
 // Name: btm_ble_init_pseudo_addr
 // Params: tBTM_SEC_DEV_REC* p_dev_rec, const RawAddress& new_pseudo_addr
 // Returns: bool
