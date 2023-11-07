@@ -20,10 +20,10 @@
 #include <base/functional/bind.h>
 #include <base/logging.h>
 
-#include "acl_api.h"
 #include "btm_api.h"
 #include "device/include/controller.h"
 #include "osi/include/log.h"
+#include "stack/include/hcimsgs.h"
 #include "types/raw_address.h"
 
 namespace {
