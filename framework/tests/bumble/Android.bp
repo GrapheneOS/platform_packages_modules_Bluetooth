@@ -15,12 +15,12 @@ android_test_helper_app {
     target_sdk_version: "current",
     libs: [
         "android.test.base",
-        "android.test.runner",
         "libprotobuf-java-micro",
     ],
 
     static_libs: [
         "androidx.core_core",
+        "androidx.test.ext.junit",
         "androidx.test.ext.truth",
         "androidx.test.rules",
         "compatibility-device-util-axt",
