@@ -49,7 +49,6 @@ struct broadcast_offload_config {
   uint32_t frame_duration;
   uint16_t octets_per_frame;
   uint8_t blocks_per_sdu;
-  uint32_t codec_bitrate;
   uint8_t retransmission_number;
   uint16_t max_transport_latency;
 };
