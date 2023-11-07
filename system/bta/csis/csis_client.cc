@@ -2282,6 +2282,18 @@ class CsisClientImpl : public CsisClient {
       return;
     }
 
+    auto group_id_to_join = device->GetExpectedGroupIdMember();
+    if (group_id_to_join == bluetooth::groups::kGroupUnknown) {
+      LOG_WARN(
+          "Device %s (conn_id=0x%04x) is already known to CSIS (# of "
+          "instances=%d) but it is "
+          "not scheduled to join any group.",
+          ADDRESS_TO_LOGGABLE_CSTR(address), device->conn_id,
+          device->GetNumberOfCsisInstances());
+      BTA_DmSirkConfirmDeviceReply(address, true);
+      return;
+    }
+
     if (!gatt_cl_read_sirk_req(
             address,
             base::BindOnce(&CsisClientImpl::SirkValueReadCompleteDuringPairing,
