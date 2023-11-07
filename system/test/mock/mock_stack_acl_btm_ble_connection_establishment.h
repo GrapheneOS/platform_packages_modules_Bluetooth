@@ -43,17 +43,7 @@ struct btm_ble_create_ll_conn_complete {
   void operator()(tHCI_STATUS status) { body(status); };
 };
 extern struct btm_ble_create_ll_conn_complete btm_ble_create_ll_conn_complete;
-// Name: maybe_resolve_address
-// Params: RawAddress* bda, tBLE_ADDR_TYPE* bda_type
-// Returns: bool
-struct maybe_resolve_address {
-  std::function<bool(RawAddress* bda, tBLE_ADDR_TYPE* bda_type)> body{
-      [](RawAddress* bda, tBLE_ADDR_TYPE* bda_type) { return false; }};
-  bool operator()(RawAddress* bda, tBLE_ADDR_TYPE* bda_type) {
-    return body(bda, bda_type);
-  };
-};
-extern struct maybe_resolve_address maybe_resolve_address;
+
 }  // namespace stack_acl_btm_ble_connection_establishment
 }  // namespace mock
 }  // namespace test
