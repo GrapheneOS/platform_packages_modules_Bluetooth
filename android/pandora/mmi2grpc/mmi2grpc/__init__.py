@@ -37,6 +37,7 @@ from mmi2grpc.pbap import PBAPProxy
 from mmi2grpc.rfcomm import RFCOMMProxy
 from mmi2grpc.sdp import SDPProxy
 from mmi2grpc.sm import SMProxy
+from mmi2grpc.vcp import VCPProxy
 from mmi2grpc._helpers import format_proxy
 from mmi2grpc._rootcanal import RootCanal
 from mmi2grpc._modem import Modem
@@ -89,6 +90,7 @@ class IUT:
         self._rfcomm = None
         self._sdp = None
         self._sm = None
+        self._vcp = None
 
     def __enter__(self):
         """Resets the IUT when starting a PTS test."""
@@ -125,6 +127,7 @@ class IUT:
         self._rfcomm = None
         self._sdp = None
         self._sm = None
+        self._vcp = None
 
     def _retry(self, func):
 
@@ -273,6 +276,11 @@ class IUT:
             if not self._sm:
                 self._sm = SMProxy(grpc.insecure_channel(f"localhost:{self.pandora_server_port}"), self.rootcanal)
             return self._sm.interact(test, interaction, description, pts_address)
+        # HandlesVCP MMIs.
+        if profile in ("VCP"):
+            if not self._vcp:
+                self._vcp = VCPProxy(grpc.insecure_channel(f"localhost:{self.pandora_server_port}"), self.rootcanal)
+            return self._vcp.interact(test, interaction, description, pts_address)
 
         # Handles unsupported profiles.
         code = format_proxy(profile, interaction, description)
