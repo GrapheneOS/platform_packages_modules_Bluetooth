@@ -2726,11 +2726,6 @@ impl IBluetoothMedia for BluetoothMedia {
     }
 
     fn stop_audio_request(&mut self) {
-        if !self.a2dp_audio_state.values().any(|state| *state == BtavAudioState::Started) {
-            info!("No active stream on A2DP device, ignoring request to stop audio.");
-            return;
-        }
-
         debug!("Stop audio request");
 
         match self.a2dp.as_mut() {
