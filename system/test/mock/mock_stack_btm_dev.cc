@@ -39,6 +39,8 @@ namespace stack_btm_dev {
 
 struct btm_find_dev btm_find_dev;
 struct BTM_Sec_AddressKnown BTM_Sec_AddressKnown;
+
+struct maybe_resolve_address maybe_resolve_address;
 }
 }  // namespace mock
 }  // namespace test
@@ -127,4 +129,9 @@ void BTM_SetConsolidationCallback(BTM_CONSOLIDATION_CB* cb) {
 bool BTM_Sec_AddressKnown(const RawAddress& address) {
   inc_func_call_count(__func__);
   return test::mock::stack_btm_dev::BTM_Sec_AddressKnown(address);
+}
+
+bool maybe_resolve_address(RawAddress* bda, tBLE_ADDR_TYPE* bda_type) {
+  inc_func_call_count(__func__);
+  return test::mock::stack_btm_dev::maybe_resolve_address(bda, bda_type);
 }
