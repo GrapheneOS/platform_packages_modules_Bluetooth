@@ -84,7 +84,10 @@ CodecClient::CodecClient() {
   }
 }
 
-CodecClient::~CodecClient() { cleanup(); }
+CodecClient::~CodecClient() {
+  cleanup();
+  if (bus_) bus_->ShutdownAndBlock();
+}
 
 int CodecClient::init(const ConfigParam config) {
   cleanup();
