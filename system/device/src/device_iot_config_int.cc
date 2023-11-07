@@ -30,7 +30,6 @@
 #include <mutex>
 #include <string>
 
-#include "bt_types.h"
 #include "btcore/include/module.h"
 #include "btif/include/btif_api.h"
 #include "btif/include/btif_util.h"

@@ -25,6 +25,7 @@
 #include <sstream>
 
 #include "bt_trace.h"
+#include "bt_types.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "stack/include/gattdefs.h"
 #include "types/bluetooth/uuid.h"

@@ -23,6 +23,7 @@
  *
  ******************************************************************************/
 
+#include "acl_api_types.h"
 #define LOG_TAG "devctl"
 
 #include <base/logging.h>

@@ -19,6 +19,7 @@
 
 #include <cstdint>
 
+#include "stack/include/bt_dev_class.h"
 #include "stack/include/hci_error_code.h"
 #include "types/class_of_device.h"
 #include "types/raw_address.h"
