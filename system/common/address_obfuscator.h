@@ -18,10 +18,10 @@
 
 #pragma once
 
-#include <array>
 #include <mutex>
 #include <string>
 
+#include "gd/hci/octets.h"
 #include "raw_address.h"
 
 namespace bluetooth {
@@ -29,8 +29,8 @@ namespace common {
 
 class AddressObfuscator {
  public:
-  static constexpr unsigned int kOctet32Length = 32;
-  using Octet32 = std::array<uint8_t, kOctet32Length>;
+  static constexpr unsigned int kOctet32Length = hci::kOctet32Length;
+  using Octet32 = hci::Octet32;
   static AddressObfuscator* GetInstance() {
     static auto instance = new AddressObfuscator();
     return instance;

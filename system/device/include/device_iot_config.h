@@ -23,7 +23,6 @@
 #include <stddef.h>
 
 #include "bt_target.h"
-#include "bt_types.h"
 #include "device_iot_conf_defs.h"
 #include "raw_address.h"
 
