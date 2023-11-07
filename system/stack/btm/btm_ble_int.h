@@ -96,9 +96,9 @@ uint64_t btm_get_next_private_addrress_interval_ms();
 /* BLE address mapping with CS feature */
 bool btm_random_pseudo_to_identity_addr(RawAddress* random_pseudo,
                                         tBLE_ADDR_TYPE* p_identity_addr_type);
-void btm_ble_refresh_peer_resolvable_private_addr(
-    const RawAddress& pseudo_bda, const RawAddress& rra,
-    tBTM_SEC_BLE::tADDRESS_TYPE type);
+void btm_ble_refresh_peer_resolvable_private_addr(const RawAddress& pseudo_bda,
+                                                  const RawAddress& rra,
+                                                  tBLE_RAND_ADDR_TYPE type);
 bool btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC* p_dev_rec);
 
 bool btm_ble_addr_resolvable(const RawAddress& rpa,
