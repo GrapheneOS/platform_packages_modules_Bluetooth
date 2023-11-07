@@ -115,8 +115,8 @@ ndk::ScopedAStatus BluetoothAudioPortImpl::updateSourceMetadata(
     if (num_of_tags != 0) {
       int copied_size = 0;
       int max_tags_size = sizeof(desc_track.tags);
-      for (auto tag : track.tags) {
-        int string_len = tag.length();
+      for (size_t i = 0; i < num_of_tags - 1; i++) {
+        int string_len = track.tags[i].length();
 
         if ((copied_size >= max_tags_size) ||
             (copied_size + string_len >= max_tags_size)) {
@@ -125,9 +125,18 @@ ndk::ScopedAStatus BluetoothAudioPortImpl::updateSourceMetadata(
           break;
         }
 
-        tag.copy(desc_track.tags + copied_size, string_len, 0);
-        strncat(desc_track.tags, ",", 1);
+        track.tags[i].copy(desc_track.tags + copied_size, string_len, 0);
+        strncat(desc_track.tags, ";", 1);
         copied_size += string_len + 1;
+      }
+
+      int string_len = track.tags[num_of_tags - 1].length();
+      if ((copied_size >= max_tags_size) ||
+          (copied_size + string_len >= max_tags_size)) {
+        LOG(ERROR) << __func__ << "Too many tags, copied size: " << copied_size;
+      } else {
+        track.tags[num_of_tags - 1].copy(desc_track.tags + copied_size,
+                                         string_len, 0);
       }
     } else {
       memset(desc_track.tags, 0, sizeof(desc_track.tags));
