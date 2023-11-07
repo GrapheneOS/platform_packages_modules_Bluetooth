@@ -198,11 +198,6 @@ struct codec_manager_impl {
       broadcast_config.frame_duration = core_config.GetFrameDurationUs();
       broadcast_config.octets_per_frame = *(core_config.octets_per_codec_frame);
       broadcast_config.blocks_per_sdu = 1;
-      // Per LC3 spec, bitrate = (8000 * nbytes) / (frame duration in
-      // milliseconds)
-      broadcast_config.codec_bitrate =
-          (8000 * broadcast_config.octets_per_frame) /
-          (broadcast_config.frame_duration / 1000);
 
       int sample_rate = broadcast_config.sampling_rate;
       int frame_duration = broadcast_config.frame_duration;
@@ -235,14 +230,13 @@ struct codec_manager_impl {
 
     LOG_INFO(
         "stream_map.size(): %zu, sampling_rate: %d, frame_duration(us): %d, "
-        "octets_per_frame: %d, blocks_per_sdu %d, codec_bitrate: %d, "
+        "octets_per_frame: %d, blocks_per_sdu %d, "
         "retransmission_number: %d, max_transport_latency: %d",
         supported_broadcast_config[0].stream_map.size(),
         supported_broadcast_config[0].sampling_rate,
         supported_broadcast_config[0].frame_duration,
         supported_broadcast_config[0].octets_per_frame,
         (int)supported_broadcast_config[0].blocks_per_sdu,
-        (int)supported_broadcast_config[0].codec_bitrate,
         (int)supported_broadcast_config[0].retransmission_number,
         supported_broadcast_config[0].max_transport_latency);
 

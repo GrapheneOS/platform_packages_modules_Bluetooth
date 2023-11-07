@@ -54,12 +54,11 @@ void PreparePeriodicData(
 struct BroadcastCodecWrapper {
   BroadcastCodecWrapper(types::LeAudioCodecId codec_id,
                         LeAudioCodecConfiguration source_codec_config,
-                        uint32_t codec_bitrate, uint32_t codec_frame_len,
+                        uint32_t octets_per_codec_frame,
                         uint8_t blocks_per_sdu = 1)
       : codec_id(codec_id),
         source_codec_config(source_codec_config),
-        codec_bitrate(codec_bitrate),
-        codec_frame_len(codec_frame_len),
+        octets_per_codec_frame(octets_per_codec_frame),
         blocks_per_sdu(blocks_per_sdu) {
     if (codec_id.coding_format != types::kLeAudioCodingFormatLC3)
       LOG(ERROR) << "Unsupported coding format!";
@@ -72,8 +71,7 @@ struct BroadcastCodecWrapper {
   BroadcastCodecWrapper& operator=(const BroadcastCodecWrapper& other) {
     codec_id = other.codec_id;
     source_codec_config = other.source_codec_config;
-    codec_bitrate = other.codec_bitrate;
-    codec_frame_len = other.codec_frame_len;
+    octets_per_codec_frame = other.octets_per_codec_frame;
     blocks_per_sdu = other.blocks_per_sdu;
     return *this;
   };
@@ -83,7 +81,7 @@ struct BroadcastCodecWrapper {
 
   uint16_t GetMaxSduSizePerChannel() const {
     if (codec_id.coding_format == types::kLeAudioCodingFormatLC3) {
-      return GetFrameLen() * blocks_per_sdu;
+      return GetOctetsPerCodecFrame() * blocks_per_sdu;
     }
 
     LOG(ERROR) << "Invalid codec ID: "
@@ -105,9 +103,7 @@ struct BroadcastCodecWrapper {
 
   uint8_t GetNumChannels() const { return source_codec_config.num_channels; }
 
-  uint32_t GetBitrate() const { return codec_bitrate; }
-
-  uint32_t GetFrameLen() const { return codec_frame_len; }
+  uint32_t GetOctetsPerCodecFrame() const { return octets_per_codec_frame; }
 
   uint8_t GetBitsPerSample() const {
     return source_codec_config.bits_per_sample;
@@ -127,8 +123,7 @@ struct BroadcastCodecWrapper {
  private:
   types::LeAudioCodecId codec_id;
   LeAudioCodecConfiguration source_codec_config;
-  uint32_t codec_bitrate;
-  uint32_t codec_frame_len;
+  uint32_t octets_per_codec_frame;
   uint8_t blocks_per_sdu;
 };
 
