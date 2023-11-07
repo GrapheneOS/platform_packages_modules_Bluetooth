@@ -144,7 +144,8 @@ class LeAudioSourceAudioHalClient {
     virtual void OnAudioDataReady(const std::vector<uint8_t>& data) = 0;
     virtual void OnAudioSuspend(void) = 0;
     virtual void OnAudioResume(void) = 0;
-    virtual void OnAudioMetadataUpdate(source_metadata_v7 source_metadata) = 0;
+    virtual void OnAudioMetadataUpdate(source_metadata_v7 source_metadata,
+                                       DsaMode dsa_mode) = 0;
 
     base::WeakPtrFactory<Callbacks> weak_factory_{this};
   };

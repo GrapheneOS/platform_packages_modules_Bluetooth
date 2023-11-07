@@ -75,6 +75,7 @@ using bluetooth::le_audio::LeAudioHealthBasedAction;
 using le_audio::CodecManager;
 using le_audio::ContentControlIdKeeper;
 using le_audio::DeviceConnectState;
+using le_audio::DsaMode;
 using le_audio::LeAudioCodecConfiguration;
 using le_audio::LeAudioDevice;
 using le_audio::LeAudioDeviceGroup;
@@ -4486,7 +4487,8 @@ class LeAudioClientImpl : public LeAudioClient {
     return true;
   }
 
-  void OnLocalAudioSourceMetadataUpdate(source_metadata_v7 source_metadata) {
+  void OnLocalAudioSourceMetadataUpdate(source_metadata_v7 source_metadata,
+                                        DsaMode dsa_mode) {
     if (active_group_id_ == bluetooth::groups::kGroupUnknown) {
       LOG(WARNING) << ", cannot start streaming if no active group set";
       return;
@@ -5733,9 +5735,11 @@ class SourceCallbacksImpl : public LeAudioSourceAudioHalClient::Callbacks {
     if (instance) instance->OnLocalAudioSourceResume();
   }
 
-  void OnAudioMetadataUpdate(source_metadata_v7 source_metadata) override {
+  void OnAudioMetadataUpdate(source_metadata_v7 source_metadata,
+                             DsaMode dsa_mode) override {
     if (instance)
-      instance->OnLocalAudioSourceMetadataUpdate(std::move(source_metadata));
+      instance->OnLocalAudioSourceMetadataUpdate(std::move(source_metadata),
+                                                 dsa_mode);
   }
 };
 

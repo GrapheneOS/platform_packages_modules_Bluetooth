@@ -54,6 +54,8 @@ namespace le_audio {
   ((vec.data()[3] << 24) + (vec.data()[2] << 16) + (vec.data()[1] << 8) + \
    vec.data()[0])
 
+enum class DsaMode { DISABLED = 0, ACL, ISO_SW, ISO_HW };
+
 namespace uuid {
 /* CAP service
  * This service is used to identify peer role (which we are not using for now)

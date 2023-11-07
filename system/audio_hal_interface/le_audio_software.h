@@ -32,6 +32,8 @@ namespace bluetooth {
 namespace audio {
 namespace le_audio {
 
+using ::le_audio::DsaMode;
+
 enum class StartRequestState {
   IDLE = 0x00,
   PENDING_BEFORE_RESUME,
@@ -57,7 +59,7 @@ constexpr uint8_t kBitsPerSample32 = 32;
 struct StreamCallbacks {
   std::function<bool(bool start_media_task)> on_resume_;
   std::function<bool(void)> on_suspend_;
-  std::function<bool(const source_metadata_v7_t&)> on_metadata_update_;
+  std::function<bool(const source_metadata_v7_t&, DsaMode)> on_metadata_update_;
   std::function<bool(const sink_metadata_v7_t&)> on_sink_metadata_update_;
 };
 

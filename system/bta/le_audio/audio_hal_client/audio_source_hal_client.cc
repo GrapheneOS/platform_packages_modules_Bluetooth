@@ -77,7 +77,8 @@ class SourceImpl : public LeAudioSourceAudioHalClient {
 
   bool OnResumeReq(bool start_media_task);
   bool OnSuspendReq();
-  bool OnMetadataUpdateReq(const source_metadata_v7_t& source_metadata);
+  bool OnMetadataUpdateReq(const source_metadata_v7_t& source_metadata,
+                           DsaMode latency_mode);
   bool Acquire();
   void Release();
   bool InitAudioSinkThread();
@@ -102,8 +103,9 @@ bool SourceImpl::Acquire() {
       .on_resume_ =
           std::bind(&SourceImpl::OnResumeReq, this, std::placeholders::_1),
       .on_suspend_ = std::bind(&SourceImpl::OnSuspendReq, this),
-      .on_metadata_update_ = std::bind(&SourceImpl::OnMetadataUpdateReq, this,
-                                       std::placeholders::_1),
+      .on_metadata_update_ =
+          std::bind(&SourceImpl::OnMetadataUpdateReq, this,
+                    std::placeholders::_1, std::placeholders::_2),
       .on_sink_metadata_update_ =
           [](const sink_metadata_v7_t& sink_metadata) {
             // TODO: update microphone configuration based on sink metadata
@@ -267,7 +269,7 @@ bool SourceImpl::OnSuspendReq() {
 }
 
 bool SourceImpl::OnMetadataUpdateReq(
-    const source_metadata_v7_t& source_metadata) {
+    const source_metadata_v7_t& source_metadata, DsaMode dsa_mode) {
   std::lock_guard<std::mutex> guard(audioSourceCallbacksMutex_);
   if (audioSourceCallbacks_ == nullptr) {
     LOG(ERROR) << __func__ << ", audio receiver not started";
@@ -278,7 +280,8 @@ bool SourceImpl::OnMetadataUpdateReq(
       FROM_HERE,
       base::BindOnce(
           &LeAudioSourceAudioHalClient::Callbacks::OnAudioMetadataUpdate,
-          audioSourceCallbacks_->weak_factory_.GetWeakPtr(), source_metadata));
+          audioSourceCallbacks_->weak_factory_.GetWeakPtr(), source_metadata,
+          dsa_mode));
   if (status == BT_STATUS_SUCCESS) {
     return true;
   }

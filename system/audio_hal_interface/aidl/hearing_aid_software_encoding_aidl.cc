@@ -29,6 +29,7 @@ using ::aidl::android::hardware::bluetooth::audio::ChannelMode;
 using ::aidl::android::hardware::bluetooth::audio::CodecType;
 using ::bluetooth::audio::aidl::AudioConfiguration;
 using ::bluetooth::audio::aidl::BluetoothAudioCtrlAck;
+using ::bluetooth::audio::aidl::LatencyMode;
 using ::bluetooth::audio::aidl::PcmConfiguration;
 using ::bluetooth::audio::aidl::SessionType;
 using ::bluetooth::audio::aidl::hearing_aid::StreamCallbacks;
@@ -74,7 +75,7 @@ class HearingAidTransport
     }
   }
 
-  void SetLowLatency(bool is_low_latency) override {}
+  void SetLatencyMode(LatencyMode latency_mode) override {}
 
   bool GetPresentationPosition(uint64_t* remote_delay_report_ns,
                                uint64_t* total_bytes_read,

@@ -78,6 +78,7 @@ using le_audio::LeAudioHealthStatus;
 using le_audio::LeAudioSinkAudioHalClient;
 using le_audio::LeAudioSourceAudioHalClient;
 
+using le_audio::DsaMode;
 using le_audio::types::AudioContexts;
 using le_audio::types::BidirectionalPair;
 using le_audio::types::LeAudioContextType;
@@ -1856,7 +1857,8 @@ class UnicastTestNoInit : public Test {
     }
 
     ASSERT_NE(unicast_source_hal_cb_, nullptr);
-    unicast_source_hal_cb_->OnAudioMetadataUpdate(source_metadata);
+    unicast_source_hal_cb_->OnAudioMetadataUpdate(source_metadata,
+                                                  DsaMode::DISABLED);
   }
 
   void UpdateLocalSourceMetadata(audio_usage_t usage,

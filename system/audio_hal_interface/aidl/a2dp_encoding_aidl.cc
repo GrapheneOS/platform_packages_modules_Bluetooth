@@ -140,7 +140,8 @@ void A2dpTransport::StopRequest() {
   btif_av_stream_stop(RawAddress::kEmpty);
 }
 
-void A2dpTransport::SetLowLatency(bool is_low_latency) {
+void A2dpTransport::SetLatencyMode(LatencyMode latency_mode) {
+  bool is_low_latency = latency_mode == LatencyMode::LOW_LATENCY ? true : false;
   btif_av_set_low_latency(is_low_latency);
 }
 

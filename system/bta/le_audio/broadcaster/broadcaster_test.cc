@@ -50,6 +50,7 @@ using testing::Test;
 
 using namespace bluetooth::le_audio;
 
+using le_audio::DsaMode;
 using le_audio::LeAudioCodecConfiguration;
 using le_audio::LeAudioSourceAudioHalClient;
 using le_audio::broadcaster::BigConfig;
@@ -610,7 +611,7 @@ TEST_F(BroadcasterTest, UpdateMetadataFromAudioTrackMetadata) {
   const source_metadata_v7_t source_metadata = {
       .track_count = tracks_vec.size(), .tracks = tracks_vec.data()};
 
-  audio_receiver->OnAudioMetadataUpdate(source_metadata);
+  audio_receiver->OnAudioMetadataUpdate(source_metadata, DsaMode::DISABLED);
 
   // Verify ccid
   ASSERT_NE(ccid_list.size(), 0u);

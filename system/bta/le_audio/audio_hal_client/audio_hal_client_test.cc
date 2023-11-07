@@ -42,6 +42,7 @@ using ::testing::ReturnPointee;
 using ::testing::SaveArg;
 using std::chrono_literals::operator""ms;
 
+using le_audio::DsaMode;
 using le_audio::LeAudioCodecConfiguration;
 using le_audio::LeAudioSinkAudioHalClient;
 using le_audio::LeAudioSourceAudioHalClient;
@@ -211,7 +212,8 @@ class MockLeAudioClientAudioSinkEventReceiver
   MOCK_METHOD((void), OnAudioSuspend, (), (override));
   MOCK_METHOD((void), OnAudioResume, (), (override));
   MOCK_METHOD((void), OnAudioMetadataUpdate,
-              (source_metadata_v7 source_metadata), (override));
+              (source_metadata_v7 source_metadata, DsaMode dsa_mode),
+              (override));
 };
 
 class MockAudioHalClientEventReceiver
