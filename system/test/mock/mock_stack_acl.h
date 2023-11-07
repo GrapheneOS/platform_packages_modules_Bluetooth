@@ -292,17 +292,17 @@ extern struct acl_peer_supports_ble_connection_subrating_host
 // identity_address_type, const RawAddress& bda, tBLE_ADDR_TYPE rra_type,
 // const RawAddress& rpa Returns: bool
 struct acl_refresh_remote_address {
-  std::function<bool(
-      const RawAddress& identity_address, tBLE_ADDR_TYPE identity_address_type,
-      const RawAddress& bda, tBTM_SEC_BLE::tADDRESS_TYPE rra_type,
-      const RawAddress& rpa)>
+  std::function<bool(const RawAddress& identity_address,
+                     tBLE_ADDR_TYPE identity_address_type,
+                     const RawAddress& bda, tBLE_RAND_ADDR_TYPE rra_type,
+                     const RawAddress& rpa)>
       body{[](const RawAddress& identity_address,
               tBLE_ADDR_TYPE identity_address_type, const RawAddress& bda,
-              tBTM_SEC_BLE::tADDRESS_TYPE rra_type,
+              tBLE_RAND_ADDR_TYPE rra_type,
               const RawAddress& rpa) { return false; }};
   bool operator()(const RawAddress& identity_address,
                   tBLE_ADDR_TYPE identity_address_type, const RawAddress& bda,
-                  tBTM_SEC_BLE::tADDRESS_TYPE rra_type, const RawAddress& rpa) {
+                  tBLE_RAND_ADDR_TYPE rra_type, const RawAddress& rpa) {
     return body(identity_address, identity_address_type, bda, rra_type, rpa);
   };
 };

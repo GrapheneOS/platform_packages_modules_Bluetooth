@@ -295,7 +295,7 @@ bool btm_random_pseudo_to_identity_addr(RawAddress* random_pseudo,
  ******************************************************************************/
 void btm_ble_refresh_peer_resolvable_private_addr(
     const RawAddress& pseudo_bda, const RawAddress& rpa,
-    tBTM_SEC_BLE::tADDRESS_TYPE rra_type) {
+    tBLE_RAND_ADDR_TYPE rra_type) {
   tBTM_SEC_DEV_REC* p_sec_rec = btm_find_dev(pseudo_bda);
   if (p_sec_rec == nullptr) {
     LOG_WARN("%s No matching known device in record", __func__);
@@ -304,10 +304,9 @@ void btm_ble_refresh_peer_resolvable_private_addr(
 
   p_sec_rec->ble.cur_rand_addr = rpa;
 
-  if (rra_type == tBTM_SEC_BLE::BTM_BLE_ADDR_PSEUDO) {
-    p_sec_rec->ble.active_addr_type = rpa.IsEmpty()
-                                          ? tBTM_SEC_BLE::BTM_BLE_ADDR_STATIC
-                                          : tBTM_SEC_BLE::BTM_BLE_ADDR_RRA;
+  if (rra_type == BTM_BLE_ADDR_PSEUDO) {
+    p_sec_rec->ble.active_addr_type =
+        rpa.IsEmpty() ? BTM_BLE_ADDR_STATIC : BTM_BLE_ADDR_RRA;
   } else {
     p_sec_rec->ble.active_addr_type = rra_type;
   }
