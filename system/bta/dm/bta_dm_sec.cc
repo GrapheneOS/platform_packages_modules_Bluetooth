@@ -139,8 +139,9 @@ void bta_dm_add_device(std::unique_ptr<tBTA_DM_API_ADD_DEVICE> msg) {
 
   if (msg->link_key_known) p_lc = &msg->link_key;
 
-  auto add_result = BTM_SecAddDevice(msg->bd_addr, p_dc, msg->bd_name, nullptr,
-                                     p_lc, msg->key_type, msg->pin_length);
+  auto add_result = get_btm_client_interface().security.BTM_SecAddDevice(
+      msg->bd_addr, p_dc, msg->bd_name, nullptr, p_lc, msg->key_type,
+      msg->pin_length);
   if (!add_result) {
     LOG(ERROR) << "BTA_DM: Error adding device "
                << ADDRESS_TO_LOGGABLE_STR(msg->bd_addr);
@@ -509,9 +510,10 @@ static tBTM_STATUS bta_dm_sp_cback(tBTM_SP_EVT event,
 
           dev_class_copy(bta_dm_sec_cb.pin_dev_class, p_data->cfm_req.dev_class);
           {
-            const tBTM_STATUS btm_status = BTM_ReadRemoteDeviceName(
-                p_data->cfm_req.bd_addr, bta_dm_pinname_cback,
-                BT_TRANSPORT_BR_EDR);
+            const tBTM_STATUS btm_status =
+                get_btm_client_interface().peer.BTM_ReadRemoteDeviceName(
+                    p_data->cfm_req.bd_addr, bta_dm_pinname_cback,
+                    BT_TRANSPORT_BR_EDR);
             switch (btm_status) {
               case BTM_CMD_STARTED:
                 return btm_status;
@@ -532,7 +534,7 @@ static tBTM_STATUS bta_dm_sp_cback(tBTM_SP_EVT event,
           bta_dm_sec_cb.pin_bd_addr = p_data->key_notif.bd_addr;
           BTA_COPY_DEVICE_CLASS(bta_dm_sec_cb.pin_dev_class,
                                 p_data->key_notif.dev_class);
-          if ((BTM_ReadRemoteDeviceName(
+          if ((get_btm_client_interface().peer.BTM_ReadRemoteDeviceName(
                   p_data->key_notif.bd_addr, bta_dm_pinname_cback,
                   BT_TRANSPORT_BR_EDR)) == BTM_CMD_STARTED)
             return BTM_CMD_STARTED;
@@ -625,7 +627,8 @@ static void bta_dm_remove_sec_dev_entry(const RawAddress& remote_bd_addr) {
           remote_bd_addr, BT_TRANSPORT_BR_EDR)) {
     LOG_VERBOSE("%s ACL is not down. Schedule for  Dev Removal when ACL closes",
                 __func__);
-    BTM_SecClearSecurityFlags(remote_bd_addr);
+    get_btm_client_interface().security.BTM_SecClearSecurityFlags(
+        remote_bd_addr);
     for (int i = 0; i < bta_dm_cb.device_list.count; i++) {
       auto& dev = bta_dm_cb.device_list.peer_device[i];
       if (dev.peer_bdaddr == remote_bd_addr) {
