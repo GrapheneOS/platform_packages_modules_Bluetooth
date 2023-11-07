@@ -94,8 +94,8 @@ impl GrpcFacade for HciFacadeService {
 }
 
 impl HciFacade for HciFacadeService {
-    fn send_command(&mut self, ctx: RpcContext<'_>, mut data: Data, sink: UnarySink<Empty>) {
-        let packet = Command::parse(&data.take_payload()).unwrap();
+    fn send_command(&mut self, ctx: RpcContext<'_>, data: Data, sink: UnarySink<Empty>) {
+        let packet = Command::parse(&data.payload).unwrap();
         let mut commands = self.commands.clone();
         let evt_tx = self.evt_tx.clone();
         ctx.spawn(async move {
@@ -108,7 +108,7 @@ impl HciFacade for HciFacadeService {
     fn request_event(&mut self, ctx: RpcContext<'_>, req: EventRequest, sink: UnarySink<Empty>) {
         let mut clone = self.clone();
         ctx.spawn(async move {
-            clone.register_event(req.get_code()).await;
+            clone.register_event(req.code).await;
             sink.success(Empty::default()).await.unwrap();
         });
     }
@@ -121,15 +121,15 @@ impl HciFacade for HciFacadeService {
     ) {
         let mut clone = self.clone();
         ctx.spawn(async move {
-            clone.register_le_event(req.get_code()).await;
+            clone.register_le_event(req.code).await;
             sink.success(Empty::default()).await.unwrap();
         });
     }
 
-    fn send_acl(&mut self, ctx: RpcContext<'_>, mut packet: Data, sink: UnarySink<Empty>) {
+    fn send_acl(&mut self, ctx: RpcContext<'_>, packet: Data, sink: UnarySink<Empty>) {
         let acl_tx = self.acl_tx.clone();
         ctx.spawn(async move {
-            acl_tx.send(Acl::parse(&packet.take_payload()).unwrap()).await.unwrap();
+            acl_tx.send(Acl::parse(&packet.payload).unwrap()).await.unwrap();
             sink.success(Empty::default()).await.unwrap();
         });
     }
