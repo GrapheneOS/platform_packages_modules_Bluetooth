@@ -38,6 +38,18 @@ struct BTM_Sec_AddressKnown {
 };
 extern struct BTM_Sec_AddressKnown BTM_Sec_AddressKnown;
 
+// Name: maybe_resolve_address
+// Params: RawAddress* bda, tBLE_ADDR_TYPE* bda_type
+// Returns: bool
+struct maybe_resolve_address {
+  std::function<bool(RawAddress* bda, tBLE_ADDR_TYPE* bda_type)> body{
+      [](RawAddress* bda, tBLE_ADDR_TYPE* bda_type) { return false; }};
+  bool operator()(RawAddress* bda, tBLE_ADDR_TYPE* bda_type) {
+    return body(bda, bda_type);
+  };
+};
+extern struct maybe_resolve_address maybe_resolve_address;
+
 }  // namespace stack_btm_dev
 }  // namespace mock
 }  // namespace test

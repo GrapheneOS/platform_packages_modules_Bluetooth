@@ -48,3 +48,5 @@ bool btm_identity_addr_to_random_pseudo(RawAddress* bd_addr,
 
 bool btm_identity_addr_to_random_pseudo_from_address_with_type(
     tBLE_BD_ADDR* address_with_type, bool refresh);
+
+bool maybe_resolve_address(RawAddress* bda, tBLE_ADDR_TYPE* bda_type);
