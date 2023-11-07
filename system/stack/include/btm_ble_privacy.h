@@ -32,3 +32,5 @@ bool btm_ble_addr_resolvable(const RawAddress& rpa,
 
 void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& p_dev_rec);
 void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC* p_dev_rec);
+
+uint64_t btm_get_next_private_addrress_interval_ms();
