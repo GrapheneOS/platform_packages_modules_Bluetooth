@@ -96,6 +96,13 @@ typedef struct {
   uint32_t local_counter; /* local sign counter for sending signed write cmd*/
 } tBTM_SEC_BLE_KEYS;
 
+// TODO: move it to btm_ble_addr.h
+enum tBLE_RAND_ADDR_TYPE : uint8_t {
+  BTM_BLE_ADDR_PSEUDO = 0,
+  BTM_BLE_ADDR_RRA = 1,
+  BTM_BLE_ADDR_STATIC = 2,
+};
+
 struct tBTM_SEC_BLE {
   RawAddress pseudo_addr; /* LE pseudo address of the device if different from
                           device address  */
@@ -120,12 +127,7 @@ struct tBTM_SEC_BLE {
   uint8_t resolving_list_index;
   RawAddress cur_rand_addr; /* current random address */
 
-  typedef enum : uint8_t {
-    BTM_BLE_ADDR_PSEUDO = 0,
-    BTM_BLE_ADDR_RRA = 1,
-    BTM_BLE_ADDR_STATIC = 2,
-  } tADDRESS_TYPE;
-  tADDRESS_TYPE active_addr_type;
+  tBLE_RAND_ADDR_TYPE active_addr_type;
 
   tBTM_LE_KEY_TYPE key_type; /* bit mask of valid key types in record */
   tBTM_SEC_BLE_KEYS keys;    /* LE device security info in peripheral rode */
