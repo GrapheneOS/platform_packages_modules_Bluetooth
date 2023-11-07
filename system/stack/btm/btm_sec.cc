@@ -2060,7 +2060,7 @@ tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
  *
  ******************************************************************************/
 void btm_sec_conn_req(const RawAddress& bda, uint8_t* dc) {
-  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bda);
+  tBTM_SEC_DEV_REC* p_dev_rec = nullptr;
 
   /* Some device may request a connection before we are done with the HCI_Reset
    * sequence */
@@ -2086,10 +2086,7 @@ void btm_sec_conn_req(const RawAddress& bda, uint8_t* dc) {
   btm_sec_cb.connecting_bda = bda;
   memcpy(btm_sec_cb.connecting_dc, dc, DEV_CLASS_LEN);
 
-  if (!p_dev_rec) {
-    /* accept the connection -> allocate a device record */
-    p_dev_rec = btm_sec_alloc_dev(bda);
-  }
+  p_dev_rec = btm_find_or_alloc_dev(bda);
   p_dev_rec->sm4 |= BTM_SM4_CONN_PEND;
 }
 
