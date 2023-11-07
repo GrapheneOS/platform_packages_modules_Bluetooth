@@ -27,7 +27,7 @@
 
 #include <cstdint>
 
-#include "base/bind.h"
+#include "base/functional/bind.h"
 #include "os/log.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/gatt/gatt_int.h"
