@@ -238,8 +238,6 @@ static const BroadcastCodecWrapper lc3_mono_16_2 = BroadcastCodecWrapper(
      .sample_rate = LeAudioCodecConfiguration::kSampleRate16000,
      .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
      .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us},
-    // Bitrate
-    32000,
     // Frame len.
     40);
 
@@ -250,8 +248,6 @@ static const BroadcastCodecWrapper lc3_stereo_16_2 = BroadcastCodecWrapper(
      .sample_rate = LeAudioCodecConfiguration::kSampleRate16000,
      .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
      .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us},
-    // Bitrate
-    32000,
     // Frame len.
     40);
 
@@ -262,8 +258,6 @@ static const BroadcastCodecWrapper lc3_stereo_24_2 = BroadcastCodecWrapper(
      .sample_rate = LeAudioCodecConfiguration::kSampleRate24000,
      .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
      .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us},
-    // Bitrate
-    48000,
     // Frame len.
     60);
 
@@ -274,8 +268,6 @@ static const BroadcastCodecWrapper lc3_stereo_48_1 = BroadcastCodecWrapper(
      .sample_rate = LeAudioCodecConfiguration::kSampleRate48000,
      .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
      .data_interval_us = LeAudioCodecConfiguration::kInterval7500Us},
-    // Bitrate
-    80000,
     // Frame len.
     75);
 
@@ -286,8 +278,6 @@ static const BroadcastCodecWrapper lc3_stereo_48_2 = BroadcastCodecWrapper(
      .sample_rate = LeAudioCodecConfiguration::kSampleRate48000,
      .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
      .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us},
-    // Bitrate
-    80000,
     // Frame len.
     100);
 
@@ -298,8 +288,6 @@ static const BroadcastCodecWrapper lc3_stereo_48_3 = BroadcastCodecWrapper(
      .sample_rate = LeAudioCodecConfiguration::kSampleRate48000,
      .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
      .data_interval_us = LeAudioCodecConfiguration::kInterval7500Us},
-    // Bitrate
-    96000,
     // Frame len.
     90);
 
@@ -310,8 +298,6 @@ static const BroadcastCodecWrapper lc3_stereo_48_4 = BroadcastCodecWrapper(
      .sample_rate = LeAudioCodecConfiguration::kSampleRate48000,
      .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
      .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us},
-    // Bitrate
-    96000,
     // Frame len.
     120);
 
@@ -376,7 +362,7 @@ types::LeAudioLtvMap BroadcastCodecWrapper::GetSubgroupCodecSpecData() const {
 
   if (codec_id.coding_format == kLeAudioCodecIdLc3.coding_format) {
     codec_spec_ltvs[codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame] =
-        UINT16_TO_VEC_UINT8(codec_frame_len);
+        UINT16_TO_VEC_UINT8(octets_per_codec_frame);
   }
 
   if (source_codec_config.num_channels == 1) {
@@ -400,7 +386,6 @@ std::ostream& operator<<(
      << ", SampleRate=" << +config.GetSampleRate()
      << ", BitsPerSample=" << +config.GetBitsPerSample()
      << ", DataIntervalUs=" << +config.GetDataIntervalUs() << "}";
-  os << ", Bitrate=" << +config.GetBitrate();
   os << "]";
   return os;
 }
