@@ -20,13 +20,10 @@
 #include <cstring>
 
 #include "bt_target.h"  // Must be first to define build configuration
-#include "bt_trace.h"   // Legacy trace logging
 #include "bta/hh/bta_hh_int.h"
 #include "btif/include/btif_storage.h"
 #include "device/include/interop.h"
 #include "osi/include/allocator.h"
-#include "osi/include/osi.h"
-#include "stack/include/acl_api.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack/include/sdp_api.h"
 #include "types/raw_address.h"

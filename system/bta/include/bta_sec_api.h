@@ -18,24 +18,22 @@
 
 #pragma once
 
-#include <base/strings/stringprintf.h>
 #include <base/functional/callback.h>
+#include <base/strings/stringprintf.h>
 
 #include <cstdint>
 #include <vector>
 
 #include "bt_target.h"  // Must be first to define build configuration
-#include "stack/include/bt_octets.h"
-#include "stack/include/bt_types.h"
-#include "stack/include/btm_sec_api_types.h"
-#include "stack/include/btm_ble_sec_api_types.h"
+#include "bta_api_data_types.h"
 #include "stack/include/bt_name.h"
+#include "stack/include/bt_octets.h"
+#include "stack/include/btm_ble_sec_api_types.h"
+#include "stack/include/btm_sec_api_types.h"
 #include "stack/include/hci_error_code.h"
 #include "types/ble_address_with_type.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
-
-#include "bta_api_data_types.h"
 
 /* Security Setting Mask */
 #define BTA_SEC_AUTHENTICATE \
