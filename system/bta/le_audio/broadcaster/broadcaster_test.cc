@@ -579,7 +579,7 @@ TEST_F(BroadcasterTest, UpdateMetadataFromAudioTrackMetadata) {
        .sample_rate = LeAudioCodecConfiguration::kSampleRate16000,
        .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
        .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us},
-      32000, 40);
+      40);
   auto announcement = prepareAnnouncement(codec_config, meta);
 
   ON_CALL(*sm, GetBroadcastAnnouncement())
@@ -645,7 +645,7 @@ TEST_F(BroadcasterTest, GetMetadata) {
        .sample_rate = LeAudioCodecConfiguration::kSampleRate16000,
        .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
        .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us},
-      32000, 40);
+      40);
   auto announcement = prepareAnnouncement(codec_config, meta);
 
   bool is_public_metadata_valid;
