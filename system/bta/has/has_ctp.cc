@@ -16,7 +16,9 @@
  */
 
 #include "has_ctp.h"
+
 #include "os/log.h"
+#include "stack/include/bt_types.h"
 
 namespace le_audio {
 namespace has {

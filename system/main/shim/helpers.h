@@ -20,7 +20,6 @@
 #include "hci/address_with_type.h"
 #include "osi/include/allocator.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/bt_types.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/hci_mode.h"
 #include "stack/include/hcidefs.h"
