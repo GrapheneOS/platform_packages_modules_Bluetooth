@@ -25,6 +25,7 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/acl_api.h"
+#include "stack/include/btm_ble_addr.h"
 #include "stack/include/l2cap_hci_link_interface.h"
 #include "types/raw_address.h"
 
@@ -33,8 +34,6 @@ extern tBTM_CB btm_cb;
 void btm_ble_advertiser_notify_terminated_legacy(uint8_t status,
                                                  uint16_t connection_handle);
 void btm_ble_increment_link_topology_mask(uint8_t link_role);
-
-bool maybe_resolve_address(RawAddress* bda, tBLE_ADDR_TYPE* bda_type);
 
 static bool acl_ble_common_connection(
     const tBLE_BD_ADDR& address_with_type, uint16_t handle, tHCI_ROLE role,
