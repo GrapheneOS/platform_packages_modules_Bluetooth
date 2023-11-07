@@ -92,6 +92,8 @@ constexpr le_audio::types::LeAudioContextType
 static tGATT_STATUS gatt_read_ctp_ccc_status_ = GATT_SUCCESS;
 static uint8_t ccc_stored_byte_val_ = 0x01;
 
+static char* test_tags_ptr_ = nullptr;
+
 static constexpr char kNotifyUpperLayerAboutGroupBeingInIdleDuringCall[] =
     "persist.bluetooth.leaudio.notify.idle.during.call";
 const char* test_flags[] = {
@@ -752,7 +754,7 @@ class UnicastTestNoInit : public Test {
                 }
                 leAudioDevice = group->GetNextDevice(leAudioDevice);
               }
-              group->CigClearCis();
+              group->ClearAllCises();
               /* end */
 
               if (!group->Configure(context_type, metadata_context_types,
@@ -764,7 +766,7 @@ class UnicastTestNoInit : public Test {
                 return false;
               }
 
-              group->CigGenerateCisIds(context_type);
+              group->cig.GenerateCisIds(context_type);
 
               for (LeAudioDevice* device = group->GetFirstDevice();
                    device != nullptr; device = group->GetNextDevice(device)) {
@@ -808,8 +810,8 @@ class UnicastTestNoInit : public Test {
 
           group->Configure(group->GetConfigurationContextType(),
                            group->GetMetadataContexts(), ccids);
-          if (!group->CigAssignCisIds(leAudioDevice)) return false;
-          group->CigAssignCisConnHandlesToAses(leAudioDevice);
+          if (!group->cig.AssignCisIds(leAudioDevice)) return false;
+          group->AssignCisConnHandlesToAses(leAudioDevice);
 
           auto* stream_conf = &group->stream_conf;
 
@@ -912,7 +914,7 @@ class UnicastTestNoInit : public Test {
             }
             leAudioDevice = group->GetNextDevice(leAudioDevice);
           }
-          group->CigClearCis();
+          group->ClearAllCises();
           /* end */
 
           if (!group->Configure(context_type, metadata_context_types,
@@ -923,18 +925,18 @@ class UnicastTestNoInit : public Test {
 
           if (group->GetState() ==
               types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
-            group->CigGenerateCisIds(context_type);
+            group->cig.GenerateCisIds(context_type);
 
             std::vector<uint16_t> conn_handles;
-            for (uint8_t i = 0; i < (uint8_t)(group->cises_.size()); i++) {
+            for (uint8_t i = 0; i < (uint8_t)(group->cig.cises.size()); i++) {
               conn_handles.push_back(iso_con_counter_++);
             }
-            group->CigAssignCisConnHandles(conn_handles);
+            group->cig.AssignCisConnHandles(conn_handles);
             for (LeAudioDevice* device = group->GetFirstActiveDevice();
                  device != nullptr;
                  device = group->GetNextActiveDevice(device)) {
-              if (!group->CigAssignCisIds(device)) return false;
-              group->CigAssignCisConnHandlesToAses(device);
+              if (!group->cig.AssignCisIds(device)) return false;
+              group->AssignCisConnHandlesToAses(device);
             }
           }
 
@@ -1121,7 +1123,7 @@ class UnicastTestNoInit : public Test {
           streaming_groups[group->group_id_] = group;
 
           /* Assume CIG is created */
-          group->cig_state_ = le_audio::types::CigState::CREATED;
+          group->cig.SetState(le_audio::types::CigState::CREATED);
 
           if (block_streaming_state_callback) return true;
 
@@ -1211,10 +1213,10 @@ class UnicastTestNoInit : public Test {
                 stream_conf->stream_params.source.stream_locations.end());
           }
 
-          group->CigUnassignCis(leAudioDevice);
+          group->cig.UnassignCis(leAudioDevice);
 
           if (group->IsEmpty()) {
-            group->cig_state_ = le_audio::types::CigState::NONE;
+            group->cig.SetState(le_audio::types::CigState::NONE);
             InjectCigRemoved(group->group_id_);
           }
         });
@@ -1299,7 +1301,7 @@ class UnicastTestNoInit : public Test {
                     stream_conf->stream_params.source.stream_locations.end());
               }
 
-              group->CigUnassignCis(leAudioDevice);
+              group->cig.UnassignCis(leAudioDevice);
             });
 
     ON_CALL(mock_state_machine_, StopStream(_))
@@ -1365,7 +1367,7 @@ class UnicastTestNoInit : public Test {
                   stream_conf->stream_params.source.stream_locations.end());
             }
 
-            group->CigUnassignCis(device);
+            group->cig.UnassignCis(device);
 
             for (auto& ase : device->ases_) {
               ase.cis_state = types::CisState::IDLE;
@@ -1404,6 +1406,7 @@ class UnicastTestNoInit : public Test {
 
     gatt_read_ctp_ccc_status_ = GATT_SUCCESS;
     ccc_stored_byte_val_ = 0x01;
+    test_tags_ptr_ = nullptr;
 
     controller::SetMockControllerInterface(&controller_interface_);
     bluetooth::manager::SetMockBtmInterface(&mock_btm_interface_);
@@ -1787,6 +1790,10 @@ class UnicastTestNoInit : public Test {
                   .gain = track.gain,
               },
       };
+      if (test_tags_ptr_) {
+        memcpy(desc_track.tags, test_tags_ptr_, strlen(test_tags_ptr_));
+      }
+
       tracks_vec.push_back(desc_track);
     }
 
@@ -5262,6 +5269,70 @@ TEST_F(UnicastTest, TwoEarbudsStreaming) {
                   .has_value());
 }
 
+TEST_F(UnicastTest, StreamingVxAospSampleSound) {
+  uint8_t group_size = 2;
+  int group_id = 2;
+
+  /* Test to verify that tag VX_AOSP_SAMPLESOUND is always mapped to
+   * LeAudioContextType::SOUNDEFFECTS
+   */
+
+  // Report working CSIS
+  ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+      .WillByDefault(Return(true));
+
+  // First earbud
+  const RawAddress test_address0 = GetTestAddress(0);
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address0, true))
+      .Times(1);
+  ConnectCsisDevice(test_address0, 1 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontLeft,
+                    codec_spec_conf::kLeAudioLocationFrontLeft, group_size,
+                    group_id, 1 /* rank*/);
+
+  // Second earbud
+  const RawAddress test_address1 = GetTestAddress(1);
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address1, true))
+      .Times(1);
+  ConnectCsisDevice(test_address1, 2 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontRight,
+                    codec_spec_conf::kLeAudioLocationFrontRight, group_size,
+                    group_id, 2 /* rank*/, true /*connect_through_csis*/);
+
+  ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
+      .WillByDefault(Invoke([&](int group_id) { return 2; }));
+
+  // Start streaming
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
+  EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+
+  // Set a test TAG
+  char test_tag[] = "TEST_TAG2;VX_AOSP_SAMPLESOUND;TEST_TAG1";
+
+  test_tags_ptr_ = test_tag;
+
+  auto initial_context = types::LeAudioContextType::SOUNDEFFECTS;
+  types::BidirectionalPair<std::vector<uint8_t>> ccids = {.sink = {},
+                                                          .source = {}};
+  EXPECT_CALL(mock_state_machine_, StartStream(_, initial_context, _, ccids))
+      .Times(1);
+  StartStreaming(AUDIO_USAGE_VOICE_COMMUNICATION, AUDIO_CONTENT_TYPE_SPEECH,
+                 group_id);
+
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+  SyncOnMainLoop();
+
+  // Verify Data transfer on two peer sinks and one source
+  uint8_t cis_count_out = 2;
+  uint8_t cis_count_in = 0;
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920, 0);
+}
+
 TEST_F(UnicastTest, UpdateActiveAudioConfigForLocalSinkSource) {
   uint8_t group_size = 2;
   int group_id = 2;
@@ -7807,7 +7878,7 @@ TEST_F(UnicastTest, SpeakerStreamingTimeout) {
 
   /* No assigned cises should remain when transition remains in IDLE state */
   auto group = streaming_groups.at(group_id);
-  ASSERT_EQ(0, static_cast<int>(group->cises_.size()));
+  ASSERT_EQ(0, static_cast<int>(group->cig.cises.size()));
 }
 
 TEST_F(UnicastTest, AddMemberToAllowListWhenOneDeviceConnected) {

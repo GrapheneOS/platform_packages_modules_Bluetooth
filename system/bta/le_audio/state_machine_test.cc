@@ -1800,6 +1800,13 @@ TEST_F(StateMachineTest, testStreamSkipEnablingSink) {
   /* Device is banded headphones with 2x snk + none src ase
    * (2x unidirectional CIS)
    */
+
+  /* Not, that when remote device skip Enabling it is considered as an error and
+   * group will not be able to go to Streaming state.
+   * It is because, Android is not creating CISes before all ASEs gets into
+   * Enabling state, therefore it is impossible to remote device to skip
+   * Enabling state.
+   */
   const auto context_type = kContextTypeMedia;
   const int leaudio_group_id = 4;
 
@@ -1813,15 +1820,21 @@ TEST_F(StateMachineTest, testStreamSkipEnablingSink) {
   PrepareConfigureQosHandler(group, 2);
   PrepareEnableHandler(group, 2, false);
 
+  /*
+   * 1. Configure
+   * 2. QoS Config
+   * 3. Enable
+   * 4. Release
+   */
   auto* leAudioDevice = group->GetFirstDevice();
   EXPECT_CALL(gatt_queue,
               WriteCharacteristic(1, leAudioDevice->ctp_hdls_.val_hdl, _,
                                   GATT_WRITE_NO_RSP, _, _))
-      .Times(3);
+      .Times(4);
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
+  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
@@ -1829,20 +1842,21 @@ TEST_F(StateMachineTest, testStreamSkipEnablingSink) {
   InjectInitialIdleNotification(group);
 
   // Validate GroupStreamStatus
-  EXPECT_CALL(
-      mock_callbacks_,
-      StatusReportCb(leaudio_group_id,
-                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+  EXPECT_CALL(mock_callbacks_,
+              StatusReportCb(leaudio_group_id,
+                             bluetooth::le_audio::GroupStreamStatus::STREAMING))
+      .Times(0);
+
+  EXPECT_CALL(mock_callbacks_,
+              StatusReportCb(leaudio_group_id,
+                             bluetooth::le_audio::GroupStreamStatus::RELEASING))
+      .Times(1);
 
   // Start the configuration and stream Media content
   ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
       group, context_type,
       {.sink = types::AudioContexts(context_type),
        .source = types::AudioContexts(context_type)}));
-
-  // Check if group has transitioned to a proper state
-  ASSERT_EQ(group->GetState(),
-            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
 
   ASSERT_EQ(1, get_func_call_count("alarm_cancel"));
 }
@@ -1867,6 +1881,12 @@ TEST_F(StateMachineTest, testStreamSkipEnablingSinkSource) {
   PrepareEnableHandler(group, 3, false);
   PrepareReceiverStartReadyHandler(group, 1);
 
+  /*
+   * 1. Codec Config
+   * 2. Qos Config
+   * 3. Enable
+   * 4. Release
+   */
   auto* leAudioDevice = group->GetFirstDevice();
   EXPECT_CALL(gatt_queue,
               WriteCharacteristic(1, leAudioDevice->ctp_hdls_.val_hdl, _,
@@ -1874,8 +1894,8 @@ TEST_F(StateMachineTest, testStreamSkipEnablingSinkSource) {
       .Times(4);
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(3);
+  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
@@ -1883,10 +1903,14 @@ TEST_F(StateMachineTest, testStreamSkipEnablingSinkSource) {
   InjectInitialIdleNotification(group);
 
   // Validate GroupStreamStatus
-  EXPECT_CALL(
-      mock_callbacks_,
-      StatusReportCb(leaudio_group_id,
-                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+  EXPECT_CALL(mock_callbacks_,
+              StatusReportCb(leaudio_group_id,
+                             bluetooth::le_audio::GroupStreamStatus::STREAMING))
+      .Times(0);
+  EXPECT_CALL(mock_callbacks_,
+              StatusReportCb(leaudio_group_id,
+                             bluetooth::le_audio::GroupStreamStatus::RELEASING))
+      .Times(1);
 
   // Start the configuration and stream Media content
   ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
@@ -1894,9 +1918,6 @@ TEST_F(StateMachineTest, testStreamSkipEnablingSinkSource) {
       {.sink = types::AudioContexts(context_type),
        .source = types::AudioContexts(context_type)}));
 
-  // Check if group has transitioned to a proper state
-  ASSERT_EQ(group->GetState(),
-            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
   ASSERT_EQ(1, get_func_call_count("alarm_cancel"));
 }
 
@@ -2109,6 +2130,10 @@ TEST_F(StateMachineTest, testStreamMultipleConversational) {
   ASSERT_EQ(1, get_func_call_count("alarm_cancel"));
 }
 
+MATCHER_P(dataPathDirIsEq, expected, "") {
+  return (arg.data_path_dir == expected);
+}
+
 TEST_F(StateMachineTest, testFailedStreamMultipleConversational) {
   /* Testing here CIS Failed to be established */
   const auto context_type = kContextTypeConversational;
@@ -2133,8 +2158,27 @@ TEST_F(StateMachineTest, testFailedStreamMultipleConversational) {
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(AtLeast(1));
-  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(0);
-  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
+
+  /* Bidirectional CIS data path is configured in tw ocalls and removed for both
+   * directions with a single call.
+   */
+  EXPECT_CALL(*mock_iso_manager_,
+              SetupIsoDataPath(
+                  _, dataPathDirIsEq(
+                         bluetooth::hci::iso_manager::kIsoDataPathDirectionIn)))
+      .Times(1);
+  EXPECT_CALL(
+      *mock_iso_manager_,
+      SetupIsoDataPath(
+          _, dataPathDirIsEq(
+                 bluetooth::hci::iso_manager::kIsoDataPathDirectionOut)))
+      .Times(1);
+  EXPECT_CALL(
+      *mock_iso_manager_,
+      RemoveIsoDataPath(
+          _, bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionOutput |
+                 bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput))
+      .Times(1);
 
   /* This check is the major one in this test, as we want to make sure,
    * it will not be called twice but only once (when both bidirectional ASEs are
@@ -3744,13 +3788,13 @@ TEST_F(StateMachineTest, testStateIdleNotifyAclDisconnectedRemoveCig) {
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
-  group->SetCigState(types::CigState::CREATED);
+  group->cig.SetState(types::CigState::CREATED);
 
   // Assert current state
   ASSERT_TRUE(group->GetState() ==
               types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
   ASSERT_FALSE(group->IsInTransition());
-  ASSERT_TRUE(group->GetCigState() == types::CigState::CREATED);
+  ASSERT_TRUE(group->cig.GetState() == types::CigState::CREATED);
 
   // Expect RemoveCig to be called
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(group->group_id_, _)).Times(1);
@@ -3761,7 +3805,7 @@ TEST_F(StateMachineTest, testStateIdleNotifyAclDisconnectedRemoveCig) {
       group, leAudioDevice);
 
   // Assert Cig state transition to NONE after REMOVING
-  ASSERT_TRUE(group->GetCigState() == types::CigState::NONE);
+  ASSERT_TRUE(group->cig.GetState() == types::CigState::NONE);
 }
 
 TEST_F(StateMachineTest, testStateTransitionTimeout) {
@@ -4562,7 +4606,7 @@ TEST_F(StateMachineTest, testAttachDeviceToTheConversationalStream) {
 
   auto* leAudioDevice = group->GetFirstDevice();
   LeAudioDevice* lastDevice;
-  LeAudioDevice* fistDevice = leAudioDevice;
+  LeAudioDevice* firstDevice = leAudioDevice;
 
   auto expected_devices_written = 0;
   while (leAudioDevice) {
@@ -4581,10 +4625,43 @@ TEST_F(StateMachineTest, testAttachDeviceToTheConversationalStream) {
     leAudioDevice = group->GetNextDevice(leAudioDevice);
   }
   ASSERT_EQ(expected_devices_written, num_devices);
+  ASSERT_NE(nullptr, firstDevice);
+  ASSERT_NE(nullptr, lastDevice);
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(4);
+
+  EXPECT_CALL(*mock_iso_manager_,
+              SetupIsoDataPath(
+                  _, dataPathDirIsEq(
+                         bluetooth::hci::iso_manager::kIsoDataPathDirectionIn)))
+      .Times(2);
+
+  // Make sure the Out data path is set before we declare that we are ready
+  {
+    ::testing::InSequence seq;
+    EXPECT_CALL(*mock_iso_manager_,
+                SetupIsoDataPath(
+                    UNIQUE_CIS_CONN_HANDLE(leaudio_group_id, 0),
+                    dataPathDirIsEq(
+                        bluetooth::hci::iso_manager::kIsoDataPathDirectionOut)))
+        .Times(1);
+    EXPECT_CALL(ase_ctp_handler,
+                AseCtpReceiverStartReadyHandler(firstDevice, _, _, _))
+        .Times(1);
+  }
+  {
+    ::testing::InSequence seq;
+    EXPECT_CALL(*mock_iso_manager_,
+                SetupIsoDataPath(
+                    UNIQUE_CIS_CONN_HANDLE(leaudio_group_id, 1),
+                    dataPathDirIsEq(
+                        bluetooth::hci::iso_manager::kIsoDataPathDirectionOut)))
+        .Times(1);
+    EXPECT_CALL(ase_ctp_handler,
+                AseCtpReceiverStartReadyHandler(lastDevice, _, _, _))
+        .Times(1);
+  }
 
   InjectInitialIdleNotification(group);
 
@@ -4599,9 +4676,19 @@ TEST_F(StateMachineTest, testAttachDeviceToTheConversationalStream) {
             types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
   testing::Mock::VerifyAndClearExpectations(&mock_iso_manager_);
 
+  // Verify data path removal on the second bidirectional CIS
+  EXPECT_CALL(
+      *mock_iso_manager_,
+      RemoveIsoDataPath(
+          UNIQUE_CIS_CONN_HANDLE(leaudio_group_id, 1),
+          bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionOutput |
+              bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput))
+      .Times(1);
+
   // Inject CIS and ACL disconnection of first device
   InjectCisDisconnected(group, lastDevice, HCI_ERR_CONNECTION_TOUT);
   InjectAclDisconnected(group, lastDevice);
+  testing::Mock::VerifyAndClearExpectations(&mock_iso_manager_);
 
   // Check if group keeps streaming
   ASSERT_EQ(group->GetState(),
@@ -4626,7 +4713,25 @@ TEST_F(StateMachineTest, testAttachDeviceToTheConversationalStream) {
       .Times(AtLeast(3));
 
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
+  EXPECT_CALL(*mock_iso_manager_,
+              SetupIsoDataPath(
+                  _, dataPathDirIsEq(
+                         bluetooth::hci::iso_manager::kIsoDataPathDirectionIn)))
+      .Times(1);
+  // Make sure the Out data path is set before we declare that we are ready
+  {
+    ::testing::InSequence seq;
+    EXPECT_CALL(*mock_iso_manager_,
+                SetupIsoDataPath(
+                    UNIQUE_CIS_CONN_HANDLE(leaudio_group_id, 1),
+                    dataPathDirIsEq(
+                        bluetooth::hci::iso_manager::kIsoDataPathDirectionOut)))
+        .Times(1);
+    EXPECT_CALL(ase_ctp_handler,
+                AseCtpReceiverStartReadyHandler(lastDevice, _, _, _))
+        .Times(1);
+  }
+
   LeAudioGroupStateMachine::Get()->AttachToStream(
       group, lastDevice, {.sink = {call_ccid}, .source = {call_ccid}});
 
@@ -4646,7 +4751,7 @@ TEST_F(StateMachineTest, testAttachDeviceToTheConversationalStream) {
   ASSERT_NE(std::find(ccids->begin(), ccids->end(), call_ccid), ccids->end());
 
   /* Verify that ASE of first device are still good*/
-  auto ase = fistDevice->GetFirstActiveAse();
+  auto ase = firstDevice->GetFirstActiveAse();
   ASSERT_NE(ase->max_transport_latency, 0);
   ASSERT_NE(ase->retrans_nb, 0);
 

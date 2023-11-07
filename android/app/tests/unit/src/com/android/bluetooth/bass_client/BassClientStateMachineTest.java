@@ -70,6 +70,7 @@ import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.bluetooth.BluetoothLeBroadcastReceiveState;
 import android.bluetooth.BluetoothLeBroadcastSubgroup;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.le.PeriodicAdvertisingCallback;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.content.Intent;
@@ -83,6 +84,9 @@ import androidx.test.filters.MediumTest;
 import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.flags.FakeFeatureFlagsImpl;
+import com.android.bluetooth.flags.FeatureFlags;
+import com.android.bluetooth.flags.Flags;
 
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
@@ -118,6 +122,7 @@ public class BassClientStateMachineTest {
     private HandlerThread mHandlerThread;
     private StubBassClientStateMachine mBassClientStateMachine;
     private BluetoothDevice mTestDevice;
+    private FakeFeatureFlagsImpl mFakeFlagsImpl;
 
     @Mock private AdapterService mAdapterService;
     @Mock private BassClientService mBassClientService;
@@ -128,6 +133,8 @@ public class BassClientStateMachineTest {
         TestUtils.setAdapterService(mAdapterService);
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        mFakeFlagsImpl = new FakeFeatureFlagsImpl();
+        mFakeFlagsImpl.setFlag(Flags.FLAG_LEAUDIO_BROADCAST_MONITOR_SOURCE_SYNC_STATUS, false);
         BluetoothMethodProxy.setInstanceForTesting(mMethodProxy);
         doNothing().when(mMethodProxy).periodicAdvertisingManagerTransferSync(
                 any(), any(), anyInt(), anyInt());
@@ -138,8 +145,13 @@ public class BassClientStateMachineTest {
         // Set up thread and looper
         mHandlerThread = new HandlerThread("BassClientStateMachineTestHandlerThread");
         mHandlerThread.start();
-        mBassClientStateMachine = new StubBassClientStateMachine(mTestDevice,
-                mBassClientService, mHandlerThread.getLooper(), CONNECTION_TIMEOUT_MS);
+        mBassClientStateMachine =
+                new StubBassClientStateMachine(
+                        mTestDevice,
+                        mBassClientService,
+                        mHandlerThread.getLooper(),
+                        CONNECTION_TIMEOUT_MS,
+                        mFakeFlagsImpl);
         mBassClientStateMachine.start();
     }
 
@@ -1789,6 +1801,125 @@ public class BassClientStateMachineTest {
                 .isInstanceOf(BassClientStateMachine.Disconnected.class);
     }
 
+    @Test
+    public void periodicAdvertisingCallbackOnSyncLost_notifySourceLost() {
+        mFakeFlagsImpl.setFlag(Flags.FLAG_LEAUDIO_BROADCAST_MONITOR_SOURCE_SYNC_STATUS, true);
+        PeriodicAdvertisingCallback cb = mBassClientStateMachine.mLocalPeriodicAdvCallback;
+        BassClientService.Callbacks callbacks = Mockito.mock(BassClientService.Callbacks.class);
+        int syncHandle = 1;
+        int broadcastId = 2;
+        when(mBassClientService.getBroadcastIdForSyncHandle(syncHandle)).thenReturn(broadcastId);
+        when(mBassClientService.getCallbacks()).thenReturn(callbacks);
+        cb.onSyncLost(syncHandle);
+
+        verify(callbacks).notifySourceLost(broadcastId);
+    }
+
+    @Test
+    public void periodicAdvertisingCallbackOnBigInfoAdvertisingReport_updateRssi() {
+        mFakeFlagsImpl.setFlag(Flags.FLAG_LEAUDIO_BROADCAST_MONITOR_SOURCE_SYNC_STATUS, true);
+        PeriodicAdvertisingCallback cb = mBassClientStateMachine.mLocalPeriodicAdvCallback;
+        BassClientService.Callbacks callbacks = Mockito.mock(BassClientService.Callbacks.class);
+        int testRssi = -40;
+        int syncHandle = 1;
+        final String testMacAddress = "00:11:22:33:44:55";
+        BluetoothDevice testDevice =
+                mAdapter.getRemoteLeDevice(testMacAddress, BluetoothDevice.ADDRESS_TYPE_RANDOM);
+
+        byte[] scanRecordWithBaseData =
+                new byte[] {
+                    (byte) 0x02,
+                    (byte) 0x01,
+                    (byte) 0x1a, // advertising flags
+                    (byte) 0x05,
+                    (byte) 0x02,
+                    (byte) 0x51,
+                    (byte) 0x18,
+                    (byte) 0x0a,
+                    (byte) 0x11, // 16 bit service uuids
+                    (byte) 0x04,
+                    (byte) 0x09,
+                    (byte) 0x50,
+                    (byte) 0x65,
+                    (byte) 0x64, // name
+                    (byte) 0x02,
+                    (byte) 0x0A,
+                    (byte) 0xec, // tx power level
+                    (byte) 0x19,
+                    (byte) 0x16,
+                    (byte) 0x51,
+                    (byte) 0x18, // service data (base data with 18 bytes)
+                    // LEVEL 1
+                    (byte) 0x01,
+                    (byte) 0x02,
+                    (byte) 0x03, // presentationDelay
+                    (byte) 0x01, // numSubGroups
+                    // LEVEL 2
+                    (byte) 0x01, // numSubGroups
+                    (byte) 0x00,
+                    (byte) 0x00,
+                    (byte) 0x00,
+                    (byte) 0x00,
+                    (byte) 0x00, // UNKNOWN_CODEC
+                    (byte) 0x02, // codecConfigLength
+                    (byte) 0x01,
+                    (byte) 'A', // codecConfigInfo
+                    (byte) 0x03, // metaDataLength
+                    (byte) 0x06,
+                    (byte) 0x07,
+                    (byte) 0x08, // metaData
+                    // LEVEL 3
+                    (byte) 0x04, // index
+                    (byte) 0x03, // codecConfigLength
+                    (byte) 0x02,
+                    (byte) 'B',
+                    (byte) 'C', // codecConfigInfo
+                    (byte) 0x05,
+                    (byte) 0xff,
+                    (byte) 0xe0,
+                    (byte) 0x00,
+                    (byte) 0x02,
+                    (byte) 0x15, // manufacturer specific data
+                    (byte) 0x03,
+                    (byte) 0x50,
+                    (byte) 0x01,
+                    (byte) 0x02, // an unknown data type won't cause trouble
+                };
+
+        ScanRecord record = ScanRecord.parseFromBytes(scanRecordWithBaseData);
+        ScanResult scanResult =
+                new ScanResult(
+                        mAdapter.getRemoteLeDevice(
+                                "00:11:22:33:44:55", BluetoothDevice.ADDRESS_TYPE_RANDOM),
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        testRssi,
+                        0,
+                        record,
+                        0);
+        BaseData data =
+                BaseData.parseBaseData(record.getServiceData(BassConstants.BASIC_AUDIO_UUID));
+
+        when(mBassClientService.getDeviceForSyncHandle(syncHandle)).thenReturn(testDevice);
+        PeriodicAdvertisementResult paResult = Mockito.mock(PeriodicAdvertisementResult.class);
+        when(mBassClientService.getPeriodicAdvertisementResult(any(), anyInt()))
+                .thenReturn(paResult);
+        when(paResult.isNotified()).thenReturn(false);
+        when(mBassClientService.getBase(anyInt())).thenReturn(data);
+        when(mBassClientService.getCachedBroadcast(anyInt())).thenReturn(scanResult);
+        when(mBassClientService.getCallbacks()).thenReturn(callbacks);
+
+        cb.onBigInfoAdvertisingReport(syncHandle, true);
+        ArgumentCaptor<BluetoothLeBroadcastMetadata> metaData =
+                ArgumentCaptor.forClass(BluetoothLeBroadcastMetadata.class);
+        verify(callbacks).notifySourceFound(metaData.capture());
+
+        Assert.assertEquals(testRssi, metaData.getValue().getRssi());
+    }
+
     private void initToConnectingState() {
         allowConnection(true);
         allowConnectGatt(true);
@@ -1904,9 +2035,13 @@ public class BassClientStateMachineTest {
         int mMsgArg2;
         Object mMsgObj;
 
-        StubBassClientStateMachine(BluetoothDevice device, BassClientService service, Looper looper,
-                int connectTimeout) {
-            super(device, service, looper, connectTimeout);
+        StubBassClientStateMachine(
+                BluetoothDevice device,
+                BassClientService service,
+                Looper looper,
+                int connectTimeout,
+                FeatureFlags featureFlags) {
+            super(device, service, looper, connectTimeout, featureFlags);
         }
 
         @Override

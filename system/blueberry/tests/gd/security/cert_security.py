@@ -233,7 +233,7 @@ class CertSecurity(PySecurity):
         self._enqueue_hci_command(
             hci.SendKeypressNotification(bd_addr=peer, notification_type=hci.KeypressNotificationType.ENTRY_COMPLETED),
             True)
-        self._enqueue_hci_command(hci.UserPasskeyRequestReply(bd_addr=peer, numerical_value=passkey), True)
+        self._enqueue_hci_command(hci.UserPasskeyRequestReply(bd_addr=peer, numeric_value=passkey), True)
 
     def input_pin(self, address, pin):
         """

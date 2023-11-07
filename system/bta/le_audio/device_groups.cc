@@ -37,7 +37,7 @@ using types::CisState;
 using types::CisType;
 using types::DataPathState;
 using types::LeAudioContextType;
-using types::LeAudioLc3Config;
+using types::LeAudioCoreCodecConfig;
 
 /* LeAudioDeviceGroup Class methods implementation */
 void LeAudioDeviceGroup::AddNode(
@@ -98,43 +98,30 @@ int LeAudioDeviceGroup::NumOfConnected(LeAudioContextType context_type) const {
 
 void LeAudioDeviceGroup::ClearSinksFromConfiguration(void) {
   LOG_INFO("Group %p, group_id %d", this, group_id_);
+
   auto direction = types::kLeAudioDirectionSink;
-
-  auto& stream_params = stream_conf.stream_params.get(direction);
-  stream_params.stream_locations.clear();
-  stream_params.audio_channel_allocation = 0;
-  stream_params.num_of_channels = 0;
-  stream_params.num_of_devices = 0;
-  stream_params.sample_frequency_hz = 0;
-  stream_params.codec_frames_blocks_per_sdu = 0;
-  stream_params.octets_per_codec_frame = 0;
-  stream_params.frame_duration_us = 0;
-
+  stream_conf.stream_params.get(direction).clear();
   CodecManager::GetInstance()->ClearCisConfiguration(direction);
 }
 
 void LeAudioDeviceGroup::ClearSourcesFromConfiguration(void) {
   LOG_INFO("Group %p, group_id %d", this, group_id_);
+
   auto direction = types::kLeAudioDirectionSource;
-
-  auto& stream_params = stream_conf.stream_params.get(direction);
-  stream_params.stream_locations.clear();
-  stream_params.audio_channel_allocation = 0;
-  stream_params.num_of_channels = 0;
-  stream_params.num_of_devices = 0;
-  stream_params.sample_frequency_hz = 0;
-  stream_params.codec_frames_blocks_per_sdu = 0;
-  stream_params.octets_per_codec_frame = 0;
-  stream_params.frame_duration_us = 0;
-
+  stream_conf.stream_params.get(direction).clear();
   CodecManager::GetInstance()->ClearCisConfiguration(direction);
 }
 
-void LeAudioDeviceGroup::CigClearCis(void) {
+void LeAudioDeviceGroup::ClearAllCises(void) {
   LOG_INFO("group_id: %d", group_id_);
-  cises_.clear();
+  cig.cises.clear();
   ClearSinksFromConfiguration();
   ClearSourcesFromConfiguration();
+}
+
+void LeAudioDeviceGroup::UpdateCisConfiguration(uint8_t direction) {
+  CodecManager::GetInstance()->UpdateCisConfiguration(
+      cig.cises, stream_conf.stream_params.get(direction), direction);
 }
 
 void LeAudioDeviceGroup::Cleanup(void) {
@@ -178,7 +165,7 @@ void LeAudioDeviceGroup::Cleanup(void) {
    */
 
   leAudioDevices_.clear();
-  this->CigClearCis();
+  ClearAllCises();
 }
 
 void LeAudioDeviceGroup::Deactivate(void) {
@@ -189,16 +176,6 @@ void LeAudioDeviceGroup::Deactivate(void) {
       ase->active = false;
     }
   }
-}
-
-le_audio::types::CigState LeAudioDeviceGroup::GetCigState(void) const {
-  return cig_state_;
-}
-
-void LeAudioDeviceGroup::SetCigState(le_audio::types::CigState state) {
-  LOG_VERBOSE("%s -> %s", bluetooth::common::ToString(cig_state_).c_str(),
-              bluetooth::common::ToString(state).c_str());
-  cig_state_ = state;
 }
 
 bool LeAudioDeviceGroup::Activate(
@@ -215,7 +192,7 @@ bool LeAudioDeviceGroup::Activate(
              ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice.lock().get()->address_),
              activated ? "activated" : " not activated");
     if (activated) {
-      if (!CigAssignCisIds(leAudioDevice.lock().get())) {
+      if (!cig.AssignCisIds(leAudioDevice.lock().get())) {
         return false;
       }
       is_activate = true;
@@ -868,16 +845,21 @@ bool LeAudioDeviceGroup::IsReleasingOrIdle(void) const {
 }
 
 bool LeAudioDeviceGroup::IsGroupStreamReady(void) const {
-  auto iter =
-      std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(), [](auto& d) {
-        if (d.expired() || (d.lock().get()->GetConnectionState() !=
-                            DeviceConnectState::CONNECTED))
-          return false;
-        else
-          return !(((d.lock()).get())->HaveAllActiveAsesCisEst());
-      });
+  bool is_device_ready = false;
 
-  return iter == leAudioDevices_.end();
+  /* All connected devices must be ready */
+  for (auto& weak : leAudioDevices_) {
+    auto dev = weak.lock();
+    if (!dev) return false;
+
+    if (dev->GetConnectionState() == DeviceConnectState::CONNECTED) {
+      if (!dev->IsReadyToStream()) {
+        return false;
+      }
+      is_device_ready = true;
+    }
+  }
+  return is_device_ready;
 }
 
 bool LeAudioDeviceGroup::HaveAllCisesDisconnected(void) const {
@@ -888,27 +870,12 @@ bool LeAudioDeviceGroup::HaveAllCisesDisconnected(void) const {
   return true;
 }
 
-uint8_t LeAudioDeviceGroup::GetFirstFreeCisId(void) const {
-  for (uint8_t id = 0; id < UINT8_MAX; id++) {
-    auto iter = std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(),
-                             [id](auto& d) {
-                               if (d.expired())
-                                 return false;
-                               else
-                                 return ((d.lock()).get())->HasCisId(id);
-                             });
-
-    if (iter == leAudioDevices_.end()) return id;
-  }
-
-  return kInvalidCisId;
-}
-
-uint8_t LeAudioDeviceGroup::GetFirstFreeCisId(CisType cis_type) const {
-  LOG_INFO("Group: %p, group_id: %d cis_type: %d", this, group_id_,
+uint8_t LeAudioDeviceGroup::CigConfiguration::GetFirstFreeCisId(
+    CisType cis_type) const {
+  LOG_INFO("Group: %p, group_id: %d cis_type: %d", group_, group_->group_id_,
            static_cast<int>(cis_type));
-  for (size_t id = 0; id < cises_.size(); id++) {
-    if (cises_[id].addr.IsEmpty() && cises_[id].type == cis_type) {
+  for (size_t id = 0; id < cises.size(); id++) {
+    if (cises[id].addr.IsEmpty() && cises[id].type == cis_type) {
       return id;
     }
   }
@@ -952,11 +919,13 @@ int LeAudioDeviceGroup::GetAseCount(uint8_t direction) const {
   return result;
 }
 
-void LeAudioDeviceGroup::CigGenerateCisIds(LeAudioContextType context_type) {
-  LOG_INFO("Group %p, group_id: %d, context_type: %s", this, group_id_,
+void LeAudioDeviceGroup::CigConfiguration::GenerateCisIds(
+    LeAudioContextType context_type) {
+  LOG_INFO("Group %p, group_id: %d, context_type: %s", group_,
+           group_->group_id_,
            bluetooth::common::ToString(context_type).c_str());
 
-  if (cises_.size() > 0) {
+  if (cises.size() > 0) {
     LOG_INFO("CIS IDs already generated");
     return;
   }
@@ -971,16 +940,17 @@ void LeAudioDeviceGroup::CigGenerateCisIds(LeAudioContextType context_type) {
 
   if (bluetooth::csis::CsisClient::IsCsisClientRunning()) {
     csis_group_size =
-        bluetooth::csis::CsisClient::Get()->GetDesiredSize(group_id_);
+        bluetooth::csis::CsisClient::Get()->GetDesiredSize(group_->group_id_);
   }
   /* If this is CSIS group, the csis_group_size will be > 0, otherwise -1.
    * If the last happen it means, group size is 1 */
   int group_size = csis_group_size > 0 ? csis_group_size : 1;
 
-  get_cis_count(*confs, group_size, GetGroupStrategy(group_size),
-                GetAseCount(types::kLeAudioDirectionSink),
-                GetAseCount(types::kLeAudioDirectionSource), cis_count_bidir,
-                cis_count_unidir_sink, cis_count_unidir_source);
+  get_cis_count(*confs, group_size, group_->GetGroupStrategy(group_size),
+                group_->GetAseCount(types::kLeAudioDirectionSink),
+                group_->GetAseCount(types::kLeAudioDirectionSource),
+                cis_count_bidir, cis_count_unidir_sink,
+                cis_count_unidir_source);
 
   uint8_t idx = 0;
   while (cis_count_bidir > 0) {
@@ -990,7 +960,7 @@ void LeAudioDeviceGroup::CigGenerateCisIds(LeAudioContextType context_type) {
         .conn_handle = 0,
         .addr = RawAddress::kEmpty,
     };
-    cises_.push_back(cis_entry);
+    cises.push_back(cis_entry);
     cis_count_bidir--;
     idx++;
   }
@@ -1002,7 +972,7 @@ void LeAudioDeviceGroup::CigGenerateCisIds(LeAudioContextType context_type) {
         .conn_handle = 0,
         .addr = RawAddress::kEmpty,
     };
-    cises_.push_back(cis_entry);
+    cises.push_back(cis_entry);
     cis_count_unidir_sink--;
     idx++;
   }
@@ -1014,13 +984,14 @@ void LeAudioDeviceGroup::CigGenerateCisIds(LeAudioContextType context_type) {
         .conn_handle = 0,
         .addr = RawAddress::kEmpty,
     };
-    cises_.push_back(cis_entry);
+    cises.push_back(cis_entry);
     cis_count_unidir_source--;
     idx++;
   }
 }
 
-bool LeAudioDeviceGroup::CigAssignCisIds(LeAudioDevice* leAudioDevice) {
+bool LeAudioDeviceGroup::CigConfiguration::AssignCisIds(
+    LeAudioDevice* leAudioDevice) {
   ASSERT_LOG(leAudioDevice, "invalid device");
   LOG_INFO("device: %s", ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
 
@@ -1036,8 +1007,8 @@ bool LeAudioDeviceGroup::CigAssignCisIds(LeAudioDevice* leAudioDevice) {
     /* CIS ID already set */
     if (ase->cis_id != kInvalidCisId) {
       LOG_INFO("ASE ID: %d, is already assigned CIS ID: %d, type %d", ase->id,
-               ase->cis_id, cises_[ase->cis_id].type);
-      if (!cises_[ase->cis_id].addr.IsEmpty()) {
+               ase->cis_id, cises[ase->cis_id].type);
+      if (!cises[ase->cis_id].addr.IsEmpty()) {
         LOG_INFO("Bi-Directional CIS already assigned");
         continue;
       }
@@ -1069,7 +1040,7 @@ bool LeAudioDeviceGroup::CigAssignCisIds(LeAudioDevice* leAudioDevice) {
       if (cis_id != kInvalidCisId) {
         ase->cis_id = cis_id;
         matching_bidir_ase->cis_id = cis_id;
-        cises_[cis_id].addr = leAudioDevice->address_;
+        cises[cis_id].addr = leAudioDevice->address_;
 
         LOG_INFO(
             " ASE ID: %d and ASE ID: %d, assigned Bi-Directional CIS ID: %d",
@@ -1103,7 +1074,7 @@ bool LeAudioDeviceGroup::CigAssignCisIds(LeAudioDevice* leAudioDevice) {
       }
 
       ase->cis_id = cis_id;
-      cises_[cis_id].addr = leAudioDevice->address_;
+      cises[cis_id].addr = leAudioDevice->address_;
       LOG_INFO("ASE ID: %d, assigned Uni-Directional Sink CIS ID: %d", ase->id,
                ase->cis_id);
       continue;
@@ -1132,7 +1103,7 @@ bool LeAudioDeviceGroup::CigAssignCisIds(LeAudioDevice* leAudioDevice) {
     }
 
     ase->cis_id = cis_id;
-    cises_[cis_id].addr = leAudioDevice->address_;
+    cises[cis_id].addr = leAudioDevice->address_;
     LOG_INFO("ASE ID: %d, assigned Uni-Directional Source CIS ID: %d", ase->id,
              ase->cis_id);
   }
@@ -1140,17 +1111,17 @@ bool LeAudioDeviceGroup::CigAssignCisIds(LeAudioDevice* leAudioDevice) {
   return true;
 }
 
-void LeAudioDeviceGroup::CigAssignCisConnHandles(
+void LeAudioDeviceGroup::CigConfiguration::AssignCisConnHandles(
     const std::vector<uint16_t>& conn_handles) {
   LOG_INFO("num of cis handles %d", static_cast<int>(conn_handles.size()));
-  for (size_t i = 0; i < cises_.size(); i++) {
-    cises_[i].conn_handle = conn_handles[i];
-    LOG_INFO("assigning cis[%d] conn_handle: %d", cises_[i].id,
-             cises_[i].conn_handle);
+  for (size_t i = 0; i < cises.size(); i++) {
+    cises[i].conn_handle = conn_handles[i];
+    LOG_INFO("assigning cis[%d] conn_handle: %d", cises[i].id,
+             cises[i].conn_handle);
   }
 }
 
-void LeAudioDeviceGroup::CigAssignCisConnHandlesToAses(
+void LeAudioDeviceGroup::AssignCisConnHandlesToAses(
     LeAudioDevice* leAudioDevice) {
   ASSERT_LOG(leAudioDevice, "Invalid device");
   LOG_INFO("group: %p, group_id: %d, device: %s", this, group_id_,
@@ -1171,17 +1142,17 @@ void LeAudioDeviceGroup::CigAssignCisConnHandlesToAses(
     auto ases_pair = leAudioDevice->GetAsesByCisId(ase->cis_id);
 
     if (ases_pair.sink && ases_pair.sink->active) {
-      ases_pair.sink->cis_conn_hdl = cises_[ase->cis_id].conn_handle;
+      ases_pair.sink->cis_conn_hdl = cig.cises[ase->cis_id].conn_handle;
       ases_pair.sink->cis_state = CisState::ASSIGNED;
     }
     if (ases_pair.source && ases_pair.source->active) {
-      ases_pair.source->cis_conn_hdl = cises_[ase->cis_id].conn_handle;
+      ases_pair.source->cis_conn_hdl = cig.cises[ase->cis_id].conn_handle;
       ases_pair.source->cis_state = CisState::ASSIGNED;
     }
   }
 }
 
-void LeAudioDeviceGroup::CigAssignCisConnHandlesToAses(void) {
+void LeAudioDeviceGroup::AssignCisConnHandlesToAses(void) {
   LeAudioDevice* leAudioDevice = GetFirstActiveDevice();
   ASSERT_LOG(leAudioDevice, "Shouldn't be called without an active device.");
 
@@ -1190,17 +1161,18 @@ void LeAudioDeviceGroup::CigAssignCisConnHandlesToAses(void) {
   /* Assign all CIS connection handles to ases */
   for (; leAudioDevice != nullptr;
        leAudioDevice = GetNextActiveDevice(leAudioDevice)) {
-    CigAssignCisConnHandlesToAses(leAudioDevice);
+    AssignCisConnHandlesToAses(leAudioDevice);
   }
 }
 
-void LeAudioDeviceGroup::CigUnassignCis(LeAudioDevice* leAudioDevice) {
+void LeAudioDeviceGroup::CigConfiguration::UnassignCis(
+    LeAudioDevice* leAudioDevice) {
   ASSERT_LOG(leAudioDevice, "Invalid device");
 
-  LOG_INFO("Group %p, group_id %d, device: %s", this, group_id_,
+  LOG_INFO("Group %p, group_id %d, device: %s", group_, group_->group_id_,
            ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
 
-  for (struct le_audio::types::cis& cis_entry : cises_) {
+  for (struct le_audio::types::cis& cis_entry : cises) {
     if (cis_entry.addr == leAudioDevice->address_) {
       cis_entry.addr = RawAddress::kEmpty;
     }
@@ -1332,7 +1304,8 @@ bool LeAudioDeviceGroup::IsAudioSetConfigurationSupported(
       /* TODO Make it no Lc3 specific */
       if (!CheckIfStrategySupported(
               strategy, audio_locations,
-              std::get<LeAudioLc3Config>(ent.codec.config).GetChannelCount(),
+              std::get<LeAudioCoreCodecConfig>(ent.codec.config)
+                  .GetChannelCount(),
               device->GetLc3SupportedChannelCount(ent.direction))) {
         LOG_DEBUG(" insufficient device audio allocation: %lu",
                   audio_locations.to_ulong());
@@ -1690,18 +1663,18 @@ void LeAudioDeviceGroup::RemoveCisFromStreamIfNeeded(
   /* Update CodecManager CIS configuration */
   if (old_sink_channels > stream_conf.stream_params.sink.num_of_channels) {
     CodecManager::GetInstance()->UpdateCisConfiguration(
-        cises_,
+        cig.cises,
         stream_conf.stream_params.get(le_audio::types::kLeAudioDirectionSink),
         le_audio::types::kLeAudioDirectionSink);
   }
   if (old_source_channels > stream_conf.stream_params.source.num_of_channels) {
     CodecManager::GetInstance()->UpdateCisConfiguration(
-        cises_,
+        cig.cises,
         stream_conf.stream_params.get(le_audio::types::kLeAudioDirectionSource),
         le_audio::types::kLeAudioDirectionSource);
   }
 
-  CigUnassignCis(leAudioDevice);
+  cig.UnassignCis(leAudioDevice);
 }
 
 bool LeAudioDeviceGroup::IsPendingConfiguration(void) const {
@@ -1919,7 +1892,7 @@ void LeAudioDeviceGroup::PrintDebugState(void) const {
             << ", state: " << bluetooth::common::ToString(GetState())
             << ", target state: "
             << bluetooth::common::ToString(GetTargetState())
-            << ", cig state: " << bluetooth::common::ToString(cig_state_)
+            << ", cig state: " << bluetooth::common::ToString(cig.GetState())
             << ", \n group supported contexts: "
             << bluetooth::common::ToString(GetSupportedContexts())
             << ", \n group available contexts: "
@@ -1929,9 +1902,9 @@ void LeAudioDeviceGroup::PrintDebugState(void) const {
             << ", \n active configuration name: "
             << (active_conf ? active_conf->name : " not set");
 
-  if (cises_.size() > 0) {
-    LOG_INFO("\n Allocated CISes: %d", static_cast<int>(cises_.size()));
-    for (auto cis : cises_) {
+  if (cig.cises.size() > 0) {
+    LOG_INFO("\n Allocated CISes: %d", static_cast<int>(cig.cises.size()));
+    for (auto cis : cig.cises) {
       LOG_INFO("\n cis id: %d, type: %d, conn_handle %d, addr: %s", cis.id,
                cis.type, cis.conn_handle, cis.addr.ToString().c_str());
     }
@@ -1977,7 +1950,7 @@ void LeAudioDeviceGroup::Dump(int fd, int active_group_id) const {
          << " == " << (is_active ? ",\tActive\n" : ",\tInactive\n")
          << "      state: " << GetState()
          << ",\ttarget state: " << GetTargetState()
-         << ",\tcig state: " << cig_state_ << "\n"
+         << ",\tcig state: " << cig.GetState() << "\n"
          << "      group supported contexts: " << GetSupportedContexts() << "\n"
          << "      group available contexts: " << GetAvailableContexts() << "\n"
          << "      configuration context type: "
@@ -1988,7 +1961,7 @@ void LeAudioDeviceGroup::Dump(int fd, int active_group_id) const {
          << "      stream configuration: "
          << (stream_conf.conf != nullptr ? stream_conf.conf->name : " unknown ")
          << "\n"
-         << "      codec id: " << +(stream_conf.id.coding_format)
+         << "      codec id: " << +(stream_conf.codec_id.coding_format)
          << ",\tpending_configuration: " << stream_conf.pending_configuration
          << "\n"
          << "      num of devices(connected): " << Size() << "("
@@ -1999,11 +1972,11 @@ void LeAudioDeviceGroup::Dump(int fd, int active_group_id) const {
          << "      num of sources(connected): "
          << stream_conf.stream_params.source.num_of_devices << "("
          << stream_conf.stream_params.source.stream_locations.size() << ")\n"
-         << "      allocated CISes: " << static_cast<int>(cises_.size());
+         << "      allocated CISes: " << static_cast<int>(cig.cises.size());
 
-  if (cises_.size() > 0) {
+  if (cig.cises.size() > 0) {
     stream << "\n\t == CISes == ";
-    for (auto cis : cises_) {
+    for (auto cis : cig.cises) {
       stream << "\n\t cis id: " << static_cast<int>(cis.id)
              << ",\ttype: " << static_cast<int>(cis.type)
              << ",\tconn_handle: " << static_cast<int>(cis.conn_handle)

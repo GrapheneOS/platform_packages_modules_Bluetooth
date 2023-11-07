@@ -487,7 +487,7 @@ class LeAudioClientImpl : public LeAudioClient {
         group_id, ToString(group->GetState()).c_str(),
         ToString(group->GetTargetState()).c_str(), check_if_recovery_needed);
     group->SetTargetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
-    group->CigClearCis();
+    group->ClearAllCises();
     group->PrintDebugState();
 
     /* There is an issue with a setting up stream or any other operation which
@@ -725,9 +725,9 @@ class LeAudioClientImpl : public LeAudioClient {
     }
     LOG_DEBUG("Group %p, id: %d, size: %d, is cig_state %s", group,
               group->group_id_, group->Size(),
-              ToString(group->cig_state_).c_str());
+              ToString(group->cig.GetState()).c_str());
     if (group->IsEmpty() &&
-        (group->cig_state_ == le_audio::types::CigState::NONE)) {
+        (group->cig.GetState() == le_audio::types::CigState::NONE)) {
       aseGroups_.Remove(group->group_id_);
     }
   }
@@ -1043,8 +1043,8 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void StartAudioSession(LeAudioDeviceGroup* group,
-                         LeAudioCodecConfiguration* source_config,
-                         LeAudioCodecConfiguration* sink_config) {
+                         const LeAudioCodecConfiguration* source_config,
+                         const LeAudioCodecConfiguration* sink_config) {
     /* This function is called when group is not yet set to active.
      * This is why we don't have to check if session is started already.
      * Just check if it is acquired.
@@ -3116,7 +3116,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
   void PrepareAndSendToTwoCises(
       const std::vector<uint8_t>& data,
-      struct le_audio::stream_configuration* stream_conf) {
+      const struct le_audio::stream_parameters& stream_params) {
     uint16_t left_cis_handle = 0;
     uint16_t right_cis_handle = 0;
 
@@ -3132,16 +3132,14 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    for (auto [cis_handle, audio_location] :
-         stream_conf->stream_params.sink.stream_locations) {
+    for (auto [cis_handle, audio_location] : stream_params.stream_locations) {
       if (audio_location & le_audio::codec_spec_conf::kLeAudioLocationAnyLeft)
         left_cis_handle = cis_handle;
       if (audio_location & le_audio::codec_spec_conf::kLeAudioLocationAnyRight)
         right_cis_handle = cis_handle;
     }
 
-    uint16_t byte_count =
-        stream_conf->stream_params.sink.octets_per_codec_frame;
+    uint16_t byte_count = stream_params.octets_per_codec_frame;
     bool mix_to_mono = (left_cis_handle == 0) || (right_cis_handle == 0);
     if (mix_to_mono) {
       std::vector<uint8_t> mono = mono_blend(
@@ -3176,10 +3174,9 @@ class LeAudioClientImpl : public LeAudioClient {
 
   void PrepareAndSendToSingleCis(
       const std::vector<uint8_t>& data,
-      struct le_audio::stream_configuration* stream_conf) {
-    uint16_t num_channels = stream_conf->stream_params.sink.num_of_channels;
-    uint16_t cis_handle =
-        stream_conf->stream_params.sink.stream_locations.front().first;
+      const struct le_audio::stream_parameters& stream_params) {
+    uint16_t num_channels = stream_params.num_of_channels;
+    uint16_t cis_handle = stream_params.stream_locations.front().first;
 
     uint16_t number_of_required_samples_per_channel =
         sw_enc_left->GetNumOfSamplesPerChannel();
@@ -3190,8 +3187,7 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    uint16_t byte_count =
-        stream_conf->stream_params.sink.octets_per_codec_frame;
+    uint16_t byte_count = stream_params.octets_per_codec_frame;
     bool mix_to_mono = (num_channels == 1);
     if (mix_to_mono) {
       /* Since we always get two channels from framework, lets make it mono here
@@ -3246,10 +3242,10 @@ class LeAudioClientImpl : public LeAudioClient {
     if ((stream_conf.stream_params.sink.num_of_devices == 2) ||
         (stream_conf.stream_params.sink.stream_locations.size() == 2)) {
       /* Streaming to two devices or one device with 2 CISes */
-      PrepareAndSendToTwoCises(data, &stream_conf);
+      PrepareAndSendToTwoCises(data, stream_conf.stream_params.sink);
     } else {
       /* Streaming to one device and 1 CIS */
-      PrepareAndSendToSingleCis(data, &stream_conf);
+      PrepareAndSendToSingleCis(data, stream_conf.stream_params.sink);
     }
   }
 
@@ -3455,7 +3451,8 @@ class LeAudioClientImpl : public LeAudioClient {
         LOG(WARNING)
             << " The encoder instance should have been already released.";
       }
-      sw_enc_left = le_audio::CodecInterface::CreateInstance(stream_conf->id);
+      sw_enc_left =
+          le_audio::CodecInterface::CreateInstance(stream_conf->codec_id);
       auto codec_status = sw_enc_left->InitEncoder(
           audio_framework_source_config, current_source_codec_config);
       if (codec_status != le_audio::CodecInterface::Status::STATUS_OK) {
@@ -3463,7 +3460,8 @@ class LeAudioClientImpl : public LeAudioClient {
         return false;
       }
 
-      sw_enc_right = le_audio::CodecInterface::CreateInstance(stream_conf->id);
+      sw_enc_right =
+          le_audio::CodecInterface::CreateInstance(stream_conf->codec_id);
       codec_status = sw_enc_right->InitEncoder(audio_framework_source_config,
                                                current_source_codec_config);
       if (codec_status != le_audio::CodecInterface::Status::STATUS_OK) {
@@ -3527,7 +3525,8 @@ class LeAudioClientImpl : public LeAudioClient {
         LOG(WARNING)
             << " The decoder instance should have been already released.";
       }
-      sw_dec_left = le_audio::CodecInterface::CreateInstance(stream_conf->id);
+      sw_dec_left =
+          le_audio::CodecInterface::CreateInstance(stream_conf->codec_id);
       auto codec_status = sw_dec_left->InitDecoder(current_sink_codec_config,
                                                    audio_framework_sink_config);
       if (codec_status != le_audio::CodecInterface::Status::STATUS_OK) {
@@ -3535,7 +3534,8 @@ class LeAudioClientImpl : public LeAudioClient {
         return;
       }
 
-      sw_dec_right = le_audio::CodecInterface::CreateInstance(stream_conf->id);
+      sw_dec_right =
+          le_audio::CodecInterface::CreateInstance(stream_conf->codec_id);
       codec_status = sw_dec_right->InitDecoder(current_sink_codec_config,
                                                audio_framework_sink_config);
       if (codec_status != le_audio::CodecInterface::Status::STATUS_OK) {
@@ -5374,9 +5374,7 @@ class LeAudioClientImpl : public LeAudioClient {
       LOG_ERROR("Invalid group_id: %d", group_id);
       return;
     }
-    CodecManager::GetInstance()->UpdateCisConfiguration(
-        group->cises_, group->stream_conf.stream_params.get(direction),
-        direction);
+    group->UpdateCisConfiguration(direction);
   }
 
  private:

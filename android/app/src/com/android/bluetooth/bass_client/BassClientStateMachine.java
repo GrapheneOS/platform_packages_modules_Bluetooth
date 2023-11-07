@@ -54,6 +54,7 @@ import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
+import com.android.bluetooth.flags.FeatureFlags;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -70,6 +71,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.UUID;
 import java.util.stream.IntStream;
@@ -126,6 +128,8 @@ public class BassClientStateMachine extends StateMachine {
     private final Connected mConnected = new Connected();
     private final Connecting mConnecting = new Connecting();
     private final ConnectedProcessing mConnectedProcessing = new ConnectedProcessing();
+    private final FeatureFlags mFeatureFlags;
+
     @VisibleForTesting
     final List<BluetoothGattCharacteristic> mBroadcastCharacteristics =
             new ArrayList<BluetoothGattCharacteristic>();
@@ -175,15 +179,20 @@ public class BassClientStateMachine extends StateMachine {
     @VisibleForTesting
     BluetoothGattTestableWrapper mBluetoothGatt = null;
     BluetoothGattCallback mGattCallback = null;
-    PeriodicAdvertisingCallback mLocalPeriodicAdvCallback = new PACallback();
+    @VisibleForTesting PeriodicAdvertisingCallback mLocalPeriodicAdvCallback = new PACallback();
     int mMaxSingleAttributeWriteValueLen = 0;
 
-    BassClientStateMachine(BluetoothDevice device, BassClientService svc, Looper looper,
-            int connectTimeoutMs) {
+    BassClientStateMachine(
+            BluetoothDevice device,
+            BassClientService svc,
+            Looper looper,
+            int connectTimeoutMs,
+            FeatureFlags featureFlags) {
         super(TAG + "(" + device.toString() + ")", looper);
         mDevice = device;
         mService = svc;
         mConnectTimeoutMs = connectTimeoutMs;
+        mFeatureFlags = Objects.requireNonNull(featureFlags, "Feature Flags cannot be null");
         addState(mDisconnected);
         addState(mConnected);
         addState(mConnecting);
@@ -205,11 +214,15 @@ public class BassClientStateMachine extends StateMachine {
         Binder.restoreCallingIdentity(token);
     }
 
-    static BassClientStateMachine make(BluetoothDevice device,
-            BassClientService svc, Looper looper) {
+    static BassClientStateMachine make(
+            BluetoothDevice device,
+            BassClientService svc,
+            Looper looper,
+            FeatureFlags featureFlags) {
         Log.d(TAG, "make for device " + device);
-        BassClientStateMachine BassclientSm = new BassClientStateMachine(device, svc, looper,
-                BassConstants.CONNECT_TIMEOUT_MS);
+        BassClientStateMachine BassclientSm =
+                new BassClientStateMachine(
+                        device, svc, looper, BassConstants.CONNECT_TIMEOUT_MS, featureFlags);
         BassclientSm.start();
         return BassclientSm;
     }
@@ -605,6 +618,13 @@ public class BassClientStateMachine extends StateMachine {
             }
         }
         metaData.setEncrypted(encrypted);
+        if (mFeatureFlags.leaudioBroadcastMonitorSourceSyncStatus()) {
+            // update the rssi value
+            ScanResult scanRes = mService.getCachedBroadcast(result.getBroadcastId());
+            if (scanRes != null) {
+                metaData.setRssi(scanRes.getRssi());
+            }
+        }
         return metaData.build();
     }
 
@@ -1099,6 +1119,13 @@ public class BassClientStateMachine extends StateMachine {
         @Override
         public void onSyncLost(int syncHandle) {
             log("OnSyncLost" + syncHandle);
+            if (mFeatureFlags.leaudioBroadcastMonitorSourceSyncStatus()) {
+                int broadcastId = mService.getBroadcastIdForSyncHandle(syncHandle);
+                if (broadcastId != BassConstants.INVALID_BROADCAST_ID) {
+                    log("Notify broadcast source lost, broadcast id: " + broadcastId);
+                    mService.getCallbacks().notifySourceLost(broadcastId);
+                }
+            }
             cancelActiveSync(syncHandle);
         }
 

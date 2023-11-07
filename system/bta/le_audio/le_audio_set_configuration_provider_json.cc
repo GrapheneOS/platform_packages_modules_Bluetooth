@@ -34,7 +34,7 @@
 
 using le_audio::set_configurations::AudioSetConfiguration;
 using le_audio::set_configurations::AudioSetConfigurations;
-using le_audio::set_configurations::CodecCapabilitySetting;
+using le_audio::set_configurations::CodecConfigSetting;
 using le_audio::set_configurations::LeAudioCodecIdLc3;
 using le_audio::set_configurations::QosConfigSetting;
 using le_audio::set_configurations::SetConfiguration;
@@ -197,12 +197,12 @@ struct AudioSetConfigurationProviderJson {
     return (it != flat_codec_specific_params->cend()) ? *it : nullptr;
   }
 
-  static CodecCapabilitySetting CodecCapabilitySettingFromFlat(
+  static CodecConfigSetting CodecConfigSettingFromFlat(
       const bluetooth::le_audio::CodecId* flat_codec_id,
       const flatbuffers::Vector<
           flatbuffers::Offset<bluetooth::le_audio::CodecSpecificConfiguration>>*
           flat_codec_specific_params) {
-    CodecCapabilitySetting codec;
+    CodecConfigSetting codec;
 
     /* Cache the le_audio::types::CodecId type value */
     codec.id = types::LeAudioCodecId({
@@ -211,7 +211,7 @@ struct AudioSetConfigurationProviderJson {
         .vendor_codec_id = flat_codec_id->vendor_codec_id(),
     });
 
-    /* Cache the types::LeAudioLc3Config type value */
+    /* Cache the types::LeAudioCoreCodecConfig type value */
     uint8_t sampling_frequency = 0;
     uint8_t frame_duration = 0;
     uint32_t audio_channel_allocation = 0;
@@ -278,7 +278,7 @@ struct AudioSetConfigurationProviderJson {
       STREAM_TO_UINT8(codec_frames_blocks_per_sdu, ptr);
     }
 
-    codec.config = types::LeAudioLc3Config({
+    codec.config = types::LeAudioCoreCodecConfig({
         .sampling_frequency = sampling_frequency,
         .frame_duration = frame_duration,
         .audio_channel_allocation = audio_channel_allocation,
@@ -309,8 +309,8 @@ struct AudioSetConfigurationProviderJson {
     auto config = SetConfiguration(
         flat_subconfig->direction(), flat_subconfig->device_cnt(),
         flat_subconfig->ase_cnt(),
-        CodecCapabilitySettingFromFlat(flat_subconfig->codec_id(),
-                                       flat_subconfig->codec_configuration()),
+        CodecConfigSettingFromFlat(flat_subconfig->codec_id(),
+                                   flat_subconfig->codec_configuration()),
         qos, strategy);
 
     // Note that these parameters are set here since for now, we are using the

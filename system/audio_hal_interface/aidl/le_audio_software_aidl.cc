@@ -45,7 +45,7 @@ using ::bluetooth::audio::le_audio::LeAudioClientInterface;
 using ::bluetooth::audio::le_audio::StartRequestState;
 using ::bluetooth::audio::le_audio::StreamCallbacks;
 using ::le_audio::set_configurations::SetConfiguration;
-using ::le_audio::types::LeAudioLc3Config;
+using ::le_audio::types::LeAudioCoreCodecConfig;
 
 static ChannelMode le_audio_channel_mode2audio_hal(uint8_t channels_count) {
   switch (channels_count) {
@@ -465,7 +465,7 @@ std::unordered_map<AudioLocation, uint32_t> audio_location_map{
 
 bool hal_ucast_capability_to_stack_format(
     const UnicastCapability& hal_capability,
-    CodecCapabilitySetting& stack_capability) {
+    CodecConfigSetting& stack_capability) {
   if (hal_capability.codecType != CodecType::LC3) {
     LOG(WARNING) << "Unsupported codecType: "
                  << toString(hal_capability.codecType);
@@ -502,7 +502,7 @@ bool hal_ucast_capability_to_stack_format(
 
   stack_capability = {
       .id = ::le_audio::set_configurations::LeAudioCodecIdLc3,
-      .config = LeAudioLc3Config(
+      .config = LeAudioCoreCodecConfig(
           {.sampling_frequency = sampling_freq_map[sample_rate_hz],
            .frame_duration = frame_duration_map[frame_duration_us],
            .audio_channel_allocation = audio_location_map[supported_channel],
@@ -513,7 +513,7 @@ bool hal_ucast_capability_to_stack_format(
 
 bool hal_bcast_capability_to_stack_format(
     const BroadcastCapability& hal_bcast_capability,
-    CodecCapabilitySetting& stack_capability) {
+    CodecConfigSetting& stack_capability) {
   if (hal_bcast_capability.codecType != CodecType::LC3) {
     LOG(WARNING) << "Unsupported codecType: "
                  << toString(hal_bcast_capability.codecType);
@@ -556,7 +556,7 @@ bool hal_bcast_capability_to_stack_format(
 
   stack_capability = {
       .id = ::le_audio::set_configurations::LeAudioCodecIdLc3,
-      .config = LeAudioLc3Config(
+      .config = LeAudioCoreCodecConfig(
           {.sampling_frequency = sampling_freq_map[sample_rate_hz],
            .frame_duration = frame_duration_map[frame_duration_us],
            .audio_channel_allocation = audio_location_map[supported_channel],
@@ -574,7 +574,7 @@ std::vector<AudioSetConfiguration> get_offload_capabilities() {
   std::string str_capability_log;
 
   for (auto hal_cap : le_audio_hal_capabilities) {
-    CodecCapabilitySetting encode_cap, decode_cap, bcast_cap;
+    CodecConfigSetting encode_cap, decode_cap, bcast_cap;
     UnicastCapability hal_encode_cap =
         hal_cap.get<AudioCapabilities::leAudioCapabilities>()
             .unicastEncodeCapability;

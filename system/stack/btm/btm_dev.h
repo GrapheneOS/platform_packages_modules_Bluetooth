@@ -17,6 +17,7 @@
 #pragma once
 
 #include "stack/btm/security_device_record.h"
+#include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
 void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* p_dev_rec);
@@ -180,8 +181,7 @@ tBTM_SEC_DEV_REC* btm_sec_allocate_dev_rec(void);
  * Returns          The device bond type if known, otherwise BOND_TYPE_UNKNOWN
  *
  ******************************************************************************/
-tBTM_SEC_DEV_REC::tBTM_BOND_TYPE btm_get_bond_type_dev(
-    const RawAddress& bd_addr);
+tBTM_BOND_TYPE btm_get_bond_type_dev(const RawAddress& bd_addr);
 
 /*******************************************************************************
  *
@@ -193,8 +193,7 @@ tBTM_SEC_DEV_REC::tBTM_BOND_TYPE btm_get_bond_type_dev(
  * Returns          true on success, otherwise false
  *
  ******************************************************************************/
-bool btm_set_bond_type_dev(const RawAddress& bd_addr,
-                           tBTM_SEC_DEV_REC::tBTM_BOND_TYPE bond_type);
+bool btm_set_bond_type_dev(const RawAddress& bd_addr, tBTM_BOND_TYPE bond_type);
 
 /*******************************************************************************
  *
@@ -206,3 +205,8 @@ bool btm_set_bond_type_dev(const RawAddress& bd_addr,
  *
  ******************************************************************************/
 std::vector<tBTM_SEC_DEV_REC*> btm_get_sec_dev_rec();
+
+bool BTM_Sec_AddressKnown(const RawAddress& address);
+const tBLE_BD_ADDR BTM_Sec_GetAddressWithType(const RawAddress& bd_addr);
+
+bool BTM_IsRemoteNameKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport);

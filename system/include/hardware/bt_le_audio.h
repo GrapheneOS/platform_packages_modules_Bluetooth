@@ -230,6 +230,9 @@ constexpr uint8_t kLeAudioLtvTypeCodecFrameBlocksPerSdu = 0x05;
 constexpr uint8_t kLeAudioQualityStandard = 0x1 << 1;
 constexpr uint8_t kLeAudioQualityHigh = 0x1 << 2;
 
+/* Unknown RSSI value 0x7F - 127 */
+constexpr uint8_t kLeAudioSourceRssiUnknown = 0x7F;
+
 struct BasicAudioAnnouncementCodecConfig {
   /* 5 octets for the Codec ID */
   uint8_t codec_id;

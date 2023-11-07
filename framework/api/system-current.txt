@@ -219,6 +219,8 @@ package android.bluetooth {
     field public static final int CONNECTION_ACCESS_NO = 2; // 0x2
     field public static final int CONNECTION_ACCESS_YES = 1; // 0x1
     field public static final String DEVICE_TYPE_DEFAULT = "Default";
+    field @FlaggedApi("com.android.bluetooth.flags.support_metadata_device_types_apis") public static final String DEVICE_TYPE_HEADSET = "Headset";
+    field @FlaggedApi("com.android.bluetooth.flags.support_metadata_device_types_apis") public static final String DEVICE_TYPE_SPEAKER = "Speaker";
     field public static final String DEVICE_TYPE_STYLUS = "Stylus";
     field public static final String DEVICE_TYPE_UNTETHERED_HEADSET = "Untethered Headset";
     field public static final String DEVICE_TYPE_WATCH = "Watch";
@@ -582,6 +584,7 @@ package android.bluetooth {
     method public void onSourceAddFailed(@NonNull android.bluetooth.BluetoothDevice, @NonNull android.bluetooth.BluetoothLeBroadcastMetadata, int);
     method public void onSourceAdded(@NonNull android.bluetooth.BluetoothDevice, int, int);
     method public void onSourceFound(@NonNull android.bluetooth.BluetoothLeBroadcastMetadata);
+    method @FlaggedApi("com.android.bluetooth.flags.leaudio_broadcast_monitor_source_sync_status") public default void onSourceLost(int);
     method public void onSourceModified(@NonNull android.bluetooth.BluetoothDevice, int, int);
     method public void onSourceModifyFailed(@NonNull android.bluetooth.BluetoothDevice, int, int);
     method public void onSourceRemoveFailed(@NonNull android.bluetooth.BluetoothDevice, int, int);
@@ -615,6 +618,7 @@ package android.bluetooth {
     method public int getPaSyncInterval();
     method @IntRange(from=0, to=16777215) public int getPresentationDelayMicros();
     method @Nullable public android.bluetooth.BluetoothLeAudioContentMetadata getPublicBroadcastMetadata();
+    method @FlaggedApi("com.android.bluetooth.flags.leaudio_broadcast_monitor_source_sync_status") @IntRange(from=0xffffff81, to=127) public int getRssi();
     method public int getSourceAddressType();
     method public int getSourceAdvertisingSid();
     method @NonNull public android.bluetooth.BluetoothDevice getSourceDevice();
@@ -627,6 +631,7 @@ package android.bluetooth {
     field public static final int AUDIO_CONFIG_QUALITY_STANDARD = 1; // 0x1
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeBroadcastMetadata> CREATOR;
     field public static final int PA_SYNC_INTERVAL_UNKNOWN = 65535; // 0xffff
+    field @FlaggedApi("com.android.bluetooth.flags.leaudio_broadcast_monitor_source_sync_status") public static final int RSSI_UNKNOWN = 127; // 0x7f
   }
 
   public static final class BluetoothLeBroadcastMetadata.Builder {
@@ -644,6 +649,7 @@ package android.bluetooth {
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setPresentationDelayMicros(@IntRange(from=0, to=16777215) int);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setPublicBroadcast(boolean);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setPublicBroadcastMetadata(@Nullable android.bluetooth.BluetoothLeAudioContentMetadata);
+    method @FlaggedApi("com.android.bluetooth.flags.leaudio_broadcast_monitor_source_sync_status") @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setRssi(@IntRange(from=0xffffff81, to=127) int);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setSourceAdvertisingSid(int);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setSourceDevice(@NonNull android.bluetooth.BluetoothDevice, int);
   }
@@ -1083,12 +1089,14 @@ package android.bluetooth {
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean isVolumeOffsetAvailable(@NonNull android.bluetooth.BluetoothDevice);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void registerCallback(@NonNull java.util.concurrent.Executor, @NonNull android.bluetooth.BluetoothVolumeControl.Callback);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice, int);
+    method @FlaggedApi("com.android.bluetooth.flags.leaudio_broadcast_volume_control_for_connected_devices") @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void setDeviceVolume(@NonNull android.bluetooth.BluetoothDevice, @IntRange(from=0xffffff01, to=255) int, boolean);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void setVolumeOffset(@NonNull android.bluetooth.BluetoothDevice, @IntRange(from=0xffffff01, to=255) int);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void unregisterCallback(@NonNull android.bluetooth.BluetoothVolumeControl.Callback);
     field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_CONNECTION_STATE_CHANGED = "android.bluetooth.volume-control.profile.action.CONNECTION_STATE_CHANGED";
   }
 
   public static interface BluetoothVolumeControl.Callback {
+    method @FlaggedApi("com.android.bluetooth.flags.leaudio_broadcast_volume_control_for_connected_devices") public default void onDeviceVolumeChanged(@NonNull android.bluetooth.BluetoothDevice, @IntRange(from=0xffffff01, to=255) int);
     method public void onVolumeOffsetChanged(@NonNull android.bluetooth.BluetoothDevice, @IntRange(from=0xffffff01, to=255) int);
   }
 

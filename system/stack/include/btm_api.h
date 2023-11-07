@@ -352,22 +352,6 @@ tBTM_STATUS BTM_CancelRemoteDeviceName(void);
 
 /*******************************************************************************
  *
- * Function         BTM_IsRemoteNameKnown
- *
- * Description      This function checks if the remote name is known.
- *
- * Input Params:    bd_addr: Address of remote
- *                  transport: Transport, auto if unknown
- *
- * Returns
- *                  true if name is known, false otherwise
- *
- ******************************************************************************/
-bool BTM_IsRemoteNameKnown(const RawAddress& remote_bda,
-                           tBT_TRANSPORT transport);
-
-/*******************************************************************************
- *
  * Function         BTM_IsRemoteVersionReceived
  *
  * Returns          Returns true if "LE Read remote version info" was already

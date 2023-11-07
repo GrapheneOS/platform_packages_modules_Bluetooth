@@ -977,7 +977,8 @@ jobject prepareBluetoothLeBroadcastMetadataObject(
       broadcast_metadata.is_public, broadcast_name.get(),
       broadcast_metadata.broadcast_code ? code.get() : nullptr,
       (jint)broadcast_metadata.basic_audio_announcement.presentation_delay,
-      audio_cfg_quality, public_meta_obj.get(), subgroup_list_obj.get());
+      audio_cfg_quality, (jint)bluetooth::le_audio::kLeAudioSourceRssiUnknown,
+      public_meta_obj.get(), subgroup_list_obj.get());
 }
 
 class LeAudioBroadcasterCallbacksImpl : public LeAudioBroadcasterCallbacks {
@@ -1415,7 +1416,7 @@ static int register_com_android_bluetooth_le_audio_broadcaster(JNIEnv* env) {
   const JNIJavaMethod javaLeBroadcastMetadataMethods[] = {
       {"<init>",
        "(ILandroid/bluetooth/BluetoothDevice;IIIZZLjava/lang/String;"
-       "[BIILandroid/bluetooth/BluetoothLeAudioContentMetadata;"
+       "[BIIILandroid/bluetooth/BluetoothLeAudioContentMetadata;"
        "Ljava/util/List;)V",
        &android_bluetooth_BluetoothLeBroadcastMetadata.constructor},
   };

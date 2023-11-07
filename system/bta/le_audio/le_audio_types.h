@@ -214,15 +214,15 @@ inline uint8_t GetAudioChannelCounts(std::bitset<32> allocation) {
 /* LTV Types - same values as in Codec Specific Configurations but 0x03 is
  * named differently.
  */
-constexpr uint8_t kLeAudioLtvTypeSamplingFreq =
+constexpr uint8_t kLeAudioLtvTypeSupportedSamplingFrequencies =
     codec_spec_conf::kLeAudioLtvTypeSamplingFreq;
-constexpr uint8_t kLeAudioLtvTypeFrameDuration =
+constexpr uint8_t kLeAudioLtvTypeSupportedFrameDurations =
     codec_spec_conf::kLeAudioLtvTypeFrameDuration;
-constexpr uint8_t kLeAudioLtvTypeAudioChannelCounts =
+constexpr uint8_t kLeAudioLtvTypeSupportedAudioChannelCounts =
     codec_spec_conf::kLeAudioLtvTypeAudioChannelAllocation;
-constexpr uint8_t kLeAudioLtvTypeOctetsPerCodecFrame =
+constexpr uint8_t kLeAudioLtvTypeSupportedOctetsPerCodecFrame =
     codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame;
-constexpr uint8_t kLeAudioLtvTypeMaxCodecFramesPerSdu =
+constexpr uint8_t kLeAudioLtvTypeSupportedMaxCodecFramesPerSdu =
     codec_spec_conf::kLeAudioLtvTypeCodecFrameBlocksPerSdu;
 
 /* Sampling Frequencies */
@@ -601,7 +601,7 @@ class LeAudioLtvMap {
   std::map<uint8_t, std::vector<uint8_t>> values;
 };
 
-struct LeAudioLc3Config {
+struct LeAudioCoreCodecConfig {
   static const std::map<uint8_t, uint32_t> sampling_freq_map;
   static const std::map<uint8_t, uint32_t> frame_duration_map;
 
@@ -744,7 +744,7 @@ struct ase {
 
   /* Codec configuration */
   LeAudioCodecId codec_id;
-  LeAudioLc3Config codec_config;
+  LeAudioCoreCodecConfig codec_config;
   uint8_t framing;
   uint8_t preferred_phy;
 
@@ -785,7 +785,8 @@ using AudioLocations = std::bitset<32>;
 
 std::ostream& operator<<(std::ostream& os, const AseState& state);
 std::ostream& operator<<(std::ostream& os, const CigState& state);
-std::ostream& operator<<(std::ostream& os, const LeAudioLc3Config& config);
+std::ostream& operator<<(std::ostream& os,
+                         const LeAudioCoreCodecConfig& config);
 std::string contextTypeToStr(const LeAudioContextType& context);
 std::ostream& operator<<(std::ostream& os, const LeAudioContextType& context);
 std::ostream& operator<<(std::ostream& os, const DataPathState& state);
@@ -795,11 +796,11 @@ std::ostream& operator<<(std::ostream& os, const AudioContexts& contexts);
 
 namespace set_configurations {
 
-struct CodecCapabilitySetting {
+struct CodecConfigSetting {
   types::LeAudioCodecId id;
 
   /* Codec Specific Configuration variant */
-  std::variant<types::LeAudioLc3Config> config;
+  std::variant<types::LeAudioCoreCodecConfig> config;
 
   /* Sampling freqency requested for codec */
   uint32_t GetConfigSamplingFrequency() const;
@@ -819,7 +820,7 @@ struct QosConfigSetting {
 
 struct SetConfiguration {
   SetConfiguration(uint8_t direction, uint8_t device_cnt, uint8_t ase_cnt,
-                   CodecCapabilitySetting codec,
+                   CodecConfigSetting codec,
                    QosConfigSetting qos = {.retransmission_number = 0,
                                            .max_transport_latency = 0},
                    le_audio::types::LeAudioConfigurationStrategy strategy =
@@ -841,7 +842,7 @@ struct SetConfiguration {
   /* Datapath ID used to configure an ISO channel for these ASEs */
   uint8_t data_path_id = bluetooth::hci::iso_manager::kIsoDataPathHci;
 
-  CodecCapabilitySetting codec;
+  CodecConfigSetting codec;
   QosConfigSetting qos;
   types::LeAudioConfigurationStrategy strategy;
 };
@@ -874,9 +875,9 @@ bool check_if_may_cover_scenario(
     const AudioSetConfigurations* audio_set_configurations, uint8_t group_size);
 bool check_if_may_cover_scenario(
     const AudioSetConfiguration* audio_set_configuration, uint8_t group_size);
-bool IsCodecCapabilitySettingSupported(
+bool IsCodecConfigSettingSupported(
     const types::acs_ac_record& pac_record,
-    const CodecCapabilitySetting& codec_capability_setting);
+    const CodecConfigSetting& codec_capability_setting);
 uint8_t get_num_of_devices_in_configuration(
     const AudioSetConfiguration* audio_set_configuration);
 }  // namespace set_configurations
@@ -893,20 +894,31 @@ struct stream_parameters {
   int num_of_devices;
   /* cis_handle, audio location*/
   std::vector<std::pair<uint16_t, uint32_t>> stream_locations;
+
+  void clear() {
+    sample_frequency_hz = 0;
+    frame_duration_us = 0;
+    octets_per_codec_frame = 0;
+    audio_channel_allocation = 0;
+    codec_frames_blocks_per_sdu = 0;
+    num_of_channels = 0;
+    num_of_devices = 0;
+    stream_locations.clear();
+  }
 };
 
 struct stream_configuration {
+  /* Whether the group should be reconfigured once the streaming stops */
   bool pending_configuration;
 
-  types::LeAudioCodecId id;
-
-  /* Pointer to chosen req */
+  /* Currently selected remote device set configuration */
   const le_audio::set_configurations::AudioSetConfiguration* conf;
 
-  /* Sink & Source configuration */
-  types::BidirectionalPair<stream_parameters> stream_params;
+  /* Currently selected local audio codec */
+  types::LeAudioCodecId codec_id;
 
-  bool is_active;
+  /* Currently selected local Sink & Source configuration */
+  types::BidirectionalPair<stream_parameters> stream_params;
 };
 
 void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
