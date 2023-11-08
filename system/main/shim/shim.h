@@ -20,7 +20,6 @@
  * Gabeldorsche related legacy-only-stack-side expansion and support code.
  */
 #include "btcore/include/module.h"
-#include "main/shim/entry.h"
 #include "osi/include/future.h"
 
 static const char GD_SHIM_MODULE[] = "gd_shim_module";

@@ -29,8 +29,6 @@
  * interfaces may be made here
  */
 
-#include "osi/include/future.h"
-
 namespace bluetooth {
 namespace os {
 class Handler;

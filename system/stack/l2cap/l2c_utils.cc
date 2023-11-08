@@ -29,8 +29,8 @@
 
 #include "device/include/controller.h"
 #include "gd/hal/snoop_logger.h"
+#include "main/shim/entry.h"
 #include "main/shim/l2c_api.h"
-#include "main/shim/shim.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/btm/btm_sec.h"
