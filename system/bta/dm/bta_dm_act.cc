@@ -275,7 +275,6 @@ void BTA_dm_on_hw_on() {
     get_btm_client_interface().ble.BTM_BleLoadLocalKeys(
         BTA_BLE_LOCAL_KEY_TYPE_ID, (tBTM_BLE_LOCAL_KEYS*)&id_key);
   }
-  bta_dm_search_cb.conn_id = GATT_INVALID_CONN_ID;
 
   btm_dm_sec_init();
   btm_sec_on_hw_on();
