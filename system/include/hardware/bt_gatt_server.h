@@ -26,7 +26,7 @@ __BEGIN_DECLS
 
 /** GATT value type used in response to remote read requests */
 typedef struct {
-  uint8_t value[BTGATT_MAX_ATTR_LEN];
+  uint8_t value[GATT_MAX_ATTR_LEN];
   uint16_t handle;
   uint16_t offset;
   uint16_t len;
