@@ -2399,6 +2399,27 @@ void bta_dm_disc_start(bool delay_close_gatt) {
   bta_dm_search_cb.pending_discovery_queue = fixed_queue_new(SIZE_MAX);
 }
 
+void bta_dm_disc_acl_down(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+  switch (transport) {
+    case BT_TRANSPORT_BR_EDR:
+      if (bta_dm_search_cb.wait_disc &&
+          bta_dm_search_cb.peer_bdaddr == bd_addr) {
+        bta_dm_search_cb.wait_disc = false;
+
+        if (bta_dm_search_cb.sdp_results) {
+          LOG_VERBOSE(" timer stopped  ");
+          alarm_cancel(bta_dm_search_cb.search_timer);
+          bta_dm_disc_discover_next_device();
+        }
+      }
+      break;
+
+    case BT_TRANSPORT_LE:
+    default:
+      break;
+  }
+}
+
 void bta_dm_disc_stop() { bta_dm_disc_reset(); }
 
 #define DUMPSYS_TAG "shim::legacy::bta::dm"
