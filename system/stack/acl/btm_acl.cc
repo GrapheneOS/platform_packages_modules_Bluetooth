@@ -40,6 +40,7 @@
 #include "bta/include/bta_dm_acl.h"
 #include "bta/sys/bta_sys.h"
 #include "btif/include/btif_acl.h"
+#include "common/init_flags.h"
 #include "common/metrics.h"
 #include "device/include/controller.h"
 #include "device/include/device_iot_config.h"
@@ -48,6 +49,7 @@
 #include "main/shim/acl_api.h"
 #include "main/shim/controller.h"
 #include "main/shim/dumpsys.h"
+#include "os/log.h"
 #include "os/parameter_provider.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
