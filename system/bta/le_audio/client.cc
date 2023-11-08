@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 
+#include <android_bluetooth_flags.h>
 #include <base/functional/bind.h>
 #include <base/strings/string_number_conversions.h>
-#ifndef TARGET_FLOSS
-#include <com_android_bluetooth_flags.h>
-#endif
 #include <lc3.h>
 
 #include <deque>
@@ -166,11 +164,9 @@ std::ostream& operator<<(std::ostream& os, const AudioState& audio_state) {
 namespace {
 void le_audio_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data);
 
-#ifndef TARGET_FLOSS
 static void le_audio_health_status_callback(const RawAddress& addr,
                                             int group_id,
                                             LeAudioHealthBasedAction action);
-#endif
 
 class LeAudioClientImpl;
 LeAudioClientImpl* instance;
@@ -254,14 +250,12 @@ class LeAudioClientImpl : public LeAudioClient {
       reconnection_mode_ = BTM_BLE_BKG_CONNECT_ALLOW_LIST;
     }
 
-#ifndef TARGET_FLOSS
-    if (com::android::bluetooth::flags::leaudio_enable_health_based_actions()) {
+    if (IS_FLAG_ENABLED(leaudio_enable_health_based_actions)) {
       LOG_INFO("Loading health status module");
       leAudioHealthStatus_ = LeAudioHealthStatus::Get();
       leAudioHealthStatus_->RegisterCallback(
           base::BindRepeating(le_audio_health_status_callback));
     }
-#endif
 
     BTA_GATTC_AppRegister(
         le_audio_gattc_callback,
@@ -5477,7 +5471,6 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 };
 
-#ifndef TARGET_FLOSS
 static void le_audio_health_status_callback(const RawAddress& addr,
                                             int group_id,
                                             LeAudioHealthBasedAction action) {
@@ -5485,7 +5478,6 @@ static void le_audio_health_status_callback(const RawAddress& addr,
     instance->LeAudioHealthSendRecommendation(addr, group_id, action);
   }
 }
-#endif
 
 /* This is a generic callback method for gatt client which handles every client
  * application events.
