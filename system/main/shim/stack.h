@@ -22,7 +22,6 @@
 #include "gd/module.h"
 #include "gd/os/handler.h"
 #include "gd/os/thread.h"
-#include "gd/os/utils.h"
 #include "gd/stack_manager.h"
 #include "main/shim/acl.h"
 #include "main/shim/btm.h"

@@ -19,7 +19,6 @@
  */
 #pragma once
 
-#include "ble_advertiser.h"
 #include "include/hardware/ble_advertiser.h"
 
 namespace bluetooth {

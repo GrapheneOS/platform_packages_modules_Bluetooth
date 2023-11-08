@@ -25,7 +25,6 @@
 #include <string>
 
 #include "device/include/controller.h"
-#include "gd/att/att_module.h"
 #include "gd/common/init_flags.h"
 #include "gd/common/strings.h"
 #include "gd/hal/hci_hal.h"
@@ -39,28 +38,16 @@
 #include "gd/hci/msft.h"
 #include "gd/hci/remote_name_request.h"
 #include "gd/hci/vendor_specific_event_manager.h"
-#include "gd/l2cap/classic/l2cap_classic_module.h"
-#include "gd/l2cap/le/l2cap_le_module.h"
 #include "gd/metrics/counter_metrics.h"
-#include "gd/neighbor/connectability.h"
-#include "gd/neighbor/discoverability.h"
-#include "gd/neighbor/inquiry.h"
-#include "gd/neighbor/name_db.h"
-#include "gd/neighbor/page.h"
-#include "gd/neighbor/scan.h"
 #include "gd/os/log.h"
-#include "gd/security/security_module.h"
 #include "gd/shim/dumpsys.h"
 #include "gd/storage/storage_module.h"
 #include "gd/sysprops/sysprops_module.h"
 #include "main/shim/acl_legacy_interface.h"
 #include "main/shim/distance_measurement_manager.h"
 #include "main/shim/hci_layer.h"
-#include "main/shim/helpers.h"
-#include "main/shim/l2c_api.h"
 #include "main/shim/le_advertising_manager.h"
 #include "main/shim/le_scanning_manager.h"
-#include "main/shim/shim.h"
 
 namespace bluetooth {
 namespace shim {
