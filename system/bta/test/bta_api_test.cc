@@ -20,12 +20,11 @@
 #include <base/location.h>
 #include <gtest/gtest.h>
 
-#include <chrono>
 #include <cstdint>
 #include <utility>
 #include <vector>
 
-#include "bta/sys/bta_sys.h"
+#include "common/init_flags.h"
 #include "test/common/mock_functions.h"
 
 using namespace std::chrono_literals;
