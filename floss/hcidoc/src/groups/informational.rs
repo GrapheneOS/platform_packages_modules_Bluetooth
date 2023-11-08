@@ -8,14 +8,18 @@ use std::hash::Hash;
 use std::io::Write;
 
 use crate::engine::{Rule, RuleGroup, Signal};
-use crate::parser::{Packet, PacketChild};
+use crate::parser::{get_acl_content, AclContent, Packet, PacketChild};
 use bt_packets::hci::{
     AclCommandChild, Address, CommandChild, ConnectionManagementCommandChild, DisconnectReason,
     ErrorCode, EventChild, GapData, GapDataType, LeMetaEventChild,
 };
+use hcidoc_packets::l2cap::{ConnectionResponseResult, ControlChild};
 
 /// Valid values are in the range 0x0000-0x0EFF.
 type ConnectionHandle = u16;
+
+type Psm = u16;
+type Cid = u16;
 
 const INVALID_TS: NaiveDateTime = NaiveDateTime::MAX;
 
@@ -70,6 +74,7 @@ impl AddressType {
     }
 }
 
+#[derive(PartialEq)]
 enum InitiatorType {
     Unknown,
     Host,
@@ -179,13 +184,22 @@ impl fmt::Display for DeviceInformation {
     }
 }
 
+#[derive(Debug)]
+enum CidState {
+    Pending(Psm),
+    Connected(Cid, Psm),
+}
+
 /// Information for an ACL connection session
 struct AclInformation {
     start_time: NaiveDateTime,
     end_time: NaiveDateTime,
     handle: ConnectionHandle,
     initiator: InitiatorType,
-    profiles: HashMap<ProfileType, Vec<ProfileInformation>>,
+    active_profiles: HashMap<ProfileId, ProfileInformation>,
+    inactive_profiles: Vec<ProfileInformation>,
+    host_cids: HashMap<Cid, CidState>,
+    peer_cids: HashMap<Cid, CidState>,
 }
 
 impl AclInformation {
@@ -195,18 +209,11 @@ impl AclInformation {
             end_time: INVALID_TS,
             handle: handle,
             initiator: InitiatorType::Unknown,
-            profiles: HashMap::new(),
+            active_profiles: HashMap::new(),
+            inactive_profiles: vec![],
+            host_cids: HashMap::new(),
+            peer_cids: HashMap::new(),
         }
-    }
-
-    fn get_or_allocate_profile(&mut self, profile_type: &ProfileType) -> &mut ProfileInformation {
-        if !self.profiles.contains_key(profile_type)
-            || self.profiles.get(profile_type).unwrap().last().unwrap().end_time != INVALID_TS
-        {
-            self.profiles.insert(*profile_type, vec![ProfileInformation::new(*profile_type)]);
-        }
-
-        return self.profiles.get_mut(profile_type).unwrap().last_mut().unwrap();
     }
 
     fn report_start(&mut self, initiator: InitiatorType, ts: NaiveDateTime) {
@@ -216,13 +223,9 @@ impl AclInformation {
 
     fn report_end(&mut self, ts: NaiveDateTime) {
         // disconnect the active profiles
-        let profile_types: Vec<ProfileType> = self.profiles.keys().cloned().collect();
-        for profile_type in profile_types {
-            if let Some(profile) = self.profiles.get(&profile_type).unwrap().last() {
-                if profile.end_time == INVALID_TS {
-                    self.report_profile_end(profile_type, ts);
-                }
-            }
+        for (_, mut profile) in self.active_profiles.drain() {
+            profile.report_end(ts);
+            self.inactive_profiles.push(profile);
         }
         self.end_time = ts;
     }
@@ -230,20 +233,133 @@ impl AclInformation {
     fn report_profile_start(
         &mut self,
         profile_type: ProfileType,
+        profile_id: ProfileId,
         initiator: InitiatorType,
         ts: NaiveDateTime,
     ) {
         let mut profile = ProfileInformation::new(profile_type);
         profile.report_start(initiator, ts);
-        if !self.profiles.contains_key(&profile_type) {
-            self.profiles.insert(profile_type, vec![]);
+        let old_profile = self.active_profiles.insert(profile_id, profile);
+        if let Some(profile) = old_profile {
+            self.inactive_profiles.push(profile);
         }
-        self.profiles.get_mut(&profile_type).unwrap().push(profile);
     }
 
-    fn report_profile_end(&mut self, profile_type: ProfileType, ts: NaiveDateTime) {
-        let profile = self.get_or_allocate_profile(&profile_type);
+    fn report_profile_end(
+        &mut self,
+        profile_type: ProfileType,
+        profile_id: ProfileId,
+        ts: NaiveDateTime,
+    ) {
+        let mut profile = self
+            .active_profiles
+            .remove(&profile_id)
+            .unwrap_or(ProfileInformation::new(profile_type));
         profile.report_end(ts);
+        self.inactive_profiles.push(profile);
+    }
+
+    fn report_l2cap_conn_req(
+        &mut self,
+        psm: Psm,
+        cid: Cid,
+        initiator: InitiatorType,
+        _ts: NaiveDateTime,
+    ) {
+        if initiator == InitiatorType::Host {
+            self.host_cids.insert(cid, CidState::Pending(psm));
+        } else if initiator == InitiatorType::Peer {
+            self.peer_cids.insert(cid, CidState::Pending(psm));
+        }
+    }
+
+    // For pending connections, we report whether the PSM successfully connected and
+    // store the profile as started at this time.
+    fn report_l2cap_conn_rsp(
+        &mut self,
+        status: ConnectionResponseResult,
+        host_cid: Cid,
+        peer_cid: Cid,
+        initiator: InitiatorType,
+        ts: NaiveDateTime,
+    ) {
+        let cid_state_option = match initiator {
+            InitiatorType::Host => self.host_cids.get(&host_cid),
+            InitiatorType::Peer => self.peer_cids.get(&peer_cid),
+            _ => None,
+        };
+
+        let psm_option = match cid_state_option {
+            Some(cid_state) => match cid_state {
+                CidState::Pending(psm) => Some(*psm),
+                _ => None,
+            },
+            None => None,
+        };
+
+        if let Some(psm) = psm_option {
+            let profile_option = ProfileType::from_psm(psm);
+            let profile_id = ProfileId::L2capCid(host_cid);
+            if status == ConnectionResponseResult::Success {
+                self.host_cids.insert(host_cid, CidState::Connected(peer_cid, psm));
+                self.peer_cids.insert(peer_cid, CidState::Connected(host_cid, psm));
+                if let Some(profile) = profile_option {
+                    self.report_profile_start(profile, profile_id, initiator, ts);
+                }
+            } else {
+                // On failure, report start and end on the same time.
+                if let Some(profile) = profile_option {
+                    self.report_profile_start(profile, profile_id, initiator, ts);
+                    self.report_profile_end(profile, profile_id, ts);
+                }
+            }
+        } // TODO: debug on the else case.
+    }
+
+    // L2cap disconnected so report profile connection closed if we were tracking it.
+    fn report_l2cap_disconn_rsp(
+        &mut self,
+        host_cid: Cid,
+        peer_cid: Cid,
+        _initiator: InitiatorType,
+        ts: NaiveDateTime,
+    ) {
+        let host_cid_state_option = self.host_cids.get(&host_cid);
+        let host_psm = match host_cid_state_option {
+            Some(cid_state) => match cid_state {
+                // TODO: assert that the peer cids match.
+                CidState::Connected(_peer_cid, psm) => Some(psm),
+                _ => None, // TODO: assert that state is connected.
+            },
+            None => None,
+        };
+
+        let peer_cid_state_option = self.peer_cids.get(&peer_cid);
+        let peer_psm = match peer_cid_state_option {
+            Some(cid_state) => match cid_state {
+                // TODO: assert that the host cids match.
+                CidState::Connected(_host_cid, psm) => Some(psm),
+                _ => None, // TODO: assert that state is connected.
+            },
+            None => None,
+        };
+
+        if host_psm != peer_psm {
+            eprintln!(
+                "psm for host and peer mismatches at l2cap disc for handle {} at {}",
+                self.handle, ts
+            );
+        }
+        let psm = match host_psm.or(peer_psm) {
+            Some(psm) => *psm,
+            None => return, // No recorded PSM, no need to report.
+        };
+
+        let profile_option = ProfileType::from_psm(psm);
+        if let Some(profile) = profile_option {
+            let profile_id = ProfileId::L2capCid(host_cid);
+            self.report_profile_end(profile, profile_id, ts)
+        }
     }
 }
 
@@ -257,29 +373,69 @@ impl fmt::Display for AclInformation {
             timestamp_info = print_start_end_timestamps(self.start_time, self.end_time)
         );
 
-        for (_profile_type, profiles) in self.profiles.iter() {
-            for profile in profiles {
-                let _ = write!(f, "{}", profile);
-            }
+        for profile in self.inactive_profiles.iter() {
+            let _ = write!(f, "{}", profile);
+        }
+        for (_, profile) in self.active_profiles.iter() {
+            let _ = write!(f, "{}", profile);
         }
 
         Ok(())
     }
 }
 
-// Currently only HFP is possible to be detected. Other profiles needs us to parse L2CAP packets.
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 enum ProfileType {
-    HFP,
+    Att,
+    Avctp,
+    Avdtp,
+    Eatt,
+    Hfp,
+    HidCtrl,
+    HidIntr,
+    Rfcomm,
+    Sdp,
 }
 
 impl fmt::Display for ProfileType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let str = match self {
-            ProfileType::HFP => "HFP",
+            ProfileType::Att => "ATT",
+            ProfileType::Avctp => "AVCTP",
+            ProfileType::Avdtp => "AVDTP",
+            ProfileType::Eatt => "EATT",
+            ProfileType::Hfp => "HFP",
+            ProfileType::HidCtrl => "HID CTRL",
+            ProfileType::HidIntr => "HID INTR",
+            ProfileType::Rfcomm => "RFCOMM",
+            ProfileType::Sdp => "SDP",
         };
         write!(f, "{}", str)
     }
+}
+
+impl ProfileType {
+    fn from_psm(psm: Psm) -> Option<Self> {
+        match psm {
+            1 => Some(ProfileType::Sdp),
+            3 => Some(ProfileType::Rfcomm),
+            17 => Some(ProfileType::HidCtrl),
+            19 => Some(ProfileType::HidIntr),
+            23 => Some(ProfileType::Avctp),
+            25 => Some(ProfileType::Avdtp),
+            31 => Some(ProfileType::Att),
+            39 => Some(ProfileType::Eatt),
+            _ => None,
+        }
+    }
+}
+
+// Use to distinguish between the same profiles within one ACL connection.
+// Later we can add RFCOMM's DLCI, for example.
+#[derive(Clone, Copy, Eq, Hash, PartialEq)]
+enum ProfileId {
+    OnePerConnection(ProfileType),
+    L2capCid(Cid),
 }
 
 struct ProfileInformation {
@@ -421,7 +577,12 @@ impl InformationalRule {
         let acl_handle = acl.handle;
         // We need to listen the HCI commands to determine the correct initiator.
         // Here we just assume host for simplicity.
-        acl.report_profile_start(ProfileType::HFP, InitiatorType::Host, ts);
+        acl.report_profile_start(
+            ProfileType::Hfp,
+            ProfileId::OnePerConnection(ProfileType::Hfp),
+            InitiatorType::Host,
+            ts,
+        );
 
         self.sco_handles.insert(handle, acl_handle);
     }
@@ -431,7 +592,11 @@ impl InformationalRule {
         if self.sco_handles.contains_key(&handle) {
             let acl_handle = self.sco_handles[&handle];
             let conn = self.get_or_allocate_connection(&acl_handle);
-            conn.report_profile_end(ProfileType::HFP, ts);
+            conn.report_profile_end(
+                ProfileType::Hfp,
+                ProfileId::OnePerConnection(ProfileType::Hfp),
+                ts,
+            );
             return;
         }
 
@@ -461,27 +626,6 @@ impl InformationalRule {
         self.pending_disconnect_due_to_host_power_off.clear();
     }
 
-    fn _report_profile_start(
-        &mut self,
-        handle: ConnectionHandle,
-        profile_type: ProfileType,
-        initiator: InitiatorType,
-        ts: NaiveDateTime,
-    ) {
-        let conn = self.get_or_allocate_connection(&handle);
-        conn.report_profile_start(profile_type, initiator, ts);
-    }
-
-    fn _report_profile_end(
-        &mut self,
-        handle: ConnectionHandle,
-        profile_type: ProfileType,
-        ts: NaiveDateTime,
-    ) {
-        let conn = self.get_or_allocate_connection(&handle);
-        conn.report_profile_end(profile_type, ts);
-    }
-
     fn process_gap_data(&mut self, address: &Address, data: &GapData) {
         match data.data_type {
             GapDataType::CompleteLocalName | GapDataType::ShortenedLocalName => {
@@ -509,6 +653,46 @@ impl InformationalRule {
             }
             offset = chunk_end;
         }
+    }
+
+    fn report_l2cap_conn_req(
+        &mut self,
+        handle: ConnectionHandle,
+        psm: Psm,
+        cid: Cid,
+        initiator: InitiatorType,
+        ts: NaiveDateTime,
+    ) {
+        let conn = self.get_or_allocate_connection(&handle);
+        conn.report_l2cap_conn_req(psm, cid, initiator, ts);
+    }
+
+    fn report_l2cap_conn_rsp(
+        &mut self,
+        handle: ConnectionHandle,
+        status: ConnectionResponseResult,
+        host_cid: Cid,
+        peer_cid: Cid,
+        initiator: InitiatorType,
+        ts: NaiveDateTime,
+    ) {
+        if status == ConnectionResponseResult::Pending {
+            return;
+        }
+        let conn = self.get_or_allocate_connection(&handle);
+        conn.report_l2cap_conn_rsp(status, host_cid, peer_cid, initiator, ts);
+    }
+
+    fn report_l2cap_disconn_rsp(
+        &mut self,
+        handle: ConnectionHandle,
+        host_cid: Cid,
+        peer_cid: Cid,
+        initiator: InitiatorType,
+        ts: NaiveDateTime,
+    ) {
+        let conn = self.get_or_allocate_connection(&handle);
+        conn.report_l2cap_disconn_rsp(host_cid, peer_cid, initiator, ts);
     }
 }
 
@@ -664,8 +848,89 @@ impl Rule for InformationalRule {
                 _ => {}
             },
 
-            // packet.inner
-            _ => {}
+            PacketChild::AclTx(tx) => {
+                let content = get_acl_content(tx);
+                match content {
+                    AclContent::Control(control) => match control.specialize() {
+                        ControlChild::ConnectionRequest(creq) => {
+                            self.report_l2cap_conn_req(
+                                tx.get_handle(),
+                                creq.get_psm(),
+                                creq.get_source_cid(),
+                                InitiatorType::Host,
+                                packet.ts,
+                            );
+                        }
+                        ControlChild::ConnectionResponse(crsp) => {
+                            self.report_l2cap_conn_rsp(
+                                tx.get_handle(),
+                                crsp.get_result(),
+                                crsp.get_destination_cid(),
+                                crsp.get_source_cid(),
+                                InitiatorType::Peer,
+                                packet.ts,
+                            );
+                        }
+                        ControlChild::DisconnectionResponse(drsp) => {
+                            self.report_l2cap_disconn_rsp(
+                                tx.get_handle(),
+                                drsp.get_destination_cid(),
+                                drsp.get_source_cid(),
+                                InitiatorType::Peer,
+                                packet.ts,
+                            );
+                        }
+
+                        // AclContent::Control.specialize()
+                        _ => {}
+                    },
+
+                    // PacketChild::AclTx(tx).specialize()
+                    _ => {}
+                }
+            }
+
+            PacketChild::AclRx(rx) => {
+                let content = get_acl_content(rx);
+                match content {
+                    AclContent::Control(control) => match control.specialize() {
+                        ControlChild::ConnectionRequest(creq) => {
+                            self.report_l2cap_conn_req(
+                                rx.get_handle(),
+                                creq.get_psm(),
+                                creq.get_source_cid(),
+                                InitiatorType::Peer,
+                                packet.ts,
+                            );
+                        }
+                        ControlChild::ConnectionResponse(crsp) => {
+                            self.report_l2cap_conn_rsp(
+                                rx.get_handle(),
+                                crsp.get_result(),
+                                crsp.get_source_cid(),
+                                crsp.get_destination_cid(),
+                                InitiatorType::Host,
+                                packet.ts,
+                            );
+                        }
+                        ControlChild::DisconnectionResponse(drsp) => {
+                            self.report_l2cap_disconn_rsp(
+                                rx.get_handle(),
+                                drsp.get_source_cid(),
+                                drsp.get_destination_cid(),
+                                InitiatorType::Host,
+                                packet.ts,
+                            );
+                        }
+
+                        // AclContent::Control.specialize()
+                        _ => {}
+                    },
+
+                    // PacketChild::AclRx(rx).specialize()
+                    _ => {}
+                }
+            } // packet.inner
         }
     }
 
