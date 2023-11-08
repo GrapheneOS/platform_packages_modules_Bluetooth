@@ -6,7 +6,11 @@ use std::convert::TryFrom;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Error, ErrorKind, Read};
 
-use bt_packets::hci::{Acl, Command, Event};
+use bt_packets::hci::{Acl, AclChild, Command, Event};
+use hcidoc_packets::l2cap::{
+    BasicFrame, BasicFrameChild, Control, ControlFrameChild, GroupFrameChild, LeControl,
+    LeControlFrameChild,
+};
 
 /// Linux snoop file header format. This format is used by `btmon` on Linux systems that have bluez
 /// installed.
@@ -353,5 +357,46 @@ impl<'a> TryFrom<(usize, &'a LinuxSnoopPacket)> for Packet {
 
             Err(e) => Err(e),
         }
+    }
+}
+
+pub enum AclContent {
+    Control(Control),
+    LeControl(LeControl),
+    ConnectionlessData(u16, Vec<u8>),
+    StandardData(Vec<u8>),
+    None,
+}
+
+pub fn get_acl_content(acl: &Acl) -> AclContent {
+    match acl.specialize() {
+        AclChild::Payload(bytes) => match BasicFrame::parse(bytes.as_ref()) {
+            Ok(bf) => match bf.specialize() {
+                BasicFrameChild::ControlFrame(cf) => match cf.specialize() {
+                    ControlFrameChild::Payload(p) => match Control::parse(p.as_ref()) {
+                        Ok(control) => AclContent::Control(control),
+                        Err(_) => AclContent::None,
+                    },
+                    _ => AclContent::None,
+                },
+                BasicFrameChild::LeControlFrame(lcf) => match lcf.specialize() {
+                    LeControlFrameChild::Payload(p) => match LeControl::parse(p.as_ref()) {
+                        Ok(le_control) => AclContent::LeControl(le_control),
+                        Err(_) => AclContent::None,
+                    },
+                    _ => AclContent::None,
+                },
+                BasicFrameChild::GroupFrame(gf) => match gf.specialize() {
+                    GroupFrameChild::Payload(p) => {
+                        AclContent::ConnectionlessData(gf.get_psm(), p.to_vec())
+                    }
+                    _ => AclContent::None,
+                },
+                BasicFrameChild::Payload(p) => AclContent::StandardData(p.to_vec()),
+                _ => AclContent::None,
+            },
+            Err(_) => AclContent::None,
+        },
+        _ => AclContent::None,
     }
 }
