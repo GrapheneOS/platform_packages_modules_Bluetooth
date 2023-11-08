@@ -17,12 +17,10 @@
 
 #include "state_machine.h"
 
+#include <android_bluetooth_flags.h>
 #include <base/functional/bind.h>
 #include <base/functional/callback.h>
 #include <base/strings/string_number_conversions.h>
-#ifdef __ANDROID__
-#include <com_android_bluetooth_flags.h>
-#endif
 
 #include "bta_gatt_queue.h"
 #include "btm_iso_api.h"
@@ -307,9 +305,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
   void notifyLeAudioHealth(LeAudioDeviceGroup* group,
                            le_audio::LeAudioHealthGroupStatType stat) {
-#ifdef __ANDROID__
-    if (!com::android::bluetooth::flags::
-            leaudio_enable_health_based_actions()) {
+    if (!IS_FLAG_ENABLED(leaudio_enable_health_based_actions)) {
       return;
     }
 
@@ -317,7 +313,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     if (leAudioHealthStatus) {
       leAudioHealthStatus->AddStatisticForGroup(group, stat);
     }
-#endif
   }
 
   void ProcessGattCtpNotification(LeAudioDeviceGroup* group, uint8_t* value,
