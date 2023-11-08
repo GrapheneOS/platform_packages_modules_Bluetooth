@@ -157,15 +157,15 @@ struct ControllerProperties {
 
   // Android Vendor Capabilities.
   // https://source.android.com/docs/core/connect/bluetooth/hci_requirements#vendor-specific-capabilities
-  uint8_t le_apcf_filter_list_size{8};
-  uint8_t le_apcf_num_of_tracked_advertisers{8};
-  uint8_t le_apcf_broadcaster_address_filter_list_size{8};
-  uint8_t le_apcf_service_uuid_filter_list_size{8};
-  uint8_t le_apcf_service_solicitation_uuid_filter_list_size{8};
-  uint8_t le_apcf_local_name_filter_list_size{8};
-  uint8_t le_apcf_manufacturer_data_filter_list_size{8};
-  uint8_t le_apcf_service_data_filter_list_size{8};
-  uint8_t le_apcf_ad_type_filter_list_size{8};
+  uint8_t le_apcf_filter_list_size{16};
+  uint8_t le_apcf_num_of_tracked_advertisers{16};
+  uint8_t le_apcf_broadcaster_address_filter_list_size{16};
+  uint8_t le_apcf_service_uuid_filter_list_size{16};
+  uint8_t le_apcf_service_solicitation_uuid_filter_list_size{16};
+  uint8_t le_apcf_local_name_filter_list_size{16};
+  uint8_t le_apcf_manufacturer_data_filter_list_size{16};
+  uint8_t le_apcf_service_data_filter_list_size{16};
+  uint8_t le_apcf_ad_type_filter_list_size{16};
 
   bool SupportsLMPFeature(bluetooth::hci::LMPFeaturesPage0Bits bit) const {
     return (lmp_features[0] & static_cast<uint64_t>(bit)) != 0;
