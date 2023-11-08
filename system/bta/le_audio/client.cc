@@ -17,7 +17,7 @@
 
 #include <base/functional/bind.h>
 #include <base/strings/string_number_conversions.h>
-#ifdef __ANDROID__
+#ifndef TARGET_FLOSS
 #include <com_android_bluetooth_flags.h>
 #endif
 #include <lc3.h>
@@ -166,7 +166,7 @@ std::ostream& operator<<(std::ostream& os, const AudioState& audio_state) {
 namespace {
 void le_audio_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data);
 
-#ifdef __ANDROID__
+#ifndef TARGET_FLOSS
 static void le_audio_health_status_callback(const RawAddress& addr,
                                             int group_id,
                                             LeAudioHealthBasedAction action);
@@ -254,7 +254,7 @@ class LeAudioClientImpl : public LeAudioClient {
       reconnection_mode_ = BTM_BLE_BKG_CONNECT_ALLOW_LIST;
     }
 
-#ifdef __ANDROID__
+#ifndef TARGET_FLOSS
     if (com::android::bluetooth::flags::leaudio_enable_health_based_actions()) {
       LOG_INFO("Loading health status module");
       leAudioHealthStatus_ = LeAudioHealthStatus::Get();
@@ -5477,9 +5477,10 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 };
 
-#ifdef __ANDROID__
-void le_audio_health_status_callback(const RawAddress& addr, int group_id,
-                                     LeAudioHealthBasedAction action) {
+#ifndef TARGET_FLOSS
+static void le_audio_health_status_callback(const RawAddress& addr,
+                                            int group_id,
+                                            LeAudioHealthBasedAction action) {
   if (instance) {
     instance->LeAudioHealthSendRecommendation(addr, group_id, action);
   }

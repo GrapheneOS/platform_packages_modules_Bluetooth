@@ -20,7 +20,7 @@
 #include <base/functional/bind.h>
 #include <base/functional/callback.h>
 #include <base/strings/string_number_conversions.h>
-#ifdef __ANDROID__
+#ifndef TARGET_FLOSS
 #include <com_android_bluetooth_flags.h>
 #endif
 
@@ -307,7 +307,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
   void notifyLeAudioHealth(LeAudioDeviceGroup* group,
                            le_audio::LeAudioHealthGroupStatType stat) {
-#ifdef __ANDROID__
+#ifndef TARGET_FLOSS
     if (!com::android::bluetooth::flags::
             leaudio_enable_health_based_actions()) {
       return;
