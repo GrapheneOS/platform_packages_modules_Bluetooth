@@ -20,9 +20,8 @@
 #include <frameworks/proto_logging/stats/enums/bluetooth/hci/enums.pb.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/le/enums.pb.h>
 
-#include <unordered_map>
+#include "os/metrics.h"
 #include "types/raw_address.h"
-#include "metrics/metrics_state.h"
 
 namespace bluetooth {
 namespace shim {
