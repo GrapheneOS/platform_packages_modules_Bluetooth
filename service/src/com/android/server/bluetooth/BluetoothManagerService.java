@@ -80,9 +80,11 @@ import com.android.bluetooth.flags.FeatureFlags;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.server.BluetoothManagerServiceDumpProto;
+import com.android.server.bluetooth.airplane.AirplaneModeListener;
 import com.android.server.bluetooth.satellite.SatelliteModeListener;
 
 import kotlin.Unit;
+import kotlin.time.TimeSource;
 
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
@@ -216,6 +218,7 @@ class BluetoothManagerService {
 
     private List<Integer> mSupportedProfileList = new ArrayList<>();
 
+    // TODO(b/309033118): remove BluetoothAirplaneModeListener once use_new_airplane_mode ship
     private final BluetoothAirplaneModeListener mBluetoothAirplaneModeListener;
 
     // TODO(b/303552318): remove BluetoothNotificationManager once airplane_ressources_in_app ship
@@ -225,10 +228,14 @@ class BluetoothManagerService {
     private BluetoothSatelliteModeListener mBluetoothSatelliteModeListener;
 
     private final boolean mUseNewSatelliteMode;
+    private final boolean mUseNewAirplaneMode;
+
     // used inside handler thread
     private boolean mQuietEnable = false;
     private boolean mEnable = false;
     private boolean mShutdownInProgress = false;
+
+    private Context mCurrentUserContext = null;
 
     static String timeToLog(long timestamp) {
         return DateTimeFormatter.ofPattern("MM-dd HH:mm:ss.SSS")
@@ -449,7 +456,7 @@ class BluetoothManagerService {
     private static final Object ON_SWITCH_USER_TOKEN = new Object();
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    void onAirplaneModeChanged(boolean isAirplaneModeOn) {
+    Unit onAirplaneModeChanged(boolean isAirplaneModeOn) {
         mHandler.postDelayed(
                 () ->
                         delayModeChangedIfNeeded(
@@ -458,6 +465,7 @@ class BluetoothManagerService {
                                 "onAirplaneModeChanged"),
                 ON_AIRPLANE_MODE_CHANGED_TOKEN,
                 0);
+        return Unit.INSTANCE;
     }
 
     // TODO(b/289584302): Update to private once use_new_satellite_mode is enabled
@@ -676,7 +684,7 @@ class BluetoothManagerService {
         // Observe BLE scan only mode settings change.
         registerForBleScanModeChange();
 
-        if (!mFeatureFlags.airplaneRessourcesInApp()) {
+        if (!mFeatureFlags.airplaneRessourcesInApp() && !mFeatureFlags.useNewAirplaneMode()) {
             mBluetoothNotificationManager = new BluetoothNotificationManager(mContext);
         }
 
@@ -740,9 +748,15 @@ class BluetoothManagerService {
             mEnableExternal = true;
         }
 
-        mBluetoothAirplaneModeListener =
-                new BluetoothAirplaneModeListener(
-                        this, mLooper, mContext, mBluetoothNotificationManager, mFeatureFlags);
+        // Caching is necessary to prevent caller requiring the READ_DEVICE_CONFIG permission
+        mUseNewAirplaneMode = mFeatureFlags.useNewAirplaneMode();
+        if (mUseNewAirplaneMode) {
+            mBluetoothAirplaneModeListener = null;
+        } else {
+            mBluetoothAirplaneModeListener =
+                    new BluetoothAirplaneModeListener(
+                            this, mLooper, mContext, mBluetoothNotificationManager, mFeatureFlags);
+        }
 
         // Caching is necessary to prevent caller requiring the READ_DEVICE_CONFIG permission
         mUseNewSatelliteMode = mFeatureFlags.useNewSatelliteMode();
@@ -760,6 +774,9 @@ class BluetoothManagerService {
 
     /** Returns true if airplane mode is currently on */
     private boolean isAirplaneModeOn() {
+        if (mUseNewAirplaneMode) {
+            return AirplaneModeListener.isOn();
+        }
         return mBluetoothAirplaneModeListener.isAirplaneModeOn();
     }
 
@@ -981,6 +998,10 @@ class BluetoothManagerService {
 
     boolean isHearingAidProfileSupported() {
         return mIsHearingAidProfileSupported;
+    }
+
+    Context getCurrentUserContext() {
+        return mCurrentUserContext;
     }
 
     boolean isMediaProfileConnected() {
@@ -1284,7 +1305,18 @@ class BluetoothManagerService {
         synchronized (mReceiver) {
             mQuietEnableExternal = false;
             mEnableExternal = true;
-            mBluetoothAirplaneModeListener.notifyUserToggledBluetooth(true);
+            if (!mUseNewAirplaneMode) {
+                mBluetoothAirplaneModeListener.notifyUserToggledBluetooth(true);
+            } else {
+                // TODO(b/288450479): Remove clearCallingIdentity when threading is fixed
+                final long callingIdentity = Binder.clearCallingIdentity();
+                try {
+                    AirplaneModeListener.notifyUserToggledBluetooth(
+                            mContentResolver, mCurrentUserContext, true);
+                } finally {
+                    Binder.restoreCallingIdentity(callingIdentity);
+                }
+            }
             sendEnableMsg(
                     false,
                     BluetoothProtoEnums.ENABLE_DISABLE_REASON_APPLICATION_REQUEST,
@@ -1307,7 +1339,18 @@ class BluetoothManagerService {
         }
 
         synchronized (mReceiver) {
-            mBluetoothAirplaneModeListener.notifyUserToggledBluetooth(false);
+            if (!mUseNewAirplaneMode) {
+                mBluetoothAirplaneModeListener.notifyUserToggledBluetooth(false);
+            } else {
+                // TODO(b/288450479): Remove clearCallingIdentity when threading is fixed
+                final long callingIdentity = Binder.clearCallingIdentity();
+                try {
+                    AirplaneModeListener.notifyUserToggledBluetooth(
+                            mContentResolver, mCurrentUserContext, false);
+                } finally {
+                    Binder.restoreCallingIdentity(callingIdentity);
+                }
+            }
 
             if (persist) {
                 persistBluetoothSetting(BLUETOOTH_OFF);
@@ -1437,13 +1480,26 @@ class BluetoothManagerService {
      * Send enable message and set adapter name and address. Called when the boot phase becomes
      * PHASE_SYSTEM_SERVICES_READY.
      */
-    void handleOnBootPhase() {
-        mHandler.post(() -> internalHandleOnBootPhase());
+    void handleOnBootPhase(UserHandle userHandle) {
+        mHandler.post(() -> internalHandleOnBootPhase(userHandle));
     }
 
-    private void internalHandleOnBootPhase() {
+    private void internalHandleOnBootPhase(UserHandle userHandle) {
         if (DBG) {
             Log.d(TAG, "Bluetooth boot completed");
+        }
+
+        if (mUseNewAirplaneMode) {
+            mCurrentUserContext = mContext.createContextAsUser(userHandle, 0);
+            AirplaneModeListener.initialize(
+                    mLooper,
+                    mContentResolver,
+                    mState,
+                    this::onAirplaneModeChanged,
+                    this::sendAirplaneModeNotification,
+                    this::isMediaProfileConnected,
+                    this::getCurrentUserContext,
+                    TimeSource.Monotonic.INSTANCE);
         }
 
         if (mUseNewSatelliteMode) {
@@ -1471,8 +1527,10 @@ class BluetoothManagerService {
             mHandler.sendEmptyMessage(MESSAGE_GET_NAME_AND_ADDRESS);
         }
 
-        mBluetoothAirplaneModeListener.start(new BluetoothModeChangeHelper(mContext));
-        setApmEnhancementState();
+        if (!mUseNewAirplaneMode) {
+            mBluetoothAirplaneModeListener.start(new BluetoothModeChangeHelper(mContext));
+            setApmEnhancementState();
+        }
     }
 
     /** set APM enhancement feature state */
@@ -2273,10 +2331,14 @@ class BluetoothManagerService {
                         Log.d(TAG, "MESSAGE_USER_SWITCHED");
                     }
                     mHandler.removeMessages(MESSAGE_USER_SWITCHED);
-                    if (!mFeatureFlags.airplaneRessourcesInApp()) {
+                    if (!mFeatureFlags.airplaneRessourcesInApp() && !mUseNewAirplaneMode) {
                         mBluetoothNotificationManager.createNotificationChannels();
                     }
                     UserHandle userTo = (UserHandle) msg.obj;
+
+                    if (mUseNewAirplaneMode) {
+                        mCurrentUserContext = mContext.createContextAsUser(userTo, 0);
+                    }
 
                     /* disable and enable BT when detect a user switch */
                     if (mAdapter != null && mState.oneOf(STATE_ON)) {
