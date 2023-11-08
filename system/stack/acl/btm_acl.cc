@@ -2567,14 +2567,6 @@ void btm_connection_request(const RawAddress& bda,
   btm_sec_conn_req(bda, dc);
 }
 
-void acl_accept_connection_request(const RawAddress& bd_addr, uint8_t role) {
-  btsnd_hcic_accept_conn(bd_addr, role);
-}
-
-void acl_reject_connection_request(const RawAddress& bd_addr, uint8_t reason) {
-  btsnd_hcic_reject_conn(bd_addr, reason);
-}
-
 void acl_disconnect_from_handle(uint16_t handle, tHCI_STATUS reason,
                                 std::string comment) {
   acl_disconnect_after_role_switch(handle, reason, comment);

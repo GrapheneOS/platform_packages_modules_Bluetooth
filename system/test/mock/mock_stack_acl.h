@@ -674,17 +674,6 @@ struct HACK_acl_check_sm4 {
   void operator()(tBTM_SEC_DEV_REC& record) { body(record); };
 };
 extern struct HACK_acl_check_sm4 HACK_acl_check_sm4;
-// Name: acl_accept_connection_request
-// Params: const RawAddress& bd_addr, uint8_t role
-// Returns: void
-struct acl_accept_connection_request {
-  std::function<void(const RawAddress& bd_addr, uint8_t role)> body{
-      [](const RawAddress& bd_addr, uint8_t role) { ; }};
-  void operator()(const RawAddress& bd_addr, uint8_t role) {
-    body(bd_addr, role);
-  };
-};
-extern struct acl_accept_connection_request acl_accept_connection_request;
 // Name: acl_disconnect_after_role_switch
 // Params: uint16_t conn_handle, tHCI_STATUS reason
 // Returns: void
@@ -753,17 +742,6 @@ struct acl_rcv_acl_data {
   void operator()(BT_HDR* p_msg) { body(p_msg); };
 };
 extern struct acl_rcv_acl_data acl_rcv_acl_data;
-// Name: acl_reject_connection_request
-// Params: const RawAddress& bd_addr, uint8_t reason
-// Returns: void
-struct acl_reject_connection_request {
-  std::function<void(const RawAddress& bd_addr, uint8_t reason)> body{
-      [](const RawAddress& bd_addr, uint8_t reason) { ; }};
-  void operator()(const RawAddress& bd_addr, uint8_t reason) {
-    body(bd_addr, reason);
-  };
-};
-extern struct acl_reject_connection_request acl_reject_connection_request;
 // Name: acl_send_data_packet_ble
 // Params: const RawAddress& bd_addr, BT_HDR* p_buf
 // Returns: void
