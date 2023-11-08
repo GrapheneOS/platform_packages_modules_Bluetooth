@@ -16,10 +16,11 @@
 
 package android.bluetooth;
 
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtra;
+
 import static com.google.common.truth.Truth.assertThat;
 
-import static org.hamcrest.Matchers.allOf;
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.timeout;
@@ -28,9 +29,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import android.bluetooth.test_utils.EnableBluetoothRule;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 
-import androidx.test.espresso.intent.matcher.IntentMatchers;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
@@ -38,6 +39,8 @@ import com.android.compatibility.common.util.AdoptShellPermissionsRule;
 
 import io.grpc.stub.StreamObserver;
 
+import org.hamcrest.Matcher;
+import org.hamcrest.core.AllOf;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,6 +49,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.hamcrest.MockitoHamcrest;
 
 import java.time.Duration;
 import java.util.Set;
@@ -127,31 +131,17 @@ public class PairingTest {
                         .onPairing(mPairingEventStreamObserver);
 
         assertThat(mBumbleDevice.createBond()).isTrue();
-        mInOrder.verify(mReceiver, timeout(BOND_INTENT_TIMEOUT.toMillis()))
-                .onReceive(
-                        any(Context.class),
-                        argThat(
-                                allOf(
-                                        IntentMatchers.hasAction(
-                                                BluetoothDevice.ACTION_BOND_STATE_CHANGED),
-                                        IntentMatchers.hasExtra(
-                                                BluetoothDevice.EXTRA_DEVICE, mBumbleDevice),
-                                        IntentMatchers.hasExtra(
-                                                BluetoothDevice.EXTRA_BOND_STATE,
-                                                BluetoothDevice.BOND_BONDING))));
+        verifyIntentReceived(
+                hasAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED),
+                hasExtra(BluetoothDevice.EXTRA_DEVICE, mBumbleDevice),
+                hasExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.BOND_BONDING));
 
-        mInOrder.verify(mReceiver, timeout(BOND_INTENT_TIMEOUT.toMillis()))
-                .onReceive(
-                        any(Context.class),
-                        argThat(
-                                allOf(
-                                        IntentMatchers.hasAction(
-                                                BluetoothDevice.ACTION_PAIRING_REQUEST),
-                                        IntentMatchers.hasExtra(
-                                                BluetoothDevice.EXTRA_DEVICE, mBumbleDevice),
-                                        IntentMatchers.hasExtra(
-                                                BluetoothDevice.EXTRA_PAIRING_VARIANT,
-                                                BluetoothDevice.PAIRING_VARIANT_CONSENT))));
+        verifyIntentReceived(
+                hasAction(BluetoothDevice.ACTION_PAIRING_REQUEST),
+                hasExtra(BluetoothDevice.EXTRA_DEVICE, mBumbleDevice),
+                hasExtra(
+                        BluetoothDevice.EXTRA_PAIRING_VARIANT,
+                        BluetoothDevice.PAIRING_VARIANT_CONSENT));
         mBumbleDevice.setPairingConfirmation(true);
 
         PairingEvent pairingEvent = mPairingEventStreamObserver.iterator().next();
@@ -159,36 +149,26 @@ public class PairingTest {
         pairingEventAnswerObserver.onNext(
                 PairingEventAnswer.newBuilder().setEvent(pairingEvent).setConfirm(true).build());
 
-        mInOrder.verify(mReceiver, timeout(BOND_INTENT_TIMEOUT.toMillis()))
-                .onReceive(
-                        any(Context.class),
-                        argThat(
-                                allOf(
-                                        IntentMatchers.hasAction(
-                                                BluetoothDevice.ACTION_BOND_STATE_CHANGED),
-                                        IntentMatchers.hasExtra(
-                                                BluetoothDevice.EXTRA_DEVICE, mBumbleDevice),
-                                        IntentMatchers.hasExtra(
-                                                BluetoothDevice.EXTRA_BOND_STATE,
-                                                BluetoothDevice.BOND_BONDED))));
+        verifyIntentReceived(
+                hasAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED),
+                hasExtra(BluetoothDevice.EXTRA_DEVICE, mBumbleDevice),
+                hasExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.BOND_BONDED));
 
         verifyNoMoreInteractions(mReceiver);
     }
 
     private void removeBond(BluetoothDevice device) {
         assertThat(device.removeBond()).isTrue();
-        mInOrder.verify(mReceiver, timeout(BOND_INTENT_TIMEOUT.toMillis()))
-                .onReceive(
-                        any(Context.class),
-                        argThat(
-                                allOf(
-                                        IntentMatchers.hasAction(
-                                                BluetoothDevice.ACTION_BOND_STATE_CHANGED),
-                                        IntentMatchers.hasExtra(
-                                                BluetoothDevice.EXTRA_DEVICE, device),
-                                        IntentMatchers.hasExtra(
-                                                BluetoothDevice.EXTRA_BOND_STATE,
-                                                BluetoothDevice.BOND_NONE))));
+        verifyIntentReceived(
+                hasAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED),
+                hasExtra(BluetoothDevice.EXTRA_DEVICE, mBumbleDevice),
+                hasExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.BOND_NONE));
         verifyNoMoreInteractions(mReceiver);
+    }
+
+    @SafeVarargs
+    private void verifyIntentReceived(Matcher<Intent>... matchers) {
+        mInOrder.verify(mReceiver, timeout(BOND_INTENT_TIMEOUT.toMillis()))
+                .onReceive(any(Context.class), MockitoHamcrest.argThat(AllOf.allOf(matchers)));
     }
 }
