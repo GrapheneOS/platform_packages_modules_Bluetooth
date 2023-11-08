@@ -28,6 +28,7 @@
 #include "com_android_bluetooth.h"
 #include "gd/common/init_flags.h"
 #include "hardware/bt_gatt.h"
+#include "hardware/bt_gatt_types.h"
 #include "rust/cxx.h"
 #include "rust/src/gatt/ffi/gatt_shim.h"
 #include "src/gatt/ffi.rs.h"
@@ -2113,10 +2114,10 @@ static void gattServerSendResponseNative(JNIEnv* env, jobject /* object */,
   response.attr_value.len = 0;
 
   if (val != NULL) {
-    if (env->GetArrayLength(val) < BTGATT_MAX_ATTR_LEN) {
+    if (env->GetArrayLength(val) < GATT_MAX_ATTR_LEN) {
       response.attr_value.len = (uint16_t)env->GetArrayLength(val);
     } else {
-      response.attr_value.len = BTGATT_MAX_ATTR_LEN;
+      response.attr_value.len = GATT_MAX_ATTR_LEN;
     }
 
     jbyte* array = env->GetByteArrayElements(val, 0);
