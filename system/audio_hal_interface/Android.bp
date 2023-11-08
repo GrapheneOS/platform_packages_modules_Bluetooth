@@ -33,7 +33,7 @@ cc_library_static {
     target: {
         android: {
             shared_libs: [
-                "android.hardware.bluetooth.audio-V3-ndk",
+                "android.hardware.bluetooth.audio-V4-ndk",
                 "libbinder_ndk",
                 "libfmq",
             ],
@@ -79,7 +79,10 @@ cc_library_static {
 // Bluetooth Audio client interface library unit tests for target and host
 cc_test {
     name: "bluetooth-test-audio-hal-interface",
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "latest_android_hardware_bluetooth_audio_ndk_shared",
+    ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
@@ -89,7 +92,6 @@ cc_test {
         "hidl/client_interface_hidl_unittest.cc",
     ],
     shared_libs: [
-        "android.hardware.bluetooth.audio-V3-ndk",
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "libbinder_ndk",
