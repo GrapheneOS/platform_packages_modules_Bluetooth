@@ -29,6 +29,7 @@
 #include <base/functional/bind.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_gatt.h>
+#include <hardware/bt_gatt_types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -398,7 +399,7 @@ static bt_status_t btif_gatts_send_indication(int server_if,
                                               size_t length) {
   CHECK_BTGATT_INIT();
 
-  if (length > BTGATT_MAX_ATTR_LEN) length = BTGATT_MAX_ATTR_LEN;
+  if (length > GATT_MAX_ATTR_LEN) length = GATT_MAX_ATTR_LEN;
 
   return do_in_jni_thread(Bind(&BTA_GATTS_HandleValueIndication, conn_id,
                                attribute_handle,
