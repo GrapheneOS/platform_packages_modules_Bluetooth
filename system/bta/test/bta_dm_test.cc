@@ -42,10 +42,6 @@
 
 using namespace std::chrono_literals;
 
-namespace base {
-class MessageLoop;
-}  // namespace base
-
 namespace {
 constexpr uint8_t kUnusedTimer = BTA_ID_MAX;
 const RawAddress kRawAddress({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
