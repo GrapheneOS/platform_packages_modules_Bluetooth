@@ -41,6 +41,8 @@
 #include "stack/include/bt_octets.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_api.h"
+#include "stack/include/btm_ble_addr.h"
+#include "stack/include/btm_ble_privacy.h"
 #include "stack/include/btm_ble_sec_api.h"
 #include "stack/include/btm_log_history.h"
 #include "stack/include/gatt_api.h"
@@ -1494,19 +1496,11 @@ void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
                        uint8_t role, tBLE_ADDR_TYPE addr_type,
                        bool addr_matched,
                        bool can_read_discoverable_characteristics) {
-  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bda);
-  if (!p_dev_rec) {
-    LOG_INFO("Creating new device record for new ble connection");
-    p_dev_rec = btm_sec_alloc_dev(bda);
-    if (p_dev_rec == nullptr) {
-      LOG_WARN("Unable to create device record for new ble connection");
-      return;
-    }
-  } else {
-    LOG_INFO("Updating device record timestamp for existing ble connection");
-    // TODO() Why is timestamp a counter ?
-    p_dev_rec->timestamp = btm_sec_cb.dev_rec_count++;
-  }
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_or_alloc_dev(bda);
+
+  LOG_INFO("Updating device record timestamp for the ble connection");
+  // TODO() Why is timestamp a counter ?
+  p_dev_rec->timestamp = btm_sec_cb.dev_rec_count++;
 
   if (is_ble_addr_type_known(addr_type))
     p_dev_rec->ble.SetAddressType(addr_type);
@@ -1521,7 +1515,7 @@ void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
   p_dev_rec->can_read_discoverable = can_read_discoverable_characteristics;
 
   if (!addr_matched) {
-    p_dev_rec->ble.active_addr_type = tBTM_SEC_BLE::BTM_BLE_ADDR_PSEUDO;
+    p_dev_rec->ble.active_addr_type = BTM_BLE_ADDR_PSEUDO;
     if (p_dev_rec->ble.AddressType() == BLE_ADDR_RANDOM) {
       p_dev_rec->ble.cur_rand_addr = bda;
     }
@@ -1946,17 +1940,17 @@ bool btm_ble_get_acl_remote_addr(uint16_t hci_handle, RawAddress& conn_addr,
   bool st = true;
 
   switch (p_dev_rec->ble.active_addr_type) {
-    case tBTM_SEC_BLE::BTM_BLE_ADDR_PSEUDO:
+    case BTM_BLE_ADDR_PSEUDO:
       conn_addr = p_dev_rec->bd_addr;
       *p_addr_type = p_dev_rec->ble.AddressType();
       break;
 
-    case tBTM_SEC_BLE::BTM_BLE_ADDR_RRA:
+    case BTM_BLE_ADDR_RRA:
       conn_addr = p_dev_rec->ble.cur_rand_addr;
       *p_addr_type = BLE_ADDR_RANDOM;
       break;
 
-    case tBTM_SEC_BLE::BTM_BLE_ADDR_STATIC:
+    case BTM_BLE_ADDR_STATIC:
       conn_addr = p_dev_rec->ble.identity_address_with_type.bda;
       *p_addr_type = p_dev_rec->ble.identity_address_with_type.type;
       break;

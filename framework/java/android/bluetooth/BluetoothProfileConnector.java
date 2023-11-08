@@ -32,13 +32,13 @@ import android.util.Log;
 import java.util.Objects;
 
 /**
- * Connector for Bluetooth profile proxies to bind manager service and
- * profile services
+ * Connector for Bluetooth profile proxies to bind manager service and profile services
+ *
  * @param <T> The Bluetooth profile interface for this connection.
  * @hide
  */
 @SuppressLint("AndroidFrameworkBluetoothPermission")
-public abstract class BluetoothProfileConnector<T> {
+public abstract class BluetoothProfileConnector<T> extends Handler {
     private final CloseGuard mCloseGuard = new CloseGuard();
     private final int mProfileId;
     private BluetoothProfile.ServiceListener mServiceListener;
@@ -48,6 +48,7 @@ public abstract class BluetoothProfileConnector<T> {
     private final String mServiceName;
     private final IBluetoothManager mBluetoothManager;
     private volatile T mService;
+    private boolean mBound = false;
 
     private static final int MESSAGE_SERVICE_CONNECTED = 100;
     private static final int MESSAGE_SERVICE_DISCONNECTED = 101;
@@ -65,30 +66,33 @@ public abstract class BluetoothProfileConnector<T> {
 
     private final IBluetoothProfileServiceConnection mConnection =
             new IBluetoothProfileServiceConnection.Stub() {
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            logDebug("Proxy object connected");
-            mService = getServiceInterface(service);
-            mHandler.sendMessage(mHandler.obtainMessage(
-                    MESSAGE_SERVICE_CONNECTED));
-        }
+                @Override
+                public void onServiceConnected(ComponentName className, IBinder service) {
+                    logDebug("Proxy object connected");
+                    mService = getServiceInterface(service);
+                    sendEmptyMessage(MESSAGE_SERVICE_CONNECTED);
+                }
 
-        @Override
-        public void onServiceDisconnected(ComponentName className) {
-            logDebug("Proxy object disconnected");
-            doUnbind();
-            mHandler.sendMessage(mHandler.obtainMessage(
-                    MESSAGE_SERVICE_DISCONNECTED));
-        }
-    };
+                @Override
+                public void onServiceDisconnected(ComponentName className) {
+                    logDebug("Proxy object disconnected");
+                    T service = mService;
+                    doUnbind();
+                    if (service != null) {
+                        sendEmptyMessage(MESSAGE_SERVICE_DISCONNECTED);
+                    }
+                }
+            };
 
     /** @hide */
     public BluetoothProfileConnector(
+            Looper looper,
             BluetoothProfile profile,
             int profileId,
             String profileName,
             String serviceName,
             IBluetoothManager bluetoothManager) {
+        super(looper);
         mProfileId = profileId;
         mProfileProxy = profile;
         mProfileName = profileName;
@@ -99,6 +103,7 @@ public abstract class BluetoothProfileConnector<T> {
     BluetoothProfileConnector(
             BluetoothProfile profile, int profileId, String profileName, String serviceName) {
         this(
+                Looper.getMainLooper(),
                 profile,
                 profileId,
                 profileName,
@@ -113,30 +118,30 @@ public abstract class BluetoothProfileConnector<T> {
         doUnbind();
     }
 
-    private boolean doBind() {
+    private void doBind() {
         synchronized (mConnection) {
-            if (mService == null) {
+            if (!mBound) {
                 logDebug("Binding service for " + mPackageName);
                 mCloseGuard.open("doUnbind");
                 try {
-                    return mBluetoothManager.bindBluetoothProfileService(
+                    mBluetoothManager.bindBluetoothProfileService(
                             mProfileId, mServiceName, mConnection);
+                    mBound = true;
                 } catch (RemoteException re) {
                     logError("Failed to bind service. " + re);
-                    return false;
                 }
             }
         }
-        return true;
     }
 
     private void doUnbind() {
         synchronized (mConnection) {
-            if (mService != null) {
+            if (mBound) {
                 logDebug("Unbinding service for " + mPackageName);
                 mCloseGuard.close();
                 try {
                     mBluetoothManager.unbindBluetoothProfileService(mProfileId, mConnection);
+                    mBound = false;
                 } catch (RemoteException re) {
                     logError("Unable to unbind service: " + re);
                 } finally {
@@ -206,24 +211,19 @@ public abstract class BluetoothProfileConnector<T> {
         Log.e(mProfileName, log);
     }
 
-    @SuppressLint("AndroidFrameworkBluetoothPermission")
-    private final Handler mHandler = new Handler(Looper.getMainLooper()) {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case MESSAGE_SERVICE_CONNECTED: {
-                    if (mServiceListener != null) {
-                        mServiceListener.onServiceConnected(mProfileId, mProfileProxy);
-                    }
-                    break;
+    @Override
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case MESSAGE_SERVICE_CONNECTED:
+                if (mServiceListener != null) {
+                    mServiceListener.onServiceConnected(mProfileId, mProfileProxy);
                 }
-                case MESSAGE_SERVICE_DISCONNECTED: {
-                    if (mServiceListener != null) {
-                        mServiceListener.onServiceDisconnected(mProfileId);
-                    }
-                    break;
+                break;
+            case MESSAGE_SERVICE_DISCONNECTED:
+                if (mServiceListener != null) {
+                    mServiceListener.onServiceDisconnected(mProfileId);
                 }
-            }
+                break;
         }
-    };
+    }
 }

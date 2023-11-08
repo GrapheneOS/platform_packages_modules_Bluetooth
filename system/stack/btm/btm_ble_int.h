@@ -90,23 +90,6 @@ void btm_gen_resolvable_private_addr(
 
 tBTM_SEC_DEV_REC* btm_ble_resolve_random_addr(const RawAddress& random_bda);
 void btm_gen_resolve_paddr_low(const RawAddress& address);
-uint64_t btm_get_next_private_addrress_interval_ms();
-
-/*  privacy function */
-/* BLE address mapping with CS feature */
-bool btm_random_pseudo_to_identity_addr(RawAddress* random_pseudo,
-                                        tBLE_ADDR_TYPE* p_identity_addr_type);
-void btm_ble_refresh_peer_resolvable_private_addr(
-    const RawAddress& pseudo_bda, const RawAddress& rra,
-    tBTM_SEC_BLE::tADDRESS_TYPE type);
-bool btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC* p_dev_rec);
-
-bool btm_ble_addr_resolvable(const RawAddress& rpa,
-                             tBTM_SEC_DEV_REC* p_dev_rec);
-
-void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& p_dev_rec);
-void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC* p_dev_rec);
-void btm_ble_resolving_list_init(uint8_t max_irk_list_sz);
 
 void btm_ble_batchscan_init(void);
 void btm_ble_adv_filter_init(void);

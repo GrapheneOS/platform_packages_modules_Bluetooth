@@ -128,7 +128,6 @@ struct btm_acl_process_sca_cmpl_pkt btm_acl_process_sca_cmpl_pkt;
 struct btm_acl_removed btm_acl_removed;
 struct btm_acl_role_changed btm_acl_role_changed;
 struct btm_acl_update_conn_addr btm_acl_update_conn_addr;
-struct btm_configure_data_path btm_configure_data_path;
 struct btm_acl_update_inquiry_status btm_acl_update_inquiry_status;
 struct btm_ble_refresh_local_resolvable_private_addr
     btm_ble_refresh_local_resolvable_private_addr;
@@ -280,7 +279,7 @@ bool acl_peer_supports_ble_connection_subrating_host(
 bool acl_refresh_remote_address(const RawAddress& identity_address,
                                 tBLE_ADDR_TYPE identity_address_type,
                                 const RawAddress& bda,
-                                tBTM_SEC_BLE::tADDRESS_TYPE rra_type,
+                                tBLE_RAND_ADDR_TYPE rra_type,
                                 const RawAddress& rpa) {
   inc_func_call_count(__func__);
   return test::mock::stack_acl::acl_refresh_remote_address(
@@ -544,12 +543,6 @@ void btm_acl_role_changed(tHCI_STATUS hci_status, const RawAddress& bd_addr,
 void btm_acl_update_conn_addr(uint16_t handle, const RawAddress& address) {
   inc_func_call_count(__func__);
   test::mock::stack_acl::btm_acl_update_conn_addr(handle, address);
-}
-void btm_configure_data_path(uint8_t direction, uint8_t path_id,
-                             std::vector<uint8_t> vendor_config) {
-  inc_func_call_count(__func__);
-  test::mock::stack_acl::btm_configure_data_path(direction, path_id,
-                                                 vendor_config);
 }
 void btm_acl_update_inquiry_status(uint8_t status) {
   inc_func_call_count(__func__);

@@ -609,7 +609,7 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
      *
      * @param device {@link BluetoothDevice} representing the remote device
      * @param volume level to set
-     * @param isGroupOp {@code true} if Application wants to perform this operation for all
+     * @param isGroupOperation {@code true} if Application wants to perform this operation for all
      *     coordinated set members throughout this session. Otherwise, caller would have to control
      *     individual device volume.
      * @hide
@@ -626,7 +626,7 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
     public void setDeviceVolume(
             @NonNull BluetoothDevice device,
             @IntRange(from = -255, to = 255) int volume,
-            boolean isGroupOp) {
+            boolean isGroupOperation) {
         final IBluetoothVolumeControl service = getService();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
@@ -634,7 +634,7 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
         } else if (isEnabled()) {
             try {
                 final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
-                service.setDeviceVolume(device, volume, isGroupOp, mAttributionSource, recv);
+                service.setDeviceVolume(device, volume, isGroupOperation, mAttributionSource, recv);
                 recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));

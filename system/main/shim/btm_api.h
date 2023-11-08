@@ -925,8 +925,6 @@ tBT_DEVICE_TYPE BTM_GetPeerDeviceTypeFromFeatures(const RawAddress& bd_addr);
 uint16_t BTM_GetHCIConnHandle(const RawAddress& remote_bda,
                               tBT_TRANSPORT transport);
 
-tBTM_CONTRL_STATE BTM_PM_ReadControllerState(void);
-
 /**
  *
  * BLE API

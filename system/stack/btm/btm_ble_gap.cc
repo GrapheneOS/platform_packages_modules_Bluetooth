@@ -60,6 +60,7 @@
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_ble_addr.h"
+#include "stack/include/btm_ble_privacy.h"
 #include "stack/include/btm_log_history.h"
 #include "stack/include/gap_api.h"
 #include "stack/include/hci_error_code.h"
@@ -2585,7 +2586,7 @@ void btm_ble_process_adv_addr(RawAddress& bda, tBLE_ADDR_TYPE* addr_type) {
   if (!match && BTM_BLE_IS_RESOLVE_BDA(bda)) {
     tBTM_SEC_DEV_REC* match_rec = btm_ble_resolve_random_addr(bda);
     if (match_rec) {
-      match_rec->ble.active_addr_type = tBTM_SEC_BLE::BTM_BLE_ADDR_RRA;
+      match_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
       match_rec->ble.cur_rand_addr = bda;
 
       if (btm_ble_init_pseudo_addr(match_rec, bda)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,16 @@
  * limitations under the License.
  */
 
-/*
- * Generated mock file from original source file
- *   Functions generated:1
- *
- *  mockcify.pl ver 0.2
- */
+#pragma once
 
-// Original included files, if any
+#include <array>
+#include <cstdint>
 
-// Mocked compile conditionals, if any
-namespace test {
-namespace mock {
-namespace hcic_hcicmds {
+namespace bluetooth::hci {
 
-struct btsnd_hcic_change_conn_type {
-  uint16_t handle;
-  uint16_t packet_types;
-};
-extern struct btsnd_hcic_change_conn_type btsnd_hcic_change_conn_type;
+constexpr int kOctet16Length = 16;
+using Octet16 = std::array<uint8_t, kOctet16Length>;
 
-}  // namespace hcic_hcicmds
-}  // namespace mock
-}  // namespace test
-
-// END mockcify generation
+constexpr int kOctet32Length = 32;
+using Octet32 = std::array<uint8_t, kOctet32Length>;
+}  // namespace bluetooth::hci

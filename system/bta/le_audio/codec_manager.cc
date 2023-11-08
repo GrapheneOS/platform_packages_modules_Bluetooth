@@ -22,13 +22,13 @@
 #include "le_audio_set_configuration_provider.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
-#include "stack/acl/acl.h"
-#include "stack/include/acl_api.h"
+#include "stack/include/hcimsgs.h"
 
 namespace {
 
 using bluetooth::hci::iso_manager::kIsoDataPathHci;
 using bluetooth::hci::iso_manager::kIsoDataPathPlatformDefault;
+using bluetooth::legacy::hci::GetInterface;
 using le_audio::CodecManager;
 using le_audio::types::CodecLocation;
 
@@ -105,10 +105,10 @@ struct codec_manager_impl {
     }
 
     LOG_INFO("LeAudioCodecManagerImpl: configure_data_path for encode");
-    btm_configure_data_path(btm_data_direction::HOST_TO_CONTROLLER,
-                            kIsoDataPathPlatformDefault, {});
-    btm_configure_data_path(btm_data_direction::CONTROLLER_TO_HOST,
-                            kIsoDataPathPlatformDefault, {});
+    GetInterface().ConfigureDataPath(hci_data_direction_t::HOST_TO_CONTROLLER,
+                                     kIsoDataPathPlatformDefault, {});
+    GetInterface().ConfigureDataPath(hci_data_direction_t::CONTROLLER_TO_HOST,
+                                     kIsoDataPathPlatformDefault, {});
     SetCodecLocation(CodecLocation::ADSP);
   }
   void start(
@@ -118,10 +118,10 @@ struct codec_manager_impl {
   }
   ~codec_manager_impl() {
     if (GetCodecLocation() != CodecLocation::HOST) {
-      btm_configure_data_path(btm_data_direction::HOST_TO_CONTROLLER,
-                              kIsoDataPathHci, {});
-      btm_configure_data_path(btm_data_direction::CONTROLLER_TO_HOST,
-                              kIsoDataPathHci, {});
+      GetInterface().ConfigureDataPath(hci_data_direction_t::HOST_TO_CONTROLLER,
+                                       kIsoDataPathHci, {});
+      GetInterface().ConfigureDataPath(hci_data_direction_t::CONTROLLER_TO_HOST,
+                                       kIsoDataPathHci, {});
     }
     le_audio::AudioSetConfigurationProvider::Cleanup();
   }
@@ -198,11 +198,6 @@ struct codec_manager_impl {
       broadcast_config.frame_duration = core_config.GetFrameDurationUs();
       broadcast_config.octets_per_frame = *(core_config.octets_per_codec_frame);
       broadcast_config.blocks_per_sdu = 1;
-      // Per LC3 spec, bitrate = (8000 * nbytes) / (frame duration in
-      // milliseconds)
-      broadcast_config.codec_bitrate =
-          (8000 * broadcast_config.octets_per_frame) /
-          (broadcast_config.frame_duration / 1000);
 
       int sample_rate = broadcast_config.sampling_rate;
       int frame_duration = broadcast_config.frame_duration;
@@ -235,14 +230,13 @@ struct codec_manager_impl {
 
     LOG_INFO(
         "stream_map.size(): %zu, sampling_rate: %d, frame_duration(us): %d, "
-        "octets_per_frame: %d, blocks_per_sdu %d, codec_bitrate: %d, "
+        "octets_per_frame: %d, blocks_per_sdu %d, "
         "retransmission_number: %d, max_transport_latency: %d",
         supported_broadcast_config[0].stream_map.size(),
         supported_broadcast_config[0].sampling_rate,
         supported_broadcast_config[0].frame_duration,
         supported_broadcast_config[0].octets_per_frame,
         (int)supported_broadcast_config[0].blocks_per_sdu,
-        (int)supported_broadcast_config[0].codec_bitrate,
         (int)supported_broadcast_config[0].retransmission_number,
         supported_broadcast_config[0].max_transport_latency);
 

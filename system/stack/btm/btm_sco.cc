@@ -50,6 +50,7 @@
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_log_history.h"
 #include "stack/include/hci_error_code.h"
+#include "stack/include/hcimsgs.h"
 #include "stack/include/main_thread.h"
 #include "stack/include/sdpdefs.h"
 #include "stack/include/stack_metrics_logging.h"
@@ -78,11 +79,9 @@ typedef struct {
 
 constexpr char kBtmLogTag[] = "SCO";
 
-const bluetooth::legacy::hci::Interface& GetLegacyHciInterface() {
-  return bluetooth::legacy::hci::GetInterface();
-}
-
 };  // namespace
+
+using bluetooth::legacy::hci::GetInterface;
 
 // forward declaration for dequeueing packets
 void btm_route_sco_data(bluetooth::hci::ScoView valid_packet);
@@ -1134,7 +1133,7 @@ tBTM_STATUS BTM_RemoveSco(uint16_t sco_inx) {
   tSCO_STATE old_state = p->state;
   p->state = SCO_ST_DISCONNECTING;
 
-  GetLegacyHciInterface().Disconnect(p->Handle(), HCI_ERR_PEER_USER);
+  GetInterface().Disconnect(p->Handle(), HCI_ERR_PEER_USER);
 
   LOG_DEBUG("Disconnecting link sco_handle:0x%04x peer:%s", p->Handle(),
             ADDRESS_TO_LOGGABLE_CSTR(p->esco.data.bd_addr));
@@ -1447,8 +1446,8 @@ static tBTM_STATUS BTM_ChangeEScoLinkParms(uint16_t sco_inx,
     LOG_VERBOSE("%s: SCO Link for handle 0x%04x, pkt 0x%04x", __func__,
                 p_sco->hci_handle, p_setup->packet_types);
 
-    btsnd_hcic_change_conn_type(p_sco->hci_handle,
-                                BTM_ESCO_2_SCO(p_setup->packet_types));
+    GetInterface().ChangeConnectionPacketType(
+        p_sco->hci_handle, BTM_ESCO_2_SCO(p_setup->packet_types));
   } else /* eSCO is supported and the link type is eSCO */
   {
     uint16_t temp_packet_types =

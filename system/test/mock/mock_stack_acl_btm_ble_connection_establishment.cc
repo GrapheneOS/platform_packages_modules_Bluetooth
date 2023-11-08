@@ -39,7 +39,6 @@ namespace stack_acl_btm_ble_connection_establishment {
 
 // Function state capture and return values, if needed
 struct btm_ble_create_ll_conn_complete btm_ble_create_ll_conn_complete;
-struct maybe_resolve_address maybe_resolve_address;
 
 }  // namespace stack_acl_btm_ble_connection_establishment
 }  // namespace mock
@@ -49,11 +48,6 @@ void btm_ble_create_ll_conn_complete(tHCI_STATUS status) {
   inc_func_call_count(__func__);
   test::mock::stack_acl_btm_ble_connection_establishment::
       btm_ble_create_ll_conn_complete(status);
-}
-bool maybe_resolve_address(RawAddress* bda, tBLE_ADDR_TYPE* bda_type) {
-  inc_func_call_count(__func__);
-  return test::mock::stack_acl_btm_ble_connection_establishment::
-      maybe_resolve_address(bda, bda_type);
 }
 
 // END mockcify generation

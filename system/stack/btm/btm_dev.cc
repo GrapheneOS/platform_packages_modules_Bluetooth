@@ -42,6 +42,7 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btm_ble_privacy.h"
 #include "stack/include/btm_log_history.h"
 #include "types/raw_address.h"
 
@@ -250,8 +251,9 @@ const char* BTM_SecReadDevName(const RawAddress& bd_addr) {
  *
  * Function         btm_sec_alloc_dev
  *
- * Description      Look for the record in the device database for the record
- *                  with specified address
+ * Description      Allocate a security device record with specified address,
+ *                  fill device type and device class from inquiry database or
+ *                  btm_sec_cb (if the address is the connecting device)
  *
  * Returns          Pointer to the record or NULL
  *

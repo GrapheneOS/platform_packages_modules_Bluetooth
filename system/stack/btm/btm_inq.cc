@@ -56,6 +56,7 @@
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_ble_api.h"
 #include "stack/include/btm_log_history.h"
+#include "stack/include/hcimsgs.h"
 #include "stack/include/inq_hci_link_interface.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"

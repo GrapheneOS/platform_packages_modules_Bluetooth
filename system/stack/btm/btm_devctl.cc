@@ -23,6 +23,7 @@
  *
  ******************************************************************************/
 
+#include "acl_api_types.h"
 #define LOG_TAG "devctl"
 
 #include <base/logging.h>
@@ -40,6 +41,7 @@
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/acl_api_types.h"
+#include "stack/include/btm_ble_privacy.h"
 #include "stack/include/l2cap_controller_interface.h"
 #include "types/raw_address.h"
 

@@ -197,7 +197,7 @@ bool BTM_BLE_IS_RESOLVE_BDA(const RawAddress& x);
 bool acl_refresh_remote_address(const RawAddress& identity_address,
                                 tBLE_ADDR_TYPE identity_address_type,
                                 const RawAddress& remote_bda,
-                                tBTM_SEC_BLE::tADDRESS_TYPE rra_type,
+                                tBLE_RAND_ADDR_TYPE rra_type,
                                 const RawAddress& rpa);
 
 void btm_establish_continue_from_address(const RawAddress& remote_bda,
@@ -262,9 +262,6 @@ tBTM_STATUS btm_read_power_mode_state(const RawAddress& remote_bda,
                                       tBTM_PM_STATE* pmState);
 
 void btm_acl_notif_conn_collision(const RawAddress& bda);
-
-void btm_configure_data_path(uint8_t direction, uint8_t path_id,
-                             std::vector<uint8_t> vendor_config);
 
 /*******************************************************************************
  *

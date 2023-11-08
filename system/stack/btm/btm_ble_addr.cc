@@ -24,6 +24,8 @@
 
 #define LOG_TAG "ble"
 
+#include "stack/include/btm_ble_addr.h"
+
 #include <base/functional/bind.h>
 #include <string.h>
 
@@ -35,6 +37,7 @@
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btm_ble_privacy.h"
 #include "stack/include/btm_ble_sec_api.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
@@ -85,14 +88,6 @@ void btm_gen_resolvable_private_addr(
         cb.Run(generate_rpa_from_irk_and_rand(irk, random));
       },
       std::move(cb)));
-}
-
-uint64_t btm_get_next_private_addrress_interval_ms() {
-  /* 7 minutes minimum, 15 minutes maximum for random address refreshing */
-  const uint64_t interval_min_ms = (7 * 60 * 1000);
-  const uint64_t interval_random_part_max_ms = (8 * 60 * 1000);
-
-  return interval_min_ms + std::rand() % interval_random_part_max_ms;
 }
 
 /*******************************************************************************
@@ -295,7 +290,7 @@ bool btm_random_pseudo_to_identity_addr(RawAddress* random_pseudo,
  ******************************************************************************/
 void btm_ble_refresh_peer_resolvable_private_addr(
     const RawAddress& pseudo_bda, const RawAddress& rpa,
-    tBTM_SEC_BLE::tADDRESS_TYPE rra_type) {
+    tBLE_RAND_ADDR_TYPE rra_type) {
   tBTM_SEC_DEV_REC* p_sec_rec = btm_find_dev(pseudo_bda);
   if (p_sec_rec == nullptr) {
     LOG_WARN("%s No matching known device in record", __func__);
@@ -304,10 +299,9 @@ void btm_ble_refresh_peer_resolvable_private_addr(
 
   p_sec_rec->ble.cur_rand_addr = rpa;
 
-  if (rra_type == tBTM_SEC_BLE::BTM_BLE_ADDR_PSEUDO) {
-    p_sec_rec->ble.active_addr_type = rpa.IsEmpty()
-                                          ? tBTM_SEC_BLE::BTM_BLE_ADDR_STATIC
-                                          : tBTM_SEC_BLE::BTM_BLE_ADDR_RRA;
+  if (rra_type == BTM_BLE_ADDR_PSEUDO) {
+    p_sec_rec->ble.active_addr_type =
+        rpa.IsEmpty() ? BTM_BLE_ADDR_STATIC : BTM_BLE_ADDR_RRA;
   } else {
     p_sec_rec->ble.active_addr_type = rra_type;
   }
@@ -325,4 +319,42 @@ void btm_ble_refresh_peer_resolvable_private_addr(
       LOG_ERROR("%s Unknown device to refresh remote device", __func__);
     }
   }
+}
+
+bool maybe_resolve_address(RawAddress* bda, tBLE_ADDR_TYPE* bda_type) {
+  bool is_in_security_db = false;
+  tBLE_ADDR_TYPE peer_addr_type = *bda_type;
+  bool addr_is_rpa =
+      (peer_addr_type == BLE_ADDR_RANDOM && BTM_BLE_IS_RESOLVE_BDA(*bda));
+
+  /* We must translate whatever address we received into the "pseudo" address.
+   * i.e. if we bonded with device that was using RPA for first connection,
+   * "pseudo" address is equal to this RPA. If it later decides to use Public
+   * address, or Random Static Address, we convert it into the "pseudo"
+   * address here. */
+  if (!addr_is_rpa || peer_addr_type & BLE_ADDR_TYPE_ID_BIT) {
+    is_in_security_db = btm_identity_addr_to_random_pseudo(bda, bda_type, true);
+  }
+
+  /* possiblly receive connection complete with resolvable random while
+     the device has been paired */
+  if (!is_in_security_db && addr_is_rpa) {
+    tBTM_SEC_DEV_REC* match_rec = btm_ble_resolve_random_addr(*bda);
+    if (match_rec) {
+      LOG(INFO) << __func__ << ": matched and resolved random address";
+      is_in_security_db = true;
+      match_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
+      match_rec->ble.cur_rand_addr = *bda;
+      if (!btm_ble_init_pseudo_addr(match_rec, *bda)) {
+        /* assign the original address to be the current report address */
+        *bda = match_rec->ble.pseudo_addr;
+        *bda_type = match_rec->ble.AddressType();
+      } else {
+        *bda = match_rec->bd_addr;
+      }
+    } else {
+      LOG(INFO) << __func__ << ": unable to match and resolve random address";
+    }
+  }
+  return is_in_security_db;
 }

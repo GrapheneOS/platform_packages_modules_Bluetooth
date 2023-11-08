@@ -29,7 +29,6 @@
 #include "main/shim/acl_legacy_interface.h"
 #include "main/shim/link_connection_interface.h"
 #include "main/shim/link_policy_interface.h"
-#include "stack/include/bt_types.h"
 #include "types/raw_address.h"
 
 using LeRandCallback = base::OnceCallback<void(uint64_t)>;

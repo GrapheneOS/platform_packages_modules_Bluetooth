@@ -53,15 +53,7 @@ struct btm_gen_resolvable_private_addr {
   void operator()(base::Callback<void(const RawAddress&)> cb) { body(cb); };
 };
 extern struct btm_gen_resolvable_private_addr btm_gen_resolvable_private_addr;
-// Name: btm_get_next_private_addrress_interval_ms
-// Params:
-// Returns: uint64_t
-struct btm_get_next_private_addrress_interval_ms {
-  std::function<uint64_t()> body{[]() { return 0; }};
-  uint64_t operator()() { return body(); };
-};
-extern struct btm_get_next_private_addrress_interval_ms
-    btm_get_next_private_addrress_interval_ms;
+
 // Name: btm_ble_init_pseudo_addr
 // Params: tBTM_SEC_DEV_REC* p_dev_rec, const RawAddress& new_pseudo_addr
 // Returns: bool
@@ -145,14 +137,14 @@ extern struct btm_random_pseudo_to_identity_addr
     btm_random_pseudo_to_identity_addr;
 // Name: btm_ble_refresh_peer_resolvable_private_addr
 // Params:  const RawAddress& pseudo_bda, const RawAddress& rpa,
-// tBTM_SEC_BLE::tADDRESS_TYPE rra_type Returns: void
+// tBLE_RAND_ADDR_TYPE rra_type Returns: void
 struct btm_ble_refresh_peer_resolvable_private_addr {
   std::function<void(const RawAddress& pseudo_bda, const RawAddress& rpa,
-                     tBTM_SEC_BLE::tADDRESS_TYPE rra_type)>
+                     tBLE_RAND_ADDR_TYPE rra_type)>
       body{[](const RawAddress& pseudo_bda, const RawAddress& rpa,
-              tBTM_SEC_BLE::tADDRESS_TYPE rra_type) {}};
+              tBLE_RAND_ADDR_TYPE rra_type) {}};
   void operator()(const RawAddress& pseudo_bda, const RawAddress& rpa,
-                  tBTM_SEC_BLE::tADDRESS_TYPE rra_type) {
+                  tBLE_RAND_ADDR_TYPE rra_type) {
     body(pseudo_bda, rpa, rra_type);
   };
 };

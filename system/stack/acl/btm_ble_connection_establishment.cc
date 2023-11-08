@@ -22,18 +22,13 @@
 
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_int_types.h"
-#include "stack/include/acl_api.h"
 #include "stack/include/ble_hci_link_interface.h"
-#include "stack/include/btm_ble_addr.h"
-#include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
 
 void btm_ble_advertiser_notify_terminated_legacy(uint8_t status,
                                                  uint16_t connection_handle);
 
-bool btm_ble_init_pseudo_addr(tBTM_SEC_DEV_REC* p_dev_rec,
-                              const RawAddress& new_pseudo_addr);
 /** LE connection complete. */
 void btm_ble_create_ll_conn_complete(tHCI_STATUS status) {
   if (status == HCI_SUCCESS) return;
@@ -50,42 +45,4 @@ void btm_ble_create_ll_conn_complete(tHCI_STATUS status) {
     btm_ble_clear_topology_mask(BTM_BLE_STATE_INIT_BIT);
     btm_ble_update_mode_operation(HCI_ROLE_UNKNOWN, NULL, status);
   }
-}
-
-bool maybe_resolve_address(RawAddress* bda, tBLE_ADDR_TYPE* bda_type) {
-  bool is_in_security_db = false;
-  tBLE_ADDR_TYPE peer_addr_type = *bda_type;
-  bool addr_is_rpa =
-      (peer_addr_type == BLE_ADDR_RANDOM && BTM_BLE_IS_RESOLVE_BDA(*bda));
-
-  /* We must translate whatever address we received into the "pseudo" address.
-   * i.e. if we bonded with device that was using RPA for first connection,
-   * "pseudo" address is equal to this RPA. If it later decides to use Public
-   * address, or Random Static Address, we convert it into the "pseudo"
-   * address here. */
-  if (!addr_is_rpa || peer_addr_type & BLE_ADDR_TYPE_ID_BIT) {
-    is_in_security_db = btm_identity_addr_to_random_pseudo(bda, bda_type, true);
-  }
-
-  /* possiblly receive connection complete with resolvable random while
-     the device has been paired */
-  if (!is_in_security_db && addr_is_rpa) {
-    tBTM_SEC_DEV_REC* match_rec = btm_ble_resolve_random_addr(*bda);
-    if (match_rec) {
-      LOG(INFO) << __func__ << ": matched and resolved random address";
-      is_in_security_db = true;
-      match_rec->ble.active_addr_type = tBTM_SEC_BLE::BTM_BLE_ADDR_RRA;
-      match_rec->ble.cur_rand_addr = *bda;
-      if (!btm_ble_init_pseudo_addr(match_rec, *bda)) {
-        /* assign the original address to be the current report address */
-        *bda = match_rec->ble.pseudo_addr;
-        *bda_type = match_rec->ble.AddressType();
-      } else {
-        *bda = match_rec->bd_addr;
-      }
-    } else {
-      LOG(INFO) << __func__ << ": unable to match and resolve random address";
-    }
-  }
-  return is_in_security_db;
 }

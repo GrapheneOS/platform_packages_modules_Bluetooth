@@ -21,11 +21,13 @@
 #include <cstdint>
 #include <cstring>
 
+#include "hci/octets.h"
+
 namespace bluetooth {
 namespace crypto_toolbox {
 
-constexpr int OCTET16_LEN = 16;
-using Octet16 = std::array<uint8_t, OCTET16_LEN>;
+constexpr int OCTET16_LEN = hci::kOctet16Length;
+using Octet16 = hci::Octet16;
 
 Octet16 c1(
     const Octet16& k,

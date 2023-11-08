@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include "stack/include/bt_types.h" /* for Octet16 */
+#include "stack/include/bt_octets.h"
 #include "types/bluetooth/uuid.h"
 
 namespace gatt {

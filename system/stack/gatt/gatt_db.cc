@@ -27,14 +27,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bt_target.h"
-#include "bt_trace.h"
 #include "gatt_int.h"
 #include "l2c_api.h"
 #include "osi/include/osi.h"
-#include "stack/btm/btm_ble_int.h"
-#include "stack/btm/btm_sec.h"
-#include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
 #include "types/bluetooth/uuid.h"
 

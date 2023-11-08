@@ -23,6 +23,8 @@
  ******************************************************************************/
 #define LOG_TAG "ble_priv"
 
+#include "stack/include/btm_ble_privacy.h"
+
 #include "btm_dev.h"
 #include "btm_sec_cb.h"
 #include "btm_sec_int_types.h"
@@ -30,9 +32,9 @@
 #include "main/shim/acl_api.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
-#include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btm_api.h"
 #include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
@@ -381,7 +383,7 @@ void btm_ble_read_resolving_list_entry_complete(const uint8_t* p,
       STREAM_TO_BDADDR(rra, p);
     }
     btm_ble_refresh_peer_resolvable_private_addr(
-        pseudo_bda, rra, tBTM_SEC_BLE::tADDRESS_TYPE::BTM_BLE_ADDR_PSEUDO);
+        pseudo_bda, rra, tBLE_RAND_ADDR_TYPE::BTM_BLE_ADDR_PSEUDO);
   }
 }
 /*******************************************************************************
@@ -431,7 +433,8 @@ static void btm_ble_resolving_list_vsc_op_cmpl(tBTM_VSC_CMPL* p_params) {
  * Returns          status
  *
  ******************************************************************************/
-tBTM_STATUS btm_ble_remove_resolving_list_entry(tBTM_SEC_DEV_REC* p_dev_rec) {
+static tBTM_STATUS btm_ble_remove_resolving_list_entry(
+    tBTM_SEC_DEV_REC* p_dev_rec) {
   /* if controller does not support RPA offloading or privacy 1.2, skip */
   if (controller_get_interface()->get_ble_resolving_list_max_size() == 0)
     return BTM_WRONG_MODE;
@@ -465,7 +468,7 @@ tBTM_STATUS btm_ble_remove_resolving_list_entry(tBTM_SEC_DEV_REC* p_dev_rec) {
  * Parameters       None.
  *
  ******************************************************************************/
-void btm_ble_clear_resolving_list(void) {
+static void btm_ble_clear_resolving_list(void) {
   if (controller_get_interface()->supports_ble_privacy()) {
     bluetooth::shim::ACL_ClearAddressResolution();
   } else {

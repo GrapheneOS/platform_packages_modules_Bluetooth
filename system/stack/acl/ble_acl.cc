@@ -25,6 +25,8 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/acl_api.h"
+#include "stack/include/btm_ble_addr.h"
+#include "stack/include/btm_ble_privacy.h"
 #include "stack/include/l2cap_hci_link_interface.h"
 #include "types/raw_address.h"
 
@@ -33,8 +35,6 @@ extern tBTM_CB btm_cb;
 void btm_ble_advertiser_notify_terminated_legacy(uint8_t status,
                                                  uint16_t connection_handle);
 void btm_ble_increment_link_topology_mask(uint8_t link_role);
-
-bool maybe_resolve_address(RawAddress* bda, tBLE_ADDR_TYPE* bda_type);
 
 static bool acl_ble_common_connection(
     const tBLE_BD_ADDR& address_with_type, uint16_t handle, tHCI_ROLE role,
@@ -88,8 +88,8 @@ void acl_ble_enhanced_connection_complete(
   }
 
   if (peer_addr_type & BLE_ADDR_TYPE_ID_BIT)
-    btm_ble_refresh_peer_resolvable_private_addr(
-        address_with_type.bda, peer_rpa, tBTM_SEC_BLE::BTM_BLE_ADDR_RRA);
+    btm_ble_refresh_peer_resolvable_private_addr(address_with_type.bda,
+                                                 peer_rpa, BTM_BLE_ADDR_RRA);
   btm_ble_update_mode_operation(role, &address_with_type.bda, HCI_SUCCESS);
 
   if (role == HCI_ROLE_PERIPHERAL)
@@ -185,4 +185,12 @@ void acl_ble_data_length_change_event(uint16_t handle, uint16_t max_tx_octets,
       "max_tx_time:%hu max_rx_octets:%hu max_rx_time:%hu",
       handle, max_tx_octets, max_tx_time, max_rx_octets, max_rx_time);
   l2cble_process_data_length_change_event(handle, max_tx_octets, max_rx_octets);
+}
+
+uint64_t btm_get_next_private_addrress_interval_ms() {
+  /* 7 minutes minimum, 15 minutes maximum for random address refreshing */
+  const uint64_t interval_min_ms = (7 * 60 * 1000);
+  const uint64_t interval_random_part_max_ms = (8 * 60 * 1000);
+
+  return interval_min_ms + std::rand() % interval_random_part_max_ms;
 }
