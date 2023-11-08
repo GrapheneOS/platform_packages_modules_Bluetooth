@@ -11,7 +11,7 @@ use crate::iface_bluetooth_manager::{
     AdapterWithEnabled, IBluetoothManager, IBluetoothManagerCallback,
 };
 use crate::state_machine::{
-    state_to_enabled, AdapterState, Message, StateMachineProxy, VirtualHciIndex,
+    state_to_enabled, AdapterState, Message, ProcessState, StateMachineProxy, VirtualHciIndex,
 };
 use crate::{config_util, migrate};
 
@@ -75,12 +75,13 @@ impl BluetoothManager {
         self.callbacks.remove(&id);
     }
 
-    pub(crate) fn restart_available_adapters(&mut self) {
-        self.get_available_adapters()
-            .into_iter()
-            .filter(|adapter| adapter.enabled)
-            .map(|adapter| VirtualHciIndex(adapter.hci_interface))
-            .for_each(|virt_hci| self.proxy.restart_bluetooth(virt_hci));
+    /// Restarts all TurningOn/On adapters to make sure the configuration is reloaded.
+    pub(crate) fn restart_adapters(&mut self) {
+        self.proxy
+            .get_adapters()
+            .iter()
+            .filter(|a| a.state == ProcessState::TurningOn || a.state == ProcessState::On)
+            .for_each(|a| self.proxy.restart_bluetooth(a.virt_hci));
     }
 }
 
@@ -232,7 +233,7 @@ impl IBluetoothExperimental for BluetoothManager {
             return false;
         }
 
-        self.restart_available_adapters();
+        self.restart_adapters();
 
         return true;
     }
