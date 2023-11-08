@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <set>
-#include <unordered_map>
 #include <vector>
 
 #include "stack/include/bt_hdr.h"

@@ -78,6 +78,7 @@
 #include "stack/include/acl_api_types.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/bt_uuid16.h"
+#include "stack/include/btm_ble_api.h"
 #include "stack/include/btm_ble_sec_api.h"
 #include "stack/include/btm_ble_sec_api_types.h"
 #include "stack/include/btm_log_history.h"
