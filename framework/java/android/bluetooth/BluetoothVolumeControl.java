@@ -33,7 +33,6 @@ import android.annotation.SystemApi;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.content.AttributionSource;
 import android.content.Context;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.CloseGuard;
 import android.util.Log;
@@ -202,14 +201,9 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
 
     private BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
-    private final BluetoothProfileConnector<IBluetoothVolumeControl> mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.VOLUME_CONTROL, TAG,
-                    IBluetoothVolumeControl.class.getName()) {
-                @Override
-                public IBluetoothVolumeControl getServiceInterface(IBinder service) {
-                    return IBluetoothVolumeControl.Stub.asInterface(service);
-                }
-            };
+    private final BluetoothProfileConnector mProfileConnector =
+            new BluetoothProfileConnector(
+                    this, BluetoothProfile.VOLUME_CONTROL, IBluetoothVolumeControl.class.getName());
 
     /**
      * Create a BluetoothVolumeControl proxy object for interacting with the local
@@ -248,7 +242,7 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
     }
 
     private IBluetoothVolumeControl getService() {
-        return mProfileConnector.getService();
+        return IBluetoothVolumeControl.Stub.asInterface(mProfileConnector.getService());
     }
 
     /**
