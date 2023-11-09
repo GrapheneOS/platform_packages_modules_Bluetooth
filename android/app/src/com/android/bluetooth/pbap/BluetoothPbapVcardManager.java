@@ -376,7 +376,7 @@ public class BluetoothPbapVcardManager {
                     String vcard = composer.buildVCard(RawContactsEntity.queryRawContactEntity(
                                 mResolver, contactCursor.getLong(idColumn)));
                     if (!contactCursor.moveToNext()) {
-                        Log.e(TAG, "Cursor#moveToNext() returned false");
+                        Log.i(TAG, "Cursor#moveToNext() returned false");
                     }
                     if (vcard == null) {
                         Log.e(TAG, "Failed to read a contact.");
@@ -767,7 +767,7 @@ public class BluetoothPbapVcardManager {
                 String vcard = composer.buildVCard(RawContactsEntity.queryRawContactEntity(
                             mResolver, contactIdCursor.getLong(idColumn)));
                 if (!contactIdCursor.moveToNext()) {
-                    Log.e(TAG, "Cursor#moveToNext() returned false");
+                    Log.i(TAG, "Cursor#moveToNext() returned false");
                 }
                 if (vcard == null) {
                     Log.e(TAG, "Failed to read a contact.");
@@ -872,7 +872,7 @@ public class BluetoothPbapVcardManager {
                 String vcard = composer.buildVCard(RawContactsEntity.queryRawContactEntity(
                             mResolver, contactIdCursor.getLong(idColumn)));
                 if (!contactIdCursor.moveToNext()) {
-                    Log.e(TAG, "Cursor#moveToNext() returned false");
+                    Log.i(TAG, "Cursor#moveToNext() returned false");
                 }
                 if (vcard == null) {
                     Log.e(TAG, "Failed to read a contact.");
