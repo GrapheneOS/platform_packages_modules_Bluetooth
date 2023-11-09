@@ -2569,28 +2569,25 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
  * Returns          void
  *
  ******************************************************************************/
-void btm_sec_rmt_host_support_feat_evt(const uint8_t* p) {
+void btm_sec_rmt_host_support_feat_evt(const RawAddress bd_addr,
+                                       uint8_t features_0) {
   tBTM_SEC_DEV_REC* p_dev_rec;
-  RawAddress bd_addr; /* peer address */
-  BD_FEATURES features;
 
-  STREAM_TO_BDADDR(bd_addr, p);
   p_dev_rec = btm_find_or_alloc_dev(bd_addr);
 
   LOG_INFO("Got btm_sec_rmt_host_support_feat_evt from %s",
            ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
   LOG_VERBOSE("btm_sec_rmt_host_support_feat_evt  sm4: 0x%x  p[0]: 0x%x",
-              p_dev_rec->sm4, p[0]);
+              p_dev_rec->sm4, features_0);
 
   if (BTM_SEC_IS_SM4_UNKNOWN(p_dev_rec->sm4)) {
     p_dev_rec->sm4 = BTM_SM4_KNOWN;
-    STREAM_TO_ARRAY(features, p, HCI_FEATURE_BYTES_PER_PAGE);
-    if (HCI_SSP_HOST_SUPPORTED(features)) {
+    if (HCI_SSP_HOST_SUPPORTED((std::array<uint8_t, 1>({features_0})))) {
       p_dev_rec->sm4 = BTM_SM4_TRUE;
     }
     LOG_VERBOSE("btm_sec_rmt_host_support_feat_evt sm4: 0x%x features[0]: 0x%x",
-                p_dev_rec->sm4, features[0]);
+                p_dev_rec->sm4, features_0);
   }
 }
 

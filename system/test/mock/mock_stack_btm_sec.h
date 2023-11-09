@@ -830,8 +830,11 @@ extern struct btm_sec_pin_code_request btm_sec_pin_code_request;
 // Params: const uint8_t* p
 // Return: void
 struct btm_sec_rmt_host_support_feat_evt {
-  std::function<void(const uint8_t* p)> body{[](const uint8_t* p) {}};
-  void operator()(const uint8_t* p) { body(p); };
+  std::function<void(const RawAddress bd_addr, uint8_t features_0)> body{
+      [](const RawAddress /* bd_addr */, uint8_t /* features_0 */) {}};
+  void operator()(const RawAddress bd_addr, uint8_t features_0) {
+    body(bd_addr, features_0);
+  };
 };
 extern struct btm_sec_rmt_host_support_feat_evt
     btm_sec_rmt_host_support_feat_evt;

@@ -97,6 +97,8 @@ static void btu_hcif_esco_connection_chg_evt(uint8_t* p);
 
 static void btu_hcif_sec_pin_code_request(const uint8_t* p);
 static void btu_hcif_sec_link_key_request(const uint8_t* p);
+static void btu_hcif_sec_rmt_host_support_feat_evt(const uint8_t* p);
+static void btu_hcif_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p);
 static void btu_hcif_rem_oob_req(const uint8_t* p);
 static void btu_hcif_simple_pair_complete(const uint8_t* p);
 static void btu_hcif_proc_sp_req_evt(const tBTM_SP_EVT event, const uint8_t* p);
@@ -301,7 +303,7 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
       btm_pm_proc_ssr_evt(p, hci_evt_len);
       break;
     case HCI_RMT_HOST_SUP_FEAT_NOTIFY_EVT:
-      btm_sec_rmt_host_support_feat_evt(p);
+      btu_hcif_sec_rmt_host_support_feat_evt(p);
       break;
     case HCI_IO_CAPABILITY_REQUEST_EVT:
       btu_hcif_io_cap_request_evt(p);
@@ -1449,6 +1451,14 @@ void btu_hcif_simple_pair_complete(const uint8_t* p) {
   status = *p++;
   STREAM_TO_BDADDR(bd_addr, p);
   btm_simple_pair_complete(bd_addr, status);
+}
+void btu_hcif_sec_rmt_host_support_feat_evt(const uint8_t* p) {
+  RawAddress bd_addr; /* peer address */
+  uint8_t features_0;
+
+  STREAM_TO_BDADDR(bd_addr, p);
+  STREAM_TO_UINT8(features_0, p);
+  btm_sec_rmt_host_support_feat_evt(bd_addr, features_0);
 }
 void btu_hcif_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
   RawAddress bda;
