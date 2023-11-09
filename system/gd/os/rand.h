@@ -17,8 +17,12 @@
 #pragma once
 
 #include <openssl/rand.h>
+#include <stddef.h>
 
 #include <array>
+#include <cstdint>
+
+#include "os/log.h"
 
 namespace bluetooth {
 namespace os {

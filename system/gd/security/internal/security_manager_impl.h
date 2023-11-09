@@ -17,11 +17,13 @@
 #pragma once
 
 #include <storage/storage_module.h>
+
 #include <unordered_map>
 #include <utility>
 
 #include "hci/acl_manager.h"
 #include "hci/controller.h"
+#include "hci/octets.h"
 #include "l2cap/classic/security_enforcement_interface.h"
 #include "l2cap/le/l2cap_le_module.h"
 #include "l2cap/le/security_enforcement_interface.h"
@@ -139,7 +141,7 @@ class SecurityManagerImpl : public channel::ISecurityManagerChannelListener, pub
   void SetLeInitiatorAddressPolicyForTest(
       hci::LeAddressManager::AddressPolicy address_policy,
       hci::AddressWithType fixed_address,
-      crypto_toolbox::Octet16 rotation_irk,
+      hci::Octet16 rotation_irk,
       std::chrono::milliseconds minimum_rotation_time,
       std::chrono::milliseconds maximum_rotation_time);
 
@@ -266,11 +268,11 @@ class SecurityManagerImpl : public channel::ISecurityManagerChannelListener, pub
   OobDataFlag local_le_oob_data_present_ = OobDataFlag::NOT_PRESENT;
   std::optional<MyOobData> local_le_oob_data_;
   std::optional<hci::AddressWithType> remote_oob_data_address_;
-  std::optional<crypto_toolbox::Octet16> remote_oob_data_le_sc_c_;
-  std::optional<crypto_toolbox::Octet16> remote_oob_data_le_sc_r_;
+  std::optional<hci::Octet16> remote_oob_data_le_sc_c_;
+  std::optional<hci::Octet16> remote_oob_data_le_sc_r_;
   std::optional<FacadeDisconnectCallback> facade_disconnect_callback_;
   hci::AddressWithType local_identity_address_;
-  crypto_toolbox::Octet16 local_identity_resolving_key_;
+  hci::Octet16 local_identity_resolving_key_;
 
   struct PendingSecurityEnforcementEntry {
     l2cap::classic::SecurityPolicy policy_;

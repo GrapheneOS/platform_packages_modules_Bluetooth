@@ -21,14 +21,10 @@
 #include <optional>
 #include <variant>
 
-#include "common/bidi_queue.h"
-#include "common/callback.h"
-#include "crypto_toolbox/crypto_toolbox.h"
 #include "hci/address_with_type.h"
 #include "hci/le_security_interface.h"
 #include "os/handler.h"
-#include "packet/base_packet_builder.h"
-#include "packet/packet_view.h"
+#include "os/queue.h"
 #include "security/ecdh_keys.h"
 #include "security/pairing_failure.h"
 #include "security/smp_packets.h"
@@ -39,18 +35,18 @@ namespace security {
 
 struct DistributedKeys {
   /* LE Keys*/
-  std::optional<crypto_toolbox::Octet16> remote_ltk;
+  std::optional<hci::Octet16> remote_ltk;
   std::optional<uint16_t> remote_ediv;
   std::optional<std::array<uint8_t, 8>> remote_rand;
   std::optional<hci::AddressWithType> remote_identity_address;
-  std::optional<crypto_toolbox::Octet16> remote_irk;
-  std::optional<crypto_toolbox::Octet16> remote_signature_key;
-  std::optional<crypto_toolbox::Octet16> remote_link_key; /* BR/EDR Keys */
+  std::optional<hci::Octet16> remote_irk;
+  std::optional<hci::Octet16> remote_signature_key;
+  std::optional<hci::Octet16> remote_link_key; /* BR/EDR Keys */
 
-  std::optional<crypto_toolbox::Octet16> local_ltk;
+  std::optional<hci::Octet16> local_ltk;
   std::optional<uint16_t> local_ediv;
   std::optional<std::array<uint8_t, 8>> local_rand;
-  std::optional<crypto_toolbox::Octet16> local_signature_key;
+  std::optional<hci::Octet16> local_signature_key;
 };
 
 /* This class represents the result of pairing, as returned from Pairing Handler */
@@ -70,8 +66,8 @@ struct MyOobData {
    * layers though */
   std::array<uint8_t, 32> private_key;
   EcdhPublicKey public_key;
-  crypto_toolbox::Octet16 c;
-  crypto_toolbox::Octet16 r;
+  hci::Octet16 c;
+  hci::Octet16 r;
 };
 
 /* This structure is filled and send to PairingHandlerLe to initiate the Pairing process with remote device */
@@ -80,7 +76,7 @@ struct InitialInformations {
   hci::AddressWithType my_connection_address;
 
   hci::AddressWithType my_identity_address;
-  crypto_toolbox::Octet16 my_identity_resolving_key;
+  hci::Octet16 my_identity_resolving_key;
 
   /* My capabilities, as in pairing request/response */
   struct {
@@ -102,10 +98,10 @@ struct InitialInformations {
   std::optional<PairingRequestView> pairing_request;
 
   struct out_of_band_data {
-    crypto_toolbox::Octet16 le_sc_c; /* LE Secure Connections Confirmation Value */
-    crypto_toolbox::Octet16 le_sc_r; /* LE Secure Connections Random Value */
+    hci::Octet16 le_sc_c; /* LE Secure Connections Confirmation Value */
+    hci::Octet16 le_sc_r; /* LE Secure Connections Random Value */
 
-    crypto_toolbox::Octet16 security_manager_tk_value; /* OOB data for LE Legacy Pairing */
+    hci::Octet16 security_manager_tk_value; /* OOB data for LE Legacy Pairing */
   };
 
   // If we received OOB data from remote device, this field contains it.

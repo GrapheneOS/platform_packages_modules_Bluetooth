@@ -23,14 +23,13 @@
 #include <mutex>
 
 #include "common/bidi_queue.h"
-#include "common/callback.h"
 #include "common/testing/log_capture.h"
-#include "hci/acl_manager.h"
 #include "hci/acl_manager/le_connection_callbacks.h"
 #include "hci/acl_manager/le_connection_management_callbacks.h"
 #include "hci/address_with_type.h"
 #include "hci/controller.h"
 #include "hci/hci_packets.h"
+#include "hci/octets.h"
 #include "os/handler.h"
 #include "os/log.h"
 #include "packet/bit_inserter.h"
@@ -68,7 +67,7 @@ constexpr uint16_t kHciHandle = 123;
 [[maybe_unused]] constexpr bool kSkipFilterAcceptList = !kAddToFilterAcceptList;
 [[maybe_unused]] constexpr bool kIsDirectConnection = true;
 [[maybe_unused]] constexpr bool kIsBackgroundConnection = !kIsDirectConnection;
-constexpr crypto_toolbox::Octet16 kRotationIrk = {};
+constexpr hci::Octet16 kRotationIrk = {};
 constexpr std::chrono::milliseconds kMinimumRotationTime(14 * 1000);
 constexpr std::chrono::milliseconds kMaximumRotationTime(16 * 1000);
 constexpr uint16_t kIntervalMax = 0x40;
@@ -480,7 +479,7 @@ class LeImplTest : public ::testing::Test {
     hci::Address address;
     Address::FromString("D0:05:04:03:02:01", address);
     hci::AddressWithType address_with_type(address, hci::AddressType::RANDOM_DEVICE_ADDRESS);
-    crypto_toolbox::Octet16 rotation_irk{};
+    Octet16 rotation_irk{};
     auto minimum_rotation_time = std::chrono::milliseconds(7 * 60 * 1000);
     auto maximum_rotation_time = std::chrono::milliseconds(15 * 60 * 1000);
     le_impl_->set_privacy_policy_for_initiator_address(

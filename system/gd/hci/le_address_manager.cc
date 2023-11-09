@@ -48,7 +48,7 @@ LeAddressManager::~LeAddressManager() {
 void LeAddressManager::SetPrivacyPolicyForInitiatorAddress(
     AddressPolicy address_policy,
     AddressWithType fixed_address,
-    crypto_toolbox::Octet16 rotation_irk,
+    Octet16 rotation_irk,
     bool supports_ble_privacy,
     std::chrono::milliseconds minimum_rotation_time,
     std::chrono::milliseconds maximum_rotation_time) {
@@ -110,7 +110,7 @@ void LeAddressManager::SetPrivacyPolicyForInitiatorAddress(
 void LeAddressManager::SetPrivacyPolicyForInitiatorAddressForTest(
     AddressPolicy address_policy,
     AddressWithType fixed_address,
-    crypto_toolbox::Octet16 rotation_irk,
+    Octet16 rotation_irk,
     std::chrono::milliseconds minimum_rotation_time,
     std::chrono::milliseconds maximum_rotation_time) {
   ASSERT(address_policy != AddressPolicy::POLICY_NOT_SET);
@@ -385,7 +385,7 @@ hci::Address LeAddressManager::generate_rpa() {
   address.address[5] = prand[2];
 
   /* encrypt with IRK */
-  crypto_toolbox::Octet16 p = crypto_toolbox::aes_128(rotation_irk_, prand.data(), 3);
+  Octet16 p = crypto_toolbox::aes_128(rotation_irk_, prand.data(), 3);
 
   /* set hash to be LSB of rpAddress */
   address.address[0] = p[0];
