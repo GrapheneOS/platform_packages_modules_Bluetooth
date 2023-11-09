@@ -24,8 +24,6 @@
 #include <hardware/bluetooth.h>
 #include <stdio.h>
 
-#include <unordered_set>
-
 #include "advertise_data_parser.h"
 #include "btif/include/btif_common.h"
 #include "hci/address.h"
@@ -33,7 +31,6 @@
 #include "hci/msft.h"
 #include "include/hardware/ble_scanner.h"
 #include "main/shim/ble_scanner_interface_impl.h"
-#include "main/shim/dumpsys.h"
 #include "main/shim/entry.h"
 #include "main/shim/helpers.h"
 #include "main/shim/le_scanning_manager.h"
