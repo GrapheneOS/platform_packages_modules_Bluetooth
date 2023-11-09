@@ -33,7 +33,6 @@ import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothPermission;
 import android.content.AttributionSource;
 import android.content.Context;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.CloseGuard;
 import android.util.Log;
@@ -664,14 +663,9 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      */
     public static final int GROUP_STATUS_INACTIVE = IBluetoothLeAudio.GROUP_STATUS_INACTIVE;
 
-    private final BluetoothProfileConnector<IBluetoothLeAudio> mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.LE_AUDIO, "BluetoothLeAudio",
-                    IBluetoothLeAudio.class.getName()) {
-                @Override
-                public IBluetoothLeAudio getServiceInterface(IBinder service) {
-                    return IBluetoothLeAudio.Stub.asInterface(service);
-                }
-    };
+    private final BluetoothProfileConnector mProfileConnector =
+            new BluetoothProfileConnector(
+                    this, BluetoothProfile.LE_AUDIO, IBluetoothLeAudio.class.getName());
 
     /**
      * Create a BluetoothLeAudio proxy object for interacting with the local
@@ -694,7 +688,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     }
 
     private IBluetoothLeAudio getService() {
-        return mProfileConnector.getService();
+        return IBluetoothLeAudio.Stub.asInterface(mProfileConnector.getService());
     }
 
     protected void finalize() {

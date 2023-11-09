@@ -31,7 +31,6 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 import android.content.AttributionSource;
 import android.content.Context;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.CloseGuard;
 import android.util.Log;
@@ -510,14 +509,11 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     private BluetoothAdapter mBluetoothAdapter;
     private final AttributionSource mAttributionSource;
 
-    private final BluetoothProfileConnector<IBluetoothLeBroadcastAssistant> mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT,
-                    TAG, IBluetoothLeBroadcastAssistant.class.getName()) {
-                @Override
-                public IBluetoothLeBroadcastAssistant getServiceInterface(IBinder service) {
-                    return IBluetoothLeBroadcastAssistant.Stub.asInterface(service);
-                }
-            };
+    private final BluetoothProfileConnector mProfileConnector =
+            new BluetoothProfileConnector(
+                    this,
+                    BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT,
+                    IBluetoothLeBroadcastAssistant.class.getName());
 
     /**
      * Create a new instance of an LE Audio Broadcast Assistant.
@@ -549,7 +545,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     }
 
     private IBluetoothLeBroadcastAssistant getService() {
-        return mProfileConnector.getService();
+        return IBluetoothLeBroadcastAssistant.Stub.asInterface(mProfileConnector.getService());
     }
 
     /**

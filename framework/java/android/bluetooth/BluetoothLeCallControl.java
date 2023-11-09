@@ -25,7 +25,6 @@ import android.annotation.SuppressLint;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.os.Binder;
-import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.util.Log;
@@ -379,15 +378,11 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
     private int mCcid = 0;
     private String mToken;
     private Callback mCallback = null;
-    private final BluetoothProfileConnector<IBluetoothLeCallControl> mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.LE_CALL_CONTROL,
-                    "BluetoothLeCallControl", IBluetoothLeCallControl.class.getName()) {
-                @Override
-                public IBluetoothLeCallControl getServiceInterface(IBinder service) {
-                    return IBluetoothLeCallControl.Stub.asInterface(service);
-                }
-    };
-
+    private final BluetoothProfileConnector mProfileConnector =
+            new BluetoothProfileConnector(
+                    this,
+                    BluetoothProfile.LE_CALL_CONTROL,
+                    IBluetoothLeCallControl.class.getName());
 
     /**
      * Create a BluetoothLeCallControl proxy object for interacting with the local Bluetooth
@@ -410,7 +405,7 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
     }
 
     private IBluetoothLeCallControl getService() {
-        return mProfileConnector.getService();
+        return IBluetoothLeCallControl.Stub.asInterface(mProfileConnector.getService());
     }
 
     /**

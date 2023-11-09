@@ -27,7 +27,6 @@ import android.compat.annotation.UnsupportedAppUsage;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.os.Build;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -105,14 +104,9 @@ public class BluetoothPbap implements BluetoothProfile {
     public static final int RESULT_CANCELED = 2;
 
     private BluetoothAdapter mAdapter;
-    private final BluetoothProfileConnector<IBluetoothPbap> mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.PBAP, "BluetoothPbap",
-                    IBluetoothPbap.class.getName()) {
-                @Override
-                public IBluetoothPbap getServiceInterface(IBinder service) {
-                    return IBluetoothPbap.Stub.asInterface(service);
-                }
-    };
+    private final BluetoothProfileConnector mProfileConnector =
+            new BluetoothProfileConnector(
+                    this, BluetoothProfile.PBAP, IBluetoothPbap.class.getName());
 
     /**
      * Create a BluetoothPbap proxy object.
@@ -147,7 +141,7 @@ public class BluetoothPbap implements BluetoothProfile {
     }
 
     private IBluetoothPbap getService() {
-        return (IBluetoothPbap) mProfileConnector.getService();
+        return IBluetoothPbap.Stub.asInterface(mProfileConnector.getService());
     }
 
     /**
