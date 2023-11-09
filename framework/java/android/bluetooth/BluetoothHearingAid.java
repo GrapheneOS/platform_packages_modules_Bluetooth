@@ -33,7 +33,6 @@ import android.compat.annotation.UnsupportedAppUsage;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.os.Build;
-import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.RemoteException;
@@ -343,14 +342,9 @@ public final class BluetoothHearingAid implements BluetoothProfile {
 
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
-    private final BluetoothProfileConnector<IBluetoothHearingAid> mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.HEARING_AID,
-                    "BluetoothHearingAid", IBluetoothHearingAid.class.getName()) {
-                @Override
-                public IBluetoothHearingAid getServiceInterface(IBinder service) {
-                    return IBluetoothHearingAid.Stub.asInterface(service);
-                }
-    };
+    private final BluetoothProfileConnector mProfileConnector =
+            new BluetoothProfileConnector(
+                    this, BluetoothProfile.HEARING_AID, IBluetoothHearingAid.class.getName());
 
     /**
      * Create a BluetoothHearingAid proxy object for interacting with the local
@@ -370,7 +364,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
     }
 
     private IBluetoothHearingAid getService() {
-        return mProfileConnector.getService();
+        return IBluetoothHearingAid.Stub.asInterface(mProfileConnector.getService());
     }
 
     /**
