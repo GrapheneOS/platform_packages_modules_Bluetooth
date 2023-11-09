@@ -19,10 +19,12 @@
 #include <gtest/gtest.h>
 
 #include "common/init_flags.h"
+#include "hci/hci_layer.h"
+#include "hci/octets.h"
 #include "os/log.h"
 #include "packet/raw_builder.h"
 
-using ::bluetooth::crypto_toolbox::Octet16;
+using ::bluetooth::hci::Octet16;
 using ::bluetooth::os::Handler;
 using ::bluetooth::os::Thread;
 

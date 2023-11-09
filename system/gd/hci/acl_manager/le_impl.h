@@ -18,17 +18,13 @@
 
 #include <base/strings/stringprintf.h>
 
-#include <atomic>
-#include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <optional>
 #include <string>
 #include <unordered_set>
 
 #include "common/bind.h"
 #include "common/init_flags.h"
-#include "crypto_toolbox/crypto_toolbox.h"
 #include "hci/acl_manager/assembler.h"
 #include "hci/acl_manager/le_acceptlist_callbacks.h"
 #include "hci/acl_manager/le_connection_management_callbacks.h"
@@ -39,11 +35,7 @@
 #include "hci/le_address_manager.h"
 #include "os/alarm.h"
 #include "os/handler.h"
-#include "os/metrics.h"
 #include "os/system_properties.h"
-#include "packet/packet_view.h"
-
-using bluetooth::crypto_toolbox::Octet16;
 
 namespace bluetooth {
 namespace hci {
@@ -1142,7 +1134,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   void set_privacy_policy_for_initiator_address(
       LeAddressManager::AddressPolicy address_policy,
       AddressWithType fixed_address,
-      crypto_toolbox::Octet16 rotation_irk,
+      Octet16 rotation_irk,
       std::chrono::milliseconds minimum_rotation_time,
       std::chrono::milliseconds maximum_rotation_time) {
     le_address_manager_->SetPrivacyPolicyForInitiatorAddress(
@@ -1158,7 +1150,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   void set_privacy_policy_for_initiator_address_for_test(
       LeAddressManager::AddressPolicy address_policy,
       AddressWithType fixed_address,
-      crypto_toolbox::Octet16 rotation_irk,
+      Octet16 rotation_irk,
       std::chrono::milliseconds minimum_rotation_time,
       std::chrono::milliseconds maximum_rotation_time) {
     le_address_manager_->SetPrivacyPolicyForInitiatorAddressForTest(

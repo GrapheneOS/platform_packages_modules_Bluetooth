@@ -16,16 +16,18 @@
  *
  ******************************************************************************/
 
-#include "security/pairing_handler_le.h"
-
-#include "os/rand.h"
-
 #include <base/logging.h>
+
+#include "hci/octets.h"
+#include "os/rand.h"
+#include "security/pairing_handler_le.h"
 
 using bluetooth::os::GenerateRandom;
 
 namespace bluetooth {
 namespace security {
+
+using hci::Octet16;
 
 LegacyStage1ResultOrFailure PairingHandlerLe::DoLegacyStage1(const InitialInformations& i,
                                                              const PairingRequestView& pairing_request,
