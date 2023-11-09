@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "common/bind.h"
-#include "common/callback.h"
-#include "common/i_postable_context.h"
+#include "bind.h"
+#include "callback.h"
+#include "i_postable_context.h"
 
 namespace bluetooth {
 namespace common {
