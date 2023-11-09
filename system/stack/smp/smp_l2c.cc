@@ -281,7 +281,12 @@ static void smp_br_connect_callback(uint16_t channel, const RawAddress& bd_addr,
     }
   } else {
     /* Disconnected while doing security */
-    smp_br_state_machine_event(p_cb, SMP_BR_L2CAP_DISCONN_EVT, &int_data);
+    if (p_cb->smp_over_br) {
+      LOG_DEBUG("SMP over BR/EDR not supported, terminate the ongoing pairing");
+      smp_br_state_machine_event(p_cb, SMP_BR_L2CAP_DISCONN_EVT, &int_data);
+    } else {
+      LOG_DEBUG("SMP over BR/EDR not supported, continue the LE pairing");
+    }
   }
 }
 
