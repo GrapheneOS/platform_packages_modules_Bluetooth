@@ -544,7 +544,7 @@ void btm_io_capabilities_req(RawAddress p);
  * Returns          void
  *
  ******************************************************************************/
-void btm_io_capabilities_rsp(const uint8_t* p);
+void btm_io_capabilities_rsp(const tBTM_SP_IO_RSP evt_data);
 
 /*******************************************************************************
  *

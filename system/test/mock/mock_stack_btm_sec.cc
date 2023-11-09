@@ -308,9 +308,9 @@ void btm_io_capabilities_req(RawAddress p) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_sec::btm_io_capabilities_req(p);
 }
-void btm_io_capabilities_rsp(const uint8_t* p) {
+void btm_io_capabilities_rsp(const tBTM_SP_IO_RSP evt_data) {
   inc_func_call_count(__func__);
-  test::mock::stack_btm_sec::btm_io_capabilities_rsp(p);
+  test::mock::stack_btm_sec::btm_io_capabilities_rsp(evt_data);
 }
 void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
   inc_func_call_count(__func__);

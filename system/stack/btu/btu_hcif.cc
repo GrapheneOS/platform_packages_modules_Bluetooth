@@ -100,6 +100,7 @@ static void btu_hcif_create_conn_cancel_complete(const uint8_t* p,
 
 /* Simple Pairing Events */
 static void btu_hcif_io_cap_request_evt(const uint8_t* p);
+static void btu_hcif_io_cap_response_evt(const uint8_t* p);
 
 static void btu_ble_ll_conn_param_upd_evt(uint8_t* p, uint16_t evt_len);
 static void btu_ble_proc_ltk_req(uint8_t* p, uint16_t evt_len);
@@ -299,7 +300,7 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
       btu_hcif_io_cap_request_evt(p);
       break;
     case HCI_IO_CAPABILITY_RESPONSE_EVT:
-      btm_io_capabilities_rsp(p);
+      btu_hcif_io_cap_response_evt(p);
       break;
     case HCI_USER_CONFIRMATION_REQUEST_EVT:
       btm_proc_sp_req_evt(BTM_SP_CFM_REQ_EVT, p);
@@ -1498,6 +1499,29 @@ static void btu_hcif_io_cap_request_evt(const uint8_t* p) {
   RawAddress bda;
   STREAM_TO_BDADDR(bda, p);
   btm_io_capabilities_req(bda);
+}
+
+/*******************************************************************************
+ *
+ * Function         btu_hcif_io_cap_request_evt
+ *
+ * Description      Process event HCI_IO_CAPABILITY_REQUEST_EVT
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+static void btu_hcif_io_cap_response_evt(const uint8_t* p) {
+  tBTM_SP_IO_RSP evt_data;
+
+  STREAM_TO_BDADDR(evt_data.bd_addr, p);
+
+  uint8_t io_cap;
+  STREAM_TO_UINT8(io_cap, p);
+  evt_data.io_cap = static_cast<tBTM_IO_CAP>(io_cap);
+
+  STREAM_TO_UINT8(evt_data.oob_data, p);
+  STREAM_TO_UINT8(evt_data.auth_req, p);
+  btm_io_capabilities_rsp(evt_data);
 }
 
 /**********************************************

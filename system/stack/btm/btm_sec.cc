@@ -2787,18 +2787,8 @@ void btm_io_capabilities_req(RawAddress p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_io_capabilities_rsp(const uint8_t* p) {
+void btm_io_capabilities_rsp(const tBTM_SP_IO_RSP evt_data) {
   tBTM_SEC_DEV_REC* p_dev_rec;
-  tBTM_SP_IO_RSP evt_data;
-
-  STREAM_TO_BDADDR(evt_data.bd_addr, p);
-
-  uint8_t io_cap;
-  STREAM_TO_UINT8(io_cap, p);
-  evt_data.io_cap = static_cast<tBTM_IO_CAP>(io_cap);
-
-  STREAM_TO_UINT8(evt_data.oob_data, p);
-  STREAM_TO_UINT8(evt_data.auth_req, p);
 
   /* Allocate a new device record or reuse the oldest one */
   p_dev_rec = btm_find_or_alloc_dev(evt_data.bd_addr);

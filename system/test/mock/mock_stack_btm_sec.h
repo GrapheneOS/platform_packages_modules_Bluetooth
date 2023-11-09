@@ -475,11 +475,12 @@ struct btm_io_capabilities_req {
 extern struct btm_io_capabilities_req btm_io_capabilities_req;
 
 // Name: btm_io_capabilities_rsp
-// Params: const uint8_t* p
+// Params: tBTM_SP_IO_RSP evt_data
 // Return: void
 struct btm_io_capabilities_rsp {
-  std::function<void(const uint8_t* p)> body{[](const uint8_t* p) {}};
-  void operator()(const uint8_t* p) { body(p); };
+  std::function<void(const tBTM_SP_IO_RSP evt_data)> body{
+      [](const tBTM_SP_IO_RSP /* evt_data */) {}};
+  void operator()(const tBTM_SP_IO_RSP evt_data) { body(evt_data); };
 };
 extern struct btm_io_capabilities_rsp btm_io_capabilities_rsp;
 
