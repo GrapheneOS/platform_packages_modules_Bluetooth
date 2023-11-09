@@ -81,6 +81,7 @@
 #include "stack/include/btm_ble_api.h"
 #include "stack/include/btm_ble_sec_api.h"
 #include "stack/include/btm_ble_sec_api_types.h"
+#include "stack/include/btm_client_interface.h"
 #include "stack/include/btm_log_history.h"
 #include "stack/include/btm_sec_api.h"
 #include "stack/include/btm_sec_api_types.h"
@@ -2655,7 +2656,8 @@ void btif_dm_create_bond_out_of_band(const RawAddress bd_addr,
           break;
       }
       pairing_cb.is_local_initiated = true;
-      BTM_SecAddBleDevice(bd_addr, BT_DEVICE_TYPE_BLE, address_type);
+      get_btm_client_interface().security.BTM_SecAddBleDevice(
+          bd_addr, BT_DEVICE_TYPE_BLE, address_type);
       BTA_DmBond(bd_addr, address_type, transport, BT_DEVICE_TYPE_BLE);
       break;
     }
