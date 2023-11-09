@@ -505,11 +505,12 @@ struct btm_read_local_oob_complete {
 extern struct btm_read_local_oob_complete btm_read_local_oob_complete;
 
 // Name: btm_rem_oob_req
-// Params: const uint8_t* p
+// Params: RawAddress bda
 // Return: void
 struct btm_rem_oob_req {
-  std::function<void(const uint8_t* p)> body{[](const uint8_t* p) {}};
-  void operator()(const uint8_t* p) { body(p); };
+  std::function<void(const RawAddress bda)> body{
+      [](const RawAddress /* bda */) {}};
+  void operator()(const RawAddress bda) { body(bda); };
 };
 extern struct btm_rem_oob_req btm_rem_oob_req;
 

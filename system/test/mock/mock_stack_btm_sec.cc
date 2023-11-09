@@ -320,9 +320,9 @@ void btm_read_local_oob_complete(uint8_t* p, uint16_t evt_len) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_sec::btm_read_local_oob_complete(p, evt_len);
 }
-void btm_rem_oob_req(const uint8_t* p) {
+void btm_rem_oob_req(const RawAddress bd_addr) {
   inc_func_call_count(__func__);
-  test::mock::stack_btm_sec::btm_rem_oob_req(p);
+  test::mock::stack_btm_sec::btm_rem_oob_req(bd_addr);
 }
 void btm_sec_abort_access_req(const RawAddress& bd_addr) {
   inc_func_call_count(__func__);

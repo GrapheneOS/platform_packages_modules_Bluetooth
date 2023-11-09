@@ -30,7 +30,7 @@ void btm_io_capabilities_req(RawAddress p);
 void btm_io_capabilities_rsp(const tBTM_SP_IO_RSP evt_data);
 void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p);
 void btm_read_local_oob_complete(uint8_t* p, uint16_t evt_len);
-void btm_rem_oob_req(const uint8_t* p);
+void btm_rem_oob_req(const RawAddress bd_addr);
 void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status);
 void btm_sec_disconnected(uint16_t handle, tHCI_STATUS reason, std::string);
 void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,

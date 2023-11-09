@@ -95,6 +95,7 @@ static void btu_hcif_esco_connection_chg_evt(uint8_t* p);
 
 /* Parsing functions for btm functions */
 
+static void btu_hcif_rem_oob_req(const uint8_t* p);
 static void btu_hcif_simple_pair_complete(const uint8_t* p);
 static void btu_hcif_create_conn_cancel_complete(const uint8_t* p,
                                                  uint16_t evt_len);
@@ -310,7 +311,7 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
       btm_proc_sp_req_evt(BTM_SP_KEY_REQ_EVT, p);
       break;
     case HCI_REMOTE_OOB_DATA_REQUEST_EVT:
-      btm_rem_oob_req(p);
+      btu_hcif_rem_oob_req(p);
       break;
     case HCI_SIMPLE_PAIRING_COMPLETE_EVT:
       btu_hcif_simple_pair_complete(p);
@@ -1421,6 +1422,11 @@ static void btu_hcif_mode_change_evt(uint8_t* p) {
 
 /* Parsing functions for btm functions */
 
+void btu_hcif_rem_oob_req(const uint8_t* p) {
+  RawAddress bda;
+  STREAM_TO_BDADDR(bda, p);
+  btm_rem_oob_req(bda);
+}
 void btu_hcif_simple_pair_complete(const uint8_t* p) {
   RawAddress bd_addr;
   uint8_t status;

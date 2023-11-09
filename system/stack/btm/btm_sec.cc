@@ -3047,15 +3047,14 @@ void btm_simple_pair_complete(const RawAddress bd_addr, uint8_t status) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_rem_oob_req(const uint8_t* p) {
+void btm_rem_oob_req(const RawAddress bd_addr) {
   tBTM_SP_RMT_OOB evt_data;
   tBTM_SEC_DEV_REC* p_dev_rec;
   Octet16 c;
   Octet16 r;
 
+  evt_data.bd_addr = bd_addr;
   RawAddress& p_bda = evt_data.bd_addr;
-
-  STREAM_TO_BDADDR(p_bda, p);
 
   VLOG(2) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(p_bda);
   p_dev_rec = btm_find_dev(p_bda);
