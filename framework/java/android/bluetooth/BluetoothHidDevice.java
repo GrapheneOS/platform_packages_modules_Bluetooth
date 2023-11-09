@@ -28,7 +28,6 @@ import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothPermission;
 import android.content.AttributionSource;
 import android.content.Context;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -430,14 +429,9 @@ public final class BluetoothHidDevice implements BluetoothProfile {
 
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
-    private final BluetoothProfileConnector<IBluetoothHidDevice> mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.HID_DEVICE,
-                    "BluetoothHidDevice", IBluetoothHidDevice.class.getName()) {
-                @Override
-                public IBluetoothHidDevice getServiceInterface(IBinder service) {
-                    return IBluetoothHidDevice.Stub.asInterface(service);
-                }
-    };
+    private final BluetoothProfileConnector mProfileConnector =
+            new BluetoothProfileConnector(
+                    this, BluetoothProfile.HID_DEVICE, IBluetoothHidDevice.class.getName());
 
     BluetoothHidDevice(Context context, ServiceListener listener, BluetoothAdapter adapter) {
         mAdapter = adapter;
@@ -452,7 +446,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
     }
 
     private IBluetoothHidDevice getService() {
-        return mProfileConnector.getService();
+        return IBluetoothHidDevice.Stub.asInterface(mProfileConnector.getService());
     }
 
     /** {@inheritDoc} */

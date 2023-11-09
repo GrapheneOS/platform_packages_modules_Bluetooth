@@ -38,16 +38,16 @@ import java.util.Objects;
  * @hide
  */
 @SuppressLint("AndroidFrameworkBluetoothPermission")
-public abstract class BluetoothProfileConnector<T> extends Handler {
+public final class BluetoothProfileConnector extends Handler {
+    private static final String TAG = BluetoothProfileConnector.class.getSimpleName();
     private final CloseGuard mCloseGuard = new CloseGuard();
     private final int mProfileId;
     private BluetoothProfile.ServiceListener mServiceListener;
     private final BluetoothProfile mProfileProxy;
     private String mPackageName;
-    private final String mProfileName;
     private final String mServiceName;
     private final IBluetoothManager mBluetoothManager;
-    private volatile T mService;
+    private volatile IBinder mService;
     private boolean mBound = false;
 
     private static final int MESSAGE_SERVICE_CONNECTED = 100;
@@ -68,15 +68,21 @@ public abstract class BluetoothProfileConnector<T> extends Handler {
             new IBluetoothProfileServiceConnection.Stub() {
                 @Override
                 public void onServiceConnected(ComponentName className, IBinder service) {
-                    logDebug("Proxy object connected");
-                    mService = getServiceInterface(service);
+                    Log.d(
+                            TAG,
+                            "Proxy object connected for "
+                                    + BluetoothProfile.getProfileName(mProfileId));
+                    mService = service;
                     sendEmptyMessage(MESSAGE_SERVICE_CONNECTED);
                 }
 
                 @Override
                 public void onServiceDisconnected(ComponentName className) {
-                    logDebug("Proxy object disconnected");
-                    T service = mService;
+                    Log.d(
+                            TAG,
+                            "Proxy object disconnected for "
+                                    + BluetoothProfile.getProfileName(mProfileId));
+                    IBinder service = mService;
                     doUnbind();
                     if (service != null) {
                         sendEmptyMessage(MESSAGE_SERVICE_DISCONNECTED);
@@ -89,24 +95,20 @@ public abstract class BluetoothProfileConnector<T> extends Handler {
             Looper looper,
             BluetoothProfile profile,
             int profileId,
-            String profileName,
             String serviceName,
             IBluetoothManager bluetoothManager) {
         super(looper);
         mProfileId = profileId;
         mProfileProxy = profile;
-        mProfileName = profileName;
         mServiceName = serviceName;
         mBluetoothManager = Objects.requireNonNull(bluetoothManager);
     }
 
-    BluetoothProfileConnector(
-            BluetoothProfile profile, int profileId, String profileName, String serviceName) {
+    BluetoothProfileConnector(BluetoothProfile profile, int profileId, String serviceName) {
         this(
                 Looper.getMainLooper(),
                 profile,
                 profileId,
-                profileName,
                 serviceName,
                 BluetoothAdapter.getDefaultAdapter().getBluetoothManager());
     }
@@ -121,14 +123,23 @@ public abstract class BluetoothProfileConnector<T> extends Handler {
     private void doBind() {
         synchronized (mConnection) {
             if (!mBound) {
-                logDebug("Binding service for " + mPackageName);
+                Log.d(
+                        TAG,
+                        "Binding service "
+                                + BluetoothProfile.getProfileName(mProfileId)
+                                + " for "
+                                + mPackageName);
                 mCloseGuard.open("doUnbind");
                 try {
                     mBluetoothManager.bindBluetoothProfileService(
                             mProfileId, mServiceName, mConnection);
                     mBound = true;
                 } catch (RemoteException re) {
-                    logError("Failed to bind service. " + re);
+                    Log.e(
+                            TAG,
+                            "Failed to bind service. "
+                                    + BluetoothProfile.getProfileName(mProfileId),
+                            re);
                 }
             }
         }
@@ -137,13 +148,22 @@ public abstract class BluetoothProfileConnector<T> extends Handler {
     private void doUnbind() {
         synchronized (mConnection) {
             if (mBound) {
-                logDebug("Unbinding service for " + mPackageName);
+                Log.d(
+                        TAG,
+                        "Unbinding service "
+                                + BluetoothProfile.getProfileName(mProfileId)
+                                + " for "
+                                + mPackageName);
                 mCloseGuard.close();
                 try {
                     mBluetoothManager.unbindBluetoothProfileService(mProfileId, mConnection);
                     mBound = false;
                 } catch (RemoteException re) {
-                    logError("Unable to unbind service: " + re);
+                    Log.e(
+                            TAG,
+                            "Unable to unbind service "
+                                    + BluetoothProfile.getProfileName(mProfileId),
+                            re);
                 } finally {
                     mService = null;
                 }
@@ -172,7 +192,7 @@ public abstract class BluetoothProfileConnector<T> extends Handler {
         try {
             mBluetoothManager.registerStateChangeCallback(mBluetoothStateChangeCallback);
         } catch (RemoteException re) {
-            logError("Failed to register state change callback. " + re);
+            Log.e(TAG, "Failed to register state change callback.", re);
         }
     }
 
@@ -186,29 +206,12 @@ public abstract class BluetoothProfileConnector<T> extends Handler {
         try {
             mBluetoothManager.unregisterStateChangeCallback(mBluetoothStateChangeCallback);
         } catch (RemoteException re) {
-            logError("Failed to unregister state change callback" + re);
+            Log.e(TAG, "Failed to unregister state change callback", re);
         }
     }
 
-    T getService() {
+    IBinder getService() {
         return mService;
-    }
-
-    /**
-     * This abstract function is used to implement method to get the
-     * connected Bluetooth service interface.
-     * @param service the connected binder service.
-     * @return T the binder interface of {@code service}.
-     * @hide
-     */
-    public abstract T getServiceInterface(IBinder service);
-
-    private void logDebug(String log) {
-        Log.d(mProfileName, log);
-    }
-
-    private void logError(String log) {
-        Log.e(mProfileName, log);
     }
 
     @Override

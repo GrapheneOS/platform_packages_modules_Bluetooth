@@ -32,7 +32,6 @@ import android.content.AttributionSource;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.RemoteException;
@@ -730,14 +729,9 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
 
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
-    private final BluetoothProfileConnector<IBluetoothHeadsetClient> mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.HEADSET_CLIENT,
-                    "BluetoothHeadsetClient", IBluetoothHeadsetClient.class.getName()) {
-                @Override
-                public IBluetoothHeadsetClient getServiceInterface(IBinder service) {
-                    return IBluetoothHeadsetClient.Stub.asInterface(service);
-                }
-    };
+    private final BluetoothProfileConnector mProfileConnector =
+            new BluetoothProfileConnector(
+                    this, BluetoothProfile.HEADSET_CLIENT, IBluetoothHeadsetClient.class.getName());
 
     /**
      * Create a BluetoothHeadsetClient proxy object.
@@ -768,7 +762,7 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
     }
 
     private IBluetoothHeadsetClient getService() {
-        return mProfileConnector.getService();
+        return IBluetoothHeadsetClient.Stub.asInterface(mProfileConnector.getService());
     }
 
     /** @hide */

@@ -33,7 +33,6 @@ import android.compat.annotation.UnsupportedAppUsage;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.os.Build;
-import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.util.Log;
@@ -271,14 +270,9 @@ public final class BluetoothA2dp implements BluetoothProfile {
 
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
-    private final BluetoothProfileConnector<IBluetoothA2dp> mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.A2DP, "BluetoothA2dp",
-                    IBluetoothA2dp.class.getName()) {
-                @Override
-                public IBluetoothA2dp getServiceInterface(IBinder service) {
-                    return IBluetoothA2dp.Stub.asInterface(service);
-                }
-    };
+    private final BluetoothProfileConnector mProfileConnector =
+            new BluetoothProfileConnector(
+                    this, BluetoothProfile.A2DP, IBluetoothA2dp.class.getName());
 
     /**
      * Create a BluetoothA2dp proxy object for interacting with the local
@@ -301,7 +295,7 @@ public final class BluetoothA2dp implements BluetoothProfile {
     }
 
     private IBluetoothA2dp getService() {
-        return mProfileConnector.getService();
+        return IBluetoothA2dp.Stub.asInterface(mProfileConnector.getService());
     }
 
     @Override
