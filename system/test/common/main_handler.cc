@@ -68,12 +68,3 @@ void main_thread_shut_down() { main_thread.ShutDown(); }
 
 // osi_alarm
 bluetooth::common::MessageLoopThread* get_main_thread() { return &main_thread; }
-
-int sync_timeout_in_ms = 3000;
-
-void sync_main_handler() {
-  std::promise promise = std::promise<void>();
-  std::future future = promise.get_future();
-  post_on_bt_main([&promise]() { promise.set_value(); });
-  future.wait_for(std::chrono::milliseconds(sync_timeout_in_ms));
-};
