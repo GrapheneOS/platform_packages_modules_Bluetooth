@@ -27,7 +27,6 @@ import android.annotation.SystemApi;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.content.AttributionSource;
 import android.content.Context;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.CloseGuard;
 import android.util.Log;
@@ -93,14 +92,9 @@ public final class BluetoothPbapClient implements BluetoothProfile, AutoCloseabl
 
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
-    private final BluetoothProfileConnector<IBluetoothPbapClient> mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.PBAP_CLIENT,
-                    "BluetoothPbapClient", IBluetoothPbapClient.class.getName()) {
-                @Override
-                public IBluetoothPbapClient getServiceInterface(IBinder service) {
-                    return IBluetoothPbapClient.Stub.asInterface(service);
-                }
-    };
+    private final BluetoothProfileConnector mProfileConnector =
+            new BluetoothProfileConnector(
+                    this, BluetoothProfile.PBAP_CLIENT, IBluetoothPbapClient.class.getName());
 
     /**
      * Create a BluetoothPbapClient proxy object.
@@ -142,7 +136,7 @@ public final class BluetoothPbapClient implements BluetoothProfile, AutoCloseabl
     }
 
     private IBluetoothPbapClient getService() {
-        return mProfileConnector.getService();
+        return IBluetoothPbapClient.Stub.asInterface(mProfileConnector.getService());
     }
 
     /**
