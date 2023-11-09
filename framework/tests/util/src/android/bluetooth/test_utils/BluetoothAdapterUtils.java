@@ -19,6 +19,7 @@ package android.bluetooth.test_utils;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 
+import android.app.UiAutomation;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -227,6 +228,9 @@ public class BluetoothAdapterUtils {
 
         Set<String> permissionsAdopted = TestUtils.getAdoptedShellPermissions();
         String[] permissionArray = permissionsAdopted.toArray(String[]::new);
+        if (UiAutomation.ALL_PERMISSIONS.equals(permissionsAdopted)) {
+            permissionArray = null;
+        }
 
         sBluetoothAdapterLock.lock();
         try {
@@ -267,6 +271,9 @@ public class BluetoothAdapterUtils {
 
         Set<String> permissionsAdopted = TestUtils.getAdoptedShellPermissions();
         String[] permissionArray = permissionsAdopted.toArray(String[]::new);
+        if (UiAutomation.ALL_PERMISSIONS.equals(permissionsAdopted)) {
+            permissionArray = null;
+        }
 
         sBluetoothAdapterLock.lock();
         try {
