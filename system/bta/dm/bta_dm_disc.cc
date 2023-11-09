@@ -967,8 +967,12 @@ static void bta_dm_search_result(tBTA_DM_MSG* p_data) {
   if ((!bta_dm_search_cb.services) ||
       ((bta_dm_search_cb.services) &&
        (p_data->disc_result.result.disc_res.services))) {
-    bta_dm_search_cb.p_search_cback(BTA_DM_DISC_RES_EVT,
-                                    &p_data->disc_result.result);
+    if (bta_dm_search_cb.p_search_cback) {
+      bta_dm_search_cb.p_search_cback(BTA_DM_DISC_RES_EVT,
+                                      &p_data->disc_result.result);
+    } else {
+      LOG_WARN("Received search result without valid callback");
+    }
   }
 
   /* if searching did not initiate to create link */
@@ -1631,6 +1635,9 @@ static void bta_dm_remname_cback(const tBTM_REMOTE_DEV_NAME* p_remote_name) {
               .hdr =
                   {
                       .event = BTA_DM_REMT_NAME_EVT,
+                      .len = 0,
+                      .offset = 0,
+                      .layer_specific = 0,
                   },
               .bd_addr = bta_dm_search_cb.peer_bdaddr,
               .bd_name = {},
