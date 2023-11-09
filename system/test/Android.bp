@@ -490,8 +490,14 @@ filegroup {
 filegroup {
     name: "TestCommonMainHandler",
     srcs: [
+        ":TestCommonSyncMainHandler",
         "common/main_handler.cc",
     ],
+}
+
+filegroup {
+    name: "TestCommonSyncMainHandler",
+    srcs: ["common/sync_main_handler.cc"],
 }
 
 filegroup {
