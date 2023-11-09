@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import pandora.DckGrpc;
 import pandora.HostGrpc;
 import pandora.HostProto;
+import pandora.SecurityGrpc;
 
 public final class PandoraDevice extends ExternalResource {
     private static final String TAG = PandoraDevice.class.getSimpleName();
@@ -112,5 +113,10 @@ public final class PandoraDevice extends ExternalResource {
     /** Get Pandora Dck blocking service */
     public DckGrpc.DckBlockingStub dckBlocking() {
         return DckGrpc.newBlockingStub(mChannel);
+    }
+
+    /** Get Pandora Security service */
+    public SecurityGrpc.SecurityStub security() {
+        return SecurityGrpc.newStub(mChannel);
     }
 }
