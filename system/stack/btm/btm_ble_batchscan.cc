@@ -28,7 +28,7 @@
 #include "device/include/controller.h"
 #include "os/log.h"
 #include "stack/btm/btm_int_types.h"
-#include "stack/include/btm_ble_sec_api.h"
+#include "stack/include/btm_client_interface.h"
 #include "stack/include/btu_hcif.h"
 
 extern tBTM_CB btm_cb;
@@ -153,8 +153,9 @@ void btm_ble_batchscan_filter_track_adv_vse_cback(uint8_t len,
                 adv_data.addr_type, adv_data.advertiser_state);
 
     // Make sure the device is known
-    BTM_SecAddBleDevice(adv_data.bd_addr, BT_DEVICE_TYPE_BLE,
-                        to_ble_addr_type(adv_data.addr_type));
+    get_btm_client_interface().security.BTM_SecAddBleDevice(
+        adv_data.bd_addr, BT_DEVICE_TYPE_BLE,
+        to_ble_addr_type(adv_data.addr_type));
 
     ble_advtrack_cb.p_track_cback(&adv_data);
   }
