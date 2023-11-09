@@ -470,9 +470,9 @@ void btm_sec_update_clock_offset(uint16_t handle, uint16_t clock_offset) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_sec::btm_sec_update_clock_offset(handle, clock_offset);
 }
-void btm_simple_pair_complete(const uint8_t* p) {
+void btm_simple_pair_complete(const RawAddress bd_addr, uint8_t status) {
   inc_func_call_count(__func__);
-  test::mock::stack_btm_sec::btm_simple_pair_complete(p);
+  test::mock::stack_btm_sec::btm_simple_pair_complete(bd_addr, status);
 }
 bool is_sec_state_equal(void* data, void* context) {
   inc_func_call_count(__func__);

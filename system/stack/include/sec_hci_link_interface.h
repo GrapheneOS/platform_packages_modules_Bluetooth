@@ -44,4 +44,4 @@ void btm_sec_rmt_name_request_complete(const RawAddress* bd_addr,
                                        const uint8_t* bd_name,
                                        tHCI_STATUS status);
 void btm_sec_update_clock_offset(uint16_t handle, uint16_t clock_offset);
-void btm_simple_pair_complete(const uint8_t* p);
+void btm_simple_pair_complete(const RawAddress bd_addr, uint8_t status);

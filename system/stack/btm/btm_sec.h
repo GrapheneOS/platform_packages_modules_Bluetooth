@@ -570,7 +570,7 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p);
  * Returns          void
  *
  ******************************************************************************/
-void btm_simple_pair_complete(const uint8_t* p);
+void btm_simple_pair_complete(const RawAddress bd_addr, uint8_t status);
 
 /*******************************************************************************
  *
