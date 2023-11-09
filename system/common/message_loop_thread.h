@@ -23,11 +23,11 @@
 #include <unistd.h>
 
 #include <future>
-#include <memory>
 #include <string>
 #include <thread>
 
 #include "abstract_message_loop.h"
+#include "gd/common/contextual_callback.h"
 #include "gd/common/i_postable_context.h"
 
 namespace bluetooth {
@@ -171,6 +171,47 @@ class MessageLoopThread final : public IPostableContext {
    * Wrapper around DoInThread without a location.
    */
   void Post(base::OnceClosure closure) override;
+
+  template <typename Functor, typename... Args>
+  common::ContextualOnceCallback<common::MakeUnboundRunType<Functor, Args...>>
+  BindOnce(Functor&& functor, Args&&... args) {
+    return common::ContextualOnceCallback<
+        common::MakeUnboundRunType<Functor, Args...>>(
+        common::BindOnce(std::forward<Functor>(functor),
+                         std::forward<Args>(args)...),
+        this);
+  }
+
+  template <typename Functor, typename T, typename... Args>
+  common::ContextualOnceCallback<
+      common::MakeUnboundRunType<Functor, T, Args...>>
+  BindOnceOn(T* obj, Functor&& functor, Args&&... args) {
+    return common::ContextualOnceCallback<
+        common::MakeUnboundRunType<Functor, T, Args...>>(
+        common::BindOnce(std::forward<Functor>(functor),
+                         common::Unretained(obj), std::forward<Args>(args)...),
+        this);
+  }
+
+  template <typename Functor, typename... Args>
+  common::ContextualCallback<common::MakeUnboundRunType<Functor, Args...>> Bind(
+      Functor&& functor, Args&&... args) {
+    return common::ContextualCallback<
+        common::MakeUnboundRunType<Functor, Args...>>(
+        common::Bind(std::forward<Functor>(functor),
+                     std::forward<Args>(args)...),
+        this);
+  }
+
+  template <typename Functor, typename T, typename... Args>
+  common::ContextualCallback<common::MakeUnboundRunType<Functor, T, Args...>>
+  BindOn(T* obj, Functor&& functor, Args&&... args) {
+    return common::ContextualCallback<
+        common::MakeUnboundRunType<Functor, T, Args...>>(
+        common::Bind(std::forward<Functor>(functor), common::Unretained(obj),
+                     std::forward<Args>(args)...),
+        this);
+  }
 
  private:
   /**
