@@ -375,6 +375,8 @@ static void event_shut_down_stack(ProfileStopCallback stopProfiles) {
 
   do_in_main_thread(FROM_HERE, base::BindOnce(bta_dm_disable));
 
+  btif_dm_cleanup();
+
   future_await(local_hack_future);
   local_hack_future = future_new();
   hack_future = local_hack_future;
