@@ -3088,38 +3088,14 @@ void btm_rem_oob_req(const RawAddress bd_addr) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_read_local_oob_complete(uint8_t* p, uint16_t evt_len) {
-  tBTM_SP_LOC_OOB evt_data;
-  uint8_t status;
-  if (evt_len < 1) {
-    goto err_out;
-  }
-
-  STREAM_TO_UINT8(status, p);
-
-  LOG_VERBOSE("btm_read_local_oob_complete:%d", status);
-  if (status == HCI_SUCCESS) {
-    evt_data.status = BTM_SUCCESS;
-
-    if (evt_len < 32 + 1) {
-      goto err_out;
-    }
-
-    STREAM_TO_ARRAY16(evt_data.c.data(), p);
-    STREAM_TO_ARRAY16(evt_data.r.data(), p);
-  } else
-    evt_data.status = BTM_ERR_PROCESSING;
+void btm_read_local_oob_complete(const tBTM_SP_LOC_OOB evt_data) {
+  LOG_VERBOSE("btm_read_local_oob_complete:%d", evt_data.status);
 
   if (btm_sec_cb.api.p_sp_callback) {
     tBTM_SP_EVT_DATA btm_sp_evt_data;
     btm_sp_evt_data.loc_oob = evt_data;
     (*btm_sec_cb.api.p_sp_callback)(BTM_SP_LOC_OOB_EVT, &btm_sp_evt_data);
   }
-
-  return;
-
-err_out:
-  LOG_ERROR("%s: bogus event packet, too short", __func__);
 }
 
 /*******************************************************************************

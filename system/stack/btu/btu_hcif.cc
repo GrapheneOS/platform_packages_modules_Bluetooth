@@ -99,6 +99,8 @@ static void btu_hcif_rem_oob_req(const uint8_t* p);
 static void btu_hcif_simple_pair_complete(const uint8_t* p);
 static void btu_hcif_create_conn_cancel_complete(const uint8_t* p,
                                                  uint16_t evt_len);
+static void btu_hcif_read_local_oob_complete(const uint8_t* p,
+                                             uint16_t evt_len);
 
 /* Simple Pairing Events */
 static void btu_hcif_io_cap_request_evt(const uint8_t* p);
@@ -1119,7 +1121,7 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
       break;
 
     case HCI_READ_LOCAL_OOB_DATA:
-      btm_read_local_oob_complete(p, evt_len);
+      btu_hcif_read_local_oob_complete(p, evt_len);
       break;
 
     case HCI_READ_INQ_TX_POWER_LEVEL:
@@ -1446,6 +1448,29 @@ void btu_hcif_create_conn_cancel_complete(const uint8_t* p, uint16_t evt_len) {
   RawAddress bd_addr;
   STREAM_TO_BDADDR(bd_addr, p);
   btm_create_conn_cancel_complete(status, bd_addr);
+}
+void btu_hcif_read_local_oob_complete(const uint8_t* p, uint16_t evt_len) {
+  tBTM_SP_LOC_OOB evt_data;
+  uint8_t status;
+  if (evt_len < 1) {
+    goto err_out;
+  }
+  STREAM_TO_UINT8(status, p);
+  if (status == HCI_SUCCESS) {
+    evt_data.status = BTM_SUCCESS;
+  } else {
+    evt_data.status = BTM_ERR_PROCESSING;
+  }
+  if (evt_len < 32 + 1) {
+    goto err_out;
+  }
+  STREAM_TO_ARRAY16(evt_data.c.data(), p);
+  STREAM_TO_ARRAY16(evt_data.r.data(), p);
+  btm_read_local_oob_complete(evt_data);
+  return;
+
+err_out:
+  LOG_ERROR("%s: bogus event packet, too short", __func__);
 }
 
 /*******************************************************************************
