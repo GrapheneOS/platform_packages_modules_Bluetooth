@@ -773,9 +773,9 @@ extern struct btm_sec_link_key_notification btm_sec_link_key_notification;
 // Params: const uint8_t* p_event
 // Return: void
 struct btm_sec_link_key_request {
-  std::function<void(const uint8_t* p_event)> body{
-      [](const uint8_t* p_event) {}};
-  void operator()(const uint8_t* p_event) { body(p_event); };
+  std::function<void(const RawAddress bda)> body{
+      [](const RawAddress /* bda */) {}};
+  void operator()(const RawAddress bda) { body(bda); };
 };
 extern struct btm_sec_link_key_request btm_sec_link_key_request;
 
@@ -804,9 +804,9 @@ extern struct btm_sec_mx_access_request btm_sec_mx_access_request;
 // Params: const uint8_t* p_event
 // Return: void
 struct btm_sec_pin_code_request {
-  std::function<void(const uint8_t* p_event)> body{
-      [](const uint8_t* p_event) {}};
-  void operator()(const uint8_t* p_event) { body(p_event); };
+  std::function<void(const RawAddress bda)> body{
+      [](const RawAddress /* bda */) {}};
+  void operator()(const RawAddress bda) { body(bda); };
 };
 extern struct btm_sec_pin_code_request btm_sec_pin_code_request;
 

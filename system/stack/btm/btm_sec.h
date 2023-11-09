@@ -686,7 +686,7 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
  * Returns          Pointer to the record or NULL
  *
  ******************************************************************************/
-void btm_sec_link_key_request(const uint8_t* p_event);
+void btm_sec_link_key_request(const RawAddress bda);
 
 /*******************************************************************************
  *
@@ -697,7 +697,7 @@ void btm_sec_link_key_request(const uint8_t* p_event);
  * Returns          Pointer to the record or NULL
  *
  ******************************************************************************/
-void btm_sec_pin_code_request(const uint8_t* p_event);
+void btm_sec_pin_code_request(const RawAddress bda);
 
 /*******************************************************************************
  *

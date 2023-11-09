@@ -423,9 +423,9 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
   test::mock::stack_btm_sec::btm_sec_link_key_notification(p_bda, link_key,
                                                            key_type);
 }
-void btm_sec_link_key_request(const uint8_t* p_event) {
+void btm_sec_link_key_request(const RawAddress bda) {
   inc_func_call_count(__func__);
-  test::mock::stack_btm_sec::btm_sec_link_key_request(p_event);
+  test::mock::stack_btm_sec::btm_sec_link_key_request(bda);
 }
 tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
                                       bool is_originator,
@@ -436,9 +436,9 @@ tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
   return test::mock::stack_btm_sec::btm_sec_mx_access_request(
       bd_addr, is_originator, security_required, p_callback, p_ref_data);
 }
-void btm_sec_pin_code_request(const uint8_t* p_event) {
+void btm_sec_pin_code_request(const RawAddress bda) {
   inc_func_call_count(__func__);
-  test::mock::stack_btm_sec::btm_sec_pin_code_request(p_event);
+  test::mock::stack_btm_sec::btm_sec_pin_code_request(bda);
 }
 void btm_sec_rmt_host_support_feat_evt(const uint8_t* p) {
   inc_func_call_count(__func__);

@@ -37,8 +37,8 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
                             uint8_t encr_enable);
 void btm_sec_link_key_notification(const RawAddress& p_bda,
                                    const Octet16& link_key, uint8_t key_type);
-void btm_sec_link_key_request(const uint8_t* p_event);
-void btm_sec_pin_code_request(const uint8_t* p_event);
+void btm_sec_link_key_request(const RawAddress bda);
+void btm_sec_pin_code_request(const RawAddress p_bda);
 void btm_sec_rmt_host_support_feat_evt(const uint8_t* p);
 void btm_sec_rmt_name_request_complete(const RawAddress* bd_addr,
                                        const uint8_t* bd_name,

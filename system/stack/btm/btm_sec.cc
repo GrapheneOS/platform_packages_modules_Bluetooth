@@ -4120,10 +4120,7 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
  * Returns          Pointer to the record or NULL
  *
  ******************************************************************************/
-void btm_sec_link_key_request(const uint8_t* p_event) {
-  RawAddress bda;
-
-  STREAM_TO_BDADDR(bda, p_event);
+void btm_sec_link_key_request(const RawAddress bda) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_or_alloc_dev(bda);
 
   VLOG(2) << __func__ << " bda: " << ADDRESS_TO_LOGGABLE_STR(bda);
@@ -4271,12 +4268,9 @@ static void btm_sec_pairing_timeout(void* /* data */) {
  * Returns          Pointer to the record or NULL
  *
  ******************************************************************************/
-void btm_sec_pin_code_request(const uint8_t* p_event) {
+void btm_sec_pin_code_request(const RawAddress p_bda) {
   tBTM_SEC_DEV_REC* p_dev_rec;
   tBTM_SEC_CB* p_cb = &btm_sec_cb;
-  RawAddress p_bda;
-
-  STREAM_TO_BDADDR(p_bda, p_event);
 
   /* Tell L2CAP that there was a PIN code request,  */
   /* it may need to stretch timeouts                */

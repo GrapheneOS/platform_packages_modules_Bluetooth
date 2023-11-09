@@ -95,6 +95,8 @@ static void btu_hcif_esco_connection_chg_evt(uint8_t* p);
 
 /* Parsing functions for btm functions */
 
+static void btu_hcif_sec_pin_code_request(const uint8_t* p);
+static void btu_hcif_sec_link_key_request(const uint8_t* p);
 static void btu_hcif_rem_oob_req(const uint8_t* p);
 static void btu_hcif_simple_pair_complete(const uint8_t* p);
 static void btu_hcif_create_conn_cancel_complete(const uint8_t* p,
@@ -277,10 +279,10 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
       btu_hcif_mode_change_evt(p);
       break;
     case HCI_PIN_CODE_REQUEST_EVT:
-      btm_sec_pin_code_request(p);
+      btu_hcif_sec_pin_code_request(p);
       break;
     case HCI_LINK_KEY_REQUEST_EVT:
-      btm_sec_link_key_request(p);
+      btu_hcif_sec_link_key_request(p);
       break;
     case HCI_LINK_KEY_NOTIFICATION_EVT:
       btu_hcif_link_key_notification_evt(p);
@@ -1424,6 +1426,17 @@ static void btu_hcif_mode_change_evt(uint8_t* p) {
 
 /* Parsing functions for btm functions */
 
+void btu_hcif_sec_pin_code_request(const uint8_t* p) {
+  RawAddress bda;
+
+  STREAM_TO_BDADDR(bda, p);
+  btm_sec_pin_code_request(bda);
+}
+void btu_hcif_sec_link_key_request(const uint8_t* p) {
+  RawAddress bda;
+  STREAM_TO_BDADDR(bda, p);
+  btm_sec_link_key_request(bda);
+}
 void btu_hcif_rem_oob_req(const uint8_t* p) {
   RawAddress bda;
   STREAM_TO_BDADDR(bda, p);
