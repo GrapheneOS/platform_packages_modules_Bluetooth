@@ -16,13 +16,11 @@
 #pragma once
 
 #include <map>
-#include <mutex>
-#include <set>
 #include <variant>
 
 #include "common/callback.h"
 #include "hci/address_with_type.h"
-#include "hci/hci_layer.h"
+#include "hci/octets.h"
 #include "os/alarm.h"
 
 namespace bluetooth {
@@ -60,7 +58,7 @@ class LeAddressManager {
   void SetPrivacyPolicyForInitiatorAddress(
       AddressPolicy address_policy,
       AddressWithType fixed_address,
-      crypto_toolbox::Octet16 rotation_irk,
+      Octet16 rotation_irk,
       bool supports_ble_privacy,
       std::chrono::milliseconds minimum_rotation_time,
       std::chrono::milliseconds maximum_rotation_time);
@@ -68,7 +66,7 @@ class LeAddressManager {
   void SetPrivacyPolicyForInitiatorAddressForTest(
       AddressPolicy address_policy,
       AddressWithType fixed_address,
-      crypto_toolbox::Octet16 rotation_irk,
+      Octet16 rotation_irk,
       std::chrono::milliseconds minimum_rotation_time,
       std::chrono::milliseconds maximum_rotation_time);
   AddressPolicy GetAddressPolicy();
@@ -133,7 +131,7 @@ class LeAddressManager {
   struct RotateRandomAddressCommand {};
 
   struct UpdateIRKCommand {
-    crypto_toolbox::Octet16 rotation_irk;
+    Octet16 rotation_irk;
     std::chrono::milliseconds minimum_rotation_time;
     std::chrono::milliseconds maximum_rotation_time;
   };
@@ -175,7 +173,7 @@ class LeAddressManager {
   AddressWithType cached_address_;
   Address public_address_;
   std::unique_ptr<os::Alarm> address_rotation_alarm_;
-  crypto_toolbox::Octet16 rotation_irk_;
+  Octet16 rotation_irk_;
   uint8_t connect_list_size_;
   uint8_t resolving_list_size_;
   std::queue<Command> cached_commands_;

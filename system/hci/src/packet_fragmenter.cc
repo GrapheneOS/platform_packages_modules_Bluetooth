@@ -26,7 +26,6 @@
 #include <unordered_map>
 
 #include "bt_target.h"
-#include "check.h"
 #include "device/include/controller.h"
 #include "hci/include/buffer_allocator.h"
 #include "hci/include/hci_layer.h"

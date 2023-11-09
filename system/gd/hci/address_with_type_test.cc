@@ -25,6 +25,7 @@
 
 #include "hci/address.h"
 #include "hci/hci_packets.h"
+#include "hci/octets.h"
 
 namespace bluetooth {
 namespace hci {
@@ -91,8 +92,23 @@ TEST(AddressWithTypeTest, IsRpaThatMatchesIrk) {
       AddressWithType(Address{{0xDE, 0x12, 0xC9, 0x03, 0x02, 0x50}}, AddressType::RANDOM_DEVICE_ADDRESS);
   AddressWithType address_2 =
       AddressWithType(Address{{0xDD, 0x12, 0xC9, 0x03, 0x02, 0x50}}, AddressType::RANDOM_DEVICE_ADDRESS);
-  crypto_toolbox::Octet16 irk_1{0x90, 0x5e, 0x60, 0x59, 0xc9, 0x11, 0x43, 0x7b,
-                                0x04, 0x09, 0x6a, 0x53, 0x28, 0xe6, 0x59, 0x6d};
+  Octet16 irk_1{
+      0x90,
+      0x5e,
+      0x60,
+      0x59,
+      0xc9,
+      0x11,
+      0x43,
+      0x7b,
+      0x04,
+      0x09,
+      0x6a,
+      0x53,
+      0x28,
+      0xe6,
+      0x59,
+      0x6d};
 
   EXPECT_TRUE(address_1.IsRpaThatMatchesIrk(irk_1));
   EXPECT_FALSE(address_2.IsRpaThatMatchesIrk(irk_1));
