@@ -17,17 +17,14 @@
  */
 #include "security_manager_impl.h"
 
-#include <iostream>
-
 #include "common/bind.h"
-#include "crypto_toolbox/crypto_toolbox.h"
 #include "hci/address_with_type.h"
+#include "hci/octets.h"
 #include "os/log.h"
 #include "os/rand.h"
 #include "security/initial_informations.h"
 #include "security/internal/security_manager_impl.h"
 #include "security/pairing_handler_le.h"
-#include "security/security_manager.h"
 #include "security/ui.h"
 
 namespace bluetooth {
@@ -194,7 +191,7 @@ void SecurityManagerImpl::SetUserInterfaceHandler(UI* user_interface, os::Handle
 void SecurityManagerImpl::SetLeInitiatorAddressPolicyForTest(
     hci::LeAddressManager::AddressPolicy address_policy,
     hci::AddressWithType fixed_address,
-    crypto_toolbox::Octet16 rotation_irk,
+    hci::Octet16 rotation_irk,
     std::chrono::milliseconds minimum_rotation_time,
     std::chrono::milliseconds maximum_rotation_time) {
   acl_manager_->SetPrivacyPolicyForInitiatorAddressForTest(

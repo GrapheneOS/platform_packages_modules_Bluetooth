@@ -16,16 +16,11 @@
 
 #include "hci/facade/le_initiator_address_facade.h"
 
-#include <condition_variable>
-#include <memory>
-#include <mutex>
-
 #include "blueberry/facade/hci/le_initiator_address_facade.grpc.pb.h"
 #include "blueberry/facade/hci/le_initiator_address_facade.pb.h"
-#include "common/bind.h"
-#include "grpc/grpc_event_queue.h"
 #include "hci/acl_manager.h"
 #include "hci/hci_packets.h"
+#include "hci/octets.h"
 #include "packet/raw_builder.h"
 
 using ::grpc::ServerAsyncResponseWriter;
@@ -62,11 +57,11 @@ class LeInitiatorAddressFacadeService : public LeInitiatorAddressFacade::Service
     AddressWithType address_with_type(address, static_cast<AddressType>(request->address_with_type().type()));
     auto minimum_rotation_time = std::chrono::milliseconds(request->minimum_rotation_time());
     auto maximum_rotation_time = std::chrono::milliseconds(request->maximum_rotation_time());
-    crypto_toolbox::Octet16 irk = {};
+    Octet16 irk = {};
     auto request_irk_length = request->rotation_irk().end() - request->rotation_irk().begin();
-    if (request_irk_length == crypto_toolbox::OCTET16_LEN) {
+    if (request_irk_length == kOctet16Length) {
       std::vector<uint8_t> irk_data(request->rotation_irk().begin(), request->rotation_irk().end());
-      std::copy_n(irk_data.begin(), crypto_toolbox::OCTET16_LEN, irk.begin());
+      std::copy_n(irk_data.begin(), kOctet16Length, irk.begin());
       acl_manager_->SetPrivacyPolicyForInitiatorAddressForTest(
           address_policy, address_with_type, irk, minimum_rotation_time, maximum_rotation_time);
     } else {
