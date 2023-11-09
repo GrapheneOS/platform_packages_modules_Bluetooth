@@ -19,6 +19,8 @@
 #include <gtest/gtest.h>
 #include <sys/socket.h>
 
+#include <memory>
+
 #include "bta/dm/bta_dm_disc.h"
 #include "bta/dm/bta_dm_int.h"
 #include "osi/include/allocator.h"
