@@ -222,6 +222,7 @@ cc_test {
     srcs: [
         ":LegacyStackSdp",
         ":TestCommonMockFunctions",
+        ":TestCommonSyncMainHandler",
         ":TestFakeOsi",
         ":TestMockBtif",
         ":TestMockMainShim",
@@ -250,6 +251,7 @@ cc_test {
         "libbt-audio-hal-interface",
         "libbt-bta",
         "libbt-bta-core",
+        "libbt-btu-main-thread",
         "libbt-common",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
