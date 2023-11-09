@@ -61,7 +61,6 @@ cc_test {
     test_suites: ["general-tests"],
     defaults: [
         "audio_a2dp_hw_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
         "mts_defaults",
     ],
     srcs: [
