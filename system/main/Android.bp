@@ -167,7 +167,6 @@ cc_test {
         unit_test: true,
     },
     defaults: [
-        "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
         "mts_defaults",
     ],
