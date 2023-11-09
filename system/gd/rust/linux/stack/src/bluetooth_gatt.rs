@@ -18,7 +18,7 @@ use bt_utils::adv_parser;
 use bt_utils::array_utils;
 
 use crate::async_helper::{AsyncHelper, CallbackSender};
-use crate::bluetooth::{Bluetooth, IBluetooth};
+use crate::bluetooth::{Bluetooth, BluetoothDevice, IBluetooth};
 use crate::bluetooth_adv::{
     AdvertiseData, AdvertiserId, Advertisers, AdvertisingSetInfo, AdvertisingSetParameters,
     IAdvertisingSetCallback, PeriodicAdvertisingParameters, INVALID_REG_ID,
@@ -184,6 +184,14 @@ impl ContextMap {
         }
     }
 
+    fn get_client_ids_from_address(&self, address: &String) -> Vec<i32> {
+        self.connections
+            .iter()
+            .filter(|conn| conn.address == *address)
+            .map(|conn| conn.client_id)
+            .collect()
+    }
+
     fn get_callback_from_callback_id(
         &mut self,
         callback_id: u32,
@@ -326,6 +334,14 @@ impl ServerContextMap {
             .iter()
             .find(|conn| conn.server_id == server_id && conn.address == *address)
             .map(|conn| conn.conn_id);
+    }
+
+    fn get_server_ids_from_address(&self, address: &String) -> Vec<i32> {
+        self.connections
+            .iter()
+            .filter(|conn| conn.address == *address)
+            .map(|conn| conn.server_id)
+            .collect()
     }
 
     fn get_address_from_conn_id(&self, conn_id: i32) -> Option<String> {
@@ -1354,6 +1370,12 @@ impl GattAsyncIntf {
     }
 }
 
+pub enum GattActions {
+    /// This disconnects all server and client connections to the device.
+    /// Params: remote_device
+    Disconnect(BluetoothDevice),
+}
+
 /// Implementation of the GATT API (IBluetoothGatt).
 pub struct BluetoothGatt {
     intf: Arc<Mutex<BluetoothInterface>>,
@@ -1809,6 +1831,51 @@ impl BluetoothGatt {
 
     pub(crate) fn stop_active_scan(&mut self, scanner_id: u8) -> BtStatus {
         self.stop_scan(scanner_id)
+    }
+
+    pub fn handle_action(&mut self, action: GattActions) {
+        match action {
+            GattActions::Disconnect(device) => {
+                let address = match RawAddress::from_string(&device.address) {
+                    None => {
+                        warn!(
+                            "GattActions::Disconnect failed: Invalid device address={}",
+                            device.address
+                        );
+                        return;
+                    }
+                    Some(addr) => addr,
+                };
+                for client_id in self.context_map.get_client_ids_from_address(&device.address) {
+                    if let Some(conn_id) =
+                        self.context_map.get_conn_id_from_address(client_id, &device.address)
+                    {
+                        self.gatt
+                            .as_ref()
+                            .unwrap()
+                            .lock()
+                            .unwrap()
+                            .client
+                            .disconnect(client_id, &address, conn_id);
+                    }
+                }
+                for server_id in
+                    self.server_context_map.get_server_ids_from_address(&device.address)
+                {
+                    if let Some(conn_id) =
+                        self.server_context_map.get_conn_id_from_address(server_id, &device.address)
+                    {
+                        self.gatt
+                            .as_ref()
+                            .unwrap()
+                            .lock()
+                            .unwrap()
+                            .server
+                            .disconnect(server_id, &address, conn_id);
+                    }
+                }
+            }
+        }
     }
 }
 
