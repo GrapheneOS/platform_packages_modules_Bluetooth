@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
   <configuration description="Bumble bluetooth tests.">
+    <target_preparer class="com.android.tradefed.targetprep.RootTargetPreparer">
+        <option name="force-root" value="true"/>
+    </target_preparer>
+
     <target_preparer class="com.android.tradefed.targetprep.suite.SuiteApkInstaller">
         <option name="cleanup-apks" value="true" />
         <option name="test-file-name" value="BumbleBluetoothTestsApp.apk" />
@@ -26,6 +30,13 @@
 
     <target_preparer class="com.android.tradefed.targetprep.RunCommandTargetPreparer">
         <option name="throw-if-cmd-fail" value="true" />
+        <option name="run-command" value="setprop persist.bluetooth.btsnooplogmode full" />
+        <option name="run-command" value="device_config set_sync_disabled_for_tests persistent" />
+        <option name="run-command"
+                value="device_config put bluetooth INIT_logging_debug_enabled_for_all true" />
+        <option name="run-command"
+                value="device_config put bluetooth INIT_default_log_level_str LOG_VERBOSE" />
+        <option name="run-command" value="settings put global ble_scan_always_enabled 0" />
         <option name="run-command" value="cmd bluetooth_manager disable" />
         <option name="run-command" value="cmd bluetooth_manager wait-for-state:STATE_OFF" />
         <option name="run-command" value="cmd bluetooth_manager enable" />
@@ -43,5 +54,12 @@
         <option name="mainline-module-package-name" value="com.android.btservices" />
         <option name="mainline-module-package-name" value="com.google.android.btservices" />
     </object>
+
+    <!-- Collect Bluetooth snoop logs for each test run -->
+    <metrics_collector class="com.android.tradefed.device.metric.FilePullerLogCollector">
+        <option name="directory-keys" value="/data/misc/bluetooth/logs" />
+        <option name="collect-on-run-ended-only" value="false" />
+        <option name="clean-up" value="false" />
+    </metrics_collector>
 </configuration>
 
