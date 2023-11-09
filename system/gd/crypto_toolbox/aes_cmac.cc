@@ -26,9 +26,12 @@
 
 #include "crypto_toolbox/aes.h"
 #include "crypto_toolbox/crypto_toolbox.h"
+#include "hci/octets.h"
 
 namespace bluetooth {
 namespace crypto_toolbox {
+using hci::kOctet16Length;
+using hci::Octet16;
 
 namespace {
 
@@ -44,14 +47,14 @@ thread_local tCMAC_CB cmac_cb;
 Octet16 const_Rb{0x87, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 /** utility function to do an biteise exclusive-OR of two bit strings of the
- * length of OCTET16_LEN. Result is stored in first argument.
+ * length of kOctet16Length. Result is stored in first argument.
  */
 static void xor_128(Octet16* a, const Octet16& b) {
   // CHECK(a);
   uint8_t i, *aa = a->data();
   const uint8_t* bb = b.data();
 
-  for (i = 0; i < OCTET16_LEN; i++) {
+  for (i = 0; i < kOctet16Length; i++) {
     aa[i] = aa[i] ^ bb[i];
   }
 }
@@ -76,18 +79,18 @@ Octet16 aes_128(const Octet16& key, const Octet16& message) {
 
 /** utility function to padding the given text to be a 128 bits data. The
  * parameter dest is input and output parameter, it must point to a
- * OCTET16_LEN memory space; where include length bytes valid data. */
+ * kOctet16Length memory space; where include length bytes valid data. */
 static void padding(Octet16* dest, uint8_t length) {
   uint8_t i, *p = dest->data();
   /* original last block */
-  for (i = length; i < OCTET16_LEN; i++) p[OCTET16_LEN - i - 1] = (i == length) ? 0x80 : 0;
+  for (i = length; i < kOctet16Length; i++) p[kOctet16Length - i - 1] = (i == length) ? 0x80 : 0;
 }
 
 /** utility function to left shift one bit for a 128 bits value. */
 static void leftshift_onebit(uint8_t* input, uint8_t* output) {
   uint8_t i, overflow = 0, next_overflow = 0;
   /* input[0] is LSB */
-  for (i = 0; i < OCTET16_LEN; i++) {
+  for (i = 0; i < kOctet16Length; i++) {
     next_overflow = (input[i] & 0x80) ? 1 : 0;
     output[i] = (input[i] << 1) | overflow;
     overflow = next_overflow;
@@ -103,9 +106,9 @@ static Octet16 cmac_aes_k_calculate(const Octet16& key) {
   uint16_t i = 1;
   while (i <= cmac_cb.round) {
     /* Mi' := Mi (+) X  */
-    xor_128((Octet16*)&cmac_cb.text[(cmac_cb.round - i) * OCTET16_LEN], x);
+    xor_128((Octet16*)&cmac_cb.text[(cmac_cb.round - i) * kOctet16Length], x);
 
-    output = aes_128(key, &cmac_cb.text[(cmac_cb.round - i) * OCTET16_LEN], OCTET16_LEN);
+    output = aes_128(key, &cmac_cb.text[(cmac_cb.round - i) * kOctet16Length], kOctet16Length);
     x = output;
     i++;
   }
@@ -121,7 +124,7 @@ static void cmac_prepare_last_block(const Octet16& k1, const Octet16& k2) {
   bool flag;
 
   /* last block is a complete block set flag to 1 */
-  flag = ((cmac_cb.len % OCTET16_LEN) == 0 && cmac_cb.len != 0) ? true : false;
+  flag = ((cmac_cb.len % kOctet16Length) == 0 && cmac_cb.len != 0) ? true : false;
 
   if (flag) { /* last block is complete block */
     xor_128((Octet16*)&cmac_cb.text[0], k1);
@@ -138,13 +141,13 @@ static void cmac_prepare_last_block(const Octet16& k1, const Octet16& k2) {
  */
 static void cmac_generate_subkey(const Octet16& key) {
   Octet16 zero{};
-  Octet16 p = aes_128(key, zero.data(), OCTET16_LEN);
+  Octet16 p = aes_128(key, zero.data(), kOctet16Length);
 
   Octet16 k1, k2;
   uint8_t* pp = p.data();
 
   /* If MSB(L) = 0, then K1 = L << 1 */
-  if ((pp[OCTET16_LEN - 1] & 0x80) != 0) {
+  if ((pp[kOctet16Length - 1] & 0x80) != 0) {
     /* Else K1 = ( L << 1 ) (+) Rb */
     leftshift_onebit(pp, k1.data());
     xor_128(&k1, const_Rb);
@@ -152,7 +155,7 @@ static void cmac_generate_subkey(const Octet16& key) {
     leftshift_onebit(pp, k1.data());
   }
 
-  if ((k1[OCTET16_LEN - 1] & 0x80) != 0) {
+  if ((k1[kOctet16Length - 1] & 0x80) != 0) {
     /* K2 =  (K1 << 1) (+) Rb */
     leftshift_onebit(k1.data(), k2.data());
     xor_128(&k2, const_Rb);
@@ -172,10 +175,10 @@ Octet16 aes_cmac(const Octet16& key, const uint8_t* input, uint16_t length) {
   uint32_t len;
   uint16_t diff;
   /* n is number of rounds */
-  uint16_t n = (length + OCTET16_LEN - 1) / OCTET16_LEN;
+  uint16_t n = (length + kOctet16Length - 1) / kOctet16Length;
 
   if (n == 0) n = 1;
-  len = n * OCTET16_LEN;
+  len = n * kOctet16Length;
 
   /* allocate a memory space of multiple of 16 bytes to hold text  */
   cmac_cb.text = (uint8_t*)alloca(len);

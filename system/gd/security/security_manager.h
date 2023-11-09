@@ -106,7 +106,7 @@ class SecurityManager : public UICallbacks {
   void SetLeInitiatorAddressPolicyForTest(
       hci::LeAddressManager::AddressPolicy address_policy,
       hci::AddressWithType fixed_address,
-      crypto_toolbox::Octet16 rotation_irk,
+      hci::Octet16 rotation_irk,
       std::chrono::milliseconds minimum_rotation_time,
       std::chrono::milliseconds maximum_rotation_time);
 

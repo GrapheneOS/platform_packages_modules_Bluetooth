@@ -57,8 +57,6 @@ using bluetooth::hci::EncryptionKeyRefreshCompleteView;
 namespace bluetooth {
 namespace security {
 
-using crypto_toolbox::Octet16;
-
 /* This class represents an event send from other subsystems into SMP Pairing Handler,
  * i.e. user request from the UI, L2CAP or HCI interaction */
 class PairingEvent {
@@ -87,14 +85,14 @@ using Phase1Result = std::pair<PairingRequestView /* pairning_request*/, Pairing
 using Phase1ResultOrFailure = std::variant<PairingFailure, Phase1Result>;
 using KeyExchangeResult =
     std::tuple<EcdhPublicKey /* PKa */, EcdhPublicKey /* PKb */, std::array<uint8_t, 32> /*dhkey*/>;
-using Stage1Result = std::tuple<Octet16, Octet16, Octet16, Octet16>;
+using Stage1Result = std::tuple<hci::Octet16, hci::Octet16, hci::Octet16, hci::Octet16>;
 using Stage1ResultOrFailure = std::variant<PairingFailure, Stage1Result>;
-using Stage2ResultOrFailure = std::variant<PairingFailure, Octet16 /* LTK */>;
+using Stage2ResultOrFailure = std::variant<PairingFailure, hci::Octet16 /* LTK */>;
 using DistributedKeysOrFailure = std::variant<PairingFailure, DistributedKeys, std::monostate>;
 
-using LegacyStage1Result = Octet16 /*TK*/;
+using LegacyStage1Result = hci::Octet16 /*TK*/;
 using LegacyStage1ResultOrFailure = std::variant<PairingFailure, LegacyStage1Result>;
-using StkOrFailure = std::variant<PairingFailure, Octet16 /* STK */>;
+using StkOrFailure = std::variant<PairingFailure, hci::Octet16 /* STK */>;
 
 /* PairingHandlerLe takes care of the Pairing process. Pairing is strictly defined
  * exchange of messages and UI interactions, divided into PHASES.
@@ -133,8 +131,12 @@ class PairingHandlerLe {
     i.proper_l2cap_interface->Enqueue(std::move(command), i.l2cap_handler);
   }
 
-  void SendHciLeStartEncryption(const InitialInformations& i, uint16_t conn_handle, const std::array<uint8_t, 8>& rand,
-                                const uint16_t& ediv, const Octet16& ltk) {
+  void SendHciLeStartEncryption(
+      const InitialInformations& i,
+      uint16_t conn_handle,
+      const std::array<uint8_t, 8>& rand,
+      const uint16_t& ediv,
+      const hci::Octet16& ltk) {
     i.le_security_interface->EnqueueCommand(hci::LeStartEncryptionBuilder::Create(conn_handle, rand, ediv, ltk),
                                             i.l2cap_handler->BindOnce([](hci::CommandStatusView) {
                                               // TODO: handle command status. It's important - can show we are not
@@ -145,7 +147,8 @@ class PairingHandlerLe {
                                             }));
   }
 
-  void SendHciLeLongTermKeyReply(const InitialInformations& i, uint16_t conn_handle, const Octet16& ltk) {
+  void SendHciLeLongTermKeyReply(
+      const InitialInformations& i, uint16_t conn_handle, const hci::Octet16& ltk) {
     i.le_security_interface->EnqueueCommand(
         hci::LeLongTermKeyRequestReplyBuilder::Create(conn_handle, ltk),
         i.l2cap_handler->BindOnce([](hci::CommandCompleteView) {}));
@@ -247,12 +250,22 @@ class PairingHandlerLe {
   LegacyStage1ResultOrFailure LegacyJustWorks();
   LegacyStage1ResultOrFailure LegacyPasskeyEntry(const InitialInformations& i, const IoCapability& my_iocaps,
                                                  const IoCapability& remote_iocaps);
-  StkOrFailure DoLegacyStage2(const InitialInformations& i, const PairingRequestView& pairing_request,
-                              const PairingResponseView& pairing_response, const Octet16& tk);
+  StkOrFailure DoLegacyStage2(
+      const InitialInformations& i,
+      const PairingRequestView& pairing_request,
+      const PairingResponseView& pairing_response,
+      const hci::Octet16& tk);
 
-  void SendKeys(const InitialInformations& i, const uint8_t& keys_i_send, Octet16 ltk, uint16_t ediv,
-                std::array<uint8_t, 8> rand, Octet16 irk, Address identity_address, AddrType identity_addres_type,
-                Octet16 signature_key);
+  void SendKeys(
+      const InitialInformations& i,
+      const uint8_t& keys_i_send,
+      hci::Octet16 ltk,
+      uint16_t ediv,
+      std::array<uint8_t, 8> rand,
+      hci::Octet16 irk,
+      Address identity_address,
+      AddrType identity_addres_type,
+      hci::Octet16 signature_key);
 
   /* This can be called from any thread to immediately finish the pairing in progress. */
   void SendExitSignal() {
