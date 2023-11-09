@@ -20,6 +20,7 @@
 #include "hci/address_with_type.h"
 #include "hci/le_address_manager.h"
 #include "hci/le_advertising_manager.h"
+#include "hci/octets.h"
 #include "l2cap/classic/security_policy.h"
 #include "l2cap/le/l2cap_le_module.h"
 #include "os/handler.h"
@@ -373,11 +374,11 @@ class SecurityModuleFacadeService : public SecurityModuleFacade::Service,
       ASSERT(Address::FromString(request->address_with_type().address().address(), address));
     }
     hci::AddressWithType address_with_type(address, static_cast<hci::AddressType>(request->address_with_type().type()));
-    crypto_toolbox::Octet16 irk = {};
+    hci::Octet16 irk = {};
     auto request_irk_length = request->rotation_irk().end() - request->rotation_irk().begin();
-    if (request_irk_length == crypto_toolbox::OCTET16_LEN) {
+    if (request_irk_length == hci::kOctet16Length) {
       std::vector<uint8_t> irk_data(request->rotation_irk().begin(), request->rotation_irk().end());
-      std::copy_n(irk_data.begin(), crypto_toolbox::OCTET16_LEN, irk.begin());
+      std::copy_n(irk_data.begin(), hci::kOctet16Length, irk.begin());
     } else {
       ASSERT(request_irk_length == 0);
     }

@@ -18,10 +18,13 @@
 
 #include "security/pairing_handler_le.h"
 
+#include "hci/octets.h"
 #include "os/rand.h"
 
 namespace bluetooth {
 namespace security {
+
+using hci::Octet16;
 
 MyOobData PairingHandlerLe::GenerateOobData() {
   MyOobData data{};
