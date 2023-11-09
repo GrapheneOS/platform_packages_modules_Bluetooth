@@ -21,6 +21,7 @@
 #include "bta/sdp/bta_sdp_int.h"
 #include "btif/include/btif_sock_sdp.h"
 #include "main/shim/metrics_api.h"
+#include "stack/include/sdpdefs.h"
 #include "test/mock/mock_stack_sdp_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"

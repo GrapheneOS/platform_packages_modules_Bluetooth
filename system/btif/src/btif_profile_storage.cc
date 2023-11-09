@@ -166,7 +166,7 @@ bt_status_t btif_storage_load_bonded_hid_info(void) {
     dscp_info.product_id = (uint16_t)value;
 
     btif_config_get_int(name, "HidVersion", &value);
-    dscp_info.version = (uint8_t)value;
+    dscp_info.version = (uint16_t)value;
 
     btif_config_get_int(name, "HidCountryCode", &value);
     dscp_info.ctry_code = (uint8_t)value;

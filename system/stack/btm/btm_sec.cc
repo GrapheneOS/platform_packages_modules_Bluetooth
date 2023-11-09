@@ -36,6 +36,7 @@
 #include <string>
 
 #include "btif/include/btif_storage.h"
+#include "common/init_flags.h"
 #include "common/metrics.h"
 #include "common/time_util.h"
 #include "device/include/controller.h"
@@ -3528,7 +3529,7 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
     if (status == HCI_ERR_KEY_MISSING || status == HCI_ERR_AUTH_FAILURE ||
         status == HCI_ERR_ENCRY_MODE_NOT_ACCEPTABLE) {
       p_dev_rec->sec_flags &= ~(BTM_SEC_LE_LINK_KEY_KNOWN);
-      p_dev_rec->ble.key_type = BTM_LE_KEY_NONE;
+      p_dev_rec->ble_keys.key_type = BTM_LE_KEY_NONE;
     }
     p_dev_rec->sec_status = status;
     btm_ble_link_encrypted(p_dev_rec->ble.pseudo_addr, encr_enable);
@@ -4039,7 +4040,7 @@ void btm_sec_disconnected(uint16_t handle, tHCI_REASON reason,
    * one. Treat such devices as insecure, and remove such bonds on
    * disconnection.
    */
-  if (is_sample_ltk(p_dev_rec->ble.keys.pltk)) {
+  if (is_sample_ltk(p_dev_rec->ble_keys.pltk)) {
     LOG(INFO) << __func__ << " removing bond to device that used sample LTK: "
               << p_dev_rec->bd_addr;
 
@@ -5144,8 +5145,7 @@ static uint16_t btm_sec_set_serv_level4_flags(uint16_t cur_security,
  ******************************************************************************/
 void btm_sec_clear_ble_keys(tBTM_SEC_DEV_REC* p_dev_rec) {
   LOG_VERBOSE("%s() Clearing BLE Keys", __func__);
-  p_dev_rec->ble.key_type = BTM_LE_KEY_NONE;
-  memset(&p_dev_rec->ble.keys, 0, sizeof(tBTM_SEC_BLE_KEYS));
+  memset(&p_dev_rec->ble_keys, 0, sizeof(tBTM_SEC_BLE_KEYS));
 
   btm_ble_resolving_list_remove_dev(p_dev_rec);
 }
@@ -5163,7 +5163,7 @@ bool btm_sec_is_a_bonded_dev(const RawAddress& bda) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bda);
   bool is_bonded = false;
 
-  if (p_dev_rec && ((p_dev_rec->ble.key_type &&
+  if (p_dev_rec && ((p_dev_rec->ble_keys.key_type &&
                      (p_dev_rec->sec_flags & BTM_SEC_LE_LINK_KEY_KNOWN)) ||
                     (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN))) {
     is_bonded = true;

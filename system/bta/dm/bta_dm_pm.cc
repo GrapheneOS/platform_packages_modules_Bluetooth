@@ -37,9 +37,10 @@
 #include "btif/include/stack_manager.h"
 #include "device/include/controller.h"
 #include "main/shim/dumpsys.h"
-#include "osi/include/log.h"
+#include "os/log.h"
 #include "osi/include/properties.h"
 #include "stack/include/acl_api.h"
+#include "stack/include/btm_client_interface.h"
 #include "stack/include/main_thread.h"
 #include "types/raw_address.h"
 
@@ -95,7 +96,8 @@ void bta_dm_init_pm(void) {
   if (p_bta_dm_pm_cfg[0].app_id != 0) {
     bta_sys_pm_register(bta_dm_pm_cback);
 
-    BTM_PmRegister((BTM_PM_REG_SET), &bta_dm_cb.pm_id, bta_dm_pm_btm_cback);
+    get_btm_client_interface().lifecycle.BTM_PmRegister(
+        (BTM_PM_REG_SET), &bta_dm_cb.pm_id, bta_dm_pm_btm_cback);
   }
 
   /* Need to initialize all PM timer service IDs */
@@ -116,7 +118,8 @@ void bta_dm_init_pm(void) {
  *
  ******************************************************************************/
 void bta_dm_disable_pm(void) {
-  BTM_PmRegister(BTM_PM_DEREG, &bta_dm_cb.pm_id, bta_dm_pm_btm_cback);
+  get_btm_client_interface().lifecycle.BTM_PmRegister(
+      BTM_PM_DEREG, &bta_dm_cb.pm_id, bta_dm_pm_btm_cback);
 
   /*
    * Deregister the PM callback from the system handling to prevent
@@ -474,12 +477,14 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, const tBTA_SYS_ID id,
     const controller_t* controller = controller_get_interface();
     uint8_t* p = NULL;
     if (controller->supports_sniff_subrating() &&
-        ((NULL != (p = BTM_ReadRemoteFeatures(peer_addr))) &&
+        ((NULL != (p = get_btm_client_interface().peer.BTM_ReadRemoteFeatures(
+                       peer_addr))) &&
          HCI_SNIFF_SUB_RATE_SUPPORTED(p)) &&
         (index == BTA_DM_PM_SSR0)) {
       if (status == BTA_SYS_SCO_OPEN) {
         LOG_VERBOSE("%s: SCO inactive, reset SSR to zero", __func__);
-        BTM_SetSsrParams(peer_addr, 0, 0, 0);
+        get_btm_client_interface().link_policy.BTM_SetSsrParams(peer_addr, 0, 0,
+                                                                0);
       } else if (status == BTA_SYS_SCO_CLOSE) {
         LOG_VERBOSE("%s: SCO active, back to old SSR", __func__);
         bta_dm_pm_ssr(peer_addr, BTA_DM_PM_SSR0);
@@ -695,8 +700,9 @@ static bool bta_dm_pm_park(const RawAddress& peer_addr) {
   }
 
   if (mode != BTM_PM_MD_PARK) {
-    tBTM_STATUS status = BTM_SetPowerMode(bta_dm_cb.pm_id, peer_addr,
-                                          &p_bta_dm_pm_md[BTA_DM_PM_PARK_IDX]);
+    tBTM_STATUS status =
+        get_btm_client_interface().link_policy.BTM_SetPowerMode(
+            bta_dm_cb.pm_id, peer_addr, &p_bta_dm_pm_md[BTA_DM_PM_PARK_IDX]);
     if (status == BTM_CMD_STORED || status == BTM_CMD_STARTED) {
       return true;
     }
@@ -782,7 +788,8 @@ void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index) {
             power_mode_status_text(mode_status).c_str(), mode_status,
             p_peer_dev->info_text().c_str());
 
-  uint8_t* p_rem_feat = BTM_ReadRemoteFeatures(p_peer_dev->peer_bdaddr);
+  uint8_t* p_rem_feat = get_btm_client_interface().peer.BTM_ReadRemoteFeatures(
+      p_peer_dev->peer_bdaddr);
 
   const controller_t* controller = controller_get_interface();
   if (mode != BTM_PM_MD_SNIFF ||
@@ -807,7 +814,8 @@ void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index) {
     LOG_DEBUG("Trying to force power mode");
     pwr_md.mode |= BTM_PM_MD_FORCE;
   }
-  status = BTM_SetPowerMode(bta_dm_cb.pm_id, p_peer_dev->peer_bdaddr, &pwr_md);
+  status = get_btm_client_interface().link_policy.BTM_SetPowerMode(
+      bta_dm_cb.pm_id, p_peer_dev->peer_bdaddr, &pwr_md);
   if (status == BTM_CMD_STORED || status == BTM_CMD_STARTED) {
     p_peer_dev->reset_sniff_flags();
     p_peer_dev->set_sniff_command_sent();
@@ -897,8 +905,8 @@ static void bta_dm_pm_ssr(const RawAddress& peer_addr, const int ssr) {
         ticks_to_seconds(p_spec->max_lat), ticks_to_seconds(p_spec->min_loc_to),
         ticks_to_seconds(p_spec->min_rmt_to));
     /* set the SSR parameters. */
-    BTM_SetSsrParams(peer_addr, p_spec->max_lat, p_spec->min_rmt_to,
-                     p_spec->min_loc_to);
+    get_btm_client_interface().link_policy.BTM_SetSsrParams(
+        peer_addr, p_spec->max_lat, p_spec->min_rmt_to, p_spec->min_loc_to);
   }
 }
 
@@ -917,7 +925,8 @@ void bta_dm_pm_active(const RawAddress& peer_addr) {
   };
 
   /* switch to active mode */
-  tBTM_STATUS status = BTM_SetPowerMode(bta_dm_cb.pm_id, peer_addr, &pm);
+  tBTM_STATUS status = get_btm_client_interface().link_policy.BTM_SetPowerMode(
+      bta_dm_cb.pm_id, peer_addr, &pm);
   switch (status) {
     case BTM_CMD_STORED:
       LOG_DEBUG("Active power mode stored for execution later for remote:%s",

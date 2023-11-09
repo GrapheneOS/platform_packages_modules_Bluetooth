@@ -32,6 +32,7 @@
 #include "bta/ag/bta_ag_int.h"
 #include "bta/include/bta_rfcomm_scn.h"
 #include "btif/include/btif_config.h"
+#include "common/init_flags.h"
 #include "device/include/interop.h"
 #include "device/include/interop_config.h"
 #include "os/log.h"

@@ -23,6 +23,7 @@ filegroup {
         "src/**/*.java",
         "src/AdapterState.kt",
         "src/RadioModeListener.kt",
+        "src/airplane/ModeListener.kt",
         "src/com/**/*.kt",
         "src/satellite/ModeListener.kt",
     ],
@@ -157,10 +158,13 @@ android_robolectric_test {
     instrumentation_for: "ServiceBluetoothFakeTestApp",
 
     srcs: [
+        ":statslog-bluetooth-java-gen",
         "src/AdapterState.kt",
         "src/AdapterStateTest.kt",
         "src/RadioModeListener.kt",
         "src/RadioModeListenerTest.kt",
+        "src/airplane/ModeListener.kt",
+        "src/airplane/ModeListenerTest.kt",
         "src/satellite/ModeListener.kt",
         "src/satellite/ModeListenerTest.kt",
     ],

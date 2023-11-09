@@ -84,7 +84,7 @@ constexpr char kBtmLogTag[] = "SCO";
 using bluetooth::legacy::hci::GetInterface;
 
 // forward declaration for dequeueing packets
-void btm_route_sco_data(bluetooth::hci::ScoView valid_packet);
+static void btm_route_sco_data(bluetooth::hci::ScoView valid_packet);
 
 namespace cpp {
 bluetooth::common::BidiQueueEnd<bluetooth::hci::ScoBuilder,
@@ -281,7 +281,7 @@ static tSCO_CONN* btm_get_active_sco() {
  * Returns          void
  *
  ******************************************************************************/
-void btm_route_sco_data(bluetooth::hci::ScoView valid_packet) {
+static void btm_route_sco_data(bluetooth::hci::ScoView valid_packet) {
   uint16_t handle = valid_packet.GetHandle();
   if (handle > HCI_HANDLE_MAX) {
     LOG_ERROR("Dropping SCO data with invalid handle: 0x%X > 0x%X, ", handle,
@@ -327,10 +327,7 @@ void btm_route_sco_data(bluetooth::hci::ScoView valid_packet) {
                         ? &bluetooth::audio::sco::swb::decode
                         : &bluetooth::audio::sco::wbs::decode;
       rc = decode(&decoded);
-      if (rc == 0) {
-        LOG_DEBUG("Failed to decode %s frames", codec.c_str());
-        break;
-      }
+      if (rc == 0) break;
 
       written += bluetooth::audio::sco::write(decoded, rc);
     }
@@ -1257,8 +1254,13 @@ void btm_sco_on_disconnected(uint16_t hci_handle, tHCI_REASON reason) {
       double packet_loss_ratio;
       if (fill_plc_stats(&num_decoded_frames, &packet_loss_ratio)) {
         const int16_t codec_id = sco_codec_type_to_id(codec_type);
+        const std::string codec = sco_codec_type_text(codec_type);
         log_hfp_audio_packet_loss_stats(bd_addr, num_decoded_frames,
                                         packet_loss_ratio, codec_id);
+        LOG_DEBUG(
+            "Stopped SCO codec:%s, num_decoded_frames:%d, "
+            "packet_loss_ratio:%lf",
+            codec.c_str(), num_decoded_frames, packet_loss_ratio);
       } else {
         LOG_WARN("Failed to get the packet loss stats");
       }

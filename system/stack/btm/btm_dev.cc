@@ -144,7 +144,7 @@ bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
 
 void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* p_dev_rec) {
   p_dev_rec->link_key.fill(0);
-  memset(&p_dev_rec->ble.keys, 0, sizeof(tBTM_SEC_BLE_KEYS));
+  memset(&p_dev_rec->ble_keys, 0, sizeof(tBTM_SEC_BLE_KEYS));
   list_remove(btm_sec_cb.sec_dev_rec, p_dev_rec);
 }
 
@@ -400,7 +400,7 @@ tBTM_SEC_DEV_REC* btm_find_dev(const RawAddress& bd_addr) {
 
 static bool has_lenc_and_address_is_equal(void* data, void* context) {
   tBTM_SEC_DEV_REC* p_dev_rec = static_cast<tBTM_SEC_DEV_REC*>(data);
-  if (!(p_dev_rec->ble.key_type & BTM_LE_KEY_LENC)) return true;
+  if (!(p_dev_rec->ble_keys.key_type & BTM_LE_KEY_LENC)) return true;
 
   return is_address_equal(data, context);
 }

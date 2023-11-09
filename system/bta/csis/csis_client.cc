@@ -1244,7 +1244,7 @@ class CsisClientImpl : public CsisClient {
              base::HexEncode(p_dev_rec->ble.keys.pltk.data(), 16).c_str());
 #endif
 
-    Octet16 T = crypto_toolbox::aes_cmac(s1, p_dev_rec->ble.keys.pltk);
+    Octet16 T = crypto_toolbox::aes_cmac(s1, p_dev_rec->ble_keys.pltk);
 
 #ifdef CSIS_DEBUG
     LOG_INFO("T (le) %s", base::HexEncode(T.data(), 16).c_str());
@@ -2278,6 +2278,18 @@ class CsisClientImpl : public CsisClient {
     /* It's ok for device to not be a CSIS device at all */
     if (!device) {
       LOG_INFO("Valid - new member");
+      BTA_DmSirkConfirmDeviceReply(address, true);
+      return;
+    }
+
+    auto group_id_to_join = device->GetExpectedGroupIdMember();
+    if (group_id_to_join == bluetooth::groups::kGroupUnknown) {
+      LOG_WARN(
+          "Device %s (conn_id=0x%04x) is already known to CSIS (# of "
+          "instances=%d) but it is "
+          "not scheduled to join any group.",
+          ADDRESS_TO_LOGGABLE_CSTR(address), device->conn_id,
+          device->GetNumberOfCsisInstances());
       BTA_DmSirkConfirmDeviceReply(address, true);
       return;
     }

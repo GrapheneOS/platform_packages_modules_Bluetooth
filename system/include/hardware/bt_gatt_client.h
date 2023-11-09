@@ -26,15 +26,9 @@
 
 __BEGIN_DECLS
 
-/**
- * Buffer sizes for maximum attribute length and maximum read/write
- * operation buffer size.
- */
-#define BTGATT_MAX_ATTR_LEN 600
-
 /** Buffer type for unformatted reads/writes */
 typedef struct {
-  uint8_t value[BTGATT_MAX_ATTR_LEN];
+  uint8_t value[GATT_MAX_ATTR_LEN];
   uint16_t len;
 } btgatt_unformatted_value_t;
 
@@ -56,7 +50,7 @@ typedef struct {
 
 /** Attribute change notification parameters */
 typedef struct {
-  uint8_t value[BTGATT_MAX_ATTR_LEN];
+  uint8_t value[GATT_MAX_ATTR_LEN];
   RawAddress bda;
   uint16_t handle;
   uint16_t len;

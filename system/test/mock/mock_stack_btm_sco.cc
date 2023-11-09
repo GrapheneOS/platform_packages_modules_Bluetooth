@@ -79,7 +79,6 @@ void BTM_EScoConnRsp(uint16_t sco_inx, uint8_t hci_status,
   inc_func_call_count(__func__);
 }
 void BTM_RemoveSco(const RawAddress& bda) { inc_func_call_count(__func__); }
-void btm_route_sco_data(BT_HDR* p_msg) { inc_func_call_count(__func__); }
 void btm_sco_acl_removed(const RawAddress* bda) {
   inc_func_call_count(__func__);
 }

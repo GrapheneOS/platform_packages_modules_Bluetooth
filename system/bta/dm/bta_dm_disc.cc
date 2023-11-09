@@ -26,17 +26,19 @@
 
 #include <cstdint>
 
-#include "bt_trace.h"
 #include "bta/dm/bta_dm_disc.h"
 #include "bta/dm/bta_dm_int.h"
 #include "bta/include/bta_api.h"
 #include "bta/include/bta_gatt_api.h"
 #include "bta/include/bta_sdp_api.h"
 #include "btif/include/btif_config.h"
+#include "common/init_flags.h"
 #include "device/include/interop.h"
 #include "gd/common/circular_buffer.h"
 #include "gd/common/strings.h"
 #include "include/bind_helpers.h"
+#include "main/shim/dumpsys.h"
+#include "os/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/neighbor_inquiry.h"

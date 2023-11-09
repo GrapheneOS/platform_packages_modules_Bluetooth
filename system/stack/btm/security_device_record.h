@@ -94,6 +94,8 @@ typedef struct {
 
   uint32_t counter;       /* peer sign counter for verifying rcv signed cmd */
   uint32_t local_counter; /* local sign counter for sending signed write cmd*/
+
+  tBTM_LE_KEY_TYPE key_type; /* bit mask of valid key types in record */
 } tBTM_SEC_BLE_KEYS;
 
 // TODO: move it to btm_ble_addr.h
@@ -128,9 +130,6 @@ struct tBTM_SEC_BLE {
   RawAddress cur_rand_addr; /* current random address */
 
   tBLE_RAND_ADDR_TYPE active_addr_type;
-
-  tBTM_LE_KEY_TYPE key_type; /* bit mask of valid key types in record */
-  tBTM_SEC_BLE_KEYS keys;    /* LE device security info in peripheral rode */
 };
 typedef struct tBTM_SEC_BLE tBTM_SEC_BLE;
 
@@ -228,6 +227,8 @@ struct tBTM_SEC_DEV_REC {
   DEV_CLASS dev_class;     /* DEV_CLASS of the device            */
   LinkKey link_key;        /* Device link key                    */
   tHCI_STATUS sec_status;  /* Status in encryption change event  */
+
+  tBTM_SEC_BLE_KEYS ble_keys; /* LE device security info in peripheral rode */
 
  public:
   RawAddress RemoteAddress() const { return bd_addr; }
