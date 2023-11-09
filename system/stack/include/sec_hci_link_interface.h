@@ -28,7 +28,8 @@
 void btm_create_conn_cancel_complete(uint8_t status, const RawAddress bd_addr);
 void btm_io_capabilities_req(RawAddress p);
 void btm_io_capabilities_rsp(const tBTM_SP_IO_RSP evt_data);
-void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p);
+void btm_proc_sp_req_evt(tBTM_SP_EVT event, const RawAddress bda,
+                         uint32_t value);
 void btm_read_local_oob_complete(const tBTM_SP_LOC_OOB evt_data);
 void btm_rem_oob_req(const RawAddress bd_addr);
 void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status);

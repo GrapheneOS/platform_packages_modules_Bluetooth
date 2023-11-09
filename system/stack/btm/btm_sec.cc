@@ -2842,15 +2842,14 @@ void btm_io_capabilities_rsp(const tBTM_SP_IO_RSP evt_data) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
+void btm_proc_sp_req_evt(tBTM_SP_EVT event, const RawAddress bda,
+                         const uint32_t value) {
   tBTM_STATUS status = BTM_ERR_PROCESSING;
   tBTM_SP_EVT_DATA evt_data;
   RawAddress& p_bda = evt_data.cfm_req.bd_addr;
   tBTM_SEC_DEV_REC* p_dev_rec;
 
-  /* All events start with bd_addr */
-  STREAM_TO_BDADDR(p_bda, p);
-
+  p_bda = bda;
   VLOG(2) << " BDA: " << ADDRESS_TO_LOGGABLE_STR(p_bda) << " event: 0x"
           << std::hex << +event
           << " State: " << btm_pair_state_descr(btm_sec_cb.pairing_state);
@@ -2871,7 +2870,7 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
         btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_NUMERIC_CONFIRM);
 
         /* The device record must be allocated in the "IO cap exchange" step */
-        STREAM_TO_UINT32(evt_data.cfm_req.num_val, p);
+        evt_data.cfm_req.num_val = value;
         LOG_VERBOSE("BTM_SP_CFM_REQ_EVT:  num_val: %u",
                     evt_data.cfm_req.num_val);
 
@@ -2917,7 +2916,7 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
 
       case BTM_SP_KEY_NOTIF_EVT:
         /* Passkey notification (other side is a keyboard) */
-        STREAM_TO_UINT32(evt_data.key_notif.passkey, p);
+        evt_data.key_notif.passkey = value;
         LOG_VERBOSE("BTM_SP_KEY_NOTIF_EVT:  passkey: %u",
                     evt_data.key_notif.passkey);
 

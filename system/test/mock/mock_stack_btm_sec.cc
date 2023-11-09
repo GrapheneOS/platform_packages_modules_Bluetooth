@@ -312,9 +312,10 @@ void btm_io_capabilities_rsp(const tBTM_SP_IO_RSP evt_data) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_sec::btm_io_capabilities_rsp(evt_data);
 }
-void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
+void btm_proc_sp_req_evt(tBTM_SP_EVT event, const RawAddress bd_addr,
+                         uint32_t value) {
   inc_func_call_count(__func__);
-  test::mock::stack_btm_sec::btm_proc_sp_req_evt(event, p);
+  test::mock::stack_btm_sec::btm_proc_sp_req_evt(event, bd_addr, value);
 }
 void btm_read_local_oob_complete(const tBTM_SP_LOC_OOB evt_data) {
   inc_func_call_count(__func__);

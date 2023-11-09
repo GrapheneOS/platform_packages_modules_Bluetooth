@@ -558,7 +558,8 @@ void btm_io_capabilities_rsp(const tBTM_SP_IO_RSP evt_data);
  * Returns          void
  *
  ******************************************************************************/
-void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p);
+void btm_proc_sp_req_evt(tBTM_SP_EVT event, const RawAddress bda,
+                         uint32_t value);
 
 /*******************************************************************************
  *

@@ -488,9 +488,12 @@ extern struct btm_io_capabilities_rsp btm_io_capabilities_rsp;
 // Params: tBTM_SP_EVT event, const uint8_t* p
 // Return: void
 struct btm_proc_sp_req_evt {
-  std::function<void(tBTM_SP_EVT event, const uint8_t* p)> body{
-      [](tBTM_SP_EVT event, const uint8_t* p) {}};
-  void operator()(tBTM_SP_EVT event, const uint8_t* p) { body(event, p); };
+  std::function<void(tBTM_SP_EVT event, const RawAddress bda, uint32_t value)>
+      body{[](tBTM_SP_EVT /* event */, const RawAddress /* bda */,
+              uint32_t /* value */) {}};
+  void operator()(tBTM_SP_EVT event, const RawAddress bda, uint32_t value) {
+    body(event, bda, value);
+  };
 };
 extern struct btm_proc_sp_req_evt btm_proc_sp_req_evt;
 

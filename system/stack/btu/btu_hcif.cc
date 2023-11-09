@@ -99,6 +99,7 @@ static void btu_hcif_sec_pin_code_request(const uint8_t* p);
 static void btu_hcif_sec_link_key_request(const uint8_t* p);
 static void btu_hcif_rem_oob_req(const uint8_t* p);
 static void btu_hcif_simple_pair_complete(const uint8_t* p);
+static void btu_hcif_proc_sp_req_evt(const tBTM_SP_EVT event, const uint8_t* p);
 static void btu_hcif_create_conn_cancel_complete(const uint8_t* p,
                                                  uint16_t evt_len);
 static void btu_hcif_read_local_oob_complete(const uint8_t* p,
@@ -309,10 +310,10 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
       btu_hcif_io_cap_response_evt(p);
       break;
     case HCI_USER_CONFIRMATION_REQUEST_EVT:
-      btm_proc_sp_req_evt(BTM_SP_CFM_REQ_EVT, p);
+      btu_hcif_proc_sp_req_evt(BTM_SP_CFM_REQ_EVT, p);
       break;
     case HCI_USER_PASSKEY_REQUEST_EVT:
-      btm_proc_sp_req_evt(BTM_SP_KEY_REQ_EVT, p);
+      btu_hcif_proc_sp_req_evt(BTM_SP_KEY_REQ_EVT, p);
       break;
     case HCI_REMOTE_OOB_DATA_REQUEST_EVT:
       btu_hcif_rem_oob_req(p);
@@ -321,7 +322,7 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
       btu_hcif_simple_pair_complete(p);
       break;
     case HCI_USER_PASSKEY_NOTIFY_EVT:
-      btm_proc_sp_req_evt(BTM_SP_KEY_NOTIF_EVT, p);
+      btu_hcif_proc_sp_req_evt(BTM_SP_KEY_NOTIF_EVT, p);
       break;
 
     case HCI_BLE_EVENT: {
@@ -1448,6 +1449,23 @@ void btu_hcif_simple_pair_complete(const uint8_t* p) {
   status = *p++;
   STREAM_TO_BDADDR(bd_addr, p);
   btm_simple_pair_complete(bd_addr, status);
+}
+void btu_hcif_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
+  RawAddress bda;
+  uint32_t value = 0;
+
+  /* All events start with bd_addr */
+  STREAM_TO_BDADDR(bda, p);
+  switch (event) {
+    case BTM_SP_CFM_REQ_EVT:
+    case BTM_SP_KEY_NOTIF_EVT:
+      STREAM_TO_UINT32(value, p);
+      break;
+    case BTM_SP_KEY_REQ_EVT:
+      // No value needed.
+      break;
+  }
+  btm_proc_sp_req_evt(event, bda, value);
 }
 void btu_hcif_create_conn_cancel_complete(const uint8_t* p, uint16_t evt_len) {
   uint8_t status;
