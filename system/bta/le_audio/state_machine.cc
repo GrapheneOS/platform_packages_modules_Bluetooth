@@ -965,9 +965,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       ases_pair.source->cis_state = CisState::ASSIGNED;
     }
 
+    RemoveDataPathByCisHandle(leAudioDevice, event->cis_conn_hdl);
+
     /* If this is peer disconnecting CIS, make sure to clear data path */
     if (event->reason != HCI_ERR_CONN_CAUSE_LOCAL_HOST) {
-      RemoveDataPathByCisHandle(leAudioDevice, event->cis_conn_hdl);
       // Make sure we won't stay in STREAMING state
       if (ases_pair.sink &&
           ases_pair.sink->state == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
