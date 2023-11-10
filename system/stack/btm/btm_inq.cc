@@ -248,8 +248,6 @@ tBTM_STATUS BTM_SetDiscoverability(uint16_t inq_mode) {
   LAP temp_lap[2];
   bool is_limited;
   bool cod_limited;
-  uint16_t window = BTM_DEFAULT_DISC_WINDOW;
-  uint16_t interval = BTM_DEFAULT_DISC_INTERVAL;
 
   LOG_VERBOSE("BTM_SetDiscoverability");
   if (controller_get_interface()->supports_ble()) {
@@ -289,10 +287,10 @@ tBTM_STATUS BTM_SetDiscoverability(uint16_t inq_mode) {
     scan_mode |= HCI_INQUIRY_SCAN_ENABLED;
   }
 
-  window =
+  const uint16_t window =
       osi_property_get_int32(PROPERTY_INQ_SCAN_WINDOW, BTM_DEFAULT_DISC_WINDOW);
-  interval = osi_property_get_int32(PROPERTY_INQ_SCAN_INTERVAL,
-                                    BTM_DEFAULT_DISC_INTERVAL);
+  const uint16_t interval = osi_property_get_int32(PROPERTY_INQ_SCAN_INTERVAL,
+                                                   BTM_DEFAULT_DISC_INTERVAL);
 
   /* Send down the inquiry scan window and period if changed */
   if ((window != btm_cb.btm_inq_vars.inq_scan_window) ||
@@ -414,14 +412,7 @@ tBTM_STATUS BTM_SetInquiryMode(uint8_t mode) {
  ******************************************************************************/
 tBTM_STATUS BTM_SetConnectability(uint16_t page_mode) {
   uint8_t scan_mode = 0;
-  uint16_t window = BTM_DEFAULT_CONN_WINDOW;
-  uint16_t interval = (uint16_t)osi_property_get_int32(
-      BTM_PAGE_SCAN_INTERVAL_PROPERTY, BTM_DEFAULT_CONN_INTERVAL);
-
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
-
-  LOG_VERBOSE("BTM_SetConnectability page scan interval  = (%d * 0.625)ms",
-              interval);
 
   if (controller_get_interface()->supports_ble()) {
     if (btm_ble_set_connectability(page_mode) != BTM_SUCCESS) {
@@ -439,17 +430,18 @@ tBTM_STATUS BTM_SetConnectability(uint16_t page_mode) {
   /* Make sure the controller is active */
   if (!controller_get_interface()->get_is_ready()) return (BTM_DEV_RESET);
 
-  LOG_VERBOSE("BTM_SetConnectability: mode %d [NonConn-0, Conn-1]", page_mode);
-
   /*** Only check window and duration if mode is connectable ***/
   if (page_mode == BTM_CONNECTABLE) {
     scan_mode |= HCI_PAGE_SCAN_ENABLED;
   }
 
-  window = osi_property_get_int32(PROPERTY_PAGE_SCAN_WINDOW,
-                                  BTM_DEFAULT_CONN_WINDOW);
-  interval = osi_property_get_int32(PROPERTY_PAGE_SCAN_INTERVAL,
-                                    BTM_DEFAULT_CONN_INTERVAL);
+  const uint16_t window = osi_property_get_int32(PROPERTY_PAGE_SCAN_WINDOW,
+                                                 BTM_DEFAULT_CONN_WINDOW);
+  const uint16_t interval = osi_property_get_int32(PROPERTY_PAGE_SCAN_INTERVAL,
+                                                   BTM_DEFAULT_CONN_INTERVAL);
+
+  LOG_VERBOSE("mode=%d [NonConn-0, Conn-1], page scan interval=(%d * 0.625)ms",
+              page_mode, interval);
 
   if ((window != p_inq->page_scan_window) ||
       (interval != p_inq->page_scan_period)) {
