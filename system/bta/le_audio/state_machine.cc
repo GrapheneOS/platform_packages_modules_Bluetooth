@@ -28,6 +28,7 @@
 #include "codec_manager.h"
 #include "devices.h"
 #include "gd/common/strings.h"
+#include "hci/hci_packets.h"
 #include "hcimsgs.h"
 #include "le_audio_health_status.h"
 #include "le_audio_log_history.h"
@@ -96,6 +97,8 @@ using le_audio::LeAudioDevice;
 using le_audio::LeAudioDeviceGroup;
 using le_audio::LeAudioGroupStateMachine;
 
+using bluetooth::hci::ErrorCode;
+using bluetooth::hci::ErrorCodeText;
 using le_audio::types::ase;
 using le_audio::types::AseState;
 using le_audio::types::AudioContexts;
@@ -827,8 +830,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         RemoveCigForGroup(group);
       }
 
-      LOG(ERROR) << __func__
-                 << ", failed to create CIS, status: " << loghex(event->status);
+      LOG(ERROR) << __func__ << ", failed to create CIS, status: "
+                 << ErrorCodeText((ErrorCode)event->status) << "("
+                 << loghex(event->status) << ")";
 
       StopStream(group);
       return;
