@@ -248,10 +248,8 @@ tBTM_STATUS BTM_SetDiscoverability(uint16_t inq_mode) {
   LAP temp_lap[2];
   bool is_limited;
   bool cod_limited;
-  uint16_t window = BTM_DEFAULT_DISC_WINDOW;
-  uint16_t interval = BTM_DEFAULT_DISC_INTERVAL;
 
-  LOG_VERBOSE("BTM_SetDiscoverability");
+  LOG_VERBOSE("");
   if (controller_get_interface()->supports_ble()) {
     if (btm_ble_set_discoverability((uint16_t)(inq_mode)) == BTM_SUCCESS) {
       btm_cb.btm_inq_vars.discoverable_mode &= (~BTM_BLE_DISCOVERABLE_MASK);
@@ -268,8 +266,7 @@ tBTM_STATUS BTM_SetDiscoverability(uint16_t inq_mode) {
   if (!controller_get_interface()->get_is_ready()) return (BTM_DEV_RESET);
 
   /* If the window and/or interval is '0', set to default values */
-  LOG_VERBOSE("BTM_SetDiscoverability: mode %d [NonDisc-0, Lim-1, Gen-2]",
-              inq_mode);
+  LOG_VERBOSE("mode %d [NonDisc-0, Lim-1, Gen-2]", inq_mode);
   (inq_mode != BTM_NON_DISCOVERABLE)
       ? power_telemetry::GetInstance().LogInqScanStarted()
       : power_telemetry::GetInstance().LogInqScanStopped();
@@ -289,10 +286,10 @@ tBTM_STATUS BTM_SetDiscoverability(uint16_t inq_mode) {
     scan_mode |= HCI_INQUIRY_SCAN_ENABLED;
   }
 
-  window =
+  const uint16_t window =
       osi_property_get_int32(PROPERTY_INQ_SCAN_WINDOW, BTM_DEFAULT_DISC_WINDOW);
-  interval = osi_property_get_int32(PROPERTY_INQ_SCAN_INTERVAL,
-                                    BTM_DEFAULT_DISC_INTERVAL);
+  const uint16_t interval = osi_property_get_int32(PROPERTY_INQ_SCAN_INTERVAL,
+                                                   BTM_DEFAULT_DISC_INTERVAL);
 
   /* Send down the inquiry scan window and period if changed */
   if ((window != btm_cb.btm_inq_vars.inq_scan_window) ||
@@ -331,7 +328,7 @@ tBTM_STATUS BTM_SetDiscoverability(uint16_t inq_mode) {
 }
 
 void BTM_EnableInterlacedInquiryScan() {
-  LOG_VERBOSE("BTM_EnableInterlacedInquiryScan");
+  LOG_VERBOSE("");
 
   uint16_t inq_scan_type =
       osi_property_get_int32(PROPERTY_INQ_SCAN_TYPE, BTM_SCAN_TYPE_INTERLACED);
@@ -347,7 +344,7 @@ void BTM_EnableInterlacedInquiryScan() {
 }
 
 void BTM_EnableInterlacedPageScan() {
-  LOG_VERBOSE("BTM_EnableInterlacedPageScan");
+  LOG_VERBOSE("");
 
   uint16_t page_scan_type =
       osi_property_get_int32(PROPERTY_PAGE_SCAN_TYPE, BTM_SCAN_TYPE_INTERLACED);
@@ -379,7 +376,7 @@ void BTM_EnableInterlacedPageScan() {
  ******************************************************************************/
 tBTM_STATUS BTM_SetInquiryMode(uint8_t mode) {
   const controller_t* controller = controller_get_interface();
-  LOG_VERBOSE("BTM_SetInquiryMode");
+  LOG_VERBOSE("");
   if (mode == BTM_INQ_RESULT_STANDARD) {
     /* mandatory mode */
   } else if (mode == BTM_INQ_RESULT_WITH_RSSI) {
@@ -414,14 +411,7 @@ tBTM_STATUS BTM_SetInquiryMode(uint8_t mode) {
  ******************************************************************************/
 tBTM_STATUS BTM_SetConnectability(uint16_t page_mode) {
   uint8_t scan_mode = 0;
-  uint16_t window = BTM_DEFAULT_CONN_WINDOW;
-  uint16_t interval = (uint16_t)osi_property_get_int32(
-      BTM_PAGE_SCAN_INTERVAL_PROPERTY, BTM_DEFAULT_CONN_INTERVAL);
-
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
-
-  LOG_VERBOSE("BTM_SetConnectability page scan interval  = (%d * 0.625)ms",
-              interval);
 
   if (controller_get_interface()->supports_ble()) {
     if (btm_ble_set_connectability(page_mode) != BTM_SUCCESS) {
@@ -439,17 +429,18 @@ tBTM_STATUS BTM_SetConnectability(uint16_t page_mode) {
   /* Make sure the controller is active */
   if (!controller_get_interface()->get_is_ready()) return (BTM_DEV_RESET);
 
-  LOG_VERBOSE("BTM_SetConnectability: mode %d [NonConn-0, Conn-1]", page_mode);
-
   /*** Only check window and duration if mode is connectable ***/
   if (page_mode == BTM_CONNECTABLE) {
     scan_mode |= HCI_PAGE_SCAN_ENABLED;
   }
 
-  window = osi_property_get_int32(PROPERTY_PAGE_SCAN_WINDOW,
-                                  BTM_DEFAULT_CONN_WINDOW);
-  interval = osi_property_get_int32(PROPERTY_PAGE_SCAN_INTERVAL,
-                                    BTM_DEFAULT_CONN_INTERVAL);
+  const uint16_t window = osi_property_get_int32(PROPERTY_PAGE_SCAN_WINDOW,
+                                                 BTM_DEFAULT_CONN_WINDOW);
+  const uint16_t interval = osi_property_get_int32(PROPERTY_PAGE_SCAN_INTERVAL,
+                                                   BTM_DEFAULT_CONN_INTERVAL);
+
+  LOG_VERBOSE("mode=%d [NonConn-0, Conn-1], page scan interval=(%d * 0.625)ms",
+              page_mode, interval);
 
   if ((window != p_inq->page_scan_window) ||
       (interval != p_inq->page_scan_period)) {
@@ -481,7 +472,7 @@ tBTM_STATUS BTM_SetConnectability(uint16_t page_mode) {
  *
  ******************************************************************************/
 uint16_t BTM_IsInquiryActive(void) {
-  LOG_VERBOSE("BTM_IsInquiryActive");
+  LOG_VERBOSE("");
 
   return (btm_cb.btm_inq_vars.inq_active);
 }
@@ -495,7 +486,7 @@ uint16_t BTM_IsInquiryActive(void) {
  ******************************************************************************/
 void BTM_CancelInquiry(void) {
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
-  LOG_VERBOSE("BTM_CancelInquiry called");
+  LOG_VERBOSE("");
 
   CHECK(BTM_IsDeviceUp());
 
@@ -610,7 +601,7 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
 
   /*** Make sure the device is ready ***/
   if (!BTM_IsDeviceUp()) {
-    LOG(ERROR) << __func__ << ": adapter is not up";
+    LOG_ERROR("adapter is not up");
     btm_cb.neighbor.inquiry_history_->Push({
         .status = tBTM_INQUIRY_CMPL::NOT_STARTED,
     });
@@ -744,7 +735,7 @@ tBTM_STATUS BTM_ReadRemoteDeviceName(const RawAddress& remote_bda,
 tBTM_STATUS BTM_CancelRemoteDeviceName(void) {
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
 
-  LOG_VERBOSE("BTM_CancelRemoteDeviceName()");
+  LOG_VERBOSE("");
 
   /* Make sure there is not already one in progress */
   if (p_inq->remname_active) {
@@ -1252,23 +1243,20 @@ void btm_process_inq_results(const uint8_t* p, uint8_t hci_evt_len,
 
   if (inq_res_mode == BTM_INQ_RESULT_EXTENDED) {
     if (num_resp > 1) {
-      LOG_ERROR("btm_process_inq_results() extended results (%d) > 1",
-                num_resp);
+      LOG_ERROR("extended results (%d) > 1", num_resp);
       return;
     }
 
     constexpr uint16_t extended_inquiry_result_size = 254;
     if (hci_evt_len - 1 != extended_inquiry_result_size) {
-      LOG_ERROR("%s: can't fit %d results in %d bytes", __func__, num_resp,
-                hci_evt_len);
+      LOG_ERROR("can't fit %d results in %d bytes", num_resp, hci_evt_len);
       return;
     }
   } else if (inq_res_mode == BTM_INQ_RESULT_STANDARD ||
              inq_res_mode == BTM_INQ_RESULT_WITH_RSSI) {
     constexpr uint16_t inquiry_result_size = 14;
     if (hci_evt_len < num_resp * inquiry_result_size) {
-      LOG_ERROR("%s: can't fit %d results in %d bytes", __func__, num_resp,
-                hci_evt_len);
+      LOG_ERROR("can't fit %d results in %d bytes", num_resp, hci_evt_len);
       return;
     }
   }
@@ -1727,8 +1715,7 @@ void btm_inq_remote_name_timer_timeout(UNUSED_ATTR void* data) {
  *
  ******************************************************************************/
 void btm_inq_rmt_name_failed_cancelled(void) {
-  LOG_ERROR("btm_inq_rmt_name_failed_cancelled()  remname_active=%d",
-            btm_cb.btm_inq_vars.remname_active);
+  LOG_ERROR("remname_active=%d", btm_cb.btm_inq_vars.remname_active);
 
   if (btm_cb.btm_inq_vars.remname_active) {
     btm_process_remote_name(&btm_cb.btm_inq_vars.remname_bda, NULL, 0,
@@ -1929,13 +1916,12 @@ uint8_t BTM_GetEirUuidList(const uint8_t* p_eir, size_t eir_len,
   }
 
   if (*p_num_uuid > max_num_uuid) {
-    LOG_WARN("%s: number of uuid in EIR = %d, size of uuid list = %d", __func__,
-             *p_num_uuid, max_num_uuid);
+    LOG_WARN("number of uuid in EIR = %d, size of uuid list = %d", *p_num_uuid,
+             max_num_uuid);
     *p_num_uuid = max_num_uuid;
   }
 
-  LOG_VERBOSE("%s: type = %02X, number of uuid = %d", __func__, type,
-              *p_num_uuid);
+  LOG_VERBOSE("type = %02X, number of uuid = %d", type, *p_num_uuid);
 
   if (uuid_size == Uuid::kNumBytes16) {
     for (yy = 0; yy < *p_num_uuid; yy++) {
@@ -2102,8 +2088,7 @@ void btm_set_eir_uuid(const uint8_t* p_eir, tBTM_INQ_RESULTS* p_results) {
     p_results->eir_complete_list = false;
   }
 
-  LOG_VERBOSE("btm_set_eir_uuid eir_complete_list=0x%02X",
-              p_results->eir_complete_list);
+  LOG_VERBOSE("eir_complete_list=0x%02X", p_results->eir_complete_list);
 
   if (p_uuid_data) {
     for (yy = 0; yy < num_uuid; yy++) {
