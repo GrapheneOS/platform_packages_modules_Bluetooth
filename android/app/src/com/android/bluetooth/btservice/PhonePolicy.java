@@ -29,7 +29,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.SystemProperties;
-import android.provider.DeviceConfig;
 import android.util.Log;
 
 import com.android.bluetooth.R;
@@ -301,6 +300,35 @@ public class PhonePolicy implements AdapterService.BluetoothStateCallback {
             }
         }
 
+        /* Make sure to connect Volume Control before LeAudio service */
+        if ((volumeControlService != null)
+                && Utils.arrayContains(uuids, BluetoothUuid.VOLUME_CONTROL)
+                && (volumeControlService.getConnectionPolicy(device)
+                        == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)) {
+            if (isLeAudioProfileAllowed) {
+                debugLog("setting volume control profile priority for device " + device);
+                if (mAutoConnectProfilesSupported) {
+                    volumeControlService.setConnectionPolicy(
+                            device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+                } else {
+                    mAdapterService
+                            .getDatabase()
+                            .setProfileConnectionPolicy(
+                                    device,
+                                    BluetoothProfile.VOLUME_CONTROL,
+                                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+                }
+            } else {
+                debugLog("clear VCP priority because dual mode is disabled by default");
+                mAdapterService
+                        .getDatabase()
+                        .setProfileConnectionPolicy(
+                                device,
+                                BluetoothProfile.VOLUME_CONTROL,
+                                BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+            }
+        }
+
         // If we do not have a stored priority for HFP/A2DP (all roles) then default to on.
         if ((panService != null)
                 && (Utils.arrayContains(uuids, BluetoothUuid.PANU)
@@ -374,34 +402,6 @@ public class PhonePolicy implements AdapterService.BluetoothStateCallback {
                                     BluetoothProfile.HEARING_AID,
                                     BluetoothProfile.CONNECTION_POLICY_ALLOWED);
                 }
-            }
-        }
-
-        if ((volumeControlService != null)
-                && Utils.arrayContains(uuids, BluetoothUuid.VOLUME_CONTROL)
-                && (volumeControlService.getConnectionPolicy(device)
-                        == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)) {
-            if (isLeAudioProfileAllowed) {
-                debugLog("setting volume control profile priority for device " + device);
-                if (mAutoConnectProfilesSupported) {
-                    volumeControlService.setConnectionPolicy(
-                            device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-                } else {
-                    mAdapterService
-                            .getDatabase()
-                            .setProfileConnectionPolicy(
-                                    device,
-                                    BluetoothProfile.VOLUME_CONTROL,
-                                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-                }
-            } else {
-                debugLog("clear VCP priority because dual mode is disabled by default");
-                mAdapterService
-                        .getDatabase()
-                        .setProfileConnectionPolicy(
-                                device,
-                                BluetoothProfile.VOLUME_CONTROL,
-                                BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
             }
         }
 
