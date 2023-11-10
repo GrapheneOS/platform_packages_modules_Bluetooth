@@ -305,6 +305,7 @@ cc_binary {
         "libgrpc_wrap",
         "libprotobuf-cpp-full",
         "libunwindstack",
+        "server_configurable_flags",
     ],
     target: {
         android: {
@@ -425,12 +426,15 @@ cc_test {
         "libbt_shim_ffi",
         "libc++fs",
         "libchrome",
+        "libflagtest",
         "libflatbuffers-cpp",
         "libgmock",
         "libosi",
     ],
     shared_libs: [
+        "libbase",
         "libcrypto",
+        "server_configurable_flags",
     ],
     sanitize: {
         address: true,
