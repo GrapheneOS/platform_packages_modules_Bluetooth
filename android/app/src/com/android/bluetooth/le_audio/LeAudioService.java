@@ -1554,11 +1554,17 @@ public class LeAudioService extends ProfileService {
                             + ", device: "
                             + device
                             + ", hasFallbackDevice: "
-                            + hasFallbackDevice);
+                            + hasFallbackDevice
+                            + ", mExposedActiveDevice: "
+                            + mExposedActiveDevice);
         }
 
-        if (groupId == currentlyActiveGroupId) {
-            if (groupId != LE_AUDIO_GROUP_ID_INVALID) {
+        LeAudioGroupDescriptor groupDescriptor = getGroupDescriptor(currentlyActiveGroupId);
+        if (groupDescriptor != null && groupId == currentlyActiveGroupId) {
+            /* Make sure active group is already exposed to audio framework.
+             * If not, lets wait for it and don't sent additional intent.
+             */
+            if (groupDescriptor.mCurrentLeadDevice == mExposedActiveDevice) {
                 Log.w(
                         TAG,
                         "group is already active: device="
@@ -1577,8 +1583,7 @@ public class LeAudioService extends ProfileService {
                 || hasFallbackDevice) {
             Log.i(TAG, "Remember that device has FallbackDevice when become inactive active");
 
-            LeAudioGroupDescriptor descriptor = getGroupDescriptor(currentlyActiveGroupId);
-            descriptor.mHasFallbackDeviceWhenGettingInactive = true;
+            groupDescriptor.mHasFallbackDeviceWhenGettingInactive = true;
         }
 
         if (!mLeAudioNativeIsInitialized) {
