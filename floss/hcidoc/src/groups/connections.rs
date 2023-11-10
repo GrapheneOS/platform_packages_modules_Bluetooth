@@ -844,19 +844,53 @@ impl LinkKeyMismatchRule {
         }
     }
 
-    fn report_address_auth_failure(&mut self, address: &Address, packet: &Packet) {
-        if let Some(LinkKeyMismatchState::Replied) = self.states.get(address) {
-            self.signals.push(Signal {
-                index: packet.index,
-                ts: packet.ts,
-                tag: ConnectionSignal::LinkKeyMismatch.into(),
-            });
+    fn process_address_auth(&mut self, status: ErrorCode, address: Address, packet: &Packet) {
+        if status == ErrorCode::AuthenticationFailure {
+            if let Some(LinkKeyMismatchState::Replied) = self.states.get(&address) {
+                self.signals.push(Signal {
+                    index: packet.index,
+                    ts: packet.ts,
+                    tag: ConnectionSignal::LinkKeyMismatch.into(),
+                });
 
-            self.reportable.push((
-                packet.ts,
-                format!("Peer {} forgets the link key, or it mismatches with ours.", address),
-            ));
+                self.reportable.push((
+                    packet.ts,
+                    format!("Peer {} forgets the link key, or it mismatches with ours.", address),
+                ));
+            }
         }
+        self.states.remove(&address);
+    }
+
+    fn process_handle_auth(
+        &mut self,
+        status: ErrorCode,
+        handle: ConnectionHandle,
+        packet: &Packet,
+    ) {
+        if let Some(address) = self.handles.get(&handle) {
+            self.process_address_auth(status, *address, packet);
+        }
+    }
+
+    fn process_request_link_key(&mut self, address: Address) {
+        self.states.insert(address, LinkKeyMismatchState::Requested);
+    }
+
+    fn process_reply_link_key(&mut self, address: Address, key_exist: bool) {
+        if !key_exist {
+            self.states.remove(&address);
+            return;
+        }
+
+        if let Some(LinkKeyMismatchState::Requested) = self.states.get(&address) {
+            self.states.insert(address, LinkKeyMismatchState::Replied);
+        }
+    }
+
+    fn process_reset(&mut self) {
+        self.states.clear();
+        self.handles.clear();
     }
 }
 
@@ -871,38 +905,17 @@ impl Rule for LinkKeyMismatchRule {
                         self.handles.insert(ev.get_connection_handle(), ev.get_bd_addr());
                     }
                 }
-
                 EventChild::LinkKeyRequest(ev) => {
-                    self.states.insert(ev.get_bd_addr(), LinkKeyMismatchState::Requested);
+                    self.process_request_link_key(ev.get_bd_addr());
                 }
-
                 EventChild::SimplePairingComplete(ev) => {
-                    if ev.get_status() == ErrorCode::AuthenticationFailure {
-                        self.report_address_auth_failure(&ev.get_bd_addr(), &packet);
-                    }
-
-                    self.states.remove(&ev.get_bd_addr());
+                    self.process_address_auth(ev.get_status(), ev.get_bd_addr(), &packet);
                 }
-
                 EventChild::AuthenticationComplete(ev) => {
-                    if let Some(address) = self.handles.get(&ev.get_connection_handle()) {
-                        let address = address.clone();
-                        if ev.get_status() == ErrorCode::AuthenticationFailure {
-                            self.report_address_auth_failure(&address, &packet);
-                        }
-                        self.states.remove(&address);
-                    }
+                    self.process_handle_auth(ev.get_status(), ev.get_connection_handle(), &packet);
                 }
-
                 EventChild::DisconnectionComplete(ev) => {
-                    if let Some(address) = self.handles.get(&ev.get_connection_handle()) {
-                        let address = address.clone();
-                        if ev.get_status() == ErrorCode::AuthenticationFailure {
-                            self.report_address_auth_failure(&address, &packet);
-                        }
-                        self.states.remove(&address);
-                    }
-
+                    self.process_handle_auth(ev.get_status(), ev.get_connection_handle(), &packet);
                     self.handles.remove(&ev.get_connection_handle());
                 }
 
@@ -912,16 +925,16 @@ impl Rule for LinkKeyMismatchRule {
 
             PacketChild::HciCommand(cmd) => match cmd.specialize() {
                 CommandChild::AclCommand(cmd) => match cmd.specialize() {
+                    // Have an arm for Disconnect since sometimes we don't receive disconnect
+                    // event when powering off. However, no need to actually match the reason
+                    // since we just clean the handle in both cases.
                     AclCommandChild::Disconnect(cmd) => {
-                        // If reason is power off, the host might not wait for connection complete event
-                        if cmd.get_reason()
-                            == DisconnectReason::RemoteDeviceTerminatedConnectionPowerOff
-                        {
-                            if let Some(address) = self.handles.remove(&cmd.get_connection_handle())
-                            {
-                                self.states.remove(&address);
-                            }
-                        }
+                        self.process_handle_auth(
+                            ErrorCode::Success,
+                            cmd.get_connection_handle(),
+                            &packet,
+                        );
+                        self.handles.remove(&cmd.get_connection_handle());
                     }
 
                     // CommandChild::AclCommand(cmd).specialize()
@@ -930,14 +943,10 @@ impl Rule for LinkKeyMismatchRule {
 
                 CommandChild::SecurityCommand(cmd) => match cmd.specialize() {
                     SecurityCommandChild::LinkKeyRequestReply(cmd) => {
-                        let address = cmd.get_bd_addr();
-                        if let Some(LinkKeyMismatchState::Requested) = self.states.get(&address) {
-                            self.states.insert(address, LinkKeyMismatchState::Replied);
-                        }
+                        self.process_reply_link_key(cmd.get_bd_addr(), true);
                     }
-
                     SecurityCommandChild::LinkKeyRequestNegativeReply(cmd) => {
-                        self.states.remove(&cmd.get_bd_addr());
+                        self.process_reply_link_key(cmd.get_bd_addr(), false);
                     }
 
                     // CommandChild::SecurityCommand(cmd).specialize()
@@ -945,8 +954,7 @@ impl Rule for LinkKeyMismatchRule {
                 },
 
                 CommandChild::Reset(_) => {
-                    self.states.clear();
-                    self.handles.clear();
+                    self.process_reset();
                 }
 
                 // PacketChild::HciCommand(cmd).specialize()
