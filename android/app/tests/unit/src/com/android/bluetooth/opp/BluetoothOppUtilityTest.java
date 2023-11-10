@@ -30,6 +30,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -52,7 +54,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -243,6 +244,7 @@ public class BluetoothOppUtilityTest {
 
     @Test
     public void fillRecord_filledAllProperties() {
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         int idValue = 1234;
         int directionValue = BluetoothShare.DIRECTION_OUTBOUND;
         long totalBytesValue = 10;
@@ -251,8 +253,10 @@ public class BluetoothOppUtilityTest {
         Long timestampValue = 123456789L;
         String destinationValue = "AA:BB:CC:00:11:22";
         String fileNameValue = mContext.getString(R.string.unknown_file);
-        String deviceNameValue = mContext.getString(R.string.unknown_device); // bt device name
         String fileTypeValue = "text/plain";
+        BluetoothDevice remoteDevice = adapter.getRemoteDevice(destinationValue);
+        String deviceNameValue =
+                BluetoothOppManager.getInstance(mContext).getDeviceName(remoteDevice);
 
         List<CursorMockData> cursorMockDataList = List.of(
                 new CursorMockData(BluetoothShare._ID, 0, idValue),
