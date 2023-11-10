@@ -1259,7 +1259,9 @@ public class LeAudioService extends ProfileService {
             volumeControlService.setGroupActive(getGroupId(mExposedActiveDevice), false);
         }
 
-        volumeControlService.setGroupActive(getGroupId(device), true);
+        if (device != null) {
+            volumeControlService.setGroupActive(getGroupId(device), true);
+        }
     }
 
     /**
