@@ -43,22 +43,22 @@ public var isOn = false
 
 /** Listen on satellite mode and trigger the callback if it has changed */
 public fun initialize(looper: Looper, resolver: ContentResolver, callback: (m: Boolean) -> Unit) {
-    val satellite_callback =
-        fun(newMode: Boolean) {
-            val previousMode = isOn
-            isOn = newMode
-            if (previousMode == isOn) {
-                Log.d(TAG, "Ignore satellite mode change because is already: " + isOn)
-                return
-            }
-            callback(isOn)
-        }
     isOn =
         initializeRadioModeListener(
             looper,
             resolver,
             SETTINGS_SATELLITE_MODE_RADIOS,
             SETTINGS_SATELLITE_MODE_ENABLED,
-            satellite_callback
+            fun(newMode: Boolean) {
+                val previousMode = isOn
+                isOn = newMode
+                if (previousMode == isOn) {
+                    Log.d(TAG, "Ignore satellite mode change because is already: " + isOn)
+                    return
+                }
+                Log.i(TAG, "Trigger callback with state: $isOn")
+                callback(isOn)
+            }
         )
+    Log.i(TAG, "Initialized successfully with state: $isOn")
 }
