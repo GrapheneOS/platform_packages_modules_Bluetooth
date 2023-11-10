@@ -19,6 +19,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.os.Looper
 import android.provider.Settings
+import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import com.android.server.bluetooth.satellite.SETTINGS_SATELLITE_MODE_ENABLED
 import com.android.server.bluetooth.satellite.SETTINGS_SATELLITE_MODE_RADIOS
@@ -30,7 +31,9 @@ import com.android.server.bluetooth.test.enableMode
 import com.android.server.bluetooth.test.enableSensitive
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.mockito.Mockito.times
 import org.robolectric.RobolectricTestRunner
@@ -39,6 +42,7 @@ import org.robolectric.RobolectricTestRunner
 class ModeListenerTest {
     private val resolver: ContentResolver =
         ApplicationProvider.getApplicationContext<Context>().getContentResolver()
+    @JvmField @Rule val testName = TestName()
 
     private val looper: Looper = Looper.getMainLooper()
 
@@ -46,6 +50,8 @@ class ModeListenerTest {
 
     @Before
     public fun setup() {
+        Log.i("SatelliteModeListener", "-------------------------------------------------------")
+        Log.i("SatelliteModeListener", "--> Start of test: " + testName.getMethodName())
         mode = ArrayList()
     }
 
