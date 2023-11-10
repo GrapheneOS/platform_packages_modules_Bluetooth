@@ -159,6 +159,7 @@ public class BluetoothPbapServiceTest {
 
     @Test
     public void onAcceptFailed() {
+        mTestLooper.stopAutoDispatchAndIgnoreExceptions();
         PbapStateMachine sm = mock(PbapStateMachine.class);
         mService.mPbapStateMachineMap.put(mRemoteDevice, sm);
 
