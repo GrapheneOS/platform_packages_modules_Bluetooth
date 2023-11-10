@@ -64,7 +64,6 @@ cc_test {
     name: "bluetooth_test_common",
     test_suites: ["general-tests"],
     defaults: [
-        "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
         "mts_defaults",
     ],
@@ -119,7 +118,6 @@ cc_test {
 cc_test {
     name: "net_test_performance",
     defaults: [
-        "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
         "mts_defaults",
     ],

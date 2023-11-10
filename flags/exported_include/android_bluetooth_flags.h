@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-/**
- * Gd shim layer to legacy le advertiser
- */
 #pragma once
 
-#include "include/hardware/ble_advertiser.h"
+#ifndef TARGET_FLOSS
 
-namespace bluetooth {
-namespace shim {
+#include <com_android_bluetooth_flags.h>
 
-BleAdvertiserInterface* get_ble_advertiser_instance();
-void init_advertising_manager();
+#define IS_FLAG_ENABLED(flag_name) com::android::bluetooth::flags::flag_name()
+#define IS_FLAG_ENABLED_P(provider, flag_name) provider.flag_name()
 
-}  // namespace shim
-}  // namespace bluetooth
+#else
+
+// FLOSS does not yet support android aconfig flags
+#define IS_FLAG_ENABLED(flag_name) false
+#define IS_FLAG_ENABLED_P(provider, flag_name) false
+
+namespace com::android::bluetooth::flags {
+struct flag_provider_interface {};
+}  // namespace com::android::bluetooth::flags
+
+#endif

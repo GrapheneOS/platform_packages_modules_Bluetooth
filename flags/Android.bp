@@ -36,6 +36,7 @@ java_aconfig_library {
 cc_aconfig_library {
     name: "bluetooth_flags_c_lib",
     aconfig_declarations: "bluetooth_aconfig_flags",
+    export_include_dirs: ["exported_include"],
     host_supported: true,
     visibility: [
         "//packages/modules/Bluetooth/system:__subpackages__",

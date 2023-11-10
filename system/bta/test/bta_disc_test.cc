@@ -175,7 +175,7 @@ TEST_F(BtaDiscTest, bta_dm_read_remote_device_name) {
       kRawAddress, BT_TRANSPORT_BR_EDR);
 }
 
-TEST_F(BtaDiscTest, DISABLED_bta_dm_search_result) {  // b/309463889
+TEST_F(BtaDiscTest, bta_dm_search_result) {
   tBTA_DM_MSG msg = {
       .disc_result = {},
   };

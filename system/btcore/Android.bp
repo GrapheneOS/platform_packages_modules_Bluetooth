@@ -88,7 +88,6 @@ cc_test {
     name: "net_test_btcore",
     test_suites: ["general-tests"],
     defaults: [
-        "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
         "mts_defaults",
     ],
