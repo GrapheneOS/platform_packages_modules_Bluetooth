@@ -42,7 +42,9 @@ use tokio::time;
 
 use crate::battery_service::BatteryServiceActions;
 use crate::bluetooth_admin::{BluetoothAdmin, IBluetoothAdmin};
-use crate::bluetooth_gatt::{BluetoothGatt, IBluetoothGatt, IScannerCallback, ScanResult};
+use crate::bluetooth_gatt::{
+    BluetoothGatt, GattActions, IBluetoothGatt, IScannerCallback, ScanResult,
+};
 use crate::bluetooth_media::{BluetoothMedia, IBluetoothMedia, MediaActions};
 use crate::callbacks::Callbacks;
 use crate::socket_manager::SocketActions;
@@ -228,6 +230,8 @@ pub trait IBluetooth {
     fn connect_all_enabled_profiles(&mut self, device: BluetoothDevice) -> bool;
 
     /// Disconnect all profiles supported by device and enabled on adapter.
+    /// Note that it includes all custom profiles enabled by the users e.g. through SocketManager or
+    /// BluetoothGatt interfaces; The device shall be disconnected on baseband eventually.
     fn disconnect_all_enabled_profiles(&mut self, device: BluetoothDevice) -> bool;
 
     /// Returns whether WBS is supported.
@@ -2717,6 +2721,12 @@ impl IBluetooth for Bluetooth {
                     .await;
             });
         }
+
+        // Disconnect all GATT connections
+        let txl = self.tx.clone();
+        topstack::get_runtime().spawn(async move {
+            let _ = txl.send(Message::GattActions(GattActions::Disconnect(device.clone()))).await;
+        });
 
         return true;
     }
