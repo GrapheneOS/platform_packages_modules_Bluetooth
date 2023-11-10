@@ -38,6 +38,7 @@ use crate::bluetooth_admin::{BluetoothAdmin, IBluetoothAdmin};
 use crate::bluetooth_gatt::{
     dispatch_gatt_client_callbacks, dispatch_gatt_server_callbacks, dispatch_le_adv_callbacks,
     dispatch_le_scanner_callbacks, dispatch_le_scanner_inband_callbacks, BluetoothGatt,
+    GattActions,
 };
 use crate::bluetooth_media::{BluetoothMedia, MediaActions};
 use crate::dis::{DeviceInformation, ServiceCallbacks};
@@ -124,6 +125,7 @@ pub enum Message {
     BatteryServiceRefresh,
     BatteryManagerCallbackDisconnected(u32),
 
+    GattActions(GattActions),
     GattClientCallbackDisconnected(u32),
     GattServerCallbackDisconnected(u32),
 
@@ -376,6 +378,9 @@ impl Stack {
                 }
                 Message::BatteryManagerCallbackDisconnected(id) => {
                     battery_manager.lock().unwrap().remove_callback(id);
+                }
+                Message::GattActions(action) => {
+                    bluetooth_gatt.lock().unwrap().handle_action(action);
                 }
                 Message::GattClientCallbackDisconnected(id) => {
                     bluetooth_gatt.lock().unwrap().remove_client_callback(id);
