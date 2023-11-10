@@ -55,3 +55,10 @@ flag {
     description: "Apply asymetric PHY setting for unidirectional CIS"
     bug: "314176433"
 }
+
+flag {
+    name: "leaudio_hal_client_asrc"
+    namespace: "bluetooth"
+    description: "Sync audio stream with the bluetooth link clock"
+    bug: "312273987"
+}
