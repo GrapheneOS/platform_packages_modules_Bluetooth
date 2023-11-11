@@ -272,7 +272,10 @@ android_app {
         "androidx.room_room-compiler-plugin",
     ],
 
-    // Add in path to Bluetooth directory because local path does not exist
+    // Export schemas to the test directory so that we have an history
+    // to be able to test migrations
+    // The following path is absolute because a relative path doesn't work
+    // TODO(b/147596836): Refactor this
     javacflags: ["-Aroom.schemaLocation=packages/modules/Bluetooth/android/app/tests/unit/src/com/android/bluetooth/btservice/storage/schemas"],
 
     lint: {

@@ -30,7 +30,6 @@ import android.annotation.SdkConstant.SdkConstantType;
 import android.annotation.SystemApi;
 import android.content.AttributionSource;
 import android.content.Context;
-import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.util.CloseGuard;
@@ -207,14 +206,11 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
 
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
-    private final BluetoothProfileConnector<IBluetoothCsipSetCoordinator> mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.CSIP_SET_COORDINATOR, TAG,
-                    IBluetoothCsipSetCoordinator.class.getName()) {
-                @Override
-                public IBluetoothCsipSetCoordinator getServiceInterface(IBinder service) {
-                    return IBluetoothCsipSetCoordinator.Stub.asInterface(service);
-                }
-            };
+    private final BluetoothProfileConnector mProfileConnector =
+            new BluetoothProfileConnector(
+                    this,
+                    BluetoothProfile.CSIP_SET_COORDINATOR,
+                    IBluetoothCsipSetCoordinator.class.getName());
 
     /**
      * Create a BluetoothCsipSetCoordinator proxy object for interacting with the local
@@ -246,7 +242,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
     }
 
     private IBluetoothCsipSetCoordinator getService() {
-        return mProfileConnector.getService();
+        return IBluetoothCsipSetCoordinator.Stub.asInterface(mProfileConnector.getService());
     }
 
     /**

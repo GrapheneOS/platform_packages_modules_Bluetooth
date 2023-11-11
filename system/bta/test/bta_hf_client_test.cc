@@ -21,16 +21,8 @@
 #include <memory>
 
 #include "bta/hf_client/bta_hf_client_int.h"
-#include "bta/include/bta_hf_client_api.h"
-#include "common/message_loop_thread.h"
 #include "test/fake/fake_osi.h"
 #include "types/raw_address.h"
-
-namespace base {
-class MessageLoop;
-}  // namespace base
-
-bluetooth::common::MessageLoopThread* get_main_thread() { return nullptr; }
 
 namespace {
 const RawAddress bdaddr1({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});

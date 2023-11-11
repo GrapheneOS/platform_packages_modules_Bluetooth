@@ -16,16 +16,17 @@
  *
  ******************************************************************************/
 
-#include "security/pairing_handler_le.h"
-
-#include "os/rand.h"
-
 #include <base/logging.h>
+
+#include "hci/octets.h"
+#include "os/rand.h"
+#include "security/pairing_handler_le.h"
 
 using bluetooth::os::GenerateRandom;
 
 namespace bluetooth {
 namespace security {
+using hci::Octet16;
 
 std::variant<PairingFailure, KeyExchangeResult> PairingHandlerLe::ExchangePublicKeys(const InitialInformations& i,
                                                                                      OobDataFlag remote_have_oob_data) {

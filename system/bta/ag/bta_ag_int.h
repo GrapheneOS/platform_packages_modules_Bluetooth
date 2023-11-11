@@ -31,6 +31,7 @@
 #include "bta/include/bta_api.h"
 #include "bta/sys/bta_sys.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/sdp/sdp_discovery_db.h"
 #include "types/raw_address.h"
 
 /*****************************************************************************

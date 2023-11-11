@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,16 @@
  * limitations under the License.
  */
 
-#pragma once
+#include <chrono>
+#include <future>
 
-#include <openssl/rand.h>
-#include <stddef.h>
+#include "stack/include/main_thread.h"
 
-#include <array>
-#include <cstdint>
+constexpr int sync_timeout_in_ms = 3000;
 
-#include "os/log.h"
-
-namespace bluetooth {
-namespace os {
-
-template <size_t SIZE>
-std::array<uint8_t, SIZE> GenerateRandom() {
-  std::array<uint8_t, SIZE> ret;
-  ASSERT(RAND_bytes(ret.data(), ret.size()) == 1);
-  return ret;
-}
-
-inline uint32_t GenerateRandom() {
-  uint32_t ret{};
-  ASSERT(RAND_bytes((uint8_t*)(&ret), sizeof(uint32_t)) == 1);
-  return ret;
-}
-
-}  // namespace os
-}  // namespace bluetooth
+void sync_main_handler() {
+  std::promise promise = std::promise<void>();
+  std::future future = promise.get_future();
+  post_on_bt_main([&promise]() { promise.set_value(); });
+  future.wait_for(std::chrono::milliseconds(sync_timeout_in_ms));
+};

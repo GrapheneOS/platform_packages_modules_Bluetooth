@@ -23,6 +23,7 @@
 
 #include "common/testing/wired_pair_of_bidi_queues.h"
 #include "hci/le_security_interface.h"
+#include "hci/octets.h"
 #include "packet/raw_builder.h"
 #include "security/pairing_handler_le.h"
 #include "security/test/mocks.h"
@@ -87,14 +88,14 @@ Address ADDRESS_CENTRAL{{0x26, 0x64, 0x76, 0x86, 0xab, 0xba}};
 AddressType ADDRESS_TYPE_CENTRAL = AddressType::RANDOM_DEVICE_ADDRESS;
 Address IDENTITY_ADDRESS_CENTRAL{{0x12, 0x34, 0x56, 0x78, 0x90, 0xaa}};
 AddressType IDENTITY_ADDRESS_TYPE_CENTRAL = AddressType::PUBLIC_DEVICE_ADDRESS;
-crypto_toolbox::Octet16 IRK_CENTRAL = {
+hci::Octet16 IRK_CENTRAL = {
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
 
 Address ADDRESS_PERIPHERAL{{0x33, 0x58, 0x24, 0x76, 0x11, 0x89}};
 AddressType ADDRESS_TYPE_PERIPHERAL = AddressType::RANDOM_DEVICE_ADDRESS;
 Address IDENTITY_ADDRESS_PERIPHERAL{{0x21, 0x43, 0x65, 0x87, 0x09, 0x44}};
 AddressType IDENTITY_ADDRESS_TYPE_PERIPHERAL = AddressType::PUBLIC_DEVICE_ADDRESS;
-crypto_toolbox::Octet16 IRK_PERIPHERAL = {
+hci::Octet16 IRK_PERIPHERAL = {
     0x0f, 0x0e, 0x0d, 0x0c, 0x0b, 0x0a, 0x09, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01};
 
 std::optional<PairingResultOrFailure> pairing_result_central;

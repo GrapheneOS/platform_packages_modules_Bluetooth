@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,15 @@
 
 #pragma once
 
-#include <openssl/rand.h>
-#include <stddef.h>
+// Synchronize main handler for tests
+//
+// NOTE: This mechanism works ONLY when it is known that a single unit
+// of execution under test does not spawn or otherwise extend entries
+// into the main loop execution queue.
+//
+// If the execution under test reposts additional execution units to
+// the main loop queue then this synchronization mechanism is unreliable
+// and alternative methods must be used to properly sync within the
+// multithreaded environment.
 
-#include <array>
-#include <cstdint>
-
-#include "os/log.h"
-
-namespace bluetooth {
-namespace os {
-
-template <size_t SIZE>
-std::array<uint8_t, SIZE> GenerateRandom() {
-  std::array<uint8_t, SIZE> ret;
-  ASSERT(RAND_bytes(ret.data(), ret.size()) == 1);
-  return ret;
-}
-
-inline uint32_t GenerateRandom() {
-  uint32_t ret{};
-  ASSERT(RAND_bytes((uint8_t*)(&ret), sizeof(uint32_t)) == 1);
-  return ret;
-}
-
-}  // namespace os
-}  // namespace bluetooth
+void sync_main_handler();

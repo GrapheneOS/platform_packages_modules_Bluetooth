@@ -16,7 +16,6 @@
 
 #include "hci/facade/le_acl_manager_facade.h"
 
-#include <condition_variable>
 #include <memory>
 #include <mutex>
 
@@ -26,6 +25,7 @@
 #include "grpc/grpc_event_queue.h"
 #include "hci/acl_manager.h"
 #include "hci/hci_packets.h"
+#include "hci/octets.h"
 #include "packet/raw_builder.h"
 
 using ::grpc::ServerAsyncResponseWriter;
@@ -192,23 +192,23 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
 
     auto request_peer_irk_length = request->peer_irk().end() - request->peer_irk().begin();
 
-    if (request_peer_irk_length != crypto_toolbox::OCTET16_LEN) {
+    if (request_peer_irk_length != kOctet16Length) {
       return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, "Invalid Peer IRK");
     }
 
     auto request_local_irk_length = request->local_irk().end() - request->local_irk().begin();
-    if (request_local_irk_length != crypto_toolbox::OCTET16_LEN) {
+    if (request_local_irk_length != kOctet16Length) {
       return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, "Invalid Local IRK");
     }
 
-    crypto_toolbox::Octet16 peer_irk = {};
-    crypto_toolbox::Octet16 local_irk = {};
+    Octet16 peer_irk = {};
+    Octet16 local_irk = {};
 
     std::vector<uint8_t> peer_irk_data(request->peer_irk().begin(), request->peer_irk().end());
-    std::copy_n(peer_irk_data.begin(), crypto_toolbox::OCTET16_LEN, peer_irk.begin());
+    std::copy_n(peer_irk_data.begin(), kOctet16Length, peer_irk.begin());
 
     std::vector<uint8_t> local_irk_data(request->local_irk().begin(), request->local_irk().end());
-    std::copy_n(local_irk_data.begin(), crypto_toolbox::OCTET16_LEN, local_irk.begin());
+    std::copy_n(local_irk_data.begin(), kOctet16Length, local_irk.begin());
 
     acl_manager_->AddDeviceToResolvingList(peer, peer_irk, local_irk);
     return ::grpc::Status::OK;
