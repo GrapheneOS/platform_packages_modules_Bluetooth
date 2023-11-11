@@ -1581,10 +1581,8 @@ public class LeAudioService extends ProfileService {
         }
 
         if (currentlyActiveGroupId != LE_AUDIO_GROUP_ID_INVALID
-                        && groupId != LE_AUDIO_GROUP_ID_INVALID
-                || hasFallbackDevice) {
+                && (groupId != LE_AUDIO_GROUP_ID_INVALID || hasFallbackDevice)) {
             Log.i(TAG, "Remember that device has FallbackDevice when become inactive active");
-
             groupDescriptor.mHasFallbackDeviceWhenGettingInactive = true;
         }
 
