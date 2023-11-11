@@ -100,12 +100,4 @@ bool btm_ble_set_topology_mask(tBTM_BLE_STATE_MASK request_state);
 void btm_ble_scanner_init(void);
 void btm_ble_scanner_cleanup(void);
 
-#ifdef BTM_BLE_CONFORMANCE_TESTING
-void btm_ble_set_no_disc_if_pair_fail(bool disble_disc);
-void btm_ble_set_test_mac_value(bool enable, uint8_t* p_test_mac_val);
-void btm_ble_set_test_local_sign_cntr_value(bool enable,
-                                            uint32_t test_local_sign_cntr);
-void btm_ble_set_keep_rfu_in_auth_req(bool keep_rfu);
-#endif
-
 #endif
