@@ -1388,18 +1388,7 @@ uint8_t btm_ble_io_capabilities_req(tBTM_SEC_DEV_REC* p_dev_rec,
         BTM_LE_IO_REQ_EVT, p_dev_rec->bd_addr, (tBTM_LE_EVT_DATA*)p_data);
   }
   if ((callback_rc == BTM_SUCCESS) || (BTM_OOB_UNKNOWN != p_data->oob_data)) {
-#ifdef BTM_BLE_CONFORMANCE_TESTING
-    if (btm_cb.devcb.keep_rfu_in_auth_req) {
-      LOG_VERBOSE("btm_ble_io_capabilities_req keep_rfu_in_auth_req = %u",
-                  btm_cb.devcb.keep_rfu_in_auth_req);
-      p_data->auth_req &= BTM_LE_AUTH_REQ_MASK_KEEP_RFU;
-      btm_cb.devcb.keep_rfu_in_auth_req = false;
-    } else { /* default */
-      p_data->auth_req &= BTM_LE_AUTH_REQ_MASK;
-    }
-#else
     p_data->auth_req &= BTM_LE_AUTH_REQ_MASK;
-#endif
 
     LOG_VERBOSE(
         "btm_ble_io_capabilities_req 1: p_dev_rec->security_required = %d "
@@ -1605,23 +1594,11 @@ tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
             LOG_VERBOSE("Pairing Cancel completed");
             (*btm_sec_cb.api.p_bond_cancel_cmpl_callback)(BTM_SUCCESS);
           }
-#ifdef BTM_BLE_CONFORMANCE_TESTING
-          if (res != BTM_SUCCESS) {
-            if (!btm_cb.devcb.no_disc_if_pair_fail &&
-                p_data->cmplt.reason != SMP_CONN_TOUT) {
-              LOG_VERBOSE("Pairing failed - prepare to remove ACL");
-              l2cu_start_post_bond_timer(p_dev_rec->ble_hci_handle);
-            } else {
-              LOG_VERBOSE("Pairing failed - Not Removing ACL");
-              p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
-            }
-          }
-#else
+
           if (res != BTM_SUCCESS && p_data->cmplt.reason != SMP_CONN_TOUT) {
             LOG_VERBOSE("Pairing failed - prepare to remove ACL");
             l2cu_start_post_bond_timer(p_dev_rec->ble_hci_handle);
           }
-#endif
 
           LOG_VERBOSE(
               "btm_sec_cb.pairing_state=%x pairing_flags=%x pin_code_len=%x",
@@ -1964,70 +1941,3 @@ bool btm_ble_get_acl_remote_addr(uint16_t hci_handle, RawAddress& conn_addr,
   }
   return st;
 }
-
-#ifdef BTM_BLE_CONFORMANCE_TESTING
-/*******************************************************************************
- *
- * Function         btm_ble_set_no_disc_if_pair_fail
- *
- * Description      This function indicates whether no disconnect of the ACL
- *                  should be used if pairing failed
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_ble_set_no_disc_if_pair_fail(bool disable_disc) {
-  LOG_VERBOSE("btm_ble_set_disc_enable_if_pair_fail disable_disc=%d",
-              disable_disc);
-  btm_cb.devcb.no_disc_if_pair_fail = disable_disc;
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_set_test_mac_value
- *
- * Description      This function set test MAC value
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_ble_set_test_mac_value(bool enable, uint8_t* p_test_mac_val) {
-  LOG_VERBOSE("btm_ble_set_test_mac_value enable=%d", enable);
-  btm_cb.devcb.enable_test_mac_val = enable;
-  memcpy(btm_cb.devcb.test_mac, p_test_mac_val, BT_OCTET8_LEN);
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_set_test_local_sign_cntr_value
- *
- * Description      This function set test local sign counter value
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_ble_set_test_local_sign_cntr_value(bool enable,
-                                            uint32_t test_local_sign_cntr) {
-  LOG_VERBOSE(
-      "btm_ble_set_test_local_sign_cntr_value enable=%d local_sign_cntr=%d",
-      enable, test_local_sign_cntr);
-  btm_cb.devcb.enable_test_local_sign_cntr = enable;
-  btm_cb.devcb.test_local_sign_cntr = test_local_sign_cntr;
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_set_keep_rfu_in_auth_req
- *
- * Description      This function indicates if RFU bits have to be kept as is
- *                  (by default they have to be set to 0 by the sender).
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_ble_set_keep_rfu_in_auth_req(bool keep_rfu) {
-  LOG_VERBOSE("btm_ble_set_keep_rfu_in_auth_req keep_rfus=%d", keep_rfu);
-  btm_cb.devcb.keep_rfu_in_auth_req = keep_rfu;
-}
-
-#endif /* BTM_BLE_CONFORMANCE_TESTING */

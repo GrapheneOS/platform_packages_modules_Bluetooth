@@ -368,11 +368,6 @@
 #define SC_MODE_INCLUDED TRUE
 #endif
 
-/* Used for conformance testing ONLY */
-// uncomment the following line to enable
-// conformance testing
-// #define BTM_BLE_CONFORMANCE_TESTING
-
 /******************************************************************************
  *
  * L2CAP
