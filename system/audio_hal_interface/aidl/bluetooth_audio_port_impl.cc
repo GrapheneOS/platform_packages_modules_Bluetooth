@@ -115,6 +115,7 @@ ndk::ScopedAStatus BluetoothAudioPortImpl::updateSourceMetadata(
     if (num_of_tags != 0) {
       int copied_size = 0;
       int max_tags_size = sizeof(desc_track.tags);
+      std::string separator(1, AUDIO_ATTRIBUTES_TAGS_SEPARATOR);
       for (size_t i = 0; i < num_of_tags - 1; i++) {
         int string_len = track.tags[i].length();
 
@@ -126,8 +127,9 @@ ndk::ScopedAStatus BluetoothAudioPortImpl::updateSourceMetadata(
         }
 
         track.tags[i].copy(desc_track.tags + copied_size, string_len, 0);
-        strncat(desc_track.tags, ";", 1);
-        copied_size += string_len + 1;
+        copied_size += string_len;
+        separator.copy(desc_track.tags + copied_size, 1, 0);
+        copied_size += 1;
       }
 
       int string_len = track.tags[num_of_tags - 1].length();
@@ -156,38 +158,57 @@ ndk::ScopedAStatus BluetoothAudioPortImpl::updateSinkMetadata(
   StopWatchLegacy stop_watch(__func__);
   LOG(INFO) << __func__ << ": " << sink_metadata.tracks.size() << " track(s)";
 
-  std::vector<record_track_metadata_v7> metadata_vec;
-  metadata_vec.reserve(sink_metadata.tracks.size());
-  for (const auto& metadata : sink_metadata.tracks) {
-    record_track_metadata_v7 desc_meta = {
+  std::vector<record_track_metadata_v7> tracks_vec;
+  tracks_vec.reserve(sink_metadata.tracks.size());
+  for (const auto& track : sink_metadata.tracks) {
+    auto num_of_tags = track.tags.size();
+    LOG(INFO) << __func__ << " metadata tags size: " << num_of_tags;
+
+    record_track_metadata_v7 desc_track = {
         .base =
             {
-                .source = static_cast<audio_source_t>(metadata.source),
-                .gain = metadata.gain,
+                .source = static_cast<audio_source_t>(track.source),
+                .gain = track.gain,
             },
     };
 
-    int copied_size = 0;
-    int max_tags_size = sizeof(desc_meta.tags);
-    for (auto tag : metadata.tags) {
-      int string_len = tag.length();
+    if (num_of_tags != 0) {
+      int copied_size = 0;
+      int max_tags_size = sizeof(desc_track.tags);
+      std::string separator(1, AUDIO_ATTRIBUTES_TAGS_SEPARATOR);
+      for (size_t i = 0; i < num_of_tags - 1; i++) {
+        int string_len = track.tags[i].length();
 
+        if ((copied_size >= max_tags_size) ||
+            (copied_size + string_len >= max_tags_size)) {
+          LOG(ERROR) << __func__
+                     << "Too many tags, copied size: " << copied_size;
+          break;
+        }
+
+        track.tags[i].copy(desc_track.tags + copied_size, string_len, 0);
+        copied_size += string_len;
+        separator.copy(desc_track.tags + copied_size, 1, 0);
+        copied_size += 1;
+      }
+
+      int string_len = track.tags[num_of_tags - 1].length();
       if ((copied_size >= max_tags_size) ||
           (copied_size + string_len >= max_tags_size)) {
         LOG(ERROR) << __func__ << "Too many tags, copied size: " << copied_size;
-        break;
+      } else {
+        track.tags[num_of_tags - 1].copy(desc_track.tags + copied_size,
+                                         string_len, 0);
       }
-
-      tag.copy(desc_meta.tags + copied_size, string_len, 0);
-      strncat(desc_meta.tags, ",", 1);
-      copied_size += string_len + 1;
+    } else {
+      memset(desc_track.tags, 0, sizeof(desc_track.tags));
     }
 
-    metadata_vec.push_back(desc_meta);
+    tracks_vec.push_back(desc_track);
   }
 
   const sink_metadata_v7_t legacy_sink_metadata = {
-      .track_count = metadata_vec.size(), .tracks = metadata_vec.data()};
+      .track_count = tracks_vec.size(), .tracks = tracks_vec.data()};
   transport_instance_->SinkMetadataChanged(legacy_sink_metadata);
   return ndk::ScopedAStatus::ok();
 }
