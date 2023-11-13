@@ -34,6 +34,7 @@ import android.annotation.RequiresPermission;
 import android.app.ActivityManager;
 import android.app.BroadcastOptions;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.IBluetooth;
@@ -187,6 +188,46 @@ class BluetoothManagerService {
     // APM enhancement feature is enabled by default
     // Set this value to 0 to disable the feature
     private static final int DEFAULT_APM_ENHANCEMENT_STATE = 1;
+
+    private static final Map<Integer, String> PROFILE_TO_SERVICE_NAME =
+            Map.ofEntries(
+                    Map.entry(BluetoothProfile.HEADSET, "android.bluetooth.IBluetoothHeadset"),
+                    Map.entry(BluetoothProfile.A2DP, "android.bluetooth.IBluetoothA2dp"),
+                    Map.entry(BluetoothProfile.HID_HOST, "android.bluetooth.IBluetoothHidHost"),
+                    Map.entry(BluetoothProfile.PAN, "android.bluetooth.IBluetoothPan"),
+                    Map.entry(BluetoothProfile.PBAP, "android.bluetooth.IBluetoothPbap"),
+                    Map.entry(BluetoothProfile.MAP, "android.bluetooth.IBluetoothMap"),
+                    Map.entry(BluetoothProfile.SAP, "android.bluetooth.IBluetoothSap"),
+                    Map.entry(BluetoothProfile.A2DP_SINK, "android.bluetooth.IBluetoothA2dpSink"),
+                    Map.entry(
+                            BluetoothProfile.AVRCP_CONTROLLER,
+                            "android.bluetooth.IBluetoothAvrcpController"),
+                    Map.entry(
+                            BluetoothProfile.HEADSET_CLIENT,
+                            "android.bluetooth.IBluetoothHeadsetClient"),
+                    Map.entry(
+                            BluetoothProfile.PBAP_CLIENT, "android.bluetooth.IBluetoothPbapClient"),
+                    Map.entry(BluetoothProfile.MAP_CLIENT, "android.bluetooth.IBluetoothMapClient"),
+                    Map.entry(BluetoothProfile.HID_DEVICE, "android.bluetooth.IBluetoothHidDevice"),
+                    Map.entry(
+                            BluetoothProfile.HEARING_AID, "android.bluetooth.IBluetoothHearingAid"),
+                    Map.entry(BluetoothProfile.LE_AUDIO, "android.bluetooth.IBluetoothLeAudio"),
+                    Map.entry(
+                            BluetoothProfile.VOLUME_CONTROL,
+                            "android.bluetooth.IBluetoothVolumeControl"),
+                    Map.entry(
+                            BluetoothProfile.CSIP_SET_COORDINATOR,
+                            "android.bluetooth.IBluetoothCsipSetCoordinator"),
+                    Map.entry(
+                            BluetoothProfile.LE_AUDIO_BROADCAST,
+                            "android.bluetooth.IBluetoothLeAudio"),
+                    Map.entry(
+                            BluetoothProfile.LE_CALL_CONTROL,
+                            "android.bluetooth.IBluetoothLeCallControl"),
+                    Map.entry(BluetoothProfile.HAP_CLIENT, "android.bluetooth.IBluetoothHapClient"),
+                    Map.entry(
+                            BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT,
+                            "android.bluetooth.IBluetoothLeBroadcastAssistant"));
 
     private final Context mContext;
     private final Looper mLooper;
@@ -1390,7 +1431,7 @@ class BluetoothManagerService {
     }
 
     boolean bindBluetoothProfileService(
-            int bluetoothProfile, String serviceName, IBluetoothProfileServiceConnection proxy) {
+            int bluetoothProfile, IBluetoothProfileServiceConnection proxy) {
         if (!mState.oneOf(BluetoothAdapter.STATE_ON)) {
             if (DBG) {
                 Log.d(
@@ -1419,7 +1460,9 @@ class BluetoothManagerService {
                                     + " profile: "
                                     + bluetoothProfile);
                 }
-                psc = new ProfileServiceConnections(new Intent(serviceName));
+                psc =
+                        new ProfileServiceConnections(
+                                new Intent(PROFILE_TO_SERVICE_NAME.get(bluetoothProfile)));
                 if (!psc.bindService(DEFAULT_REBIND_COUNT)) {
                     return false;
                 }

@@ -64,8 +64,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(
-                    this, BluetoothProfile.LE_AUDIO_BROADCAST, IBluetoothLeAudio.class.getName());
+            new BluetoothProfileConnector(this, BluetoothProfile.LE_AUDIO_BROADCAST);
 
     private final Map<Callback, Executor> mCallbackExecutorMap = new HashMap<>();
 

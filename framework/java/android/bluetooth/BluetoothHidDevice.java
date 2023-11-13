@@ -430,8 +430,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(
-                    this, BluetoothProfile.HID_DEVICE, IBluetoothHidDevice.class.getName());
+            new BluetoothProfileConnector(this, BluetoothProfile.HID_DEVICE);
 
     BluetoothHidDevice(Context context, ServiceListener listener, BluetoothAdapter adapter) {
         mAdapter = adapter;

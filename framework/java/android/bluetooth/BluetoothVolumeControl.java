@@ -202,8 +202,7 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
     private BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(
-                    this, BluetoothProfile.VOLUME_CONTROL, IBluetoothVolumeControl.class.getName());
+            new BluetoothProfileConnector(this, BluetoothProfile.VOLUME_CONTROL);
 
     /**
      * Create a BluetoothVolumeControl proxy object for interacting with the local

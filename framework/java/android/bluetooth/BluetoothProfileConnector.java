@@ -45,7 +45,6 @@ public final class BluetoothProfileConnector extends Handler {
     private BluetoothProfile.ServiceListener mServiceListener;
     private final BluetoothProfile mProfileProxy;
     private String mPackageName;
-    private final String mServiceName;
     private final IBluetoothManager mBluetoothManager;
     private volatile IBinder mService;
     private boolean mBound = false;
@@ -95,21 +94,18 @@ public final class BluetoothProfileConnector extends Handler {
             Looper looper,
             BluetoothProfile profile,
             int profileId,
-            String serviceName,
             IBluetoothManager bluetoothManager) {
         super(looper);
         mProfileId = profileId;
         mProfileProxy = profile;
-        mServiceName = serviceName;
         mBluetoothManager = Objects.requireNonNull(bluetoothManager);
     }
 
-    BluetoothProfileConnector(BluetoothProfile profile, int profileId, String serviceName) {
+    BluetoothProfileConnector(BluetoothProfile profile, int profileId) {
         this(
                 Looper.getMainLooper(),
                 profile,
                 profileId,
-                serviceName,
                 BluetoothAdapter.getDefaultAdapter().getBluetoothManager());
     }
 
@@ -131,8 +127,7 @@ public final class BluetoothProfileConnector extends Handler {
                                 + mPackageName);
                 mCloseGuard.open("doUnbind");
                 try {
-                    mBluetoothManager.bindBluetoothProfileService(
-                            mProfileId, mServiceName, mConnection);
+                    mBluetoothManager.bindBluetoothProfileService(mProfileId, mConnection);
                     mBound = true;
                 } catch (RemoteException re) {
                     Log.e(
