@@ -340,8 +340,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(
-                    this, BluetoothProfile.HEADSET, IBluetoothHeadset.class.getName());
+            new BluetoothProfileConnector(this, BluetoothProfile.HEADSET);
 
     /**
      * Create a BluetoothHeadset proxy object.
