@@ -2388,6 +2388,9 @@ static void bta_dm_disc_reset() {
   osi_free_and_reset((void**)&bta_dm_search_cb.p_pending_search);
   fixed_queue_free(bta_dm_search_cb.pending_discovery_queue, osi_free);
   bta_dm_search_cb = {};
+  bta_dm_search_cb.state = BTA_DM_SEARCH_IDLE;
+  bta_dm_search_cb.conn_id = GATT_INVALID_CONN_ID;
+  bta_dm_search_cb.transport = BT_TRANSPORT_AUTO;
 }
 
 void bta_dm_disc_start(bool delay_close_gatt) {
