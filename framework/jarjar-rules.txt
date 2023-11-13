@@ -9,3 +9,4 @@ rule android.sysprop.** com.android.bluetooth.x.@0
 rule android.hardware.radio.V1_0.** com.android.bluetooth.x.@0
 rule com.google.android.mms.** com.android.bluetooth.x.@0
 rule com.android.internal.util.** com.android.bluetooth.x.@0
+rule com.android.modules.expresslog.** com.android.bluetooth.x.@0
