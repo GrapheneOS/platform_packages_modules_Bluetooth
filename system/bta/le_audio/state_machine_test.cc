@@ -5516,7 +5516,7 @@ TEST_F(StateMachineTest, StreamReconfigureAfterCisLostTwoDevices) {
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(6);
-  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(1);
 
