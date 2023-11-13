@@ -730,8 +730,7 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(
-                    this, BluetoothProfile.HEADSET_CLIENT, IBluetoothHeadsetClient.class.getName());
+            new BluetoothProfileConnector(this, BluetoothProfile.HEADSET_CLIENT);
 
     /**
      * Create a BluetoothHeadsetClient proxy object.

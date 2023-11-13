@@ -116,8 +116,7 @@ public final class BluetoothSap implements BluetoothProfile, AutoCloseable {
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(
-                    this, BluetoothProfile.SAP, IBluetoothSap.class.getName());
+            new BluetoothProfileConnector(this, BluetoothProfile.SAP);
 
     /**
      * Create a BluetoothSap proxy object.

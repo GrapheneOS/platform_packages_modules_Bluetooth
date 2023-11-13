@@ -93,8 +93,7 @@ public final class BluetoothPbapClient implements BluetoothProfile, AutoCloseabl
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(
-                    this, BluetoothProfile.PBAP_CLIENT, IBluetoothPbapClient.class.getName());
+            new BluetoothProfileConnector(this, BluetoothProfile.PBAP_CLIENT);
 
     /**
      * Create a BluetoothPbapClient proxy object.
