@@ -20,7 +20,6 @@
  */
 
 #include "l2c_api.h"
-#include "stack/btm/btm_dev.h"
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
@@ -61,10 +60,6 @@ void gatt_data_process(tGATT_TCB& tcb, uint16_t cid, BT_HDR* p_buf) {
   inc_func_call_count(__func__);
 }
 void gatt_consolidate(const RawAddress& identity_addr, const RawAddress& rpa) {
-  inc_func_call_count(__func__);
-}
-void gatt_find_in_device_record(const RawAddress& bd_addr,
-                                tBLE_BD_ADDR* address_with_type) {
   inc_func_call_count(__func__);
 }
 void gatt_free(void) { inc_func_call_count(__func__); }
