@@ -510,10 +510,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     private final AttributionSource mAttributionSource;
 
     private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(
-                    this,
-                    BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT,
-                    IBluetoothLeBroadcastAssistant.class.getName());
+            new BluetoothProfileConnector(this, BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT);
 
     /**
      * Create a new instance of an LE Audio Broadcast Assistant.

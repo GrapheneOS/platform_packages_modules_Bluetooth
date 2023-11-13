@@ -207,10 +207,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(
-                    this,
-                    BluetoothProfile.CSIP_SET_COORDINATOR,
-                    IBluetoothCsipSetCoordinator.class.getName());
+            new BluetoothProfileConnector(this, BluetoothProfile.CSIP_SET_COORDINATOR);
 
     /**
      * Create a BluetoothCsipSetCoordinator proxy object for interacting with the local
