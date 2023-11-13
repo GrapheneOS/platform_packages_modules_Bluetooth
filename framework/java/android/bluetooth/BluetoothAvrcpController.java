@@ -92,10 +92,7 @@ public final class BluetoothAvrcpController implements BluetoothProfile {
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(
-                    this,
-                    BluetoothProfile.AVRCP_CONTROLLER,
-                    IBluetoothAvrcpController.class.getName());
+            new BluetoothProfileConnector(this, BluetoothProfile.AVRCP_CONTROLLER);
 
     /**
      * Create a BluetoothAvrcpController proxy object for interacting with the local

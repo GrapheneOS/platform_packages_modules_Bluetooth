@@ -185,13 +185,12 @@ class BluetoothServiceBinder extends IBluetoothManager.Stub {
 
     @Override
     public boolean bindBluetoothProfileService(
-            int bluetoothProfile, String serviceName, IBluetoothProfileServiceConnection proxy) {
+            int bluetoothProfile, IBluetoothProfileServiceConnection proxy) {
         requireNonNull(
                 proxy,
                 "IBluetoothProfileServiceConnection cannot be null in bindBluetoothProfileService");
 
-        return mBluetoothManagerService.bindBluetoothProfileService(
-                bluetoothProfile, serviceName, proxy);
+        return mBluetoothManagerService.bindBluetoothProfileService(bluetoothProfile, proxy);
     }
 
     @Override

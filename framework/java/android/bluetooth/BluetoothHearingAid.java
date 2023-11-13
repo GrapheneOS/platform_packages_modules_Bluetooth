@@ -343,8 +343,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(
-                    this, BluetoothProfile.HEARING_AID, IBluetoothHearingAid.class.getName());
+            new BluetoothProfileConnector(this, BluetoothProfile.HEARING_AID);
 
     /**
      * Create a BluetoothHearingAid proxy object for interacting with the local

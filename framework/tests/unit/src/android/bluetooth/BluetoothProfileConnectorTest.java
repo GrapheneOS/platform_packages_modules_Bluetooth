@@ -74,7 +74,7 @@ public class BluetoothProfileConnectorTest {
 
         @Override
         public boolean bindBluetoothProfileService(
-                int profile, String serviceName, IBluetoothProfileServiceConnection proxy) {
+                int profile, IBluetoothProfileServiceConnection proxy) {
             mServiceConnection = proxy;
             return true;
         }
@@ -100,11 +100,7 @@ public class BluetoothProfileConnectorTest {
     private BluetoothProfileConnector createBluetoothProfileConnector(
             FakeBluetoothManager bluetoothManager) {
         return new BluetoothProfileConnector(
-                bluetoothManager.getLooper(),
-                null,
-                BluetoothProfile.HEADSET,
-                "HeadsetService",
-                bluetoothManager);
+                bluetoothManager.getLooper(), null, BluetoothProfile.HEADSET, bluetoothManager);
     }
 
     @Test

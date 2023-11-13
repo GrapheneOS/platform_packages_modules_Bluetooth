@@ -89,8 +89,7 @@ public final class BluetoothMap implements BluetoothProfile, AutoCloseable {
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(
-                    this, BluetoothProfile.MAP, IBluetoothMap.class.getName());
+            new BluetoothProfileConnector(this, BluetoothProfile.MAP);
 
     /**
      * Create a BluetoothMap proxy object.
