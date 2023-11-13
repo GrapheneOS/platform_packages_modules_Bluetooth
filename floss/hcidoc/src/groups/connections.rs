@@ -11,14 +11,16 @@ use bt_packets::hci::{
     Acl, AclCommandChild, Address, AuthenticatedPayloadTimeoutExpired, CommandChild,
     ConnectionManagementCommandChild, DisconnectReason, Enable, ErrorCode, EventChild,
     InitiatorFilterPolicy, LeConnectionManagementCommandChild, LeMetaEventChild,
-    NumberOfCompletedPackets, OpCode, ScoConnectionCommandChild, SecurityCommandChild,
+    LeSecurityCommandChild, NumberOfCompletedPackets, OpCode, ScoConnectionCommandChild,
+    SecurityCommandChild,
 };
 
 enum ConnectionSignal {
-    LinkKeyMismatch, // Peer forgets the link key or it mismatches ours. (b/284802375)
-    NocpDisconnect,  // Peer is disconnected when NOCP packet isn't yet received. (b/249295604)
-    NocpTimeout,     // Host doesn't receive NOCP packet 5 seconds after ACL is sent. (b/249295604)
-    ApteDisconnect,  // Host doesn't receive a packet with valid MIC for a while. (b/299850738)
+    LinkKeyMismatch,     // Peer forgets the link key or it mismatches ours. (b/284802375)
+    LongTermKeyMismatch, // Like LinkKeyMismatch but for LE cases. (b/303600602)
+    NocpDisconnect,      // Peer is disconnected when NOCP packet isn't yet received. (b/249295604)
+    NocpTimeout, // Host doesn't receive NOCP packet 5 seconds after ACL is sent. (b/249295604)
+    ApteDisconnect, // Host doesn't receive a packet with valid MIC for a while. (b/299850738)
     RemoteFeatureNoReply, // Host doesn't receive a response for a remote feature request. (b/300851411)
     RemoteFeatureError,   // Controller replies error for remote feature request. (b/292116133)
     SecurityMode3,        // Peer uses the unsupported legacy security mode 3. (b/260625799)
@@ -28,6 +30,7 @@ impl Into<&'static str> for ConnectionSignal {
     fn into(self) -> &'static str {
         match self {
             ConnectionSignal::LinkKeyMismatch => "LinkKeyMismatch",
+            ConnectionSignal::LongTermKeyMismatch => "LongTermKeyMismatch",
             ConnectionSignal::NocpDisconnect => "Nocp",
             ConnectionSignal::NocpTimeout => "Nocp",
             ConnectionSignal::ApteDisconnect => "AuthenticatedPayloadTimeoutExpired",
@@ -820,12 +823,21 @@ enum LinkKeyMismatchState {
 }
 
 /// Identifies instances when the peer forgets the link key or it mismatches with ours.
+/// For classic connections, first the controller asks for the link key via Link Key Request, then
+/// the host replies with Link Key Request Reply, finally the controller will report the result,
+/// usually via AuthenticationComplete.
+/// For LE connections, the host passes the Long Term Key (LTK) via LE Start Encryption, then the
+/// controller reports the result via Encryption Change event. There are also LE Long Term Key
+/// Requests from the controller, but that is only used when the device is a peripheral.
 struct LinkKeyMismatchRule {
     /// Addresses in authenticating process
     states: HashMap<Address, LinkKeyMismatchState>,
 
     /// Active handles
     handles: HashMap<ConnectionHandle, Address>,
+
+    /// Handles pending for LE encryption
+    pending_le_encrypt: HashSet<ConnectionHandle>,
 
     /// Pre-defined signals discovered in the logs.
     signals: Vec<Signal>,
@@ -839,30 +851,92 @@ impl LinkKeyMismatchRule {
         LinkKeyMismatchRule {
             states: HashMap::new(),
             handles: HashMap::new(),
+            pending_le_encrypt: HashSet::new(),
             signals: vec![],
             reportable: vec![],
         }
     }
 
-    fn report_address_auth_failure(&mut self, address: &Address, packet: &Packet) {
-        if let Some(LinkKeyMismatchState::Replied) = self.states.get(address) {
-            self.signals.push(Signal {
-                index: packet.index,
-                ts: packet.ts,
-                tag: ConnectionSignal::LinkKeyMismatch.into(),
-            });
+    fn process_address_auth(&mut self, status: ErrorCode, address: Address, packet: &Packet) {
+        if status == ErrorCode::AuthenticationFailure {
+            if let Some(LinkKeyMismatchState::Replied) = self.states.get(&address) {
+                self.signals.push(Signal {
+                    index: packet.index,
+                    ts: packet.ts,
+                    tag: ConnectionSignal::LinkKeyMismatch.into(),
+                });
 
+                self.reportable.push((
+                    packet.ts,
+                    format!("Peer {} forgets the link key, or it mismatches with ours.", address),
+                ));
+            }
+        }
+        self.states.remove(&address);
+    }
+
+    fn process_handle_auth(
+        &mut self,
+        status: ErrorCode,
+        handle: ConnectionHandle,
+        packet: &Packet,
+    ) {
+        if let Some(address) = self.handles.get(&handle) {
+            self.process_address_auth(status, *address, packet);
+        }
+    }
+
+    fn process_request_link_key(&mut self, address: Address) {
+        self.states.insert(address, LinkKeyMismatchState::Requested);
+    }
+
+    fn process_reply_link_key(&mut self, address: Address, key_exist: bool) {
+        if !key_exist {
+            self.states.remove(&address);
+            return;
+        }
+
+        if let Some(LinkKeyMismatchState::Requested) = self.states.get(&address) {
+            self.states.insert(address, LinkKeyMismatchState::Replied);
+        }
+    }
+
+    fn process_encryption_change(
+        &mut self,
+        status: ErrorCode,
+        handle: ConnectionHandle,
+        packet: &Packet,
+    ) {
+        if status != ErrorCode::Success {
+            let address_format = self
+                .handles
+                .get(&handle)
+                .map_or(format!("handle {}", handle), |addr| format!("{}", addr));
             self.reportable.push((
                 packet.ts,
-                format!("Peer {} forgets the link key, or it mismatches with ours.", address),
+                format!("Encryption failure with {:?} for {}", status, address_format),
             ));
+
+            if self.pending_le_encrypt.contains(&handle) {
+                self.signals.push(Signal {
+                    index: packet.index,
+                    ts: packet.ts,
+                    tag: ConnectionSignal::LongTermKeyMismatch.into(),
+                });
+            }
         }
+
+        self.pending_le_encrypt.remove(&handle);
+    }
+
+    fn process_reset(&mut self) {
+        self.states.clear();
+        self.handles.clear();
+        self.pending_le_encrypt.clear();
     }
 }
 
 impl Rule for LinkKeyMismatchRule {
-    // Currently this is only for BREDR device.
-    // TODO(apusaka): add LE when logs are available.
     fn process(&mut self, packet: &Packet) {
         match &packet.inner {
             PacketChild::HciEvent(ev) => match ev.specialize() {
@@ -871,40 +945,41 @@ impl Rule for LinkKeyMismatchRule {
                         self.handles.insert(ev.get_connection_handle(), ev.get_bd_addr());
                     }
                 }
-
                 EventChild::LinkKeyRequest(ev) => {
-                    self.states.insert(ev.get_bd_addr(), LinkKeyMismatchState::Requested);
+                    self.process_request_link_key(ev.get_bd_addr());
                 }
-
                 EventChild::SimplePairingComplete(ev) => {
-                    if ev.get_status() == ErrorCode::AuthenticationFailure {
-                        self.report_address_auth_failure(&ev.get_bd_addr(), &packet);
-                    }
-
-                    self.states.remove(&ev.get_bd_addr());
+                    self.process_address_auth(ev.get_status(), ev.get_bd_addr(), &packet);
                 }
-
                 EventChild::AuthenticationComplete(ev) => {
-                    if let Some(address) = self.handles.get(&ev.get_connection_handle()) {
-                        let address = address.clone();
-                        if ev.get_status() == ErrorCode::AuthenticationFailure {
-                            self.report_address_auth_failure(&address, &packet);
-                        }
-                        self.states.remove(&address);
-                    }
+                    self.process_handle_auth(ev.get_status(), ev.get_connection_handle(), &packet);
                 }
-
                 EventChild::DisconnectionComplete(ev) => {
-                    if let Some(address) = self.handles.get(&ev.get_connection_handle()) {
-                        let address = address.clone();
-                        if ev.get_status() == ErrorCode::AuthenticationFailure {
-                            self.report_address_auth_failure(&address, &packet);
-                        }
-                        self.states.remove(&address);
-                    }
-
+                    self.process_handle_auth(ev.get_status(), ev.get_connection_handle(), &packet);
                     self.handles.remove(&ev.get_connection_handle());
                 }
+                EventChild::EncryptionChange(ev) => {
+                    self.process_encryption_change(
+                        ev.get_status(),
+                        ev.get_connection_handle(),
+                        &packet,
+                    );
+                }
+                EventChild::LeMetaEvent(ev) => match ev.specialize() {
+                    LeMetaEventChild::LeConnectionComplete(ev) => {
+                        if ev.get_status() == ErrorCode::Success {
+                            self.handles.insert(ev.get_connection_handle(), ev.get_peer_address());
+                        }
+                    }
+                    LeMetaEventChild::LeEnhancedConnectionComplete(ev) => {
+                        if ev.get_status() == ErrorCode::Success {
+                            self.handles.insert(ev.get_connection_handle(), ev.get_peer_address());
+                        }
+                    }
+
+                    // EventChild::LeMetaEvent(ev).specialize()
+                    _ => {}
+                },
 
                 // PacketChild::HciEvent(ev).specialize()
                 _ => {}
@@ -912,16 +987,16 @@ impl Rule for LinkKeyMismatchRule {
 
             PacketChild::HciCommand(cmd) => match cmd.specialize() {
                 CommandChild::AclCommand(cmd) => match cmd.specialize() {
+                    // Have an arm for Disconnect since sometimes we don't receive disconnect
+                    // event when powering off. However, no need to actually match the reason
+                    // since we just clean the handle in both cases.
                     AclCommandChild::Disconnect(cmd) => {
-                        // If reason is power off, the host might not wait for connection complete event
-                        if cmd.get_reason()
-                            == DisconnectReason::RemoteDeviceTerminatedConnectionPowerOff
-                        {
-                            if let Some(address) = self.handles.remove(&cmd.get_connection_handle())
-                            {
-                                self.states.remove(&address);
-                            }
-                        }
+                        self.process_handle_auth(
+                            ErrorCode::Success,
+                            cmd.get_connection_handle(),
+                            &packet,
+                        );
+                        self.handles.remove(&cmd.get_connection_handle());
                     }
 
                     // CommandChild::AclCommand(cmd).specialize()
@@ -930,23 +1005,27 @@ impl Rule for LinkKeyMismatchRule {
 
                 CommandChild::SecurityCommand(cmd) => match cmd.specialize() {
                     SecurityCommandChild::LinkKeyRequestReply(cmd) => {
-                        let address = cmd.get_bd_addr();
-                        if let Some(LinkKeyMismatchState::Requested) = self.states.get(&address) {
-                            self.states.insert(address, LinkKeyMismatchState::Replied);
-                        }
+                        self.process_reply_link_key(cmd.get_bd_addr(), true);
                     }
-
                     SecurityCommandChild::LinkKeyRequestNegativeReply(cmd) => {
-                        self.states.remove(&cmd.get_bd_addr());
+                        self.process_reply_link_key(cmd.get_bd_addr(), false);
                     }
 
                     // CommandChild::SecurityCommand(cmd).specialize()
                     _ => {}
                 },
 
+                CommandChild::LeSecurityCommand(cmd) => match cmd.specialize() {
+                    LeSecurityCommandChild::LeStartEncryption(cmd) => {
+                        self.pending_le_encrypt.insert(cmd.get_connection_handle());
+                    }
+
+                    // CommandChild::LeSecurityCommand(cmd).specialize()
+                    _ => {}
+                },
+
                 CommandChild::Reset(_) => {
-                    self.states.clear();
-                    self.handles.clear();
+                    self.process_reset();
                 }
 
                 // PacketChild::HciCommand(cmd).specialize()
