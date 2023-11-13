@@ -219,8 +219,10 @@ cc_test {
         "mts_defaults",
     ],
     test_suites: ["general-tests"],
+    host_supported: true,
     srcs: [
         ":LegacyStackSdp",
+        ":OsiCompatSources",
         ":TestCommonMockFunctions",
         ":TestCommonSyncMainHandler",
         ":TestFakeOsi",
@@ -232,6 +234,7 @@ cc_test {
         ":TestMockStackGatt",
         ":TestMockStackL2cap",
         ":TestMockStackMetrics",
+        ":TestMockStackRfcomm",
         "test/bta_dip_test.cc",
         "test/bta_disc_test.cc",
         "test/bta_dm_cust_uuid_test.cc",
