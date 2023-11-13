@@ -33,6 +33,7 @@
 #include "bta/include/bta_api.h"
 #include "btif/include/btif_debug_conn.h"
 #include "device/include/controller.h"
+#include "hardware/bt_gatt_types.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
