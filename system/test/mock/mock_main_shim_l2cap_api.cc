@@ -40,7 +40,6 @@ namespace main_shim_l2cap_api {
 // Function state capture and return values, if needed
 struct L2CA_ReadRemoteVersion L2CA_ReadRemoteVersion;
 struct L2CA_ReadRemoteFeatures L2CA_ReadRemoteFeatures;
-struct L2CA_UseLegacySecurityModule L2CA_UseLegacySecurityModule;
 struct L2CA_Register L2CA_Register;
 struct L2CA_Deregister L2CA_Deregister;
 struct L2CA_ConnectReq L2CA_ConnectReq;
@@ -100,10 +99,6 @@ bool bluetooth::shim::L2CA_ReadRemoteVersion(const RawAddress& addr,
 uint8_t* bluetooth::shim::L2CA_ReadRemoteFeatures(const RawAddress& addr) {
   inc_func_call_count(__func__);
   return test::mock::main_shim_l2cap_api::L2CA_ReadRemoteFeatures(addr);
-}
-void bluetooth::shim::L2CA_UseLegacySecurityModule() {
-  inc_func_call_count(__func__);
-  test::mock::main_shim_l2cap_api::L2CA_UseLegacySecurityModule();
 }
 uint16_t bluetooth::shim::L2CA_Register(
     uint16_t client_psm, const tL2CAP_APPL_INFO& callbacks, bool enable_snoop,
