@@ -88,7 +88,6 @@ public class PairingTest {
         mInOrder = inOrder(mReceiver);
 
         IntentFilter filter = new IntentFilter();
-        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         filter.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST);
         sTargetContext.registerReceiver(mReceiver, filter);
