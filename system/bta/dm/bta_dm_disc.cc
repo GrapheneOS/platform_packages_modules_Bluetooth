@@ -264,8 +264,6 @@ static tBTA_DM_STATE bta_dm_search_get_state() {
 static void bta_dm_search_start(tBTA_DM_MSG* p_data) {
   bta_dm_gattc_register();
 
-  LOG_VERBOSE("%s avoid_scatter=%d", __func__, p_bta_dm_cfg->avoid_scatter);
-
   get_btm_client_interface().db.BTM_ClearInqDb(nullptr);
   /* save search params */
   bta_dm_search_cb.p_search_cback = p_data->search.p_cback;
