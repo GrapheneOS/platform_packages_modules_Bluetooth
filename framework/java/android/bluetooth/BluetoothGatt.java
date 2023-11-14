@@ -30,6 +30,7 @@ import android.compat.annotation.UnsupportedAppUsage;
 import android.content.AttributionSource;
 import android.os.Build;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.util.Log;
@@ -985,6 +986,20 @@ public final class BluetoothGatt implements BluetoothProfile {
         mAuthRetryState = AUTH_RETRY_STATE_IDLE;
     }
 
+    /** @hide */
+    @Override
+    public void onServiceConnected(IBinder service) {}
+
+    /** @hide */
+    @Override
+    public void onServiceDisconnected() {}
+
+    /** @hide */
+    @Override
+    public BluetoothAdapter getAdapter() {
+        return null;
+    }
+
     /**
      * Close this Bluetooth GATT client.
      *
@@ -993,7 +1008,6 @@ public final class BluetoothGatt implements BluetoothProfile {
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    @Override
     public void close() {
         if (DBG) Log.d(TAG, "close()");
 

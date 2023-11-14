@@ -27,6 +27,7 @@ import android.compat.annotation.UnsupportedAppUsage;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.os.Build;
+import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -104,43 +105,40 @@ public class BluetoothPbap implements BluetoothProfile {
     public static final int RESULT_CANCELED = 2;
 
     private BluetoothAdapter mAdapter;
-    private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.PBAP);
+
+    private IBluetoothPbap mService;
 
     /**
      * Create a BluetoothPbap proxy object.
      *
      * @hide
      */
-    public BluetoothPbap(Context context, ServiceListener listener, BluetoothAdapter adapter) {
+    public BluetoothPbap(Context context, BluetoothAdapter adapter) {
         mAdapter = adapter;
         mAttributionSource = adapter.getAttributionSource();
-        mProfileConnector.connect(context, listener);
+        mService = null;
     }
 
     /** @hide */
-    protected void finalize() throws Throwable {
-        try {
-            close();
-        } finally {
-            super.finalize();
-        }
+    @Override
+    public void onServiceConnected(IBinder service) {
+        mService = IBluetoothPbap.Stub.asInterface(service);
     }
 
-    /**
-     * Close the connection to the backing service. Other public functions of BluetoothPbap will
-     * return default error results once close() has been called. Multiple invocations of close()
-     * are ok.
-     *
-     * @hide
-     */
+    /** @hide */
     @Override
-    public synchronized void close() {
-        mProfileConnector.disconnect();
+    public void onServiceDisconnected() {
+        mService = null;
     }
 
     private IBluetoothPbap getService() {
-        return IBluetoothPbap.Stub.asInterface(mProfileConnector.getService());
+        return mService;
+    }
+
+    /** @hide */
+    @Override
+    public BluetoothAdapter getAdapter() {
+        return mAdapter;
     }
 
     /**
