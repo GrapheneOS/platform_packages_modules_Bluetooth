@@ -88,6 +88,7 @@ class CodecManagerTestBase : public Test {
         .WillByDefault(Return(true));
 
     controller::SetMockControllerInterface(&controller_interface);
+    Mock::VerifyAndClearExpectations(&bluetooth::legacy::hci::testing::GetMock());
 
     codec_manager = CodecManager::GetInstance();
   }
@@ -95,6 +96,7 @@ class CodecManagerTestBase : public Test {
   virtual void TearDown() override {
     codec_manager->Stop();
 
+    Mock::VerifyAndClearExpectations(&bluetooth::legacy::hci::testing::GetMock());
     controller::SetMockControllerInterface(nullptr);
   }
 
