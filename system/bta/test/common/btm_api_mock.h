@@ -23,6 +23,7 @@
 #include "bt_octets.h"
 #include "btm_api.h"
 #include "stack/btm/security_device_record.h"
+#include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
 namespace bluetooth {
@@ -60,6 +61,10 @@ class BtmInterface {
   virtual std::optional<Octet16> BTM_BleGetPeerLTK(
       const RawAddress address) = 0;
   virtual std::optional<Octet16> BTM_BleGetPeerIRK(
+      const RawAddress address) = 0;
+
+  virtual bool BTM_BleIsLinkKeyKnown(const RawAddress address) = 0;
+  virtual std::optional<tBLE_BD_ADDR> BTM_BleGetIdentityAddress(
       const RawAddress address) = 0;
 
   virtual ~BtmInterface() = default;
@@ -106,6 +111,11 @@ class MockBtmInterface : public BtmInterface {
   MOCK_METHOD((std::optional<Octet16>), BTM_BleGetPeerLTK,
               (const RawAddress address), (override));
   MOCK_METHOD((std::optional<Octet16>), BTM_BleGetPeerIRK,
+              (const RawAddress address), (override));
+
+  MOCK_METHOD((bool), BTM_BleIsLinkKeyKnown, (const RawAddress address),
+              (override));
+  MOCK_METHOD((std::optional<tBLE_BD_ADDR>), BTM_BleGetIdentityAddress,
               (const RawAddress address), (override));
 };
 
