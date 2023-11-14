@@ -1317,12 +1317,11 @@ class CsisClientImpl : public CsisClient {
     /* Make sure device is not already bonded which could
      * be a case for dual mode devices where
      */
-    tBTM_SEC_DEV_REC* p_dev = btm_find_dev(result->bd_addr);
-    if (p_dev && p_dev->is_le_link_key_known()) {
-      LOG_VERBOSE(
-          "Device %s already bonded. Identity address: %s",
-          ADDRESS_TO_LOGGABLE_CSTR(result->bd_addr),
-          ADDRESS_TO_LOGGABLE_CSTR(p_dev->ble.identity_address_with_type));
+    if (BTM_BleIsLinkKeyKnown(result->bd_addr)) {
+      LOG_VERBOSE("Device %s already bonded. Identity address: %s",
+                  ADDRESS_TO_LOGGABLE_CSTR(result->bd_addr),
+                  ADDRESS_TO_LOGGABLE_CSTR(
+                      *BTM_BleGetIdentityAddress(result->bd_addr)));
       return;
     }
 
@@ -1468,12 +1467,11 @@ class CsisClientImpl : public CsisClient {
     /* Make sure device is not already bonded which could
      * be a case for dual mode devices where
      */
-    tBTM_SEC_DEV_REC* p_dev = btm_find_dev(result->bd_addr);
-    if (p_dev && p_dev->is_le_link_key_known()) {
-      LOG_VERBOSE(
-          "Device %s already bonded. Identity address: %s",
-          ADDRESS_TO_LOGGABLE_CSTR(result->bd_addr),
-          ADDRESS_TO_LOGGABLE_CSTR(p_dev->ble.identity_address_with_type));
+    if (BTM_BleIsLinkKeyKnown(result->bd_addr)) {
+      LOG_VERBOSE("Device %s already bonded. Identity address: %s",
+                  ADDRESS_TO_LOGGABLE_CSTR(result->bd_addr),
+                  ADDRESS_TO_LOGGABLE_CSTR(
+                      *BTM_BleGetIdentityAddress(result->bd_addr)));
       return;
     }
 
