@@ -119,10 +119,8 @@ struct btm_client_interface_t default_btm_client_interface = {
           return nullptr;
         },
         .BTM_SecBond = [](const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
-                          tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type,
-                          uint8_t pin_len, uint8_t* p_pin) -> tBTM_STATUS {
-          return BTM_SUCCESS;
-        },
+                          tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type)
+            -> tBTM_STATUS { return BTM_SUCCESS; },
         .BTM_SecBondCancel = [](const RawAddress& bd_addr) -> tBTM_STATUS {
           return BTM_SUCCESS;
         },
