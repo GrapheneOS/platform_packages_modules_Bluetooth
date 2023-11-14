@@ -25,6 +25,7 @@ java_defaults {
     defaults: ["bluetooth-module-sdk-version-defaults"],
     static_libs: [
         "PlatformProperties",
+        "modules-utils-expresslog",
         "modules-utils-synchronous-result-receiver",
     ],
     libs: [
