@@ -36,6 +36,7 @@
 #include "btm_iso_api.h"
 #include "device/include/controller.h"
 #include "embdrv/g722/g722_enc_dec.h"
+#include "hardware/bt_gatt_types.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/properties.h"
