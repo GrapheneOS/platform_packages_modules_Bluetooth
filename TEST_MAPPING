@@ -14,9 +14,9 @@
     //{
     //  "name": "FrameworkBluetoothTests"
     //},
-    //{
-    //  "name": "ServiceBluetoothTests"
-    //},
+    {
+      "name": "ServiceBluetoothTests"
+    },
     // device only tests
     // Broken
     //{
@@ -281,9 +281,9 @@
     //{
     //  "name": "FrameworkBluetoothTests"
     //},
-    //{
-    //  "name": "ServiceBluetoothTests"
-    //},
+    {
+      "name": "ServiceBluetoothTests"
+    },
     // device only tests
     // Broken
     //{
