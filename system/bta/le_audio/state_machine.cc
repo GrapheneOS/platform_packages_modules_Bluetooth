@@ -1289,13 +1289,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return false;
     }
 
-    // Use 1M Phy for the ACK packet from remote device to phone for better
-    // sensitivity
-    if (max_sdu_size_stom == 0 &&
-        (phy_stom & bluetooth::hci::kIsoCigPhy1M) != 0) {
-      phy_stom = bluetooth::hci::kIsoCigPhy1M;
-    }
-
     uint8_t rtn_mtos = 0;
     uint8_t rtn_stom = 0;
 
