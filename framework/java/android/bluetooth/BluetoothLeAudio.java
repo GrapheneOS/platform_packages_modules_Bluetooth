@@ -33,6 +33,7 @@ import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothPermission;
 import android.content.AttributionSource;
 import android.content.Context;
+import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.CloseGuard;
 import android.util.Log;
@@ -67,39 +68,6 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     private final Map<Callback, Executor> mCallbackExecutorMap = new HashMap<>();
 
     private CloseGuard mCloseGuard;
-
-    private final class LeAudioServiceListener extends ForwardingServiceListener {
-        LeAudioServiceListener(ServiceListener listener) {
-            super(listener);
-        }
-
-        @Override
-        public void onServiceConnected(int profile, BluetoothProfile proxy) {
-            try {
-                if (profile == LE_AUDIO) {
-                    // re-register the service-to-app callback
-                    synchronized (mCallbackExecutorMap) {
-                        if (mCallbackExecutorMap.isEmpty()) {
-                            return;
-                        }
-                        try {
-                            final IBluetoothLeAudio service = getService();
-                            if (service != null) {
-                                final SynchronousResultReceiver<Integer> recv =
-                                        SynchronousResultReceiver.get();
-                                service.registerCallback(mCallback, mAttributionSource, recv);
-                                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
-                            }
-                        } catch (RemoteException | TimeoutException e) {
-                            Log.e(TAG, "Failed to register callback", e);
-                        }
-                    }
-                }
-            } finally {
-                super.onServiceConnected(profile, proxy);
-            }
-        }
-    }
 
     /**
      * This class provides a callback that is invoked when audio codec config changes on
@@ -663,18 +631,16 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      */
     public static final int GROUP_STATUS_INACTIVE = IBluetoothLeAudio.GROUP_STATUS_INACTIVE;
 
-    private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.LE_AUDIO);
+    private IBluetoothLeAudio mService;
 
     /**
      * Create a BluetoothLeAudio proxy object for interacting with the local
      * Bluetooth LeAudio service.
      */
-    /* package */ BluetoothLeAudio(Context context, ServiceListener listener,
-            BluetoothAdapter adapter) {
+    /* package */ BluetoothLeAudio(Context context, BluetoothAdapter adapter) {
         mAdapter = adapter;
         mAttributionSource = adapter.getAttributionSource();
-        mProfileConnector.connect(context, new LeAudioServiceListener(listener));
+        mService = null;
 
         mCloseGuard = new CloseGuard();
         mCloseGuard.open("close");
@@ -683,11 +649,44 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     /** @hide */
     @Override
     public void close() {
-        mProfileConnector.disconnect();
+        mAdapter.closeProfileProxy(this);
+    }
+
+    /** @hide */
+    @Override
+    public void onServiceConnected(IBinder service) {
+        mService = IBluetoothLeAudio.Stub.asInterface(service);
+        // re-register the service-to-app callback
+        synchronized (mCallbackExecutorMap) {
+            if (mCallbackExecutorMap.isEmpty()) {
+                return;
+            }
+            try {
+                if (service != null) {
+                    final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                    mService.registerCallback(mCallback, mAttributionSource, recv);
+                    recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                }
+            } catch (RemoteException | TimeoutException e) {
+                Log.e(TAG, "Failed to register callback", e);
+            }
+        }
+    }
+
+    /** @hide */
+    @Override
+    public void onServiceDisconnected() {
+        mService = null;
     }
 
     private IBluetoothLeAudio getService() {
-        return IBluetoothLeAudio.Stub.asInterface(mProfileConnector.getService());
+        return mService;
+    }
+
+    /** @hide */
+    @Override
+    public BluetoothAdapter getAdapter() {
+        return mAdapter;
     }
 
     protected void finalize() {

@@ -25,6 +25,7 @@ import android.annotation.SuppressLint;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.os.Binder;
+import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.util.Log;
@@ -378,31 +379,46 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
     private int mCcid = 0;
     private String mToken;
     private Callback mCallback = null;
-    private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.LE_CALL_CONTROL);
+
+    private IBluetoothLeCallControl mService;
 
     /**
      * Create a BluetoothLeCallControl proxy object for interacting with the local Bluetooth
      * telephone bearer service.
      */
-    /* package */ BluetoothLeCallControl(Context context, ServiceListener listener) {
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
+    /* package */ BluetoothLeCallControl(Context context, BluetoothAdapter adapter) {
+        mAdapter = adapter;
         mAttributionSource = mAdapter.getAttributionSource();
-        mProfileConnector.connect(context, listener);
+        mService = null;
+    }
+
+    /** @hide */
+    public void close() {
+        if (VDBG) log("close()");
+
+        mAdapter.closeProfileProxy(this);
     }
 
     /** @hide */
     @Override
-    public void close() {
-        if (VDBG) log("close()");
+    public void onServiceConnected(IBinder service) {
+        mService = IBluetoothLeCallControl.Stub.asInterface(service);
+    }
 
-        unregisterBearer();
-
-        mProfileConnector.disconnect();
+    /** @hide */
+    @Override
+    public void onServiceDisconnected() {
+        mService = null;
     }
 
     private IBluetoothLeCallControl getService() {
-        return IBluetoothLeCallControl.Stub.asInterface(mProfileConnector.getService());
+        return mService;
+    }
+
+    /** @hide */
+    @Override
+    public BluetoothAdapter getAdapter() {
+        return mAdapter;
     }
 
     /**

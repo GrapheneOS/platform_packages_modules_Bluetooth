@@ -31,6 +31,7 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 import android.content.AttributionSource;
 import android.content.Context;
+import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.CloseGuard;
 import android.util.Log;
@@ -227,41 +228,6 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
                     }
                 }
             };
-
-    private final class BroadcastLeAssistantServiceListener extends ForwardingServiceListener {
-        BroadcastLeAssistantServiceListener(ServiceListener listener) {
-            super(listener);
-        }
-
-        @Override
-        public void onServiceConnected(int profile, BluetoothProfile proxy) {
-            try {
-                if (profile == LE_AUDIO_BROADCAST_ASSISTANT) {
-                    // re-register the service-to-app callback
-                    log("onServiceConnected");
-                    synchronized (mCallbackExecutorMap) {
-                        if (mCallbackExecutorMap.isEmpty()) {
-                            return;
-                        }
-                        try {
-                            final IBluetoothLeBroadcastAssistant service = getService();
-                            if (service != null) {
-                                service.registerCallback(mCallback);
-                            }
-                        } catch (RemoteException e) {
-                            Log.e(
-                                    TAG,
-                                    "onServiceConnected: Failed to register "
-                                            + "Le Broadcaster Assistant callback",
-                                    e);
-                        }
-                    }
-                }
-            } finally {
-                super.onServiceConnected(profile, proxy);
-            }
-        }
-    }
 
     /**
      * This class provides a set of callbacks that are invoked when scanning for Broadcast Sources
@@ -509,8 +475,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     private BluetoothAdapter mBluetoothAdapter;
     private final AttributionSource mAttributionSource;
 
-    private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT);
+    private IBluetoothLeBroadcastAssistant mService;
 
     /**
      * Create a new instance of an LE Audio Broadcast Assistant.
@@ -518,11 +483,11 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
      * @hide
      */
     /*package*/ BluetoothLeBroadcastAssistant(
-            @NonNull Context context, @NonNull ServiceListener listener) {
+            @NonNull Context context, @NonNull BluetoothAdapter bluetoothAdapter) {
         mContext = context;
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        mBluetoothAdapter = bluetoothAdapter;
         mAttributionSource = mBluetoothAdapter.getAttributionSource();
-        mProfileConnector.connect(context, new BroadcastLeAssistantServiceListener(listener));
+        mService = null;
         mCloseGuard = new CloseGuard();
         mCloseGuard.open("close");
     }
@@ -538,11 +503,45 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     /** @hide */
     @Override
     public void close() {
-        mProfileConnector.disconnect();
+        mBluetoothAdapter.closeProfileProxy(this);
+    }
+
+    /** @hide */
+    @Override
+    public void onServiceConnected(IBinder service) {
+        mService = IBluetoothLeBroadcastAssistant.Stub.asInterface(service);
+        // re-register the service-to-app callback
+        log("onServiceConnected");
+        synchronized (mCallbackExecutorMap) {
+            if (mCallbackExecutorMap.isEmpty()) {
+                return;
+            }
+            try {
+                mService.registerCallback(mCallback);
+            } catch (RemoteException e) {
+                Log.e(
+                        TAG,
+                        "onServiceConnected: Failed to register "
+                                + "Le Broadcaster Assistant callback",
+                        e);
+            }
+        }
+    }
+
+    /** @hide */
+    @Override
+    public void onServiceDisconnected() {
+        mService = null;
     }
 
     private IBluetoothLeBroadcastAssistant getService() {
-        return IBluetoothLeBroadcastAssistant.Stub.asInterface(mProfileConnector.getService());
+        return mService;
+    }
+
+    /** @hide */
+    @Override
+    public BluetoothAdapter getAdapter() {
+        return mBluetoothAdapter;
     }
 
     /**
