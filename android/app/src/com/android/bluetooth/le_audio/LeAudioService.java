@@ -187,6 +187,8 @@ public class LeAudioService extends ProfileService {
             mCurrentLeadDevice = null;
             mInbandRingtoneEnabled = isInbandRingtonEnabled;
             mAvailableContexts = 0;
+            mInputSelectableConfig = new ArrayList<>();
+            mOutputSelectableConfig = new ArrayList<>();
         }
 
         public Boolean mIsConnected;
@@ -199,6 +201,8 @@ public class LeAudioService extends ProfileService {
         BluetoothDevice mCurrentLeadDevice;
         Boolean mInbandRingtoneEnabled;
         Integer mAvailableContexts;
+        List<BluetoothLeAudioCodecConfig> mInputSelectableConfig;
+        List<BluetoothLeAudioCodecConfig> mOutputSelectableConfig;
     }
 
     private static class LeAudioDeviceDescriptor {
@@ -2186,7 +2190,19 @@ public class LeAudioService extends ProfileService {
             mInputLocalCodecCapabilities = stackEvent.valueCodecList1;
             mOutputLocalCodecCapabilities = stackEvent.valueCodecList2;
         } else if (stackEvent.type
-                == LeAudioStackEvent.EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED) {
+                == LeAudioStackEvent.EVENT_TYPE_AUDIO_GROUP_SELECTABLE_CODEC_CONFIG_CHANGED) {
+            int groupId = stackEvent.valueInt1;
+            LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
+            if (descriptor == null) {
+                Log.e(TAG, " Group not found " + groupId);
+                return;
+            }
+
+            descriptor.mInputSelectableConfig = stackEvent.valueCodecList1;
+            descriptor.mOutputSelectableConfig = stackEvent.valueCodecList2;
+
+        } else if (stackEvent.type
+                == LeAudioStackEvent.EVENT_TYPE_AUDIO_GROUP_CURRENT_CODEC_CONFIG_CHANGED) {
             int groupId = stackEvent.valueInt1;
             LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
             if (descriptor == null) {
@@ -2195,11 +2211,13 @@ public class LeAudioService extends ProfileService {
             }
 
             BluetoothLeAudioCodecStatus status =
-                    new BluetoothLeAudioCodecStatus(stackEvent.valueCodec1,
-                            stackEvent.valueCodec2, mInputLocalCodecCapabilities,
+                    new BluetoothLeAudioCodecStatus(
+                            stackEvent.valueCodec1,
+                            stackEvent.valueCodec2,
+                            mInputLocalCodecCapabilities,
                             mOutputLocalCodecCapabilities,
-                            stackEvent.valueCodecList1,
-                            stackEvent.valueCodecList2);
+                            descriptor.mInputSelectableConfig,
+                            descriptor.mOutputSelectableConfig);
 
             if (DBG) {
                 if (descriptor.mCodecStatus != null) {

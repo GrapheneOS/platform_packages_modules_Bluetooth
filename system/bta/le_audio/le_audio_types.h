@@ -549,6 +549,18 @@ struct LeAudioCoreCodecConfig {
 
   uint8_t allocated_channel_count = 1;
 
+  static uint32_t GetSamplingFrequencyHz(uint8_t sample_freq) {
+    return sampling_freq_map.count(sample_freq)
+               ? sampling_freq_map.at(sample_freq)
+               : 0;
+  }
+
+  static uint32_t GetFrameDurationUs(uint8_t framn_dur) {
+    return frame_duration_map.count(framn_dur)
+               ? frame_duration_map.at(framn_dur)
+               : 0;
+  }
+
   /** Returns the sampling frequency representation in Hz */
   uint32_t GetSamplingFrequencyHz() const {
     if (sampling_frequency)
