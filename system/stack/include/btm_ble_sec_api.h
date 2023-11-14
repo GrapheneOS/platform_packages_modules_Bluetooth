@@ -22,6 +22,7 @@
 #include <hardware/bt_common_types.h>
 
 #include <cstdint>
+#include <optional>
 
 #include "btm_ble_api_types.h"
 #include "btm_ble_sec_api_types.h"
@@ -202,3 +203,35 @@ bool BTM_BleVerifySignature(const RawAddress& bd_addr, uint8_t* p_orig,
  *
  ******************************************************************************/
 void BTM_BleLoadLocalKeys(uint8_t key_type, tBTM_BLE_LOCAL_KEYS* p_key);
+
+/*******************************************************************************
+ *
+ * Function         BTM_BleGetPeerLTK
+ *
+ * Description      This function is used to get the long term key of
+ *                  a bonded peer (LE) device.
+ *
+ * Parameters:      address: address of the peer device
+ *
+ * Returns          the ltk contained in std::optional if the remote device
+ *                  is present in security database
+ *                  std::nullopt if the device is not present
+ *
+ ******************************************************************************/
+std::optional<Octet16> BTM_BleGetPeerLTK(const RawAddress address);
+
+/*******************************************************************************
+ *
+ * Function         BTM_BleGetPeerIRK
+ *
+ * Description      This function is used to get the IRK of a bonded
+ *                  peer (LE) device.
+ *
+ * Parameters:      address: address of the peer device
+ *
+ * Returns          the ltk contained in std::optional if the remote device
+ *                  is present in security database
+ *                  std::nullopt if the device is not present
+ *
+ ******************************************************************************/
+std::optional<Octet16> BTM_BleGetPeerIRK(const RawAddress address);
