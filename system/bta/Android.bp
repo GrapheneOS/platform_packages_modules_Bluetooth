@@ -238,6 +238,7 @@ cc_test {
         ":TestMockStackGatt",
         ":TestMockStackL2cap",
         ":TestMockStackMetrics",
+        ":TestMockStackPan",
         ":TestMockStackRfcomm",
         "test/bta_ag_sco_test.cc",
         "test/bta_api_test.cc",
@@ -249,6 +250,7 @@ cc_test {
         "test/bta_gatt_test.cc",
         "test/bta_hf_client_add_record_test.cc",
         "test/bta_hf_client_test.cc",
+        "test/bta_pan_test.cc",
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
