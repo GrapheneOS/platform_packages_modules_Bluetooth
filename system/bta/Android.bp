@@ -135,6 +135,7 @@ cc_library_static {
     static_libs: [
         "avrcp-target-service",
         "lib-bt-packets",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbt-bta-core",
         "libbt-platform-protos-lite",
@@ -265,9 +266,9 @@ cc_test {
         "liblog",
     ],
     static_libs: [
-        "crypto_toolbox_for_tests",
         "libbase",
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbluetooth_hci_pdl",
         "libbt-audio-hal-interface",
@@ -324,8 +325,8 @@ cc_test {
         "liblog",
     ],
     static_libs: [
-        "crypto_toolbox_for_tests",
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbluetooth_hci_pdl",
         "libbt-audio-hal-interface",
@@ -368,8 +369,8 @@ cc_test {
         "libstatssocket",
     ],
     static_libs: [
-        "crypto_toolbox_for_tests",
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbt-audio-hal-interface",
         "libbt-bta",
@@ -485,8 +486,8 @@ cc_test {
         "liblog",
     ],
     static_libs: [
-        "crypto_toolbox_for_tests",
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbt-common",
         "libbt_shim_bridge",
@@ -533,8 +534,8 @@ cc_test {
         "liblog",
     ],
     static_libs: [
-        "crypto_toolbox_for_tests",
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbt-common",
         "libbt_shim_bridge",
@@ -591,8 +592,8 @@ cc_test {
         "liblog",
     ],
     static_libs: [
-        "crypto_toolbox_for_tests",
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbt-common",
         "libbt-platform-protos-lite",
@@ -740,6 +741,7 @@ cc_test {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbt-common",
         "libbt_shim_bridge",
@@ -841,6 +843,7 @@ cc_test {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbt-common",
         "libbt-platform-protos-lite",
@@ -921,8 +924,8 @@ cc_test {
         "server_configurable_flags",
     ],
     static_libs: [
-        "crypto_toolbox_for_tests",
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbt-audio-hal-interface",
         "libbt-common",
@@ -1002,6 +1005,7 @@ cc_test {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbt-common",
         "libbt_shim_bridge",
@@ -1131,8 +1135,8 @@ cc_test {
         "liblog",
     ],
     static_libs: [
-        "crypto_toolbox_for_tests",
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbt-common",
         "libbt_shim_bridge",
@@ -1195,9 +1199,9 @@ cc_test {
         "liblog",
     ],
     static_libs: [
-        "crypto_toolbox_for_tests",
         "libbase",
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbluetooth_hci_pdl",
         "libbt-common",
