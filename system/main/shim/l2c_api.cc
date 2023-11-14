@@ -690,30 +690,6 @@ uint8_t* L2CA_ReadRemoteFeatures(const RawAddress& addr) {
   return entry.raw_remote_features;
 }
 
-static void on_sco_disconnect(uint16_t handle, uint8_t reason) {
-  GetGdShimHandler()->Post(base::BindOnce(base::IgnoreResult(&btm_sco_removed),
-                                          handle,
-                                          static_cast<tHCI_REASON>(reason)));
-}
-
-void L2CA_UseLegacySecurityModule() {
-  LOG_INFO("GD L2cap is using legacy security module");
-  GetL2capClassicModule()->SetLinkPropertyListener(
-      GetGdShimHandler(), &link_property_listener_shim_);
-
-  GetL2capClassicModule()->InjectSecurityEnforcementInterface(
-      &security_enforcement_shim_);
-  security_interface_ = GetL2capClassicModule()->GetSecurityInterface(
-      GetGdShimHandler(), &security_listener_shim_);
-
-  GetL2capLeModule()->SetLinkPropertyListener(GetGdShimHandler(),
-                                              &le_link_property_listener_shim_);
-  GetL2capLeModule()->InjectSecurityEnforcementInterface(
-      &le_security_enforcement_shim_);
-
-  GetAclManager()->HACK_SetNonAclDisconnectCallback(on_sco_disconnect);
-}
-
 /**
  * Classic Service Registration APIs
  */
