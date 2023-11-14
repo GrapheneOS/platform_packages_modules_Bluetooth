@@ -251,6 +251,7 @@ cc_test {
         "test/bta_hf_client_add_record_test.cc",
         "test/bta_hf_client_test.cc",
         "test/bta_pan_test.cc",
+        "test/bta_sdp_test.cc",
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
