@@ -98,10 +98,6 @@ bool hfp_lc3_decoder_decode_packet(const uint8_t* i_buf, int16_t* o_buf,
 
   bool plc_conducted = o_packet[0];
 
-  if (plc_conducted == 1) {
-    LOG_DEBUG("%s: PLC conducted", __func__);
-  }
-
   std::copy(o_packet + 1, o_packet + 1 + out_len, (uint8_t*)o_buf);
 
   delete[] o_packet;
