@@ -117,3 +117,14 @@ std::optional<Octet16> BTM_BleGetPeerIRK(const RawAddress address) {
   LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
   return btm_interface->BTM_BleGetPeerIRK(address);
 }
+
+bool BTM_BleIsLinkKeyKnown(const RawAddress address) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->BTM_BleIsLinkKeyKnown(address);
+}
+
+std::optional<tBLE_BD_ADDR> BTM_BleGetIdentityAddress(
+    const RawAddress address) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->BTM_BleGetIdentityAddress(address);
+}
