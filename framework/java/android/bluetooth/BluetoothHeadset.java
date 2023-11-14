@@ -33,6 +33,7 @@ import android.compat.annotation.UnsupportedAppUsage;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.os.Build;
+import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -339,17 +340,16 @@ public final class BluetoothHeadset implements BluetoothProfile {
 
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
-    private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.HEADSET);
+
+    private IBluetoothHeadset mService;
 
     /**
      * Create a BluetoothHeadset proxy object.
      */
-    /* package */ BluetoothHeadset(Context context, ServiceListener listener,
-            BluetoothAdapter adapter) {
+    /* package */ BluetoothHeadset(Context context, BluetoothAdapter adapter) {
         mAdapter = adapter;
         mAttributionSource = adapter.getAttributionSource();
-        mProfileConnector.connect(context, listener);
+        mService = null;
     }
 
     /**
@@ -361,11 +361,29 @@ public final class BluetoothHeadset implements BluetoothProfile {
      */
     @UnsupportedAppUsage
     public void close() {
-        mProfileConnector.disconnect();
+        mAdapter.closeProfileProxy(this);
+    }
+
+    /** @hide */
+    @Override
+    public void onServiceConnected(IBinder service) {
+        mService = IBluetoothHeadset.Stub.asInterface(service);
+    }
+
+    /** @hide */
+    @Override
+    public void onServiceDisconnected() {
+        mService = null;
     }
 
     private IBluetoothHeadset getService() {
-        return IBluetoothHeadset.Stub.asInterface(mProfileConnector.getService());
+        return mService;
+    }
+
+    /** @hide */
+    @Override
+    public BluetoothAdapter getAdapter() {
+        return mAdapter;
     }
 
     /** {@hide} */

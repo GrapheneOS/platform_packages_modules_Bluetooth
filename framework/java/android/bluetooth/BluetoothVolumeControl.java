@@ -33,6 +33,7 @@ import android.annotation.SystemApi;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.content.AttributionSource;
 import android.content.Context;
+import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.CloseGuard;
 import android.util.Log;
@@ -63,48 +64,6 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
 
     private CloseGuard mCloseGuard;
     private final Map<Callback, Executor> mCallbackExecutorMap = new HashMap<>();
-
-    private final class VolumeControlServiceListener extends ForwardingServiceListener {
-        VolumeControlServiceListener(ServiceListener listener) {
-            super(listener);
-        }
-
-        @Override
-        public void onServiceConnected(int profile, BluetoothProfile proxy) {
-            try {
-                if (profile == VOLUME_CONTROL) {
-                    // re-register the service-to-app callback
-                    synchronized (mCallbackExecutorMap) {
-                        if (!mCallbackExecutorMap.isEmpty()) {
-                            try {
-                                final IBluetoothVolumeControl service = getService();
-                                if (service != null) {
-                                    final SynchronousResultReceiver<Integer> recv =
-                                            SynchronousResultReceiver.get();
-                                    service.registerCallback(mCallback, mAttributionSource, recv);
-                                    recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
-                                }
-                            } catch (RemoteException e) {
-                                Log.e(
-                                        TAG,
-                                        "onBluetoothServiceUp: Failed to register"
-                                                + "Volume Control callback",
-                                        e);
-                            } catch (TimeoutException e) {
-                                Log.e(
-                                        TAG,
-                                        e.toString()
-                                                + "\n"
-                                                + Log.getStackTraceString(new Throwable()));
-                            }
-                        }
-                    }
-                }
-            } finally {
-                super.onServiceConnected(profile, proxy);
-            }
-        }
-    }
 
     /**
      * This class provides a callback that is invoked when volume offset value changes on
@@ -201,18 +160,17 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
 
     private BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
-    private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.VOLUME_CONTROL);
+
+    private IBluetoothVolumeControl mService;
 
     /**
      * Create a BluetoothVolumeControl proxy object for interacting with the local
      * Bluetooth Volume Control service.
      */
-    /*package*/ BluetoothVolumeControl(Context context, ServiceListener listener,
-            BluetoothAdapter adapter) {
+    /*package*/ BluetoothVolumeControl(Context context, BluetoothAdapter adapter) {
         mAdapter = adapter;
         mAttributionSource = adapter.getAttributionSource();
-        mProfileConnector.connect(context, new VolumeControlServiceListener(listener));
+        mService = null;
 
         mCloseGuard = new CloseGuard();
         mCloseGuard.open("close");
@@ -237,11 +195,49 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
     public void close() {
         if (VDBG) log("close()");
 
-        mProfileConnector.disconnect();
+        mAdapter.closeProfileProxy(this);
+    }
+
+    /** @hide */
+    @Override
+    public void onServiceConnected(IBinder service) {
+        mService = IBluetoothVolumeControl.Stub.asInterface(service);
+        // re-register the service-to-app callback
+        synchronized (mCallbackExecutorMap) {
+            if (!mCallbackExecutorMap.isEmpty()) {
+                try {
+                    if (service != null) {
+                        final SynchronousResultReceiver<Integer> recv =
+                                SynchronousResultReceiver.get();
+                        mService.registerCallback(mCallback, mAttributionSource, recv);
+                        recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                    }
+                } catch (RemoteException e) {
+                    Log.e(
+                            TAG,
+                            "onBluetoothServiceUp: Failed to register" + "Volume Control callback",
+                            e);
+                } catch (TimeoutException e) {
+                    Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                }
+            }
+        }
+    }
+
+    /** @hide */
+    @Override
+    public void onServiceDisconnected() {
+        mService = null;
     }
 
     private IBluetoothVolumeControl getService() {
-        return IBluetoothVolumeControl.Stub.asInterface(mProfileConnector.getService());
+        return mService;
+    }
+
+    /** @hide */
+    @Override
+    public BluetoothAdapter getAdapter() {
+        return mAdapter;
     }
 
     /**
