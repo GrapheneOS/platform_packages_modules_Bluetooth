@@ -236,6 +236,7 @@ cc_test {
         ":TestMockStackMetrics",
         ":TestMockStackRfcomm",
         "test/bta_ag_sco_test.cc",
+        "test/bta_api_test.cc",
         "test/bta_dip_test.cc",
         "test/bta_disc_test.cc",
         "test/bta_dm_cust_uuid_test.cc",
