@@ -23,7 +23,6 @@ import static android.content.pm.PackageManager.DONT_KILL_APP;
 
 import static androidx.lifecycle.Lifecycle.State;
 import static androidx.lifecycle.Lifecycle.State.DESTROYED;
-import static androidx.lifecycle.Lifecycle.State.RESUMED;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
@@ -97,20 +96,28 @@ public class BluetoothPbapActivityTest {
 
     @Test
     public void onPositive_finishesActivity() throws Exception {
-        mActivityScenario.onActivity(activity -> {
-            activity.onPositive();
-        });
+        AtomicBoolean finishCalled = new AtomicBoolean(false);
 
-        assertActivityState(DESTROYED);
+        mActivityScenario.onActivity(
+                activity -> {
+                    activity.onPositive();
+                    finishCalled.set(activity.isFinishing());
+                });
+
+        assertThat(finishCalled.get()).isTrue();
     }
 
     @Test
     public void onNegative_finishesActivity() throws Exception {
-        mActivityScenario.onActivity(activity -> {
-            activity.onNegative();
-        });
+        AtomicBoolean finishCalled = new AtomicBoolean(false);
 
-        assertActivityState(DESTROYED);
+        mActivityScenario.onActivity(
+                activity -> {
+                    activity.onNegative();
+                    finishCalled.set(activity.isFinishing());
+                });
+
+        assertThat(finishCalled.get()).isTrue();
     }
 
     @Test
