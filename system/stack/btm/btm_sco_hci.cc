@@ -880,7 +880,6 @@ struct tBTM_LC3_INFO {
 
   const uint8_t* find_lc3_pkt_head() {
     if (read_corrupted) {
-      LOG_DEBUG("Skip corrupted LC3 packets");
       read_corrupted = false;
       return nullptr;
     }
@@ -987,8 +986,6 @@ bool enqueue_packet(const std::vector<uint8_t>& data, bool corrupted) {
 
   lc3_info->read_corrupted |= corrupted;
   if (lc3_info->write(data) != data.size()) {
-    LOG_DEBUG("Fail to write packet with size %lu to buffer",
-              (unsigned long)data.size());
     return false;
   }
 
@@ -1009,16 +1006,10 @@ size_t decode(const uint8_t** out_data) {
   }
 
   if (lc3_info->decodable() < BTM_LC3_PKT_LEN) {
-    LOG_DEBUG("No complete LC3 packet to decode");
     return 0;
   }
 
   frame_head = lc3_info->find_lc3_pkt_head();
-  if (frame_head == nullptr) {
-    LOG_DEBUG("No valid LC3 packet to decode %lu, %lu",
-              (unsigned long)lc3_info->decode_buf_ro,
-              (unsigned long)lc3_info->decode_buf_wo);
-  }
 
   bool plc_conducted = !GetInterfaceToProfiles()->lc3Codec->decodePacket(
       frame_head, lc3_info->decoded_pcm_buf, sizeof(lc3_info->decoded_pcm_buf));
@@ -1047,16 +1038,11 @@ size_t encode(int16_t* data, size_t len) {
   }
 
   if (len < BTM_LC3_CODE_SIZE) {
-    LOG_DEBUG(
-        "PCM frames with size %lu is insufficient to be encoded into a LC3 "
-        "packet",
-        (unsigned long)len);
     return 0;
   }
 
   pkt_body = lc3_info->fill_lc3_pkt_template();
   if (pkt_body == nullptr) {
-    LOG_DEBUG("Failed to fill the template to fill the LC3 packet");
     return 0;
   }
 
