@@ -23,15 +23,13 @@
  *
  ******************************************************************************/
 
-#include "bt_trace.h"  // Legacy trace logging
-
 #include "bta/hf_client/bta_hf_client_int.h"
 #include "bta/include/bta_dm_api.h"
+#include "os/log.h"
 #include "stack/include/l2c_api.h"
 #include "stack/include/port_api.h"
+#include "stack/include/sdp_status.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 /*****************************************************************************
  *  Constants
@@ -171,7 +169,7 @@ void bta_hf_client_rfc_acp_open(tBTA_HF_CLIENT_DATA* p_data) {
   RawAddress dev_addr = RawAddress::kEmpty;
   int status = PORT_CheckConnection(client_cb->conn_handle, &dev_addr, &lcid);
   if (status != PORT_SUCCESS) {
-    LOG(ERROR) << __func__ << ": PORT_CheckConnection returned " << status;
+    LOG_ERROR("PORT_CheckConnection returned status:%d", status);
   }
 
   /* Collision Handling */
