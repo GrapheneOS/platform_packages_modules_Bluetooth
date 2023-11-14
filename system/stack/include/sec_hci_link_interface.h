@@ -36,6 +36,8 @@ void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status);
 void btm_sec_disconnected(uint16_t handle, tHCI_STATUS reason, std::string);
 void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
                             uint8_t encr_enable);
+void btm_sec_encryption_key_refresh_complete(uint16_t handle,
+                                             tHCI_STATUS status);
 void btm_sec_link_key_notification(const RawAddress& p_bda,
                                    const Octet16& link_key, uint8_t key_type);
 void btm_sec_link_key_request(const RawAddress bda);

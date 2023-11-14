@@ -678,6 +678,10 @@ void btm_sec_role_changed(tHCI_STATUS hci_status, const RawAddress& bd_addr,
 void btm_sec_link_key_notification(const RawAddress& p_bda,
                                    const Octet16& link_key, uint8_t key_type);
 
+/** This function is called for each encryption key refresh complete event */
+void btm_sec_encryption_key_refresh_complete(uint16_t handle,
+                                             tHCI_STATUS status);
+
 /*******************************************************************************
  *
  * Function         btm_sec_link_key_request

@@ -57,6 +57,7 @@
 #include "stack/include/btm_log_history.h"
 #include "stack/include/btm_sec_api.h"
 #include "stack/include/btm_status.h"
+#include "stack/include/hci_error_code.h"
 #include "stack/include/l2cap_security_interface.h"
 #include "stack/include/main_thread.h"
 #include "stack/include/smp_api.h"
@@ -3996,6 +3997,54 @@ void btm_sec_role_changed(tHCI_STATUS hci_status, const RawAddress& bd_addr,
       !btm_dev_encrypted(p_dev_rec)) {
     BTM_SetEncryption(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR, NULL, NULL,
                       BTM_BLE_SEC_NONE);
+  }
+}
+
+constexpr uint8_t MIN_KEY_SIZE = 7;
+
+static void read_encryption_key_size_complete_after_key_refresh(
+    uint8_t status, uint16_t handle, uint8_t key_size) {
+  if (status == HCI_ERR_INSUFFCIENT_SECURITY) {
+    /* If remote device stop the encryption before we call "Read Encryption Key
+     * Size", we might receive Insufficient Security, which means that link is
+     * no longer encrypted. */
+    LOG(INFO) << __func__ << ": encryption stopped on link: " << loghex(handle);
+    return;
+  }
+
+  if (status != HCI_SUCCESS) {
+    LOG(INFO) << __func__ << ": disconnecting, status: " << loghex(status);
+    acl_disconnect_from_handle(handle, HCI_ERR_PEER_USER,
+                               "stack::btu_hcif Key size fail");
+    return;
+  }
+
+  if (key_size < MIN_KEY_SIZE) {
+    LOG(ERROR) << __func__
+               << " encryption key too short, disconnecting. handle: "
+               << loghex(handle) << " key_size: " << +key_size;
+
+    acl_disconnect_from_handle(handle, HCI_ERR_HOST_REJECT_SECURITY,
+                               "stack::btu::btu_hcif::read_encryption_key_size_"
+                               "complete_after_key_refresh Key size too small");
+    return;
+  }
+
+  btm_sec_encrypt_change(handle, static_cast<tHCI_STATUS>(status),
+                         1 /* enc_enable */);
+}
+
+void btm_sec_encryption_key_refresh_complete(uint16_t handle,
+                                             tHCI_STATUS status) {
+  if (status != HCI_SUCCESS || BTM_IsBleConnection(handle) ||
+      // Skip encryption key size check when using set_min_encryption_key_size
+      controller_get_interface()->supports_set_min_encryption_key_size()) {
+    btm_sec_encrypt_change(handle, static_cast<tHCI_STATUS>(status),
+                           (status == HCI_SUCCESS) ? 1 : 0);
+  } else {
+    btsnd_hcic_read_encryption_key_size(
+        handle,
+        base::Bind(&read_encryption_key_size_complete_after_key_refresh));
   }
 }
 

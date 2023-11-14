@@ -772,6 +772,19 @@ struct btm_sec_link_key_notification {
 };
 extern struct btm_sec_link_key_notification btm_sec_link_key_notification;
 
+// Name: btm_sec_encryption_key_refresh_complete
+// Params: uint16_t handle, tHCI_STATUS status
+// Return: void
+struct btm_sec_encryption_key_refresh_complete {
+  std::function<void(uint16_t handle, tHCI_STATUS status)> body{
+      [](uint16_t /* handle */, tHCI_STATUS /* status */) -> void {}};
+  void operator()(uint16_t handle, tHCI_STATUS status) {
+    body(handle, status);
+  };
+};
+extern struct btm_sec_encryption_key_refresh_complete
+    btm_sec_encryption_key_refresh_complete;
+
 // Name: btm_sec_link_key_request
 // Params: const uint8_t* p_event
 // Return: void
