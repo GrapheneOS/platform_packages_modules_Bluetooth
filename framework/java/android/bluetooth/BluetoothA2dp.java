@@ -33,6 +33,7 @@ import android.compat.annotation.UnsupportedAppUsage;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.os.Build;
+import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.util.Log;
@@ -270,31 +271,47 @@ public final class BluetoothA2dp implements BluetoothProfile {
 
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
-    private final BluetoothProfileConnector mProfileConnector =
-            new BluetoothProfileConnector(this, BluetoothProfile.A2DP);
+
+    private IBluetoothA2dp mService;
 
     /**
      * Create a BluetoothA2dp proxy object for interacting with the local
      * Bluetooth A2DP service.
      */
-    /* package */ BluetoothA2dp(Context context, ServiceListener listener,
-            BluetoothAdapter adapter) {
+    /* package */ BluetoothA2dp(Context context, BluetoothAdapter adapter) {
         mAdapter = adapter;
         mAttributionSource = adapter.getAttributionSource();
-        mProfileConnector.connect(context, listener);
+        mService = null;
     }
 
     /**
      * @hide
      */
     @UnsupportedAppUsage
-    @Override
     public void close() {
-        mProfileConnector.disconnect();
+        mAdapter.closeProfileProxy(this);
+    }
+
+    /** @hide */
+    @Override
+    public void onServiceConnected(IBinder service) {
+        mService = IBluetoothA2dp.Stub.asInterface(service);
+    }
+
+    /** @hide */
+    @Override
+    public void onServiceDisconnected() {
+        mService = null;
     }
 
     private IBluetoothA2dp getService() {
-        return IBluetoothA2dp.Stub.asInterface(mProfileConnector.getService());
+        return mService;
+    }
+
+    /** @hide */
+    @Override
+    public BluetoothAdapter getAdapter() {
+        return mAdapter;
     }
 
     @Override

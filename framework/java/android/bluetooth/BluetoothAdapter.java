@@ -60,12 +60,14 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.IpcDataCache;
 import android.os.ParcelUuid;
+import android.os.Process;
 import android.os.RemoteException;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
 import android.util.Pair;
 
 import com.android.internal.annotations.GuardedBy;
+import com.android.modules.expresslog.StatsExpressLog;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.io.IOException;
@@ -83,9 +85,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.BiFunction;
 
 /**
  * Represents the local device Bluetooth adapter. The {@link BluetoothAdapter}
@@ -832,6 +836,39 @@ public final class BluetoothAdapter {
      */
     public static final int SOCKET_CHANNEL_AUTO_STATIC_NO_SDP = -2;
 
+    /** @hide */
+    public static final Map<Integer, BiFunction<Context, BluetoothAdapter, BluetoothProfile>>
+            PROFILE_CONSTRUCTORS =
+                    Map.ofEntries(
+                            Map.entry(BluetoothProfile.HEADSET, BluetoothHeadset::new),
+                            Map.entry(BluetoothProfile.A2DP, BluetoothA2dp::new),
+                            Map.entry(BluetoothProfile.A2DP_SINK, BluetoothA2dpSink::new),
+                            Map.entry(
+                                    BluetoothProfile.AVRCP_CONTROLLER,
+                                    BluetoothAvrcpController::new),
+                            Map.entry(BluetoothProfile.HID_HOST, BluetoothHidHost::new),
+                            Map.entry(BluetoothProfile.PAN, BluetoothPan::new),
+                            Map.entry(BluetoothProfile.PBAP, BluetoothPbap::new),
+                            Map.entry(BluetoothProfile.MAP, BluetoothMap::new),
+                            Map.entry(BluetoothProfile.HEADSET_CLIENT, BluetoothHeadsetClient::new),
+                            Map.entry(BluetoothProfile.SAP, BluetoothSap::new),
+                            Map.entry(BluetoothProfile.PBAP_CLIENT, BluetoothPbapClient::new),
+                            Map.entry(BluetoothProfile.MAP_CLIENT, BluetoothMapClient::new),
+                            Map.entry(BluetoothProfile.HID_DEVICE, BluetoothHidDevice::new),
+                            Map.entry(BluetoothProfile.HAP_CLIENT, BluetoothHapClient::new),
+                            Map.entry(BluetoothProfile.HEARING_AID, BluetoothHearingAid::new),
+                            Map.entry(BluetoothProfile.LE_AUDIO, BluetoothLeAudio::new),
+                            Map.entry(
+                                    BluetoothProfile.LE_AUDIO_BROADCAST, BluetoothLeBroadcast::new),
+                            Map.entry(BluetoothProfile.VOLUME_CONTROL, BluetoothVolumeControl::new),
+                            Map.entry(
+                                    BluetoothProfile.CSIP_SET_COORDINATOR,
+                                    BluetoothCsipSetCoordinator::new),
+                            Map.entry(
+                                    BluetoothProfile.LE_CALL_CONTROL, BluetoothLeCallControl::new),
+                            Map.entry(
+                                    BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT,
+                                    BluetoothLeBroadcastAssistant::new));
 
     private static final int ADDRESS_LENGTH = 17;
 
@@ -874,6 +911,9 @@ public final class BluetoothAdapter {
             mAudioProfilesChangedCallbackExecutorMap = new HashMap<>();
     private final Map<BluetoothQualityReportReadyCallback, Executor>
             mBluetoothQualityReportReadyCallbackExecutorMap = new HashMap<>();
+
+    private final Map<BluetoothProfile, BluetoothProfileConnector> mProfileConnectors =
+            new ConcurrentHashMap<>();
 
     /**
      * Bluetooth metadata listener. Overrides the default BluetoothMetadataListener
@@ -3627,80 +3667,74 @@ public final class BluetoothAdapter {
             return false;
         }
 
-        if (profile == BluetoothProfile.HEADSET) {
-            BluetoothHeadset headset = new BluetoothHeadset(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.A2DP) {
-            BluetoothA2dp a2dp = new BluetoothA2dp(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.A2DP_SINK) {
-            BluetoothA2dpSink a2dpSink = new BluetoothA2dpSink(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.AVRCP_CONTROLLER) {
-            BluetoothAvrcpController avrcp = new BluetoothAvrcpController(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.HID_HOST) {
-            BluetoothHidHost iDev = new BluetoothHidHost(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.PAN) {
-            BluetoothPan pan = new BluetoothPan(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.PBAP) {
-            BluetoothPbap pbap = new BluetoothPbap(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.HEALTH) {
+        if (profile == BluetoothProfile.HEALTH) {
             Log.e(TAG, "getProfileProxy(): BluetoothHealth is deprecated");
             return false;
-        } else if (profile == BluetoothProfile.MAP) {
-            BluetoothMap map = new BluetoothMap(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.HEADSET_CLIENT) {
-            BluetoothHeadsetClient headsetClient =
-                    new BluetoothHeadsetClient(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.SAP) {
-            BluetoothSap sap = new BluetoothSap(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.PBAP_CLIENT) {
-            BluetoothPbapClient pbapClient = new BluetoothPbapClient(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.MAP_CLIENT) {
-            BluetoothMapClient mapClient = new BluetoothMapClient(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.HID_DEVICE) {
-            BluetoothHidDevice hidDevice = new BluetoothHidDevice(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.HAP_CLIENT) {
-            BluetoothHapClient HapClient = new BluetoothHapClient(context, listener);
-            return true;
-        } else if (profile == BluetoothProfile.HEARING_AID) {
-            if (isHearingAidProfileSupported()) {
-                BluetoothHearingAid hearingAid = new BluetoothHearingAid(context, listener, this);
-                return true;
+        }
+
+        if (profile == BluetoothProfile.HEARING_AID && !isHearingAidProfileSupported()) {
+            Log.e(TAG, "getProfileProxy(): BluetoothHearingAid is not supported");
+            return false;
+        }
+
+        BiFunction<Context, BluetoothAdapter, BluetoothProfile> constructor =
+                PROFILE_CONSTRUCTORS.get(profile);
+
+        if (constructor == null) {
+            Log.e(TAG, "getProfileProxy(): Unknown profile " + profile);
+            return false;
+        }
+
+        BluetoothProfile profileProxy = constructor.apply(context, this);
+
+        BluetoothProfileConnector connector = new BluetoothProfileConnector(profileProxy, profile);
+        mProfileConnectors.put(profileProxy, connector);
+        connector.connect(context, listener);
+
+        return true;
+    }
+
+    /**
+     * Close the connection of the profile proxy to the Service.
+     *
+     * <p>Clients should call this when they are no longer using the proxy obtained from {@link
+     * #getProfileProxy}.
+     *
+     * @param proxy Profile proxy object
+     * @hide
+     */
+    public void closeProfileProxy(@NonNull BluetoothProfile proxy) {
+        if (proxy instanceof BluetoothGatt gatt) {
+            gatt.close();
+            return;
+        } else if (proxy instanceof BluetoothGattServer gatt) {
+            gatt.close();
+            return;
+        }
+
+        if (proxy.getAdapter() != this) {
+            Log.e(
+                    TAG,
+                    "closeProfileProxy(): Called on wrong instance was "
+                            + proxy.getAdapter()
+                            + " but expected "
+                            + this);
+            // farmhash::Fingerprint64("bluetooth.value_close_profile_proxy_adapter_mismatch")
+            // TODO(b/310684444): Remove this magic value
+            long metricIdHash = 5174922474613897731L;
+            StatsExpressLog.write(
+                    StatsExpressLog.EXPRESS_UID_EVENT_REPORTED, metricIdHash, 1, Process.myUid());
+            proxy.getAdapter().closeProfileProxy(proxy);
+            return;
+        }
+
+        BluetoothProfileConnector connector = mProfileConnectors.remove(proxy);
+        if (connector != null) {
+            if (proxy instanceof BluetoothLeCallControl callControl) {
+                callControl.unregisterBearer();
             }
-            return false;
-        } else if (profile == BluetoothProfile.LE_AUDIO) {
-            BluetoothLeAudio leAudio = new BluetoothLeAudio(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.LE_AUDIO_BROADCAST) {
-            BluetoothLeBroadcast leAudio = new BluetoothLeBroadcast(context, listener);
-            return true;
-        } else if (profile == BluetoothProfile.VOLUME_CONTROL) {
-            BluetoothVolumeControl vcs = new BluetoothVolumeControl(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.CSIP_SET_COORDINATOR) {
-            BluetoothCsipSetCoordinator csipSetCoordinator =
-                    new BluetoothCsipSetCoordinator(context, listener, this);
-            return true;
-        } else if (profile == BluetoothProfile.LE_CALL_CONTROL) {
-            BluetoothLeCallControl tbs = new BluetoothLeCallControl(context, listener);
-            return true;
-        } else if (profile == BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT) {
-            BluetoothLeBroadcastAssistant leAudioBroadcastAssistant =
-                    new BluetoothLeBroadcastAssistant(context, listener);
-            return true;
-        } else {
-            return false;
+
+            connector.disconnect();
         }
     }
 
@@ -3719,7 +3753,7 @@ public final class BluetoothAdapter {
         if (proxy == null) {
             return;
         }
-        proxy.close();
+        closeProfileProxy(proxy);
     }
 
     private static final IBluetoothManagerCallback sManagerCallback =

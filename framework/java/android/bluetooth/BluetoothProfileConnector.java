@@ -46,7 +46,6 @@ public final class BluetoothProfileConnector extends Handler {
     private final BluetoothProfile mProfileProxy;
     private String mPackageName;
     private final IBluetoothManager mBluetoothManager;
-    private volatile IBinder mService;
     private boolean mBound = false;
 
     private static final int MESSAGE_SERVICE_CONNECTED = 100;
@@ -71,7 +70,7 @@ public final class BluetoothProfileConnector extends Handler {
                             TAG,
                             "Proxy object connected for "
                                     + BluetoothProfile.getProfileName(mProfileId));
-                    mService = service;
+                    mProfileProxy.onServiceConnected(service);
                     sendEmptyMessage(MESSAGE_SERVICE_CONNECTED);
                 }
 
@@ -81,9 +80,9 @@ public final class BluetoothProfileConnector extends Handler {
                             TAG,
                             "Proxy object disconnected for "
                                     + BluetoothProfile.getProfileName(mProfileId));
-                    IBinder service = mService;
+                    boolean bound = mBound;
                     doUnbind();
-                    if (service != null) {
+                    if (bound) {
                         sendEmptyMessage(MESSAGE_SERVICE_DISCONNECTED);
                     }
                 }
@@ -160,7 +159,7 @@ public final class BluetoothProfileConnector extends Handler {
                                     + BluetoothProfile.getProfileName(mProfileId),
                             re);
                 } finally {
-                    mService = null;
+                    mProfileProxy.onServiceDisconnected();
                 }
             }
         }
@@ -203,10 +202,6 @@ public final class BluetoothProfileConnector extends Handler {
         } catch (RemoteException re) {
             Log.e(TAG, "Failed to unregister state change callback", re);
         }
-    }
-
-    IBinder getService() {
-        return mService;
     }
 
     @Override
