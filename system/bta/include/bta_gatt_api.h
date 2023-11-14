@@ -33,6 +33,7 @@
 #include <vector>
 
 #include "bta/gatt/database.h"
+#include "hardware/bt_gatt_types.h"
 #include "stack/include/gatt_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"

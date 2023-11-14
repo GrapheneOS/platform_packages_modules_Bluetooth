@@ -21,11 +21,14 @@
  *  this file contains the GATT server functions
  *
  ******************************************************************************/
-#include <algorithm>
+#include <base/logging.h>
 #include <string.h>
+
+#include <algorithm>
 
 #include "bt_target.h"
 #include "gatt_int.h"
+#include "hardware/bt_gatt_types.h"
 #include "l2c_api.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
@@ -36,7 +39,6 @@
 #include "stack/include/bt_types.h"
 #include "stack/l2cap/l2c_int.h"
 #include "types/bluetooth/uuid.h"
-#include <base/logging.h>
 
 #define GATT_MTU_REQ_MIN_LEN 2
 #define L2CAP_PKT_OVERHEAD 4
