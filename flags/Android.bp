@@ -11,7 +11,6 @@ aconfig_declarations {
         "audio_routing.aconfig",
         "framework.aconfig",
         "gap.aconfig",
-        "gatt.aconfig",
         "hap.aconfig",
         "hfp.aconfig",
         "leaudio.aconfig",
