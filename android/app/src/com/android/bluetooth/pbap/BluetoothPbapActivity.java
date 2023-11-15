@@ -53,6 +53,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.R;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -87,9 +88,9 @@ public class BluetoothPbapActivity extends AlertActivity
 
     private boolean mTimeout = false;
 
-    private static final int DISMISS_TIMEOUT_DIALOG = 0;
+    @VisibleForTesting static final int DISMISS_TIMEOUT_DIALOG = 0;
 
-    private static final int DISMISS_TIMEOUT_DIALOG_VALUE = 2000;
+    @VisibleForTesting static final long DISMISS_TIMEOUT_DIALOG_DELAY_MS = 2_000;
 
     private BluetoothDevice mDevice;
 
@@ -218,8 +219,9 @@ public class BluetoothPbapActivity extends AlertActivity
             changeButtonVisibility(DialogInterface.BUTTON_NEGATIVE, View.GONE);
         }
 
-        mTimeoutHandler.sendMessageDelayed(mTimeoutHandler.obtainMessage(DISMISS_TIMEOUT_DIALOG),
-                DISMISS_TIMEOUT_DIALOG_VALUE);
+        BluetoothMethodProxy.getInstance()
+                .handlerSendMessageDelayed(
+                        mTimeoutHandler, DISMISS_TIMEOUT_DIALOG, DISMISS_TIMEOUT_DIALOG_DELAY_MS);
     }
 
     @Override
