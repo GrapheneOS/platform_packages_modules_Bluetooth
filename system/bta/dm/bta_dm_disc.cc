@@ -2443,6 +2443,15 @@ namespace bluetooth {
 namespace legacy {
 namespace testing {
 
+tBTA_DM_SEARCH_CB bta_dm_disc_get_search_cb() {
+  tBTA_DM_SEARCH_CB search_cb = {};
+  ::bta_dm_disc_init_search_cb(search_cb);
+  return search_cb;
+}
+void bta_dm_disc_search_cb(const tBTA_DM_SEARCH_CB& search_cb) {
+  ::bta_dm_search_cb = search_cb;
+}
+const tBTA_DM_SEARCH_CB& bta_dm_disc_search_cb() { return ::bta_dm_search_cb; }
 bool bta_dm_read_remote_device_name(const RawAddress& bd_addr,
                                     tBT_TRANSPORT transport) {
   return ::bta_dm_read_remote_device_name(bd_addr, transport);
