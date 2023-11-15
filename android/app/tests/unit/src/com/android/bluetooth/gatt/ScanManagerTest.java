@@ -67,8 +67,6 @@ import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.BluetoothAdapterProxy;
 import com.android.bluetooth.btservice.MetricsLogger;
-import com.android.bluetooth.flags.FakeFeatureFlagsImpl;
-import com.android.bluetooth.flags.Flags;
 import com.android.internal.app.IBatteryStats;
 
 import java.util.ArrayList;
@@ -126,7 +124,6 @@ public class ScanManagerTest {
     @Mock private ScanNativeInterface mScanNativeInterface;
     @Mock private MetricsLogger  mMetricsLogger;
 
-    private FakeFeatureFlagsImpl mFakeFlagsImpl;
     private MockContentResolver mMockContentResolver;
     @Captor ArgumentCaptor<Long> mScanDurationCaptor;
 
@@ -184,10 +181,7 @@ public class ScanManagerTest {
         doReturn(mTargetContext.getUser()).when(mMockGattService).getUser();
         doReturn(mTargetContext.getPackageName()).when(mMockGattService).getPackageName();
 
-        mFakeFlagsImpl = new FakeFeatureFlagsImpl();
-        mScanManager =
-                new ScanManager(
-                        mMockGattService, mAdapterService, mBluetoothAdapterProxy, mFakeFlagsImpl);
+        mScanManager = new ScanManager(mMockGattService, mAdapterService, mBluetoothAdapterProxy);
 
         mHandler = mScanManager.getClientHandler();
         assertThat(mHandler).isNotNull();
@@ -1389,10 +1383,6 @@ public class ScanManagerTest {
 
     @Test
     public void profileConnectionStateChanged_sendStartConnectionMessage() {
-        // This test shouldn't be impacted by this flag. Setting it to false to ensure it passes
-        // with the older behavior. Tested flag set to true locally to make sure it doesn't fail
-        // when flag is removed.
-        mFakeFlagsImpl.setFlag(Flags.FLAG_ENABLE_QUEUING_PROFILE_CONNECTION_CHANGE, false);
         // Set scan downgrade duration through Mock
         when(mAdapterService.getScanDowngradeDurationMillis())
                 .thenReturn((long) DELAY_SCAN_DOWNGRADE_DURATION_MS);
@@ -1411,7 +1401,6 @@ public class ScanManagerTest {
     @Test
     public void multipleProfileConnectionStateChanged_updateCountersCorrectly()
             throws ExecutionException, InterruptedException {
-        mFakeFlagsImpl.setFlag(Flags.FLAG_ENABLE_QUEUING_PROFILE_CONNECTION_CHANGE, true);
         when(mAdapterService.getScanDowngradeDurationMillis())
                 .thenReturn((long) DELAY_SCAN_DOWNGRADE_DURATION_MS);
         assertThat(mScanManager.mIsConnecting).isFalse();

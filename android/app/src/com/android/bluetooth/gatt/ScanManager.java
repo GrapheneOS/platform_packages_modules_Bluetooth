@@ -46,7 +46,6 @@ import android.view.Display;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.BluetoothAdapterProxy;
-import com.android.bluetooth.flags.FeatureFlags;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -57,7 +56,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -121,7 +119,6 @@ public class ScanManager {
     private int mCurUsedTrackableAdvertisements = 0;
     private final GattService mService;
     private final AdapterService mAdapterService;
-    private final FeatureFlags mFeatureFlags;
     private BroadcastReceiver mBatchAlarmReceiver;
     private boolean mBatchAlarmReceiverRegistered;
     private ScanNative mScanNative;
@@ -163,8 +160,7 @@ public class ScanManager {
     ScanManager(
             GattService service,
             AdapterService adapterService,
-            BluetoothAdapterProxy bluetoothAdapterProxy,
-            FeatureFlags featureFlags) {
+            BluetoothAdapterProxy bluetoothAdapterProxy) {
         mRegularScanClients =
                 Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
         mBatchClients = Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
@@ -178,7 +174,6 @@ public class ScanManager {
         mLocationManager = mAdapterService.getSystemService(LocationManager.class);
         mBluetoothAdapterProxy = bluetoothAdapterProxy;
         mIsConnecting = false;
-        mFeatureFlags = Objects.requireNonNull(featureFlags, "Feature Flags cannot be null");
 
         mPriorityMap.put(ScanSettings.SCAN_MODE_OPPORTUNISTIC, 0);
         mPriorityMap.put(ScanSettings.SCAN_MODE_SCREEN_OFF, 1);
@@ -2047,38 +2042,16 @@ public class ScanManager {
      */
     public void handleBluetoothProfileConnectionStateChanged(
             int profile, int fromState, int toState) {
-        if (mFeatureFlags.enableQueuingProfileConnectionChange()) {
-            if (mHandler == null) {
-                Log.d(TAG, "handleBluetoothProfileConnectionStateChanged: mHandler is null.");
-                return;
-            }
-            mHandler.obtainMessage(
-                            MSG_BT_PROFILE_CONN_STATE_CHANGED,
-                            fromState,
-                            toState,
-                            Integer.valueOf(profile))
-                    .sendToTarget();
+        if (mHandler == null) {
+            Log.d(TAG, "handleBluetoothProfileConnectionStateChanged: mHandler is null.");
             return;
         }
-        boolean updatedConnectingState =
-                updateCountersAndCheckForConnectingState(toState, fromState);
-        if (DBG) {
-            Log.d(
-                    TAG,
-                    "PROFILE_CONNECTION_STATE_CHANGE:"
-                            + (" profile=" + BluetoothProfile.getProfileName(profile))
-                            + (", prevState=" + fromState)
-                            + (", state=" + toState)
-                            + ("updatedConnectingState = " + updatedConnectingState));
-        }
-        if (updatedConnectingState) {
-            if (!mIsConnecting) {
-                sendMessage(MSG_START_CONNECTING, null);
-            }
-        } else {
-            if (mIsConnecting) {
-                sendMessage(MSG_STOP_CONNECTING, null);
-            }
-        }
+        mHandler.obtainMessage(
+                        MSG_BT_PROFILE_CONN_STATE_CHANGED,
+                        fromState,
+                        toState,
+                        Integer.valueOf(profile))
+                .sendToTarget();
+        return;
     }
 }
