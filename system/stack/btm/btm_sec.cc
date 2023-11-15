@@ -754,15 +754,14 @@ void BTM_PINCodeReply(const RawAddress& bd_addr, tBTM_STATUS res,
  * Description      this is the bond function that will start either SSP or SMP.
  *
  * Parameters:      bd_addr      - Address of the device to bond
- *                  pin_len      - length in bytes of the PIN Code
- *                  p_pin        - pointer to array with the PIN Code
+ *                  addr_type    - type of the address
+ *                  transport    - transport on which to create bond
  *
  *  Note: After 2.1 parameters are not used and preserved here not to change API
  ******************************************************************************/
 tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
                                       tBLE_ADDR_TYPE addr_type,
-                                      tBT_TRANSPORT transport, uint8_t pin_len,
-                                      uint8_t* p_pin) {
+                                      tBT_TRANSPORT transport) {
   tBTM_SEC_DEV_REC* p_dev_rec;
   tBTM_STATUS status;
   LOG_INFO("%s: Transport used %d, bd_addr=%s", __func__, transport,
@@ -803,13 +802,6 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
   if ((BTM_DeleteStoredLinkKey(&bd_addr, NULL)) != BTM_SUCCESS) {
     LOG_ERROR("Failed to delete stored link keys");
     return (BTM_NO_RESOURCES);
-  }
-
-  /* Save the PIN code if we got a valid one */
-  if (p_pin && (pin_len <= PIN_CODE_LEN) && (pin_len != 0)) {
-    btm_sec_cb.pin_code_len = pin_len;
-    p_dev_rec->pin_code_length = pin_len;
-    memcpy(btm_sec_cb.pin_code, p_pin, PIN_CODE_LEN);
   }
 
   btm_sec_cb.pairing_bda = bd_addr;
@@ -921,14 +913,11 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
  *
  * Parameters:      bd_addr      - Address of the device to bond
  *                  transport    - doing SSP over BR/EDR or SMP over LE
- *                  pin_len      - length in bytes of the PIN Code
- *                  p_pin        - pointer to array with the PIN Code
  *
  *  Note: After 2.1 parameters are not used and preserved here not to change API
  ******************************************************************************/
 tBTM_STATUS BTM_SecBond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
-                        tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type,
-                        uint8_t pin_len, uint8_t* p_pin) {
+                        tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type) {
   if (transport == BT_TRANSPORT_AUTO) {
     if (addr_type == BLE_ADDR_PUBLIC) {
       transport =
@@ -950,8 +939,7 @@ tBTM_STATUS BTM_SecBond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
         "device on don't match");
     return BTM_ILLEGAL_ACTION;
   }
-  return btm_sec_bond_by_transport(bd_addr, addr_type, transport, pin_len,
-                                   p_pin);
+  return btm_sec_bond_by_transport(bd_addr, addr_type, transport);
 }
 
 /*******************************************************************************
