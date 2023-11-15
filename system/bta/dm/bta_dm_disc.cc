@@ -16,17 +16,14 @@
 
 #define LOG_TAG "bt_bta_dm"
 
-#include <base/logging.h>
-#ifdef __ANDROID__
-#include <bta.sysprop.h>
-#endif
+#include "bta/dm/bta_dm_disc.h"
 
+#include <base/logging.h>
 #include <base/strings/stringprintf.h>
 #include <stddef.h>
 
 #include <cstdint>
 
-#include "bta/dm/bta_dm_disc.h"
 #include "bta/dm/bta_dm_int.h"
 #include "bta/include/bta_api.h"
 #include "bta/include/bta_gatt_api.h"

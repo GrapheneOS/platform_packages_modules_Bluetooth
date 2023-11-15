@@ -599,6 +599,7 @@ cc_fuzz {
         "fuzzers/avrc_fuzzer.cc",
     ],
     static_libs: [
+        "libbase",
         "libbluetooth-types",
         "libbluetooth_hci_pdl",
         "libbluetooth_l2cap_pdl",
@@ -606,16 +607,10 @@ cc_fuzz {
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
+        "libcom.android.sysprop.bluetooth.wrapped",
         "libgmock",
         "libosi",
     ],
-    target: {
-        android: {
-            static_libs: [
-                "libcom.android.sysprop.bluetooth.wrapped",
-            ],
-        },
-    },
 }
 
 cc_fuzz {
@@ -1538,6 +1533,7 @@ cc_test {
         "test/stack_include_test.cc",
     ],
     static_libs: [
+        "libbase",
         "libbluetooth-types",
         "libbluetooth_gd",
         "libbt-common",

@@ -23,10 +23,7 @@
  ******************************************************************************/
 #include "avrc_api.h"
 
-#ifdef __ANDROID__
-#include <a2dp.sysprop.h>
-#include <avrcp.sysprop.h>
-#endif
+#include <android_bluetooth_sysprop.h>
 #include <base/logging.h>
 #include <string.h>
 
@@ -90,13 +87,7 @@ static const uint8_t avrc_ctrl_event_map[] = {
  *
  *****************************************************************************/
 bool avrcp_absolute_volume_is_enabled() {
-#ifdef __ANDROID__
-  static const bool absolute_volume =
-      android::sysprop::bluetooth::Avrcp::absolute_volume().value_or(true);
-  return absolute_volume;
-#else
-  return true;
-#endif
+  return GET_SYSPROP(Avrcp, absolute_volume, true);
 }
 
 /******************************************************************************
@@ -1194,9 +1185,7 @@ uint16_t AVRC_MsgReq(uint8_t handle, uint8_t label, uint8_t ctype,
   LOG_VERBOSE("%s handle = %u label = %u ctype = %u len = %d", __func__, handle,
               label, ctype, p_pkt->len);
   /* Handle for AVRCP fragment */
-#ifdef __ANDROID__
-  if (!android::sysprop::bluetooth::A2dp::src_sink_coexist().value_or(false))
-#endif
+  if (!GET_SYSPROP(A2dp, src_sink_coexist, false))
     is_new_avrcp =
         osi_property_get_bool("bluetooth.profile.avrcp.target.enabled", false);
   if (ctype >= AVRC_RSP_NOT_IMPL) cr = AVCT_RSP;
