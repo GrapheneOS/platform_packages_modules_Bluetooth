@@ -429,11 +429,11 @@ class PublishedAudioCapabilitiesBuilder {
   void Add(const CodecConfigSetting& setting, uint8_t audio_channel_counts) {
     if (setting.id != LeAudioCodecIdLc3) return;
 
-    const LeAudioCoreCodecConfig config =
-        std::get<LeAudioCoreCodecConfig>(setting.config);
-
-    Add(setting.id, *config.sampling_frequency, *config.frame_duration,
-        audio_channel_counts, *config.octets_per_codec_frame);
+    const LeAudioCoreCodecConfig core_config =
+        setting.params.GetAsCoreCodecConfig();
+    Add(setting.id, *core_config.sampling_frequency,
+        *core_config.frame_duration, audio_channel_counts,
+        *core_config.octets_per_codec_frame);
   }
 
   void Reset() { pac_records_.clear(); }
@@ -575,12 +575,12 @@ class LeAudioAseConfigurationTest : public Test {
 
     for (ase* ase = data.device->GetFirstActiveAse(); ase;
          ase = data.device->GetNextActiveAse(ase)) {
+      auto core_config = ase->codec_config.GetAsCoreCodecConfig();
+
       if (ase->direction == kLeAudioDirectionSink)
-        active_channel_num_snk +=
-            GetAudioChannelCounts(*ase->codec_config.audio_channel_allocation);
+        active_channel_num_snk += core_config.GetChannelCountPerIsoStream();
       else
-        active_channel_num_src +=
-            GetAudioChannelCounts(*ase->codec_config.audio_channel_allocation);
+        active_channel_num_src += core_config.GetChannelCountPerIsoStream();
     }
 
     bool result = true;
@@ -785,9 +785,10 @@ class LeAudioAseConfigurationTest : public Test {
         /* FIXME: Validate other codec parameters than LC3 if any */
         ASSERT_EQ(ase.codec_id, LeAudioCodecIdLc3);
         if (ase.codec_id == LeAudioCodecIdLc3) {
-          ASSERT_EQ(ase.codec_config.sampling_frequency, sampling_frequency);
-          ASSERT_EQ(ase.codec_config.frame_duration, frame_duration);
-          ASSERT_EQ(ase.codec_config.octets_per_codec_frame, octets_per_frame);
+          auto core_config = ase.codec_config.GetAsCoreCodecConfig();
+          ASSERT_EQ(core_config.sampling_frequency, sampling_frequency);
+          ASSERT_EQ(core_config.frame_duration, frame_duration);
+          ASSERT_EQ(core_config.octets_per_codec_frame, octets_per_frame);
         }
       }
     }
@@ -1500,9 +1501,11 @@ TEST_F(LeAudioAseConfigurationTest, test_reconnection_media) {
   /* Prepare reconfiguration */
   uint8_t number_of_active_ases = 1;  // Right one
   auto* ase = right->GetFirstActiveAseByDirection(kLeAudioDirectionSink);
+
+  auto core_config = ase->codec_config.GetAsCoreCodecConfig();
   BidirectionalPair<AudioLocations> group_audio_locations = {
-      .sink = *ase->codec_config.audio_channel_allocation,
-      .source = *ase->codec_config.audio_channel_allocation};
+      .sink = *core_config.audio_channel_allocation,
+      .source = *core_config.audio_channel_allocation};
 
   /* Get entry for the sink direction and use it to set configuration */
   BidirectionalPair<std::vector<uint8_t>> ccid_lists = {{}, {}};

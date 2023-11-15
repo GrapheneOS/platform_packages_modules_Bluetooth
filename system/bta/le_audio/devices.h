@@ -180,7 +180,7 @@ class LeAudioDevice {
   const struct types::acs_ac_record* GetCodecConfigurationSupportedPac(
       uint8_t direction,
       const set_configurations::CodecConfigSetting& codec_capability_setting);
-  uint8_t GetLc3SupportedChannelCount(uint8_t direction);
+  uint8_t GetSupportedAudioChannelCounts(uint8_t direction) const;
   uint8_t GetPhyBitmask(void);
   bool ConfigureAses(
       const le_audio::set_configurations::SetConfiguration& ent,

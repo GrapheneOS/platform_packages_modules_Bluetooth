@@ -108,6 +108,7 @@ using le_audio::types::CisState;
 using le_audio::types::CodecLocation;
 using le_audio::types::DataPathState;
 using le_audio::types::LeAudioContextType;
+using le_audio::types::LeAudioCoreCodecConfig;
 
 namespace {
 
@@ -1171,55 +1172,55 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     ASSERT_LOG(iter == params.stream_locations.end(),
                "Stream is already there 0x%04x", cis_conn_hdl);
 
-    params.num_of_devices++;
-    params.num_of_channels += ase->codec_config.channel_count;
+    auto core_config = ase->codec_config.GetAsCoreCodecConfig();
 
-    if (!ase->codec_config.audio_channel_allocation.has_value()) {
+    params.num_of_devices++;
+    params.num_of_channels += core_config.GetChannelCountPerIsoStream();
+
+    if (!core_config.audio_channel_allocation.has_value()) {
       LOG_WARN("ASE has invalid audio location");
     }
     auto ase_audio_channel_allocation =
-        ase->codec_config.audio_channel_allocation.value_or(0);
+        core_config.audio_channel_allocation.value_or(0);
     params.audio_channel_allocation |= ase_audio_channel_allocation;
     params.stream_locations.emplace_back(
         std::make_pair(ase->cis_conn_hdl, ase_audio_channel_allocation));
 
     if (params.sample_frequency_hz == 0) {
-      params.sample_frequency_hz = ase->codec_config.GetSamplingFrequencyHz();
+      params.sample_frequency_hz = core_config.GetSamplingFrequencyHz();
     } else {
-      ASSERT_LOG(params.sample_frequency_hz ==
-                     ase->codec_config.GetSamplingFrequencyHz(),
-                 "sample freq mismatch: %d!=%d", params.sample_frequency_hz,
-                 ase->codec_config.GetSamplingFrequencyHz());
+      ASSERT_LOG(
+          params.sample_frequency_hz == core_config.GetSamplingFrequencyHz(),
+          "sample freq mismatch: %d!=%d", params.sample_frequency_hz,
+          core_config.GetSamplingFrequencyHz());
     }
 
     if (params.octets_per_codec_frame == 0) {
-      params.octets_per_codec_frame = *ase->codec_config.octets_per_codec_frame;
+      params.octets_per_codec_frame = *core_config.octets_per_codec_frame;
     } else {
-      ASSERT_LOG(params.octets_per_codec_frame ==
-                     *ase->codec_config.octets_per_codec_frame,
-                 "octets per frame mismatch: %d!=%d",
-                 params.octets_per_codec_frame,
-                 *ase->codec_config.octets_per_codec_frame);
+      ASSERT_LOG(
+          params.octets_per_codec_frame == *core_config.octets_per_codec_frame,
+          "octets per frame mismatch: %d!=%d", params.octets_per_codec_frame,
+          *core_config.octets_per_codec_frame);
     }
 
     if (params.codec_frames_blocks_per_sdu == 0) {
       params.codec_frames_blocks_per_sdu =
-          *ase->codec_config.codec_frames_blocks_per_sdu;
+          *core_config.codec_frames_blocks_per_sdu;
     } else {
       ASSERT_LOG(params.codec_frames_blocks_per_sdu ==
-                     *ase->codec_config.codec_frames_blocks_per_sdu,
+                     *core_config.codec_frames_blocks_per_sdu,
                  "codec_frames_blocks_per_sdu: %d!=%d",
                  params.codec_frames_blocks_per_sdu,
-                 *ase->codec_config.codec_frames_blocks_per_sdu);
+                 *core_config.codec_frames_blocks_per_sdu);
     }
 
     if (params.frame_duration_us == 0) {
-      params.frame_duration_us = ase->codec_config.GetFrameDurationUs();
+      params.frame_duration_us = core_config.GetFrameDurationUs();
     } else {
-      ASSERT_LOG(
-          params.frame_duration_us == ase->codec_config.GetFrameDurationUs(),
-          "frame_duration_us: %d!=%d", params.frame_duration_us,
-          ase->codec_config.GetFrameDurationUs());
+      ASSERT_LOG(params.frame_duration_us == core_config.GetFrameDurationUs(),
+                 "frame_duration_us: %d!=%d", params.frame_duration_us,
+                 core_config.GetFrameDurationUs());
     }
 
     LOG_INFO(
@@ -1654,8 +1655,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       conf.target_latency = ase->target_latency;
       conf.target_phy = group->GetTargetPhy(ase->direction);
       conf.codec_id = ase->codec_id;
-      // FIXME: Use LtvMap in ASE
-      conf.codec_config = ase->codec_config.GetAsLtvMap();
+      conf.codec_config = ase->codec_config;
       confs.push_back(conf);
 
       msg_stream << "ASE_ID " << +conf.ase_id << ",";

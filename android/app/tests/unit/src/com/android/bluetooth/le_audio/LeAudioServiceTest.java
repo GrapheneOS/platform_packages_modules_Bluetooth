@@ -171,6 +171,11 @@ public class LeAudioServiceTest {
         LeAudioObjectsFactory.setInstanceForTesting(mObjectsFactory);
         doReturn(mTmapGattServer).when(mObjectsFactory).getTmapGattServer(any());
 
+        /* If previous test failed, make sure to clear adapter. */
+        if (AdapterService.getAdapterService() != null) {
+            TestUtils.clearAdapterService(AdapterService.getAdapterService());
+        }
+
         TestUtils.setAdapterService(mAdapterService);
         doReturn(MAX_LE_AUDIO_CONNECTIONS).when(mAdapterService).getMaxConnectedAudioDevices();
         doReturn(new ParcelUuid[]{BluetoothUuid.LE_AUDIO}).when(mAdapterService)
@@ -242,11 +247,16 @@ public class LeAudioServiceTest {
             return;
         }
 
-        mTargetContext.unregisterReceiver(mLeAudioIntentReceiver);
+        if (mLeAudioIntentReceiver != null) {
+            mTargetContext.unregisterReceiver(mLeAudioIntentReceiver);
+        }
+
         mBondedDevices.clear();
         mGroupIntentQueue.clear();
         stopService();
-        mDeviceQueueMap.clear();
+        if (mDeviceQueueMap != null) {
+            mDeviceQueueMap.clear();
+        }
         TestUtils.clearAdapterService(mAdapterService);
         LeAudioNativeInterface.setInstance(null);
     }
