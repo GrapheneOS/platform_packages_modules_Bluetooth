@@ -246,120 +246,65 @@ uint8_t get_num_of_devices_in_configuration(
   return min_req_devices_cnt(audio_set_conf);
 }
 
-static bool IsCodecConfigurationSupported(
-    const types::LeAudioLtvMap& pacs,
-    const LeAudioCoreCodecConfig& lc3_config) {
-  const auto& reqs = lc3_config.GetAsLtvMap();
-  uint8_t u8_req_val, u8_pac_val;
-  uint16_t u16_req_val, u16_pac_val;
+static bool IsCodecConfigCoreSupported(const types::LeAudioLtvMap& pacs,
+                                       const types::LeAudioLtvMap& reqs) {
+  auto caps = pacs.GetAsCoreCodecCapabilities();
+  auto config = reqs.GetAsCoreCodecConfig();
 
   /* Sampling frequency */
-  auto req = reqs.Find(codec_spec_conf::kLeAudioLtvTypeSamplingFreq);
-  auto pac =
-      pacs.Find(codec_spec_caps::kLeAudioLtvTypeSupportedSamplingFrequencies);
-  if (!req || !pac) {
-    LOG_DEBUG(", lack of sampling frequency fields");
+  if (!caps.HasSupportedSamplingFrequencies() || !config.sampling_frequency) {
+    LOG_DEBUG("Missing supported sampling frequencies capability");
+    return false;
+  }
+  if (!caps.IsSamplingFrequencyConfigSupported(
+          config.sampling_frequency.value())) {
+    LOG_DEBUG("Cfg: SamplingFrequency= 0x%04x",
+              config.sampling_frequency.value());
+    LOG_DEBUG("Cap: SupportedSamplingFrequencies= 0x%04x",
+              caps.supported_sampling_frequencies.value());
+    LOG_DEBUG("Sampling frequency not supported");
     return false;
   }
 
-  u8_req_val = VEC_UINT8_TO_UINT8(req.value());
-  u16_pac_val = VEC_UINT8_TO_UINT16(pac.value());
-
-  /* TODO: Integrate with codec capabilities */
-  if (!(u16_pac_val &
-        codec_spec_caps::SamplingFreqConfig2Capability(u8_req_val))) {
-    /*
-     * Note: Requirements are in the codec configuration specification which
-     * are values coming from Assigned Numbers: Codec_Specific_Configuration
-     */
-    LOG_DEBUG(
-        " Req:SamplFreq= 0x%04x (Assigned Numbers: "
-        "Codec_Specific_Configuration)",
-        u8_req_val);
-    /* NOTE: Below is Codec specific cababilities comes from Assigned Numbers:
-     * Codec_Specific_Capabilities
-     */
-    LOG_DEBUG(
-        " Pac:SamplFreq= 0x%04x  (Assigned numbers: "
-        "Codec_Specific_Capabilities - bitfield)",
-        u16_pac_val);
-
-    LOG_DEBUG(", sampling frequency not supported");
+  /* Channel counts */
+  if (!caps.IsAudioChannelCountsSupported(
+          config.GetChannelCountPerIsoStream())) {
+    LOG_DEBUG("Cfg: Allocated channel count= 0x%04x",
+              config.GetChannelCountPerIsoStream());
+    LOG_DEBUG("Cap: Supported channel counts= 0x%04x",
+              caps.supported_audio_channel_counts.value_or(1));
+    LOG_DEBUG("Channel count not supported");
     return false;
   }
 
   /* Frame duration */
-  req = reqs.Find(codec_spec_conf::kLeAudioLtvTypeFrameDuration);
-  pac = pacs.Find(codec_spec_caps::kLeAudioLtvTypeSupportedFrameDurations);
-  if (!req || !pac) {
-    LOG_DEBUG(", lack of frame duration fields");
+  if (!caps.HasSupportedFrameDurations() || !config.frame_duration) {
+    LOG_DEBUG("Missing supported frame durations capability");
     return false;
   }
-
-  u8_req_val = VEC_UINT8_TO_UINT8(req.value());
-  u8_pac_val = VEC_UINT8_TO_UINT8(pac.value());
-
-  if ((u8_req_val != codec_spec_conf::kLeAudioCodecFrameDur7500us &&
-       u8_req_val != codec_spec_conf::kLeAudioCodecFrameDur10000us) ||
-      !(u8_pac_val &
-        (codec_spec_caps::FrameDurationConfig2Capability(u8_req_val)))) {
-    LOG_DEBUG(" Req:FrameDur=0x%04x", u8_req_val);
-    LOG_DEBUG(" Pac:FrameDur=0x%04x", u8_pac_val);
-    LOG_DEBUG(", frame duration not supported");
-    return false;
-  }
-
-  uint8_t required_audio_chan_num = lc3_config.GetChannelCount();
-  pac = pacs.Find(codec_spec_caps::kLeAudioLtvTypeSupportedAudioChannelCounts);
-
-  /*
-   * BAP_Validation_r07 1.9.2 Audio channel support requirements
-   * "The Unicast Server shall support an Audio_Channel_Counts value of 0x01
-   * (0b00000001 = one channel) and may support other values defined by an
-   * implementation or by a higher-layer specification."
-   *
-   * Thus if Audio_Channel_Counts is not present in PAC LTV structure, we assume
-   * the Unicast Server supports mandatory one channel.
-   */
-  if (!pac) {
-    LOG_DEBUG(", no Audio_Channel_Counts field in PAC, using default 0x01");
-    u8_pac_val = 0x01;
-  } else {
-    u8_pac_val = VEC_UINT8_TO_UINT8(pac.value());
-  }
-
-  if (!((1 << (required_audio_chan_num - 1)) & u8_pac_val)) {
-    LOG_DEBUG(" Req:AudioChanCnt=0x%04x", 1 << (required_audio_chan_num - 1));
-    LOG_DEBUG(" Pac:AudioChanCnt=0x%04x", u8_pac_val);
-    LOG_DEBUG(", channel count warning");
+  if (!caps.IsFrameDurationConfigSupported(config.frame_duration.value())) {
+    LOG_DEBUG("Cfg: FrameDuration= 0x%04x", config.frame_duration.value());
+    LOG_DEBUG("Cap: SupportedFrameDurations= 0x%04x",
+              caps.supported_frame_durations.value());
+    LOG_DEBUG("Frame duration not supported");
     return false;
   }
 
   /* Octets per frame */
-  req = reqs.Find(codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame);
-  pac = pacs.Find(codec_spec_caps::kLeAudioLtvTypeSupportedOctetsPerCodecFrame);
-
-  if (!req || !pac) {
-    LOG_DEBUG(", lack of octet per frame fields");
+  if (!caps.HasSupportedOctetsPerCodecFrame() ||
+      !config.octets_per_codec_frame) {
+    LOG_DEBUG("Missing supported octets per codec frame");
     return false;
   }
-
-  u16_req_val = VEC_UINT8_TO_UINT16(req.value());
-  /* Minimal value 0-1 byte */
-  u16_pac_val = VEC_UINT8_TO_UINT16(pac.value());
-  if (u16_req_val < u16_pac_val) {
-    LOG_DEBUG(" Req:OctetsPerFrame=%d", int(u16_req_val));
-    LOG_DEBUG(" Pac:MinOctetsPerFrame=%d", int(u16_pac_val));
-    LOG_DEBUG(", octet per frame below minimum");
-    return false;
-  }
-
-  /* Maximal value 2-3 byte */
-  u16_pac_val = OFF_VEC_UINT8_TO_UINT16(pac.value(), 2);
-  if (u16_req_val > u16_pac_val) {
-    LOG_DEBUG(" Req:MaxOctetsPerFrame=%d", int(u16_req_val));
-    LOG_DEBUG(" Pac:MaxOctetsPerFrame=%d", int(u16_pac_val));
-    LOG_DEBUG(", octet per frame above maximum");
+  if (!caps.IsOctetsPerCodecFrameConfigSupported(
+          config.octets_per_codec_frame.value())) {
+    LOG_DEBUG("Cfg: Octets per frame=%d",
+              config.octets_per_codec_frame.value());
+    LOG_DEBUG("Cap: Min octets per frame=%d",
+              caps.supported_min_octets_per_codec_frame.value());
+    LOG_DEBUG("Cap: Max octets per frame=%d",
+              caps.supported_max_octets_per_codec_frame.value());
+    LOG_DEBUG("Octets per codec frame outside the capabilities");
     return false;
   }
 
@@ -367,9 +312,8 @@ static bool IsCodecConfigurationSupported(
 }
 
 bool IsCodecConfigSettingSupported(
-    const acs_ac_record& pac,
-    const CodecConfigSetting& codec_capability_setting) {
-  const auto& codec_id = codec_capability_setting.id;
+    const acs_ac_record& pac, const CodecConfigSetting& codec_config_setting) {
+  const auto& codec_id = codec_config_setting.id;
 
   if (codec_id != pac.codec_id) return false;
 
@@ -377,37 +321,34 @@ bool IsCodecConfigSettingSupported(
 
   switch (codec_id.coding_format) {
     case kLeAudioCodingFormatLC3:
-      return IsCodecConfigurationSupported(
-          pac.codec_spec_caps,
-          std::get<LeAudioCoreCodecConfig>(codec_capability_setting.config));
+      return IsCodecConfigCoreSupported(pac.codec_spec_caps,
+                                        codec_config_setting.params);
     default:
       return false;
   }
 }
 
-uint32_t CodecConfigSetting::GetConfigSamplingFrequency() const {
+uint32_t CodecConfigSetting::GetSamplingFrequencyHz() const {
   switch (id.coding_format) {
     case kLeAudioCodingFormatLC3:
-      return std::get<types::LeAudioCoreCodecConfig>(config)
-          .GetSamplingFrequencyHz();
+      return params.GetAsCoreCodecConfig().GetSamplingFrequencyHz();
     default:
       LOG_WARN(", invalid codec id: 0x%02x", id.coding_format);
       return 0;
   }
 };
 
-uint32_t CodecConfigSetting::GetConfigDataIntervalUs() const {
+uint32_t CodecConfigSetting::GetDataIntervalUs() const {
   switch (id.coding_format) {
     case kLeAudioCodingFormatLC3:
-      return std::get<types::LeAudioCoreCodecConfig>(config)
-          .GetFrameDurationUs();
+      return params.GetAsCoreCodecConfig().GetFrameDurationUs();
     default:
       LOG_WARN(", invalid codec id: 0x%02x", id.coding_format);
       return 0;
   }
 };
 
-uint8_t CodecConfigSetting::GetConfigBitsPerSample() const {
+uint8_t CodecConfigSetting::GetBitsPerSample() const {
   switch (id.coding_format) {
     case kLeAudioCodingFormatLC3:
       /* XXX LC3 supports 16, 24, 32 */
@@ -417,20 +358,6 @@ uint8_t CodecConfigSetting::GetConfigBitsPerSample() const {
       return 0;
   }
 };
-
-uint8_t CodecConfigSetting::GetConfigChannelCount() const {
-  switch (id.coding_format) {
-    case kLeAudioCodingFormatLC3:
-      LOG_DEBUG(
-          "count = %d",
-          static_cast<int>(
-              std::get<types::LeAudioCoreCodecConfig>(config).channel_count));
-      return std::get<types::LeAudioCoreCodecConfig>(config).channel_count;
-    default:
-      LOG_WARN(", invalid codec id: 0x%02x", id.coding_format);
-      return 0;
-  }
-}
 }  // namespace set_configurations
 
 namespace types {
@@ -728,6 +655,30 @@ std::string LeAudioLtvMap::ToString(
   }
 
   return debug_str;
+}
+
+const struct LeAudioCoreCodecConfig& LeAudioLtvMap::GetAsCoreCodecConfig()
+    const {
+  if (core_capabilities) {
+    LOG_ERROR("LTVs were already parsed for capabilities!");
+  }
+
+  if (!core_config) {
+    core_config = LtvMapToCoreCodecConfig(*this);
+  }
+  return *core_config;
+}
+
+const struct LeAudioCoreCodecCapabilities&
+LeAudioLtvMap::GetAsCoreCodecCapabilities() const {
+  if (core_config) {
+    LOG_ERROR("LTVs were already parsed for configurations!");
+  }
+
+  if (!core_capabilities) {
+    core_capabilities = LtvMapToCoreCodecCapabilities(*this);
+  }
+  return *core_capabilities;
 }
 
 }  // namespace types

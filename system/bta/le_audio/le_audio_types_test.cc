@@ -198,5 +198,177 @@ TEST(LeAudioLtvMapTest, test_serialization_ltv_len_is_invalid) {
   ASSERT_FALSE(success);
 }
 
+TEST(LeAudioLtvMapTest, test_configuration_valid) {
+  // clang-format off
+  const std::vector<uint8_t> config_ltv_vec{
+      // SamplingFreq = 48000
+      0x02, 0x01, 0x08,
+      // FrameDuration = 10000us
+      0x02, 0x02, 0x01,
+      // AudioChannelAllocation = kLeAudioLocationFrontLeft |
+      //                              kLeAudioLocationFrontRight
+      0x05, 0x03, 0x03, 0x00, 0x00, 0x00,
+      // OctetsPerCodecFrame = 40
+      0x03, 0x04, 40, 0x00,
+      // Unknown type entry to ignore
+      0x05, 0x06, 0x11, 0x22, 0x33, 0x44,
+      // CodecFrameBlocksPerSdu = 1
+      0x02, 0x05, 1,
+  };
+  // clang-format on
+
+  // Parse
+  bool success = true;
+  LeAudioLtvMap ltv_map = LeAudioLtvMap::Parse(config_ltv_vec.data(),
+                                               config_ltv_vec.size(), success);
+  ASSERT_TRUE(success);
+
+  // Verify the codec configuration values
+  auto config = ltv_map.GetAsCoreCodecConfig();
+
+  // SamplingFreq = 48000
+  ASSERT_TRUE(config.sampling_frequency.has_value());
+  ASSERT_EQ(0x08, config.sampling_frequency.value());
+  ASSERT_EQ(48000u, config.GetSamplingFrequencyHz());
+
+  // FrameDuration = 10000us
+  ASSERT_TRUE(config.frame_duration.has_value());
+  ASSERT_EQ(0x01, config.frame_duration.value());
+  ASSERT_EQ(10000u, config.GetFrameDurationUs());
+
+  // AudioChannelAllocation = kLeAudioLocationFrontLeft |
+  //                            kLeAudioLocationFrontRight
+  ASSERT_TRUE(config.audio_channel_allocation.has_value());
+  ASSERT_EQ(0x00000003u, config.audio_channel_allocation.value());
+  // Check if allocated channel count matches the number of allocation bits
+  ASSERT_EQ(2u, config.GetChannelCountPerIsoStream());
+
+  // OctetsPerCodecFrame = 40
+  ASSERT_TRUE(config.octets_per_codec_frame.has_value());
+  ASSERT_EQ(0x0028u, config.octets_per_codec_frame.value());
+
+  // CodecFrameBlocksPerSdu = 1
+  ASSERT_TRUE(config.codec_frames_blocks_per_sdu.has_value());
+  ASSERT_EQ(0x01u, config.codec_frames_blocks_per_sdu.value());
+}
+
+TEST(LeAudioLtvMapTest, test_capabilities_valid) {
+  // clang-format off
+  const std::vector<uint8_t> capabilities_ltv_vec{
+      // SupportedSamplingFrequencies = 96000 and 16000
+      0x03, 0x01,
+          (uint8_t)(codec_spec_caps::kLeAudioSamplingFreq16000Hz) |
+              (uint8_t)(codec_spec_caps::kLeAudioSamplingFreq96000Hz),
+          (uint8_t)(codec_spec_caps::kLeAudioSamplingFreq16000Hz >> 8) |
+              (uint8_t)(codec_spec_caps::kLeAudioSamplingFreq96000Hz >> 8),
+      // SupportedFrameDurations = 10ms, 7.5ms, 10ms preferred
+      0x02, 0x02, codec_spec_caps::kLeAudioCodecFrameDur7500us |
+                      codec_spec_caps::kLeAudioCodecFrameDur10000us |
+                      codec_spec_caps::kLeAudioCodecFrameDurPrefer10000us,
+      // SupportedAudioChannelCounts = 0b1 | 0b2 (one and two channels)
+      0x02, 0x03, 0b01 | 0b10,
+      // SupportedOctetsPerCodecFrame = min:40, max:80
+      0x05, 0x04, 40, 00, 80, 00,
+      // Unknown type entry to ignore
+      0x05, 0x06, 0x11, 0x22, 0x33, 0x44,
+      // SupportedMaxCodecFramesPerSdu = 2
+      0x02, 0x05, 0x02,
+  };
+  // clang-format on
+
+  // Parse
+  bool success = true;
+  LeAudioLtvMap ltv_map = LeAudioLtvMap::Parse(
+      capabilities_ltv_vec.data(), capabilities_ltv_vec.size(), success);
+  ASSERT_TRUE(success);
+
+  // Verify the codec capabilities values
+  auto caps = ltv_map.GetAsCoreCodecCapabilities();
+
+  // SupportedSamplingFrequencies = 96000 and 16000
+  ASSERT_TRUE(caps.HasSupportedSamplingFrequencies());
+  ASSERT_EQ(codec_spec_caps::kLeAudioSamplingFreq16000Hz |
+                codec_spec_caps::kLeAudioSamplingFreq96000Hz,
+            caps.supported_sampling_frequencies.value());
+  // Check config values agains the capabilities
+  ASSERT_FALSE(caps.IsSamplingFrequencyConfigSupported(
+      codec_spec_conf::kLeAudioSamplingFreq8000Hz));
+  ASSERT_FALSE(caps.IsSamplingFrequencyConfigSupported(
+      codec_spec_conf::kLeAudioSamplingFreq11025Hz));
+  ASSERT_TRUE(caps.IsSamplingFrequencyConfigSupported(
+      codec_spec_conf::kLeAudioSamplingFreq16000Hz));
+  ASSERT_FALSE(caps.IsSamplingFrequencyConfigSupported(
+      codec_spec_conf::kLeAudioSamplingFreq22050Hz));
+  ASSERT_FALSE(caps.IsSamplingFrequencyConfigSupported(
+      codec_spec_conf::kLeAudioSamplingFreq24000Hz));
+  ASSERT_FALSE(caps.IsSamplingFrequencyConfigSupported(
+      codec_spec_conf::kLeAudioSamplingFreq32000Hz));
+  ASSERT_FALSE(caps.IsSamplingFrequencyConfigSupported(
+      codec_spec_conf::kLeAudioSamplingFreq44100Hz));
+  ASSERT_FALSE(caps.IsSamplingFrequencyConfigSupported(
+      codec_spec_conf::kLeAudioSamplingFreq48000Hz));
+  ASSERT_FALSE(caps.IsSamplingFrequencyConfigSupported(
+      codec_spec_conf::kLeAudioSamplingFreq88200Hz));
+  ASSERT_TRUE(caps.IsSamplingFrequencyConfigSupported(
+      codec_spec_conf::kLeAudioSamplingFreq96000Hz));
+  ASSERT_FALSE(caps.IsSamplingFrequencyConfigSupported(
+      codec_spec_conf::kLeAudioSamplingFreq176400Hz));
+  ASSERT_FALSE(caps.IsSamplingFrequencyConfigSupported(
+      codec_spec_conf::kLeAudioSamplingFreq192000Hz));
+  ASSERT_FALSE(caps.IsSamplingFrequencyConfigSupported(
+      codec_spec_conf::kLeAudioSamplingFreq384000Hz));
+
+  // SupportedFrameDurations = 10ms, 7.5ms, 10ms preferred
+  ASSERT_TRUE(caps.HasSupportedFrameDurations());
+  ASSERT_EQ(codec_spec_caps::kLeAudioCodecFrameDur7500us |
+                codec_spec_caps::kLeAudioCodecFrameDur10000us |
+                codec_spec_caps::kLeAudioCodecFrameDurPrefer10000us,
+            caps.supported_frame_durations.value());
+  // Check config values agains the capabilities
+  ASSERT_TRUE(caps.IsFrameDurationConfigSupported(
+      codec_spec_conf::kLeAudioCodecFrameDur7500us));
+  ASSERT_TRUE(caps.IsFrameDurationConfigSupported(
+      codec_spec_conf::kLeAudioCodecFrameDur10000us));
+
+  // SupportedAudioChannelCounts = 0b1 | 0b2 (one and two channels)
+  ASSERT_TRUE(caps.HasSupportedAudioChannelCounts());
+  ASSERT_EQ(codec_spec_caps::kLeAudioCodecChannelCountSingleChannel |
+                codec_spec_caps::kLeAudioCodecChannelCountTwoChannel,
+            caps.supported_audio_channel_counts.value());
+  // Check config values agains the capabilities
+  ASSERT_TRUE(caps.IsAudioChannelCountsSupported(1));
+  ASSERT_TRUE(caps.IsAudioChannelCountsSupported(2));
+  for (uint8_t i = 3; i < 8; ++i) {
+    ASSERT_FALSE(caps.IsAudioChannelCountsSupported(i));
+  }
+
+  // SupportedOctetsPerCodecFrame = min:40, max:80
+  ASSERT_TRUE(caps.HasSupportedOctetsPerCodecFrame());
+  ASSERT_EQ(codec_spec_caps::kLeAudioCodecFrameLen40,
+            caps.supported_min_octets_per_codec_frame.value());
+  ASSERT_EQ(codec_spec_caps::kLeAudioCodecFrameLen80,
+            caps.supported_max_octets_per_codec_frame.value());
+  // Check config values agains the capabilities
+  ASSERT_FALSE(caps.IsOctetsPerCodecFrameConfigSupported(
+      codec_spec_conf::kLeAudioCodecFrameLen30));
+  ASSERT_TRUE(caps.IsOctetsPerCodecFrameConfigSupported(
+      codec_spec_conf::kLeAudioCodecFrameLen40));
+  // Supported since: 40(min) < 60 < 80(max)
+  ASSERT_TRUE(caps.IsOctetsPerCodecFrameConfigSupported(
+      codec_spec_conf::kLeAudioCodecFrameLen60));
+  ASSERT_TRUE(caps.IsOctetsPerCodecFrameConfigSupported(
+      codec_spec_conf::kLeAudioCodecFrameLen80));
+  ASSERT_FALSE(caps.IsOctetsPerCodecFrameConfigSupported(
+      codec_spec_conf::kLeAudioCodecFrameLen120));
+
+  // SupportedMaxCodecFramesPerSdu = 2
+  ASSERT_TRUE(caps.HasSupportedMaxCodecFramesPerSdu());
+  ASSERT_EQ(2, caps.supported_max_codec_frames_per_sdu.value());
+  // Check config values agains the capabilities: {1,2} <= 2(max)
+  ASSERT_TRUE(caps.IsCodecFramesPerSduSupported(1));
+  ASSERT_TRUE(caps.IsCodecFramesPerSduSupported(2));
+  ASSERT_FALSE(caps.IsCodecFramesPerSduSupported(3));
+}
+
 }  // namespace types
 }  // namespace le_audio
