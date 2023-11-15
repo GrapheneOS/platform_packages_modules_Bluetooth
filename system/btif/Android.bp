@@ -610,6 +610,7 @@ cc_test {
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
+        "libbase",
         "libcrypto",
         "libcutils",
         "libhidlbase",
@@ -749,6 +750,7 @@ cc_test {
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
+        "libbase",
         "libcrypto",
         "libcutils",
         "libhidlbase",

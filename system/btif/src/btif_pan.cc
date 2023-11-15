@@ -27,6 +27,7 @@
 
 #define LOG_TAG "bt_btif_pan"
 
+#include <android_bluetooth_sysprop.h>
 #include <arpa/inet.h>
 #include <base/functional/bind.h>
 #include <base/location.h>
@@ -34,9 +35,6 @@
 #include <linux/if_ether.h>
 #include <linux/if_tun.h>
 #include <net/if.h>
-#ifdef __ANDROID__
-#include <pan.sysprop.h>
-#endif
 #include <poll.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -96,16 +94,6 @@ static btpan_interface_t pan_if = {
 
 const btpan_interface_t* btif_pan_get_interface() { return &pan_if; }
 
-static bool pan_nap_is_enabled() {
-#ifdef __ANDROID__
-  // replace build time config PAN_NAP_DISABLED with runtime
-  static const bool nap_is_enabled =
-      android::sysprop::bluetooth::Pan::nap().value_or(true);
-  return nap_is_enabled;
-#else
-  return true;
-#endif
-}
 /*******************************************************************************
  **
  ** Function        btif_pan_init
@@ -131,7 +119,7 @@ void btif_pan_init() {
     btpan_cb.enabled = 1;
 
     int role = BTPAN_ROLE_NONE;
-    if (pan_nap_is_enabled()) {
+    if (GET_SYSPROP(Pan, nap, true)) {
       role |= BTPAN_ROLE_PANNAP;
     }
 #if PANU_DISABLED == FALSE
