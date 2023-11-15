@@ -80,18 +80,11 @@ void BTA_DmSetDeviceName(const char* p_name) {
  *                  performs an inquiry and gets the remote name for devices.
  *                  Service discovery is done if services is non zero
  *
- *
  * Returns          void
  *
  ******************************************************************************/
 void BTA_DmSearch(tBTA_DM_SEARCH_CBACK* p_cback) {
-  tBTA_DM_API_SEARCH* p_msg =
-      (tBTA_DM_API_SEARCH*)osi_calloc(sizeof(tBTA_DM_API_SEARCH));
-
-  p_msg->hdr.event = BTA_DM_API_SEARCH_EVT;
-  p_msg->p_cback = p_cback;
-
-  bta_sys_sendmsg(p_msg);
+  bta_dm_disc_start_device_discovery(p_cback);
 }
 
 /*******************************************************************************
@@ -100,18 +93,10 @@ void BTA_DmSearch(tBTA_DM_SEARCH_CBACK* p_cback) {
  *
  * Description      This function  cancels a search initiated by BTA_DmSearch
  *
- *
  * Returns          void
  *
  ******************************************************************************/
-void BTA_DmSearchCancel(void) {
-  tBTA_DM_API_DISCOVERY_CANCEL* p_msg =
-      (tBTA_DM_API_DISCOVERY_CANCEL*)osi_calloc(
-          sizeof(tBTA_DM_API_DISCOVERY_CANCEL));
-
-  p_msg->hdr.event = BTA_DM_API_SEARCH_CANCEL_EVT;
-  bta_sys_sendmsg(p_msg);
-}
+void BTA_DmSearchCancel(void) { bta_dm_disc_stop_device_discovery(); }
 
 /*******************************************************************************
  *
@@ -126,15 +111,7 @@ void BTA_DmSearchCancel(void) {
  ******************************************************************************/
 void BTA_DmDiscover(const RawAddress& bd_addr, tBTA_DM_SEARCH_CBACK* p_cback,
                     tBT_TRANSPORT transport) {
-  tBTA_DM_API_DISCOVER* p_msg =
-      (tBTA_DM_API_DISCOVER*)osi_calloc(sizeof(tBTA_DM_API_DISCOVER));
-
-  p_msg->hdr.event = BTA_DM_API_DISCOVER_EVT;
-  p_msg->bd_addr = bd_addr;
-  p_msg->transport = transport;
-  p_msg->p_cback = p_cback;
-
-  bta_sys_sendmsg(p_msg);
+  bta_dm_disc_start_service_discovery(p_cback, bd_addr, transport);
 }
 
 /*******************************************************************************
