@@ -3568,10 +3568,11 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
  *
  * Function         btm_sec_connect_after_reject_timeout
  *
- * Description      Connection for bonding could not start because of the
- *                  collision. Initiate outgoing connection
+ * Description      This function is used to re-initiate an outgoing ACL
+ *                  connection in case the ACL connection for bonding failed,
+ *                  e.g., because of the collision.
  *
- * Returns          Pointer to the TLE struct
+ * Returns          void
  *
  ******************************************************************************/
 static void btm_sec_connect_after_reject_timeout(void* /* data */) {
@@ -3593,8 +3594,8 @@ static void btm_sec_connect_after_reject_timeout(void* /* data */) {
  *
  * Function         btm_sec_connected
  *
- * Description      This function is when a connection to the peer device is
- *                  established
+ * Description      This function is called when a (BR/EDR) ACL connection to
+ *                  the peer device is established
  *
  * Returns          void
  *
@@ -3634,8 +3635,7 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
                 ADDRESS_TO_LOGGABLE_CSTR(bda), hci_error_code_text(status).c_str());
       return;
     }
-  } else /* Update the timestamp for this device */
-  {
+  } else {
     LOG_DEBUG(
         "Connected to known device state:%s handle:0x%04x status:%s "
         "enc_mode:%hhu bda:%s RName:%s",
@@ -3644,14 +3644,14 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
         ADDRESS_TO_LOGGABLE_CSTR(bda), p_dev_rec->sec_bd_name);
 
     bit_shift = (handle == p_dev_rec->ble_hci_handle) ? 8 : 0;
+    /* Update the timestamp for this device */
     p_dev_rec->timestamp = btm_sec_cb.dev_rec_count++;
     if (p_dev_rec->sm4 & BTM_SM4_CONN_PEND) {
-      /* tell L2CAP it's a bonding connection. */
       if ((btm_sec_cb.pairing_state != BTM_PAIR_STATE_IDLE) &&
           (btm_sec_cb.pairing_bda == p_dev_rec->bd_addr) &&
           (btm_sec_cb.pairing_flags & BTM_PAIR_FLAGS_WE_STARTED_DD)) {
-        /* if incoming connection failed while pairing, then try to connect and
-         * continue */
+        /* if incoming acl connection failed while pairing, then try to connect
+         * and continue */
         /* Motorola S9 disconnects without asking pin code */
         if ((status != HCI_SUCCESS) &&
             (btm_sec_cb.pairing_state == BTM_PAIR_STATE_WAIT_PIN_REQ)) {
@@ -3662,12 +3662,16 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
 
           p_dev_rec->sm4 &= ~BTM_SM4_CONN_PEND;
           if (p_dev_rec->sec_flags & BTM_SEC_NAME_KNOWN) {
+            /* remote device name is known, start a new acl connection */
+
             /* Start timer with 0 to initiate connection with new LCB */
             /* because L2CAP will delete current LCB with this event  */
             btm_sec_cb.p_collided_dev_rec = p_dev_rec;
             alarm_set_on_mloop(btm_sec_cb.sec_collision_timer, 0,
                                btm_sec_connect_after_reject_timeout, NULL);
-            } else {
+          } else {
+            /* remote device name is unknowm, start getting remote name first */
+
             btm_sec_change_pairing_state(BTM_PAIR_STATE_GET_REM_NAME);
             if (BTM_ReadRemoteDeviceName(p_dev_rec->bd_addr, NULL,
                                          BT_TRANSPORT_BR_EDR) !=
@@ -3675,9 +3679,10 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
               LOG_ERROR("%s cannot read remote name", __func__);
               btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
             }
-            }
+          }
           return;
         } else {
+          /* tell L2CAP it's a bonding connection. */
           l2cu_update_lcb_4_bonding(p_dev_rec->bd_addr, true);
         }
       }
@@ -3873,7 +3878,6 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
     if (res != BTM_CMD_STARTED)
       btm_sec_dev_rec_cback_event(p_dev_rec, res, false);
   }
-  return;
 }
 
 tBTM_STATUS btm_sec_disconnect(uint16_t handle, tHCI_STATUS reason,
