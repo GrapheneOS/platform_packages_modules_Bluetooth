@@ -20,3 +20,14 @@ sysprop_library {
     },
     apex_available: ["com.android.btservices"],
 }
+
+cc_library_static {
+    name: "libcom.android.sysprop.bluetooth.wrapped",
+    host_supported: true,
+    whole_static_libs: ["libcom.android.sysprop.bluetooth"],
+    export_include_dirs: ["exported_include"],
+    export_static_lib_headers: ["libcom.android.sysprop.bluetooth"],
+    visibility: ["//packages/modules/Bluetooth/system:__subpackages__"],
+    apex_available: ["com.android.btservices"],
+    min_sdk_version: "Tiramisu",
+}

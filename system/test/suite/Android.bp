@@ -87,7 +87,7 @@ cc_defaults {
         "libbtif",
         "libbtif-core",
         "libc++fs",
-        "libcom.android.sysprop.bluetooth",
+        "libcom.android.sysprop.bluetooth.wrapped",
         "libflatbuffers-cpp",
         "libg722codec",
         "libgmock",
