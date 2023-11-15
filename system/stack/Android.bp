@@ -171,7 +171,7 @@ cc_library_static {
     whole_static_libs: [
         "libaptx_enc",
         "libaptxhd_enc",
-        "libcom.android.sysprop.bluetooth",
+        "libcom.android.sysprop.bluetooth.wrapped",
         "libldacBT_abr",
         "libldacBT_enc",
     ],
@@ -324,7 +324,7 @@ cc_library_static {
         "libbt-hci",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
-        "libcom.android.sysprop.bluetooth",
+        "libcom.android.sysprop.bluetooth.wrapped",
     ],
     shared_libs: [
         "libPlatformProperties",
@@ -612,7 +612,7 @@ cc_fuzz {
     target: {
         android: {
             static_libs: [
-                "libcom.android.sysprop.bluetooth",
+                "libcom.android.sysprop.bluetooth.wrapped",
             ],
         },
     },
@@ -1548,7 +1548,7 @@ cc_test {
         "libbt_shim_ffi",
         "libbtdevice",
         "libchrome",
-        "libcom.android.sysprop.bluetooth",
+        "libcom.android.sysprop.bluetooth.wrapped",
         "libevent",
         "libgmock",
         "liblc3",
