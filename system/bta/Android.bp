@@ -266,6 +266,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbase",
         "libbluetooth-types",
         "libbluetooth_gd",
         "libbluetooth_hci_pdl",
@@ -1195,6 +1196,7 @@ cc_test {
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
+        "libbase",
         "libbluetooth-types",
         "libbluetooth_gd",
         "libbluetooth_hci_pdl",

@@ -17,9 +17,6 @@
 #define LOG_TAG "bt_bta_dm_sec"
 
 #include <base/logging.h>
-#ifdef __ANDROID__
-#include <bta.sysprop.h>
-#endif
 
 #include <cstdint>
 

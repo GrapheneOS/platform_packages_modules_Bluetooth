@@ -20,6 +20,7 @@
 
 #include "btif/include/btif_av.h"
 
+#include <android_bluetooth_sysprop.h>
 #include <base/functional/bind.h>
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
@@ -57,10 +58,6 @@
 #include "stack/include/btm_log_history.h"
 #include "stack/include/main_thread.h"
 #include "types/raw_address.h"
-
-#ifdef __ANDROID__
-#include <a2dp.sysprop.h>
-#endif
 
 /*****************************************************************************
  *  Constants & Macros
@@ -3382,11 +3379,7 @@ bool btif_av_both_enable(void) {
 }
 
 bool btif_av_src_sink_coexist_enabled(void) {
-#ifdef __ANDROID__
-  return android::sysprop::bluetooth::A2dp::src_sink_coexist().value_or(false);
-#else
-  return false;
-#endif
+  return GET_SYSPROP(A2dp, src_sink_coexist, false);
 }
 
 static void bta_av_source_callback(tBTA_AV_EVT event, tBTA_AV* p_data) {
