@@ -16,19 +16,8 @@
 
 #include "bta_hfp_api.h"
 
-#ifdef __ANDROID__
-#include <hfp.sysprop.h>
-#endif
-
-#define DEFAULT_BTA_HFP_VERSION HFP_VERSION_1_7
+#include <android_bluetooth_sysprop.h>
 
 int get_default_hfp_version() {
-#ifdef __ANDROID__
-  static const int version =
-      android::sysprop::bluetooth::Hfp::version().value_or(
-          DEFAULT_BTA_HFP_VERSION);
-  return version;
-#else
-  return DEFAULT_BTA_HFP_VERSION;
-#endif
+  return GET_SYSPROP(Hfp, version, HFP_VERSION_1_7);
 }

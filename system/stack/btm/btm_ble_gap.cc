@@ -24,13 +24,10 @@
 
 #define LOG_TAG "bt_btm_ble"
 
+#include <android_bluetooth_sysprop.h>
 #include <base/functional/bind.h>
 #include <base/logging.h>
 #include <base/strings/string_number_conversions.h>
-
-#ifdef __ANDROID__
-#include <ble.sysprop.h>
-#endif
 
 #include <cstdint>
 #include <list>
@@ -182,14 +179,8 @@ AdvertisingCache cache;
 }  // namespace
 
 bool ble_vnd_is_included() {
-#ifdef __ANDROID__
   // replace build time config BLE_VND_INCLUDED with runtime
-  static const bool vnd_is_included =
-      android::sysprop::bluetooth::Ble::vnd_included().value_or(true);
-  return vnd_is_included;
-#else
-  return true;
-#endif
+  return GET_SYSPROP(Ble, vnd_included, true);
 }
 
 static tBTM_BLE_CTRL_FEATURES_CBACK* p_ctrl_le_feature_rd_cmpl_cback = NULL;
