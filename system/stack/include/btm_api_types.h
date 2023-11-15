@@ -26,7 +26,6 @@
 
 #include "stack/include/bt_dev_class.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/hci_mode.h"
 #include "stack/include/hcidefs.h"
 #include "stack/include/sdpdefs.h"
 #include "types/raw_address.h"
@@ -254,125 +253,14 @@ inline uint16_t sco_codec_type_to_id(tBTM_SCO_CODEC_TYPE codec_type) {
 /****************************
  *  Power Manager Constants
  ****************************/
-/* BTM Power manager status codes */
-enum : uint8_t {
-  BTM_PM_STS_ACTIVE = HCI_MODE_ACTIVE,  // 0x00
-  BTM_PM_STS_HOLD = HCI_MODE_HOLD,      // 0x01
-  BTM_PM_STS_SNIFF = HCI_MODE_SNIFF,    // 0x02
-  BTM_PM_STS_PARK = HCI_MODE_PARK,      // 0x03
-  BTM_PM_STS_SSR,      // Hci sniff subrating event reported the SSR parameters
-  BTM_PM_STS_PENDING,  // Successful hci mode change command status received and
-                       // now waiting for mode change event to indicate
-                       // change to desired mode target.
-  BTM_PM_STS_ERROR  // Failed hci mode change command status which will result
-                    // in no mode change event.
-};
-typedef uint8_t tBTM_PM_STATUS;
-
-inline std::string power_mode_status_text(tBTM_PM_STATUS status) {
-  switch (status) {
-    case BTM_PM_STS_ACTIVE:
-      return std::string("active");
-    case BTM_PM_STS_HOLD:
-      return std::string("hold");
-    case BTM_PM_STS_SNIFF:
-      return std::string("sniff");
-    case BTM_PM_STS_PARK:
-      return std::string("park");
-    case BTM_PM_STS_SSR:
-      return std::string("sniff_subrating");
-    case BTM_PM_STS_PENDING:
-      return std::string("pending");
-    case BTM_PM_STS_ERROR:
-      return std::string("error");
-    default:
-      return std::string("UNKNOWN");
-  }
-}
-
-/* BTM Power manager modes */
-enum : uint8_t {
-  BTM_PM_MD_ACTIVE = HCI_MODE_ACTIVE,  // 0x00
-  BTM_PM_MD_HOLD = HCI_MODE_HOLD,      // 0x01
-  BTM_PM_MD_SNIFF = HCI_MODE_SNIFF,    // 0x02
-  BTM_PM_MD_PARK = HCI_MODE_PARK,      // 0x03
-  BTM_PM_MD_FORCE = 0x10, /* OR this to force ACL link to a certain mode */
-  BTM_PM_MD_UNKNOWN = 0xEF,
-};
-typedef uint8_t tBTM_PM_MODE;
-#define HCI_TO_BTM_POWER_MODE(mode) (static_cast<tBTM_PM_MODE>(mode))
-
-inline bool is_legal_power_mode(tBTM_PM_MODE mode) {
-  switch (mode & ~BTM_PM_MD_FORCE) {
-    case BTM_PM_MD_ACTIVE:
-    case BTM_PM_MD_HOLD:
-    case BTM_PM_MD_SNIFF:
-    case BTM_PM_MD_PARK:
-      return true;
-    default:
-      return false;
-  }
-}
-
-inline std::string power_mode_text(tBTM_PM_MODE mode) {
-  std::string s = base::StringPrintf((mode & BTM_PM_MD_FORCE) ? "forced:" : "");
-  switch (mode & ~BTM_PM_MD_FORCE) {
-    case BTM_PM_MD_ACTIVE:
-      return s + std::string("active");
-    case BTM_PM_MD_HOLD:
-      return s + std::string("hold");
-    case BTM_PM_MD_SNIFF:
-      return s + std::string("sniff");
-    case BTM_PM_MD_PARK:
-      return s + std::string("park");
-    default:
-      return s + std::string("UNKNOWN");
-  }
-}
-
-#define BTM_PM_SET_ONLY_ID 0x80
-
-/* Operation codes */
-typedef enum : uint8_t {
-  /* The module wants to set the desired power mode */
-  BTM_PM_REG_SET = (1u << 0),
-  /* The module does not want to involve with PM anymore */
-  BTM_PM_DEREG = (1u << 2),
-} tBTM_PM_REGISTER;
 
 /************************
  *  Power Manager Types
  ************************/
-struct tBTM_PM_PWR_MD {
-  uint16_t max = 0;
-  uint16_t min = 0;
-  uint16_t attempt = 0;
-  uint16_t timeout = 0;
-  tBTM_PM_MODE mode = BTM_PM_MD_ACTIVE;  // 0
-
-  std::string ToString() const {
-    return base::StringPrintf(
-        "mode:%s[max:%hu min:%hu attempt:%hu timeout:%hu]",
-        power_mode_text(mode).c_str(), max, min, attempt, timeout);
-  }
-};
 
 /*************************************
  *  Power Manager Callback Functions
  *************************************/
-typedef void(tBTM_PM_STATUS_CBACK)(const RawAddress& p_bda,
-                                   tBTM_PM_STATUS status, uint16_t value,
-                                   tHCI_STATUS hci_status);
-
-#define BTM_CONTRL_UNKNOWN 0
-/* ACL link on, SCO link ongoing, sniff mode */
-#define BTM_CONTRL_ACTIVE 1
-/* Scan state - paging/inquiry/trying to connect*/
-#define BTM_CONTRL_SCAN 2
-/* Idle state - page scan, LE advt, inquiry scan */
-#define BTM_CONTRL_IDLE 3
-
-typedef uint8_t tBTM_CONTRL_STATE;
 
 // Bluetooth Quality Report - Report receiver
 typedef void(tBTM_BT_QUALITY_REPORT_RECEIVER)(uint8_t len,

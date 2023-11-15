@@ -18,11 +18,10 @@
 
 #include <cstdint>
 #include <string>
-#include <vector>
 
 #include "bt_target.h"
 #include "stack/acl/peer_packet_types.h"
-#include "stack/include/btm_api_types.h"
+#include "stack/btm/power_mode.h"
 #include "stack/include/btm_status.h"
 #include "stack/include/hcimsgs.h"
 #include "types/bt_transport.h"
