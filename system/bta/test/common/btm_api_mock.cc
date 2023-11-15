@@ -17,6 +17,10 @@
 
 #include "btm_api_mock.h"
 
+#include <optional>
+
+#include "bt_octets.h"
+#include "stack/include/btm_ble_sec_api.h"
 #include "types/raw_address.h"
 
 static bluetooth::manager::MockBtmInterface* btm_interface = nullptr;
@@ -102,4 +106,25 @@ tBTM_INQ_INFO* BTM_InqDbFirst(void) {
 tBTM_INQ_INFO* BTM_InqDbNext(tBTM_INQ_INFO* p_cur) {
   LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
   return btm_interface->BTM_InqDbNext(p_cur);
+}
+
+std::optional<Octet16> BTM_BleGetPeerLTK(const RawAddress address) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->BTM_BleGetPeerLTK(address);
+}
+
+std::optional<Octet16> BTM_BleGetPeerIRK(const RawAddress address) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->BTM_BleGetPeerIRK(address);
+}
+
+bool BTM_BleIsLinkKeyKnown(const RawAddress address) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->BTM_BleIsLinkKeyKnown(address);
+}
+
+std::optional<tBLE_BD_ADDR> BTM_BleGetIdentityAddress(
+    const RawAddress address) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->BTM_BleGetIdentityAddress(address);
 }

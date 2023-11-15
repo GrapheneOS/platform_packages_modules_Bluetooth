@@ -19,6 +19,7 @@
 #include <base/logging.h>
 #include <base/strings/string_number_conversions.h>
 #include <base/strings/string_util.h>
+#include <hardware/bt_gatt_types.h>
 #include <hardware/bt_vc.h>
 
 #include <mutex>

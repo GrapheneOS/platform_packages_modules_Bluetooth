@@ -169,7 +169,7 @@ TEST_F(BtaDiscTest, bta_dm_queue_search) {
   bluetooth::legacy::testing::bta_dm_queue_search(&msg);
 
   // Release the queued search
-  osi_free_and_reset((void**)&bta_dm_search_cb.p_pending_search);
+  bta_dm_disc_stop();
 }
 
 TEST_F(BtaDiscTest, bta_dm_read_remote_device_name) {

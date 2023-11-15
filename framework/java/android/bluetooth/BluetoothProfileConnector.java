@@ -45,9 +45,7 @@ public final class BluetoothProfileConnector extends Handler {
     private BluetoothProfile.ServiceListener mServiceListener;
     private final BluetoothProfile mProfileProxy;
     private String mPackageName;
-    private final String mServiceName;
     private final IBluetoothManager mBluetoothManager;
-    private volatile IBinder mService;
     private boolean mBound = false;
 
     private static final int MESSAGE_SERVICE_CONNECTED = 100;
@@ -72,7 +70,7 @@ public final class BluetoothProfileConnector extends Handler {
                             TAG,
                             "Proxy object connected for "
                                     + BluetoothProfile.getProfileName(mProfileId));
-                    mService = service;
+                    mProfileProxy.onServiceConnected(service);
                     sendEmptyMessage(MESSAGE_SERVICE_CONNECTED);
                 }
 
@@ -82,9 +80,9 @@ public final class BluetoothProfileConnector extends Handler {
                             TAG,
                             "Proxy object disconnected for "
                                     + BluetoothProfile.getProfileName(mProfileId));
-                    IBinder service = mService;
+                    boolean bound = mBound;
                     doUnbind();
-                    if (service != null) {
+                    if (bound) {
                         sendEmptyMessage(MESSAGE_SERVICE_DISCONNECTED);
                     }
                 }
@@ -95,21 +93,18 @@ public final class BluetoothProfileConnector extends Handler {
             Looper looper,
             BluetoothProfile profile,
             int profileId,
-            String serviceName,
             IBluetoothManager bluetoothManager) {
         super(looper);
         mProfileId = profileId;
         mProfileProxy = profile;
-        mServiceName = serviceName;
         mBluetoothManager = Objects.requireNonNull(bluetoothManager);
     }
 
-    BluetoothProfileConnector(BluetoothProfile profile, int profileId, String serviceName) {
+    BluetoothProfileConnector(BluetoothProfile profile, int profileId) {
         this(
                 Looper.getMainLooper(),
                 profile,
                 profileId,
-                serviceName,
                 BluetoothAdapter.getDefaultAdapter().getBluetoothManager());
     }
 
@@ -131,8 +126,7 @@ public final class BluetoothProfileConnector extends Handler {
                                 + mPackageName);
                 mCloseGuard.open("doUnbind");
                 try {
-                    mBluetoothManager.bindBluetoothProfileService(
-                            mProfileId, mServiceName, mConnection);
+                    mBluetoothManager.bindBluetoothProfileService(mProfileId, mConnection);
                     mBound = true;
                 } catch (RemoteException re) {
                     Log.e(
@@ -165,7 +159,7 @@ public final class BluetoothProfileConnector extends Handler {
                                     + BluetoothProfile.getProfileName(mProfileId),
                             re);
                 } finally {
-                    mService = null;
+                    mProfileProxy.onServiceDisconnected();
                 }
             }
         }
@@ -208,10 +202,6 @@ public final class BluetoothProfileConnector extends Handler {
         } catch (RemoteException re) {
             Log.e(TAG, "Failed to unregister state change callback", re);
         }
-    }
-
-    IBinder getService() {
-        return mService;
     }
 
     @Override

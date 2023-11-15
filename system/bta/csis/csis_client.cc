@@ -40,14 +40,13 @@
 #include "gatt_api.h"
 #include "gd/common/init_flags.h"
 #include "main/shim/le_scanning_manager.h"
-#include "main/shim/shim.h"
 #include "osi/include/osi.h"
-#include "osi/include/properties.h"
 #include "osi/include/stack_power_telemetry.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "stack/gatt/gatt_int.h"
+#include "stack/include/btm_ble_sec_api.h"
 
 using base::Closure;
 using bluetooth::Uuid;
@@ -1214,17 +1213,16 @@ class CsisClientImpl : public CsisClient {
    */
   bool sdf(const RawAddress& address, const Octet16& encrypted_sirk,
            Octet16& sirk) {
-    tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(address);
-    if (!p_dev_rec) {
+    auto pltk = BTM_BleGetPeerLTK(address);
+    if (!pltk.has_value()) {
       LOG_ERROR("No security for %s", ADDRESS_TO_LOGGABLE_CSTR(address));
       return false;
     }
 
 #ifdef CSIS_DEBUG
-    LOG_INFO("LTK %s",
-             (base::HexEncode(p_dev_rec->ble.keys.pltk.data(), 16)).c_str());
-    LOG_INFO("IRK %s",
-             base::HexEncode(p_dev_rec->ble.keys.irk.data(), 16).c_str());
+    auto irk = BTM_BleGetPeerIRK(address);
+    LOG_INFO("LTK %s", (base::HexEncode(*pltk.data(), 16)).c_str());
+    LOG_INFO("IRK %s", base::HexEncode(*irk.data(), 16).c_str());
 #endif
 
     /* Calculate salt CSIS d1.0r05 4.3 */
@@ -1240,11 +1238,10 @@ class CsisClientImpl : public CsisClient {
 #ifdef CSIS_DEBUG
     LOG_INFO("s1 (le) %s", base::HexEncode(s1.data(), 16).c_str());
     /* Create K = LTK */
-    LOG_INFO("K (le) %s",
-             base::HexEncode(p_dev_rec->ble.keys.pltk.data(), 16).c_str());
+    LOG_INFO("K (le) %s", base::HexEncode(*pltk.data(), 16).c_str());
 #endif
 
-    Octet16 T = crypto_toolbox::aes_cmac(s1, p_dev_rec->ble_keys.pltk);
+    Octet16 T = crypto_toolbox::aes_cmac(s1, *pltk);
 
 #ifdef CSIS_DEBUG
     LOG_INFO("T (le) %s", base::HexEncode(T.data(), 16).c_str());
@@ -1320,12 +1317,11 @@ class CsisClientImpl : public CsisClient {
     /* Make sure device is not already bonded which could
      * be a case for dual mode devices where
      */
-    tBTM_SEC_DEV_REC* p_dev = btm_find_dev(result->bd_addr);
-    if (p_dev && p_dev->is_le_link_key_known()) {
-      LOG_VERBOSE(
-          "Device %s already bonded. Identity address: %s",
-          ADDRESS_TO_LOGGABLE_CSTR(result->bd_addr),
-          ADDRESS_TO_LOGGABLE_CSTR(p_dev->ble.identity_address_with_type));
+    if (BTM_BleIsLinkKeyKnown(result->bd_addr)) {
+      LOG_VERBOSE("Device %s already bonded. Identity address: %s",
+                  ADDRESS_TO_LOGGABLE_CSTR(result->bd_addr),
+                  ADDRESS_TO_LOGGABLE_CSTR(
+                      *BTM_BleGetIdentityAddress(result->bd_addr)));
       return;
     }
 
@@ -1471,12 +1467,11 @@ class CsisClientImpl : public CsisClient {
     /* Make sure device is not already bonded which could
      * be a case for dual mode devices where
      */
-    tBTM_SEC_DEV_REC* p_dev = btm_find_dev(result->bd_addr);
-    if (p_dev && p_dev->is_le_link_key_known()) {
-      LOG_VERBOSE(
-          "Device %s already bonded. Identity address: %s",
-          ADDRESS_TO_LOGGABLE_CSTR(result->bd_addr),
-          ADDRESS_TO_LOGGABLE_CSTR(p_dev->ble.identity_address_with_type));
+    if (BTM_BleIsLinkKeyKnown(result->bd_addr)) {
+      LOG_VERBOSE("Device %s already bonded. Identity address: %s",
+                  ADDRESS_TO_LOGGABLE_CSTR(result->bd_addr),
+                  ADDRESS_TO_LOGGABLE_CSTR(
+                      *BTM_BleGetIdentityAddress(result->bd_addr)));
       return;
     }
 

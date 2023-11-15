@@ -15,6 +15,8 @@
  *
  */
 
+#include <cstddef>
+#include <optional>
 #define LOG_TAG "ble_sec"
 
 #include <base/strings/stringprintf.h>
@@ -1940,4 +1942,37 @@ bool btm_ble_get_acl_remote_addr(uint16_t hci_handle, RawAddress& conn_addr,
       break;
   }
   return st;
+}
+
+std::optional<Octet16> BTM_BleGetPeerLTK(const RawAddress address) {
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(address);
+  if (p_dev_rec == nullptr) {
+    return std::nullopt;
+  }
+
+  return p_dev_rec->ble_keys.pltk;
+}
+
+std::optional<Octet16> BTM_BleGetPeerIRK(const RawAddress address) {
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(address);
+  if (p_dev_rec == nullptr) {
+    return std::nullopt;
+  }
+
+  return p_dev_rec->ble_keys.irk;
+}
+
+bool BTM_BleIsLinkKeyKnown(const RawAddress address) {
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(address);
+  return p_dev_rec != nullptr && p_dev_rec->is_le_link_key_known();
+}
+
+std::optional<tBLE_BD_ADDR> BTM_BleGetIdentityAddress(
+    const RawAddress address) {
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(address);
+  if (p_dev_rec == nullptr) {
+    return std::nullopt;
+  }
+
+  return p_dev_rec->ble.identity_address_with_type;
 }

@@ -60,14 +60,6 @@ struct L2CA_ReadRemoteFeatures {
   uint8_t* operator()(const RawAddress& addr) { return body(addr); };
 };
 extern struct L2CA_ReadRemoteFeatures L2CA_ReadRemoteFeatures;
-// Name: L2CA_UseLegacySecurityModule
-// Params:
-// Returns: void
-struct L2CA_UseLegacySecurityModule {
-  std::function<void()> body{[]() {}};
-  void operator()() { body(); };
-};
-extern struct L2CA_UseLegacySecurityModule L2CA_UseLegacySecurityModule;
 // Name: L2CA_Register
 // Params: uint16_t client_psm, const tL2CAP_APPL_INFO& callbacks, bool
 // enable_snoop, tL2CAP_ERTM_INFO* p_ertm_info, uint16_t my_mtu, uint16_t

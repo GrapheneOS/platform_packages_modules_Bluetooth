@@ -27,6 +27,7 @@
 #include "bt_target.h"
 #include "btm_ble_api.h"
 #include "gattdefs.h"
+#include "hardware/bt_gatt_types.h"
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
@@ -312,12 +313,6 @@ inline std::string gatt_disconnection_reason_text(
 */
 #ifndef GATT_MAX_MTU_SIZE
 #define GATT_MAX_MTU_SIZE 517
-#endif
-
-/* max legth of an attribute value
-*/
-#ifndef GATT_MAX_ATTR_LEN
-#define GATT_MAX_ATTR_LEN 512
 #endif
 
 /* default GATT MTU size over LE link

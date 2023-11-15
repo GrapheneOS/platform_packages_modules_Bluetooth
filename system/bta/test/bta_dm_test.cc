@@ -417,7 +417,6 @@ TEST_F(BtaDmTest, bta_dm_remname_cback__wrong_address) {
   sync_main_handler();
 
   ASSERT_EQ(0, get_func_call_count("BTM_SecDeleteRmtNameNotifyCallback"));
-  ASSERT_FALSE(bta_dm_search_cb.name_discover_done);
 }
 
 TEST_F(BtaDmTest, bta_dm_remname_cback__HCI_ERR_CONNECTION_EXISTS) {

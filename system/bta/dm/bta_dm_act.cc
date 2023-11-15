@@ -275,7 +275,6 @@ void BTA_dm_on_hw_on() {
     get_btm_client_interface().ble.BTM_BleLoadLocalKeys(
         BTA_BLE_LOCAL_KEY_TYPE_ID, (tBTM_BLE_LOCAL_KEYS*)&id_key);
   }
-  bta_dm_search_cb.conn_id = GATT_INVALID_CONN_ID;
 
   btm_dm_sec_init();
   btm_sec_on_hw_on();
@@ -816,16 +815,7 @@ static void bta_dm_acl_down(const RawAddress& bd_addr,
     bta_dm_cb.device_list.le_count--;
   }
 
-  if ((transport == BT_TRANSPORT_BR_EDR) &&
-      (bta_dm_search_cb.wait_disc && bta_dm_search_cb.peer_bdaddr == bd_addr)) {
-    bta_dm_search_cb.wait_disc = false;
-
-    if (bta_dm_search_cb.sdp_results) {
-      LOG_VERBOSE(" timer stopped  ");
-      alarm_cancel(bta_dm_search_cb.search_timer);
-      bta_dm_disc_discover_next_device();
-    }
-  }
+  bta_dm_disc_acl_down(bd_addr, transport);
 
   if (bta_dm_cb.disabling) {
     if (!BTM_GetNumAclLinks()) {

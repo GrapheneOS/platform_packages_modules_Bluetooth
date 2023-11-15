@@ -30,6 +30,7 @@
 #include <deque>
 
 #include "bt_target.h"  // Must be first to define build configuration
+#include "hardware/bt_gatt_types.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "rust/src/connection/ffi/connection_shim.h"
