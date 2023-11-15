@@ -345,7 +345,7 @@ void btm_sec_clear_ble_keys(tBTM_SEC_DEV_REC* p_dev_rec) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_sec::btm_sec_clear_ble_keys(p_dev_rec);
 }
-void btm_sec_conn_req(const RawAddress& bda, uint8_t* dc) {
+void btm_sec_conn_req(const RawAddress& bda, const DEV_CLASS dc) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_sec::btm_sec_conn_req(bda, dc);
 }
