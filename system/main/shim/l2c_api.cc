@@ -21,8 +21,6 @@
 #include <base/logging.h>
 
 #include <future>
-#include <unordered_map>
-#include <unordered_set>
 
 #include "bta/include/bta_dm_acl.h"
 #include "gd/l2cap/classic/l2cap_classic_module.h"
@@ -35,14 +33,12 @@
 #include "osi/include/allocator.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_sec.h"
-#include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/ble_acl_interface.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btu_hcif.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/main_thread.h"
-#include "stack/include/sco_hci_link_interface.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
@@ -51,9 +47,6 @@ void gatt_notify_conn_update(const RawAddress& remote, uint16_t interval,
                              tHCI_STATUS status);
 void gatt_notify_phy_updated(tHCI_STATUS status, uint16_t handle,
                              uint8_t tx_phy, uint8_t rx_phy);
-
-void process_ssr_event(tHCI_STATUS status, uint16_t handle, uint16_t max_tx_lat,
-                       uint16_t max_rx_lat);
 
 namespace bluetooth {
 namespace shim {
@@ -65,9 +58,6 @@ using namespace bluetooth::l2cap;
 
 namespace {
 uint16_t classic_cid_token_counter_ = 0x41;
-constexpr uint64_t kBrEdrNotSupportedMask = 0x0000002000000000;      // Bit 37
-constexpr uint64_t kLeSupportedControllerMask = 0x0000004000000000;  // Bit 38
-constexpr uint64_t kLeSupportedHostMask = 0x0000000000000002;        // Bit 1
 
 std::unordered_map<uint16_t /* token */, uint16_t /* psm */>
     classic_cid_token_to_channel_map_;
@@ -392,87 +382,6 @@ struct RemoteFeature {
 };
 
 std::unordered_map<RawAddress, RemoteFeature> remote_feature_map_;
-
-struct LinkPropertyListenerShim
-    : public bluetooth::l2cap::classic::LinkPropertyListener {
-  std::unordered_map<hci::Address, uint16_t> address_to_handle_;
-
-  void OnLinkConnected(hci::Address remote, uint16_t handle) override {
-    address_to_handle_[remote] = handle;
-  }
-
-  void OnLinkDisconnected(hci::Address remote) override {
-    address_to_handle_.erase(remote);
-  }
-
-  void OnReadRemoteVersionInformation(hci::ErrorCode error_code,
-                                      hci::Address remote, uint8_t lmp_version,
-                                      uint16_t manufacturer_name,
-                                      uint16_t sub_version) override {
-    auto bda = bluetooth::ToRawAddress(remote);
-    auto& entry = remote_feature_map_[bda];
-    entry.lmp_version = lmp_version;
-    entry.manufacturer_name = manufacturer_name;
-    entry.sub_version = sub_version;
-    entry.version_info_received = true;
-  }
-
-  void OnReadRemoteExtendedFeatures(hci::Address remote, uint8_t page_number,
-                                    uint8_t max_page_number,
-                                    uint64_t features) override {
-    auto bda = bluetooth::ToRawAddress(remote);
-    auto& entry = remote_feature_map_[bda];
-    if (page_number == 0) {
-      entry.received_page_0 = true;
-      if (features & 0x20) entry.role_switch_supported = true;
-      entry.br_edr_supported = !(features & kBrEdrNotSupportedMask);
-      entry.le_supported_controller = features & kLeSupportedControllerMask;
-      std::memcpy(entry.raw_remote_features, &features, 8);
-    }
-    if (page_number == 1) {
-      entry.received_page_1 = true;
-      if (features & 0x01) entry.ssp_supported = true;
-      entry.le_supported_host = features & kLeSupportedHostMask;
-    }
-    if (entry.received_page_0 && entry.received_page_1) {
-      const bool le_supported =
-          entry.le_supported_controller && entry.le_supported_host;
-      btm_sec_set_peer_sec_caps(address_to_handle_[remote], entry.ssp_supported,
-                                false, entry.role_switch_supported,
-                                entry.br_edr_supported, le_supported);
-    }
-  }
-
-  void OnRoleChange(hci::ErrorCode error_code, hci::Address remote,
-                    hci::Role role) override {
-    btm_rejectlist_role_change_device(ToRawAddress(remote),
-                                      ToLegacyHciErrorCode(error_code));
-    btm_acl_role_changed(ToLegacyHciErrorCode(error_code), ToRawAddress(remote),
-                         ToLegacyRole(role));
-  }
-
-  void OnReadClockOffset(hci::Address remote, uint16_t clock_offset) override {
-    btm_sec_update_clock_offset(address_to_handle_[remote], clock_offset);
-  }
-
-  void OnModeChange(hci::ErrorCode error_code, hci::Address remote,
-                    hci::Mode mode, uint16_t interval) override {
-    btm_sco_chk_pend_unpark(ToLegacyHciErrorCode(error_code),
-                            address_to_handle_[remote]);
-    btm_pm_proc_mode_change(ToLegacyHciErrorCode(error_code),
-                            address_to_handle_[remote], ToLegacyHciMode(mode),
-                            interval);
-  }
-
-  void OnSniffSubrating(hci::ErrorCode error_code, hci::Address remote,
-                        uint16_t max_tx_lat, uint16_t max_rx_lat,
-                        uint16_t min_remote_timeout,
-                        uint16_t min_local_timeout) override {
-    process_ssr_event(ToLegacyHciErrorCode(error_code),
-                      address_to_handle_[remote], max_tx_lat, max_rx_lat);
-  }
-
-} link_property_listener_shim_;
 
 class SecurityListenerShim
     : public bluetooth::l2cap::classic::LinkSecurityInterfaceListener {
