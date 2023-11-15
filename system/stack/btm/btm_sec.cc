@@ -35,6 +35,7 @@
 
 #include <string>
 
+#include "bt_dev_class.h"
 #include "btif/include/btif_storage.h"
 #include "common/init_flags.h"
 #include "common/metrics.h"
@@ -2048,7 +2049,7 @@ tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
  * Returns          void
  *
  ******************************************************************************/
-void btm_sec_conn_req(const RawAddress& bda, uint8_t* dc) {
+void btm_sec_conn_req(const RawAddress& bda, const DEV_CLASS dc) {
   tBTM_SEC_DEV_REC* p_dev_rec = nullptr;
 
   /* Some device may request a connection before we are done with the HCI_Reset
@@ -2073,7 +2074,7 @@ void btm_sec_conn_req(const RawAddress& bda, uint8_t* dc) {
   /* Host is not interested or approved connection.  Save BDA and DC and */
   /* pass request to L2CAP */
   btm_sec_cb.connecting_bda = bda;
-  memcpy(btm_sec_cb.connecting_dc, dc, DEV_CLASS_LEN);
+  memcpy(btm_sec_cb.connecting_dc, &dc, DEV_CLASS_LEN);
 
   p_dev_rec = btm_find_or_alloc_dev(bda);
   p_dev_rec->sm4 |= BTM_SM4_CONN_PEND;
