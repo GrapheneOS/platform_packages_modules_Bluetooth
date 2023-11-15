@@ -1,8 +1,0 @@
-package: "com.android.bluetooth.flags"
-
-flag {
-    name: "enable_queuing_profile_connection_change"
-    namespace: "bluetooth"
-    description: "Queue Profile connection change events on the ClientHandler for Scan Manager"
-    bug: "306033108"
-}
