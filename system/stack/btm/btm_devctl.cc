@@ -23,14 +23,13 @@
  *
  ******************************************************************************/
 
-#include "acl_api_types.h"
 #define LOG_TAG "devctl"
-
 #include <base/logging.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "acl_api_types.h"
 #include "btif/include/btif_bqr.h"
 #include "btm_ble_int.h"
 #include "btm_sec_cb.h"
