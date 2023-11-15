@@ -34,6 +34,7 @@
 #include "bt_target.h"  // Must be first to define build configuration
 #include "bta_api_data_types.h"
 #include "os/log.h"
+#include "stack/btm/power_mode.h"
 #include "stack/include/bt_name.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_ble_api_types.h"

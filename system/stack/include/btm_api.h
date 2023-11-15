@@ -582,65 +582,6 @@ tBTM_SCO_DEBUG_DUMP BTM_GetScoDebugDump(void);
  ******************************************************************************/
 tBT_DEVICE_TYPE BTM_GetPeerDeviceTypeFromFeatures(const RawAddress& bd_addr);
 
-/*****************************************************************************
- *  POWER MANAGEMENT FUNCTIONS
- ****************************************************************************/
-/*******************************************************************************
- *
- * Function         BTM_PmRegister
- *
- * Description      register or deregister with power manager
- *
- * Returns          BTM_SUCCESS if successful,
- *                  BTM_NO_RESOURCES if no room to hold registration
- *                  BTM_ILLEGAL_VALUE
- *
- ******************************************************************************/
-tBTM_STATUS BTM_PmRegister(uint8_t mask, uint8_t* p_pm_id,
-                           tBTM_PM_STATUS_CBACK* p_cb);
-
-// Notified by ACL that a new link is connected
-void BTM_PM_OnConnected(uint16_t handle, const RawAddress& remote_bda);
-
-// Notified by ACL that a link is disconnected
-void BTM_PM_OnDisconnected(uint16_t handle);
-
-/*******************************************************************************
- *
- * Function         BTM_SetPowerMode
- *
- * Description      store the mode in control block or
- *                  alter ACL connection behavior.
- *
- * Returns          BTM_SUCCESS if successful,
- *                  BTM_UNKNOWN_ADDR if bd addr is not active or bad
- *
- ******************************************************************************/
-tBTM_STATUS BTM_SetPowerMode(uint8_t pm_id, const RawAddress& remote_bda,
-                             const tBTM_PM_PWR_MD* p_mode);
-bool BTM_SetLinkPolicyActiveMode(const RawAddress& remote_bda);
-
-/*******************************************************************************
- *
- * Function         BTM_SetSsrParams
- *
- * Description      This sends the given SSR parameters for the given ACL
- *                  connection if it is in ACTIVE mode.
- *
- * Input Param      remote_bda - device address of desired ACL connection
- *                  max_lat    - maximum latency (in 0.625ms)(0-0xFFFE)
- *                  min_rmt_to - minimum remote timeout
- *                  min_loc_to - minimum local timeout
- *
- *
- * Returns          BTM_SUCCESS if the HCI command is issued successful,
- *                  BTM_UNKNOWN_ADDR if bd addr is not active or bad
- *                  BTM_CMD_STORED if the command is stored
- *
- ******************************************************************************/
-tBTM_STATUS BTM_SetSsrParams(const RawAddress& remote_bda, uint16_t max_lat,
-                             uint16_t min_rmt_to, uint16_t min_loc_to);
-
 /*******************************************************************************
  *
  * Function         BTM_GetHCIConnHandle
@@ -793,18 +734,6 @@ uint8_t BTM_GetEirSupportedServices(uint32_t* p_eir_uuid, uint8_t** p,
 uint8_t BTM_GetEirUuidList(const uint8_t* p_eir, size_t eir_len,
                            uint8_t uuid_size, uint8_t* p_num_uuid,
                            uint8_t* p_uuid_list, uint8_t max_num_uuid);
-
-/*******************************************************************************
- *
- * Function         BTM_PM_ReadControllerState
- *
- * Description      This function is called to obtain the controller state
- *
- * Returns          Controller state (BTM_CONTRL_ACTIVE, BTM_CONTRL_SCAN, and
- *                                    BTM_CONTRL_IDLE)
- *
- ******************************************************************************/
-tBTM_CONTRL_STATE BTM_PM_ReadControllerState(void);
 
 /**
  * Send remote name request, either to legacy HCI, or to GD shim Name module
