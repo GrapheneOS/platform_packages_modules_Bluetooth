@@ -27,6 +27,7 @@
 #include <string>
 
 // Original included files, if any
+#include "bt_dev_class.h"
 #include "stack/btm/security_device_record.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/btm_status.h"
@@ -567,12 +568,12 @@ struct btm_sec_clear_ble_keys {
 extern struct btm_sec_clear_ble_keys btm_sec_clear_ble_keys;
 
 // Name: btm_sec_conn_req
-// Params: const RawAddress& bda, uint8_t* dc
+// Params: const RawAddress& bda, const DEV_CLASS dc
 // Return: void
 struct btm_sec_conn_req {
-  std::function<void(const RawAddress& bda, uint8_t* dc)> body{
-      [](const RawAddress& bda, uint8_t* dc) {}};
-  void operator()(const RawAddress& bda, uint8_t* dc) { body(bda, dc); };
+  std::function<void(const RawAddress& bda, const DEV_CLASS dc)> body{
+      [](const RawAddress& bda, const DEV_CLASS dc) {}};
+  void operator()(const RawAddress& bda, const DEV_CLASS dc) { body(bda, dc); };
 };
 extern struct btm_sec_conn_req btm_sec_conn_req;
 
