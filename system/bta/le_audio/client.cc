@@ -2823,8 +2823,8 @@ class LeAudioClientImpl : public LeAudioClient {
         }
 
         LOG_INFO(
-            "Found ASE characteristic, handle: 0x%04x, ccc handle: 0x%04x, "
-            "addr: %s",
+            "Found ASE Control Point characteristic, handle: 0x%04x, "
+            "ccc handle: 0x%04x, addr: %s",
             charac.value_handle, leAudioDevice->ctp_hdls_.ccc_hdl,
             ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       }
