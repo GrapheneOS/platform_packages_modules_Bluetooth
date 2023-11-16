@@ -659,9 +659,7 @@ std::string LeAudioLtvMap::ToString(
 
 const struct LeAudioCoreCodecConfig& LeAudioLtvMap::GetAsCoreCodecConfig()
     const {
-  if (core_capabilities) {
-    LOG_ERROR("LTVs were already parsed for capabilities!");
-  }
+  ASSERT_LOG(!core_capabilities, "LTVs were already parsed for capabilities!");
 
   if (!core_config) {
     core_config = LtvMapToCoreCodecConfig(*this);
@@ -671,9 +669,7 @@ const struct LeAudioCoreCodecConfig& LeAudioLtvMap::GetAsCoreCodecConfig()
 
 const struct LeAudioCoreCodecCapabilities&
 LeAudioLtvMap::GetAsCoreCodecCapabilities() const {
-  if (core_config) {
-    LOG_ERROR("LTVs were already parsed for configurations!");
-  }
+  ASSERT_LOG(!core_config, "LTVs were already parsed for configurations!");
 
   if (!core_capabilities) {
     core_capabilities = LtvMapToCoreCodecCapabilities(*this);
