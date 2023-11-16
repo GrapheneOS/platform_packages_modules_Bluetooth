@@ -231,17 +231,17 @@ public class DatabaseManager {
      */
     @VisibleForTesting
     public boolean setCustomMeta(BluetoothDevice device, int key, byte[] newValue) {
-        synchronized (mMetadataCache) {
-            if (device == null) {
-                Log.e(TAG, "setCustomMeta: device is null");
-                return false;
-            }
-            if (!isValidMetaKey(key)) {
-                Log.e(TAG, "setCustomMeta: meta key invalid " + key);
-                return false;
-            }
+        if (device == null) {
+            Log.e(TAG, "setCustomMeta: device is null");
+            return false;
+        }
+        if (!isValidMetaKey(key)) {
+            Log.e(TAG, "setCustomMeta: meta key invalid " + key);
+            return false;
+        }
 
-            String address = device.getAddress();
+        String address = device.getAddress();
+        synchronized (mMetadataCache) {
             if (!mMetadataCache.containsKey(address)) {
                 createMetadata(address, false);
             }
@@ -256,9 +256,9 @@ public class DatabaseManager {
             data.setCustomizedMeta(key, newValue);
 
             updateDatabase(data);
-            mAdapterService.metadataChanged(address, key, newValue);
-            return true;
         }
+        mAdapterService.metadataChanged(address, key, newValue);
+        return true;
     }
 
     /**
