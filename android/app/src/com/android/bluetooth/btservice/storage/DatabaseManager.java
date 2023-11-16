@@ -265,18 +265,18 @@ public class DatabaseManager {
      * Get customized metadata from database with requested key
      */
     public byte[] getCustomMeta(BluetoothDevice device, int key) {
+        if (device == null) {
+            Log.e(TAG, "getCustomMeta: device is null");
+            return null;
+        }
+        if (!isValidMetaKey(key)) {
+            Log.e(TAG, "getCustomMeta: meta key invalid " + key);
+            return null;
+        }
+
+        String address = device.getAddress();
+
         synchronized (mMetadataCache) {
-            if (device == null) {
-                Log.e(TAG, "getCustomMeta: device is null");
-                return null;
-            }
-            if (!isValidMetaKey(key)) {
-                Log.e(TAG, "getCustomMeta: meta key invalid " + key);
-                return null;
-            }
-
-            String address = device.getAddress();
-
             if (!mMetadataCache.containsKey(address)) {
                 Log.d(TAG, "getCustomMeta: device " + device + " is not in cache");
                 return null;
@@ -293,13 +293,13 @@ public class DatabaseManager {
     @VisibleForTesting
     public boolean setAudioPolicyMetadata(BluetoothDevice device,
             BluetoothSinkAudioPolicy policies) {
-        synchronized (mMetadataCache) {
-            if (device == null) {
-                Log.e(TAG, "setAudioPolicyMetadata: device is null");
-                return false;
-            }
+        if (device == null) {
+            Log.e(TAG, "setAudioPolicyMetadata: device is null");
+            return false;
+        }
 
-            String address = device.getAddress();
+        String address = device.getAddress();
+        synchronized (mMetadataCache) {
             if (!mMetadataCache.containsKey(address)) {
                 createMetadata(address, false);
             }
@@ -319,14 +319,14 @@ public class DatabaseManager {
      */
     @VisibleForTesting
     public BluetoothSinkAudioPolicy getAudioPolicyMetadata(BluetoothDevice device) {
+        if (device == null) {
+            Log.e(TAG, "getAudioPolicyMetadata: device is null");
+            return null;
+        }
+
+        String address = device.getAddress();
+
         synchronized (mMetadataCache) {
-            if (device == null) {
-                Log.e(TAG, "getAudioPolicyMetadata: device is null");
-                return null;
-            }
-
-            String address = device.getAddress();
-
             if (!mMetadataCache.containsKey(address)) {
                 Log.d(TAG, "getAudioPolicyMetadata: device " + device + " is not in cache");
                 return null;
@@ -362,21 +362,23 @@ public class DatabaseManager {
     @VisibleForTesting
     public boolean setProfileConnectionPolicy(BluetoothDevice device, int profile,
             int newConnectionPolicy) {
+        if (device == null) {
+            Log.e(TAG, "setProfileConnectionPolicy: device is null");
+            return false;
+        }
+
+        if (newConnectionPolicy != BluetoothProfile.CONNECTION_POLICY_UNKNOWN
+                && newConnectionPolicy != BluetoothProfile.CONNECTION_POLICY_FORBIDDEN
+                && newConnectionPolicy != BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
+            Log.e(
+                    TAG,
+                    "setProfileConnectionPolicy: invalid connection policy " + newConnectionPolicy);
+            return false;
+        }
+
+        String address = device.getAddress();
+
         synchronized (mMetadataCache) {
-            if (device == null) {
-                Log.e(TAG, "setProfileConnectionPolicy: device is null");
-                return false;
-            }
-
-            if (newConnectionPolicy != BluetoothProfile.CONNECTION_POLICY_UNKNOWN
-                    && newConnectionPolicy != BluetoothProfile.CONNECTION_POLICY_FORBIDDEN
-                    && newConnectionPolicy != BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
-                Log.e(TAG, "setProfileConnectionPolicy: invalid connection policy "
-                        + newConnectionPolicy);
-                return false;
-            }
-
-            String address = device.getAddress();
             if (!mMetadataCache.containsKey(address)) {
                 if (newConnectionPolicy == BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
                     return true;
@@ -421,14 +423,14 @@ public class DatabaseManager {
      * {@link BluetoothProfile.CONNECTION_POLICY_ALLOWED}
      */
     public int getProfileConnectionPolicy(BluetoothDevice device, int profile) {
+        if (device == null) {
+            Log.e(TAG, "getProfileConnectionPolicy: device is null");
+            return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
+        }
+
+        String address = device.getAddress();
+
         synchronized (mMetadataCache) {
-            if (device == null) {
-                Log.e(TAG, "getProfileConnectionPolicy: device is null");
-                return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
-            }
-
-            String address = device.getAddress();
-
             if (!mMetadataCache.containsKey(address)) {
                 Log.d(TAG, "getProfileConnectionPolicy: device " + device.getAnonymizedAddress()
                         + " is not in cache");
@@ -456,20 +458,20 @@ public class DatabaseManager {
      */
     @VisibleForTesting
     public void setA2dpSupportsOptionalCodecs(BluetoothDevice device, int newValue) {
+        if (device == null) {
+            Log.e(TAG, "setA2dpOptionalCodec: device is null");
+            return;
+        }
+        if (newValue != BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN
+                && newValue != BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED
+                && newValue != BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED) {
+            Log.e(TAG, "setA2dpSupportsOptionalCodecs: invalid value " + newValue);
+            return;
+        }
+
+        String address = device.getAddress();
+
         synchronized (mMetadataCache) {
-            if (device == null) {
-                Log.e(TAG, "setA2dpOptionalCodec: device is null");
-                return;
-            }
-            if (newValue != BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN
-                    && newValue != BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED
-                    && newValue != BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED) {
-                Log.e(TAG, "setA2dpSupportsOptionalCodecs: invalid value " + newValue);
-                return;
-            }
-
-            String address = device.getAddress();
-
             if (!mMetadataCache.containsKey(address)) {
                 return;
             }
@@ -498,14 +500,14 @@ public class DatabaseManager {
     @VisibleForTesting
     @OptionalCodecsSupportStatus
     public int getA2dpSupportsOptionalCodecs(BluetoothDevice device) {
+        if (device == null) {
+            Log.e(TAG, "setA2dpOptionalCodec: device is null");
+            return BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN;
+        }
+
+        String address = device.getAddress();
+
         synchronized (mMetadataCache) {
-            if (device == null) {
-                Log.e(TAG, "setA2dpOptionalCodec: device is null");
-                return BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN;
-            }
-
-            String address = device.getAddress();
-
             if (!mMetadataCache.containsKey(address)) {
                 Log.d(TAG, "getA2dpOptionalCodec: device " + device + " is not in cache");
                 return BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN;
@@ -527,20 +529,20 @@ public class DatabaseManager {
      */
     @VisibleForTesting
     public void setA2dpOptionalCodecsEnabled(BluetoothDevice device, int newValue) {
+        if (device == null) {
+            Log.e(TAG, "setA2dpOptionalCodecEnabled: device is null");
+            return;
+        }
+        if (newValue != BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN
+                && newValue != BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED
+                && newValue != BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED) {
+            Log.e(TAG, "setA2dpOptionalCodecsEnabled: invalid value " + newValue);
+            return;
+        }
+
+        String address = device.getAddress();
+
         synchronized (mMetadataCache) {
-            if (device == null) {
-                Log.e(TAG, "setA2dpOptionalCodecEnabled: device is null");
-                return;
-            }
-            if (newValue != BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN
-                    && newValue != BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED
-                    && newValue != BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED) {
-                Log.e(TAG, "setA2dpOptionalCodecsEnabled: invalid value " + newValue);
-                return;
-            }
-
-            String address = device.getAddress();
-
             if (!mMetadataCache.containsKey(address)) {
                 return;
             }
@@ -569,14 +571,13 @@ public class DatabaseManager {
     @VisibleForTesting
     @OptionalCodecsPreferenceStatus
     public int getA2dpOptionalCodecsEnabled(BluetoothDevice device) {
+        if (device == null) {
+            Log.e(TAG, "getA2dpOptionalCodecEnabled: device is null");
+            return BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
+        }
+        String address = device.getAddress();
+
         synchronized (mMetadataCache) {
-            if (device == null) {
-                Log.e(TAG, "getA2dpOptionalCodecEnabled: device is null");
-                return BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
-            }
-
-            String address = device.getAddress();
-
             if (!mMetadataCache.containsKey(address)) {
                 Log.d(TAG, "getA2dpOptionalCodecEnabled: device " + device + " is not in cache");
                 return BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
@@ -978,39 +979,40 @@ public class DatabaseManager {
      * @return a Bundle containing the preferred audio profiles
      */
     public Bundle getPreferredAudioProfiles(BluetoothDevice device) {
+        if (device == null) {
+            Log.e(TAG, "getPreferredAudioProfiles: device is null");
+            throw new IllegalArgumentException("getPreferredAudioProfiles: device is null");
+        }
+
+        String address = device.getAddress();
+        final int outputOnlyProfile;
+        final int duplexProfile;
+
         synchronized (mMetadataCache) {
-            if (device == null) {
-                Log.e(TAG, "getPreferredAudioProfiles: device is null");
-                throw new IllegalArgumentException("getPreferredAudioProfiles: device is null");
-            }
-
-            String address = device.getAddress();
-
             if (!mMetadataCache.containsKey(address)) {
                 return Bundle.EMPTY;
             }
 
             // Gets the preferred audio profiles for each audio mode
             Metadata metadata = mMetadataCache.get(address);
-            int outputOnlyProfile = metadata.preferred_output_only_profile;
-            int duplexProfile = metadata.preferred_duplex_profile;
-
-            // Checks if the default values are present (aka no explicit preference)
-            if (outputOnlyProfile == 0 && duplexProfile == 0) {
-                return Bundle.EMPTY;
-            }
-
-            Bundle modeToProfileBundle = new Bundle();
-            if (outputOnlyProfile != 0) {
-                modeToProfileBundle.putInt(
-                        BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY, outputOnlyProfile);
-            }
-            if (duplexProfile != 0) {
-                modeToProfileBundle.putInt(BluetoothAdapter.AUDIO_MODE_DUPLEX, duplexProfile);
-            }
-
-            return modeToProfileBundle;
+            outputOnlyProfile = metadata.preferred_output_only_profile;
+            duplexProfile = metadata.preferred_duplex_profile;
         }
+
+        // Checks if the default values are present (aka no explicit preference)
+        if (outputOnlyProfile == 0 && duplexProfile == 0) {
+            return Bundle.EMPTY;
+        }
+
+        Bundle modeToProfileBundle = new Bundle();
+        if (outputOnlyProfile != 0) {
+            modeToProfileBundle.putInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY, outputOnlyProfile);
+        }
+        if (duplexProfile != 0) {
+            modeToProfileBundle.putInt(BluetoothAdapter.AUDIO_MODE_DUPLEX, duplexProfile);
+        }
+
+        return modeToProfileBundle;
     }
 
     /**
