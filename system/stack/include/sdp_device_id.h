@@ -21,7 +21,6 @@
 #include <cstdint>
 
 #include "bt_target.h"
-#include "stack/include/sdp_status.h"
 
 /* Device Identification (DI) data structure
  */

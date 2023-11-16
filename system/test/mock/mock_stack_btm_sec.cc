@@ -230,11 +230,10 @@ bool BTM_SecAddRmtNameNotifyCallback(tBTM_RMT_NAME_CALLBACK* p_callback) {
   return test::mock::stack_btm_sec::BTM_SecAddRmtNameNotifyCallback(p_callback);
 }
 tBTM_STATUS BTM_SecBond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
-                        tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type,
-                        uint8_t pin_len, uint8_t* p_pin) {
+                        tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type) {
   inc_func_call_count(__func__);
   return test::mock::stack_btm_sec::BTM_SecBond(bd_addr, addr_type, transport,
-                                                device_type, pin_len, p_pin);
+                                                device_type);
 }
 tBTM_STATUS BTM_SecBondCancel(const RawAddress& bd_addr) {
   inc_func_call_count(__func__);
@@ -333,11 +332,10 @@ void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status) {
 }
 tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
                                       tBLE_ADDR_TYPE addr_type,
-                                      tBT_TRANSPORT transport, uint8_t pin_len,
-                                      uint8_t* p_pin) {
+                                      tBT_TRANSPORT transport) {
   inc_func_call_count(__func__);
   return test::mock::stack_btm_sec::btm_sec_bond_by_transport(
-      bd_addr, addr_type, transport, pin_len, p_pin);
+      bd_addr, addr_type, transport);
 }
 void btm_sec_check_pending_reqs(void) {
   inc_func_call_count(__func__);
@@ -347,7 +345,7 @@ void btm_sec_clear_ble_keys(tBTM_SEC_DEV_REC* p_dev_rec) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_sec::btm_sec_clear_ble_keys(p_dev_rec);
 }
-void btm_sec_conn_req(const RawAddress& bda, uint8_t* dc) {
+void btm_sec_conn_req(const RawAddress& bda, const DEV_CLASS dc) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_sec::btm_sec_conn_req(bda, dc);
 }

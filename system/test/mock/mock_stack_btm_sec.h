@@ -27,6 +27,7 @@
 #include <string>
 
 // Original included files, if any
+#include "bt_dev_class.h"
 #include "stack/btm/security_device_record.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/btm_status.h"
@@ -270,15 +271,13 @@ struct BTM_SecBond {
   static tBTM_STATUS return_value;
   std::function<tBTM_STATUS(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
                             tBT_TRANSPORT transport,
-                            tBT_DEVICE_TYPE device_type, uint8_t pin_len,
-                            uint8_t* p_pin)>
+                            tBT_DEVICE_TYPE device_type)>
       body{[](const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
-              tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type,
-              uint8_t pin_len, uint8_t* p_pin) { return return_value; }};
+              tBT_TRANSPORT transport,
+              tBT_DEVICE_TYPE device_type) { return return_value; }};
   tBTM_STATUS operator()(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
-                         tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type,
-                         uint8_t pin_len, uint8_t* p_pin) {
-    return body(bd_addr, addr_type, transport, device_type, pin_len, p_pin);
+                         tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type) {
+    return body(bd_addr, addr_type, transport, device_type);
   };
 };
 extern struct BTM_SecBond BTM_SecBond;
@@ -539,15 +538,12 @@ extern struct btm_sec_auth_complete btm_sec_auth_complete;
 struct btm_sec_bond_by_transport {
   static tBTM_STATUS return_value;
   std::function<tBTM_STATUS(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
-                            tBT_TRANSPORT transport, uint8_t pin_len,
-                            uint8_t* p_pin)>
+                            tBT_TRANSPORT transport)>
       body{[](const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
-              tBT_TRANSPORT transport, uint8_t pin_len,
-              uint8_t* p_pin) { return return_value; }};
+              tBT_TRANSPORT transport) { return return_value; }};
   tBTM_STATUS operator()(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
-                         tBT_TRANSPORT transport, uint8_t pin_len,
-                         uint8_t* p_pin) {
-    return body(bd_addr, addr_type, transport, pin_len, p_pin);
+                         tBT_TRANSPORT transport) {
+    return body(bd_addr, addr_type, transport);
   };
 };
 extern struct btm_sec_bond_by_transport btm_sec_bond_by_transport;
@@ -572,12 +568,12 @@ struct btm_sec_clear_ble_keys {
 extern struct btm_sec_clear_ble_keys btm_sec_clear_ble_keys;
 
 // Name: btm_sec_conn_req
-// Params: const RawAddress& bda, uint8_t* dc
+// Params: const RawAddress& bda, const DEV_CLASS dc
 // Return: void
 struct btm_sec_conn_req {
-  std::function<void(const RawAddress& bda, uint8_t* dc)> body{
-      [](const RawAddress& bda, uint8_t* dc) {}};
-  void operator()(const RawAddress& bda, uint8_t* dc) { body(bda, dc); };
+  std::function<void(const RawAddress& bda, const DEV_CLASS dc)> body{
+      [](const RawAddress& bda, const DEV_CLASS dc) {}};
+  void operator()(const RawAddress& bda, const DEV_CLASS dc) { body(bda, dc); };
 };
 extern struct btm_sec_conn_req btm_sec_conn_req;
 

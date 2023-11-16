@@ -76,6 +76,7 @@ config("target_defaults") {
   include_dirs = [
     "//bt/system",
     "//bt/flags/exported_include",
+    "//bt/sysprop/exported_include",
     "//bt/system/linux_include",
     "//bt/system/types",
     "//bt/system/include",

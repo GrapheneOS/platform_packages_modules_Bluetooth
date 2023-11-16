@@ -161,7 +161,7 @@ void bta_dm_bond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
   const char* p_name;
 
   tBTM_STATUS status = get_btm_client_interface().security.BTM_SecBond(
-      bd_addr, addr_type, transport, device_type, 0, NULL);
+      bd_addr, addr_type, transport, device_type);
 
   if (bta_dm_sec_cb.p_sec_cback && (status != BTM_CMD_STARTED)) {
     memset(&sec_event, 0, sizeof(tBTA_DM_SEC));

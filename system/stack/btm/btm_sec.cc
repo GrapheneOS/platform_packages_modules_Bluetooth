@@ -35,6 +35,7 @@
 
 #include <string>
 
+#include "bt_dev_class.h"
 #include "btif/include/btif_storage.h"
 #include "common/init_flags.h"
 #include "common/metrics.h"
@@ -773,15 +774,14 @@ void BTM_PINCodeReply(const RawAddress& bd_addr, tBTM_STATUS res,
  * Description      this is the bond function that will start either SSP or SMP.
  *
  * Parameters:      bd_addr      - Address of the device to bond
- *                  pin_len      - length in bytes of the PIN Code
- *                  p_pin        - pointer to array with the PIN Code
+ *                  addr_type    - type of the address
+ *                  transport    - transport on which to create bond
  *
  *  Note: After 2.1 parameters are not used and preserved here not to change API
  ******************************************************************************/
 tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
                                       tBLE_ADDR_TYPE addr_type,
-                                      tBT_TRANSPORT transport, uint8_t pin_len,
-                                      uint8_t* p_pin) {
+                                      tBT_TRANSPORT transport) {
   tBTM_SEC_DEV_REC* p_dev_rec;
   tBTM_STATUS status;
   LOG_INFO("%s: Transport used %d, bd_addr=%s", __func__, transport,
@@ -822,13 +822,6 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
   if ((BTM_DeleteStoredLinkKey(&bd_addr, NULL)) != BTM_SUCCESS) {
     LOG_ERROR("Failed to delete stored link keys");
     return (BTM_NO_RESOURCES);
-  }
-
-  /* Save the PIN code if we got a valid one */
-  if (p_pin && (pin_len <= PIN_CODE_LEN) && (pin_len != 0)) {
-    btm_sec_cb.pin_code_len = pin_len;
-    p_dev_rec->pin_code_length = pin_len;
-    memcpy(btm_sec_cb.pin_code, p_pin, PIN_CODE_LEN);
   }
 
   btm_sec_cb.pairing_bda = bd_addr;
@@ -940,14 +933,11 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
  *
  * Parameters:      bd_addr      - Address of the device to bond
  *                  transport    - doing SSP over BR/EDR or SMP over LE
- *                  pin_len      - length in bytes of the PIN Code
- *                  p_pin        - pointer to array with the PIN Code
  *
  *  Note: After 2.1 parameters are not used and preserved here not to change API
  ******************************************************************************/
 tBTM_STATUS BTM_SecBond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
-                        tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type,
-                        uint8_t pin_len, uint8_t* p_pin) {
+                        tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type) {
   if (transport == BT_TRANSPORT_AUTO) {
     if (addr_type == BLE_ADDR_PUBLIC) {
       transport =
@@ -969,8 +959,7 @@ tBTM_STATUS BTM_SecBond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
         "device on don't match");
     return BTM_ILLEGAL_ACTION;
   }
-  return btm_sec_bond_by_transport(bd_addr, addr_type, transport, pin_len,
-                                   p_pin);
+  return btm_sec_bond_by_transport(bd_addr, addr_type, transport);
 }
 
 /*******************************************************************************
@@ -2089,7 +2078,7 @@ tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
  * Returns          void
  *
  ******************************************************************************/
-void btm_sec_conn_req(const RawAddress& bda, uint8_t* dc) {
+void btm_sec_conn_req(const RawAddress& bda, const DEV_CLASS dc) {
   tBTM_SEC_DEV_REC* p_dev_rec = nullptr;
 
   /* Some device may request a connection before we are done with the HCI_Reset
@@ -2114,7 +2103,7 @@ void btm_sec_conn_req(const RawAddress& bda, uint8_t* dc) {
   /* Host is not interested or approved connection.  Save BDA and DC and */
   /* pass request to L2CAP */
   btm_sec_cb.connecting_bda = bda;
-  memcpy(btm_sec_cb.connecting_dc, dc, DEV_CLASS_LEN);
+  memcpy(btm_sec_cb.connecting_dc, &dc, DEV_CLASS_LEN);
 
   p_dev_rec = btm_find_or_alloc_dev(bda);
   p_dev_rec->sm4 |= BTM_SM4_CONN_PEND;
@@ -3609,10 +3598,11 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
  *
  * Function         btm_sec_connect_after_reject_timeout
  *
- * Description      Connection for bonding could not start because of the
- *                  collision. Initiate outgoing connection
+ * Description      This function is used to re-initiate an outgoing ACL
+ *                  connection in case the ACL connection for bonding failed,
+ *                  e.g., because of the collision.
  *
- * Returns          Pointer to the TLE struct
+ * Returns          void
  *
  ******************************************************************************/
 static void btm_sec_connect_after_reject_timeout(void* /* data */) {
@@ -3634,8 +3624,8 @@ static void btm_sec_connect_after_reject_timeout(void* /* data */) {
  *
  * Function         btm_sec_connected
  *
- * Description      This function is when a connection to the peer device is
- *                  established
+ * Description      This function is called when a (BR/EDR) ACL connection to
+ *                  the peer device is established
  *
  * Returns          void
  *
@@ -3675,8 +3665,7 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
                 ADDRESS_TO_LOGGABLE_CSTR(bda), hci_error_code_text(status).c_str());
       return;
     }
-  } else /* Update the timestamp for this device */
-  {
+  } else {
     LOG_DEBUG(
         "Connected to known device state:%s handle:0x%04x status:%s "
         "enc_mode:%hhu bda:%s RName:%s",
@@ -3685,14 +3674,14 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
         ADDRESS_TO_LOGGABLE_CSTR(bda), p_dev_rec->sec_bd_name);
 
     bit_shift = (handle == p_dev_rec->ble_hci_handle) ? 8 : 0;
+    /* Update the timestamp for this device */
     p_dev_rec->timestamp = btm_sec_cb.dev_rec_count++;
     if (p_dev_rec->sm4 & BTM_SM4_CONN_PEND) {
-      /* tell L2CAP it's a bonding connection. */
       if ((btm_sec_cb.pairing_state != BTM_PAIR_STATE_IDLE) &&
           (btm_sec_cb.pairing_bda == p_dev_rec->bd_addr) &&
           (btm_sec_cb.pairing_flags & BTM_PAIR_FLAGS_WE_STARTED_DD)) {
-        /* if incoming connection failed while pairing, then try to connect and
-         * continue */
+        /* if incoming acl connection failed while pairing, then try to connect
+         * and continue */
         /* Motorola S9 disconnects without asking pin code */
         if ((status != HCI_SUCCESS) &&
             (btm_sec_cb.pairing_state == BTM_PAIR_STATE_WAIT_PIN_REQ)) {
@@ -3703,12 +3692,16 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
 
           p_dev_rec->sm4 &= ~BTM_SM4_CONN_PEND;
           if (p_dev_rec->sec_flags & BTM_SEC_NAME_KNOWN) {
+            /* remote device name is known, start a new acl connection */
+
             /* Start timer with 0 to initiate connection with new LCB */
             /* because L2CAP will delete current LCB with this event  */
             btm_sec_cb.p_collided_dev_rec = p_dev_rec;
             alarm_set_on_mloop(btm_sec_cb.sec_collision_timer, 0,
                                btm_sec_connect_after_reject_timeout, NULL);
-            } else {
+          } else {
+            /* remote device name is unknowm, start getting remote name first */
+
             btm_sec_change_pairing_state(BTM_PAIR_STATE_GET_REM_NAME);
             if (BTM_ReadRemoteDeviceName(p_dev_rec->bd_addr, NULL,
                                          BT_TRANSPORT_BR_EDR) !=
@@ -3716,9 +3709,10 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
               LOG_ERROR("%s cannot read remote name", __func__);
               btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
             }
-            }
+          }
           return;
         } else {
+          /* tell L2CAP it's a bonding connection. */
           l2cu_update_lcb_4_bonding(p_dev_rec->bd_addr, true);
         }
       }
@@ -3914,7 +3908,6 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
     if (res != BTM_CMD_STARTED)
       btm_sec_dev_rec_cback_event(p_dev_rec, res, false);
   }
-  return;
 }
 
 tBTM_STATUS btm_sec_disconnect(uint16_t handle, tHCI_STATUS reason,
