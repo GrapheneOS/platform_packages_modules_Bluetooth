@@ -568,6 +568,8 @@ struct tBTM_MSBC_INFO {
 
   const uint8_t* sco_pkt_read_ptr() {
     if (encode_buf_wo - encode_buf_ro < packet_size) {
+      LOG_DEBUG("Insufficient data to dequeue. buf_wo:%zu, buf_ro:%zu",
+                encode_buf_wo, encode_buf_ro);
       return nullptr;
     }
 
@@ -726,7 +728,6 @@ size_t dequeue_packet(const uint8_t** output) {
 
   *output = msbc_info->sco_pkt_read_ptr();
   if (*output == nullptr) {
-    LOG_DEBUG("Insufficient data to dequeue.");
     return 0;
   }
 
@@ -918,6 +919,8 @@ struct tBTM_LC3_INFO {
 
   const uint8_t* sco_pkt_read_ptr() {
     if (encode_buf_wo - encode_buf_ro < packet_size) {
+      LOG_DEBUG("Insufficient data to dequeue. buf_wo:%zu, buf_ro:%zu",
+                encode_buf_wo, encode_buf_ro);
       return nullptr;
     }
 
@@ -1062,7 +1065,6 @@ size_t dequeue_packet(const uint8_t** output) {
 
   *output = lc3_info->sco_pkt_read_ptr();
   if (*output == nullptr) {
-    LOG_DEBUG("Insufficient data to dequeue.");
     return 0;
   }
 
