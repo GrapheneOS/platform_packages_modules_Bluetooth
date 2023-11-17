@@ -4699,7 +4699,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            service.mAdapterStateMachine.sendMessage(AdapterState.USER_TURN_ON);
+            service.startBrEdr();
         }
 
         @Override
@@ -4727,7 +4727,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            service.mAdapterStateMachine.sendMessage(AdapterState.BLE_TURN_OFF);
+            service.stopBle();
         }
 
         @Override
