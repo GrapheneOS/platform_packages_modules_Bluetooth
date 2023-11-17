@@ -128,6 +128,7 @@ public class HeadsetService extends ProfileService {
     private DatabaseManager mDatabaseManager;
     private HandlerThread mStateMachinesThread;
     private Handler mStateMachinesThreadHandler;
+    private Handler mHandler;
     // This is also used as a lock for shared data in HeadsetService
     private final HashMap<BluetoothDevice, HeadsetStateMachine> mStateMachines = new HashMap<>();
     private HeadsetNativeInterface mNativeInterface;
@@ -184,6 +185,7 @@ public class HeadsetService extends ProfileService {
         mDatabaseManager = Objects.requireNonNull(mAdapterService.getDatabase(),
                 "DatabaseManager cannot be null when HeadsetService starts");
         // Step 2: Start handler thread for state machines
+        mHandler = new Handler(Looper.getMainLooper());
         mStateMachinesThread = new HandlerThread("HeadsetService.StateMachines");
         mStateMachinesThread.start();
         // Step 3: Initialize system interface
@@ -206,7 +208,6 @@ public class HeadsetService extends ProfileService {
         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
         filter.addAction(AudioManager.ACTION_VOLUME_CHANGED);
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
-        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         registerReceiver(mHeadsetReceiver, filter);
         // Step 7: Mark service as started
         mStarted = true;
@@ -269,6 +270,13 @@ public class HeadsetService extends ProfileService {
         }
 
         mStateMachinesThreadHandler = null;
+
+        // Unregister Handler and stop all queued messages.
+        if (mHandler != null) {
+            mHandler.removeCallbacksAndMessages(null);
+            mHandler = null;
+        }
+
         // Step 1: Clear
         synchronized (mStateMachines) {
             mAdapterService = null;
@@ -429,34 +437,32 @@ public class HeadsetService extends ProfileService {
                     }
                     break;
                 }
-                case BluetoothDevice.ACTION_BOND_STATE_CHANGED: {
-                    int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE,
-                            BluetoothDevice.ERROR);
-                    BluetoothDevice device = Objects.requireNonNull(
-                            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE),
-                            "ACTION_BOND_STATE_CHANGED with no EXTRA_DEVICE");
-                    logD("Bond state changed for device: " + device + " state: " + state);
-                    if (state != BluetoothDevice.BOND_NONE) {
-                        break;
-                    }
-                    synchronized (mStateMachines) {
-                        HeadsetStateMachine stateMachine = mStateMachines.get(device);
-                        if (stateMachine == null) {
-                            break;
-                        }
-                        if (stateMachine.getConnectionState()
-                                != BluetoothProfile.STATE_DISCONNECTED) {
-                            break;
-                        }
-                        removeStateMachine(device);
-                    }
-                    break;
-                }
                 default:
                     Log.w(TAG, "Unknown action " + action);
             }
         }
     };
+
+    public void handleBondStateChanged(BluetoothDevice device, int fromState, int toState) {
+        mHandler.post(() -> bondStateChanged(device, toState));
+    }
+
+    private void bondStateChanged(BluetoothDevice device, int state) {
+        logD("Bond state changed for device: " + device + " state: " + state);
+        if (state != BluetoothDevice.BOND_NONE) {
+            return;
+        }
+        synchronized (mStateMachines) {
+            HeadsetStateMachine stateMachine = mStateMachines.get(device);
+            if (stateMachine == null) {
+                return;
+            }
+            if (stateMachine.getConnectionState() != BluetoothProfile.STATE_DISCONNECTED) {
+                return;
+            }
+            removeStateMachine(device);
+        }
+    }
 
     /**
      * Handlers for incoming service calls
