@@ -4941,6 +4941,10 @@ class LeAudioClientImpl : public LeAudioClient {
     } else if (status == GATT_DATABASE_OUT_OF_SYNC) {
       instance->ClearDeviceInformationAndStartSearch(leAudioDevice);
       return;
+    } else {
+      LOG_ERROR("Failed to read attribute, hdl: 0x%04x, status: 0x%02x", hdl,
+                static_cast<int>(status));
+      return;
     }
 
     /* We use data to keep notify connected flag. */
