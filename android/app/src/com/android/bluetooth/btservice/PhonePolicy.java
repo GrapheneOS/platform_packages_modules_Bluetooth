@@ -29,7 +29,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.SystemProperties;
-import android.provider.DeviceConfig;
 import android.util.Log;
 
 import com.android.bluetooth.R;
@@ -433,16 +432,29 @@ public class PhonePolicy implements AdapterService.BluetoothStateCallback {
                 && Utils.arrayContains(uuids, BluetoothUuid.BASS)
                 && (bcService.getConnectionPolicy(device)
                         == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)) {
-            debugLog("setting broadcast assistant profile priority for device " + device);
-            if (mAutoConnectProfilesSupported) {
-                bcService.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            if (isLeAudioProfileAllowed) {
+                debugLog("setting broadcast assistant profile priority for device " + device);
+                if (mAutoConnectProfilesSupported) {
+                    bcService.setConnectionPolicy(
+                            device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+                } else {
+                    mAdapterService
+                            .getDatabase()
+                            .setProfileConnectionPolicy(
+                                    device,
+                                    BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT,
+                                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+                }
             } else {
+                debugLog(
+                        "clear broadcast assistant profile priority if le audio profile is not"
+                                + " allowed");
                 mAdapterService
                         .getDatabase()
                         .setProfileConnectionPolicy(
                                 device,
                                 BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT,
-                                BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+                                BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
             }
         }
 
