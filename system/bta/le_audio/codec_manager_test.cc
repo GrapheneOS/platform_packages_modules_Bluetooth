@@ -309,7 +309,8 @@ TEST_F(CodecManagerTestAdsp, test_capabilities) {
 
     const std::vector<bluetooth::le_audio::btle_audio_codec_config_t>
         offloading_preference = {
-            {bluetooth::le_audio::LE_AUDIO_CODEC_INDEX_SOURCE_LC3}};
+            {.codec_type =
+                 bluetooth::le_audio::LE_AUDIO_CODEC_INDEX_SOURCE_LC3}};
     codec_manager->Start(offloading_preference);
 
     auto cfg = codec_manager->GetOffloadCodecConfig(test_context);
