@@ -580,8 +580,8 @@ void Device::HandleVolumeChanged(
   if (pkt->GetCType() == CType::REJECTED) {
     // Disable Absolute Volume
     active_labels_.erase(label);
-    volume_interface_ = nullptr;
     volume_ = VOL_REGISTRATION_FAILED;
+    volume_interface_->DeviceConnected(GetAddress());
     return;
   }
 
