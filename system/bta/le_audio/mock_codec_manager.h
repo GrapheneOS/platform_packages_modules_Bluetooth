@@ -44,6 +44,10 @@ class MockCodecManager {
               (le_audio::types::LeAudioContextType ctx_type), (const));
   MOCK_METHOD((le_audio::broadcast_offload_config*), GetBroadcastOffloadConfig,
               (), (const));
+  MOCK_METHOD((std::vector<bluetooth::le_audio::btle_audio_codec_config_t>),
+              GetLocalAudioOutputCodecCapa, ());
+  MOCK_METHOD((std::vector<bluetooth::le_audio::btle_audio_codec_config_t>),
+              GetLocalAudioInputCodecCapa, ());
   MOCK_METHOD(
       (void), UpdateBroadcastConnHandle,
       (const std::vector<uint16_t>& conn_handle,

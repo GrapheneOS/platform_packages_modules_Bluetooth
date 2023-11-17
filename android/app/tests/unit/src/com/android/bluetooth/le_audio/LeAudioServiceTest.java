@@ -1588,17 +1588,29 @@ public class LeAudioServiceTest {
         mService.messageFromNative(localCodecCapaEvent);
     }
 
-    private void injectGroupCodecConfigChanged(int groupId, BluetoothLeAudioCodecConfig inputCodecConfig,
-                                BluetoothLeAudioCodecConfig outputCodecConfig,
-                                List<BluetoothLeAudioCodecConfig> inputSelectableCodecConfig,
-                                List<BluetoothLeAudioCodecConfig> outputSelectableCodecConfig) {
-        int eventType = LeAudioStackEvent.EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED;
+    private void injectGroupCurrentCodecConfigChanged(
+            int groupId,
+            BluetoothLeAudioCodecConfig inputCodecConfig,
+            BluetoothLeAudioCodecConfig outputCodecConfig) {
+        int eventType = LeAudioStackEvent.EVENT_TYPE_AUDIO_GROUP_CURRENT_CODEC_CONFIG_CHANGED;
 
         // Add device to group
         LeAudioStackEvent groupCodecConfigChangedEvent = new LeAudioStackEvent(eventType);
         groupCodecConfigChangedEvent.valueInt1 = groupId;
         groupCodecConfigChangedEvent.valueCodec1 = inputCodecConfig;
         groupCodecConfigChangedEvent.valueCodec2 = outputCodecConfig;
+        mService.messageFromNative(groupCodecConfigChangedEvent);
+    }
+
+    private void injectGroupSelectableCodecConfigChanged(
+            int groupId,
+            List<BluetoothLeAudioCodecConfig> inputSelectableCodecConfig,
+            List<BluetoothLeAudioCodecConfig> outputSelectableCodecConfig) {
+        int eventType = LeAudioStackEvent.EVENT_TYPE_AUDIO_GROUP_SELECTABLE_CODEC_CONFIG_CHANGED;
+
+        // Add device to group
+        LeAudioStackEvent groupCodecConfigChangedEvent = new LeAudioStackEvent(eventType);
+        groupCodecConfigChangedEvent.valueInt1 = groupId;
         groupCodecConfigChangedEvent.valueCodecList1 = inputSelectableCodecConfig;
         groupCodecConfigChangedEvent.valueCodecList2 =  outputSelectableCodecConfig;
         mService.messageFromNative(groupCodecConfigChangedEvent);
@@ -1638,9 +1650,9 @@ public class LeAudioServiceTest {
 
         mService.mLeAudioCallbacks.register(leAudioCallbacks);
 
-        injectGroupCodecConfigChanged(testGroupId, LC3_16KHZ_CONFIG, LC3_48KHZ_CONFIG,
-                                        INPUT_SELECTABLE_CONFIG,
-                                        OUTPUT_SELECTABLE_CONFIG);
+        injectGroupSelectableCodecConfigChanged(
+                testGroupId, INPUT_SELECTABLE_CONFIG, OUTPUT_SELECTABLE_CONFIG);
+        injectGroupCurrentCodecConfigChanged(testGroupId, LC3_16KHZ_CONFIG, LC3_48KHZ_CONFIG);
 
         TestUtils.waitForLooperToFinishScheduledTask(mService.getMainLooper());
         assertThat(onGroupCodecConfChangedCallbackCalled).isTrue();

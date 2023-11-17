@@ -720,6 +720,7 @@ cc_test {
         "le_audio/codec_manager_test.cc",
         "le_audio/le_audio_set_configuration_provider_json.cc",
         "le_audio/le_audio_types.cc",
+        "le_audio/le_audio_utils.cc",
         "test/common/mock_controller.cc",
     ],
     data: [
