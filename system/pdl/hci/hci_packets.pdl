@@ -4001,8 +4001,8 @@ packet LeSetExtendedAdvertisingDataRaw : LeAdvertisingCommand (op_code = LE_SET_
   _reserved_ : 5,
   fragment_preference : FragmentPreference,
   _reserved_ : 7,
-  _size_(advertising_data) : 8,
-  advertising_data : 8[],
+  _size_(_payload_) : 8,
+  _payload_,
 }
 
 packet LeSetExtendedAdvertisingDataComplete : CommandComplete (command_op_code = LE_SET_EXTENDED_ADVERTISING_DATA) {
@@ -4029,8 +4029,8 @@ packet LeSetExtendedScanResponseDataRaw : LeAdvertisingCommand (op_code = LE_SET
   _reserved_ : 5,
   fragment_preference : FragmentPreference,
   _reserved_ : 7,
-  _size_(scan_response_data) : 8,
-  scan_response_data : 8[],
+  _size_(_payload_) : 8,
+  _payload_,
 }
 
 packet LeSetExtendedScanResponseDataComplete : CommandComplete (command_op_code = LE_SET_EXTENDED_SCAN_RESPONSE_DATA) {
@@ -4146,8 +4146,8 @@ packet LeSetPeriodicAdvertisingDataRaw : LeAdvertisingCommand (op_code = LE_SET_
   advertising_handle : 8,
   operation : Operation,
   _reserved_ : 5,
-  _size_(advertising_data) : 8,
-  advertising_data : 8[],
+  _size_(_payload_) : 8,
+  _payload_,
 }
 
 packet LeSetPeriodicAdvertisingDataComplete : CommandComplete (command_op_code = LE_SET_PERIODIC_ADVERTISING_DATA) {
