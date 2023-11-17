@@ -6,3 +6,10 @@ flag {
     description: "Enable support for the decryption of Encrypted Advertising Data"
     bug: "308855997"
 }
+
+flag {
+    name: "divide_long_single_gap_data"
+    namespace: "bluetooth"
+    description: "Divide long single gap data if length is longer than HCI data length limit"
+    bug: "310217895"
+}
