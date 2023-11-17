@@ -444,6 +444,46 @@ cc_test {
 }
 
 cc_test {
+    name: "bluetooth_test_gdx_unit",
+    test_suites: ["device-tests"],
+    defaults: [
+        "gd_defaults",
+        "mts_defaults",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/types",
+    ],
+    host_supported: true,
+    srcs: [
+        ":TestCommonMockFunctions",
+        "module_mainloop_unittest.cc",
+    ],
+    generated_headers: [
+        "BluetoothGeneratedBundlerSchema_h_bfbs",
+        "BluetoothGeneratedDumpsysDataSchema_h",
+        "BluetoothGeneratedDumpsysInternalTestData_h",
+        "BluetoothGeneratedDumpsysTestData_h",
+    ],
+    static_libs: [
+        "libbluetooth_gd",
+        "libbt-btu-main-thread",
+        "libbt-common",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
+        "libchrome",
+        "libevent",
+        "libflatbuffers-cpp",
+    ],
+    sanitize: {
+        address: true,
+    },
+    min_sdk_version: "Tiramisu",
+}
+
+cc_test {
     name: "bluetooth_packet_parser_test",
     test_suites: ["general-tests"],
     defaults: [
