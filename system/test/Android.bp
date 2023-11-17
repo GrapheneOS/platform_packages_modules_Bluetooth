@@ -453,13 +453,6 @@ filegroup {
 }
 
 filegroup {
-    name: "TestMockStackCryptotoolbox",
-    srcs: [
-        "mock/mock_stack_crypto_toolbox*.cc",
-    ],
-}
-
-filegroup {
     name: "TestMockBtu",
     srcs: [
         "mock/mock_btu_*cc",
