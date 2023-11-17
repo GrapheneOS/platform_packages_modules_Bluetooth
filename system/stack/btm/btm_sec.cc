@@ -123,8 +123,8 @@ static tBTM_STATUS btm_sec_send_hci_disconnect(tBTM_SEC_DEV_REC* p_dev_rec,
                                                uint16_t conn_handle,
                                                std::string comment);
 
-static bool btm_dev_authenticated(tBTM_SEC_DEV_REC* p_dev_rec);
-static bool btm_dev_encrypted(tBTM_SEC_DEV_REC* p_dev_rec);
+static bool btm_dev_authenticated(const tBTM_SEC_DEV_REC* p_dev_rec);
+static bool btm_dev_encrypted(const tBTM_SEC_DEV_REC* p_dev_rec);
 static uint16_t btm_sec_set_serv_level4_flags(uint16_t cur_security,
                                               bool is_originator);
 
@@ -190,49 +190,40 @@ void NotifyBondingCanceled(tBTM_STATUS btm_status) {
  *
  * Function         btm_dev_authenticated
  *
- * Description      check device is authenticated
+ * Description      check device is authenticated on BR/EDR
  *
  * Returns          bool    true or false
  *
  ******************************************************************************/
-static bool btm_dev_authenticated(tBTM_SEC_DEV_REC* p_dev_rec) {
-  if (p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED) {
-    return (true);
-  }
-  return (false);
+static bool btm_dev_authenticated(const tBTM_SEC_DEV_REC* p_dev_rec) {
+  return p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED;
 }
 
 /*******************************************************************************
  *
  * Function         btm_dev_encrypted
  *
- * Description      check device is encrypted
+ * Description      check device is encrypted on BR/EDR
  *
  * Returns          bool    true or false
  *
  ******************************************************************************/
-static bool btm_dev_encrypted(tBTM_SEC_DEV_REC* p_dev_rec) {
-  if (p_dev_rec->sec_flags & BTM_SEC_ENCRYPTED) {
-    return (true);
-  }
-  return (false);
+static bool btm_dev_encrypted(const tBTM_SEC_DEV_REC* p_dev_rec) {
+  return p_dev_rec->sec_flags & BTM_SEC_ENCRYPTED;
 }
 
 /*******************************************************************************
  *
  * Function         btm_dev_16_digit_authenticated
  *
- * Description      check device is authenticated by using 16 digit pin or MITM
+ * Description      check device is authenticated by using 16 digit pin or MITM (BR/EDR)
  *
  * Returns          bool    true or false
  *
  ******************************************************************************/
-static bool btm_dev_16_digit_authenticated(tBTM_SEC_DEV_REC* p_dev_rec) {
+static bool btm_dev_16_digit_authenticated(const tBTM_SEC_DEV_REC* p_dev_rec) {
   // BTM_SEC_16_DIGIT_PIN_AUTHED is set if MITM or 16 digit pin is used
-  if (p_dev_rec->sec_flags & BTM_SEC_16_DIGIT_PIN_AUTHED) {
-    return (true);
-  }
-  return (false);
+  return p_dev_rec->sec_flags & BTM_SEC_16_DIGIT_PIN_AUTHED;
 }
 
 /*******************************************************************************
