@@ -67,8 +67,6 @@ struct EventCallbacks {
                                         int packets_not_receive_count,
                                         int negative_acknowledgement_count);
 
-  EventCallbacks() = default;
-  EventCallbacks(const EventCallbacks&) = delete;
   EventCallbacks& operator=(const EventCallbacks&) = delete;
 };
 
@@ -127,8 +125,6 @@ struct HACK_ProfileInterface {
   // AVRCP hacks
   uint16_t (*AVRC_GetProfileVersion)();
 
-  HACK_ProfileInterface() = default;
-  HACK_ProfileInterface(const HACK_ProfileInterface&) = delete;
   HACK_ProfileInterface& operator=(const HACK_ProfileInterface&) = delete;
 };
 
