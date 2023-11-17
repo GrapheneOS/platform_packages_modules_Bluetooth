@@ -25,7 +25,8 @@
 #include <cstdint>
 #include <string>
 
-#include "btm_sec_api_types.h"
+#include "stack/include/btm_sec_api_types.h"
+#include "stack/include/btm_status.h"
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
@@ -96,6 +97,8 @@ struct btm_sec_l2cap_access_req btm_sec_l2cap_access_req;
 struct btm_sec_l2cap_access_req_by_requirement
     btm_sec_l2cap_access_req_by_requirement;
 struct btm_sec_link_key_notification btm_sec_link_key_notification;
+struct btm_sec_encryption_key_refresh_complete
+    btm_sec_encryption_key_refresh_complete;
 struct btm_sec_link_key_request btm_sec_link_key_request;
 struct btm_sec_mx_access_request btm_sec_mx_access_request;
 struct btm_sec_pin_code_request btm_sec_pin_code_request;
@@ -312,9 +315,10 @@ void btm_io_capabilities_rsp(const tBTM_SP_IO_RSP evt_data) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_sec::btm_io_capabilities_rsp(evt_data);
 }
-void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
+void btm_proc_sp_req_evt(tBTM_SP_EVT event, const RawAddress bd_addr,
+                         uint32_t value) {
   inc_func_call_count(__func__);
-  test::mock::stack_btm_sec::btm_proc_sp_req_evt(event, p);
+  test::mock::stack_btm_sec::btm_proc_sp_req_evt(event, bd_addr, value);
 }
 void btm_read_local_oob_complete(const tBTM_SP_LOC_OOB evt_data) {
   inc_func_call_count(__func__);
@@ -423,6 +427,12 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
   test::mock::stack_btm_sec::btm_sec_link_key_notification(p_bda, link_key,
                                                            key_type);
 }
+void btm_sec_encryption_key_refresh_complete(uint16_t handle,
+                                             tHCI_STATUS status) {
+  inc_func_call_count(__func__);
+  test::mock::stack_btm_sec::btm_sec_encryption_key_refresh_complete(handle,
+                                                                     status);
+}
 void btm_sec_link_key_request(const RawAddress bda) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_sec::btm_sec_link_key_request(bda);
@@ -440,9 +450,11 @@ void btm_sec_pin_code_request(const RawAddress bda) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_sec::btm_sec_pin_code_request(bda);
 }
-void btm_sec_rmt_host_support_feat_evt(const uint8_t* p) {
+void btm_sec_rmt_host_support_feat_evt(const RawAddress bd_addr,
+                                       uint8_t features_0) {
   inc_func_call_count(__func__);
-  test::mock::stack_btm_sec::btm_sec_rmt_host_support_feat_evt(p);
+  test::mock::stack_btm_sec::btm_sec_rmt_host_support_feat_evt(bd_addr,
+                                                               features_0);
 }
 void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
                                        const uint8_t* p_bd_name,

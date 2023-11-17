@@ -209,16 +209,10 @@ void bluetooth::shim::ACL_RemoteNameRequest(const RawAddress& addr,
       GetGdShimHandler()->BindOnce(
           [](RawAddress addr, uint64_t features) {
             static_assert(sizeof(features) == 8);
-            auto addr_array = addr.ToArray();
-            auto p = (uint8_t*)osi_malloc(addr_array.size() + sizeof(features));
-            std::copy(addr_array.rbegin(), addr_array.rend(), p);
-            for (int i = 0; i != sizeof(features); ++i) {
-              p[addr_array.size() + i] = features & ((1 << 8) - 1);
-              features >>= 8;
-            }
             do_in_main_thread(
                 FROM_HERE,
-                base::BindOnce(btm_sec_rmt_host_support_feat_evt, p));
+                base::BindOnce(btm_sec_rmt_host_support_feat_evt, addr,
+                               static_cast<uint8_t>(features & 0xff)));
           },
           addr),
       GetGdShimHandler()->BindOnce(
