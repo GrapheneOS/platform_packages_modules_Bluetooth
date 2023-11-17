@@ -37,6 +37,9 @@ namespace bluetooth {
 namespace legacy {
 namespace testing {
 
+const tBTA_DM_SEARCH_CB& bta_dm_disc_search_cb();
+tBTA_DM_SEARCH_CB bta_dm_disc_get_search_cb();
+void bta_dm_disc_search_cb(const tBTA_DM_SEARCH_CB& search_cb);
 void bta_dm_sdp_result(tBTA_DM_MSG* p_data);
 
 }  // namespace testing
@@ -104,7 +107,10 @@ class BtaSdpRegisteredTest : public BtaSdpTest {
 TEST_F(BtaSdpTest, nop) {}
 
 TEST_F(BtaSdpRegisteredTest, bta_dm_sdp_result_SDP_SUCCESS) {
-  bta_dm_search_cb.service_index = BTA_MAX_SERVICE_ID;
+  tBTA_DM_SEARCH_CB search_cb =
+      bluetooth::legacy::testing::bta_dm_disc_get_search_cb();
+  search_cb.service_index = BTA_MAX_SERVICE_ID;
+  bluetooth::legacy::testing::bta_dm_disc_search_cb(search_cb);
 
   tBTA_DM_MSG msg = {
       .sdp_event =
