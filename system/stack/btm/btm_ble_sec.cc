@@ -24,6 +24,7 @@
 #include <cstdint>
 
 #include "btif/include/btif_storage.h"
+#include "crypto_toolbox/crypto_toolbox.h"
 #include "device/include/controller.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
@@ -36,7 +37,6 @@
 #include "stack/btm/btm_sec_cb.h"
 #include "stack/btm/btm_sec_int_types.h"
 #include "stack/btm/security_device_record.h"
-#include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "stack/eatt/eatt.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_octets.h"
