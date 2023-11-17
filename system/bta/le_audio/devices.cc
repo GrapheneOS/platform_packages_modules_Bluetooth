@@ -269,24 +269,28 @@ bool LeAudioDevice::ConfigureAses(
 
       ase->target_latency = ent.qos.target_latency;
       ase->codec_id = ent.codec.id;
-      /* TODO: find better way to not use LC3 explicitly */
-      ase->codec_config = std::get<LeAudioCoreCodecConfig>(ent.codec.config);
+      ase->codec_config = ent.codec.params;
 
-      /*Let's choose audio channel allocation if not set */
-      ase->codec_config.audio_channel_allocation =
+      /* Let's choose audio channel allocation if not set */
+      ase->codec_config.Add(
+          codec_spec_conf::kLeAudioLtvTypeAudioChannelAllocation,
           PickAudioLocation(strategy, audio_locations,
-                            group_audio_locations_memo.get(ent.direction));
+                            group_audio_locations_memo.get(ent.direction)));
 
       /* Get default value if no requirement for specific frame blocks per sdu
        */
-      if (!ase->codec_config.codec_frames_blocks_per_sdu) {
-        ase->codec_config.codec_frames_blocks_per_sdu =
-            GetMaxCodecFramesPerSduFromPac(pac);
+      if (!ase->codec_config.Find(
+              codec_spec_conf::kLeAudioLtvTypeCodecFrameBlocksPerSdu)) {
+        ase->codec_config.Add(
+            codec_spec_conf::kLeAudioLtvTypeCodecFrameBlocksPerSdu,
+            GetMaxCodecFramesPerSduFromPac(pac));
       }
-      ase->max_sdu_size = codec_spec_caps::GetAudioChannelCounts(
-                              *ase->codec_config.audio_channel_allocation) *
-                          *ase->codec_config.octets_per_codec_frame *
-                          *ase->codec_config.codec_frames_blocks_per_sdu;
+
+      /* Recalculate Max SDU size */
+      auto core_config = ent.codec.params.GetAsCoreCodecConfig();
+      ase->max_sdu_size = core_config.GetChannelCountPerIsoStream() *
+                          core_config.octets_per_codec_frame.value_or(0) *
+                          core_config.codec_frames_blocks_per_sdu.value_or(1);
 
       ase->retrans_nb = ent.qos.retransmission_number;
       ase->max_transport_latency = ent.qos.max_transport_latency;
@@ -664,7 +668,7 @@ bool LeAudioDevice::HaveAnyCisConnected(void) {
   return false;
 }
 
-uint8_t LeAudioDevice::GetLc3SupportedChannelCount(uint8_t direction) {
+uint8_t LeAudioDevice::GetSupportedAudioChannelCounts(uint8_t direction) const {
   auto& pacs =
       direction == types::kLeAudioDirectionSink ? snk_pacs_ : src_pacs_;
 

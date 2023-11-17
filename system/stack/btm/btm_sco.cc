@@ -304,7 +304,6 @@ static void btm_route_sco_data(bluetooth::hci::ScoView valid_packet) {
   const std::string codec = sco_codec_type_text(codec_type);
 
   auto data = valid_packet.GetData();
-  auto data_len = data.size();
   auto rx_data = data.data();
   const uint8_t* decoded = nullptr;
   size_t written = 0, rc = 0;
@@ -320,7 +319,7 @@ static void btm_route_sco_data(bluetooth::hci::ScoView valid_packet) {
                               : &bluetooth::audio::sco::wbs::enqueue_packet;
     rc = enqueue_packet(
         data, status != bluetooth::hci::PacketStatusFlag::CORRECTLY_RECEIVED);
-    if (rc != data_len) LOG_DEBUG("Failed to enqueue %s packet", codec.c_str());
+    if (!rc) LOG_DEBUG("Failed to enqueue %s packet", codec.c_str());
 
     while (rc) {
       auto decode = codec_type == BTM_SCO_CODEC_LC3
@@ -332,7 +331,7 @@ static void btm_route_sco_data(bluetooth::hci::ScoView valid_packet) {
       written += bluetooth::audio::sco::write(decoded, rc);
     }
   } else {
-    written = bluetooth::audio::sco::write(rx_data, data_len);
+    written = bluetooth::audio::sco::write(rx_data, data.size());
   }
 
   /* For Chrome OS, we send the outgoing data after receiving an incoming one.

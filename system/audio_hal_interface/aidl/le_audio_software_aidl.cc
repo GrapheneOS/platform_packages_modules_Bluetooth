@@ -492,22 +492,31 @@ bool hal_ucast_capability_to_stack_format(
           octets_per_frame_map.end() ||
       audio_location_map.find(supported_channel) == audio_location_map.end()) {
     LOG(ERROR) << __func__ << ": Failed to convert HAL format to stack format"
-               << "\nsample rate = " << sample_rate_hz
-               << "\nframe duration = " << frame_duration_us
+               << "\nsample rate hz = " << sample_rate_hz
+               << "\nframe duration us = " << frame_duration_us
                << "\noctets per frame= " << octets_per_frame
-               << "\naudio location = " << toString(supported_channel);
+               << "\nsupported channel = " << toString(supported_channel)
+               << "\nchannel count per device = " << channel_count
+               << "\ndevice count = " << hal_capability.deviceCount;
 
     return false;
   }
 
-  stack_capability = {
-      .id = ::le_audio::set_configurations::LeAudioCodecIdLc3,
-      .config = LeAudioCoreCodecConfig(
-          {.sampling_frequency = sampling_freq_map[sample_rate_hz],
-           .frame_duration = frame_duration_map[frame_duration_us],
-           .audio_channel_allocation = audio_location_map[supported_channel],
-           .octets_per_codec_frame = octets_per_frame_map[octets_per_frame],
-           .channel_count = static_cast<uint8_t>(channel_count)})};
+  stack_capability.id = ::le_audio::set_configurations::LeAudioCodecIdLc3;
+  stack_capability.channel_count_per_iso_stream = channel_count;
+
+  stack_capability.params.Add(
+      ::le_audio::codec_spec_conf::kLeAudioLtvTypeSamplingFreq,
+      sampling_freq_map[sample_rate_hz]);
+  stack_capability.params.Add(
+      ::le_audio::codec_spec_conf::kLeAudioLtvTypeFrameDuration,
+      frame_duration_map[frame_duration_us]);
+  stack_capability.params.Add(
+      ::le_audio::codec_spec_conf::kLeAudioLtvTypeAudioChannelAllocation,
+      audio_location_map[supported_channel]);
+  stack_capability.params.Add(
+      ::le_audio::codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame,
+      octets_per_frame_map[octets_per_frame]);
   return true;
 }
 
@@ -546,22 +555,30 @@ bool hal_bcast_capability_to_stack_format(
       audio_location_map.find(supported_channel) == audio_location_map.end()) {
     LOG(WARNING) << __func__
                  << " : Failed to convert HAL format to stack format"
-                 << "\nsample rate = " << sample_rate_hz
-                 << "\nframe duration = " << frame_duration_us
+                 << "\nsample rate hz = " << sample_rate_hz
+                 << "\nframe duration us = " << frame_duration_us
                  << "\noctets per frame= " << octets_per_frame
-                 << "\naudio location = " << toString(supported_channel);
+                 << "\nsupported channel = " << toString(supported_channel)
+                 << "\nchannel count per stream = " << channel_count;
 
     return false;
   }
 
-  stack_capability = {
-      .id = ::le_audio::set_configurations::LeAudioCodecIdLc3,
-      .config = LeAudioCoreCodecConfig(
-          {.sampling_frequency = sampling_freq_map[sample_rate_hz],
-           .frame_duration = frame_duration_map[frame_duration_us],
-           .audio_channel_allocation = audio_location_map[supported_channel],
-           .octets_per_codec_frame = octets_per_frame_map[octets_per_frame],
-           .channel_count = static_cast<uint8_t>(channel_count)})};
+  stack_capability.id = ::le_audio::set_configurations::LeAudioCodecIdLc3;
+  stack_capability.channel_count_per_iso_stream = channel_count;
+
+  stack_capability.params.Add(
+      ::le_audio::codec_spec_conf::kLeAudioLtvTypeSamplingFreq,
+      sampling_freq_map[sample_rate_hz]);
+  stack_capability.params.Add(
+      ::le_audio::codec_spec_conf::kLeAudioLtvTypeFrameDuration,
+      frame_duration_map[frame_duration_us]);
+  stack_capability.params.Add(
+      ::le_audio::codec_spec_conf::kLeAudioLtvTypeAudioChannelAllocation,
+      audio_location_map[supported_channel]);
+  stack_capability.params.Add(
+      ::le_audio::codec_spec_conf::kLeAudioLtvTypeOctetsPerCodecFrame,
+      octets_per_frame_map[octets_per_frame]);
   return true;
 }
 

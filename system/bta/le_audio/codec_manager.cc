@@ -188,10 +188,12 @@ struct codec_manager_impl {
         continue;
       }
       auto& adsp_config = adsp_audio_set_conf.confs[0];
+
       const types::LeAudioCoreCodecConfig core_config =
-          std::get<types::LeAudioCoreCodecConfig>(adsp_config.codec.config);
+          adsp_config.codec.params.GetAsCoreCodecConfig();
       le_audio::broadcast_offload_config broadcast_config;
-      broadcast_config.stream_map.resize(core_config.channel_count);
+      broadcast_config.stream_map.resize(
+          core_config.GetChannelCountPerIsoStream());
       broadcast_config.bits_per_sample =
           LeAudioCodecConfiguration::kBitsPerSample16;
       broadcast_config.sampling_rate = core_config.GetSamplingFrequencyHz();
@@ -385,22 +387,23 @@ struct codec_manager_impl {
   }
 
   bool IsLc3ConfigMatched(
-      const set_configurations::CodecConfigSetting& adsp_config,
-      const set_configurations::CodecConfigSetting& target_config) {
+      const set_configurations::CodecConfigSetting& target_config,
+      const set_configurations::CodecConfigSetting& adsp_config) {
     if (adsp_config.id.coding_format != types::kLeAudioCodingFormatLC3 ||
         target_config.id.coding_format != types::kLeAudioCodingFormatLC3) {
       return false;
     }
 
     const types::LeAudioCoreCodecConfig adsp_lc3_config =
-        std::get<types::LeAudioCoreCodecConfig>(adsp_config.config);
+        adsp_config.params.GetAsCoreCodecConfig();
     const types::LeAudioCoreCodecConfig target_lc3_config =
-        std::get<types::LeAudioCoreCodecConfig>(target_config.config);
+        target_config.params.GetAsCoreCodecConfig();
 
     if (adsp_lc3_config.sampling_frequency !=
             target_lc3_config.sampling_frequency ||
         adsp_lc3_config.frame_duration != target_lc3_config.frame_duration ||
-        adsp_lc3_config.channel_count != target_lc3_config.channel_count ||
+        adsp_config.GetChannelCountPerIsoStream() !=
+            target_config.GetChannelCountPerIsoStream() ||
         adsp_lc3_config.octets_per_codec_frame !=
             target_lc3_config.octets_per_codec_frame) {
       return false;

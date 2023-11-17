@@ -117,9 +117,6 @@
       "name": "bluetooth_vc_test"
     },
     {
-      "name": "bt_host_test_bta"
-    },
-    {
       "name": "libaptx_enc_tests"
     },
     {

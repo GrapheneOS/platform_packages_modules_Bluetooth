@@ -16,17 +16,14 @@
 
 #define LOG_TAG "bt_bta_dm"
 
-#include <base/logging.h>
-#ifdef __ANDROID__
-#include <bta.sysprop.h>
-#endif
+#include "bta/dm/bta_dm_disc.h"
 
+#include <base/logging.h>
 #include <base/strings/stringprintf.h>
 #include <stddef.h>
 
 #include <cstdint>
 
-#include "bta/dm/bta_dm_disc.h"
 #include "bta/dm/bta_dm_int.h"
 #include "bta/include/bta_api.h"
 #include "bta/include/bta_gatt_api.h"
@@ -2423,6 +2420,44 @@ void bta_dm_disc_acl_down(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
 }
 
 void bta_dm_disc_stop() { bta_dm_disc_reset(); }
+
+void bta_dm_disc_start_device_discovery(tBTA_DM_SEARCH_CBACK* p_cback) {
+  tBTA_DM_API_SEARCH* p_msg =
+      (tBTA_DM_API_SEARCH*)osi_calloc(sizeof(tBTA_DM_API_SEARCH));
+
+  p_msg->hdr.event = BTA_DM_API_SEARCH_EVT;
+  p_msg->p_cback = p_cback;
+
+  bta_sys_sendmsg(p_msg);
+}
+
+void bta_dm_disc_stop_device_discovery() {
+  tBTA_DM_API_DISCOVERY_CANCEL* p_msg =
+      (tBTA_DM_API_DISCOVERY_CANCEL*)osi_calloc(
+          sizeof(tBTA_DM_API_DISCOVERY_CANCEL));
+
+  p_msg->hdr.event = BTA_DM_API_SEARCH_CANCEL_EVT;
+  bta_sys_sendmsg(p_msg);
+}
+
+void bta_dm_disc_start_service_discovery(tBTA_DM_SEARCH_CBACK* p_cback,
+                                         const RawAddress& bd_addr,
+                                         tBT_TRANSPORT transport) {
+  tBTA_DM_API_DISCOVER* p_msg =
+      (tBTA_DM_API_DISCOVER*)osi_calloc(sizeof(tBTA_DM_API_DISCOVER));
+
+  p_msg->hdr.event = BTA_DM_API_DISCOVER_EVT;
+  p_msg->bd_addr = bd_addr;
+  p_msg->transport = transport;
+  p_msg->p_cback = p_cback;
+
+  bta_sys_sendmsg(p_msg);
+}
+
+void bta_dm_disc_stop_service_discovery(const RawAddress& bd_addr,
+                                        tBT_TRANSPORT transport) {
+  LOG_WARN("Stop service discovery not yet implemented for legacy module");
+}
 
 #define DUMPSYS_TAG "shim::legacy::bta::dm"
 void DumpsysBtaDmDisc(int fd) {

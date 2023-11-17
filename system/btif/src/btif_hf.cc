@@ -26,13 +26,11 @@
  ******************************************************************************/
 
 #define LOG_TAG "bt_btif_hf"
+
+#include <android_bluetooth_sysprop.h>
 #include <base/functional/callback.h>
 #include <base/logging.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
-
-#ifdef __ANDROID__
-#include <hfp.sysprop.h>
-#endif
 
 #include <cstdint>
 #include <string>
@@ -144,34 +142,25 @@ static bool is_active_device(const RawAddress& bd_addr) {
 }
 
 static tBTA_SERVICE_MASK get_BTIF_HF_SERVICES() {
-#ifdef __ANDROID__
-  static const tBTA_SERVICE_MASK hf_services =
-      android::sysprop::bluetooth::Hfp::hf_services().value_or(
-          BTA_HSP_SERVICE_MASK | BTA_HFP_SERVICE_MASK);
-  return hf_services;
-#else
-  return BTA_HSP_SERVICE_MASK | BTA_HFP_SERVICE_MASK;
-#endif
+  return GET_SYSPROP(Hfp, hf_services,
+                     BTA_HSP_SERVICE_MASK | BTA_HFP_SERVICE_MASK);
 }
 
 /* HF features supported at runtime */
 static uint32_t get_hf_features() {
+#if TARGET_FLOSS
+#define DEFAULT_BTIF_HF_FEATURES                                               \
+  (BTA_AG_FEAT_3WAY | BTA_AG_FEAT_ECS | BTA_AG_FEAT_CODEC | BTA_AG_FEAT_UNAT | \
+   BTA_AG_FEAT_HF_IND)
+#else
 #define DEFAULT_BTIF_HF_FEATURES                                  \
   (BTA_AG_FEAT_3WAY | BTA_AG_FEAT_ECNR | BTA_AG_FEAT_REJECT |     \
    BTA_AG_FEAT_ECS | BTA_AG_FEAT_EXTERR | BTA_AG_FEAT_VREC |      \
    BTA_AG_FEAT_CODEC | BTA_AG_FEAT_HF_IND | BTA_AG_FEAT_ESCO_S4 | \
    BTA_AG_FEAT_UNAT)
-#ifdef __ANDROID__
-  static const uint32_t hf_features =
-      android::sysprop::bluetooth::Hfp::hf_features().value_or(
-          DEFAULT_BTIF_HF_FEATURES);
-  return hf_features;
-#elif TARGET_FLOSS
-  return BTA_AG_FEAT_3WAY | BTA_AG_FEAT_ECS | BTA_AG_FEAT_CODEC |
-         BTA_AG_FEAT_UNAT | BTA_AG_FEAT_HF_IND;
-#else
-  return DEFAULT_BTIF_HF_FEATURES;
 #endif
+
+  return GET_SYSPROP(Hfp, hf_features, DEFAULT_BTIF_HF_FEATURES);
 }
 
 /*******************************************************************************
