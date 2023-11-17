@@ -40,10 +40,8 @@ import android.bluetooth.BufferConstraints;
 import android.bluetooth.IBluetoothA2dp;
 import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.media.AudioDeviceCallback;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
@@ -124,7 +122,6 @@ public class A2dpService extends ProfileService {
     // A2DP Offload Enabled in platform
     boolean mA2dpOffloadEnabled = false;
 
-    private BroadcastReceiver mBondStateChangedReceiver;
     private final AudioManagerAudioDeviceCallback mAudioManagerAudioDeviceCallback =
             new AudioManagerAudioDeviceCallback();
 
@@ -202,20 +199,13 @@ public class A2dpService extends ProfileService {
             Log.d(TAG, "A2DP offload flag set to " + mA2dpOffloadEnabled);
         }
 
-        // Step 7: Setup broadcast receivers
-        IntentFilter filter = new IntentFilter();
-        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
-        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        mBondStateChangedReceiver = new BondStateChangedReceiver();
-        registerReceiver(mBondStateChangedReceiver, filter);
-
-        // Step 8: Register Audio Device callback
+        // Step 7: Register Audio Device callback
         mAudioManager.registerAudioDeviceCallback(mAudioManagerAudioDeviceCallback, mHandler);
 
-        // Step 9: Mark service as started
+        // Step 8: Mark service as started
         setA2dpService(this);
 
-        // Step 10: Clear active device
+        // Step 9: Clear active device
         removeActiveDevice(false);
 
         return true;
@@ -229,18 +219,14 @@ public class A2dpService extends ProfileService {
             return true;
         }
 
-        // Step 10: Clear active device and stop playing audio
+        // Step 9: Clear active device and stop playing audio
         removeActiveDevice(true);
 
-        // Step 9: Mark service as stopped
+        // Step 8: Mark service as stopped
         setA2dpService(null);
 
-        // Step 8: Unregister Audio Device Callback
+        // Step 7: Unregister Audio Device Callback
         mAudioManager.unregisterAudioDeviceCallback(mAudioManagerAudioDeviceCallback);
-
-        // Step 7: Unregister broadcast receivers
-        unregisterReceiver(mBondStateChangedReceiver);
-        mBondStateChangedReceiver = null;
 
         // Step 6: Cleanup native interface
         mNativeInterface.cleanup();
@@ -1184,18 +1170,8 @@ public class A2dpService extends ProfileService {
                 Utils.getTempAllowlistBroadcastOptions());
     }
 
-    private class BondStateChangedReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (!BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(intent.getAction())) {
-                return;
-            }
-            int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE,
-                                           BluetoothDevice.ERROR);
-            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            requireNonNull(device, "ACTION_BOND_STATE_CHANGED with no EXTRA_DEVICE");
-            bondStateChanged(device, state);
-        }
+    public void handleBondStateChanged(BluetoothDevice device, int fromState, int toState) {
+        mHandler.post(() -> bondStateChanged(device, toState));
     }
 
     /**
