@@ -18,6 +18,7 @@
 
 #include <base/logging.h>
 
+#include "crypto_toolbox/crypto_toolbox.h"
 #include "hci/octets.h"
 #include "os/rand.h"
 #include "security/pairing_handler_le.h"

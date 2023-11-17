@@ -27,10 +27,10 @@
 #include "bta_gatt_api.h"
 #include "bta_groups.h"
 #include "btif_storage.h"
+#include "common/init_flags.h"
+#include "common/strings.h"
+#include "crypto_toolbox/crypto_toolbox.h"
 #include "gap_api.h"
-#include "gd/common/init_flags.h"
-#include "gd/common/strings.h"
-#include "stack/crypto_toolbox/crypto_toolbox.h"
 
 // Uncomment to debug SIRK calculations
 // #define CSIS_DEBUG

@@ -2156,17 +2156,7 @@ static void btm_sec_bond_cancel_complete(void) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_create_conn_cancel_complete(const uint8_t* p, uint16_t evt_len) {
-  uint8_t status;
-
-  if (evt_len < 1 + BD_ADDR_LEN) {
-    LOG_ERROR("%s malformatted event packet, too short", __func__);
-    return;
-  }
-
-  STREAM_TO_UINT8(status, p);
-  RawAddress bd_addr;
-  STREAM_TO_BDADDR(bd_addr, p);
+void btm_create_conn_cancel_complete(uint8_t status, const RawAddress bd_addr) {
   LOG_VERBOSE("btm_create_conn_cancel_complete(): in State: %s  status:%d",
               btm_pair_state_descr(btm_sec_cb.pairing_state), status);
   log_link_layer_connection_event(
@@ -2642,7 +2632,7 @@ void btm_sec_rmt_host_support_feat_evt(const uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_io_capabilities_req(const RawAddress& p) {
+void btm_io_capabilities_req(RawAddress p) {
   if (btm_sec_is_a_bonded_dev(p)) {
     LOG_WARN("%s: Incoming bond request, but %s is already bonded (removing)",
              __func__, ADDRESS_TO_LOGGABLE_CSTR(p));
@@ -2825,18 +2815,8 @@ void btm_io_capabilities_req(const RawAddress& p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_io_capabilities_rsp(const uint8_t* p) {
+void btm_io_capabilities_rsp(const tBTM_SP_IO_RSP evt_data) {
   tBTM_SEC_DEV_REC* p_dev_rec;
-  tBTM_SP_IO_RSP evt_data;
-
-  STREAM_TO_BDADDR(evt_data.bd_addr, p);
-
-  uint8_t io_cap;
-  STREAM_TO_UINT8(io_cap, p);
-  evt_data.io_cap = static_cast<tBTM_IO_CAP>(io_cap);
-
-  STREAM_TO_UINT8(evt_data.oob_data, p);
-  STREAM_TO_UINT8(evt_data.auth_req, p);
 
   /* Allocate a new device record or reuse the oldest one */
   p_dev_rec = btm_find_or_alloc_dev(evt_data.bd_addr);
@@ -3036,14 +3016,9 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_simple_pair_complete(const uint8_t* p) {
-  RawAddress bd_addr;
+void btm_simple_pair_complete(const RawAddress bd_addr, uint8_t status) {
   tBTM_SEC_DEV_REC* p_dev_rec;
-  uint8_t status;
   bool disc = false;
-
-  status = *p++;
-  STREAM_TO_BDADDR(bd_addr, p);
 
   p_dev_rec = btm_find_dev(bd_addr);
   if (p_dev_rec == NULL) {
@@ -3100,15 +3075,14 @@ void btm_simple_pair_complete(const uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_rem_oob_req(const uint8_t* p) {
+void btm_rem_oob_req(const RawAddress bd_addr) {
   tBTM_SP_RMT_OOB evt_data;
   tBTM_SEC_DEV_REC* p_dev_rec;
   Octet16 c;
   Octet16 r;
 
+  evt_data.bd_addr = bd_addr;
   RawAddress& p_bda = evt_data.bd_addr;
-
-  STREAM_TO_BDADDR(p_bda, p);
 
   VLOG(2) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(p_bda);
   p_dev_rec = btm_find_dev(p_bda);
@@ -3142,38 +3116,14 @@ void btm_rem_oob_req(const uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_read_local_oob_complete(uint8_t* p, uint16_t evt_len) {
-  tBTM_SP_LOC_OOB evt_data;
-  uint8_t status;
-  if (evt_len < 1) {
-    goto err_out;
-  }
-
-  STREAM_TO_UINT8(status, p);
-
-  LOG_VERBOSE("btm_read_local_oob_complete:%d", status);
-  if (status == HCI_SUCCESS) {
-    evt_data.status = BTM_SUCCESS;
-
-    if (evt_len < 32 + 1) {
-      goto err_out;
-    }
-
-    STREAM_TO_ARRAY16(evt_data.c.data(), p);
-    STREAM_TO_ARRAY16(evt_data.r.data(), p);
-  } else
-    evt_data.status = BTM_ERR_PROCESSING;
+void btm_read_local_oob_complete(const tBTM_SP_LOC_OOB evt_data) {
+  LOG_VERBOSE("btm_read_local_oob_complete:%d", evt_data.status);
 
   if (btm_sec_cb.api.p_sp_callback) {
     tBTM_SP_EVT_DATA btm_sp_evt_data;
     btm_sp_evt_data.loc_oob = evt_data;
     (*btm_sec_cb.api.p_sp_callback)(BTM_SP_LOC_OOB_EVT, &btm_sp_evt_data);
   }
-
-  return;
-
-err_out:
-  LOG_ERROR("%s: bogus event packet, too short", __func__);
 }
 
 /*******************************************************************************
@@ -4198,10 +4148,7 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
  * Returns          Pointer to the record or NULL
  *
  ******************************************************************************/
-void btm_sec_link_key_request(const uint8_t* p_event) {
-  RawAddress bda;
-
-  STREAM_TO_BDADDR(bda, p_event);
+void btm_sec_link_key_request(const RawAddress bda) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_or_alloc_dev(bda);
 
   VLOG(2) << __func__ << " bda: " << ADDRESS_TO_LOGGABLE_STR(bda);
@@ -4349,12 +4296,9 @@ static void btm_sec_pairing_timeout(void* /* data */) {
  * Returns          Pointer to the record or NULL
  *
  ******************************************************************************/
-void btm_sec_pin_code_request(const uint8_t* p_event) {
+void btm_sec_pin_code_request(const RawAddress p_bda) {
   tBTM_SEC_DEV_REC* p_dev_rec;
   tBTM_SEC_CB* p_cb = &btm_sec_cb;
-  RawAddress p_bda;
-
-  STREAM_TO_BDADDR(p_bda, p_event);
 
   /* Tell L2CAP that there was a PIN code request,  */
   /* it may need to stretch timeouts                */
