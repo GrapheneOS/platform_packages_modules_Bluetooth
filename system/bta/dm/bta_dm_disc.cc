@@ -2476,6 +2476,9 @@ namespace bluetooth {
 namespace legacy {
 namespace testing {
 
+void bta_dm_disc_init_search_cb(tBTA_DM_SEARCH_CB& bta_dm_search_cb) {
+  ::bta_dm_disc_init_search_cb(bta_dm_search_cb);
+}
 tBTA_DM_SEARCH_CB bta_dm_disc_get_search_cb() {
   tBTA_DM_SEARCH_CB search_cb = {};
   ::bta_dm_disc_init_search_cb(search_cb);
