@@ -33,8 +33,6 @@ import android.bluetooth.IBluetoothCsipSetCoordinator;
 import android.bluetooth.IBluetoothCsipSetCoordinatorCallback;
 import android.bluetooth.IBluetoothCsipSetCoordinatorLockCallback;
 import android.content.AttributionSource;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
@@ -110,8 +108,6 @@ public class CsipSetCoordinatorService extends ProfileService {
     private final Map<Integer, Pair<UUID, IBluetoothCsipSetCoordinatorLockCallback>> mLocks =
             new ConcurrentHashMap<>();
 
-    private BroadcastReceiver mBondStateChangedReceiver;
-
     public static boolean isEnabled() {
         return BluetoothProperties.isProfileCsipSetCoordinatorEnabled().orElse(false);
     }
@@ -163,8 +159,6 @@ public class CsipSetCoordinatorService extends ProfileService {
         IntentFilter filter = new IntentFilter();
         filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        mBondStateChangedReceiver = new BondStateChangedReceiver();
-        registerReceiver(mBondStateChangedReceiver, filter);
 
         // Mark service as started
         setCsipSetCoordinatorService(this);
@@ -190,10 +184,6 @@ public class CsipSetCoordinatorService extends ProfileService {
 
         // Mark service as stopped
         setCsipSetCoordinatorService(null);
-
-        // Unregister broadcast receivers
-        unregisterReceiver(mBondStateChangedReceiver);
-        mBondStateChangedReceiver = null;
 
         // Destroy state machines and stop handler thread
         synchronized (mStateMachines) {
@@ -949,28 +939,18 @@ public class CsipSetCoordinatorService extends ProfileService {
         }
     }
 
-    // Remove state machine if the bonding for a device is removed
-    private class BondStateChangedReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (!BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(intent.getAction())) {
-                return;
-            }
-            int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR);
-            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            Objects.requireNonNull(device, "ACTION_BOND_STATE_CHANGED with no EXTRA_DEVICE");
-            bondStateChanged(device, state);
-        }
+    /** Process a change in the bonding state for a device */
+    public void handleBondStateChanged(BluetoothDevice device, int fromState, int toState) {
+        mHandler.post(() -> bondStateChanged(device, toState));
     }
 
     /**
-     * Process a change in the bonding state for a device.
+     * Remove state machine if the bonding for a device is removed
      *
      * @param device the device whose bonding state has changed
-     * @param bondState the new bond state for the device. Possible values are:
-     * {@link BluetoothDevice#BOND_NONE},
-     * {@link BluetoothDevice#BOND_BONDING},
-     * {@link BluetoothDevice#BOND_BONDED}.
+     * @param bondState the new bond state for the device. Possible values are: {@link
+     *     BluetoothDevice#BOND_NONE}, {@link BluetoothDevice#BOND_BONDING}, {@link
+     *     BluetoothDevice#BOND_BONDED}.
      */
     @VisibleForTesting
     void bondStateChanged(BluetoothDevice device, int bondState) {

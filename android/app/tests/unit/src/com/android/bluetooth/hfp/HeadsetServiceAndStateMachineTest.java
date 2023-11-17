@@ -37,6 +37,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Looper;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.os.RemoteException;
@@ -356,10 +357,9 @@ public class HeadsetServiceAndStateMachineTest {
                 BluetoothProfile.STATE_DISCONNECTED, BluetoothProfile.STATE_CONNECTING);
         // Send unbond intent
         doReturn(BluetoothDevice.BOND_NONE).when(mAdapterService).getBondState(eq(device));
-        Intent unbondIntent = new Intent(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        unbondIntent.putExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.BOND_NONE);
-        unbondIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        InstrumentationRegistry.getTargetContext().sendBroadcast(unbondIntent);
+        mHeadsetService.handleBondStateChanged(
+                device, BluetoothDevice.BOND_BONDED, BluetoothDevice.BOND_NONE);
+        TestUtils.waitForLooperToFinishScheduledTask(Looper.getMainLooper());
         // Check that the state machine is actually destroyed
         ArgumentCaptor<HeadsetStateMachine> stateMachineArgument =
                 ArgumentCaptor.forClass(HeadsetStateMachine.class);
