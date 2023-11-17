@@ -294,19 +294,17 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                 }
                 sm.sendMessage(PbapStateMachine.AUTH_CANCELLED);
             }
-        } else if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
-            int bondState = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE,
-                    BluetoothDevice.ERROR);
-            if (bondState == BluetoothDevice.BOND_BONDED && sIsPseDynamicVersionUpgradeEnabled) {
-                BluetoothDevice remoteDevice = intent.getParcelableExtra(
-                        BluetoothDevice.EXTRA_DEVICE);
-                mSessionStatusHandler.sendMessageDelayed(
-                            mSessionStatusHandler.obtainMessage(
-                            HANDLE_VERSION_UPDATE_NOTIFICATION, remoteDevice),
-                            VERSION_UPDATE_NOTIFICATION_DELAY);
-            }
         } else {
             Log.w(TAG, "Unhandled intent action: " + action);
+        }
+    }
+
+    /** Process a change in the bonding state for a device */
+    public void handleBondStateChanged(BluetoothDevice device, int fromState, int toState) {
+        if (toState == BluetoothDevice.BOND_BONDED && sIsPseDynamicVersionUpgradeEnabled) {
+            mSessionStatusHandler.sendMessageDelayed(
+                    mSessionStatusHandler.obtainMessage(HANDLE_VERSION_UPDATE_NOTIFICATION, device),
+                    VERSION_UPDATE_NOTIFICATION_DELAY);
         }
     }
 
@@ -718,7 +716,6 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
         filter.addAction(AUTH_RESPONSE_ACTION);
         filter.addAction(AUTH_CANCELLED_ACTION);
-        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         BluetoothPbapConfig.init(this);
         registerReceiver(mPbapReceiver, filter);
         try {
