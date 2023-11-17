@@ -58,6 +58,7 @@ cc_defaults {
         "libbluetooth-protos",
         "libbluetooth-types",
         "libbluetooth_core_rs",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbluetooth_rust_interop",
         "libbt-audio-hal-interface",

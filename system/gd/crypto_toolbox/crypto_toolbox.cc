@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "crypto_toolbox/crypto_toolbox.h"
+#include "crypto_toolbox.h"
 
 #include <endian.h>
 
@@ -22,12 +22,11 @@
 
 #include "hci/octets.h"
 
-namespace bluetooth {
+using bluetooth::hci::kOctet16Length;
+using bluetooth::hci::kOctet32Length;
+using bluetooth::hci::Octet16;
+
 namespace crypto_toolbox {
-using hci::kOctet16Length;
-using hci::kOctet32Length;
-using hci::Octet16;
-using hci::Octet32;
 
 Octet16 h6(const Octet16& w, std::array<uint8_t, 4> keyid) {
   return aes_cmac(w, keyid.data(), keyid.size());
@@ -37,12 +36,14 @@ Octet16 h7(const Octet16& salt, const Octet16& w) {
   return aes_cmac(salt, w.data(), w.size());
 }
 
-Octet16 f4(uint8_t* u, uint8_t* v, const Octet16& x, uint8_t z) {
+Octet16 f4(const uint8_t* u, const uint8_t* v, const Octet16& x, uint8_t z) {
   constexpr size_t msg_len =
       kOctet32Length /* U size */ + kOctet32Length /* V size */ + 1 /* Z size */;
 
-  // VLOG(1) << "U=" << HexEncode(u, kOctet32Length) << ", V=" << HexEncode(v, kOctet32Length)
-  //          << ", X=" << HexEncode(x.data(), x.size()) << ", Z=" << std::hex << +z;
+  // VLOG(1) << "U=" << HexEncode(u, kOctet32Length)
+  //          << ", V=" << HexEncode(v, kOctet32Length)
+  //          << ", X=" << HexEncode(x.data(), x.size()) << ", Z=" << std::hex
+  //          << +z;
 
   std::array<uint8_t, msg_len> msg;
   auto it = msg.begin();
@@ -79,7 +80,14 @@ static Octet16 calculate_mac_key_or_ltk(
   return aes_cmac(t, msg.data(), msg.size());
 }
 
-void f5(uint8_t* w, const Octet16& n1, const Octet16& n2, uint8_t* a1, uint8_t* a2, Octet16* mac_key, Octet16* ltk) {
+void f5(
+    const uint8_t* w,
+    const Octet16& n1,
+    const Octet16& n2,
+    uint8_t* a1,
+    uint8_t* a2,
+    Octet16* mac_key,
+    Octet16* ltk) {
   // VLOG(1) << __func__ << "W=" << HexEncode(w, kOctet32Length) << ", N1=" <<
   // HexEncode(n1.data(), n1.size())
   //          << ", N2=" << HexEncode(n2.data(), n2.size()) << ", A1=" << HexEncode(a1, 7) << ",
@@ -126,7 +134,7 @@ f6(const Octet16& w, const Octet16& n1, const Octet16& n2, const Octet16& r, uin
   return aes_cmac(w, msg.data(), msg.size());
 }
 
-uint32_t g2(uint8_t* u, uint8_t* v, const Octet16& x, const Octet16& y) {
+uint32_t g2(const uint8_t* u, const uint8_t* v, const Octet16& x, const Octet16& y) {
   constexpr size_t msg_len = kOctet32Length /* U size */ + kOctet32Length /* V size */
                              + kOctet16Length /* Y size */;
 
@@ -218,12 +226,10 @@ Octet16 c1(
 
 Octet16 s1(const Octet16& k, const Octet16& r1, const Octet16& r2) {
   Octet16 text{0};
-  constexpr uint8_t BT_OCTET8_LEN = 8;
-  memcpy(text.data(), r1.data(), BT_OCTET8_LEN);
-  memcpy(text.data() + BT_OCTET8_LEN, r2.data(), BT_OCTET8_LEN);
+  memcpy(text.data(), r1.data(), kOctet16Length / 2);
+  memcpy(text.data() + kOctet16Length / 2, r2.data(), kOctet16Length / 2);
 
   return aes_128(k, text);
 }
 
 }  // namespace crypto_toolbox
-}  // namespace bluetooth

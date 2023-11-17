@@ -26,8 +26,8 @@
 
 #include "btm_api.h"
 #include "btm_ble_api.h"
+#include "crypto_toolbox/crypto_toolbox.h"
 #include "smp_api.h"
-#include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
 #include "types/raw_address.h"

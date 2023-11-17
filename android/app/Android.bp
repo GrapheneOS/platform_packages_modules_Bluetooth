@@ -102,6 +102,7 @@ cc_library_shared {
         "libbluetooth-types",
         "libbluetooth_core_rs",
         "libbluetooth_core_rs_bridge",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbt-audio-hal-interface",
         "libbt-bta",

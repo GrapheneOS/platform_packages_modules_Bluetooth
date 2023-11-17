@@ -72,7 +72,6 @@ cc_test {
     shared_libs: [
         "libbase",
         "libbinder_ndk",
-        "libcrypto",
         "liblog",
     ],
     static_libs: [
