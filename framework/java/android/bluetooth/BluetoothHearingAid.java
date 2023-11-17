@@ -60,7 +60,7 @@ import java.util.concurrent.TimeoutException;
 public final class BluetoothHearingAid implements BluetoothProfile {
     private static final String TAG = "BluetoothHearingAid";
     private static final boolean DBG = true;
-    private static final boolean VDBG = false;
+    private static final boolean VDBG = Log.isLoggable(TAG, Log.VERBOSE);
 
     /**
      * This class provides the APIs to get device's advertisement data. The advertisement data might
