@@ -13,3 +13,10 @@ flag {
     description: "Auto connect to hfp device is there is no a2dp device to connect to"
     bug: "305867804"
 }
+
+flag {
+    name: "hfp_codec_aptx_voice"
+    namespace: "bluetooth"
+    description: "AptX Voice codec support for HFP calls"
+    bug: "308497929"
+}
