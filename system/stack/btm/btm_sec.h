@@ -519,7 +519,8 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
  * Returns          void
  *
  ******************************************************************************/
-void btm_sec_rmt_host_support_feat_evt(const uint8_t* p);
+void btm_sec_rmt_host_support_feat_evt(const RawAddress bd_addr,
+                                       uint8_t features_0);
 
 /*******************************************************************************
  *
@@ -558,7 +559,8 @@ void btm_io_capabilities_rsp(const tBTM_SP_IO_RSP evt_data);
  * Returns          void
  *
  ******************************************************************************/
-void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p);
+void btm_proc_sp_req_evt(tBTM_SP_EVT event, const RawAddress bda,
+                         uint32_t value);
 
 /*******************************************************************************
  *
@@ -676,6 +678,10 @@ void btm_sec_role_changed(tHCI_STATUS hci_status, const RawAddress& bd_addr,
 /** This function is called when a new connection link key is generated */
 void btm_sec_link_key_notification(const RawAddress& p_bda,
                                    const Octet16& link_key, uint8_t key_type);
+
+/** This function is called for each encryption key refresh complete event */
+void btm_sec_encryption_key_refresh_complete(uint16_t handle,
+                                             tHCI_STATUS status);
 
 /*******************************************************************************
  *

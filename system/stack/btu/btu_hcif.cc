@@ -97,8 +97,11 @@ static void btu_hcif_esco_connection_chg_evt(uint8_t* p);
 
 static void btu_hcif_sec_pin_code_request(const uint8_t* p);
 static void btu_hcif_sec_link_key_request(const uint8_t* p);
+static void btu_hcif_sec_rmt_host_support_feat_evt(const uint8_t* p);
+static void btu_hcif_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p);
 static void btu_hcif_rem_oob_req(const uint8_t* p);
 static void btu_hcif_simple_pair_complete(const uint8_t* p);
+static void btu_hcif_proc_sp_req_evt(const tBTM_SP_EVT event, const uint8_t* p);
 static void btu_hcif_create_conn_cancel_complete(const uint8_t* p,
                                                  uint16_t evt_len);
 static void btu_hcif_read_local_oob_complete(const uint8_t* p,
@@ -300,7 +303,7 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
       btm_pm_proc_ssr_evt(p, hci_evt_len);
       break;
     case HCI_RMT_HOST_SUP_FEAT_NOTIFY_EVT:
-      btm_sec_rmt_host_support_feat_evt(p);
+      btu_hcif_sec_rmt_host_support_feat_evt(p);
       break;
     case HCI_IO_CAPABILITY_REQUEST_EVT:
       btu_hcif_io_cap_request_evt(p);
@@ -309,10 +312,10 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
       btu_hcif_io_cap_response_evt(p);
       break;
     case HCI_USER_CONFIRMATION_REQUEST_EVT:
-      btm_proc_sp_req_evt(BTM_SP_CFM_REQ_EVT, p);
+      btu_hcif_proc_sp_req_evt(BTM_SP_CFM_REQ_EVT, p);
       break;
     case HCI_USER_PASSKEY_REQUEST_EVT:
-      btm_proc_sp_req_evt(BTM_SP_KEY_REQ_EVT, p);
+      btu_hcif_proc_sp_req_evt(BTM_SP_KEY_REQ_EVT, p);
       break;
     case HCI_REMOTE_OOB_DATA_REQUEST_EVT:
       btu_hcif_rem_oob_req(p);
@@ -321,7 +324,7 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
       btu_hcif_simple_pair_complete(p);
       break;
     case HCI_USER_PASSKEY_NOTIFY_EVT:
-      btm_proc_sp_req_evt(BTM_SP_KEY_NOTIF_EVT, p);
+      btu_hcif_proc_sp_req_evt(BTM_SP_KEY_NOTIF_EVT, p);
       break;
 
     case HCI_BLE_EVENT: {
@@ -1449,6 +1452,31 @@ void btu_hcif_simple_pair_complete(const uint8_t* p) {
   STREAM_TO_BDADDR(bd_addr, p);
   btm_simple_pair_complete(bd_addr, status);
 }
+void btu_hcif_sec_rmt_host_support_feat_evt(const uint8_t* p) {
+  RawAddress bd_addr; /* peer address */
+  uint8_t features_0;
+
+  STREAM_TO_BDADDR(bd_addr, p);
+  STREAM_TO_UINT8(features_0, p);
+  btm_sec_rmt_host_support_feat_evt(bd_addr, features_0);
+}
+void btu_hcif_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
+  RawAddress bda;
+  uint32_t value = 0;
+
+  /* All events start with bd_addr */
+  STREAM_TO_BDADDR(bda, p);
+  switch (event) {
+    case BTM_SP_CFM_REQ_EVT:
+    case BTM_SP_KEY_NOTIF_EVT:
+      STREAM_TO_UINT32(value, p);
+      break;
+    case BTM_SP_KEY_REQ_EVT:
+      // No value needed.
+      break;
+  }
+  btm_proc_sp_req_evt(event, bda, value);
+}
 void btu_hcif_create_conn_cancel_complete(const uint8_t* p, uint16_t evt_len) {
   uint8_t status;
 
@@ -1580,36 +1608,6 @@ static void btu_hcif_io_cap_response_evt(const uint8_t* p) {
  * End of Simple Pairing Events
  **********************************************/
 
-static void read_encryption_key_size_complete_after_key_refresh(uint8_t status, uint16_t handle, uint8_t key_size) {
-  if (status == HCI_ERR_INSUFFCIENT_SECURITY) {
-    /* If remote device stop the encryption before we call "Read Encryption Key
-     * Size", we might receive Insufficient Security, which means that link is
-     * no longer encrypted. */
-    LOG(INFO) << __func__ << ": encryption stopped on link: " << loghex(handle);
-    return;
-  }
-
-  if (status != HCI_SUCCESS) {
-    LOG(INFO) << __func__ << ": disconnecting, status: " << loghex(status);
-    acl_disconnect_from_handle(handle, HCI_ERR_PEER_USER,
-                               "stack::btu_hcif Key size fail");
-    return;
-  }
-
-  if (key_size < MIN_KEY_SIZE) {
-    LOG(ERROR) << __func__ << " encryption key too short, disconnecting. handle: " << loghex(handle)
-               << " key_size: " << +key_size;
-
-    acl_disconnect_from_handle(handle, HCI_ERR_HOST_REJECT_SECURITY,
-                               "stack::btu::btu_hcif::read_encryption_key_size_"
-                               "complete_after_key_refresh Key size too small");
-    return;
-  }
-
-  btm_sec_encrypt_change(handle, static_cast<tHCI_STATUS>(status),
-                         1 /* enc_enable */);
-}
-
 static void btu_hcif_encryption_key_refresh_cmpl_evt(uint8_t* p) {
   uint8_t status;
   uint16_t handle;
@@ -1617,14 +1615,8 @@ static void btu_hcif_encryption_key_refresh_cmpl_evt(uint8_t* p) {
   STREAM_TO_UINT8(status, p);
   STREAM_TO_UINT16(handle, p);
 
-  if (status != HCI_SUCCESS || BTM_IsBleConnection(handle) ||
-      // Skip encryption key size check when using set_min_encryption_key_size
-      controller_get_interface()->supports_set_min_encryption_key_size()) {
-    btm_sec_encrypt_change(handle, static_cast<tHCI_STATUS>(status),
-                           (status == HCI_SUCCESS) ? 1 : 0);
-  } else {
-    btsnd_hcic_read_encryption_key_size(handle, base::Bind(&read_encryption_key_size_complete_after_key_refresh));
-  }
+  btm_sec_encryption_key_refresh_complete(handle,
+                                          static_cast<tHCI_STATUS>(status));
 }
 
 /**********************************************
