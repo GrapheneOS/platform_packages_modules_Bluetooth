@@ -227,6 +227,15 @@ static bool btm_dev_16_digit_authenticated(const tBTM_SEC_DEV_REC* p_dev_rec) {
   return p_dev_rec->sec_flags & BTM_SEC_16_DIGIT_PIN_AUTHED;
 }
 
+static bool is_sec_state_equal(void* data, void* context) {
+  tBTM_SEC_DEV_REC* p_dev_rec = static_cast<tBTM_SEC_DEV_REC*>(data);
+  uint8_t* state = static_cast<uint8_t*>(context);
+
+  if (p_dev_rec->sec_state == *state) return false;
+
+  return true;
+}
+
 /*******************************************************************************
  *
  * Function         btm_sec_find_dev_by_sec_state
@@ -4736,15 +4745,6 @@ static void btm_restore_mode(void) {
     btm_sec_cb.pin_type_changed = false;
     btsnd_hcic_write_pin_type(btm_sec_cb.cfg.pin_type);
   }
-}
-
-bool is_sec_state_equal(void* data, void* context) {
-  tBTM_SEC_DEV_REC* p_dev_rec = static_cast<tBTM_SEC_DEV_REC*>(data);
-  uint8_t* state = static_cast<uint8_t*>(context);
-
-  if (p_dev_rec->sec_state == *state) return false;
-
-  return true;
 }
 
 /*******************************************************************************
