@@ -275,7 +275,9 @@ TEST(HciPacketsTest, testLeSetExtendedAdvertisingData) {
   std::vector<uint8_t> advertising_data{
       0x02, 0x01, 0x02, 0x0a, 0x09, 0x50, 0x69, 0x78, 0x65, 0x6c, 0x20, 0x33, 0x20, 0x58,
   };
-  ASSERT_EQ(advertising_data, view.GetAdvertisingData());
+  auto payload = view.GetPayload();
+  std::vector<uint8_t> payload_data(payload.begin(), payload.end());
+  ASSERT_EQ(advertising_data, payload_data);
 }
 
 std::vector<uint8_t> le_set_extended_advertising_parameters_set_0{

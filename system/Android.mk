@@ -47,7 +47,8 @@ LOCAL_host_libraries := \
 	$(HOST_OUT_SHARED_LIBRARIES)/libprotobuf-cpp-full.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libunwindstack.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libutils.so \
-	$(HOST_OUT_SHARED_LIBRARIES)/liblzma.so
+	$(HOST_OUT_SHARED_LIBRARIES)/liblzma.so \
+	$(HOST_OUT_SHARED_LIBRARIES)/server_configurable_flags.so
 
 LOCAL_target_executables := \
 	$(TARGET_OUT_EXECUTABLES)/bluetooth_stack_with_facade
@@ -72,7 +73,8 @@ LOCAL_target_libraries := \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libstatslog_bt.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libunwindstack.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libutils.so \
-	$(TARGET_OUT_SHARED_LIBRARIES)/libz.so
+	$(TARGET_OUT_SHARED_LIBRARIES)/libz.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/server_configurable_flags.so
 	# libclang_rt.asan-aarch64-android.so is only generated for ASAN build and included automatically
 	# on devices
 	# $(TARGET_OUT_SHARED_LIBRARIES)/libclang_rt.asan-aarch64-android.so \
