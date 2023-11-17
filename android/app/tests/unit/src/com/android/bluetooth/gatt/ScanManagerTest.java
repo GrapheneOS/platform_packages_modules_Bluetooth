@@ -52,6 +52,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.test.TestLooper;
 import android.provider.Settings;
 import android.test.mock.MockContentProvider;
 import android.test.mock.MockContentResolver;
@@ -106,6 +107,7 @@ public class ScanManagerTest {
     private Context mTargetContext;
     private ScanManager mScanManager;
     private Handler mHandler;
+    private TestLooper mTestLooper;
     private CountDownLatch mLatch;
     private long mScanReportDelay;
 
@@ -181,7 +183,14 @@ public class ScanManagerTest {
         doReturn(mTargetContext.getUser()).when(mMockGattService).getUser();
         doReturn(mTargetContext.getPackageName()).when(mMockGattService).getPackageName();
 
-        mScanManager = new ScanManager(mMockGattService, mAdapterService, mBluetoothAdapterProxy);
+        mTestLooper = new TestLooper();
+        mTestLooper.startAutoDispatch();
+        mScanManager =
+                new ScanManager(
+                        mMockGattService,
+                        mAdapterService,
+                        mBluetoothAdapterProxy,
+                        mTestLooper.getLooper());
 
         mHandler = mScanManager.getClientHandler();
         assertThat(mHandler).isNotNull();
@@ -194,6 +203,7 @@ public class ScanManagerTest {
 
     @After
     public void tearDown() throws Exception {
+        mTestLooper.stopAutoDispatchAndIgnoreExceptions();
         TestUtils.clearAdapterService(mAdapterService);
         BluetoothAdapterProxy.setInstanceForTesting(null);
         GattObjectsFactory.setInstanceForTesting(null);
@@ -216,7 +226,7 @@ public class ScanManagerTest {
         }
         mHandler.sendMessage(msg);
         // Wait for async work from handler thread
-        TestUtils.waitForLooperToBeIdle(mHandler.getLooper());
+        TestUtils.waitForLooperToFinishScheduledTask(mHandler.getLooper());
     }
 
     private ScanClient createScanClient(
@@ -1394,7 +1404,7 @@ public class ScanManagerTest {
                 BluetoothProfile.STATE_CONNECTING);
 
         // Wait for handleConnectingState to happen
-        TestUtils.waitForLooperToBeIdle(mHandler.getLooper());
+        TestUtils.waitForLooperToFinishScheduledTask(mHandler.getLooper());
         assertThat(mScanManager.mIsConnecting).isTrue();
     }
 
@@ -1430,7 +1440,7 @@ public class ScanManagerTest {
 
         t1.join();
         t2.join();
-        TestUtils.waitForLooperToBeIdle(mHandler.getLooper());
+        TestUtils.waitForLooperToFinishScheduledTask(mHandler.getLooper());
         assertThat(mScanManager.mProfilesConnecting).isEqualTo(3);
     }
 }
