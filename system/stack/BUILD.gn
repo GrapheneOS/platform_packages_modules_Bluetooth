@@ -14,18 +14,6 @@
 #  limitations under the License.
 #
 
-static_library("crypto_toolbox") {
-  sources = [
-    "crypto_toolbox/aes.cc",
-    "crypto_toolbox/aes_cmac.cc",
-    "crypto_toolbox/crypto_toolbox.cc",
-  ]
-
-  include_dirs = [ "//bt/system/" ]
-
-  configs += [ "//bt/system:target_defaults" ]
-}
-
 # Nonstandard codecs are associated with 3P libs and must be contained in MMC
 source_set("nonstandard_codecs") {
   if (defined(use.bt_nonstandard_codecs) && use.bt_nonstandard_codecs) {
@@ -230,7 +218,7 @@ source_set("stack") {
   ]
 
   deps = [
-    ":crypto_toolbox",
+    "//bt/system/gd/crypto_toolbox:crypto_toolbox",
     ":nonstandard_codecs",
     "//bt/system:libbt-platform-protos-lite",
     "//bt/system/gd/rust/shim:init_flags_bridge_header",
@@ -323,19 +311,6 @@ if (defined(use.android) && use.android) {
     ]
   }
 
-  executable("net_test_stack_crypto_toolbox") {
-    sources = [ "test/crypto_toolbox_test.cc" ]
-
-    include_dirs = [ "//bt/system/" ]
-
-    deps = [ ":crypto_toolbox" ]
-
-    configs += [
-      "//bt/system:external_gmock_main",
-      "//bt/system:target_defaults",
-    ]
-  }
-
   executable("net_test_stack_smp") {
     sources = [
       "smp/p_256_curvepara.cc",
@@ -373,7 +348,7 @@ if (defined(use.android) && use.android) {
     ]
 
     deps = [
-      ":crypto_toolbox",
+      "//bt/system/gd:crypto_toolbox",
       "//bt/system/osi",
       "//bt/system/types",
     ]

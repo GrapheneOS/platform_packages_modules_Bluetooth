@@ -35,6 +35,7 @@
 #include "bta_groups.h"
 #include "bta_sec_api.h"
 #include "btif_storage.h"
+#include "crypto_toolbox/crypto_toolbox.h"
 #include "csis_types.h"
 #include "gap_api.h"
 #include "gatt_api.h"
@@ -44,7 +45,6 @@
 #include "osi/include/stack_power_telemetry.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
-#include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/btm_ble_sec_api.h"
 

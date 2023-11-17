@@ -15,14 +15,11 @@
  */
 #pragma once
 
-#include <optional>
 #include <string>
 #include <unordered_set>
 
-#include "crypto_toolbox/crypto_toolbox.h"
 #include "hci/hci_packets.h"
 #include "storage/config_cache.h"
-#include "storage/config_cache_helper.h"
 #include "storage/device.h"
 
 namespace bluetooth {

@@ -465,7 +465,8 @@ void btm_sec_conn_req(const RawAddress& bda, const DEV_CLASS dc);
  * Returns          void
  *
  ******************************************************************************/
-void btm_create_conn_cancel_complete(const uint8_t* p, uint16_t evt_len);
+void btm_create_conn_cancel_complete(uint8_t status, const RawAddress bd_addr,
+                                     uint32_t value);
 
 /*******************************************************************************
  *
@@ -531,7 +532,7 @@ void btm_sec_rmt_host_support_feat_evt(const uint8_t* p);
  * Returns          void
  *
  ******************************************************************************/
-void btm_io_capabilities_req(const RawAddress& p);
+void btm_io_capabilities_req(RawAddress p);
 
 /*******************************************************************************
  *
@@ -543,7 +544,7 @@ void btm_io_capabilities_req(const RawAddress& p);
  * Returns          void
  *
  ******************************************************************************/
-void btm_io_capabilities_rsp(const uint8_t* p);
+void btm_io_capabilities_rsp(const tBTM_SP_IO_RSP evt_data);
 
 /*******************************************************************************
  *
@@ -569,7 +570,7 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p);
  * Returns          void
  *
  ******************************************************************************/
-void btm_simple_pair_complete(const uint8_t* p);
+void btm_simple_pair_complete(const RawAddress bd_addr, uint8_t status);
 
 /*******************************************************************************
  *
@@ -581,7 +582,7 @@ void btm_simple_pair_complete(const uint8_t* p);
  * Returns          void
  *
  ******************************************************************************/
-void btm_rem_oob_req(const uint8_t* p);
+void btm_rem_oob_req(const RawAddress bd_addr);
 
 /*******************************************************************************
  *
@@ -593,7 +594,7 @@ void btm_rem_oob_req(const uint8_t* p);
  * Returns          void
  *
  ******************************************************************************/
-void btm_read_local_oob_complete(uint8_t* p, uint16_t evt_len);
+void btm_read_local_oob_complete(const tBTM_SP_LOC_OOB evt_data);
 
 /*******************************************************************************
  *
@@ -685,7 +686,7 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
  * Returns          Pointer to the record or NULL
  *
  ******************************************************************************/
-void btm_sec_link_key_request(const uint8_t* p_event);
+void btm_sec_link_key_request(const RawAddress bda);
 
 /*******************************************************************************
  *
@@ -696,7 +697,7 @@ void btm_sec_link_key_request(const uint8_t* p_event);
  * Returns          Pointer to the record or NULL
  *
  ******************************************************************************/
-void btm_sec_pin_code_request(const uint8_t* p_event);
+void btm_sec_pin_code_request(const RawAddress bda);
 
 /*******************************************************************************
  *
