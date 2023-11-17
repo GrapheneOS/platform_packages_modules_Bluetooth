@@ -68,6 +68,20 @@ CodecManager::GetBroadcastOffloadConfig() {
   return pimpl_->GetBroadcastOffloadConfig();
 }
 
+std::vector<bluetooth::le_audio::btle_audio_codec_config_t>
+CodecManager::GetLocalAudioOutputCodecCapa() {
+  if (!pimpl_)
+    return std::vector<bluetooth::le_audio::btle_audio_codec_config_t>{};
+  return pimpl_->GetLocalAudioOutputCodecCapa();
+}
+
+std::vector<bluetooth::le_audio::btle_audio_codec_config_t>
+CodecManager::GetLocalAudioInputCodecCapa() {
+  if (!pimpl_)
+    return std::vector<bluetooth::le_audio::btle_audio_codec_config_t>{};
+  return pimpl_->GetLocalAudioInputCodecCapa();
+}
+
 void CodecManager::UpdateBroadcastConnHandle(
     const std::vector<uint16_t>& conn_handle,
     std::function<void(const ::le_audio::broadcast_offload_config& config)>

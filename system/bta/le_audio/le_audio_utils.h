@@ -22,6 +22,8 @@
 #include <hardware/audio.h>
 #endif
 
+#include <hardware/bt_le_audio.h>
+
 #include <bitset>
 #include <vector>
 
@@ -36,5 +38,24 @@ types::AudioContexts GetAudioContextsFromSourceMetadata(
 types::AudioContexts GetAudioContextsFromSinkMetadata(
     const sink_metadata_v7& sink_metadata);
 
+/* Helpers to get btle_audio_codec_config_t for Java */
+bluetooth::le_audio::btle_audio_codec_index_t
+translateBluetoothCodecFormatToCodecType(uint8_t codec_format);
+
+bluetooth::le_audio::btle_audio_sample_rate_index_t
+translateToBtLeAudioCodecConfigSampleRate(uint32_t sample_rate_capa);
+bluetooth::le_audio::btle_audio_bits_per_sample_index_t
+translateToBtLeAudioCodecConfigBitPerSample(uint8_t bits_per_sample);
+bluetooth::le_audio::btle_audio_channel_count_index_t
+translateToBtLeAudioCodecConfigChannelCount(uint8_t channel_count);
+bluetooth::le_audio::btle_audio_frame_duration_index_t
+translateToBtLeAudioCodecConfigFrameDuration(int frame_duration);
+void fillStreamParamsToBtLeAudioCodecConfig(
+    types::LeAudioCodecId codec_id, const stream_parameters* stream_params,
+    bluetooth::le_audio::btle_audio_codec_config_t& out_config);
+
+std::vector<bluetooth::le_audio::btle_audio_codec_config_t>
+GetRemoteBtLeAudioCodecConfigFromPac(
+    const types::PublishedAudioCapabilities& group_pacs);
 }  // namespace utils
 }  // namespace le_audio
