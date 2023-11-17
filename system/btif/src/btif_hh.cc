@@ -127,7 +127,7 @@ void bta_hh_co_send_hid_info(btif_hh_device_t* p_dev, const char* dev_name,
                              uint16_t version, uint8_t ctry_code, int dscp_len,
                              uint8_t* p_dscp);
 void bta_hh_co_write(int fd, uint8_t* rpt, uint16_t len);
-void bte_hh_evt(tBTA_HH_EVT event, tBTA_HH* p_data);
+static void bte_hh_evt(tBTA_HH_EVT event, tBTA_HH* p_data);
 void btif_dm_hh_open_failed(RawAddress* bdaddr);
 void btif_hd_service_registration();
 void btif_hh_timer_timeout(void* data);
@@ -1174,7 +1174,7 @@ static void btif_hh_hsdata_rpt_copy_cb(uint16_t event, char* p_dest,
  *
  ******************************************************************************/
 
-void bte_hh_evt(tBTA_HH_EVT event, tBTA_HH* p_data) {
+static void bte_hh_evt(tBTA_HH_EVT event, tBTA_HH* p_data) {
   bt_status_t status;
   int param_len = 0;
   tBTIF_COPY_CBACK* p_copy_cback = NULL;
@@ -1900,4 +1900,17 @@ void DumpsysHid(int fd) {
     }
   }
 }
+
+namespace bluetooth {
+namespace legacy {
+namespace testing {
+
+void bte_hh_evt(tBTA_HH_EVT event, tBTA_HH* p_data) {
+  ::bte_hh_evt(event, p_data);
+}
+
+}  // namespace testing
+}  // namespace legacy
+}  // namespace bluetooth
+
 #undef DUMPSYS_TAG
