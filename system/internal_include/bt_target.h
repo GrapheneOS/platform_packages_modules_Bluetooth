@@ -981,11 +981,6 @@
  *
  *****************************************************************************/
 
-/* Enable/disable BTSnoop memory logging */
-#ifndef BTSNOOP_MEM
-#define BTSNOOP_MEM TRUE
-#endif
-
 #include "bt_trace.h"
 
 #endif /* BT_TARGET_H */
