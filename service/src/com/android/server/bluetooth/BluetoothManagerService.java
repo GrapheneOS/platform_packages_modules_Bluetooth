@@ -699,6 +699,7 @@ class BluetoothManagerService {
     BluetoothManagerService(
             @NonNull Context context, @NonNull Looper looper, @NonNull FeatureFlags featureFlags) {
         mContext = requireNonNull(context, "Context cannot be null");
+        mContentResolver = requireNonNull(mContext.getContentResolver(), "Resolver cannot be null");
         mLooper = requireNonNull(looper, "Looper cannot be null");
         mFeatureFlags = requireNonNull(featureFlags, "Feature Flags cannot be null");
 
@@ -710,7 +711,6 @@ class BluetoothManagerService {
         mBinder = new BluetoothServiceBinder(this, mContext, mUserManager);
         mHandler = new BluetoothHandler(mLooper);
 
-        mContentResolver = mContext.getContentResolver();
 
         // Observe BLE scan only mode settings change.
         registerForBleScanModeChange();
