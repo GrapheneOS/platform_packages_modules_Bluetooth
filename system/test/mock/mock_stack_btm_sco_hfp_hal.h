@@ -27,8 +27,8 @@
 
 // Original included files, if any
 
-#include "btm_sco_hfp_hal.h"
 #include "device/include/esco_parameters.h"
+#include "stack/btm/btm_sco_hfp_hal.h"
 
 // Original usings
 
