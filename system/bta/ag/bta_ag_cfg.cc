@@ -30,12 +30,10 @@
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 
-#ifndef BTA_AG_CIND_INFO
+/* Set the CIND to match HFP 1.5 */
 #define BTA_AG_CIND_INFO                                                       \
-  "(\"call\",(0,1)),(\"callsetup\",(0-3)),(\"service\",(0-3)),(\"signal\",(0-" \
-  "6)),(\"roam\",(0,1)),(\"battchg\",(0-5)),(\"callheld\",(0-2)),(\"bearer\"," \
-  "(0-7))"
-#endif
+  "(\"call\",(0,1)),(\"callsetup\",(0-3)),(\"service\",(0-1)),(\"signal\",(0-" \
+  "5)),(\"roam\",(0,1)),(\"battchg\",(0-5)),(\"callheld\",(0-2))"
 
 #ifndef BTA_AG_CHLD_VAL_ECC
 #define BTA_AG_CHLD_VAL_ECC "(0,1,1x,2,2x,3,4)"
