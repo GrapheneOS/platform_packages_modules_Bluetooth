@@ -27,11 +27,8 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "check.h"
 #include "common/message_loop_thread.h"
-#include "osi/include/allocator.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
+#include "os/log.h"
 
 using bluetooth::common::MessageLoopThread;
 
