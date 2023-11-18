@@ -847,11 +847,6 @@
 #define GAP_MAX_CONNECTIONS 30
 #endif
 
-/* keep the raw data received from SDP server in database. */
-#ifndef SDP_RAW_DATA_INCLUDED
-#define SDP_RAW_DATA_INCLUDED TRUE
-#endif
-
 /******************************************************************************
  *
  * HID

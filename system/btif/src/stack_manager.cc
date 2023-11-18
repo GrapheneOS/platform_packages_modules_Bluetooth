@@ -78,14 +78,6 @@
 
 // Validate or respond to various conditional compilation flags
 
-#if SDP_RAW_DATA_INCLUDED != TRUE
-// Once SDP_RAW_DATA_INCLUDED is no longer exposed via bt_target.h
-// this check and error statement may be removed.
-#warning \
-    "#define SDP_RAW_DATA_INCLUDED preprocessor compilation flag is unsupported"
-#error "*** Conditional Compilation Directive error"
-#endif
-
 // Once BTA_PAN_INCLUDED is no longer exposed via bt_target.h
 // this check and error statement may be removed.
 static_assert(
