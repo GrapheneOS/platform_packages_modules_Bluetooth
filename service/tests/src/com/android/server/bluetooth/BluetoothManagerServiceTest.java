@@ -77,8 +77,8 @@ import java.util.stream.IntStream;
 @RunWith(AndroidJUnit4.class)
 public class BluetoothManagerServiceTest {
     private static final String TAG = BluetoothManagerServiceTest.class.getSimpleName();
-    static final int STATE_BLE_TURNING_ON = 14; // can't find the symbol because hidden api
-    static final int TIMEOUT_MS = 1000; // TO use to wait for handler execution
+    private static final int STATE_BLE_TURNING_ON = 14; // can't find the symbol because hidden api
+    private static final int TIMEOUT_MS = 1000; // TO use to wait for handler execution
 
     BluetoothManagerService mManagerService;
 
@@ -161,13 +161,15 @@ public class BluetoothManagerServiceTest {
 
     @After
     public void tearDown() {
-        mManagerService.unregisterAdapter(mManagerCallback);
+        if (mManagerService != null) {
+            mManagerService.unregisterAdapter(mManagerCallback);
+            mManagerService = null;
+        }
         mLooper.moveTimeForward(120_000); // 120 seconds
         // Do not try to assert if `syncHandler()` already raised an exception for it
         if (!mHasException) {
             assertThat(mLooper.nextMessage()).isNull();
         }
-        mManagerService = null;
         validateMockitoUsage();
     }
 
