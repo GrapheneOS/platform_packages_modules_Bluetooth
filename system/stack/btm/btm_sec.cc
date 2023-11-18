@@ -57,6 +57,7 @@
 #include "stack/include/btm_log_history.h"
 #include "stack/include/btm_sec_api.h"
 #include "stack/include/btm_status.h"
+#include "stack/include/hci_error_code.h"
 #include "stack/include/l2cap_security_interface.h"
 #include "stack/include/main_thread.h"
 #include "stack/include/smp_api.h"
@@ -2587,28 +2588,25 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
  * Returns          void
  *
  ******************************************************************************/
-void btm_sec_rmt_host_support_feat_evt(const uint8_t* p) {
+void btm_sec_rmt_host_support_feat_evt(const RawAddress bd_addr,
+                                       uint8_t features_0) {
   tBTM_SEC_DEV_REC* p_dev_rec;
-  RawAddress bd_addr; /* peer address */
-  BD_FEATURES features;
 
-  STREAM_TO_BDADDR(bd_addr, p);
   p_dev_rec = btm_find_or_alloc_dev(bd_addr);
 
   LOG_INFO("Got btm_sec_rmt_host_support_feat_evt from %s",
            ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
   LOG_VERBOSE("btm_sec_rmt_host_support_feat_evt  sm4: 0x%x  p[0]: 0x%x",
-              p_dev_rec->sm4, p[0]);
+              p_dev_rec->sm4, features_0);
 
   if (BTM_SEC_IS_SM4_UNKNOWN(p_dev_rec->sm4)) {
     p_dev_rec->sm4 = BTM_SM4_KNOWN;
-    STREAM_TO_ARRAY(features, p, HCI_FEATURE_BYTES_PER_PAGE);
-    if (HCI_SSP_HOST_SUPPORTED(features)) {
+    if (HCI_SSP_HOST_SUPPORTED((std::array<uint8_t, 1>({features_0})))) {
       p_dev_rec->sm4 = BTM_SM4_TRUE;
     }
     LOG_VERBOSE("btm_sec_rmt_host_support_feat_evt sm4: 0x%x features[0]: 0x%x",
-                p_dev_rec->sm4, features[0]);
+                p_dev_rec->sm4, features_0);
   }
 }
 
@@ -2861,15 +2859,14 @@ void btm_io_capabilities_rsp(const tBTM_SP_IO_RSP evt_data) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
+void btm_proc_sp_req_evt(tBTM_SP_EVT event, const RawAddress bda,
+                         const uint32_t value) {
   tBTM_STATUS status = BTM_ERR_PROCESSING;
   tBTM_SP_EVT_DATA evt_data;
   RawAddress& p_bda = evt_data.cfm_req.bd_addr;
   tBTM_SEC_DEV_REC* p_dev_rec;
 
-  /* All events start with bd_addr */
-  STREAM_TO_BDADDR(p_bda, p);
-
+  p_bda = bda;
   VLOG(2) << " BDA: " << ADDRESS_TO_LOGGABLE_STR(p_bda) << " event: 0x"
           << std::hex << +event
           << " State: " << btm_pair_state_descr(btm_sec_cb.pairing_state);
@@ -2890,7 +2887,7 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
         btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_NUMERIC_CONFIRM);
 
         /* The device record must be allocated in the "IO cap exchange" step */
-        STREAM_TO_UINT32(evt_data.cfm_req.num_val, p);
+        evt_data.cfm_req.num_val = value;
         LOG_VERBOSE("BTM_SP_CFM_REQ_EVT:  num_val: %u",
                     evt_data.cfm_req.num_val);
 
@@ -2936,7 +2933,7 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
 
       case BTM_SP_KEY_NOTIF_EVT:
         /* Passkey notification (other side is a keyboard) */
-        STREAM_TO_UINT32(evt_data.key_notif.passkey, p);
+        evt_data.key_notif.passkey = value;
         LOG_VERBOSE("BTM_SP_KEY_NOTIF_EVT:  passkey: %u",
                     evt_data.key_notif.passkey);
 
@@ -4016,6 +4013,54 @@ void btm_sec_role_changed(tHCI_STATUS hci_status, const RawAddress& bd_addr,
       !btm_dev_encrypted(p_dev_rec)) {
     BTM_SetEncryption(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR, NULL, NULL,
                       BTM_BLE_SEC_NONE);
+  }
+}
+
+constexpr uint8_t MIN_KEY_SIZE = 7;
+
+static void read_encryption_key_size_complete_after_key_refresh(
+    uint8_t status, uint16_t handle, uint8_t key_size) {
+  if (status == HCI_ERR_INSUFFCIENT_SECURITY) {
+    /* If remote device stop the encryption before we call "Read Encryption Key
+     * Size", we might receive Insufficient Security, which means that link is
+     * no longer encrypted. */
+    LOG(INFO) << __func__ << ": encryption stopped on link: " << loghex(handle);
+    return;
+  }
+
+  if (status != HCI_SUCCESS) {
+    LOG(INFO) << __func__ << ": disconnecting, status: " << loghex(status);
+    acl_disconnect_from_handle(handle, HCI_ERR_PEER_USER,
+                               "stack::btu_hcif Key size fail");
+    return;
+  }
+
+  if (key_size < MIN_KEY_SIZE) {
+    LOG(ERROR) << __func__
+               << " encryption key too short, disconnecting. handle: "
+               << loghex(handle) << " key_size: " << +key_size;
+
+    acl_disconnect_from_handle(handle, HCI_ERR_HOST_REJECT_SECURITY,
+                               "stack::btu::btu_hcif::read_encryption_key_size_"
+                               "complete_after_key_refresh Key size too small");
+    return;
+  }
+
+  btm_sec_encrypt_change(handle, static_cast<tHCI_STATUS>(status),
+                         1 /* enc_enable */);
+}
+
+void btm_sec_encryption_key_refresh_complete(uint16_t handle,
+                                             tHCI_STATUS status) {
+  if (status != HCI_SUCCESS || BTM_IsBleConnection(handle) ||
+      // Skip encryption key size check when using set_min_encryption_key_size
+      controller_get_interface()->supports_set_min_encryption_key_size()) {
+    btm_sec_encrypt_change(handle, static_cast<tHCI_STATUS>(status),
+                           (status == HCI_SUCCESS) ? 1 : 0);
+  } else {
+    btsnd_hcic_read_encryption_key_size(
+        handle,
+        base::Bind(&read_encryption_key_size_complete_after_key_refresh));
   }
 }
 
