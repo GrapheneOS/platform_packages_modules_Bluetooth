@@ -190,13 +190,6 @@ filegroup {
 }
 
 filegroup {
-    name: "TestMockCommon",
-    srcs: [
-        "mock/mock_common_*.cc",
-    ],
-}
-
-filegroup {
     name: "TestMockStackA2dp",
     srcs: [
         "mock/mock_stack_a2dp_*.cc",

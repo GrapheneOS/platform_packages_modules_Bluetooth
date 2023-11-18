@@ -830,13 +830,13 @@ cc_test {
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/include",
         "packages/modules/Bluetooth/system/internal_include",
     ],
     srcs: [
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
         ":TestMockBtif",
-        ":TestMockCommon",
         ":TestMockDevice",
         ":TestMockMainShim",
         ":TestMockStackAcl",
@@ -871,6 +871,7 @@ cc_test {
         "libbluetooth_l2cap_pdl",
         "libbluetooth_smp_pdl",
         "libbt-btu-main-thread",
+        "libbt-common",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
@@ -879,8 +880,16 @@ cc_test {
         "libgmock",
         "liblog",
         "libosi",
+        "libstatslog_bt",
     ],
-    header_libs: ["libbluetooth_headers"],
+    target: {
+        android: {
+            shared_libs: [
+                "libstatssocket",
+            ],
+        },
+    },
+    //    header_libs: ["libbluetooth_headers"],
     cflags: ["-Wno-unused-parameter"],
 }
 
