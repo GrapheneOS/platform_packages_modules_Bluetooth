@@ -914,17 +914,6 @@ struct btm_simple_pair_complete {
 };
 extern struct btm_simple_pair_complete btm_simple_pair_complete;
 
-// Name: is_sec_state_equal
-// Params: void* data, void* context
-// Return: bool
-struct is_sec_state_equal {
-  static bool return_value;
-  std::function<bool(void* data, void* context)> body{
-      [](void* data, void* context) { return return_value; }};
-  bool operator()(void* data, void* context) { return body(data, context); };
-};
-extern struct is_sec_state_equal is_sec_state_equal;
-
 // Name: is_state_getting_name
 // Params: void* data, void* context
 // Return: bool
