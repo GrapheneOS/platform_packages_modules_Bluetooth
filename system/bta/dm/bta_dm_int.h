@@ -479,9 +479,6 @@ extern tBTA_DM_CB bta_dm_cb;
 /* DM control block for ACL management */
 extern tBTA_DM_ACL_CB bta_dm_acl_cb;
 
-/* DM search control block */
-extern tBTA_DM_SEARCH_CB bta_dm_search_cb;
-
 /* DI control block */
 extern tBTA_DM_DI_CB bta_dm_di_cb;
 
