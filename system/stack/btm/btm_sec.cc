@@ -2356,7 +2356,17 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
 
   if (!p_bd_name) p_bd_name = (const uint8_t*)"";
 
-  if (p_dev_rec != nullptr) {
+  if (p_dev_rec == nullptr) {
+    LOG_DEBUG(
+        "Remote read request complete for unknown device pairing_state:%s "
+        "status:%s name:%s",
+        btm_pair_state_descr(btm_sec_cb.pairing_state),
+        hci_status_code_text(status).c_str(), p_bd_name);
+
+    call_registered_rmt_name_callbacks(p_bd_addr, nullptr, nullptr, status);
+    return;
+  }
+
     old_sec_state = p_dev_rec->sec_state;
     if (status == HCI_SUCCESS) {
       LOG_DEBUG(
@@ -2389,40 +2399,30 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
     /* Notify all clients waiting for name to be resolved */
     call_registered_rmt_name_callbacks(p_bd_addr, p_dev_rec->dev_class,
                                        p_dev_rec->sec_bd_name, status);
-  } else {
-    LOG_DEBUG(
-        "Remote read request complete for unknown device pairing_state:%s "
-        "status:%s name:%s",
-        btm_pair_state_descr(btm_sec_cb.pairing_state),
-        hci_status_code_text(status).c_str(), p_bd_name);
 
-    call_registered_rmt_name_callbacks(p_bd_addr, nullptr, nullptr, status);
-    return;
-  }
+    /* If we were delaying asking UI for a PIN because name was not resolved,
+     * ask now */
+    if ((btm_sec_cb.pairing_state == BTM_PAIR_STATE_WAIT_LOCAL_PIN) &&
+        p_bd_addr && (btm_sec_cb.pairing_bda == *p_bd_addr)) {
+      LOG_VERBOSE(
+          "delayed pin now being requested flags:0x%x, "
+          "(p_pin_callback=0x%p)",
+          btm_sec_cb.pairing_flags, btm_sec_cb.api.p_pin_callback);
 
-  /* If we were delaying asking UI for a PIN because name was not resolved, ask
-   * now */
-  if ((btm_sec_cb.pairing_state == BTM_PAIR_STATE_WAIT_LOCAL_PIN) &&
-      p_bd_addr && (btm_sec_cb.pairing_bda == *p_bd_addr)) {
-    LOG_VERBOSE(
-        "delayed pin now being requested flags:0x%x, "
-        "(p_pin_callback=0x%p)",
-        btm_sec_cb.pairing_flags, btm_sec_cb.api.p_pin_callback);
-
-    if ((btm_sec_cb.pairing_flags & BTM_PAIR_FLAGS_PIN_REQD) == 0 &&
-        btm_sec_cb.api.p_pin_callback) {
+      if ((btm_sec_cb.pairing_flags & BTM_PAIR_FLAGS_PIN_REQD) == 0 &&
+          btm_sec_cb.api.p_pin_callback) {
       LOG_VERBOSE("calling pin_callback");
       btm_sec_cb.pairing_flags |= BTM_PAIR_FLAGS_PIN_REQD;
       (*btm_sec_cb.api.p_pin_callback)(
           p_dev_rec->bd_addr, p_dev_rec->dev_class, p_bd_name,
           (p_dev_rec->required_security_flags_for_pairing &
            BTM_SEC_IN_MIN_16_DIGIT_PIN));
-    }
+      }
 
     /* Set the same state again to force the timer to be restarted */
     btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_LOCAL_PIN);
     return;
-  }
+    }
 
   /* Check if we were delaying bonding because name was not resolved */
   if (btm_sec_cb.pairing_state == BTM_PAIR_STATE_GET_REM_NAME) {
