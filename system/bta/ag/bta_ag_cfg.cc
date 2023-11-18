@@ -39,9 +39,7 @@
 #define BTA_AG_CHLD_VAL_ECC "(0,1,1x,2,2x,3,4)"
 #endif
 
-#ifndef BTA_AG_CHLD_VAL
-#define BTA_AG_CHLD_VAL "(0,1,2,3,4)"
-#endif
+#define BTA_AG_CHLD_VAL "(0,1,2,3)"
 
 #ifndef BTA_AG_CONN_TIMEOUT
 #define BTA_AG_CONN_TIMEOUT 5000
