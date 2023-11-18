@@ -838,10 +838,6 @@
  *
  *****************************************************************************/
 
-#ifndef GAP_INCLUDED
-#define GAP_INCLUDED TRUE
-#endif
-
 /* The maximum number of simultaneous GAP L2CAP connections. */
 #ifndef GAP_MAX_CONNECTIONS
 #define GAP_MAX_CONNECTIONS 30

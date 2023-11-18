@@ -42,6 +42,7 @@
 #include "btif/include/btif_dm.h"
 #include "btif/include/stack_manager.h"
 #include "device/include/controller.h"
+#include "gap_api.h"
 #include "include/bind_helpers.h"
 #include "main/shim/acl_api.h"
 #include "main/shim/btm_api.h"
@@ -59,10 +60,6 @@
 #include "stack/include/main_thread.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-#if (GAP_INCLUDED == TRUE)
-#include "gap_api.h"
-#endif
 
 using namespace bluetooth::legacy::stack::sdp;
 using bluetooth::Uuid;
