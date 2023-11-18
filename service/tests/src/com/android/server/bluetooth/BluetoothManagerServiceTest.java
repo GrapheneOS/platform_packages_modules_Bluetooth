@@ -60,8 +60,8 @@ import android.provider.Settings;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.flags.FeatureFlags;
-import com.android.bluetooth.flags.FeatureFlagsImpl;
+import com.android.bluetooth.flags.FakeFeatureFlagsImpl;
+import com.android.bluetooth.flags.Flags;
 
 import org.junit.After;
 import org.junit.Before;
@@ -95,7 +95,7 @@ public class BluetoothManagerServiceTest {
 
     @Mock IBluetooth mAdapterService;
     @Mock AdapterBinder mAdapterBinder;
-    @Spy private final FeatureFlags mFeatureFlags = new FeatureFlagsImpl();
+    private FakeFeatureFlagsImpl mFakeFlagsImpl;
 
     TestLooper mLooper;
 
@@ -146,7 +146,13 @@ public class BluetoothManagerServiceTest {
 
         mLooper = new TestLooper();
 
-        mManagerService = new BluetoothManagerService(mContext, mLooper.getLooper(), mFeatureFlags);
+        mFakeFlagsImpl = new FakeFeatureFlagsImpl();
+        mFakeFlagsImpl.setFlag(Flags.FLAG_AIRPLANE_RESSOURCES_IN_APP, false);
+        mFakeFlagsImpl.setFlag(Flags.FLAG_USE_NEW_AIRPLANE_MODE, false);
+        mFakeFlagsImpl.setFlag(Flags.FLAG_USE_NEW_SATELLITE_MODE, false);
+
+        mManagerService =
+                new BluetoothManagerService(mContext, mLooper.getLooper(), mFakeFlagsImpl);
         mManagerService.registerAdapter(mManagerCallback);
     }
 
