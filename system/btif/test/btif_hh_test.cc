@@ -153,27 +153,9 @@ bthh_callbacks_t bthh_callbacks = {
 
 class BtifHhWithMockTest : public ::testing::Test {
  protected:
-  void SetUp() override {
-    reset_mock_function_count_map();
-    test::mock::osi_allocator::osi_malloc.body = [](size_t size) {
-      return malloc(size);
-    };
-    test::mock::osi_allocator::osi_calloc.body = [](size_t size) {
-      return calloc(1UL, size);
-    };
-    test::mock::osi_allocator::osi_free.body = [](void* ptr) { free(ptr); };
-    test::mock::osi_allocator::osi_free_and_reset.body = [](void** ptr) {
-      free(*ptr);
-      *ptr = nullptr;
-    };
-  }
+  void SetUp() override { reset_mock_function_count_map(); }
 
-  void TearDown() override {
-    test::mock::osi_allocator::osi_malloc = {};
-    test::mock::osi_allocator::osi_calloc = {};
-    test::mock::osi_allocator::osi_free = {};
-    test::mock::osi_allocator::osi_free_and_reset = {};
-  }
+  void TearDown() override {}
 };
 
 class BtifHhWithHalCallbacksTest : public BtifHhWithMockTest {
