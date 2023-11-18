@@ -122,9 +122,7 @@ void btif_pan_init() {
     if (GET_SYSPROP(Pan, nap, true)) {
       role |= BTPAN_ROLE_PANNAP;
     }
-#if PANU_DISABLED == FALSE
     role |= BTPAN_ROLE_PANU;
-#endif
     btpan_enable(role);
   }
 }

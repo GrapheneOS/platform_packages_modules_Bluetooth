@@ -788,10 +788,6 @@
 #define PAN_INCLUDED TRUE
 #endif
 
-#ifndef PANU_DISABLED
-#define PANU_DISABLED FALSE
-#endif
-
 /* This will enable the PANU role */
 #ifndef PAN_SUPPORTS_ROLE_PANU
 #define PAN_SUPPORTS_ROLE_PANU TRUE
