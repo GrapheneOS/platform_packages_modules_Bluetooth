@@ -108,7 +108,6 @@ struct btm_sec_role_changed btm_sec_role_changed;
 struct btm_sec_set_peer_sec_caps btm_sec_set_peer_sec_caps;
 struct btm_sec_update_clock_offset btm_sec_update_clock_offset;
 struct btm_simple_pair_complete btm_simple_pair_complete;
-struct is_state_getting_name is_state_getting_name;
 
 struct BTM_IsRemoteNameKnown BTM_IsRemoteNameKnown;
 
@@ -151,7 +150,6 @@ bool btm_sec_is_a_bonded_dev::return_value = false;
 tBTM_STATUS btm_sec_l2cap_access_req::return_value = 0;
 tBTM_STATUS btm_sec_l2cap_access_req_by_requirement::return_value = 0;
 tBTM_STATUS btm_sec_mx_access_request::return_value = 0;
-bool is_state_getting_name::return_value = false;
 
 bool BTM_IsRemoteNameKnown::return_value = false;
 
@@ -484,11 +482,6 @@ void btm_simple_pair_complete(const RawAddress bd_addr, uint8_t status) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_sec::btm_simple_pair_complete(bd_addr, status);
 }
-bool is_state_getting_name(void* data, void* context) {
-  inc_func_call_count(__func__);
-  return test::mock::stack_btm_sec::is_state_getting_name(data, context);
-}
-
 bool BTM_IsRemoteNameKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
   inc_func_call_count(__func__);
   return test::mock::stack_btm_sec::BTM_IsRemoteNameKnown(bd_addr, transport);
