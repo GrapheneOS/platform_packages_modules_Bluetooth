@@ -88,6 +88,7 @@ public class BluetoothManagerServiceTest {
 
     @Spy BluetoothServerProxy mBluetoothServerProxy;
     @Mock UserManager mUserManager;
+    @Mock UserHandle mUserHandle;
 
     @Mock IBinder mBinder;
     @Mock IBluetoothManagerCallback mManagerCallback;
@@ -153,6 +154,8 @@ public class BluetoothManagerServiceTest {
 
         mManagerService =
                 new BluetoothManagerService(mContext, mLooper.getLooper(), mFakeFlagsImpl);
+        mManagerService.initialize(mUserHandle);
+
         mManagerService.registerAdapter(mManagerCallback);
     }
 
