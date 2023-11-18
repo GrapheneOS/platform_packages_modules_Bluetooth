@@ -852,11 +852,6 @@
 #define SDP_RAW_DATA_INCLUDED TRUE
 #endif
 
-/* Inquiry duration in 1.28 second units. */
-#ifndef SDP_DEBUG
-#define SDP_DEBUG TRUE
-#endif
-
 /******************************************************************************
  *
  * HID
