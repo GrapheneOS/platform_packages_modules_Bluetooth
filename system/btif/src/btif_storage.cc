@@ -505,7 +505,7 @@ static bt_status_t btif_in_fetch_bonded_devices(
         if (p_bonded_devices->num_devices < BTM_SEC_MAX_DEVICE_RECORDS) {
           p_bonded_devices->devices[p_bonded_devices->num_devices++] = bd_addr;
         } else {
-          LOG_WARN("%s: exceed the max number of bonded devices", __func__);
+          LOG_WARN("Exceed the max number of bonded devices");
         }
       } else {
         bt_linkkey_file_found = false;
@@ -538,7 +538,7 @@ static void btif_read_le_key(const uint8_t key_type, const size_t key_len,
         *device_added = true;
       }
 
-      LOG_VERBOSE("%s() Adding key type %d for %s", __func__, key_type,
+      LOG_VERBOSE("Adding key type %d for %s", key_type,
                   ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
       BTA_DmAddBleKey(bd_addr, &key, key_type);
     }
@@ -654,12 +654,11 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t* property) {
     /* Fetch the local BD ADDR */
     const controller_t* controller = controller_get_interface();
     if (!controller->get_is_ready()) {
-      LOG_ERROR("%s: Controller not ready! Unable to return Bluetooth Address",
-                __func__);
+      LOG_ERROR("Controller not ready! Unable to return Bluetooth Address");
       *bd_addr = RawAddress::kEmpty;
       return BT_STATUS_FAIL;
     } else {
-      LOG_ERROR("%s: Controller ready!", __func__);
+      LOG_INFO("Controller ready!");
       *bd_addr = *controller->get_address();
     }
     property->len = RawAddress::kLength;
@@ -670,9 +669,8 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t* property) {
     btif_in_fetch_bonded_devices(&bonded_devices, 0);
 
     LOG_VERBOSE(
-        "%s: Number of bonded devices: %d "
-        "Property:BT_PROPERTY_ADAPTER_BONDED_DEVICES",
-        __func__, bonded_devices.num_devices);
+        "BT_PROPERTY_ADAPTER_BONDED_DEVICES: Number of bonded devices=%d",
+        bonded_devices.num_devices);
 
     property->len = bonded_devices.num_devices * RawAddress::kLength;
     memcpy(property->val, bonded_devices.devices, property->len);
@@ -686,7 +684,7 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t* property) {
     uint32_t i;
 
     tBTA_SERVICE_MASK service_mask = btif_get_enabled_services_mask();
-    LOG_INFO("%s service_mask:0x%x", __func__, service_mask);
+    LOG_INFO("Service_mask=0x%x", service_mask);
     for (i = 0; i < BTA_MAX_SERVICE_ID; i++) {
       /* This should eventually become a function when more services are enabled
        */
@@ -894,7 +892,7 @@ bt_status_t btif_storage_add_bonded_device(RawAddress* remote_bd_addr,
 bt_status_t btif_storage_remove_bonded_device(
     const RawAddress* remote_bd_addr) {
   std::string bdstr = remote_bd_addr->ToString();
-  LOG_INFO("Removing bonded device addr:%s",
+  LOG_INFO("Removing bonded device addr=%s",
            ADDRESS_TO_LOGGABLE_CSTR(*remote_bd_addr));
 
   btif_config_remove_device(bdstr);
@@ -934,8 +932,8 @@ static void remove_devices_with_sample_ltk() {
   }
 
   for (RawAddress address : bad_ltk) {
-    LOG(ERROR) << __func__ << ": removing bond to device using test TLK: "
-               << ADDRESS_TO_LOGGABLE_STR(address);
+    LOG_ERROR("Removing bond to device using test TLK: %s",
+              ADDRESS_TO_LOGGABLE_CSTR(address));
 
     btif_storage_remove_bonded_device(&address);
   }
@@ -969,7 +967,7 @@ void btif_storage_load_le_devices(void) {
             bonded_devices.devices[i], BTM_LE_KEY_PID, (uint8_t*)&key,
             sizeof(tBTM_LE_PID_KEYS)) == BT_STATUS_SUCCESS) {
       if (bonded_devices.devices[i] != key.pid_key.identity_addr) {
-        LOG_INFO("found device with a known identity address %s %s",
+        LOG_INFO("Found device with a known identity address %s %s",
                  ADDRESS_TO_LOGGABLE_CSTR(bonded_devices.devices[i]),
                  ADDRESS_TO_LOGGABLE_CSTR(key.pid_key.identity_addr));
 
@@ -1102,8 +1100,7 @@ bt_status_t btif_storage_load_bonded_devices(void) {
     osi_free(devices_list);
   }
 
-  LOG_VERBOSE("%s: %d bonded devices found", __func__,
-              bonded_devices.num_devices);
+  LOG_VERBOSE("Number of bonded devices found=%d", bonded_devices.num_devices);
 
   {
     for (i = 0; i < bonded_devices.num_devices; i++) {
@@ -1351,8 +1348,7 @@ bt_status_t btif_in_fetch_bonded_ble_device(
 
   if ((device_type & BT_DEVICE_TYPE_BLE) == BT_DEVICE_TYPE_BLE ||
       btif_has_ble_keys(remote_bd_addr)) {
-    LOG_VERBOSE("%s Found a LE device: %s", __func__,
-                ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+    LOG_VERBOSE("Found a LE device: %s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
     if (btif_storage_get_remote_addr_type(&bd_addr, &addr_type) !=
         BT_STATUS_SUCCESS) {
@@ -1371,7 +1367,7 @@ bt_status_t btif_in_fetch_bonded_ble_device(
       if (p_bonded_devices->num_devices < BTM_SEC_MAX_DEVICE_RECORDS) {
         p_bonded_devices->devices[p_bonded_devices->num_devices++] = bd_addr;
       } else {
-        LOG_WARN("%s: exceed the max number of bonded devices", __func__);
+        LOG_WARN("Exceed the max number of bonded devices");
       }
       btif_gatts_add_bonded_dev_from_nv(bd_addr);
     }
