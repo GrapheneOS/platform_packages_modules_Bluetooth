@@ -493,8 +493,6 @@ void btm_sec_dev_reset(void);
  ******************************************************************************/
 void btm_sec_abort_access_req(const RawAddress& bd_addr);
 
-bool is_state_getting_name(void* data, void* context);
-
 /*******************************************************************************
  *
  * Function         btm_sec_rmt_name_request_complete

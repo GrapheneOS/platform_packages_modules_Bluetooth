@@ -914,17 +914,6 @@ struct btm_simple_pair_complete {
 };
 extern struct btm_simple_pair_complete btm_simple_pair_complete;
 
-// Name: is_state_getting_name
-// Params: void* data, void* context
-// Return: bool
-struct is_state_getting_name {
-  static bool return_value;
-  std::function<bool(void* data, void* context)> body{
-      [](void* data, void* context) { return return_value; }};
-  bool operator()(void* data, void* context) { return body(data, context); };
-};
-extern struct is_state_getting_name is_state_getting_name;
-
 // Name: BTM_IsRemoteNameKnown
 // Params: const RawAddress& bd_addr, tBT_TRANSPORT transport
 // Return: bool
