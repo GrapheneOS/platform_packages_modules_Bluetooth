@@ -2311,15 +2311,6 @@ static tBTM_STATUS btm_sec_dd_create_conn(tBTM_SEC_DEV_REC* p_dev_rec) {
   return (BTM_CMD_STARTED);
 }
 
-bool is_state_getting_name(void* data, void* context) {
-  tBTM_SEC_DEV_REC* p_dev_rec = static_cast<tBTM_SEC_DEV_REC*>(data);
-
-  if (p_dev_rec->sec_state == BTM_SEC_STATE_GETTING_NAME) {
-    return false;
-  }
-  return true;
-}
-
 /*******************************************************************************
  *
  * Function         btm_sec_rmt_name_request_complete
@@ -2355,10 +2346,8 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
     LOG_INFO(
         "Remote read request complete with no address so searching device "
         "database");
-    list_node_t* node =
-        list_foreach(btm_sec_cb.sec_dev_rec, is_state_getting_name, NULL);
-    if (node != NULL) {
-      p_dev_rec = static_cast<tBTM_SEC_DEV_REC*>(list_node(node));
+    p_dev_rec = btm_sec_find_dev_by_sec_state(BTM_SEC_STATE_GETTING_NAME);
+    if (p_dev_rec) {
       p_bd_addr = &p_dev_rec->bd_addr;
     }
   }
