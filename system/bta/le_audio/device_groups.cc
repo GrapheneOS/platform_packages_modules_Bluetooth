@@ -852,7 +852,10 @@ bool LeAudioDeviceGroup::IsGroupStreamReady(void) const {
     auto dev = weak.lock();
     if (!dev) return false;
 
-    if (dev->GetConnectionState() == DeviceConnectState::CONNECTED) {
+    /* We are interested here in devices which are connected on profile level
+     * and devices which are configured (meaning, have actived ASE(s))*/
+    if (dev->GetConnectionState() == DeviceConnectState::CONNECTED &&
+        dev->HaveActiveAse()) {
       if (!dev->IsReadyToStream()) {
         return false;
       }

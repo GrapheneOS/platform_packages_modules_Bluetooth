@@ -2234,6 +2234,54 @@ TEST_F(StateMachineTest, testFailedStreamMultipleConversational) {
   ASSERT_EQ(2, get_func_call_count("alarm_cancel"));
 }
 
+TEST_F(StateMachineTest, testAttachToStreamWhileFirstDeviceIsStartingStream) {
+  /* Testing here CIS Failed to be established */
+  const auto context_type = kContextTypeConversational;
+  const auto leaudio_group_id = 4;
+  const auto num_devices = 2;
+
+  // Prepare multiple fake connected devices in a group
+  auto* group =
+      PrepareSingleTestDeviceGroup(leaudio_group_id, context_type, num_devices);
+  ASSERT_EQ(group->Size(), num_devices);
+
+  PrepareConfigureCodecHandler(group);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group, 0, true /* inject enabling */,
+                       false /* inject streaming*/);
+  PrepareReleaseHandler(group);
+
+  InjectInitialIdleNotification(group);
+  auto firstDevice = group->GetFirstDevice();
+  auto lastDevice = group->GetNextDevice(firstDevice);
+
+  /* Disconnect first device */
+  InjectAclDisconnected(group, firstDevice);
+
+  // Start the configuration and stream Media content
+  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
+      group, context_type,
+      {.sink = types::AudioContexts(context_type),
+       .source = types::AudioContexts(context_type)}));
+
+  // Now, group is not yet in the streaming state. Let's simulated the other
+  // device got connected
+  firstDevice->conn_id_ = 1;
+  firstDevice->SetConnectionState(DeviceConnectState::CONNECTED);
+
+  for (auto& ase : lastDevice->ases_) {
+    std::vector<uint8_t> params{};
+    if (ase.active) {
+      InjectAseStateNotification(&ase, lastDevice, group,
+                                 ascs::kAseStateStreaming, &params);
+    }
+  }
+
+  // Check if group has transitioned to a proper state
+  ASSERT_EQ(group->GetState(),
+            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+}
+
 TEST_F(StateMachineTest, testFailedStreamCreation) {
   /* Testing here CIS Failed to be established */
   const auto context_type = kContextTypeConversational;
@@ -2247,7 +2295,7 @@ TEST_F(StateMachineTest, testFailedStreamCreation) {
 
   PrepareConfigureCodecHandler(group);
   PrepareConfigureQosHandler(group);
-  PrepareEnableHandler(group, false, true /* injcet enabling */,
+  PrepareEnableHandler(group, 0, true /* inject enabling */,
                        false /* inject streaming*/);
   PrepareReleaseHandler(group);
 
