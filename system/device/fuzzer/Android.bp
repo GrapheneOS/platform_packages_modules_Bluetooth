@@ -27,6 +27,7 @@ cc_fuzz {
     name: "btdevice_esco_fuzzer",
     defaults: ["fluoride_defaults"],
     srcs: [
+        ":TestMockMainShimEntry",
         "btdevice_esco_fuzzer.cpp",
     ],
     header_libs: [
@@ -35,20 +36,28 @@ cc_fuzz {
     shared_libs: [
         "libdl",
         "liblog",
+        "server_configurable_flags",
+    ],
+    generated_headers: [
+        "BluetoothGeneratedDumpsysDataSchema_h",
     ],
     static_libs: [
+        "bluetooth_flags_c_lib",
         "libbluetooth-types",
         "libbluetooth_gd",
+        "libbluetooth_hci_pdl",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
         "libbtcore",
         "libbtdevice",
         "libchrome",
+        "libgmock",
         "libosi",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/device/include",
+        "packages/modules/Bluetooth/system/gd",
     ],
     cflags: [
         "-DBUILDCFG",
