@@ -23,8 +23,8 @@
 
 #include "bta/dm/bta_dm_disc.h"
 #include "bta/dm/bta_dm_int.h"
-#include "osi/include/allocator.h"
 #include "stack/btm/neighbor_inquiry.h"
+#include "stack/include/gatt_api.h"
 #include "test/common/main_handler.h"
 #include "test/fake/fake_osi.h"
 #include "types/bt_transport.h"
@@ -40,8 +40,12 @@ namespace bluetooth {
 namespace legacy {
 namespace testing {
 
+void bta_dm_disc_init_search_cb(tBTA_DM_SEARCH_CB& bta_dm_search_cb);
 bool bta_dm_read_remote_device_name(const RawAddress& bd_addr,
                                     tBT_TRANSPORT transport);
+const tBTA_DM_SEARCH_CB& bta_dm_disc_search_cb();
+tBTA_DM_SEARCH_CB bta_dm_disc_get_search_cb();
+void bta_dm_disc_search_cb(const tBTA_DM_SEARCH_CB& search_cb);
 void bta_dm_discover_next_device();
 void bta_dm_execute_queued_request();
 void bta_dm_find_services(const RawAddress& bd_addr);
@@ -54,6 +58,7 @@ void bta_dm_opportunistic_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
                                              const uint8_t* p_eir,
                                              uint16_t eir_len);
 void bta_dm_queue_search(tBTA_DM_MSG* p_data);
+void bta_dm_sdp_result(tBTA_DM_MSG* p_data);
 void bta_dm_search_result(tBTA_DM_MSG* p_data);
 void bta_dm_search_timer_cback(void* data);
 void bta_dm_service_search_remname_cback(const RawAddress& bd_addr,
@@ -197,7 +202,10 @@ TEST_F(BtaDiscTest, bta_dm_search_timer_cback) {
 TEST_F(BtaDiscTest, bta_dm_service_search_remname_cback__expected_name) {
   DEV_CLASS dc;
   tBTM_BD_NAME bd_name;
-  bta_dm_search_cb.peer_bdaddr = kRawAddress;
+  tBTA_DM_SEARCH_CB search_cb =
+      bluetooth::legacy::testing::bta_dm_disc_get_search_cb();
+  search_cb.peer_bdaddr = kRawAddress,
+  bluetooth::legacy::testing::bta_dm_disc_search_cb(search_cb);
   bluetooth::legacy::testing::bta_dm_service_search_remname_cback(kRawAddress,
                                                                   dc, bd_name);
 }
@@ -205,7 +213,10 @@ TEST_F(BtaDiscTest, bta_dm_service_search_remname_cback__expected_name) {
 TEST_F(BtaDiscTest, bta_dm_service_search_remname_cback__unexpected_name) {
   DEV_CLASS dc;
   tBTM_BD_NAME bd_name;
-  bta_dm_search_cb.peer_bdaddr = RawAddress::kAny;
+  tBTA_DM_SEARCH_CB search_cb =
+      bluetooth::legacy::testing::bta_dm_disc_get_search_cb();
+  search_cb.peer_bdaddr = RawAddress::kAny;
+  bluetooth::legacy::testing::bta_dm_disc_search_cb(search_cb);
   bluetooth::legacy::testing::bta_dm_service_search_remname_cback(kRawAddress,
                                                                   dc, bd_name);
 }
@@ -260,4 +271,26 @@ TEST_F(BtaDiscTest, bta_dm_disc_stop_service_discovery__BT_TRANSPORT_BR_EDR) {
 
 TEST_F(BtaDiscTest, bta_dm_disc_stop_service_discovery__BT_TRANSPORT_LE) {
   bta_dm_disc_stop_service_discovery(kRawAddress, BT_TRANSPORT_LE);
+}
+
+TEST_F(BtaDiscTest, init_bta_dm_search_cb__conn_id) {
+  constexpr uint16_t kConnId = 123;
+
+  // Set the global search block target field to some non-reset value
+  tBTA_DM_SEARCH_CB search_cb = {};
+  search_cb.conn_id = kConnId;
+  bluetooth::legacy::testing::bta_dm_disc_search_cb(search_cb);
+  // Get the global search block and ensure it is still intact
+  search_cb = bluetooth::legacy::testing::bta_dm_disc_search_cb();
+  ASSERT_EQ(kConnId, search_cb.conn_id);
+
+  // Initialize *this* global search block
+  bluetooth::legacy::testing::bta_dm_disc_init_search_cb(search_cb);
+
+  // Verify *this* global search block field reset value is correct
+  ASSERT_EQ(search_cb.conn_id, GATT_INVALID_CONN_ID);
+
+  // Get the global search block and ensure it is still intact
+  search_cb = bluetooth::legacy::testing::bta_dm_disc_search_cb();
+  ASSERT_EQ(kConnId, search_cb.conn_id);
 }

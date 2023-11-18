@@ -82,6 +82,10 @@ class CodecManager {
       const std::vector<uint16_t>& conn_handle,
       std::function<void(const ::le_audio::broadcast_offload_config& config)>
           update_receiver);
+  virtual std::vector<bluetooth::le_audio::btle_audio_codec_config_t>
+  GetLocalAudioOutputCodecCapa();
+  virtual std::vector<bluetooth::le_audio::btle_audio_codec_config_t>
+  GetLocalAudioInputCodecCapa();
 
  private:
   CodecManager();

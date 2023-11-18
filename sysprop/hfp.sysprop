@@ -33,3 +33,11 @@ prop {
     prop_name: "bluetooth.hfp.version.config"
 }
 
+prop {
+    api_name: "codec_aptx_voice"
+    type: Boolean
+    scope: Internal
+    access: Readonly
+    prop_name: "bluetooth.hfp.codec_aptx_voice.enabled"
+}
+

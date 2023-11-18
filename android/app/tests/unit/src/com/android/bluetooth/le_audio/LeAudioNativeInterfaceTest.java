@@ -135,7 +135,22 @@ public class LeAudioNativeInterfaceTest {
     }
 
     @Test
-    public void onAudioGroupCodecConf() {
+    public void onAudioGroupCurrentCodecConf() {
+        int groupId = 1;
+        BluetoothLeAudioCodecConfig inputConfig = new BluetoothLeAudioCodecConfig.Builder().build();
+        BluetoothLeAudioCodecConfig outputConfig =
+                new BluetoothLeAudioCodecConfig.Builder().build();
+
+        mNativeInterface.onAudioGroupCurrentCodecConf(groupId, inputConfig, outputConfig);
+
+        ArgumentCaptor<LeAudioStackEvent> event = ArgumentCaptor.forClass(LeAudioStackEvent.class);
+        verify(mMockService).messageFromNative(event.capture());
+        assertThat(event.getValue().type)
+                .isEqualTo(LeAudioStackEvent.EVENT_TYPE_AUDIO_GROUP_CURRENT_CODEC_CONFIG_CHANGED);
+    }
+
+    @Test
+    public void onAudioGroupSelectableCodecConf() {
         int groupId = 1;
         BluetoothLeAudioCodecConfig inputConfig =
                 new BluetoothLeAudioCodecConfig.Builder().build();
@@ -146,13 +161,14 @@ public class LeAudioNativeInterfaceTest {
         BluetoothLeAudioCodecConfig[] outputSelectableCodecConfig =
                 new BluetoothLeAudioCodecConfig[] { outputConfig };
 
-        mNativeInterface.onAudioGroupCodecConf(groupId, inputConfig, outputConfig,
-                inputSelectableCodecConfig, outputSelectableCodecConfig);
+        mNativeInterface.onAudioGroupSelectableCodecConf(
+                groupId, inputSelectableCodecConfig, outputSelectableCodecConfig);
 
         ArgumentCaptor<LeAudioStackEvent> event =
                 ArgumentCaptor.forClass(LeAudioStackEvent.class);
         verify(mMockService).messageFromNative(event.capture());
-        assertThat(event.getValue().type).isEqualTo(
-                LeAudioStackEvent.EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED);
+        assertThat(event.getValue().type)
+                .isEqualTo(
+                        LeAudioStackEvent.EVENT_TYPE_AUDIO_GROUP_SELECTABLE_CODEC_CONFIG_CHANGED);
     }
 }

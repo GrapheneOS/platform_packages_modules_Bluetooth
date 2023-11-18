@@ -195,22 +195,39 @@ public class LeAudioNativeInterface {
     }
 
     @VisibleForTesting
-    void onAudioGroupCodecConf(int groupId, BluetoothLeAudioCodecConfig inputCodecConfig,
-                            BluetoothLeAudioCodecConfig outputCodecConfig,
-                            BluetoothLeAudioCodecConfig [] inputSelectableCodecConfig,
-                            BluetoothLeAudioCodecConfig [] outputSelectableCodecConfig) {
+    void onAudioGroupCurrentCodecConf(
+            int groupId,
+            BluetoothLeAudioCodecConfig inputCodecConfig,
+            BluetoothLeAudioCodecConfig outputCodecConfig) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(
-                        LeAudioStackEvent.EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED);
+                        LeAudioStackEvent.EVENT_TYPE_AUDIO_GROUP_CURRENT_CODEC_CONFIG_CHANGED);
 
         event.valueInt1 = groupId;
         event.valueCodec1 = inputCodecConfig;
         event.valueCodec2 = outputCodecConfig;
+
+        if (DBG) {
+            Log.d(TAG, "onAudioGroupCurrentCodecConf: " + event);
+        }
+        sendMessageToService(event);
+    }
+
+    @VisibleForTesting
+    void onAudioGroupSelectableCodecConf(
+            int groupId,
+            BluetoothLeAudioCodecConfig[] inputSelectableCodecConfig,
+            BluetoothLeAudioCodecConfig[] outputSelectableCodecConfig) {
+        LeAudioStackEvent event =
+                new LeAudioStackEvent(
+                        LeAudioStackEvent.EVENT_TYPE_AUDIO_GROUP_SELECTABLE_CODEC_CONFIG_CHANGED);
+
+        event.valueInt1 = groupId;
         event.valueCodecList1 = Arrays.asList(inputSelectableCodecConfig);
         event.valueCodecList2 = Arrays.asList(outputSelectableCodecConfig);
 
         if (DBG) {
-            Log.d(TAG, "onAudioGroupCodecConf: " + event);
+            Log.d(TAG, "onAudioGroupSelectableCodecConf: " + event);
         }
         sendMessageToService(event);
     }

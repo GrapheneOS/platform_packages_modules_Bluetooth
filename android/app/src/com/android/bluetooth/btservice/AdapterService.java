@@ -4699,7 +4699,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            service.mAdapterStateMachine.sendMessage(AdapterState.USER_TURN_ON);
+            service.startBrEdr();
         }
 
         @Override
@@ -4727,7 +4727,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            service.mAdapterStateMachine.sendMessage(AdapterState.BLE_TURN_OFF);
+            service.stopBle();
         }
 
         @Override
@@ -6961,6 +6961,43 @@ public class AdapterService extends Service {
         mSilenceDeviceManager.profileActiveDeviceChanged(profile, device);
         if (mPhonePolicy != null) {
             mPhonePolicy.profileActiveDeviceChanged(profile, device);
+        }
+    }
+
+    /** Handle Bluetooth profiles when bond state changes with a {@link BluetoothDevice} */
+    public void handleBondStateChanged(BluetoothDevice device, int fromState, int toState) {
+        if (mA2dpService != null && mA2dpService.isAvailable()) {
+            mA2dpService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mHeadsetService != null && mHeadsetService.isAvailable()) {
+            mHeadsetService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mLeAudioService != null && mLeAudioService.isAvailable()) {
+            mLeAudioService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mHearingAidService != null && mHearingAidService.isAvailable()) {
+            mHearingAidService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mHapClientService != null && mHapClientService.isAvailable()) {
+            mHapClientService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mBassClientService != null && mBassClientService.isAvailable()) {
+            mBassClientService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mBatteryService != null && mBatteryService.isAvailable()) {
+            mBatteryService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mVolumeControlService != null && mVolumeControlService.isAvailable()) {
+            mVolumeControlService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mPbapService != null && mPbapService.isAvailable()) {
+            mPbapService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mCsipSetCoordinatorService != null && mCsipSetCoordinatorService.isAvailable()) {
+            mCsipSetCoordinatorService.handleBondStateChanged(device, fromState, toState);
+        }
+        if (mDatabaseManager != null) {
+            mDatabaseManager.handleBondStateChanged(device, fromState, toState);
         }
     }
 

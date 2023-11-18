@@ -1215,6 +1215,7 @@ class LeAudioClientImpl : public LeAudioClient {
     LOG_INFO("Active group_id changed %d -> %d", active_group_id_, group_id);
     active_group_id_ = group_id;
     callbacks_->OnGroupStatus(active_group_id_, GroupStatus::ACTIVE);
+    SendAudioGroupSelectableCodecConfigChanged(group);
   }
 
   void SetEnableState(const RawAddress& address, bool enabled) override {
@@ -3031,6 +3032,46 @@ class LeAudioClientImpl : public LeAudioClient {
         base::Milliseconds(kDeviceAttachDelayMs)
 #endif
     );
+  }
+
+  void SendAudioGroupSelectableCodecConfigChanged(LeAudioDeviceGroup* group) {
+    // This shall be called when device gets active
+    auto* stream_conf = &group->stream_conf;
+    if (stream_conf == nullptr) {
+      LOG_WARN("Stream configuration is not valid for group id %d",
+               group->group_id_);
+      return;
+    }
+
+    auto leAudioDevice = group->GetFirstDevice();
+    callbacks_->OnAudioGroupSelectableCodecConf(
+        group->group_id_,
+        le_audio::utils::GetRemoteBtLeAudioCodecConfigFromPac(
+            leAudioDevice->snk_pacs_),
+        le_audio::utils::GetRemoteBtLeAudioCodecConfigFromPac(
+            leAudioDevice->src_pacs_));
+  }
+
+  void SendAudioGroupCurrentCodecConfigChanged(LeAudioDeviceGroup* group) {
+    // This shall be called when configuration changes
+    auto* stream_conf = &group->stream_conf;
+    if (stream_conf == nullptr) {
+      LOG_WARN("Stream configuration is not valid for group id %d",
+               group->group_id_);
+      return;
+    }
+
+    bluetooth::le_audio::btle_audio_codec_config_t input_config{};
+    le_audio::utils::fillStreamParamsToBtLeAudioCodecConfig(
+        stream_conf->codec_id, &stream_conf->stream_params.source,
+        input_config);
+
+    bluetooth::le_audio::btle_audio_codec_config_t output_config{};
+    le_audio::utils::fillStreamParamsToBtLeAudioCodecConfig(
+        stream_conf->codec_id, &stream_conf->stream_params.sink, output_config);
+
+    callbacks_->OnAudioGroupCurrentCodecConf(group->group_id_, input_config,
+                                             output_config);
   }
 
   void connectionReady(LeAudioDevice* leAudioDevice) {
@@ -4941,6 +4982,10 @@ class LeAudioClientImpl : public LeAudioClient {
     } else if (status == GATT_DATABASE_OUT_OF_SYNC) {
       instance->ClearDeviceInformationAndStartSearch(leAudioDevice);
       return;
+    } else {
+      LOG_ERROR("Failed to read attribute, hdl: 0x%04x, status: 0x%02x", hdl,
+                static_cast<int>(status));
+      return;
     }
 
     /* We use data to keep notify connected flag. */
@@ -5278,6 +5323,7 @@ class LeAudioClientImpl : public LeAudioClient {
         if (audio_receiver_state_ == AudioState::READY_TO_START)
           StartReceivingAudio(group_id);
 
+        SendAudioGroupCurrentCodecConfigChanged(group);
         break;
       }
       case GroupStreamStatus::SUSPENDED:
@@ -5774,6 +5820,10 @@ void LeAudioClient::Initialize(
   ContentControlIdKeeper::GetInstance()->Start();
 
   callbacks_->OnInitialized();
+
+  auto cm = CodecManager::GetInstance();
+  callbacks_->OnAudioLocalCodecCapabilities(cm->GetLocalAudioInputCodecCapa(),
+                                            cm->GetLocalAudioOutputCodecCapa());
 }
 
 void LeAudioClient::DebugDump(int fd) {

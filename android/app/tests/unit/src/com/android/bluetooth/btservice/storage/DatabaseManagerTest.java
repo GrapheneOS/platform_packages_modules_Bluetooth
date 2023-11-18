@@ -20,6 +20,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
@@ -50,6 +51,8 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.flags.FakeFeatureFlagsImpl;
 import com.android.bluetooth.flags.Flags;
 
+import com.google.common.truth.Truth;
+
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Assert;
@@ -59,10 +62,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
@@ -1686,5 +1692,34 @@ public final class DatabaseManagerTest {
         mDatabaseManager.mMetadataCache.clear();
         // Wait for clear database
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+    }
+
+    @Test
+    public void setCustomMetadata_reentrantCallback_noDeadLock() throws Exception {
+        final int key = 3;
+        final byte[] newValue = new byte[2];
+
+        CompletableFuture<byte[]> future = new CompletableFuture();
+
+        Answer answer =
+                invocation -> {
+                    // Concurrent database call during callback execution
+                    byte[] value =
+                            CompletableFuture.supplyAsync(
+                                            () -> mDatabaseManager.getCustomMeta(mTestDevice, key))
+                                    .completeOnTimeout(null, 1, TimeUnit.SECONDS)
+                                    .get();
+
+                    future.complete(value);
+                    return null;
+                };
+
+        doAnswer(answer)
+                .when(mAdapterService)
+                .metadataChanged(any(String.class), anyInt(), any(byte[].class));
+
+        mDatabaseManager.setCustomMeta(mTestDevice, key, newValue);
+
+        Truth.assertThat(future.get()).isEqualTo(newValue);
     }
 }

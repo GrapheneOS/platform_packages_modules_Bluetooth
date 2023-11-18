@@ -32,7 +32,6 @@ import android.content.IntentFilter;
 import android.hardware.display.DisplayManager;
 import android.location.LocationManager;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
@@ -160,7 +159,8 @@ public class ScanManager {
     ScanManager(
             GattService service,
             AdapterService adapterService,
-            BluetoothAdapterProxy bluetoothAdapterProxy) {
+            BluetoothAdapterProxy bluetoothAdapterProxy,
+            Looper looper) {
         mRegularScanClients =
                 Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
         mBatchClients = Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
@@ -184,9 +184,7 @@ public class ScanManager {
         mPriorityMap.put(ScanSettings.SCAN_MODE_AMBIENT_DISCOVERY, 4);
         mPriorityMap.put(ScanSettings.SCAN_MODE_LOW_LATENCY, 5);
 
-        HandlerThread thread = new HandlerThread("BluetoothScanManager");
-        thread.start();
-        mHandler = new ClientHandler(thread.getLooper());
+        mHandler = new ClientHandler(looper);
         if (mDm != null) {
             mDm.registerDisplayListener(mDisplayListener, null);
         }
