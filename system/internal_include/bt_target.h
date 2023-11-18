@@ -959,11 +959,6 @@
 #define BTA_EIR_SERVER_NUM_CUSTOM_UUID 8
 #endif
 
-/* CHLD override */
-#ifndef BTA_AG_CHLD_VAL_ECC
-#define BTA_AG_CHLD_VAL_ECC "(0,1,1x,2,2x,3)"
-#endif
-
 /******************************************************************************
  *
  * Tracing:  Include trace header file here.

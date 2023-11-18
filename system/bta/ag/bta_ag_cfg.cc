@@ -35,9 +35,7 @@
   "(\"call\",(0,1)),(\"callsetup\",(0-3)),(\"service\",(0-1)),(\"signal\",(0-" \
   "5)),(\"roam\",(0,1)),(\"battchg\",(0-5)),(\"callheld\",(0-2))"
 
-#ifndef BTA_AG_CHLD_VAL_ECC
-#define BTA_AG_CHLD_VAL_ECC "(0,1,1x,2,2x,3,4)"
-#endif
+#define BTA_AG_CHLD_VAL_ECC "(0,1,1x,2,2x,3)"
 
 #define BTA_AG_CHLD_VAL "(0,1,2,3)"
 
