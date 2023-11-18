@@ -28,50 +28,62 @@
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 
-uint16_t gatt_profile_find_conn_id_by_bd_addr(const RawAddress& remote_bda) {
+uint16_t gatt_profile_find_conn_id_by_bd_addr(
+    const RawAddress& /* remote_bda */) {
   inc_func_call_count(__func__);
   return 0;
 }
 bool gatt_profile_get_eatt_support(
-    const RawAddress& remote_bda,
-    base::OnceCallback<void(const RawAddress&, bool)> cb) {
+    const RawAddress& /* remote_bda */,
+    base::OnceCallback<void(const RawAddress&, bool)> /* cb */) {
   inc_func_call_count(__func__);
   return false;
 }
-bool gatt_sr_is_cl_change_aware(tGATT_TCB& tcb) {
+bool gatt_sr_is_cl_change_aware(tGATT_TCB& /* tcb */) {
   inc_func_call_count(__func__);
   return false;
 }
-tGATT_PROFILE_CLCB* gatt_profile_clcb_alloc(uint16_t conn_id,
-                                            const RawAddress& bda,
-                                            tBT_TRANSPORT tranport) {
+tGATT_PROFILE_CLCB* gatt_profile_clcb_alloc(uint16_t /* conn_id */,
+                                            const RawAddress& /* bda */,
+                                            tBT_TRANSPORT /* tranport */) {
   inc_func_call_count(__func__);
   return nullptr;
 }
-tGATT_STATUS proc_read_req(uint16_t conn_id, tGATTS_REQ_TYPE,
-                           tGATT_READ_REQ* p_data, tGATTS_RSP* p_rsp) {
+tGATT_STATUS proc_read_req(uint16_t /* conn_id */, tGATTS_REQ_TYPE,
+                           tGATT_READ_REQ* /* p_data */,
+                           tGATTS_RSP* /* p_rsp */) {
   inc_func_call_count(__func__);
   return GATT_SUCCESS;
 }
-tGATT_STATUS proc_write_req(uint16_t conn_id, tGATTS_REQ_TYPE,
-                            tGATT_WRITE_REQ* p_data) {
+tGATT_STATUS proc_write_req(uint16_t /* conn_id */, tGATTS_REQ_TYPE,
+                            tGATT_WRITE_REQ* /* p_data */) {
   inc_func_call_count(__func__);
   return GATT_SUCCESS;
 }
-tGATT_STATUS read_attr_value(uint16_t conn_id, uint16_t handle,
-                             tGATT_VALUE* p_value, bool is_long) {
+tGATT_STATUS read_attr_value(uint16_t /* conn_id */, uint16_t /* handle */,
+                             tGATT_VALUE* /* p_value */, bool /* is_long */) {
   inc_func_call_count(__func__);
   return GATT_SUCCESS;
 }
-void GATT_ConfigServiceChangeCCC(const RawAddress& remote_bda, bool enable,
-                                 tBT_TRANSPORT transport) {
+void GATT_ConfigServiceChangeCCC(const RawAddress& /* remote_bda */,
+                                 bool /* enable */,
+                                 tBT_TRANSPORT /* transport */) {
   inc_func_call_count(__func__);
 }
-void gatt_profile_clcb_dealloc(tGATT_PROFILE_CLCB* p_clcb) {
+void gatt_profile_clcb_dealloc(tGATT_PROFILE_CLCB* /* p_clcb */) {
   inc_func_call_count(__func__);
 }
 void gatt_profile_db_init(void) { inc_func_call_count(__func__); }
-void gatt_sr_init_cl_status(tGATT_TCB& tcb) { inc_func_call_count(__func__); }
-void gatt_sr_update_cl_status(tGATT_TCB& tcb, bool chg_aware) {
+void gatt_sr_init_cl_status(tGATT_TCB& /* tcb */) {
   inc_func_call_count(__func__);
+}
+void gatt_sr_update_cl_status(tGATT_TCB& /* tcb */, bool /* chg_aware */) {
+  inc_func_call_count(__func__);
+}
+bool gatt_cl_read_sirk_req(
+    const RawAddress& /* peer_bda */,
+    base::OnceCallback<void(tGATT_STATUS status, const RawAddress&,
+                            uint8_t sirk_type, Octet16& sirk)>
+    /* cb */) {
+  return false;
 }

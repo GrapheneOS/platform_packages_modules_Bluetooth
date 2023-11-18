@@ -37,7 +37,7 @@ namespace stack_btm_ble_advertiser_hci_interface {
 // Returns: void
 struct btm_le_on_advertising_set_terminated {
   std::function<void(uint8_t* p, uint16_t length)> body{
-      [](uint8_t* p, uint16_t length) {}};
+      [](uint8_t* /* p */, uint16_t /* length */) {}};
   void operator()(uint8_t* p, uint16_t length) { body(p, length); };
 };
 extern struct btm_le_on_advertising_set_terminated
@@ -47,7 +47,7 @@ extern struct btm_le_on_advertising_set_terminated
 // Returns: void
 struct btm_ble_advertiser_notify_terminated_legacy {
   std::function<void(uint8_t status, uint16_t connection_handle)> body{
-      [](uint8_t status, uint16_t connection_handle) {}};
+      [](uint8_t /* status */, uint16_t /* connection_handle */) {}};
   void operator()(uint8_t status, uint16_t connection_handle) {
     body(status, connection_handle);
   };

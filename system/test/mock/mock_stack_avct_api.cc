@@ -24,32 +24,33 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-uint16_t AVCT_CreateBrowse(uint8_t handle, uint8_t role) {
+uint16_t AVCT_CreateBrowse(uint8_t /* handle */, uint8_t /* role */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t AVCT_CreateConn(uint8_t* p_handle, tAVCT_CC* p_cc,
-                         const RawAddress& peer_addr) {
+uint16_t AVCT_CreateConn(uint8_t* /* p_handle */, tAVCT_CC* /* p_cc */,
+                         const RawAddress& /* peer_addr */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t AVCT_GetBrowseMtu(uint8_t handle) {
+uint16_t AVCT_GetBrowseMtu(uint8_t /* handle */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t AVCT_GetPeerMtu(uint8_t handle) {
+uint16_t AVCT_GetPeerMtu(uint8_t /* handle */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t AVCT_MsgReq(uint8_t handle, uint8_t label, uint8_t cr, BT_HDR* p_msg) {
+uint16_t AVCT_MsgReq(uint8_t /* handle */, uint8_t /* label */,
+                     uint8_t /* cr */, BT_HDR* /* p_msg */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t AVCT_RemoveBrowse(uint8_t handle) {
+uint16_t AVCT_RemoveBrowse(uint8_t /* handle */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t AVCT_RemoveConn(uint8_t handle) {
+uint16_t AVCT_RemoveConn(uint8_t /* handle */) {
   inc_func_call_count(__func__);
   return 0;
 }
