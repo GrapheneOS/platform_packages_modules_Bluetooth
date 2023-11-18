@@ -267,6 +267,7 @@ cc_test {
     host_supported: true,
     include_dirs: btifCommonIncludes,
     srcs: [
+        "test/btif_dm_test.cc",
         "test/btif_storage_test.cc",
     ],
     header_libs: ["libbluetooth_headers"],
@@ -308,6 +309,7 @@ cc_test {
         "libevent",
         "libflatbuffers-cpp",
         "libg722codec",
+        "libgmock",
         "liblc3",
         "libopus",
         "libosi",

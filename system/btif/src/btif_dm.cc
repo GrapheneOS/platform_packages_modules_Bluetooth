@@ -2444,16 +2444,20 @@ static void bta_energy_info_cb(tBTM_BLE_TX_TIME_MS tx_time,
       "idle_time=%u,used=%u",
       status, ctrl_state, tx_time, rx_time, idle_time, energy_used);
 
-  bt_activity_energy_info energy_info;
-  energy_info.status = status;
-  energy_info.ctrl_state = ctrl_state;
-  energy_info.rx_time = rx_time;
-  energy_info.tx_time = tx_time;
-  energy_info.idle_time = idle_time;
-  energy_info.energy_used = energy_used;
+  if (uid_set != nullptr) {
+    bt_activity_energy_info energy_info;
+    energy_info.status = status;
+    energy_info.ctrl_state = ctrl_state;
+    energy_info.rx_time = rx_time;
+    energy_info.tx_time = tx_time;
+    energy_info.idle_time = idle_time;
+    energy_info.energy_used = energy_used;
 
-  bt_uid_traffic_t* data = uid_set_read_and_clear(uid_set);
-  GetInterfaceToProfiles()->events->invoke_energy_info_cb(energy_info, data);
+    bt_uid_traffic_t* data = uid_set_read_and_clear(uid_set);
+    GetInterfaceToProfiles()->events->invoke_energy_info_cb(energy_info, data);
+  } else {
+    LOG_WARN("Energy info event dropped as module is inactive");
+  }
 }
 
 /*****************************************************************************
@@ -4130,3 +4134,20 @@ void btif_dm_metadata_changed(const RawAddress& remote_bd_addr, int key,
     metadata_cb.le_audio_cache.insert_or_assign(remote_bd_addr, value);
   }
 }
+
+namespace bluetooth {
+namespace legacy {
+namespace testing {
+
+void bta_energy_info_cb(tBTM_BLE_TX_TIME_MS tx_time,
+                        tBTM_BLE_RX_TIME_MS rx_time,
+                        tBTM_BLE_IDLE_TIME_MS idle_time,
+                        tBTM_BLE_ENERGY_USED energy_used,
+                        tBTM_CONTRL_STATE ctrl_state, tBTA_STATUS status) {
+  ::bta_energy_info_cb(tx_time, rx_time, idle_time, energy_used, ctrl_state,
+                       status);
+}
+
+}  // namespace testing
+}  // namespace legacy
+}  // namespace bluetooth
