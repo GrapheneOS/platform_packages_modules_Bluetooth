@@ -813,9 +813,14 @@ void handle_rc_browse_connect(tBTA_AV_RC_BROWSE_OPEN* p_rc_br_open) {
         LOG_VERBOSE("%s: pending rc browse connection event", __func__);
       }
     } else {
-      do_in_jni_thread(FROM_HERE,
-                       base::BindOnce(bt_rc_ctrl_callbacks->connection_state_cb,
-                                      true, true, p_dev->rc_addr));
+        if (bt_rc_ctrl_callbacks != NULL) {
+          do_in_jni_thread(
+              FROM_HERE,
+              base::BindOnce(bt_rc_ctrl_callbacks->connection_state_cb, true,
+                             true, p_dev->rc_addr));
+        } else {
+            LOG_WARN("%s: bt_rc_ctrl_callbacks is null.", __func__);
+        }
     }
   }
 }
