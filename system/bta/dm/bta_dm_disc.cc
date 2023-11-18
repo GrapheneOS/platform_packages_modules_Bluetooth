@@ -64,7 +64,9 @@ tBTM_CONTRL_STATE bta_dm_pm_obtain_controller_state(void);
 
 namespace {
 constexpr char kBtmLogTag[] = "SDP";
-}
+
+tBTA_DM_SEARCH_CB bta_dm_search_cb;
+}  // namespace
 
 static void bta_dm_gatt_disc_complete(uint16_t conn_id, tGATT_STATUS status);
 static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, const uint8_t* p_eir,
@@ -2195,9 +2197,8 @@ std::string EpochMillisToString(long long time_ms) {
       "%s.%03u", s.c_str(),
       static_cast<unsigned int>(time_ms % MillisPerSecond));
 }
-}  // namespace
 
-tBTA_DM_SEARCH_CB bta_dm_search_cb;
+}  // namespace
 
 struct tSEARCH_STATE_HISTORY {
   const tBTA_DM_STATE state;
