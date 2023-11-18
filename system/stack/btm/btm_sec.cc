@@ -2280,10 +2280,12 @@ void btm_sec_abort_access_req(const RawAddress& bd_addr) {
  *
  * Function         btm_sec_dd_create_conn
  *
- * Description      This function is called to create the ACL connection for
- *                  the dedicated boding process
+ * Description      This function is called to create an ACL connection for
+ *                  the dedicated bonding process
  *
- * Returns          void
+ * Returns          BTM_SUCCESS if an ACL connection is already up
+ *                  BTM_CMD_STARTED if the ACL connection has been requested
+ *                  BTM_NO_RESOURCES if failed to start the ACL connection
  *
  ******************************************************************************/
 static tBTM_STATUS btm_sec_dd_create_conn(tBTM_SEC_DEV_REC* p_dev_rec) {
