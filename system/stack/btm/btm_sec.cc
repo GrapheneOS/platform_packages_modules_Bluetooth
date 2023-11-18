@@ -3974,21 +3974,21 @@ static void read_encryption_key_size_complete_after_key_refresh(
     /* If remote device stop the encryption before we call "Read Encryption Key
      * Size", we might receive Insufficient Security, which means that link is
      * no longer encrypted. */
-    LOG(INFO) << __func__ << ": encryption stopped on link: " << loghex(handle);
+    LOG_INFO("encryption stopped on link: 0x%x ", handle);
     return;
   }
 
   if (status != HCI_SUCCESS) {
-    LOG(INFO) << __func__ << ": disconnecting, status: " << loghex(status);
+    LOG_INFO("disconnecting, status: 0x%x", status);
     acl_disconnect_from_handle(handle, HCI_ERR_PEER_USER,
                                "stack::btu_hcif Key size fail");
     return;
   }
 
   if (key_size < MIN_KEY_SIZE) {
-    LOG(ERROR) << __func__
-               << " encryption key too short, disconnecting. handle: "
-               << loghex(handle) << " key_size: " << +key_size;
+    LOG_ERROR(
+        "encryption key too short, disconnecting. handle: 0x%x key_size %d",
+        handle, key_size);
 
     acl_disconnect_from_handle(handle, HCI_ERR_HOST_REJECT_SECURITY,
                                "stack::btu::btu_hcif::read_encryption_key_size_"
