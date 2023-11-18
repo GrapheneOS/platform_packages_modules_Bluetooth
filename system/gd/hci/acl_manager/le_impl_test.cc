@@ -1861,10 +1861,6 @@ TEST_F(LeImplTest, direct_connection_after_background_connection) {
   auto raw_direct_create_connection = hci_layer_->GetCommandOptional(OpCode::LE_CREATE_CONNECTION);
 
   // assert
-#if 1
-  // TODO: Switch to the other branch, this should not fail
-  ASSERT_FALSE(raw_direct_create_connection.has_value());
-#else
   ASSERT_TRUE(raw_direct_create_connection.has_value());
   auto bg_create_connection = LeCreateConnectionView::Create(
       LeConnectionManagementCommandView::Create(AclCommandView::Create(raw_bg_create_connection)));
@@ -1875,7 +1871,6 @@ TEST_F(LeImplTest, direct_connection_after_background_connection) {
   EXPECT_TRUE(direct_create_connection.IsValid());
   LOG_INFO("Scan Interval %u", direct_create_connection.GetLeScanInterval());
   ASSERT_NE(direct_create_connection.GetLeScanInterval(), bg_create_connection.GetLeScanInterval());
-#endif
 }
 
 }  // namespace acl_manager
