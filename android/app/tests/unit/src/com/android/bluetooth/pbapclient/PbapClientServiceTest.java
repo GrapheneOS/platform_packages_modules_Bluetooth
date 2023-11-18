@@ -34,6 +34,7 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.provider.CallLog;
+import android.os.Looper;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
@@ -317,30 +318,14 @@ public class PbapClientServiceTest {
     }
 
     @Test
-    public void broadcastReceiver_withActionAclDisconnectedNoTransport_doesNotCallDisconnect() {
-        int connectionState = BluetoothProfile.STATE_CONNECTED;
-        PbapClientStateMachine sm = mock(PbapClientStateMachine.class);
-        mService.mPbapClientStateMachineMap.put(mRemoteDevice, sm);
-        when(sm.getConnectionState(mRemoteDevice)).thenReturn(connectionState);
-
-        Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-        mService.mPbapBroadcastReceiver.onReceive(mService, intent);
-
-        verify(sm, never()).disconnect(mRemoteDevice);
-    }
-
-    @Test
     public void broadcastReceiver_withActionAclDisconnectedLeTransport_doesNotCallDisconnect() {
         int connectionState = BluetoothProfile.STATE_CONNECTED;
         PbapClientStateMachine sm = mock(PbapClientStateMachine.class);
         mService.mPbapClientStateMachineMap.put(mRemoteDevice, sm);
         when(sm.getConnectionState(mRemoteDevice)).thenReturn(connectionState);
 
-        Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-        intent.putExtra(BluetoothDevice.EXTRA_TRANSPORT, BluetoothDevice.TRANSPORT_LE);
-        mService.mPbapBroadcastReceiver.onReceive(mService, intent);
+        mService.aclDisconnected(mRemoteDevice, BluetoothDevice.TRANSPORT_LE);
+        TestUtils.waitForLooperToFinishScheduledTask(Looper.getMainLooper());
 
         verify(sm, never()).disconnect(mRemoteDevice);
     }
@@ -352,10 +337,8 @@ public class PbapClientServiceTest {
         mService.mPbapClientStateMachineMap.put(mRemoteDevice, sm);
         when(sm.getConnectionState(mRemoteDevice)).thenReturn(connectionState);
 
-        Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-        intent.putExtra(BluetoothDevice.EXTRA_TRANSPORT, BluetoothDevice.TRANSPORT_BREDR);
-        mService.mPbapBroadcastReceiver.onReceive(mService, intent);
+        mService.aclDisconnected(mRemoteDevice, BluetoothDevice.TRANSPORT_BREDR);
+        TestUtils.waitForLooperToFinishScheduledTask(Looper.getMainLooper());
 
         verify(sm).disconnect(mRemoteDevice);
     }
