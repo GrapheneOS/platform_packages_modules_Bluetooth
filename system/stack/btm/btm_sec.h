@@ -728,8 +728,6 @@ void btm_sec_update_clock_offset(uint16_t handle, uint16_t clock_offset);
  ******************************************************************************/
 tBTM_SEC_SERV_REC* btm_sec_find_first_serv(bool is_originator, uint16_t psm);
 
-bool is_sec_state_equal(void* data, void* context);
-
 /*******************************************************************************
  *
  * Function         btm_sec_dev_rec_cback_event
