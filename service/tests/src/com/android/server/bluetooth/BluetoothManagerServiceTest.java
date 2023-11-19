@@ -30,6 +30,8 @@ import static com.android.server.bluetooth.BluetoothManagerService.MESSAGE_TIMEO
 
 import static com.google.common.truth.Truth.assertThat;
 
+import static org.junit.runners.Parameterized.Parameter;
+import static org.junit.runners.Parameterized.Parameters;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
@@ -58,23 +60,30 @@ import android.os.test.TestLooper;
 import android.provider.Settings;
 
 import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.flags.FakeFeatureFlagsImpl;
 import com.android.bluetooth.flags.Flags;
+
+import com.google.common.collect.Lists;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-@RunWith(AndroidJUnit4.class)
+@RunWith(Parameterized.class)
 public class BluetoothManagerServiceTest {
     private static final String TAG = BluetoothManagerServiceTest.class.getSimpleName();
     private static final int STATE_BLE_TURNING_ON = 14; // can't find the symbol because hidden api
@@ -97,6 +106,63 @@ public class BluetoothManagerServiceTest {
     @Mock IBluetooth mAdapterService;
     @Mock AdapterBinder mAdapterBinder;
     private FakeFeatureFlagsImpl mFakeFlagsImpl;
+
+    @Parameter public FlagsValue mFlagsValue;
+
+    static class FlagsValue {
+        final Map<String, Boolean> mFlagsValue;
+
+        FlagsValue(Map<String, Boolean> flagsValue) {
+            mFlagsValue = flagsValue;
+        }
+
+        private static String formatFlag(String key) {
+            return key.substring(key.lastIndexOf(".") + 1);
+        }
+
+        @Override
+        public String toString() {
+            return mFlagsValue.entrySet().stream()
+                    .filter(Map.Entry::getValue)
+                    .map(Map.Entry::getKey)
+                    .map(FlagsValue::formatFlag)
+                    .sorted()
+                    .collect(Collectors.joining(", "));
+        }
+    }
+
+    private static boolean filterFlags(Map<String, Boolean> map) {
+        if (map.get(Flags.FLAG_USE_NEW_AIRPLANE_MODE)) {
+            return !map.get(Flags.FLAG_AIRPLANE_RESSOURCES_IN_APP);
+        }
+        return true;
+    }
+
+    /** Generate the Map of flag for this test Suite */
+    @Parameters(name = "{0}")
+    public static Iterable<? extends Object> generateParameterizedFlagsValue() {
+        final String[] flags = {
+            Flags.FLAG_AIRPLANE_RESSOURCES_IN_APP,
+            Flags.FLAG_USE_NEW_AIRPLANE_MODE,
+            Flags.FLAG_USE_NEW_SATELLITE_MODE,
+        };
+        final Boolean[] values = {true, false};
+
+        List<List<Map.Entry<String, Boolean>>> flagValues =
+                Arrays.stream(flags)
+                        .map(flag -> Arrays.stream(values).map(val -> Map.entry(flag, val)))
+                        .map(Stream::toList)
+                        .toList();
+
+        return Lists.cartesianProduct(flagValues).stream()
+                .map(list -> list.toArray(new Map.Entry[0]))
+                .map(Map::ofEntries)
+                .filter(BluetoothManagerServiceTest::filterFlags)
+                .map(FlagsValue::new)
+                .map(List::of)
+                .map(List::toArray)
+                .toList();
+    }
 
     TestLooper mLooper;
 
@@ -148,9 +214,7 @@ public class BluetoothManagerServiceTest {
         mLooper = new TestLooper();
 
         mFakeFlagsImpl = new FakeFeatureFlagsImpl();
-        mFakeFlagsImpl.setFlag(Flags.FLAG_AIRPLANE_RESSOURCES_IN_APP, false);
-        mFakeFlagsImpl.setFlag(Flags.FLAG_USE_NEW_AIRPLANE_MODE, false);
-        mFakeFlagsImpl.setFlag(Flags.FLAG_USE_NEW_SATELLITE_MODE, false);
+        mFlagsValue.mFlagsValue.forEach(mFakeFlagsImpl::setFlag);
 
         mManagerService =
                 new BluetoothManagerService(mContext, mLooper.getLooper(), mFakeFlagsImpl);
