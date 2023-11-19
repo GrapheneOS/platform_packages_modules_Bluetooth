@@ -46,9 +46,11 @@
 #include "stack/include/ble_acl_interface.h"
 #include "stack/include/ble_hci_link_interface.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/btm_ble_addr.h"
 #include "stack/include/btm_ble_api.h"
 #include "stack/include/btm_iso_api.h"
+#include "stack/include/btm_sec_api_types.h"
 #include "stack/include/dev_hci_link_interface.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/hci_evt_length.h"
@@ -91,8 +93,23 @@ static void btu_hcif_read_clock_off_comp_evt(uint8_t* p);
 static void btu_hcif_esco_connection_comp_evt(const uint8_t* p);
 static void btu_hcif_esco_connection_chg_evt(uint8_t* p);
 
+/* Parsing functions for btm functions */
+
+static void btu_hcif_sec_pin_code_request(const uint8_t* p);
+static void btu_hcif_sec_link_key_request(const uint8_t* p);
+static void btu_hcif_sec_rmt_host_support_feat_evt(const uint8_t* p);
+static void btu_hcif_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p);
+static void btu_hcif_rem_oob_req(const uint8_t* p);
+static void btu_hcif_simple_pair_complete(const uint8_t* p);
+static void btu_hcif_proc_sp_req_evt(const tBTM_SP_EVT event, const uint8_t* p);
+static void btu_hcif_create_conn_cancel_complete(const uint8_t* p,
+                                                 uint16_t evt_len);
+static void btu_hcif_read_local_oob_complete(const uint8_t* p,
+                                             uint16_t evt_len);
+
 /* Simple Pairing Events */
 static void btu_hcif_io_cap_request_evt(const uint8_t* p);
+static void btu_hcif_io_cap_response_evt(const uint8_t* p);
 
 static void btu_ble_ll_conn_param_upd_evt(uint8_t* p, uint16_t evt_len);
 static void btu_ble_proc_ltk_req(uint8_t* p, uint16_t evt_len);
@@ -265,10 +282,10 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
       btu_hcif_mode_change_evt(p);
       break;
     case HCI_PIN_CODE_REQUEST_EVT:
-      btm_sec_pin_code_request(p);
+      btu_hcif_sec_pin_code_request(p);
       break;
     case HCI_LINK_KEY_REQUEST_EVT:
-      btm_sec_link_key_request(p);
+      btu_hcif_sec_link_key_request(p);
       break;
     case HCI_LINK_KEY_NOTIFICATION_EVT:
       btu_hcif_link_key_notification_evt(p);
@@ -286,28 +303,28 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
       btm_pm_proc_ssr_evt(p, hci_evt_len);
       break;
     case HCI_RMT_HOST_SUP_FEAT_NOTIFY_EVT:
-      btm_sec_rmt_host_support_feat_evt(p);
+      btu_hcif_sec_rmt_host_support_feat_evt(p);
       break;
     case HCI_IO_CAPABILITY_REQUEST_EVT:
       btu_hcif_io_cap_request_evt(p);
       break;
     case HCI_IO_CAPABILITY_RESPONSE_EVT:
-      btm_io_capabilities_rsp(p);
+      btu_hcif_io_cap_response_evt(p);
       break;
     case HCI_USER_CONFIRMATION_REQUEST_EVT:
-      btm_proc_sp_req_evt(BTM_SP_CFM_REQ_EVT, p);
+      btu_hcif_proc_sp_req_evt(BTM_SP_CFM_REQ_EVT, p);
       break;
     case HCI_USER_PASSKEY_REQUEST_EVT:
-      btm_proc_sp_req_evt(BTM_SP_KEY_REQ_EVT, p);
+      btu_hcif_proc_sp_req_evt(BTM_SP_KEY_REQ_EVT, p);
       break;
     case HCI_REMOTE_OOB_DATA_REQUEST_EVT:
-      btm_rem_oob_req(p);
+      btu_hcif_rem_oob_req(p);
       break;
     case HCI_SIMPLE_PAIRING_COMPLETE_EVT:
-      btm_simple_pair_complete(p);
+      btu_hcif_simple_pair_complete(p);
       break;
     case HCI_USER_PASSKEY_NOTIFY_EVT:
-      btm_proc_sp_req_evt(BTM_SP_KEY_NOTIF_EVT, p);
+      btu_hcif_proc_sp_req_evt(BTM_SP_KEY_NOTIF_EVT, p);
       break;
 
     case HCI_BLE_EVENT: {
@@ -1105,11 +1122,11 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
       break;
 
     case HCI_CREATE_CONNECTION_CANCEL:
-      btm_create_conn_cancel_complete(p, evt_len);
+      btu_hcif_create_conn_cancel_complete(p, evt_len);
       break;
 
     case HCI_READ_LOCAL_OOB_DATA:
-      btm_read_local_oob_complete(p, evt_len);
+      btu_hcif_read_local_oob_complete(p, evt_len);
       break;
 
     case HCI_READ_INQ_TX_POWER_LEVEL:
@@ -1410,6 +1427,93 @@ static void btu_hcif_mode_change_evt(uint8_t* p) {
 #endif
 }
 
+/* Parsing functions for btm functions */
+
+void btu_hcif_sec_pin_code_request(const uint8_t* p) {
+  RawAddress bda;
+
+  STREAM_TO_BDADDR(bda, p);
+  btm_sec_pin_code_request(bda);
+}
+void btu_hcif_sec_link_key_request(const uint8_t* p) {
+  RawAddress bda;
+  STREAM_TO_BDADDR(bda, p);
+  btm_sec_link_key_request(bda);
+}
+void btu_hcif_rem_oob_req(const uint8_t* p) {
+  RawAddress bda;
+  STREAM_TO_BDADDR(bda, p);
+  btm_rem_oob_req(bda);
+}
+void btu_hcif_simple_pair_complete(const uint8_t* p) {
+  RawAddress bd_addr;
+  uint8_t status;
+  status = *p++;
+  STREAM_TO_BDADDR(bd_addr, p);
+  btm_simple_pair_complete(bd_addr, status);
+}
+void btu_hcif_sec_rmt_host_support_feat_evt(const uint8_t* p) {
+  RawAddress bd_addr; /* peer address */
+  uint8_t features_0;
+
+  STREAM_TO_BDADDR(bd_addr, p);
+  STREAM_TO_UINT8(features_0, p);
+  btm_sec_rmt_host_support_feat_evt(bd_addr, features_0);
+}
+void btu_hcif_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
+  RawAddress bda;
+  uint32_t value = 0;
+
+  /* All events start with bd_addr */
+  STREAM_TO_BDADDR(bda, p);
+  switch (event) {
+    case BTM_SP_CFM_REQ_EVT:
+    case BTM_SP_KEY_NOTIF_EVT:
+      STREAM_TO_UINT32(value, p);
+      break;
+    case BTM_SP_KEY_REQ_EVT:
+      // No value needed.
+      break;
+  }
+  btm_proc_sp_req_evt(event, bda, value);
+}
+void btu_hcif_create_conn_cancel_complete(const uint8_t* p, uint16_t evt_len) {
+  uint8_t status;
+
+  if (evt_len < 1 + BD_ADDR_LEN) {
+    LOG_ERROR("%s malformatted event packet, too short", __func__);
+    return;
+  }
+
+  STREAM_TO_UINT8(status, p);
+  RawAddress bd_addr;
+  STREAM_TO_BDADDR(bd_addr, p);
+  btm_create_conn_cancel_complete(status, bd_addr);
+}
+void btu_hcif_read_local_oob_complete(const uint8_t* p, uint16_t evt_len) {
+  tBTM_SP_LOC_OOB evt_data;
+  uint8_t status;
+  if (evt_len < 1) {
+    goto err_out;
+  }
+  STREAM_TO_UINT8(status, p);
+  if (status == HCI_SUCCESS) {
+    evt_data.status = BTM_SUCCESS;
+  } else {
+    evt_data.status = BTM_ERR_PROCESSING;
+  }
+  if (evt_len < 32 + 1) {
+    goto err_out;
+  }
+  STREAM_TO_ARRAY16(evt_data.c.data(), p);
+  STREAM_TO_ARRAY16(evt_data.r.data(), p);
+  btm_read_local_oob_complete(evt_data);
+  return;
+
+err_out:
+  LOG_ERROR("%s: bogus event packet, too short", __func__);
+}
+
 /*******************************************************************************
  *
  * Function         btu_hcif_link_key_notification_evt
@@ -1477,39 +1581,32 @@ static void btu_hcif_io_cap_request_evt(const uint8_t* p) {
   btm_io_capabilities_req(bda);
 }
 
+/*******************************************************************************
+ *
+ * Function         btu_hcif_io_cap_request_evt
+ *
+ * Description      Process event HCI_IO_CAPABILITY_REQUEST_EVT
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+static void btu_hcif_io_cap_response_evt(const uint8_t* p) {
+  tBTM_SP_IO_RSP evt_data;
+
+  STREAM_TO_BDADDR(evt_data.bd_addr, p);
+
+  uint8_t io_cap;
+  STREAM_TO_UINT8(io_cap, p);
+  evt_data.io_cap = static_cast<tBTM_IO_CAP>(io_cap);
+
+  STREAM_TO_UINT8(evt_data.oob_data, p);
+  STREAM_TO_UINT8(evt_data.auth_req, p);
+  btm_io_capabilities_rsp(evt_data);
+}
+
 /**********************************************
  * End of Simple Pairing Events
  **********************************************/
-
-static void read_encryption_key_size_complete_after_key_refresh(uint8_t status, uint16_t handle, uint8_t key_size) {
-  if (status == HCI_ERR_INSUFFCIENT_SECURITY) {
-    /* If remote device stop the encryption before we call "Read Encryption Key
-     * Size", we might receive Insufficient Security, which means that link is
-     * no longer encrypted. */
-    LOG(INFO) << __func__ << ": encryption stopped on link: " << loghex(handle);
-    return;
-  }
-
-  if (status != HCI_SUCCESS) {
-    LOG(INFO) << __func__ << ": disconnecting, status: " << loghex(status);
-    acl_disconnect_from_handle(handle, HCI_ERR_PEER_USER,
-                               "stack::btu_hcif Key size fail");
-    return;
-  }
-
-  if (key_size < MIN_KEY_SIZE) {
-    LOG(ERROR) << __func__ << " encryption key too short, disconnecting. handle: " << loghex(handle)
-               << " key_size: " << +key_size;
-
-    acl_disconnect_from_handle(handle, HCI_ERR_HOST_REJECT_SECURITY,
-                               "stack::btu::btu_hcif::read_encryption_key_size_"
-                               "complete_after_key_refresh Key size too small");
-    return;
-  }
-
-  btm_sec_encrypt_change(handle, static_cast<tHCI_STATUS>(status),
-                         1 /* enc_enable */);
-}
 
 static void btu_hcif_encryption_key_refresh_cmpl_evt(uint8_t* p) {
   uint8_t status;
@@ -1518,14 +1615,8 @@ static void btu_hcif_encryption_key_refresh_cmpl_evt(uint8_t* p) {
   STREAM_TO_UINT8(status, p);
   STREAM_TO_UINT16(handle, p);
 
-  if (status != HCI_SUCCESS || BTM_IsBleConnection(handle) ||
-      // Skip encryption key size check when using set_min_encryption_key_size
-      controller_get_interface()->supports_set_min_encryption_key_size()) {
-    btm_sec_encrypt_change(handle, static_cast<tHCI_STATUS>(status),
-                           (status == HCI_SUCCESS) ? 1 : 0);
-  } else {
-    btsnd_hcic_read_encryption_key_size(handle, base::Bind(&read_encryption_key_size_complete_after_key_refresh));
-  }
+  btm_sec_encryption_key_refresh_complete(handle,
+                                          static_cast<tHCI_STATUS>(status));
 }
 
 /**********************************************

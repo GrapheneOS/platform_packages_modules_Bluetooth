@@ -17,6 +17,7 @@
 #include "hci/le_address_manager.h"
 
 #include "common/init_flags.h"
+#include "hci/octets.h"
 #include "os/log.h"
 #include "os/rand.h"
 
@@ -384,8 +385,13 @@ hci::Address LeAddressManager::generate_rpa() {
   address.address[4] = prand[1];
   address.address[5] = prand[2];
 
+  Octet16 rand{};
+  rand[0] = prand[0];
+  rand[1] = prand[1];
+  rand[2] = prand[2];
+
   /* encrypt with IRK */
-  Octet16 p = crypto_toolbox::aes_128(rotation_irk_, prand.data(), 3);
+  Octet16 p = crypto_toolbox::aes_128(rotation_irk_, rand);
 
   /* set hash to be LSB of rpAddress */
   address.address[0] = p[0];

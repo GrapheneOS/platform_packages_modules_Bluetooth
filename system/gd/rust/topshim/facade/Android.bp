@@ -46,6 +46,7 @@ rust_defaults {
         "libbluetooth-dumpsys",
         "libbluetooth-types",
         "libbluetooth_core_rs",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd", // Gabeldorsche
         "libbt-audio-hal-interface",
         "libbt-bta",

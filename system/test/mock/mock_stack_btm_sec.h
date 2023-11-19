@@ -443,12 +443,14 @@ struct NotifyBondingCanceled {
 extern struct NotifyBondingCanceled NotifyBondingCanceled;
 
 // Name: btm_create_conn_cancel_complete
-// Params: const uint8_t* p
+// Params: uint8_t status, RawAddress bd_addr
 // Return: void
 struct btm_create_conn_cancel_complete {
-  std::function<void(const uint8_t* p, uint16_t evt_len)> body{
-      [](const uint8_t* p, uint16_t evt_len) {}};
-  void operator()(const uint8_t* p, uint16_t evt_len) { body(p, evt_len); };
+  std::function<void(uint8_t status, const RawAddress bd_addr)> body{
+      [](uint8_t status, const RawAddress bd_addr) {}};
+  void operator()(uint8_t status, const RawAddress bd_addr) {
+    body(status, bd_addr);
+  };
 };
 extern struct btm_create_conn_cancel_complete btm_create_conn_cancel_complete;
 
@@ -464,20 +466,21 @@ struct btm_get_dev_class {
 extern struct btm_get_dev_class btm_get_dev_class;
 
 // Name: btm_io_capabilities_req
-// Params: const RawAddress& p
+// Params: RawAddress p
 // Return: void
 struct btm_io_capabilities_req {
-  std::function<void(const RawAddress& p)> body{[](const RawAddress& p) {}};
-  void operator()(const RawAddress& p) { body(p); };
+  std::function<void(RawAddress p)> body{[](RawAddress /* p */) {}};
+  void operator()(RawAddress p) { body(p); };
 };
 extern struct btm_io_capabilities_req btm_io_capabilities_req;
 
 // Name: btm_io_capabilities_rsp
-// Params: const uint8_t* p
+// Params: tBTM_SP_IO_RSP evt_data
 // Return: void
 struct btm_io_capabilities_rsp {
-  std::function<void(const uint8_t* p)> body{[](const uint8_t* p) {}};
-  void operator()(const uint8_t* p) { body(p); };
+  std::function<void(const tBTM_SP_IO_RSP evt_data)> body{
+      [](const tBTM_SP_IO_RSP /* evt_data */) {}};
+  void operator()(const tBTM_SP_IO_RSP evt_data) { body(evt_data); };
 };
 extern struct btm_io_capabilities_rsp btm_io_capabilities_rsp;
 
@@ -485,28 +488,34 @@ extern struct btm_io_capabilities_rsp btm_io_capabilities_rsp;
 // Params: tBTM_SP_EVT event, const uint8_t* p
 // Return: void
 struct btm_proc_sp_req_evt {
-  std::function<void(tBTM_SP_EVT event, const uint8_t* p)> body{
-      [](tBTM_SP_EVT event, const uint8_t* p) {}};
-  void operator()(tBTM_SP_EVT event, const uint8_t* p) { body(event, p); };
+  std::function<void(tBTM_SP_EVT event, const RawAddress bda, uint32_t value)>
+      body{[](tBTM_SP_EVT /* event */, const RawAddress /* bda */,
+              uint32_t /* value */) {}};
+  void operator()(tBTM_SP_EVT event, const RawAddress bda, uint32_t value) {
+    body(event, bda, value);
+  };
 };
 extern struct btm_proc_sp_req_evt btm_proc_sp_req_evt;
 
 // Name: btm_read_local_oob_complete
-// Params: uint8_t* p
+// Params:
+// tBTM_SP_LOC_OOB evt_data;
+// uint8_t status;
 // Return: void
 struct btm_read_local_oob_complete {
-  std::function<void(uint8_t* p, uint16_t evt_len)> body{
-      [](uint8_t* p, uint16_t evt_len) {}};
-  void operator()(uint8_t* p, uint16_t evt_len) { body(p, evt_len); };
+  std::function<void(const tBTM_SP_LOC_OOB evt_data)> body{
+      [](const tBTM_SP_LOC_OOB /* evt_data */) {}};
+  void operator()(const tBTM_SP_LOC_OOB evt_data) { body(evt_data); };
 };
 extern struct btm_read_local_oob_complete btm_read_local_oob_complete;
 
 // Name: btm_rem_oob_req
-// Params: const uint8_t* p
+// Params: RawAddress bda
 // Return: void
 struct btm_rem_oob_req {
-  std::function<void(const uint8_t* p)> body{[](const uint8_t* p) {}};
-  void operator()(const uint8_t* p) { body(p); };
+  std::function<void(const RawAddress bda)> body{
+      [](const RawAddress /* bda */) {}};
+  void operator()(const RawAddress bda) { body(bda); };
 };
 extern struct btm_rem_oob_req btm_rem_oob_req;
 
@@ -763,13 +772,26 @@ struct btm_sec_link_key_notification {
 };
 extern struct btm_sec_link_key_notification btm_sec_link_key_notification;
 
+// Name: btm_sec_encryption_key_refresh_complete
+// Params: uint16_t handle, tHCI_STATUS status
+// Return: void
+struct btm_sec_encryption_key_refresh_complete {
+  std::function<void(uint16_t handle, tHCI_STATUS status)> body{
+      [](uint16_t /* handle */, tHCI_STATUS /* status */) -> void {}};
+  void operator()(uint16_t handle, tHCI_STATUS status) {
+    body(handle, status);
+  };
+};
+extern struct btm_sec_encryption_key_refresh_complete
+    btm_sec_encryption_key_refresh_complete;
+
 // Name: btm_sec_link_key_request
 // Params: const uint8_t* p_event
 // Return: void
 struct btm_sec_link_key_request {
-  std::function<void(const uint8_t* p_event)> body{
-      [](const uint8_t* p_event) {}};
-  void operator()(const uint8_t* p_event) { body(p_event); };
+  std::function<void(const RawAddress bda)> body{
+      [](const RawAddress /* bda */) {}};
+  void operator()(const RawAddress bda) { body(bda); };
 };
 extern struct btm_sec_link_key_request btm_sec_link_key_request;
 
@@ -798,9 +820,9 @@ extern struct btm_sec_mx_access_request btm_sec_mx_access_request;
 // Params: const uint8_t* p_event
 // Return: void
 struct btm_sec_pin_code_request {
-  std::function<void(const uint8_t* p_event)> body{
-      [](const uint8_t* p_event) {}};
-  void operator()(const uint8_t* p_event) { body(p_event); };
+  std::function<void(const RawAddress bda)> body{
+      [](const RawAddress /* bda */) {}};
+  void operator()(const RawAddress bda) { body(bda); };
 };
 extern struct btm_sec_pin_code_request btm_sec_pin_code_request;
 
@@ -808,8 +830,11 @@ extern struct btm_sec_pin_code_request btm_sec_pin_code_request;
 // Params: const uint8_t* p
 // Return: void
 struct btm_sec_rmt_host_support_feat_evt {
-  std::function<void(const uint8_t* p)> body{[](const uint8_t* p) {}};
-  void operator()(const uint8_t* p) { body(p); };
+  std::function<void(const RawAddress bd_addr, uint8_t features_0)> body{
+      [](const RawAddress /* bd_addr */, uint8_t /* features_0 */) {}};
+  void operator()(const RawAddress bd_addr, uint8_t features_0) {
+    body(bd_addr, features_0);
+  };
 };
 extern struct btm_sec_rmt_host_support_feat_evt
     btm_sec_rmt_host_support_feat_evt;
@@ -878,35 +903,16 @@ struct btm_sec_update_clock_offset {
 extern struct btm_sec_update_clock_offset btm_sec_update_clock_offset;
 
 // Name: btm_simple_pair_complete
-// Params: const uint8_t* p
+// Params: RawAddress bd_addr, uint8_t status
 // Return: void
 struct btm_simple_pair_complete {
-  std::function<void(const uint8_t* p)> body{[](const uint8_t* p) {}};
-  void operator()(const uint8_t* p) { body(p); };
+  std::function<void(const RawAddress bd_addr, uint8_t status)> body{
+      [](const RawAddress /* bd_addr */, uint8_t /* status */) {}};
+  void operator()(const RawAddress bd_addr, uint8_t status) {
+    body(bd_addr, status);
+  };
 };
 extern struct btm_simple_pair_complete btm_simple_pair_complete;
-
-// Name: is_sec_state_equal
-// Params: void* data, void* context
-// Return: bool
-struct is_sec_state_equal {
-  static bool return_value;
-  std::function<bool(void* data, void* context)> body{
-      [](void* data, void* context) { return return_value; }};
-  bool operator()(void* data, void* context) { return body(data, context); };
-};
-extern struct is_sec_state_equal is_sec_state_equal;
-
-// Name: is_state_getting_name
-// Params: void* data, void* context
-// Return: bool
-struct is_state_getting_name {
-  static bool return_value;
-  std::function<bool(void* data, void* context)> body{
-      [](void* data, void* context) { return return_value; }};
-  bool operator()(void* data, void* context) { return body(data, context); };
-};
-extern struct is_state_getting_name is_state_getting_name;
 
 // Name: BTM_IsRemoteNameKnown
 // Params: const RawAddress& bd_addr, tBT_TRANSPORT transport

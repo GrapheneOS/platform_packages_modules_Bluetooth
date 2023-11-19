@@ -21,8 +21,8 @@
 
 #include <list>
 
+#include "crypto_toolbox/crypto_toolbox.h"
 #include "gatt_int.h"
-#include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "types/bluetooth/uuid.h"
 
 using bluetooth::Uuid;

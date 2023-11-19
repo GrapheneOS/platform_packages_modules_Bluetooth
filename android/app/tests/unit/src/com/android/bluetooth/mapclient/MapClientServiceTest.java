@@ -30,7 +30,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.SdpMasRecord;
-import android.content.Intent;
+import android.os.Looper;
 
 import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
@@ -243,143 +243,91 @@ public class MapClientServiceTest {
     }
 
     @Test
-    public void broadcastReceiver_withRandomAction_doesNothing() {
-        MceStateMachine sm = mock(MceStateMachine.class);
-        mService.getInstanceMap().put(mRemoteDevice, sm);
-
-        Intent intent = new Intent("Test_random_action");
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-        mService.mMapReceiver.onReceive(mService, intent);
-
-        verify(sm, never()).disconnect();
-    }
-
-    @Test
-    public void broadcastReceiver_withActionAclDisconnected_withoutDevice_doesNothing() {
+    public void aclDisconnectedNoTransport_whenConnected_doesNotCallDisconnect() {
         int connectionState = BluetoothProfile.STATE_CONNECTED;
         MceStateMachine sm = mock(MceStateMachine.class);
         mService.getInstanceMap().put(mRemoteDevice, sm);
         when(sm.getState()).thenReturn(connectionState);
 
-        Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        // Device is not included in this intent
-        mService.mMapReceiver.onReceive(mService, intent);
+        mService.aclDisconnected(mRemoteDevice, BluetoothDevice.ERROR);
+        TestUtils.waitForLooperToBeIdle(Looper.getMainLooper());
 
         verify(sm, never()).disconnect();
     }
 
     @Test
-    public void broadcastReceiver_withActionAclDisconnected_whenNotConnected_doesNothing() {
-        // No state machine exists for this device
-        Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-        mService.mMapReceiver.onReceive(mService, intent);
-    }
-
-    @Test
-    public void
-            broadcastReceiver_withActionAclDisconnectedNoTransport_whenConnected_doesNotCallDisconnect() {
+    public void aclDisconnectedLeTransport_whenConnected_doesNotCallDisconnect() {
         int connectionState = BluetoothProfile.STATE_CONNECTED;
         MceStateMachine sm = mock(MceStateMachine.class);
         mService.getInstanceMap().put(mRemoteDevice, sm);
         when(sm.getState()).thenReturn(connectionState);
 
-        Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-        mService.mMapReceiver.onReceive(mService, intent);
+        mService.aclDisconnected(mRemoteDevice, BluetoothDevice.TRANSPORT_LE);
+        TestUtils.waitForLooperToBeIdle(Looper.getMainLooper());
 
         verify(sm, never()).disconnect();
     }
 
     @Test
-    public void
-            broadcastReceiver_withActionAclDisconnectedLeTransport_whenConnected_doesNotCallDisconnect() {
+    public void aclDisconnectedBrEdrTransport_whenConnected_callsDisconnect() {
         int connectionState = BluetoothProfile.STATE_CONNECTED;
         MceStateMachine sm = mock(MceStateMachine.class);
         mService.getInstanceMap().put(mRemoteDevice, sm);
         when(sm.getState()).thenReturn(connectionState);
 
-        Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-        intent.putExtra(BluetoothDevice.EXTRA_TRANSPORT, BluetoothDevice.TRANSPORT_LE);
-        mService.mMapReceiver.onReceive(mService, intent);
-
-        verify(sm, never()).disconnect();
-    }
-
-    @Test
-    public void
-            broadcastReceiver_withActionAclDisconnectedBrEdrTransport_whenConnected_callsDisconnect() {
-        int connectionState = BluetoothProfile.STATE_CONNECTED;
-        MceStateMachine sm = mock(MceStateMachine.class);
-        mService.getInstanceMap().put(mRemoteDevice, sm);
-        when(sm.getState()).thenReturn(connectionState);
-
-        Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-        intent.putExtra(BluetoothDevice.EXTRA_TRANSPORT, BluetoothDevice.TRANSPORT_BREDR);
-        mService.mMapReceiver.onReceive(mService, intent);
+        mService.aclDisconnected(mRemoteDevice, BluetoothDevice.TRANSPORT_BREDR);
+        TestUtils.waitForLooperToBeIdle(Looper.getMainLooper());
 
         verify(sm).disconnect();
     }
 
     @Test
-    public void broadcastReceiver_withActionSdpRecord_receivedMasRecord_sdpSuccess() {
+    public void receiveSdpRecord_receivedMasRecord_sdpSuccess() {
         MceStateMachine sm = mock(MceStateMachine.class);
         mService.getInstanceMap().put(mRemoteDevice, sm);
         SdpMasRecord mockSdpRecord = mock(SdpMasRecord.class);
 
-        Intent intent = new Intent(BluetoothDevice.ACTION_SDP_RECORD);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-        intent.putExtra(BluetoothDevice.EXTRA_UUID, BluetoothUuid.MAS);
-        intent.putExtra(BluetoothDevice.EXTRA_SDP_SEARCH_STATUS, MceStateMachine.SDP_SUCCESS);
-        intent.putExtra(BluetoothDevice.EXTRA_SDP_RECORD, mockSdpRecord);
-        mService.mMapReceiver.onReceive(mService, intent);
+        mService.receiveSdpSearchRecord(
+                mRemoteDevice, MceStateMachine.SDP_SUCCESS, mockSdpRecord, BluetoothUuid.MAS);
+        TestUtils.waitForLooperToBeIdle(Looper.getMainLooper());
 
         verify(sm).sendSdpResult(eq(MceStateMachine.SDP_SUCCESS), eq(mockSdpRecord));
     }
 
     @Test
-    public void broadcastReceiver_withActionSdpRecord_withoutMasRecord_sdpFailed() {
+    public void receiveSdpRecord_withoutMasRecord_sdpFailed() {
         MceStateMachine sm = mock(MceStateMachine.class);
         mService.getInstanceMap().put(mRemoteDevice, sm);
 
-        Intent intent = new Intent(BluetoothDevice.ACTION_SDP_RECORD);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-        intent.putExtra(BluetoothDevice.EXTRA_UUID, BluetoothUuid.MAS);
-        intent.putExtra(BluetoothDevice.EXTRA_SDP_SEARCH_STATUS, MceStateMachine.SDP_SUCCESS);
-        // No MasRecord is included in this intent
-        mService.mMapReceiver.onReceive(mService, intent);
+        mService.receiveSdpSearchRecord(
+                mRemoteDevice, MceStateMachine.SDP_SUCCESS, null, BluetoothUuid.MAS);
+        TestUtils.waitForLooperToBeIdle(Looper.getMainLooper());
 
         // Verify message: SDP was successfully complete, but no record was returned
         verify(sm).sendSdpResult(eq(MceStateMachine.SDP_SUCCESS), eq(null));
     }
 
     @Test
-    public void broadcastReceiver_withActionSdpRecord_withSdpBusy_sdpFailed() {
+    public void receiveSdpRecord_withSdpBusy_sdpFailed() {
         MceStateMachine sm = mock(MceStateMachine.class);
         mService.getInstanceMap().put(mRemoteDevice, sm);
 
-        Intent intent = new Intent(BluetoothDevice.ACTION_SDP_RECORD);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-        intent.putExtra(BluetoothDevice.EXTRA_UUID, BluetoothUuid.MAS);
-        intent.putExtra(BluetoothDevice.EXTRA_SDP_SEARCH_STATUS, MceStateMachine.SDP_BUSY);
-        mService.mMapReceiver.onReceive(mService, intent);
+        mService.receiveSdpSearchRecord(
+                mRemoteDevice, MceStateMachine.SDP_BUSY, null, BluetoothUuid.MAS);
+        TestUtils.waitForLooperToBeIdle(Looper.getMainLooper());
 
         // Verify message: SDP was busy and no record was returned
         verify(sm).sendSdpResult(eq(MceStateMachine.SDP_BUSY), eq(null));
     }
 
     @Test
-    public void broadcastReceiver_withActionSdpRecord_withSdpFailed_sdpFailed() {
+    public void receiveSdpRecord_withSdpFailed_sdpFailed() {
         MceStateMachine sm = mock(MceStateMachine.class);
         mService.getInstanceMap().put(mRemoteDevice, sm);
 
-        Intent intent = new Intent(BluetoothDevice.ACTION_SDP_RECORD);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-        intent.putExtra(BluetoothDevice.EXTRA_UUID, BluetoothUuid.MAS);
-        intent.putExtra(BluetoothDevice.EXTRA_SDP_SEARCH_STATUS, MceStateMachine.SDP_FAILED);
-        mService.mMapReceiver.onReceive(mService, intent);
+        mService.receiveSdpSearchRecord(
+                mRemoteDevice, MceStateMachine.SDP_FAILED, null, BluetoothUuid.MAS);
+        TestUtils.waitForLooperToBeIdle(Looper.getMainLooper());
 
         // Verify message: SDP was failed for some reason and no record was returned
         verify(sm).sendSdpResult(eq(MceStateMachine.SDP_FAILED), eq(null));

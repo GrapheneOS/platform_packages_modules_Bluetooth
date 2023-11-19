@@ -132,7 +132,6 @@ cc_defaults {
     srcs: [
         ":BluetoothAttSources",
         ":BluetoothCommonSources",
-        ":BluetoothCryptoToolboxSources",
         ":BluetoothDumpsysSources",
         ":BluetoothHalSources",
         ":BluetoothHciSources",
@@ -175,6 +174,7 @@ cc_defaults {
         "libbluetooth-dumpsys",
         "libbluetooth-protos",
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_rust_interop",
         "libbt-platform-protos-lite",
         "libbt_shim_bridge",
@@ -288,6 +288,7 @@ cc_binary {
         "libbluetooth-dumpsys",
         "libbluetooth-protos",
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbluetooth_hci_pdl",
         "libbluetooth_l2cap_pdl",
@@ -305,6 +306,7 @@ cc_binary {
         "libgrpc_wrap",
         "libprotobuf-cpp-full",
         "libunwindstack",
+        "server_configurable_flags",
     ],
     target: {
         android: {
@@ -413,6 +415,7 @@ cc_test {
         "libbluetooth-dumpsys-unittest",
         "libbluetooth-protos",
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd_unit_tests",
         "libbluetooth_hci_pdl",
         "libbluetooth_l2cap_pdl",
@@ -424,12 +427,15 @@ cc_test {
         "libbt_shim_ffi",
         "libc++fs",
         "libchrome",
+        "libflagtest",
         "libflatbuffers-cpp",
         "libgmock",
         "libosi",
     ],
     shared_libs: [
+        "libbase",
         "libcrypto",
+        "server_configurable_flags",
     ],
     sanitize: {
         address: true,
@@ -494,6 +500,7 @@ cc_defaults {
     static_libs: [
         "libbluetooth-protos",
         "libbluetooth-types",
+        "libbluetooth_crypto_toolbox",
         "libbluetooth_gd_fuzzing",
         "libbluetooth_rust_interop",
         "libbt_shim_bridge",

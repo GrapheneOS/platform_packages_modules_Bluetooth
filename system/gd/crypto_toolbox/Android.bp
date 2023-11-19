@@ -9,17 +9,28 @@ package {
 }
 
 filegroup {
-    name: "BluetoothCryptoToolboxSources",
+    name: "BluetoothCryptoToolboxTestSources",
+    srcs: [
+        "crypto_toolbox_test.cc",
+    ],
+}
+
+cc_library {
+    name: "libbluetooth_crypto_toolbox",
+    defaults: ["fluoride_defaults"],
+    host_supported: true,
+    apex_available: ["com.android.btservices"],
+    min_sdk_version: "29",
+    include_dirs: [
+        "packages/modules/Bluetooth/system/gd",
+    ],
+    shared_libs: [
+        "libcutils",
+        "liblog",
+    ],
     srcs: [
         "aes.cc",
         "aes_cmac.cc",
         "crypto_toolbox.cc",
-    ],
-}
-
-filegroup {
-    name: "BluetoothCryptoToolboxTestSources",
-    srcs: [
-        "crypto_toolbox_test.cc",
     ],
 }

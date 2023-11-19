@@ -920,6 +920,7 @@ enum FeatureFlag : 1 {
   SUPPORTED = 1,
 }
 
+// Vol 1, Part F: Controller Error Codes
 enum ErrorCode: 8 {
   STATUS_UNKNOWN = 0xFF,
   SUCCESS = 0x00,
@@ -958,12 +959,32 @@ enum ErrorCode: 8 {
   ROLE_CHANGE_NOT_ALLOWED = 0x21,
   TRANSACTION_RESPONSE_TIMEOUT = 0x22,
   LINK_LAYER_COLLISION = 0x23,
+  LMP_PDU_NOT_ALLOWED = 0x24,
   ENCRYPTION_MODE_NOT_ACCEPTABLE = 0x25,
+  LINK_KEY_CANNOT_BE_CHANGED = 0x26,
+  REQUESTED_QOS_NOT_SUPPORTED = 0x27,
+  INSTANT_PASSED = 0x28,
+  PAIRING_WITH_UNIT_KEY_NOT_SUPPORTED = 0x29,
+  DIFFERENT_TRANSACTION_COLLISION = 0x2A,
+  QOS_UNACCEPTABLE_PARAMETERS = 0x2C,
+  QOS_REJECTED = 0x2D,
+  CHANNEL_ASSESSMENT_NOT_SUPPORTED = 0x2E,
+  INSUFFICIENT_SECURITY = 0x2F,
+  PARAMETER_OUT_OF_MANDATORY_RANGE = 0x30,
+  ROLE_SWITCH_PENDING = 0x32,
+  RESERVED_SLOT_VIOLATION = 0x34,
   ROLE_SWITCH_FAILED = 0x35,
-  HOST_BUSY = 0x38,
+  EXTENDED_INQUIRY_RESPONSE_TOO_LARGE = 0x36,
+  SECURE_SIMPLE_PAIRING_NOT_SUPPORTED_BY_HOST = 0x37,
+  HOST_BUSY_PAIRING = 0x38,
+  CONNECTION_REJECTED_NO_SUITABLE_CHANNEL_FOUND = 0x39,
   CONTROLLER_BUSY = 0x3A,
+  UNACCEPTABLE_CONNECTION_PARAMETERS = 0x3B,
   ADVERTISING_TIMEOUT = 0x3C,
+  CONNECTION_TERMINATED_DUE_TO_MIC_FAILURE = 0x3D,
   CONNECTION_FAILED_ESTABLISHMENT = 0x3E,
+  COARSE_CLOCK_ADJUSTMENT_REJECTED = 0x40,
+  TYPE0_SUBMAP_NOT_DEFINED = 0x41,
   UNKNOWN_ADVERTISING_IDENTIFIER = 0x42,
   LIMIT_REACHED = 0x43,
   OPERATION_CANCELLED_BY_HOST = 0x44,
@@ -4001,8 +4022,8 @@ packet LeSetExtendedAdvertisingDataRaw : LeAdvertisingCommand (op_code = LE_SET_
   _reserved_ : 5,
   fragment_preference : FragmentPreference,
   _reserved_ : 7,
-  _size_(advertising_data) : 8,
-  advertising_data : 8[],
+  _size_(_payload_) : 8,
+  _payload_,
 }
 
 packet LeSetExtendedAdvertisingDataComplete : CommandComplete (command_op_code = LE_SET_EXTENDED_ADVERTISING_DATA) {
@@ -4029,8 +4050,8 @@ packet LeSetExtendedScanResponseDataRaw : LeAdvertisingCommand (op_code = LE_SET
   _reserved_ : 5,
   fragment_preference : FragmentPreference,
   _reserved_ : 7,
-  _size_(scan_response_data) : 8,
-  scan_response_data : 8[],
+  _size_(_payload_) : 8,
+  _payload_,
 }
 
 packet LeSetExtendedScanResponseDataComplete : CommandComplete (command_op_code = LE_SET_EXTENDED_SCAN_RESPONSE_DATA) {
@@ -4146,8 +4167,8 @@ packet LeSetPeriodicAdvertisingDataRaw : LeAdvertisingCommand (op_code = LE_SET_
   advertising_handle : 8,
   operation : Operation,
   _reserved_ : 5,
-  _size_(advertising_data) : 8,
-  advertising_data : 8[],
+  _size_(_payload_) : 8,
+  _payload_,
 }
 
 packet LeSetPeriodicAdvertisingDataComplete : CommandComplete (command_op_code = LE_SET_PERIODIC_ADVERTISING_DATA) {

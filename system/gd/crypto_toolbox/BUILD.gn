@@ -13,12 +13,14 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-source_set("BluetoothCryptoToolboxSources") {
+static_library("crypto_toolbox") {
   sources = [
     "aes.cc",
     "aes_cmac.cc",
     "crypto_toolbox.cc",
   ]
+
+  include_dirs = [ "//bt/system/gd" ]
 
   configs += [ "//bt/system/gd:gd_defaults" ]
 }

@@ -47,10 +47,19 @@ module_t rust_module;
 
 const tBTA_AG_RES_DATA tBTA_AG_RES_DATA::kEmpty = {};
 
-void bte_hh_evt(tBTA_HH_EVT event, tBTA_HH* p_data);
 const bthh_interface_t* btif_hh_get_interface();
 bt_status_t btif_hh_connect(const RawAddress* bd_addr);
 bt_status_t btif_hh_virtual_unplug(const RawAddress* bd_addr);
+
+namespace bluetooth {
+namespace legacy {
+namespace testing {
+
+void bte_hh_evt(tBTA_HH_EVT event, tBTA_HH* p_data);
+
+}  // namespace testing
+}  // namespace legacy
+}  // namespace bluetooth
 
 namespace test {
 namespace mock {
@@ -153,27 +162,9 @@ bthh_callbacks_t bthh_callbacks = {
 
 class BtifHhWithMockTest : public ::testing::Test {
  protected:
-  void SetUp() override {
-    reset_mock_function_count_map();
-    test::mock::osi_allocator::osi_malloc.body = [](size_t size) {
-      return malloc(size);
-    };
-    test::mock::osi_allocator::osi_calloc.body = [](size_t size) {
-      return calloc(1UL, size);
-    };
-    test::mock::osi_allocator::osi_free.body = [](void* ptr) { free(ptr); };
-    test::mock::osi_allocator::osi_free_and_reset.body = [](void** ptr) {
-      free(*ptr);
-      *ptr = nullptr;
-    };
-  }
+  void SetUp() override { reset_mock_function_count_map(); }
 
-  void TearDown() override {
-    test::mock::osi_allocator::osi_malloc = {};
-    test::mock::osi_allocator::osi_calloc = {};
-    test::mock::osi_allocator::osi_free = {};
-    test::mock::osi_allocator::osi_free_and_reset = {};
-  }
+  void TearDown() override {}
 };
 
 class BtifHhWithHalCallbacksTest : public BtifHhWithMockTest {
@@ -274,7 +265,7 @@ TEST_F(BtifHhWithDevice, BTA_HH_GET_RPT_EVT) {
         g_bthh_callbacks_get_report_promise.set_value(report);
   };
 
-  bte_hh_evt(BTA_HH_GET_RPT_EVT, &data);
+  bluetooth::legacy::testing::bte_hh_evt(BTA_HH_GET_RPT_EVT, &data);
   osi_free(data.hs_data.rsp_data.p_rpt_data);
 
   ASSERT_EQ(std::future_status::ready, future.wait_for(2s));

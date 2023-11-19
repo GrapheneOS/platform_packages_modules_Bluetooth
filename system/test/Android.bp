@@ -281,13 +281,6 @@ filegroup {
 }
 
 filegroup {
-    name: "TestMockSystemLibfmq",
-    srcs: [
-        "mock/mock_system_libfmq_*.cc",
-    ],
-}
-
-filegroup {
     name: "TestMockUdrv",
     srcs: [
         "mock/mock_udrv_*.cc",
@@ -449,13 +442,6 @@ filegroup {
     name: "TestMockMainBte",
     srcs: [
         "mock/mock_main_bte*.cc",
-    ],
-}
-
-filegroup {
-    name: "TestMockStackCryptotoolbox",
-    srcs: [
-        "mock/mock_stack_crypto_toolbox*.cc",
     ],
 }
 
