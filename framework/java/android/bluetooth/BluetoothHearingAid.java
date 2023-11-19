@@ -43,7 +43,7 @@ import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
@@ -471,7 +471,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
     public @NonNull List<BluetoothDevice> getConnectedDevices() {
         if (VDBG) Log.v(TAG, "getConnectedDevices()");
         final IBluetoothHearingAid service = getService();
-        final List<BluetoothDevice> defaultValue = new ArrayList<BluetoothDevice>();
+        final List<BluetoothDevice> defaultValue = Collections.emptyList();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) Log.d(TAG, Log.getStackTraceString(new Throwable()));
@@ -500,7 +500,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
     public List<BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[] states) {
         if (VDBG) Log.v(TAG, "getDevicesMatchingStates()");
         final IBluetoothHearingAid service = getService();
-        final List<BluetoothDevice> defaultValue = new ArrayList<BluetoothDevice>();
+        final List<BluetoothDevice> defaultValue = Collections.emptyList();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) Log.d(TAG, Log.getStackTraceString(new Throwable()));
@@ -602,7 +602,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
     public @NonNull List<BluetoothDevice> getActiveDevices() {
         if (VDBG) Log.v(TAG, "getActiveDevices()");
         final IBluetoothHearingAid service = getService();
-        final List<BluetoothDevice> defaultValue = new ArrayList<>();
+        final List<BluetoothDevice> defaultValue = Collections.emptyList();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) Log.d(TAG, Log.getStackTraceString(new Throwable()));
