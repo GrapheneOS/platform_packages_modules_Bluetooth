@@ -107,7 +107,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
         @SystemApi
         @DeviceMode
         public int getDeviceMode() {
-            if (VDBG) log("getDeviceMode()");
+            if (VDBG) Log.v(TAG, "getDeviceMode()");
             return (mCapability >> 1) & 1;
         }
 
@@ -129,7 +129,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
         @SystemApi
         @DeviceSide
         public int getDeviceSide() {
-            if (VDBG) log("getDeviceSide()");
+            if (VDBG) Log.v(TAG, "getDeviceSide()");
             return mCapability & 1;
         }
 
@@ -147,7 +147,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
                 })
         @SystemApi
         public boolean isCsipSupported() {
-            if (VDBG) log("isCsipSupported()");
+            if (VDBG) Log.v(TAG, "isCsipSupported()");
             return ((mCapability >> 2) & 1) != 0;
         }
 
@@ -163,7 +163,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
                 })
         @SystemApi
         public int getTruncatedHiSyncId() {
-            if (VDBG) log("getTruncatedHiSyncId: " + mTruncatedHiSyncId);
+            if (VDBG) Log.v(TAG, "getTruncatedHiSyncId: " + mTruncatedHiSyncId);
             return mTruncatedHiSyncId;
         }
 
@@ -183,7 +183,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
                 })
         @SystemApi
         public boolean isInPairWith(@Nullable AdvertisementServiceData data) {
-            if (VDBG) log("isInPairWith()");
+            if (VDBG) Log.v(TAG, "isInPairWith()");
             if (data == null) {
                 return false;
             }
@@ -469,7 +469,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public @NonNull List<BluetoothDevice> getConnectedDevices() {
-        if (VDBG) log("getConnectedDevices()");
+        if (VDBG) Log.v(TAG, "getConnectedDevices()");
         final IBluetoothHearingAid service = getService();
         final List<BluetoothDevice> defaultValue = new ArrayList<BluetoothDevice>();
         if (service == null) {
@@ -498,7 +498,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @NonNull
     public List<BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[] states) {
-        if (VDBG) log("getDevicesMatchingStates()");
+        if (VDBG) Log.v(TAG, "getDevicesMatchingStates()");
         final IBluetoothHearingAid service = getService();
         final List<BluetoothDevice> defaultValue = new ArrayList<BluetoothDevice>();
         if (service == null) {
@@ -527,7 +527,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @BluetoothProfile.BtProfileState
     public int getConnectionState(@NonNull BluetoothDevice device) {
-        if (VDBG) log("getState(" + device + ")");
+        if (VDBG) Log.v(TAG, "getState(" + device + ")");
         final IBluetoothHearingAid service = getService();
         final int defaultValue = BluetoothProfile.STATE_DISCONNECTED;
         if (service == null) {
@@ -600,7 +600,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public @NonNull List<BluetoothDevice> getActiveDevices() {
-        if (VDBG) log("getActiveDevices()");
+        if (VDBG) Log.v(TAG, "getActiveDevices()");
         final IBluetoothHearingAid service = getService();
         final List<BluetoothDevice> defaultValue = new ArrayList<>();
         if (service == null) {
@@ -699,7 +699,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     public int getPriority(BluetoothDevice device) {
-        if (VDBG) log("getPriority(" + device + ")");
+        if (VDBG) Log.v(TAG, "getPriority(" + device + ")");
         return BluetoothAdapter.connectionPolicyToPriority(getConnectionPolicy(device));
     }
 
@@ -721,7 +721,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     public @ConnectionPolicy int getConnectionPolicy(@NonNull BluetoothDevice device) {
-        if (VDBG) log("getConnectionPolicy(" + device + ")");
+        if (VDBG) Log.v(TAG, "getConnectionPolicy(" + device + ")");
         verifyDeviceNotNull(device, "getConnectionPolicy");
         final IBluetoothHearingAid service = getService();
         final int defaultValue = BluetoothProfile.CONNECTION_POLICY_FORBIDDEN;
@@ -808,7 +808,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     public long getHiSyncId(@NonNull BluetoothDevice device) {
-        if (VDBG) log("getHiSyncId(" + device + ")");
+        if (VDBG) Log.v(TAG, "getHiSyncId(" + device + ")");
         verifyDeviceNotNull(device, "getHiSyncId");
         final IBluetoothHearingAid service = getService();
         final long defaultValue = HI_SYNC_ID_INVALID;
@@ -841,7 +841,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @DeviceSide
     public int getDeviceSide(@NonNull BluetoothDevice device) {
-        if (VDBG) log("getDeviceSide(" + device + ")");
+        if (VDBG) Log.v(TAG, "getDeviceSide(" + device + ")");
         verifyDeviceNotNull(device, "getDeviceSide");
         final IBluetoothHearingAid service = getService();
         final int defaultValue = SIDE_UNKNOWN;
@@ -874,7 +874,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @DeviceMode
     public int getDeviceMode(@NonNull  BluetoothDevice device) {
-        if (VDBG) log("getDeviceMode(" + device + ")");
+        if (VDBG) Log.v(TAG, "getDeviceMode(" + device + ")");
         verifyDeviceNotNull(device, "getDeviceMode");
         final IBluetoothHearingAid service = getService();
         final int defaultValue = MODE_UNKNOWN;
