@@ -60,8 +60,8 @@ import android.provider.Settings;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.flags.FeatureFlags;
-import com.android.bluetooth.flags.FeatureFlagsImpl;
+import com.android.bluetooth.flags.FakeFeatureFlagsImpl;
+import com.android.bluetooth.flags.Flags;
 
 import org.junit.After;
 import org.junit.Before;
@@ -77,8 +77,8 @@ import java.util.stream.IntStream;
 @RunWith(AndroidJUnit4.class)
 public class BluetoothManagerServiceTest {
     private static final String TAG = BluetoothManagerServiceTest.class.getSimpleName();
-    static final int STATE_BLE_TURNING_ON = 14; // can't find the symbol because hidden api
-    static final int TIMEOUT_MS = 1000; // TO use to wait for handler execution
+    private static final int STATE_BLE_TURNING_ON = 14; // can't find the symbol because hidden api
+    private static final int TIMEOUT_MS = 1000; // TO use to wait for handler execution
 
     BluetoothManagerService mManagerService;
 
@@ -88,6 +88,7 @@ public class BluetoothManagerServiceTest {
 
     @Spy BluetoothServerProxy mBluetoothServerProxy;
     @Mock UserManager mUserManager;
+    @Mock UserHandle mUserHandle;
 
     @Mock IBinder mBinder;
     @Mock IBluetoothManagerCallback mManagerCallback;
@@ -95,7 +96,7 @@ public class BluetoothManagerServiceTest {
 
     @Mock IBluetooth mAdapterService;
     @Mock AdapterBinder mAdapterBinder;
-    @Spy private final FeatureFlags mFeatureFlags = new FeatureFlagsImpl();
+    private FakeFeatureFlagsImpl mFakeFlagsImpl;
 
     TestLooper mLooper;
 
@@ -146,19 +147,29 @@ public class BluetoothManagerServiceTest {
 
         mLooper = new TestLooper();
 
-        mManagerService = new BluetoothManagerService(mContext, mLooper.getLooper(), mFeatureFlags);
+        mFakeFlagsImpl = new FakeFeatureFlagsImpl();
+        mFakeFlagsImpl.setFlag(Flags.FLAG_AIRPLANE_RESSOURCES_IN_APP, false);
+        mFakeFlagsImpl.setFlag(Flags.FLAG_USE_NEW_AIRPLANE_MODE, false);
+        mFakeFlagsImpl.setFlag(Flags.FLAG_USE_NEW_SATELLITE_MODE, false);
+
+        mManagerService =
+                new BluetoothManagerService(mContext, mLooper.getLooper(), mFakeFlagsImpl);
+        mManagerService.initialize(mUserHandle);
+
         mManagerService.registerAdapter(mManagerCallback);
     }
 
     @After
     public void tearDown() {
-        mManagerService.unregisterAdapter(mManagerCallback);
+        if (mManagerService != null) {
+            mManagerService.unregisterAdapter(mManagerCallback);
+            mManagerService = null;
+        }
         mLooper.moveTimeForward(120_000); // 120 seconds
         // Do not try to assert if `syncHandler()` already raised an exception for it
         if (!mHasException) {
             assertThat(mLooper.nextMessage()).isNull();
         }
-        mManagerService = null;
         validateMockitoUsage();
     }
 

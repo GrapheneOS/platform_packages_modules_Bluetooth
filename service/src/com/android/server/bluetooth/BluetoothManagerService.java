@@ -1527,13 +1527,13 @@ class BluetoothManagerService {
         mHandler.post(() -> internalHandleOnBootPhase(userHandle));
     }
 
-    private void internalHandleOnBootPhase(UserHandle userHandle) {
-        if (DBG) {
-            Log.d(TAG, "Bluetooth boot completed");
-        }
-
+    @VisibleForTesting
+    void initialize(UserHandle userHandle) {
         if (mUseNewAirplaneMode) {
-            mCurrentUserContext = mContext.createContextAsUser(userHandle, 0);
+            mCurrentUserContext =
+                    requireNonNull(
+                            mContext.createContextAsUser(userHandle, 0),
+                            "Current User Context cannot be null");
             AirplaneModeListener.initialize(
                     mLooper,
                     mContentResolver,
@@ -1549,6 +1549,14 @@ class BluetoothManagerService {
             SatelliteModeListener.initialize(
                     mLooper, mContentResolver, this::onSatelliteModeChanged);
         }
+    }
+
+    private void internalHandleOnBootPhase(UserHandle userHandle) {
+        if (DBG) {
+            Log.d(TAG, "Bluetooth boot completed");
+        }
+
+        initialize(userHandle);
 
         final boolean isBluetoothDisallowed = isBluetoothDisallowed();
         if (isBluetoothDisallowed) {
