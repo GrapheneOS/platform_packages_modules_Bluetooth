@@ -912,7 +912,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
             Log.d(TAG, "getAdvertisementServiceData()");
         }
         final IBluetoothHearingAid service = getService();
-        AdvertisementServiceData result = null;
+        final AdvertisementServiceData defaultValue = null;
         if (service == null || !isEnabled() || !isValidDevice(device)) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) {
@@ -923,12 +923,12 @@ public final class BluetoothHearingAid implements BluetoothProfile {
                 final SynchronousResultReceiver<AdvertisementServiceData> recv =
                         SynchronousResultReceiver.get();
                 service.getAdvertisementServiceData(device, mAttributionSource, recv);
-                result = recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
         }
-        return result;
+        return defaultValue;
     }
 
     /**
