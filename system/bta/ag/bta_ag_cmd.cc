@@ -1257,7 +1257,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB* p_scb, uint16_t cmd, uint8_t arg_type,
         bool wbs_supported = hfp_hal_interface::get_wbs_supported();
         bool swb_supported = hfp_hal_interface::get_swb_supported();
         const bool aptx_voice =
-            IS_FLAG_ENABLED(hfp_codec_aptx_voice) && p_scb->is_aptx_swb_codec;
+            is_hfp_aptx_voice_enabled() && p_scb->is_aptx_swb_codec;
         LOG_VERBOSE("BTA_AG_AT_BAC_EVT aptx_voice=%s",
                     logbool(aptx_voice).c_str());
 
@@ -1345,7 +1345,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB* p_scb, uint16_t cmd, uint8_t arg_type,
       break;
     }
     case BTA_AG_AT_QAC_EVT:
-      if (!IS_FLAG_ENABLED(hfp_codec_aptx_voice)) {
+      if (!is_hfp_aptx_voice_enabled()) {
         bta_ag_send_error(p_scb, BTA_AG_ERR_OP_NOT_SUPPORTED);
         break;
       }
@@ -1356,7 +1356,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB* p_scb, uint16_t cmd, uint8_t arg_type,
       bta_ag_send_ok(p_scb);
       break;
     case BTA_AG_AT_QCS_EVT:
-      if (!IS_FLAG_ENABLED(hfp_codec_aptx_voice)) {
+      if (!is_hfp_aptx_voice_enabled()) {
         bta_ag_send_error(p_scb, BTA_AG_ERR_OP_NOT_SUPPORTED);
         break;
       }
