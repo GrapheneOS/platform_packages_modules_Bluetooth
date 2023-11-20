@@ -195,9 +195,11 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
     rusty::hfp_wbs_caps_update_callback(wbs == headset::BTHF_WBS_YES, *addr);
   }
 
-  void SwbCallback(headset::bthf_swb_config_t swb, RawAddress* addr) override {
-    LOG_INFO("SwbCallback %d from %s", swb, ADDRESS_TO_LOGGABLE_CSTR(*addr));
-    rusty::hfp_swb_caps_update_callback(swb == headset::BTHF_SWB_YES, *addr);
+  void SwbCallback(
+      headset::bthf_swb_codec_t codec, headset::bthf_swb_config_t swb, RawAddress* addr) override {
+    LOG_INFO("SwbCallback codec:%d, swb:%d from %s", codec, swb, ADDRESS_TO_LOGGABLE_CSTR(*addr));
+    rusty::hfp_swb_caps_update_callback(
+        (codec == headset::BTHF_SWB_CODEC_LC3 && swb == headset::BTHF_SWB_YES), *addr);
   }
 
   void AtChldCallback(headset::bthf_chld_type_t chld, RawAddress* bd_addr) override {

@@ -209,6 +209,14 @@ typedef enum {
   BTA_AG_SCO_LC3_SETTINGS_T1,
 } tBTA_AG_SCO_LC3_SETTINGS;
 
+typedef enum {
+  BTA_AG_SCO_APTX_SWB_SETTINGS_Q0 = 0, /* preferred/default when codec is SWB */
+  BTA_AG_SCO_APTX_SWB_SETTINGS_Q1 = 4,
+  BTA_AG_SCO_APTX_SWB_SETTINGS_Q2 = 6,
+  BTA_AG_SCO_APTX_SWB_SETTINGS_Q3 = 7,
+  BTA_AG_SCO_APTX_SWB_SETTINGS_UNKNOWN = 0xFFFF,
+} tBTA_AG_SCO_APTX_SWB_SETTINGS;
+
 /* type for each service control block */
 struct tBTA_AG_SCB {
   char clip[BTA_AG_AT_MAX_LEN + 1];     /* number string used for CLIP */
@@ -265,6 +273,10 @@ struct tBTA_AG_SCB {
                                                     impending eSCO on WB */
   tBTA_AG_SCO_LC3_SETTINGS codec_lc3_settings;   /* settings to be used for the
                                                     impending eSCO on SWB */
+  tBTA_AG_SCO_APTX_SWB_SETTINGS
+      codec_aptx_settings; /* settings to be used for the
+                              aptX Voice SWB eSCO */
+  bool is_aptx_swb_codec;  /* Flag to determine aptX Voice SWB codec  */
 
   tBTA_AG_HF_IND
       peer_hf_indicators[BTA_AG_MAX_NUM_PEER_HF_IND]; /* Peer supported
@@ -421,5 +433,7 @@ void bta_ag_set_sco_offload_enabled(bool value);
 void bta_ag_set_sco_allowed(bool value);
 const RawAddress& bta_ag_get_active_device();
 void bta_clear_active_device();
+void bta_ag_send_qac(tBTA_AG_SCB* p_scb, tBTA_AG_DATA* p_data);
+void bta_ag_send_qcs(tBTA_AG_SCB* p_scb, tBTA_AG_DATA* p_data);
 
 #endif /* BTA_AG_INT_H */

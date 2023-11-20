@@ -237,6 +237,9 @@ cc_library_static {
         "libbt_shim_bridge",
         "libstatslog_bt",
     ],
+    whole_static_libs: [
+        "bluetooth_flags_c_lib",
+    ],
     shared_libs: [
         "libcrypto",
     ],
