@@ -181,7 +181,8 @@ class MockAudioHalClientEndpoint : public LeAudioSourceAudioHalClient {
   MockAudioHalClientEndpoint() = default;
   MOCK_METHOD((bool), Start,
               (const LeAudioCodecConfiguration& codecConfiguration,
-               LeAudioSourceAudioHalClient::Callbacks* audioReceiver),
+               LeAudioSourceAudioHalClient::Callbacks* audioReceiver,
+               ::le_audio::DsaModes dsa_modes),
               (override));
   MOCK_METHOD((void), Stop, (), (override));
   MOCK_METHOD((void), ConfirmStreamingRequest, (), (override));

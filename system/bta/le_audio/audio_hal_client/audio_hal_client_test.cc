@@ -43,6 +43,7 @@ using ::testing::SaveArg;
 using std::chrono_literals::operator""ms;
 
 using le_audio::DsaMode;
+using le_audio::DsaModes;
 using le_audio::LeAudioCodecConfiguration;
 using le_audio::LeAudioSinkAudioHalClient;
 using le_audio::LeAudioSourceAudioHalClient;
@@ -129,6 +130,8 @@ class MockLeAudioClientInterface : public LeAudioClientInterface {
   MOCK_METHOD((Source*), GetSource,
               (bluetooth::audio::le_audio::StreamCallbacks stream_cb,
                bluetooth::common::MessageLoopThread* message_loop));
+
+  MOCK_METHOD((void), SetAllowedDsaModes, (DsaModes dsa_modes));
 };
 
 LeAudioClientInterface* mockInterface;
@@ -163,6 +166,8 @@ bool LeAudioClientInterface::ReleaseSource(
     LeAudioClientInterface::Source* source) {
   return true;
 }
+
+void LeAudioClientInterface::SetAllowedDsaModes(DsaModes dsa_modes) { return; }
 
 void LeAudioClientInterface::Sink::Cleanup() {}
 void LeAudioClientInterface::Sink::SetPcmParameters(
