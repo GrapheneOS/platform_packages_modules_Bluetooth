@@ -198,7 +198,7 @@ static void bta_ag_sco_disc_cback(uint16_t sco_idx) {
 
   if (handle != 0) {
     const bool aptx_voice =
-        IS_FLAG_ENABLED(hfp_codec_aptx_voice) &&
+        is_hfp_aptx_voice_enabled() &&
         (bta_ag_cb.sco.p_curr_scb->is_aptx_swb_codec == true) &&
         (bta_ag_cb.sco.p_curr_scb->inuse_codec ==
          BTA_AG_SCO_APTX_SWB_SETTINGS_Q0);
@@ -420,7 +420,7 @@ void bta_ag_create_sco(tBTA_AG_SCB* p_scb, bool is_orig) {
   }
 #endif
 
-  if (IS_FLAG_ENABLED(hfp_codec_aptx_voice)) {
+  if (is_hfp_aptx_voice_enabled()) {
     if ((p_scb->sco_codec == BTA_AG_SCO_APTX_SWB_SETTINGS_Q0) &&
         !p_scb->codec_fallback) {
       esco_codec = BTA_AG_SCO_APTX_SWB_SETTINGS_Q0;
@@ -464,7 +464,7 @@ void bta_ag_create_sco(tBTA_AG_SCB* p_scb, bool is_orig) {
     } else {
       params = esco_parameters_for_codec(ESCO_CODEC_MSBC_T1, offload);
     }
-  } else if (IS_FLAG_ENABLED(hfp_codec_aptx_voice) &&
+  } else if (is_hfp_aptx_voice_enabled() &&
              (p_scb->is_aptx_swb_codec == true && !p_scb->codec_updated)) {
     if (p_scb->codec_aptx_settings == BTA_AG_SCO_APTX_SWB_SETTINGS_Q3) {
       params = esco_parameters_for_codec(ESCO_CODEC_SWB_Q3, true);
@@ -548,7 +548,7 @@ void bta_ag_create_pending_sco(tBTA_AG_SCB* p_scb, bool is_local) {
       } else {
         params = esco_parameters_for_codec(ESCO_CODEC_LC3_T1, offload);
       }
-    } else if (IS_FLAG_ENABLED(hfp_codec_aptx_voice) &&
+    } else if (is_hfp_aptx_voice_enabled() &&
                (p_scb->is_aptx_swb_codec == true && !p_scb->codec_updated)) {
       if (p_scb->codec_aptx_settings == BTA_AG_SCO_APTX_SWB_SETTINGS_Q3) {
         params = esco_parameters_for_codec(ESCO_CODEC_SWB_Q3, true);
@@ -684,7 +684,7 @@ void bta_ag_codec_negotiate(tBTA_AG_SCB* p_scb) {
     p_scb->sco_codec = UUID_CODEC_CVSD;
   }
   const bool aptx_voice =
-      IS_FLAG_ENABLED(hfp_codec_aptx_voice) && p_scb->is_aptx_swb_codec &&
+      is_hfp_aptx_voice_enabled() && p_scb->is_aptx_swb_codec &&
       (p_scb->peer_codecs & BTA_AG_SCO_APTX_SWB_SETTINGS_Q0_MASK);
   LOG_VERBOSE("aptx_voice=%s, is_aptx_swb_codec=%s, Q0 codec supported=%s",
               logbool(aptx_voice).c_str(),
@@ -1449,7 +1449,7 @@ void bta_ag_sco_conn_close(tBTA_AG_SCB* p_scb,
   /* clear current scb */
   bta_ag_cb.sco.p_curr_scb = nullptr;
   p_scb->sco_idx = BTM_INVALID_SCO_INDEX;
-  const bool aptx_voice = IS_FLAG_ENABLED(hfp_codec_aptx_voice) &&
+  const bool aptx_voice = is_hfp_aptx_voice_enabled() &&
                           p_scb->codec_fallback &&
                           (p_scb->sco_codec == BTA_AG_SCO_APTX_SWB_SETTINGS_Q0);
   LOG_VERBOSE("aptx_voice=%s, codec_fallback=%#x, sco_codec=%#x",
