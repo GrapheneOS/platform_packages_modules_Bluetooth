@@ -27,7 +27,7 @@
 // Original included files, if any
 #include <cstdint>
 
-#include "bta/dm/bta_dm_int.h"
+#include "bta/dm/bta_dm_disc_int.h"
 #include "bta/dm/bta_dm_sec_int.h"
 #include "types/raw_address.h"
 
