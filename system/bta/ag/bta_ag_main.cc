@@ -160,6 +160,9 @@ static tBTA_AG_SCB* bta_ag_scb_alloc(void) {
       /* set eSCO mSBC setting to T2 as the preferred */
       p_scb->codec_msbc_settings = BTA_AG_SCO_MSBC_SETTINGS_T2;
       p_scb->codec_lc3_settings = BTA_AG_SCO_LC3_SETTINGS_T2;
+      /* set eSCO SWB setting to Q0 as the preferred */
+      p_scb->codec_aptx_settings = BTA_AG_SCO_APTX_SWB_SETTINGS_Q0;
+      p_scb->is_aptx_swb_codec = false;
       LOG_VERBOSE("bta_ag_scb_alloc %d", bta_ag_scb_to_idx(p_scb));
       break;
     }
