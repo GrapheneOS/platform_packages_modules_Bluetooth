@@ -32,7 +32,6 @@
 #include "bta/include/bta_jv_api.h"
 #include "bta/sys/bta_sys.h"
 #include "osi/include/properties.h"
-#include "types/raw_address.h"
 
 /* page timeout in 625uS */
 #ifndef BTA_DM_PAGE_TIMEOUT
