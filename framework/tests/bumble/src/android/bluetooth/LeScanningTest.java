@@ -19,6 +19,8 @@ package android.bluetooth;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
@@ -120,6 +122,50 @@ public class LeScanningTest {
 
         assertThat(results).isNotEmpty();
         assertThat(results.get(0).getDevice().getAddress()).isEqualTo(TEST_ADDRESS_RANDOM_STATIC);
+    }
+
+    @Test
+    public void startBleScan_withCallbackTypeFirstMatchSilentlyFails() {
+        advertiseWithBumble(TEST_UUID_STRING, OwnAddressType.PUBLIC);
+
+        ScanSettings scanSettings =
+                new ScanSettings.Builder()
+                        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                        .setCallbackType(ScanSettings.CALLBACK_TYPE_FIRST_MATCH)
+                        .build();
+
+        ScanFilter scanFilter =
+                new ScanFilter.Builder()
+                        .setServiceUuid(ParcelUuid.fromString(TEST_UUID_STRING))
+                        .build();
+
+        ScanCallback mockScanCallback = mock(ScanCallback.class);
+
+        mLeScanner.startScan(List.of(scanFilter), scanSettings, mockScanCallback);
+        verify(mockScanCallback, after(TIMEOUT_SCANNING_MS).never()).onScanFailed(anyInt());
+        mLeScanner.stopScan(mockScanCallback);
+    }
+
+    @Test
+    public void startBleScan_withCallbackTypeMatchLostSilentlyFails() {
+        advertiseWithBumble(TEST_UUID_STRING, OwnAddressType.PUBLIC);
+
+        ScanSettings scanSettings =
+                new ScanSettings.Builder()
+                        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                        .setCallbackType(ScanSettings.CALLBACK_TYPE_MATCH_LOST)
+                        .build();
+
+        ScanFilter scanFilter =
+                new ScanFilter.Builder()
+                        .setServiceUuid(ParcelUuid.fromString(TEST_UUID_STRING))
+                        .build();
+
+        ScanCallback mockScanCallback = mock(ScanCallback.class);
+
+        mLeScanner.startScan(List.of(scanFilter), scanSettings, mockScanCallback);
+        verify(mockScanCallback, after(TIMEOUT_SCANNING_MS).never()).onScanFailed(anyInt());
+        mLeScanner.stopScan(mockScanCallback);
     }
 
     @Test
