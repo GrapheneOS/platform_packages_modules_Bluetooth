@@ -163,9 +163,10 @@ public class HeadsetNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onSWB(int codec, byte[] address) {
+    private void onSWB(int codec, int swb, byte[] address) {
         HeadsetStackEvent event =
-                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_SWB, codec, getDevice(address));
+                new HeadsetStackEvent(
+                        HeadsetStackEvent.EVENT_TYPE_SWB, codec, swb, getDevice(address));
         sendMessageToService(event);
     }
 
