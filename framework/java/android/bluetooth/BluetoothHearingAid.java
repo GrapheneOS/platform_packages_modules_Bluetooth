@@ -867,38 +867,6 @@ public final class BluetoothHearingAid implements BluetoothProfile {
         return defaultValue;
     }
 
-    /**
-     * Get the side of the device.
-     *
-     * <p>TODO(b/231901542): Used by internal only to improve hearing aids experience in short-term.
-     * Need to change to formal call in next bluetooth release.
-     *
-     * @param device Bluetooth device.
-     * @return SIDE_LEFT or SIDE_RIGHT
-     */
-    @RequiresLegacyBluetoothPermission
-    @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    private int getDeviceSideInternal(BluetoothDevice device) {
-        return getDeviceSide(device);
-    }
-
-    /**
-     * Get the mode of the device.
-     *
-     * <p>TODO(b/231901542): Used by internal only to improve hearing aids experience in short-term.
-     * Need to change to formal call in next bluetooth release.
-     *
-     * @param device Bluetooth device
-     * @return MODE_MONAURAL or MODE_BINAURAL
-     */
-    @RequiresLegacyBluetoothPermission
-    @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    private int getDeviceModeInternal(BluetoothDevice device) {
-        return getDeviceMode(device);
-    }
-
     private boolean isEnabled() {
         if (mAdapter.getState() == BluetoothAdapter.STATE_ON) return true;
         return false;
