@@ -38,10 +38,15 @@ typedef enum {
   ESCO_CODEC_MSBC_T2,
   ESCO_CODEC_LC3_T1,
   ESCO_CODEC_LC3_T2,
+  ESCO_CODEC_SWB_Q0,
+  ESCO_CODEC_SWB_Q1,
+  ESCO_CODEC_SWB_Q2,
+  ESCO_CODEC_SWB_Q3,
   ESCO_CODEC_UNKNOWN,  // For testing
 } esco_codec_t;
 
-#define ESCO_NUM_CODECS 7
+#define ESCO_LEGACY_NUM_CODECS 7
+#define ESCO_NUM_CODECS 11
 
 // Coding Formats (BT 4.1 or later Assigned numbers)
 #define ESCO_CODING_FORMAT_ULAW ((uint8_t)0x00)     /* u-Law log    */

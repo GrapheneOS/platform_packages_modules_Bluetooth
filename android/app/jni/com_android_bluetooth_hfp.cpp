@@ -237,7 +237,8 @@ class JniHeadsetCallbacks : bluetooth::headset::Callbacks {
                                  addr.get());
   }
 
-  void SwbCallback(bluetooth::headset::bthf_swb_config_t swb_config,
+  void SwbCallback(bluetooth::headset::bthf_swb_codec_t swb_codec,
+                   bluetooth::headset::bthf_swb_config_t swb_config,
                    RawAddress* bd_addr) override {
     std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
     CallbackEnv sCallbackEnv(__func__);
@@ -246,8 +247,8 @@ class JniHeadsetCallbacks : bluetooth::headset::Callbacks {
     ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
     if (addr.get() == nullptr) return;
 
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onSWB, swb_config,
-                                 addr.get());
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onSWB, swb_codec,
+                                 swb_config, addr.get());
   }
 
   void AtChldCallback(bluetooth::headset::bthf_chld_type_t chld,
@@ -998,7 +999,7 @@ int register_com_android_bluetooth_hfp(JNIEnv* env) {
       {"onSendDtmf", "(I[B)V", &method_onSendDtmf},
       {"onNoiseReductionEnable", "(Z[B)V", &method_onNoiseReductionEnable},
       {"onWBS", "(I[B)V", &method_onWBS},
-      {"onSWB", "(I[B)V", &method_onSWB},
+      {"onSWB", "(II[B)V", &method_onSWB},
       {"onAtChld", "(I[B)V", &method_onAtChld},
       {"onAtCnum", "([B)V", &method_onAtCnum},
       {"onAtCind", "([B)V", &method_onAtCind},
