@@ -16,6 +16,8 @@
 
 #include "bta_ag_swb_aptx.h"
 
+#include <android_bluetooth_flags.h>
+#include <android_bluetooth_sysprop.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -28,6 +30,11 @@
 #include "stack/include/btm_api_types.h"
 #include "types/raw_address.h"
 #include "utl.h"
+
+bool is_hfp_aptx_voice_enabled() {
+  return IS_FLAG_ENABLED(hfp_codec_aptx_voice) &&
+         GET_SYSPROP(Hfp, codec_aptx_voice, false);
+}
 
 void bta_ag_swb_handle_vs_at_events(tBTA_AG_SCB* p_scb, uint16_t cmd,
                                     int16_t int_arg, tBTA_AG_VAL* val) {

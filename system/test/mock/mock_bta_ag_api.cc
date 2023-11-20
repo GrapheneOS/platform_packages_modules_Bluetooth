@@ -61,3 +61,7 @@ void BTA_AgSetCodec(uint16_t handle, tBTA_AG_PEER_CODEC codec) {
 }
 void BTA_AgSetScoOffloadEnabled(bool value) { inc_func_call_count(__func__); }
 void BTA_AgSetScoAllowed(bool value) { inc_func_call_count(__func__); }
+bool is_hfp_aptx_voice_enabled() {
+  inc_func_call_count(__func__);
+  return false;
+};
