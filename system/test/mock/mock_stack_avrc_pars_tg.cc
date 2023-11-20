@@ -23,12 +23,14 @@
 #include "avrc_defs.h"
 #include "test/common/mock_functions.h"
 
-tAVRC_STS AVRC_Ctrl_ParsCommand(tAVRC_MSG* p_msg, tAVRC_COMMAND* p_result) {
+tAVRC_STS AVRC_Ctrl_ParsCommand(tAVRC_MSG* /* p_msg */,
+                                tAVRC_COMMAND* /* p_result */) {
   inc_func_call_count(__func__);
   return 0;
 }
-tAVRC_STS AVRC_ParsCommand(tAVRC_MSG* p_msg, tAVRC_COMMAND* p_result,
-                           uint8_t* p_buf, uint16_t buf_len) {
+tAVRC_STS AVRC_ParsCommand(tAVRC_MSG* /* p_msg */,
+                           tAVRC_COMMAND* /* p_result */, uint8_t* /* p_buf */,
+                           uint16_t /* buf_len */) {
   inc_func_call_count(__func__);
   return 0;
 }

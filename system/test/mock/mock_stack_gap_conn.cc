@@ -27,44 +27,46 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-const RawAddress* GAP_ConnGetRemoteAddr(uint16_t gap_handle) {
+const RawAddress* GAP_ConnGetRemoteAddr(uint16_t /* gap_handle */) {
   inc_func_call_count(__func__);
   return nullptr;
 }
-int GAP_GetRxQueueCnt(uint16_t handle, uint32_t* p_rx_queue_count) {
+int GAP_GetRxQueueCnt(uint16_t /* handle */, uint32_t* /* p_rx_queue_count */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t GAP_ConnClose(uint16_t gap_handle) {
+uint16_t GAP_ConnClose(uint16_t /* gap_handle */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t GAP_ConnGetL2CAPCid(uint16_t gap_handle) {
+uint16_t GAP_ConnGetL2CAPCid(uint16_t /* gap_handle */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t GAP_ConnGetRemMtuSize(uint16_t gap_handle) {
+uint16_t GAP_ConnGetRemMtuSize(uint16_t /* gap_handle */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t GAP_ConnOpen(const char* p_serv_name, uint8_t service_id,
-                      bool is_server, const RawAddress* p_rem_bda, uint16_t psm,
-                      uint16_t le_mps, tL2CAP_CFG_INFO* p_cfg,
-                      tL2CAP_ERTM_INFO* ertm_info, uint16_t security,
-                      tGAP_CONN_CALLBACK* p_cb, tBT_TRANSPORT transport) {
+uint16_t GAP_ConnOpen(const char* /* p_serv_name */, uint8_t /* service_id */,
+                      bool /* is_server */, const RawAddress* /* p_rem_bda */,
+                      uint16_t /* psm */, uint16_t /* le_mps */,
+                      tL2CAP_CFG_INFO* /* p_cfg */,
+                      tL2CAP_ERTM_INFO* /* ertm_info */,
+                      uint16_t /* security */, tGAP_CONN_CALLBACK* /* p_cb */,
+                      tBT_TRANSPORT /* transport */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t GAP_ConnReadData(uint16_t gap_handle, uint8_t* p_data,
-                          uint16_t max_len, uint16_t* p_len) {
+uint16_t GAP_ConnReadData(uint16_t /* gap_handle */, uint8_t* /* p_data */,
+                          uint16_t /* max_len */, uint16_t* /* p_len */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t GAP_ConnWriteData(uint16_t gap_handle, BT_HDR* msg) {
+uint16_t GAP_ConnWriteData(uint16_t /* gap_handle */, BT_HDR* /* msg */) {
   inc_func_call_count(__func__);
   return 0;
 }
 void GAP_Init(void) { inc_func_call_count(__func__); }
-void gap_tx_complete_ind(uint16_t l2cap_cid, uint16_t sdu_sent) {
+void gap_tx_complete_ind(uint16_t /* l2cap_cid */, uint16_t /* sdu_sent */) {
   inc_func_call_count(__func__);
 }

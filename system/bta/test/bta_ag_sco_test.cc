@@ -27,9 +27,6 @@
 bool btm_peer_supports_esco_ev3(const RawAddress& remote_bda) { return true; }
 tBTM_CB btm_cb;
 LeAudioClient* LeAudioClient::Get() { return nullptr; }
-namespace hfp_hal_interface {
-void set_codec_datapath(int codec_uuid) {}
-}  // namespace hfp_hal_interface
 
 const RawAddress kRawAddress({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 

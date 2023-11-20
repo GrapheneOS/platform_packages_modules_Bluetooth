@@ -22,4 +22,4 @@
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
 
-void btu_hci_msg_process(BT_HDR* p_msg) { inc_func_call_count(__func__); }
+void btu_hci_msg_process(BT_HDR* /* p_msg */) { inc_func_call_count(__func__); }

@@ -22,20 +22,21 @@ namespace arbiter {
 
 class MockAclArbiter : public AclArbiter {
  public:
-  virtual void OnLeConnect(uint8_t tcb_idx, uint16_t advertiser_id) override {}
+  virtual void OnLeConnect(uint8_t /* tcb_idx */,
+                           uint16_t /* advertiser_id */) override {}
 
-  virtual void OnLeDisconnect(uint8_t tcb_idx) override {}
+  virtual void OnLeDisconnect(uint8_t /* tcb_idx */) override {}
 
-  virtual InterceptAction InterceptAttPacket(uint8_t tcb_idx,
-                                             const BT_HDR* packet) override {
+  virtual InterceptAction InterceptAttPacket(
+      uint8_t /* tcb_idx */, const BT_HDR* /* packet */) override {
     return InterceptAction::FORWARD;
   }
 
-  virtual void OnOutgoingMtuReq(uint8_t tcb_idx) override {}
+  virtual void OnOutgoingMtuReq(uint8_t /* tcb_idx */) override {}
 
-  virtual void OnIncomingMtuResp(uint8_t tcb_idx, size_t mtu) {}
+  virtual void OnIncomingMtuResp(uint8_t /* tcb_idx */, size_t /* mtu */) {}
 
-  virtual void OnIncomingMtuReq(uint8_t tcb_idx, size_t mtu) {}
+  virtual void OnIncomingMtuReq(uint8_t /* tcb_idx */, size_t /* mtu */) {}
 
   static MockAclArbiter& Get() {
     static auto singleton = MockAclArbiter();

@@ -36,7 +36,7 @@ bool BleScanningManager::IsInitialized() {
   inc_func_call_count(__func__);
   return false;
 }
-void BleScanningManager::Initialize(BleScannerHciInterface* interface) {
+void BleScanningManager::Initialize(BleScannerHciInterface* /* interface */) {
   inc_func_call_count(__func__);
 }
 void btm_ble_scanner_cleanup(void) { inc_func_call_count(__func__); }

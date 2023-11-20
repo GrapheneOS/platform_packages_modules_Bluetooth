@@ -42,7 +42,7 @@ namespace audio_a2dp_hw_utils {
 struct audio_a2dp_hw_dump_ctrl_event {
   static const char* return_value;
   std::function<const char*(tA2DP_CTRL_CMD event)> body{
-      [](tA2DP_CTRL_CMD event) { return return_value; }};
+      [](tA2DP_CTRL_CMD /* event */) { return return_value; }};
   const char* operator()(tA2DP_CTRL_CMD event) { return body(event); };
 };
 extern struct audio_a2dp_hw_dump_ctrl_event audio_a2dp_hw_dump_ctrl_event;
