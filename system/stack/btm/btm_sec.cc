@@ -33,6 +33,7 @@
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/hci/enums.pb.h>
 
+#include <cstdint>
 #include <string>
 
 #include "bt_dev_class.h"
@@ -2312,6 +2313,36 @@ static tBTM_STATUS btm_sec_dd_create_conn(tBTM_SEC_DEV_REC* p_dev_rec) {
   return (BTM_CMD_STARTED);
 }
 
+static void call_registered_rmt_name_callbacks(const RawAddress* p_bd_addr,
+                                               uint8_t* pdev_class,
+                                               uint8_t* p_bd_name,
+                                               tHCI_STATUS status) {
+  int i;
+
+  if (p_bd_addr == nullptr) {
+    // TODO Still need to send status back to get SDP state machine
+    // running
+    LOG_ERROR("Unable to issue callback with unknown address status:%s",
+              hci_status_code_text(status).c_str());
+    return;
+  }
+
+  if (pdev_class == nullptr) {
+    pdev_class = (uint8_t*)kDevClassEmpty;
+  }
+  if (p_bd_name == nullptr) {
+    p_bd_name = (uint8_t*)kBtmBdNameEmpty;
+  }
+
+  /* Notify all clients waiting for name to be resolved even if not found so
+   * clients can continue */
+  for (i = 0; i < BTM_SEC_MAX_RMT_NAME_CALLBACKS; i++) {
+    if (btm_cb.p_rmt_name_callback[i]) {
+      (*btm_cb.p_rmt_name_callback[i])(*p_bd_addr, pdev_class, p_bd_name);
+    }
+  }
+}
+
 /*******************************************************************************
  *
  * Function         btm_sec_rmt_name_request_complete
@@ -2326,8 +2357,6 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
                                        const uint8_t* p_bd_name,
                                        tHCI_STATUS status) {
   tBTM_SEC_DEV_REC* p_dev_rec = nullptr;
-
-  int i;
   uint8_t old_sec_state;
 
   LOG_INFO("btm_sec_rmt_name_request_complete for %s",
@@ -2386,19 +2415,8 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
       p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
 
     /* Notify all clients waiting for name to be resolved */
-    for (i = 0; i < BTM_SEC_MAX_RMT_NAME_CALLBACKS; i++) {
-      if (btm_cb.p_rmt_name_callback[i]) {
-        if (p_bd_addr) {
-          (*btm_cb.p_rmt_name_callback[i])(*p_bd_addr, p_dev_rec->dev_class,
-                                           p_dev_rec->sec_bd_name);
-        } else {
-          // TODO Still need to send status back to get SDP state machine
-          // running
-          LOG_ERROR("Unable to issue callback with unknown address status:%s",
-                    hci_status_code_text(status).c_str());
-        }
-      }
-    }
+    call_registered_rmt_name_callbacks(p_bd_addr, p_dev_rec->dev_class,
+                                       p_dev_rec->sec_bd_name, status);
   } else {
     LOG_DEBUG(
         "Remote read request complete for unknown device pairing_state:%s "
@@ -2406,21 +2424,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
         btm_pair_state_descr(btm_sec_cb.pairing_state),
         hci_status_code_text(status).c_str(), p_bd_name);
 
-    /* Notify all clients waiting for name to be resolved even if not found so
-     * clients can continue */
-    for (i = 0; i < BTM_SEC_MAX_RMT_NAME_CALLBACKS; i++) {
-      if (btm_cb.p_rmt_name_callback[i]) {
-        if (p_bd_addr) {
-          (*btm_cb.p_rmt_name_callback[i])(*p_bd_addr, (uint8_t*)kDevClassEmpty,
-                                           (uint8_t*)kBtmBdNameEmpty);
-        } else {
-          // TODO Still need to send status back to get SDP state machine
-          // running
-          LOG_ERROR("Unable to issue callback with unknown address status:%s",
-                    hci_status_code_text(status).c_str());
-        }
-      }
-    }
+    call_registered_rmt_name_callbacks(p_bd_addr, nullptr, nullptr, status);
     return;
   }
 
