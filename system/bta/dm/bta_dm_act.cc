@@ -47,10 +47,8 @@
 #include "main/shim/acl_api.h"
 #include "main/shim/btm_api.h"
 #include "osi/include/allocator.h"
-#include "osi/include/fixed_queue.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "osi/include/properties.h"
-#include "stack/btm/btm_dev.h"
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"

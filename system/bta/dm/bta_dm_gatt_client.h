@@ -17,7 +17,6 @@
 #pragma once
 
 #include <cstdint>
-#include <cstring>
 
 #include "bta/include/bta_gatt_api.h"
 #include "include/hardware/bt_common_types.h"
