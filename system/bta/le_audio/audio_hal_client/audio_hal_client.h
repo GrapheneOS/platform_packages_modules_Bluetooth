@@ -112,7 +112,8 @@ class LeAudioSinkAudioHalClient {
 
   virtual ~LeAudioSinkAudioHalClient() = default;
   virtual bool Start(const LeAudioCodecConfiguration& codecConfiguration,
-                     Callbacks* audioReceiver) = 0;
+                     Callbacks* audioReceiver,
+                     DsaModes dsa_modes = {DsaMode::DISABLED}) = 0;
   virtual void Stop() = 0;
   virtual size_t SendData(uint8_t* data, uint16_t size) = 0;
 
@@ -152,7 +153,8 @@ class LeAudioSourceAudioHalClient {
 
   virtual ~LeAudioSourceAudioHalClient() = default;
   virtual bool Start(const LeAudioCodecConfiguration& codecConfiguration,
-                     Callbacks* audioReceiver) = 0;
+                     Callbacks* audioReceiver,
+                     DsaModes dsa_modes = {DsaMode::DISABLED}) = 0;
   virtual void Stop() = 0;
   virtual size_t SendData(uint8_t* data, uint16_t size) { return 0; }
   virtual void ConfirmStreamingRequest() = 0;

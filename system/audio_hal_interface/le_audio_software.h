@@ -33,6 +33,7 @@ namespace audio {
 namespace le_audio {
 
 using ::le_audio::DsaMode;
+using ::le_audio::DsaModes;
 
 enum class StartRequestState {
   IDLE = 0x00,
@@ -158,7 +159,11 @@ class LeAudioClientInterface {
   // Release source interface if belongs to LE audio client interface
   bool ReleaseSource(Source* source);
 
-  // Get interface, if previously not initialized - it'll initialize singleton.
+  // Sets Dynamic Spatial Audio modes supported by the remote device
+  void SetAllowedDsaModes(DsaModes dsa_modes);
+
+  // Get interface, if previously not initialized - it'll initialize
+  // singleton.
   static LeAudioClientInterface* Get();
 
  private:

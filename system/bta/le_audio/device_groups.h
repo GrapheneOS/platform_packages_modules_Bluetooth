@@ -299,6 +299,18 @@ class LeAudioDeviceGroup {
   types::AudioContexts GetSupportedContexts(
       int direction = types::kLeAudioDirectionBoth) const;
 
+  DsaModes GetAllowedDsaModes() {
+    DsaModes dsa_modes = {};
+    for (auto leAudioDevice : leAudioDevices_) {
+      if (leAudioDevice.expired()) continue;
+
+      dsa_modes.insert(dsa_modes.end(),
+                       leAudioDevice.lock()->GetDsaModes().begin(),
+                       leAudioDevice.lock()->GetDsaModes().end());
+    }
+    return dsa_modes;
+  }
+
   types::BidirectionalPair<types::AudioContexts> GetLatestAvailableContexts(
       void) const;
 

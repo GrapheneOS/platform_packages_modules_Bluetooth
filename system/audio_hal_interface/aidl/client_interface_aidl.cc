@@ -244,19 +244,25 @@ bool BluetoothAudioClientInterface::UpdateAudioConfig(
 
 bool BluetoothAudioClientInterface::SetAllowedLatencyModes(
     std::vector<LatencyMode> latency_modes) {
+  if (provider_ == nullptr) {
+    LOG(INFO) << __func__ << ": BluetoothAudioHal nullptr";
+    return false;
+  }
+
   /* Ensure that FREE is always included and remove duplicates if any */
   std::set<LatencyMode> temp_set(latency_modes.begin(), latency_modes.end());
   temp_set.insert(LatencyMode::FREE);
   latency_modes_.clear();
   latency_modes_.assign(temp_set.begin(), temp_set.end());
 
-  bool allowed = (latency_modes_.size() > 1);
-
-  if (provider_ == nullptr) {
-    LOG(INFO) << __func__ << ": BluetoothAudioHal nullptr";
-    return false;
+  for (auto latency_mode : latency_modes) {
+    LOG(INFO) << "Latency mode allowed: "
+              << ::aidl::android::hardware::bluetooth::audio::toString(
+                     latency_mode);
   }
 
+  /* Low latency mode is used if modes other than FREE are present */
+  bool allowed = (latency_modes_.size() > 1);
   auto aidl_retval = provider_->setLowLatencyModeAllowed(allowed);
   if (!aidl_retval.isOk()) {
     LOG(WARNING) << __func__ << ": BluetoothAudioHal is not ready: "

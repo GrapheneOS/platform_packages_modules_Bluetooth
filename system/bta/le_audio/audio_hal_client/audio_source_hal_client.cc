@@ -57,7 +57,8 @@ class SourceImpl : public LeAudioSourceAudioHalClient {
  public:
   // Interface implementation
   bool Start(const LeAudioCodecConfiguration& codec_configuration,
-             LeAudioSourceAudioHalClient::Callbacks* audioReceiver) override;
+             LeAudioSourceAudioHalClient::Callbacks* audioReceiver,
+             DsaModes dsa_modes) override;
   void Stop() override;
   void ConfirmStreamingRequest() override;
   void CancelStreamingRequest() override;
@@ -291,7 +292,8 @@ bool SourceImpl::OnMetadataUpdateReq(
 }
 
 bool SourceImpl::Start(const LeAudioCodecConfiguration& codec_configuration,
-                       LeAudioSourceAudioHalClient::Callbacks* audioReceiver) {
+                       LeAudioSourceAudioHalClient::Callbacks* audioReceiver,
+                       DsaModes dsa_modes) {
   if (!halSinkInterface_) {
     LOG_ERROR("Audio HAL Audio sink interface not acquired");
     return false;
@@ -318,6 +320,7 @@ bool SourceImpl::Start(const LeAudioCodecConfiguration& codec_configuration,
       .channels_count = codec_configuration.num_channels};
 
   halSinkInterface_->SetPcmParameters(pcmParameters);
+  LeAudioClientInterface::Get()->SetAllowedDsaModes(dsa_modes);
   halSinkInterface_->StartSession();
 
   std::lock_guard<std::mutex> guard(audioSourceCallbacksMutex_);

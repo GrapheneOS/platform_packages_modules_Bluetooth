@@ -76,6 +76,7 @@ using le_audio::CodecManager;
 using le_audio::ContentControlIdKeeper;
 using le_audio::DeviceConnectState;
 using le_audio::DsaMode;
+using le_audio::DsaModes;
 using le_audio::LeAudioCodecConfiguration;
 using le_audio::LeAudioDevice;
 using le_audio::LeAudioDeviceGroup;
@@ -1055,6 +1056,11 @@ class LeAudioClientImpl : public LeAudioClient {
     ASSERT_LOG(le_audio_source_hal_client_, "Source session not acquired");
     ASSERT_LOG(le_audio_sink_hal_client_, "Sink session not acquired");
 
+    DsaModes dsa_modes = {DsaMode::DISABLED};
+    if (IS_FLAG_ENABLED(leaudio_dynamic_spatial_audio)) {
+      dsa_modes = group->GetAllowedDsaModes();
+    }
+
     /* We assume that peer device always use same frame duration */
     uint32_t frame_duration_us = 0;
     if (!source_config->IsInvalid()) {
@@ -1067,7 +1073,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
     audio_framework_source_config.data_interval_us = frame_duration_us;
     le_audio_source_hal_client_->Start(audio_framework_source_config,
-                                       audioSinkReceiver);
+                                       audioSinkReceiver, dsa_modes);
 
     /* We use same frame duration for sink/source */
     audio_framework_sink_config.data_interval_us = frame_duration_us;
@@ -1086,7 +1092,7 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     le_audio_sink_hal_client_->Start(audio_framework_sink_config,
-                                     audioSourceReceiver);
+                                     audioSourceReceiver, dsa_modes);
   }
 
   bool isOutputPreferenceLeAudio(const RawAddress& address) {
