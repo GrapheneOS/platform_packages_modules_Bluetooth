@@ -594,7 +594,7 @@ static void btif_hf_upstreams_evt(uint16_t event, char* p_param) {
         bthf_swb_codec_t codec = BTHF_SWB_CODEC_LC3;
         bthf_swb_config_t config = BTHF_SWB_NONE;
 
-        if (IS_FLAG_ENABLED(hfp_codec_aptx_voice)) {
+        if (is_hfp_aptx_voice_enabled()) {
           codec = BTHF_SWB_CODEC_VENDOR_APTX;
 
           LOG_VERBOSE(
@@ -703,7 +703,7 @@ static void btif_hf_upstreams_evt(uint16_t event, char* p_param) {
       break;
 
     case BTA_AG_AT_QCS_EVT:
-      if (!IS_FLAG_ENABLED(hfp_codec_aptx_voice)) {
+      if (!is_hfp_aptx_voice_enabled()) {
         LOG(WARNING) << __func__ << ": unhandled event " << event
                      << ". Aptx codec is not enabled";
         break;
