@@ -9,6 +9,12 @@
 
     <application>
         <uses-library android:name="android.test.runner" />
+
+        <receiver android:name="android.bluetooth.PendingIntentScanReceiver" >
+            <intent-filter>
+                <action android:name="android.bluetooth.test.ACTION_SCAN_RESULT" />
+            </intent-filter>
+        </receiver>
     </application>
 
     <instrumentation android:name="androidx.test.runner.AndroidJUnitRunner"
