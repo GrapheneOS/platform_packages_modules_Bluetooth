@@ -27,14 +27,10 @@
 
 #define LOG_TAG "bt_btif_hf"
 
+#include <android_bluetooth_flags.h>
 #include <android_bluetooth_sysprop.h>
 #include <base/functional/callback.h>
 #include <base/logging.h>
-
-#ifdef __ANDROID__
-#include <com_android_bluetooth_flags.h>
-#endif
-
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 
 #include <cstdint>
@@ -594,12 +590,16 @@ static void btif_hf_upstreams_evt(uint16_t event, char* p_param) {
       } else {
         bt_hf_callbacks->WbsCallback(BTHF_WBS_NONE,
                                      &btif_hf_cb[idx].connected_bda);
-#ifdef __ANDROID__
-        if (com::android::bluetooth::flags::hfp_codec_aptx_voice()) {
+
+        bthf_swb_codec_t codec = BTHF_SWB_CODEC_LC3;
+        bthf_swb_config_t config = BTHF_SWB_NONE;
+
+        if (IS_FLAG_ENABLED(hfp_codec_aptx_voice)) {
+          codec = BTHF_SWB_CODEC_VENDOR_APTX;
+
           LOG_VERBOSE(
               "AG final selected SWB codec is 0x%02x 0=Q0 4=Q1 6=Q2 7=Q3",
               p_data->val.num);
-          bthf_swb_config_t config;
           if (p_data->val.num == BTA_AG_SCO_APTX_SWB_SETTINGS_Q0 ||
               p_data->val.num == BTA_AG_SCO_APTX_SWB_SETTINGS_Q1 ||
               p_data->val.num == BTA_AG_SCO_APTX_SWB_SETTINGS_Q2 ||
@@ -608,14 +608,9 @@ static void btif_hf_upstreams_evt(uint16_t event, char* p_param) {
           } else {
             config = BTHF_SWB_NO;
           }
-          bt_hf_callbacks->SwbCallback(BTHF_SWB_CODEC_VENDOR_APTX, config,
-                                       &btif_hf_cb[idx].connected_bda);
-        } else
-#endif  // call SwbCallback with LC3 on non android target
-        {
-          bt_hf_callbacks->SwbCallback(BTHF_SWB_CODEC_LC3, BTHF_SWB_NONE,
-                                       &btif_hf_cb[idx].connected_bda);
         }
+        bt_hf_callbacks->SwbCallback(codec, config,
+                                     &btif_hf_cb[idx].connected_bda);
       }
       break;
 
@@ -707,20 +702,21 @@ static void btif_hf_upstreams_evt(uint16_t event, char* p_param) {
       }
       break;
 
-#ifdef __ANDROID__
     case BTA_AG_AT_QCS_EVT:
-      if (com::android::bluetooth::flags::hfp_codec_aptx_voice()) {
-        LOG_INFO("AG final selected SWB codec is 0x%02x 0=Q0 4=Q1 6=Q2 7=Q3",
-                 p_data->val.num);
-        bt_hf_callbacks->SwbCallback(
-            BTHF_SWB_CODEC_VENDOR_APTX,
-            p_data->val.num <= BTA_AG_SCO_APTX_SWB_SETTINGS_Q3 ? BTHF_SWB_YES
-                                                               : BTHF_SWB_NO,
-            &btif_hf_cb[idx].connected_bda);
+      if (!IS_FLAG_ENABLED(hfp_codec_aptx_voice)) {
+        LOG(WARNING) << __func__ << ": unhandled event " << event
+                     << ". Aptx codec is not enabled";
         break;
       }
-      FALLTHROUGH_INTENDED;
-#endif
+
+      LOG_INFO("AG final selected SWB codec is %#02x 0=Q0 4=Q1 6=Q2 7=Q3",
+               p_data->val.num);
+      bt_hf_callbacks->SwbCallback(
+          BTHF_SWB_CODEC_VENDOR_APTX,
+          p_data->val.num <= BTA_AG_SCO_APTX_SWB_SETTINGS_Q3 ? BTHF_SWB_YES
+                                                             : BTHF_SWB_NO,
+          &btif_hf_cb[idx].connected_bda);
+      break;
 
     default:
       LOG(WARNING) << __func__ << ": unhandled event " << event;
