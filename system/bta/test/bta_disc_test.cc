@@ -22,7 +22,7 @@
 #include <memory>
 
 #include "bta/dm/bta_dm_disc.h"
-#include "bta/dm/bta_dm_int.h"
+#include "bta/dm/bta_dm_disc_int.h"
 #include "stack/btm/neighbor_inquiry.h"
 #include "stack/include/gatt_api.h"
 #include "test/common/main_handler.h"
