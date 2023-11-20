@@ -631,24 +631,15 @@ class BluetoothManagerService {
                     String action = intent.getAction();
                     if (BluetoothAdapter.ACTION_LOCAL_NAME_CHANGED.equals(action)) {
                         String newName = intent.getStringExtra(BluetoothAdapter.EXTRA_LOCAL_NAME);
-                        if (DBG) {
-                            Log.d(
-                                    TAG,
-                                    "Bluetooth Adapter name changed to "
-                                            + newName
-                                            + " by "
-                                            + mContext.getPackageName());
-                        }
                         if (newName != null) {
+                            Log.d(TAG, "Bluetooth Adapter name changed to " + newName);
                             storeNameAndAddress(newName, null);
                         }
                     } else if (BluetoothAdapter.ACTION_BLUETOOTH_ADDRESS_CHANGED.equals(action)) {
                         String newAddress =
                                 intent.getStringExtra(BluetoothAdapter.EXTRA_BLUETOOTH_ADDRESS);
                         if (newAddress != null) {
-                            if (DBG) {
-                                Log.d(TAG, "Bluetooth Adapter address changed to " + newAddress);
-                            }
+                            Log.d(TAG, "Bluetooth Adapter address changed to " + newAddress);
                             storeNameAndAddress(null, newAddress);
                         } else {
                             if (DBG) {
@@ -667,10 +658,9 @@ class BluetoothManagerService {
                             if (DBG) {
                                 Log.d(
                                         TAG,
-                                        "ACTION_SETTING_RESTORED with BLUETOOTH_ON, prevValue="
-                                                + prevValue
-                                                + ", newValue="
-                                                + newValue);
+                                        "ACTION_SETTING_RESTORED with BLUETOOTH_ON"
+                                                + (" prevValue=" + prevValue)
+                                                + (" newValue=" + newValue));
                             }
 
                             if ((newValue != null)
@@ -709,6 +699,7 @@ class BluetoothManagerService {
     BluetoothManagerService(
             @NonNull Context context, @NonNull Looper looper, @NonNull FeatureFlags featureFlags) {
         mContext = requireNonNull(context, "Context cannot be null");
+        mContentResolver = requireNonNull(mContext.getContentResolver(), "Resolver cannot be null");
         mLooper = requireNonNull(looper, "Looper cannot be null");
         mFeatureFlags = requireNonNull(featureFlags, "Feature Flags cannot be null");
 
@@ -720,7 +711,6 @@ class BluetoothManagerService {
         mBinder = new BluetoothServiceBinder(this, mContext, mUserManager);
         mHandler = new BluetoothHandler(mLooper);
 
-        mContentResolver = mContext.getContentResolver();
 
         // Observe BLE scan only mode settings change.
         registerForBleScanModeChange();
@@ -887,16 +877,11 @@ class BluetoothManagerService {
 
     /** Retrieve the Bluetooth Adapter's name and address and save it in the local cache */
     private void loadStoredNameAndAddress() {
-        if (DBG) {
-            Log.d(TAG, "Loading stored name and address");
-        }
         if (BluetoothProperties.isAdapterAddressValidationEnabled().orElse(false)
                 && Settings.Secure.getInt(mContentResolver, Settings.Secure.BLUETOOTH_ADDR_VALID, 0)
                         == 0) {
             // if the valid flag is not set, don't load the address and name
-            if (DBG) {
-                Log.d(TAG, "invalid bluetooth name and address stored");
-            }
+            Log.w(TAG, "There is no valid bluetooth name and address stored");
             return;
         }
         mName =
@@ -907,9 +892,7 @@ class BluetoothManagerService {
                         .settingsSecureGetString(
                                 mContentResolver, Settings.Secure.BLUETOOTH_ADDRESS);
 
-        if (DBG) {
-            Log.d(TAG, "Stored bluetooth Name=" + mName + ",Address=" + mAddress);
-        }
+        Log.d(TAG, "loadStoredNameAndAddress: Name=" + mName + ", Address=" + mAddress);
     }
 
     /**
@@ -921,32 +904,26 @@ class BluetoothManagerService {
      */
     private void storeNameAndAddress(String name, String address) {
         if (name != null) {
-            Settings.Secure.putString(mContentResolver, Settings.Secure.BLUETOOTH_NAME, name);
-            mName = name;
-            if (DBG) {
-                Log.d(
-                        TAG,
-                        "Stored Bluetooth name: "
-                                + Settings.Secure.getString(
-                                        mContentResolver, Settings.Secure.BLUETOOTH_NAME));
+            if (Settings.Secure.putString(mContentResolver, Settings.Secure.BLUETOOTH_NAME, name)) {
+                mName = name;
+            } else {
+                Log.e(TAG, "Failed to store name=" + name + ". Name is still " + mName);
             }
         }
 
         if (address != null) {
-            Settings.Secure.putString(mContentResolver, Settings.Secure.BLUETOOTH_ADDRESS, address);
-            mAddress = address;
-            if (DBG) {
-                Log.d(
-                        TAG,
-                        "Stored Bluetoothaddress: "
-                                + Settings.Secure.getString(
-                                        mContentResolver, Settings.Secure.BLUETOOTH_ADDRESS));
+            if (Settings.Secure.putString(
+                    mContentResolver, Settings.Secure.BLUETOOTH_ADDRESS, address)) {
+                mAddress = address;
+            } else {
+                Log.e(TAG, "Failed to store address=" + address + ". Address is still " + mAddress);
             }
         }
 
-        if ((name != null) && (address != null)) {
+        if ((mName != null) && (mAddress != null)) {
             Settings.Secure.putInt(mContentResolver, Settings.Secure.BLUETOOTH_ADDR_VALID, 1);
         }
+        Log.d(TAG, "storeNameAndAddress: Name=" + mName + ", Address=" + mAddress);
     }
 
     IBluetooth registerAdapter(IBluetoothManagerCallback callback) {
