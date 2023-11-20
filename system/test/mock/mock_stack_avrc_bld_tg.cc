@@ -26,12 +26,13 @@
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
 
-tAVRC_STS AVRC_BldResponse(uint8_t handle, tAVRC_RESPONSE* p_rsp,
-                           BT_HDR** pp_pkt) {
+tAVRC_STS AVRC_BldResponse(uint8_t /* handle */, tAVRC_RESPONSE* /* p_rsp */,
+                           BT_HDR** /* pp_pkt */) {
   inc_func_call_count(__func__);
   return 0;
 }
-tAVRC_STS avrc_bld_group_navigation_rsp(uint16_t navi_id, BT_HDR* p_pkt) {
+tAVRC_STS avrc_bld_group_navigation_rsp(uint16_t /* navi_id */,
+                                        BT_HDR* /* p_pkt */) {
   inc_func_call_count(__func__);
   return 0;
 }

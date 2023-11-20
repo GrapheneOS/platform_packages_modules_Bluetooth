@@ -55,9 +55,11 @@ struct MockMsbcCodecInterface : public bluetooth::core::CodecInterface {
   virtual void initialize(){};
   virtual void cleanup() {}
 
-  virtual uint32_t encodePacket(int16_t* input, uint8_t* output) { return 0; };
-  virtual bool decodePacket(const uint8_t* i_buf, int16_t* o_buf,
-                            size_t out_len) {
+  virtual uint32_t encodePacket(int16_t* /* input */, uint8_t* /* output */) {
+    return 0;
+  };
+  virtual bool decodePacket(const uint8_t* /* i_buf */, int16_t* /* o_buf */,
+                            size_t /* out_len */) {
     return false;
   };
 };
@@ -66,9 +68,11 @@ struct MockLc3CodecInterface : public bluetooth::core::CodecInterface {
   virtual void initialize(){};
   virtual void cleanup() {}
 
-  virtual uint32_t encodePacket(int16_t* input, uint8_t* output) { return 0; };
-  virtual bool decodePacket(const uint8_t* i_buf, int16_t* o_buf,
-                            size_t out_len) {
+  virtual uint32_t encodePacket(int16_t* /* input */, uint8_t* /* output */) {
+    return 0;
+  };
+  virtual bool decodePacket(const uint8_t* /* i_buf */, int16_t* /* o_buf */,
+                            size_t /* out_len */) {
     return false;
   };
 };
@@ -113,11 +117,12 @@ MockCoreInterface::MockCoreInterface()
 
 void MockCoreInterface::onBluetoothEnabled(){};
 
-bt_status_t MockCoreInterface::toggleProfile(tBTA_SERVICE_ID service_id,
-                                             bool enable) {
+bt_status_t MockCoreInterface::toggleProfile(tBTA_SERVICE_ID /* service_id */,
+                                             bool /* enable */) {
   return BT_STATUS_SUCCESS;
 };
 
-void MockCoreInterface::removeDeviceFromProfiles(const RawAddress& bd_addr){};
+void MockCoreInterface::removeDeviceFromProfiles(
+    const RawAddress& /* bd_addr */){};
 
-void MockCoreInterface::onLinkDown(const RawAddress& bd_addr){};
+void MockCoreInterface::onLinkDown(const RawAddress& /* bd_addr */){};

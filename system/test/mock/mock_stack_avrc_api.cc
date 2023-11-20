@@ -31,11 +31,11 @@ bool avrcp_absolute_volume_is_enabled() {
   inc_func_call_count(__func__);
   return true;
 }
-uint16_t AVRC_Close(uint8_t handle) {
+uint16_t AVRC_Close(uint8_t /* handle */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t AVRC_CloseBrowse(uint8_t handle) {
+uint16_t AVRC_CloseBrowse(uint8_t /* handle */) {
   inc_func_call_count(__func__);
   return 0;
 }
@@ -47,41 +47,46 @@ uint16_t AVRC_GetProfileVersion() {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t AVRC_MsgReq(uint8_t handle, uint8_t label, uint8_t ctype,
-                     BT_HDR* p_pkt, bool is_new_avrcp) {
+uint16_t AVRC_MsgReq(uint8_t /* handle */, uint8_t /* label */,
+                     uint8_t /* ctype */, BT_HDR* /* p_pkt */,
+                     bool /* is_new_avrcp */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t AVRC_Open(uint8_t* p_handle, tAVRC_CONN_CB* p_ccb,
-                   const RawAddress& peer_addr) {
+uint16_t AVRC_Open(uint8_t* /* p_handle */, tAVRC_CONN_CB* /* p_ccb */,
+                   const RawAddress& /* peer_addr */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t AVRC_OpenBrowse(uint8_t handle, uint8_t conn_role) {
+uint16_t AVRC_OpenBrowse(uint8_t /* handle */, uint8_t /* conn_role */) {
   inc_func_call_count(__func__);
   return 0;
 }
-void AVRC_SaveControllerVersion(const RawAddress& bdaddr, uint16_t version) {
+void AVRC_SaveControllerVersion(const RawAddress& /* bdaddr */,
+                                uint16_t /* version */) {
   inc_func_call_count(__func__);
 }
 
-void AVRC_UpdateCcb(RawAddress* addr, uint32_t company_id) {
+void AVRC_UpdateCcb(RawAddress* /* addr */, uint32_t /* company_id */) {
   inc_func_call_count(__func__);
 }
 
-uint16_t AVRC_PassCmd(uint8_t handle, uint8_t label, tAVRC_MSG_PASS* p_msg) {
+uint16_t AVRC_PassCmd(uint8_t /* handle */, uint8_t /* label */,
+                      tAVRC_MSG_PASS* /* p_msg */) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint16_t AVRC_PassRsp(uint8_t handle, uint8_t label, tAVRC_MSG_PASS* p_msg) {
+uint16_t AVRC_PassRsp(uint8_t /* handle */, uint8_t /* label */,
+                      tAVRC_MSG_PASS* /* p_msg */) {
   inc_func_call_count(__func__);
   return 0;
 }
-void avrc_flush_cmd_q(uint8_t handle) { inc_func_call_count(__func__); }
-void avrc_process_timeout(void* data) { inc_func_call_count(__func__); }
-void avrc_send_next_vendor_cmd(uint8_t handle) {
+void avrc_flush_cmd_q(uint8_t /* handle */) { inc_func_call_count(__func__); }
+void avrc_process_timeout(void* /* data */) { inc_func_call_count(__func__); }
+void avrc_send_next_vendor_cmd(uint8_t /* handle */) {
   inc_func_call_count(__func__);
 }
-void avrc_start_cmd_timer(uint8_t handle, uint8_t label, uint8_t msg_mask) {
+void avrc_start_cmd_timer(uint8_t /* handle */, uint8_t /* label */,
+                          uint8_t /* msg_mask */) {
   inc_func_call_count(__func__);
 }

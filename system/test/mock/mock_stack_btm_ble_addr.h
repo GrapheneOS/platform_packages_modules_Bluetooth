@@ -40,7 +40,7 @@ namespace stack_btm_ble_addr {
 // Returns: void
 struct btm_gen_resolve_paddr_low {
   std::function<void(const RawAddress& address)> body{
-      [](const RawAddress& address) {}};
+      [](const RawAddress& /* address */) {}};
   void operator()(const RawAddress& address) { body(address); };
 };
 extern struct btm_gen_resolve_paddr_low btm_gen_resolve_paddr_low;
@@ -49,7 +49,7 @@ extern struct btm_gen_resolve_paddr_low btm_gen_resolve_paddr_low;
 // Returns: void
 struct btm_gen_resolvable_private_addr {
   std::function<void(base::Callback<void(const RawAddress&)> cb)> body{
-      [](base::Callback<void(const RawAddress&)> cb) {}};
+      [](base::Callback<void(const RawAddress&)> /* cb */) {}};
   void operator()(base::Callback<void(const RawAddress&)> cb) { body(cb); };
 };
 extern struct btm_gen_resolvable_private_addr btm_gen_resolvable_private_addr;
@@ -60,9 +60,8 @@ extern struct btm_gen_resolvable_private_addr btm_gen_resolvable_private_addr;
 struct btm_ble_init_pseudo_addr {
   std::function<bool(tBTM_SEC_DEV_REC* p_dev_rec,
                      const RawAddress& new_pseudo_addr)>
-      body{[](tBTM_SEC_DEV_REC* p_dev_rec, const RawAddress& new_pseudo_addr) {
-        return false;
-      }};
+      body{[](tBTM_SEC_DEV_REC* /* p_dev_rec */,
+              const RawAddress& /* new_pseudo_addr */) { return false; }};
   bool operator()(tBTM_SEC_DEV_REC* p_dev_rec,
                   const RawAddress& new_pseudo_addr) {
     return body(p_dev_rec, new_pseudo_addr);
@@ -74,7 +73,9 @@ extern struct btm_ble_init_pseudo_addr btm_ble_init_pseudo_addr;
 // Returns: bool
 struct btm_ble_addr_resolvable {
   std::function<bool(const RawAddress& rpa, tBTM_SEC_DEV_REC* p_dev_rec)> body{
-      [](const RawAddress& rpa, tBTM_SEC_DEV_REC* p_dev_rec) { return false; }};
+      [](const RawAddress& /* rpa */, tBTM_SEC_DEV_REC* /* p_dev_rec */) {
+        return false;
+      }};
   bool operator()(const RawAddress& rpa, tBTM_SEC_DEV_REC* p_dev_rec) {
     return body(rpa, p_dev_rec);
   };
@@ -85,7 +86,7 @@ extern struct btm_ble_addr_resolvable btm_ble_addr_resolvable;
 // Returns: tBTM_SEC_DEV_REC*
 struct btm_ble_resolve_random_addr {
   std::function<tBTM_SEC_DEV_REC*(const RawAddress& random_bda)> body{
-      [](const RawAddress& random_bda) { return nullptr; }};
+      [](const RawAddress& /* random_bda */) { return nullptr; }};
   tBTM_SEC_DEV_REC* operator()(const RawAddress& random_bda) {
     return body(random_bda);
   };
@@ -97,9 +98,8 @@ extern struct btm_ble_resolve_random_addr btm_ble_resolve_random_addr;
 struct btm_identity_addr_to_random_pseudo {
   std::function<bool(RawAddress* bd_addr, tBLE_ADDR_TYPE* p_addr_type,
                      bool refresh)>
-      body{[](RawAddress* bd_addr, tBLE_ADDR_TYPE* p_addr_type, bool refresh) {
-        return false;
-      }};
+      body{[](RawAddress* /* bd_addr */, tBLE_ADDR_TYPE* /* p_addr_type */,
+              bool /* refresh */) { return false; }};
   bool operator()(RawAddress* bd_addr, tBLE_ADDR_TYPE* p_addr_type,
                   bool refresh) {
     return body(bd_addr, p_addr_type, refresh);
@@ -112,7 +112,9 @@ extern struct btm_identity_addr_to_random_pseudo
 // Returns: bool
 struct btm_identity_addr_to_random_pseudo_from_address_with_type {
   std::function<bool(tBLE_BD_ADDR* address_with_type, bool refresh)> body{
-      [](tBLE_BD_ADDR* address_with_type, bool refresh) { return false; }};
+      [](tBLE_BD_ADDR* /* address_with_type */, bool /* refresh */) {
+        return false;
+      }};
   bool operator()(tBLE_BD_ADDR* address_with_type, bool refresh) {
     return body(address_with_type, refresh);
   };
@@ -125,9 +127,8 @@ extern struct btm_identity_addr_to_random_pseudo_from_address_with_type
 struct btm_random_pseudo_to_identity_addr {
   std::function<bool(RawAddress* random_pseudo,
                      tBLE_ADDR_TYPE* p_identity_addr_type)>
-      body{[](RawAddress* random_pseudo, tBLE_ADDR_TYPE* p_identity_addr_type) {
-        return false;
-      }};
+      body{[](RawAddress* /* random_pseudo */,
+              tBLE_ADDR_TYPE* /* p_identity_addr_type */) { return false; }};
   bool operator()(RawAddress* random_pseudo,
                   tBLE_ADDR_TYPE* p_identity_addr_type) {
     return body(random_pseudo, p_identity_addr_type);
@@ -141,8 +142,8 @@ extern struct btm_random_pseudo_to_identity_addr
 struct btm_ble_refresh_peer_resolvable_private_addr {
   std::function<void(const RawAddress& pseudo_bda, const RawAddress& rpa,
                      tBLE_RAND_ADDR_TYPE rra_type)>
-      body{[](const RawAddress& pseudo_bda, const RawAddress& rpa,
-              tBLE_RAND_ADDR_TYPE rra_type) {}};
+      body{[](const RawAddress& /* pseudo_bda */, const RawAddress& /* rpa */,
+              tBLE_RAND_ADDR_TYPE /* rra_type */) {}};
   void operator()(const RawAddress& pseudo_bda, const RawAddress& rpa,
                   tBLE_RAND_ADDR_TYPE rra_type) {
     body(pseudo_bda, rpa, rra_type);

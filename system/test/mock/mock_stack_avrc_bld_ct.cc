@@ -24,7 +24,7 @@
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
 
-tAVRC_STS AVRC_BldCommand(tAVRC_COMMAND* p_cmd, BT_HDR** pp_pkt) {
+tAVRC_STS AVRC_BldCommand(tAVRC_COMMAND* /* p_cmd */, BT_HDR** /* pp_pkt */) {
   inc_func_call_count(__func__);
   return 0;
 }

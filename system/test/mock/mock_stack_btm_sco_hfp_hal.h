@@ -45,7 +45,7 @@ namespace stack_btm_sco_hfp_hal {
 struct enable_offload {
   static bool return_value;
   std::function<bool(bool enable)> body{
-      [](bool enable) { return return_value; }};
+      [](bool /* enable */) { return return_value; }};
   bool operator()(bool enable) { return body(enable); };
 };
 extern struct enable_offload enable_offload;
@@ -56,7 +56,7 @@ extern struct enable_offload enable_offload;
 struct get_codec_capabilities {
   static hfp_hal_interface::bt_codecs return_value;
   std::function<hfp_hal_interface::bt_codecs(uint64_t codecs)> body{
-      [](uint64_t codecs) { return return_value; }};
+      [](uint64_t /* codecs */) { return return_value; }};
   hfp_hal_interface::bt_codecs operator()(uint64_t codecs) {
     return body(codecs);
   };
@@ -88,7 +88,8 @@ extern struct get_offload_supported get_offload_supported;
 // Return: int
 struct get_packet_size {
   static int return_value;
-  std::function<int(int codec)> body{[](int codec) { return return_value; }};
+  std::function<int(int /* codec */)> body{
+      [](int /* codec */) { return return_value; }};
   int operator()(int codec) { return body(codec); };
 };
 extern struct get_packet_size get_packet_size;
@@ -127,7 +128,7 @@ extern struct init init;
 // Return: void
 struct notify_sco_connection_change {
   std::function<void(RawAddress device, bool is_connected, int codec)> body{
-      [](RawAddress device, bool is_connected, int codec) {}};
+      [](RawAddress /* device */, bool /* is_connected */, int /* codec */) {}};
   void operator()(RawAddress device, bool is_connected, int codec) {
     body(device, is_connected, codec);
   };
@@ -138,9 +139,8 @@ extern struct notify_sco_connection_change notify_sco_connection_change;
 // Params: esco_coding_format_t coding_format
 // Return: void
 struct set_codec_datapath {
-  std::function<void(esco_coding_format_t coding_format)> body{
-      [](esco_coding_format_t coding_format) {}};
-  void operator()(esco_coding_format_t coding_format) { body(coding_format); };
+  std::function<void(int coding_format)> body{[](int /* coding_format */) {}};
+  void operator()(int coding_format) { body(coding_format); };
 };
 extern struct set_codec_datapath set_codec_datapath;
 
@@ -149,7 +149,7 @@ extern struct set_codec_datapath set_codec_datapath;
 // Return: void
 struct update_esco_parameters {
   std::function<void(enh_esco_params_t* p_parms)> body{
-      [](enh_esco_params_t* p_parms) {}};
+      [](enh_esco_params_t* /* p_parms */) {}};
   void operator()(enh_esco_params_t* p_parms) { body(p_parms); };
 };
 extern struct update_esco_parameters update_esco_parameters;
