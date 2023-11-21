@@ -75,6 +75,10 @@ public final class HeadsetHalConstants {
     static final int BTHF_WBS_NO = 1;
     static final int BTHF_WBS_YES = 2;
 
+    // match up with bthf_swb_codec_t of bt_hf.h
+    static final int BTHF_SWB_CODEC_LC3 = 0;
+    static final int BTHF_SWB_CODEC_VENDOR_APTX = 1;
+
     // match up with bthf_swb_config_t of bt_hf.h
     static final int BTHF_SWB_NONE = 0;
     static final int BTHF_SWB_NO = 1;

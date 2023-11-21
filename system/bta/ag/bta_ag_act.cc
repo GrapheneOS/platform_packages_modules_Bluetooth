@@ -22,6 +22,7 @@
  *
  ******************************************************************************/
 
+#include <android_bluetooth_flags.h>
 #include <base/logging.h>
 
 #include <cstdint>
@@ -29,6 +30,7 @@
 
 #include "bta/ag/bta_ag_int.h"
 #include "bta/include/bta_dm_api.h"
+#include "bta_ag_swb_aptx.h"
 
 #ifdef __ANDROID__
 #include "bta/le_audio/devices.h"
@@ -38,9 +40,9 @@
 #include "device/include/device_iot_config.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_uuid16.h"
+#include "stack/include/btm_sec_api_types.h"
 #include "stack/include/l2c_api.h"
 #include "stack/include/port_api.h"
-#include "stack/include/btm_sec_api_types.h"
 #include "stack/include/sdp_api.h"
 #include "types/raw_address.h"
 
@@ -352,6 +354,7 @@ void bta_ag_rfc_fail(tBTA_AG_SCB* p_scb, UNUSED_ATTR const tBTA_AG_DATA& data) {
   p_scb->peer_features = 0;
   p_scb->peer_codecs = BTM_SCO_CODEC_CVSD;
   p_scb->sco_codec = BTM_SCO_CODEC_CVSD;
+  p_scb->is_aptx_swb_codec = false;
   p_scb->role = 0;
   p_scb->svc_conn = false;
   p_scb->hsp_version = HSP_VERSION_1_2;
@@ -391,6 +394,8 @@ void bta_ag_rfc_close(tBTA_AG_SCB* p_scb,
   p_scb->codec_updated = false;
   p_scb->codec_fallback = false;
   p_scb->codec_msbc_settings = BTA_AG_SCO_MSBC_SETTINGS_T2;
+  p_scb->codec_aptx_settings = BTA_AG_SCO_APTX_SWB_SETTINGS_Q0;
+  p_scb->is_aptx_swb_codec = false;
   p_scb->codec_lc3_settings = BTA_AG_SCO_LC3_SETTINGS_T2;
   p_scb->role = 0;
   p_scb->svc_conn = false;
@@ -840,12 +845,18 @@ void bta_ag_svc_conn_open(tBTA_AG_SCB* p_scb,
 void bta_ag_setcodec(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
   tBTA_AG_PEER_CODEC codec_type = data.api_setcodec.codec;
   tBTA_AG_VAL val = {};
+  const bool aptx_voice = IS_FLAG_ENABLED(hfp_codec_aptx_voice) &&
+                          (codec_type == BTA_AG_SCO_APTX_SWB_SETTINGS_Q0);
+  LOG_VERBOSE("aptx_voice=%s, codec_type=%#x", logbool(aptx_voice).c_str(),
+              codec_type);
+
   val.hdr.handle = bta_ag_scb_to_idx(p_scb);
 
   /* Check if the requested codec type is valid */
   if ((codec_type != BTM_SCO_CODEC_NONE) &&
       (codec_type != BTM_SCO_CODEC_CVSD) &&
-      (codec_type != BTM_SCO_CODEC_MSBC) && (codec_type != BTM_SCO_CODEC_LC3)) {
+      (codec_type != BTM_SCO_CODEC_MSBC) && (codec_type != BTM_SCO_CODEC_LC3) &&
+      !aptx_voice) {
     val.num = codec_type;
     val.hdr.status = BTA_AG_FAIL_RESOURCES;
     LOG_ERROR("bta_ag_setcodec error: unsupported codec type %d", codec_type);

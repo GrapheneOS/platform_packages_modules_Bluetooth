@@ -768,7 +768,11 @@ void bta_gattc_cfg_mtu(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
     case MTU_EXCHANGE_IN_PROGRESS:
       LOG_INFO("Enqueue MTU Request  - waiting for response on p_clcb %p",
                p_clcb);
-      bta_gattc_enqueue(p_clcb, p_data);
+      /* MTU request is in progress and this one will not be sent to remote
+       * device. Just push back on the queue and response will be sent up to
+       * the upper layer when MTU Exchange will be completed.
+       */
+      p_clcb->p_q_cmd_queue.push_back(p_data);
       return;
 
     case MTU_EXCHANGE_NOT_DONE_YET:

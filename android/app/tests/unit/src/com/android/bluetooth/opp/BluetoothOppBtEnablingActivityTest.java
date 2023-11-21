@@ -51,6 +51,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @RunWith(AndroidJUnit4.class)
 public class BluetoothOppBtEnablingActivityTest {
@@ -117,14 +118,20 @@ public class BluetoothOppBtEnablingActivityTest {
         ActivityScenario<BluetoothOppBtEnablingActivity> activityScenario = ActivityScenario.launch(
                 mIntent);
 
-        activityScenario.onActivity(activity -> {
-            activity.onKeyDown(KeyEvent.KEYCODE_BACK,
-                    new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK));
-            // Should be cancelled immediately
-            BluetoothOppManager mOppManager = BluetoothOppManager.getInstance(activity);
-            assertThat(mOppManager.mSendingFlag).isEqualTo(false);
-        });
-        assertActivityState(activityScenario, DESTROYED);
+        AtomicBoolean finishCalled = new AtomicBoolean(false);
+
+        activityScenario.onActivity(
+                activity -> {
+                    activity.onKeyDown(
+                            KeyEvent.KEYCODE_BACK,
+                            new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK));
+                    // Should be cancelled immediately
+                    BluetoothOppManager mOppManager = BluetoothOppManager.getInstance(activity);
+                    assertThat(mOppManager.mSendingFlag).isEqualTo(false);
+
+                    finishCalled.set(activity.isFinishing());
+                });
+        assertThat(finishCalled.get()).isTrue();
     }
 
     @Test
@@ -140,12 +147,17 @@ public class BluetoothOppBtEnablingActivityTest {
         doReturn(false).when(mBluetoothMethodProxy).bluetoothAdapterIsEnabled(any());
         ActivityScenario<BluetoothOppBtEnablingActivity> activityScenario = ActivityScenario.launch(
                 mIntent);
-        activityScenario.onActivity(activity -> {
-            Intent intent = new Intent(BluetoothAdapter.ACTION_STATE_CHANGED);
-            intent.putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_ON);
-            activity.mBluetoothReceiver.onReceive(mTargetContext, intent);
-        });
-        assertActivityState(activityScenario, DESTROYED);
+
+        AtomicBoolean finishCalled = new AtomicBoolean(false);
+        activityScenario.onActivity(
+                activity -> {
+                    Intent intent = new Intent(BluetoothAdapter.ACTION_STATE_CHANGED);
+                    intent.putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_ON);
+                    activity.mBluetoothReceiver.onReceive(mTargetContext, intent);
+
+                    finishCalled.set(activity.isFinishing());
+                });
+        assertThat(finishCalled.get()).isTrue();
     }
 
     private void assertActivityState(ActivityScenario activityScenario, Lifecycle.State state)

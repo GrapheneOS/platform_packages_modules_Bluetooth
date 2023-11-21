@@ -18,6 +18,7 @@
 
 #define LOG_TAG "bta_ag_cmd"
 
+#include <android_bluetooth_flags.h>
 #include <base/logging.h>
 
 #include <cstdint>
@@ -27,6 +28,7 @@
 #include "bta/ag/bta_ag_int.h"
 #include "bta/include/bta_ag_api.h"
 #include "bta/include/utl.h"
+#include "bta_ag_swb_aptx.h"
 
 #ifdef __ANDROID__
 #include "bta_le_audio_api.h"
@@ -113,6 +115,10 @@ static const tBTA_AG_AT_CMD bta_ag_hfp_cmd[] = {
      BTA_AG_AT_SET | BTA_AG_AT_READ | BTA_AG_AT_TEST, BTA_AG_AT_STR, 0, 0},
     {"+BIEV", BTA_AG_AT_BIEV_EVT, BTA_AG_AT_SET, BTA_AG_AT_STR, 0, 0},
     {"+BAC", BTA_AG_AT_BAC_EVT, BTA_AG_AT_SET, BTA_AG_AT_STR, 0, 0},
+    {"+%QAC", BTA_AG_AT_QAC_EVT, BTA_AG_AT_SET, BTA_AG_AT_STR, 0, 0},
+    {"+%QCS", BTA_AG_AT_QCS_EVT, BTA_AG_AT_SET, BTA_AG_AT_INT, 0,
+     BTA_AG_CMD_MAX_VAL},
+
     /* End-of-table marker used to stop lookup iteration */
     {"", 0, 0, 0, 0, 0}};
 
@@ -165,6 +171,9 @@ static const tBTA_AG_RESULT bta_ag_result_tbl[] = {
     {"+CME ERROR: ", BTA_AG_LOCAL_RES_CMEE, BTA_AG_RES_FMT_INT},
     {"+BCS: ", BTA_AG_LOCAL_RES_BCS, BTA_AG_RES_FMT_INT},
     {"+BIND: ", BTA_AG_BIND_RES, BTA_AG_RES_FMT_STR},
+    {"+%QAC: ", BTA_AG_LOCAL_RES_QAC, BTA_AG_RES_FMT_STR},
+    {"+%QCS: ", BTA_AG_LOCAL_RES_QCS, BTA_AG_RES_FMT_INT},
+
     {"", BTA_AG_UNAT_RES, BTA_AG_RES_FMT_STR}};
 
 static const tBTA_AG_RESULT* bta_ag_result_by_code(size_t code) {
@@ -1247,11 +1256,18 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB* p_scb, uint16_t cmd, uint8_t arg_type,
 
         bool wbs_supported = hfp_hal_interface::get_wbs_supported();
         bool swb_supported = hfp_hal_interface::get_swb_supported();
+        const bool aptx_voice =
+            IS_FLAG_ENABLED(hfp_codec_aptx_voice) && p_scb->is_aptx_swb_codec;
+        LOG_VERBOSE("BTA_AG_AT_BAC_EVT aptx_voice=%s",
+                    logbool(aptx_voice).c_str());
 
         if (swb_supported && (p_scb->peer_codecs & BTM_SCO_CODEC_LC3) &&
             !(p_scb->disabled_codecs & BTM_SCO_CODEC_LC3)) {
           p_scb->sco_codec = BTM_SCO_CODEC_LC3;
           LOG_VERBOSE("Received AT+BAC, updating sco codec to LC3");
+        } else if (aptx_voice) {
+          p_scb->sco_codec = BTA_AG_SCO_APTX_SWB_SETTINGS_Q0;
+          LOG_VERBOSE("Received AT+BAC, updating sco codec to AptX Voice");
         } else if (wbs_supported && (p_scb->peer_codecs & BTM_SCO_CODEC_MSBC) &&
                    !(p_scb->disabled_codecs & BTM_SCO_CODEC_MSBC)) {
           p_scb->sco_codec = BTM_SCO_CODEC_MSBC;
@@ -1328,6 +1344,28 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB* p_scb, uint16_t cmd, uint8_t arg_type,
       bta_ag_sco_open(p_scb, tBTA_AG_DATA::kEmpty);
       break;
     }
+    case BTA_AG_AT_QAC_EVT:
+      if (!IS_FLAG_ENABLED(hfp_codec_aptx_voice)) {
+        bta_ag_send_error(p_scb, BTA_AG_ERR_OP_NOT_SUPPORTED);
+        break;
+      }
+      p_scb->peer_codecs |= bta_ag_parse_qac(p_arg);
+      // AT+%QAC needs to be responded with +%QAC
+      bta_ag_swb_handle_vs_at_events(p_scb, cmd, int_arg, &val);
+      // followed by OK
+      bta_ag_send_ok(p_scb);
+      break;
+    case BTA_AG_AT_QCS_EVT:
+      if (!IS_FLAG_ENABLED(hfp_codec_aptx_voice)) {
+        bta_ag_send_error(p_scb, BTA_AG_ERR_OP_NOT_SUPPORTED);
+        break;
+      }
+      // AT+%QCS is a response to +%QCS sent from AG.
+      // Send OK to BT headset
+      bta_ag_send_ok(p_scb);
+      // Handle AT+%QCS
+      bta_ag_swb_handle_vs_at_events(p_scb, cmd, int_arg, &val);
+      break;
     default:
       bta_ag_send_error(p_scb, BTA_AG_ERR_OP_NOT_SUPPORTED);
       break;
@@ -1895,4 +1933,47 @@ void bta_ag_send_ring(tBTA_AG_SCB* p_scb,
 
   bta_sys_start_timer(p_scb->ring_timer, BTA_AG_RING_TIMEOUT_MS,
                       BTA_AG_RING_TIMEOUT_EVT, bta_ag_scb_to_idx(p_scb));
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_ag_send_qcs
+ *
+ * Description      Send +%QCS AT command to peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void bta_ag_send_qcs(tBTA_AG_SCB* p_scb, tBTA_AG_DATA* p_data) {
+  uint16_t codec_uuid;
+  if (p_scb->codec_fallback) {
+    if (p_scb->peer_codecs & BTM_SCO_CODEC_MSBC) {
+      codec_uuid = UUID_CODEC_MSBC;
+    } else {
+      codec_uuid = UUID_CODEC_CVSD;
+    }
+  } else {
+    codec_uuid = BTA_AG_SCO_APTX_SWB_SETTINGS_Q0;
+  }
+
+  LOG_VERBOSE("send +QCS codec is %d", codec_uuid);
+  bta_ag_send_result(p_scb, BTA_AG_LOCAL_RES_QCS, NULL, codec_uuid);
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_ag_send_qac
+ *
+ * Description      Send +%QAC AT command to peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void bta_ag_send_qac(tBTA_AG_SCB* p_scb, tBTA_AG_DATA* p_data) {
+  LOG_VERBOSE("send +QAC codecs supported");
+  bta_ag_send_result(p_scb, BTA_AG_LOCAL_RES_QAC, SWB_CODECS_SUPPORTED, 0);
+
+  if (p_scb->sco_codec == BTA_AG_SCO_APTX_SWB_SETTINGS_Q0) {
+    p_scb->is_aptx_swb_codec = true;
+  }
 }
