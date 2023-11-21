@@ -353,6 +353,25 @@ tHID_STATUS HID_HostDeregister(void) {
 
 /*******************************************************************************
  *
+ * Function         HID_HostSDPDisable
+ *
+ * Description      This is called to check if the device has the HIDSDPDisable
+ *                  attribute.
+ *
+ * Returns          bool
+ *
+ ******************************************************************************/
+bool HID_HostSDPDisable(const RawAddress& addr) {
+  for (int i = 0; i < HID_HOST_MAX_DEVICES; i++) {
+    if (hh_cb.devices[i].in_use && (hh_cb.devices[i].addr == addr)) {
+      return (hh_cb.devices[i].attr_mask & HID_SDP_DISABLE);
+    }
+  }
+  return false;
+}
+
+/*******************************************************************************
+ *
  * Function         HID_HostAddDev
  *
  * Description      This is called so HID-host may manage this device.
@@ -390,7 +409,7 @@ tHID_STATUS HID_HostAddDev(const RawAddress& addr, uint16_t attr_mask,
     hh_cb.devices[i].conn_tries = 0;
   }
 
-  if (attr_mask != HID_ATTR_MASK_IGNORE) hh_cb.devices[i].attr_mask = attr_mask;
+  hh_cb.devices[i].attr_mask = attr_mask;
 
   *handle = i;
 

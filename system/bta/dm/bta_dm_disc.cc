@@ -50,6 +50,7 @@
 #include "stack/include/btm_log_history.h"
 #include "stack/include/btm_sec_api.h"  // BTM_IsRemoteNameKnown
 #include "stack/include/gap_api.h"      // GAP_BleReadPeerPrefConnParams
+#include "stack/include/hidh_api.h"
 #include "stack/include/sdp_status.h"
 #include "stack/sdp/sdpint.h"  // is_sdp_pbap_pce_disabled
 #include "types/raw_address.h"
@@ -1361,8 +1362,17 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
   /* Reset transport state for next discovery */
   bta_dm_search_cb.transport = BT_TRANSPORT_AUTO;
 
-  /* if application wants to discover service */
-  if (bta_dm_search_cb.services) {
+  bool sdp_disable = HID_HostSDPDisable(remote_bd_addr);
+  if (sdp_disable)
+    LOG_DEBUG("peer:%s with HIDSDPDisable attribute.",
+              ADDRESS_TO_LOGGABLE_CSTR(remote_bd_addr));
+
+  /* if application wants to discover service and HIDSDPDisable attribute is
+     false.
+     Classic mouses with this attribute should not start SDP here, because the
+     SDP has been done during bonding. SDP request here will interleave with
+     connections to the Control or Interrupt channels */
+  if (bta_dm_search_cb.services && !sdp_disable) {
     BTM_LogHistory(kBtmLogTag, remote_bd_addr, "Discovery started ",
                    base::StringPrintf("Transport:%s",
                                       bt_transport_text(transport).c_str()));
