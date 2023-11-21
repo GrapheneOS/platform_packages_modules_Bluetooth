@@ -18,6 +18,7 @@ package android.bluetooth;
 
 import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 
+import android.annotation.BroadcastBehavior;
 import android.annotation.FlaggedApi;
 import android.annotation.IntDef;
 import android.annotation.IntRange;
@@ -282,6 +283,34 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @SystemApi
     public static final String ACTION_SWITCH_BUFFER_SIZE =
             "android.bluetooth.device.action.SWITCH_BUFFER_SIZE";
+
+    /**
+     * Broadcast Action: Indicates that previously bonded device couldn't provide keys to establish
+     * encryption. This can have numerous reasons, i.e.:
+     *
+     * <ul>
+     *   <li>remote was factory reset, or removed bond
+     *   <li>spoofing attack, someone is impersonating remote device
+     *   <li>in case of LE devices, very unlikely address collision
+     * </ul>
+     *
+     * Only registered receivers will receive this intent.
+     *
+     * <p>Always contains the extra field {@link #EXTRA_DEVICE}
+     *
+     * @hide
+     */
+    @FlaggedApi("com.android.bluetooth.flags.key_missing_broadcast")
+    @SuppressLint("ActionValue")
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
+    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    @SystemApi
+    @BroadcastBehavior(includeBackground = true, protectedBroadcast = true)
+    public static final String ACTION_KEY_MISSING = "android.bluetooth.device.action.KEY_MISSING";
 
     /**
      * Used as an Integer extra field in {@link #ACTION_BATTERY_LEVEL_CHANGED}
