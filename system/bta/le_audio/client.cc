@@ -1865,9 +1865,19 @@ class LeAudioClientImpl : public LeAudioClient {
                        tBT_TRANSPORT transport, uint16_t mtu) {
     LeAudioDevice* leAudioDevice = leAudioDevices_.FindByAddress(address);
 
-    if (!leAudioDevice) return;
+    LOG_INFO("%s, conn_id=0x%04x, transport=%s, status=%s (0x%02x)",
+             ADDRESS_TO_LOGGABLE_CSTR(address), conn_id,
+             bt_transport_text(transport).c_str(),
+             gatt_status_text(status).c_str(), status);
 
-    LOG_INFO("%s, status 0x%02x", ADDRESS_TO_LOGGABLE_CSTR(address), status);
+    if (transport != BT_TRANSPORT_LE) {
+      LOG_WARN("Only LE connection is allowed (transport %s)",
+               bt_transport_text(transport).c_str());
+      BTA_GATTC_Close(conn_id);
+      return;
+    }
+
+    if (!leAudioDevice) return;
 
     if (status != GATT_SUCCESS) {
       /* Clear current connection request and let it be set again if needed */
