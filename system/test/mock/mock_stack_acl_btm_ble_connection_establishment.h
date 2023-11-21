@@ -39,7 +39,7 @@ namespace stack_acl_btm_ble_connection_establishment {
 // Params: tHCI_STATUS status
 // Returns: void
 struct btm_ble_create_ll_conn_complete {
-  std::function<void(tHCI_STATUS status)> body{[](tHCI_STATUS status) {}};
+  std::function<void(tHCI_STATUS status)> body{[](tHCI_STATUS /* status */) {}};
   void operator()(tHCI_STATUS status) { body(status); };
 };
 extern struct btm_ble_create_ll_conn_complete btm_ble_create_ll_conn_complete;

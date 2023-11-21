@@ -17,18 +17,17 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-void update_pce_entry_to_interop_database(RawAddress remote_addr) {
+void update_pce_entry_to_interop_database(RawAddress /* remote_addr */) {
   inc_func_call_count(__func__);
 }
 
-bool is_sdp_pbap_pce_disabled(RawAddress remote_address) {
+bool is_sdp_pbap_pce_disabled(RawAddress /* remote_address */) {
   inc_func_call_count(__func__);
   return false;
 }
-void sdp_save_local_pse_record_attributes(int32_t rfcomm_channel_number,
-                                          int32_t l2cap_psm,
-                                          int32_t profile_version,
-                                          uint32_t supported_features,
-                                          uint32_t supported_repositories) {
+void sdp_save_local_pse_record_attributes(
+    int32_t /* rfcomm_channel_number */, int32_t /* l2cap_psm */,
+    int32_t /* profile_version */, uint32_t /* supported_features */,
+    uint32_t /* supported_repositories */) {
   inc_func_call_count(__func__);
 }

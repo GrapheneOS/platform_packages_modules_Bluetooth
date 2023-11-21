@@ -23,18 +23,22 @@
 #include "avrc_defs.h"
 #include "test/common/mock_functions.h"
 
-tAVRC_STS AVRC_Ctrl_ParsResponse(tAVRC_MSG* p_msg, tAVRC_RESPONSE* p_result,
-                                 uint8_t* p_buf, uint16_t* buf_len) {
+tAVRC_STS AVRC_Ctrl_ParsResponse(tAVRC_MSG* /* p_msg */,
+                                 tAVRC_RESPONSE* /* p_result */,
+                                 uint8_t* /* p_buf */,
+                                 uint16_t* /* buf_len */) {
   inc_func_call_count(__func__);
   return 0;
 }
-tAVRC_STS AVRC_ParsResponse(tAVRC_MSG* p_msg, tAVRC_RESPONSE* p_result,
-                            uint8_t* p_buf, uint16_t buf_len) {
+tAVRC_STS AVRC_ParsResponse(tAVRC_MSG* /* p_msg */,
+                            tAVRC_RESPONSE* /* p_result */,
+                            uint8_t* /* p_buf */, uint16_t /* buf_len */) {
   inc_func_call_count(__func__);
   return 0;
 }
-tAVRC_STS avrc_parse_notification_rsp(uint8_t* p_stream, uint16_t len,
-                                      tAVRC_REG_NOTIF_RSP* p_rsp) {
+tAVRC_STS avrc_parse_notification_rsp(uint8_t* /* p_stream */,
+                                      uint16_t /* len */,
+                                      tAVRC_REG_NOTIF_RSP* /* p_rsp */) {
   inc_func_call_count(__func__);
   return 0;
 }

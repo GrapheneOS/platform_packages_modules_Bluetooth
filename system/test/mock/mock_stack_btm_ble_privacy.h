@@ -38,7 +38,7 @@ namespace stack_btm_ble_privacy {
 // Returns: void
 struct btm_ble_clear_resolving_list_complete {
   std::function<void(uint8_t* p, uint16_t evt_len)> body{
-      [](uint8_t* p, uint16_t evt_len) {}};
+      [](uint8_t* /* p */, uint16_t /* evt_len */) {}};
   void operator()(uint8_t* p, uint16_t evt_len) { body(p, evt_len); };
 };
 extern struct btm_ble_clear_resolving_list_complete
@@ -48,7 +48,7 @@ extern struct btm_ble_clear_resolving_list_complete
 // Returns: void
 struct btm_ble_add_resolving_list_entry_complete {
   std::function<void(uint8_t* p, uint16_t evt_len)> body{
-      [](uint8_t* p, uint16_t evt_len) {}};
+      [](uint8_t* /* p */, uint16_t /* evt_len */) {}};
   void operator()(uint8_t* p, uint16_t evt_len) { body(p, evt_len); };
 };
 extern struct btm_ble_add_resolving_list_entry_complete
@@ -58,7 +58,7 @@ extern struct btm_ble_add_resolving_list_entry_complete
 // Returns: void
 struct btm_ble_remove_resolving_list_entry_complete {
   std::function<void(uint8_t* p, uint16_t evt_len)> body{
-      [](uint8_t* p, uint16_t evt_len) {}};
+      [](uint8_t* /* p */, uint16_t /* evt_len */) {}};
   void operator()(uint8_t* p, uint16_t evt_len) { body(p, evt_len); };
 };
 extern struct btm_ble_remove_resolving_list_entry_complete
@@ -68,7 +68,7 @@ extern struct btm_ble_remove_resolving_list_entry_complete
 // Returns: void
 struct btm_ble_read_resolving_list_entry_complete {
   std::function<void(const uint8_t* p, uint16_t evt_len)> body{
-      [](const uint8_t* p, uint16_t evt_len) {}};
+      [](const uint8_t* /* p */, uint16_t /* evt_len */) {}};
   void operator()(const uint8_t* p, uint16_t evt_len) { body(p, evt_len); };
 };
 extern struct btm_ble_read_resolving_list_entry_complete
@@ -78,7 +78,7 @@ extern struct btm_ble_read_resolving_list_entry_complete
 // Returns: tBTM_STATUS
 struct btm_ble_remove_resolving_list_entry {
   std::function<tBTM_STATUS(tBTM_SEC_DEV_REC* p_dev_rec)> body{
-      [](tBTM_SEC_DEV_REC* p_dev_rec) { return 0; }};
+      [](tBTM_SEC_DEV_REC* /* p_dev_rec */) { return 0; }};
   tBTM_STATUS operator()(tBTM_SEC_DEV_REC* p_dev_rec) {
     return body(p_dev_rec);
   };
@@ -98,7 +98,7 @@ extern struct btm_ble_clear_resolving_list btm_ble_clear_resolving_list;
 // Returns: bool
 struct btm_ble_read_resolving_list_entry {
   std::function<bool(tBTM_SEC_DEV_REC* p_dev_rec)> body{
-      [](tBTM_SEC_DEV_REC* p_dev_rec) { return false; }};
+      [](tBTM_SEC_DEV_REC* /* p_dev_rec */) { return false; }};
   bool operator()(tBTM_SEC_DEV_REC* p_dev_rec) { return body(p_dev_rec); };
 };
 extern struct btm_ble_read_resolving_list_entry
@@ -108,7 +108,7 @@ extern struct btm_ble_read_resolving_list_entry
 // Returns: void
 struct btm_ble_resolving_list_load_dev {
   std::function<void(const tBTM_SEC_DEV_REC& p_dev_rec)> body{
-      [](const tBTM_SEC_DEV_REC& p_dev_rec) {}};
+      [](const tBTM_SEC_DEV_REC& /* p_dev_rec */) {}};
   void operator()(const tBTM_SEC_DEV_REC& p_dev_rec) { body(p_dev_rec); };
 };
 extern struct btm_ble_resolving_list_load_dev btm_ble_resolving_list_load_dev;
@@ -117,7 +117,7 @@ extern struct btm_ble_resolving_list_load_dev btm_ble_resolving_list_load_dev;
 // Returns: void
 struct btm_ble_resolving_list_remove_dev {
   std::function<void(tBTM_SEC_DEV_REC* p_dev_rec)> body{
-      [](tBTM_SEC_DEV_REC* p_dev_rec) {}};
+      [](tBTM_SEC_DEV_REC* /* p_dev_rec */) {}};
   void operator()(tBTM_SEC_DEV_REC* p_dev_rec) { body(p_dev_rec); };
 };
 extern struct btm_ble_resolving_list_remove_dev
@@ -126,7 +126,7 @@ extern struct btm_ble_resolving_list_remove_dev
 // Params: uint8_t rl_mask
 // Returns: void
 struct btm_ble_enable_resolving_list_for_platform {
-  std::function<void(uint8_t rl_mask)> body{[](uint8_t rl_mask) {}};
+  std::function<void(uint8_t rl_mask)> body{[](uint8_t /* rl_mask */) {}};
   void operator()(uint8_t rl_mask) { body(rl_mask); };
 };
 extern struct btm_ble_enable_resolving_list_for_platform
@@ -136,7 +136,7 @@ extern struct btm_ble_enable_resolving_list_for_platform
 // Returns: void
 struct btm_ble_resolving_list_init {
   std::function<void(uint8_t max_irk_list_sz)> body{
-      [](uint8_t max_irk_list_sz) {}};
+      [](uint8_t /* max_irk_list_sz */) {}};
   void operator()(uint8_t max_irk_list_sz) { body(max_irk_list_sz); };
 };
 extern struct btm_ble_resolving_list_init btm_ble_resolving_list_init;

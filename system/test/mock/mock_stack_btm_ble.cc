@@ -23,6 +23,7 @@
 #include "test/mock/mock_stack_btm_ble.h"
 
 #include <cstdint>
+#include <optional>
 
 #include "test/common/mock_functions.h"
 
@@ -398,3 +399,7 @@ void read_phy_cb(
 }
 // Mocked functions complete
 // END mockcify generation
+
+std::optional<Octet16> BTM_BleGetPeerLTK(const RawAddress /* address */) {
+  return std::nullopt;
+}

@@ -39,7 +39,7 @@ namespace stack_btm_ble_bgconn {
 // Returns: void
 struct btm_update_scanner_filter_policy {
   std::function<void(tBTM_BLE_SFP scan_policy)> body{
-      [](tBTM_BLE_SFP scan_policy) {}};
+      [](tBTM_BLE_SFP /* scan_policy */) {}};
   void operator()(tBTM_BLE_SFP scan_policy) { body(scan_policy); };
 };
 extern struct btm_update_scanner_filter_policy btm_update_scanner_filter_policy;
@@ -81,7 +81,7 @@ extern struct BTM_SetLeConnectionModeToSlow BTM_SetLeConnectionModeToSlow;
 // Returns: bool
 struct BTM_AcceptlistAdd {
   std::function<bool(const RawAddress& address)> body{
-      [](const RawAddress& address) { return false; }};
+      [](const RawAddress& /* address */) { return false; }};
   bool operator()(const RawAddress& address) { return body(address); };
 };
 extern struct BTM_AcceptlistAdd BTM_AcceptlistAdd;
@@ -90,7 +90,9 @@ extern struct BTM_AcceptlistAdd BTM_AcceptlistAdd;
 // Returns: bool
 struct BTM_AcceptlistAddDirect {
   std::function<bool(const RawAddress& address, bool is_direct)> body{
-      [](const RawAddress& address, bool is_direct) { return false; }};
+      [](const RawAddress& /* address */, bool /* is_direct */) {
+        return false;
+      }};
   bool operator()(const RawAddress& address, bool is_direct) {
     return body(address, is_direct);
   };
@@ -101,7 +103,7 @@ extern struct BTM_AcceptlistAddDirect BTM_AcceptlistAddDirect;
 // Returns: void
 struct BTM_AcceptlistRemove {
   std::function<void(const RawAddress& address)> body{
-      [](const RawAddress& address) {}};
+      [](const RawAddress& /* address */) {}};
   void operator()(const RawAddress& address) { body(address); };
 };
 extern struct BTM_AcceptlistRemove BTM_AcceptlistRemove;

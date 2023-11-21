@@ -45,12 +45,13 @@ bool BTM_IsDeviceUp(void) {
 }
 
 tBTM_STATUS BTM_BT_Quality_Report_VSE_Register(
-    bool is_register, tBTM_BT_QUALITY_REPORT_RECEIVER* p_bqr_report_receiver) {
+    bool /* is_register */,
+    tBTM_BT_QUALITY_REPORT_RECEIVER* /* p_bqr_report_receiver */) {
   inc_func_call_count(__func__);
   return BTM_SUCCESS;
 }
-tBTM_STATUS BTM_DeleteStoredLinkKey(const RawAddress* bd_addr,
-                                    tBTM_CMPL_CB* p_cb) {
+tBTM_STATUS BTM_DeleteStoredLinkKey(const RawAddress* /* bd_addr */,
+                                    tBTM_CMPL_CB* /* p_cb */) {
   inc_func_call_count(__func__);
   return BTM_SUCCESS;
 }
@@ -58,24 +59,25 @@ tBTM_STATUS BTM_EnableTestMode(void) {
   inc_func_call_count(__func__);
   return BTM_SUCCESS;
 }
-tBTM_STATUS BTM_ReadLocalDeviceName(const char** p_name) {
+tBTM_STATUS BTM_ReadLocalDeviceName(const char** /* p_name */) {
   inc_func_call_count(__func__);
   return BTM_SUCCESS;
 }
 tBTM_STATUS BTM_ReadLocalDeviceNameFromController(
-    tBTM_CMPL_CB* p_rln_cmpl_cback) {
+    tBTM_CMPL_CB* /* p_rln_cmpl_cback */) {
   inc_func_call_count(__func__);
   return BTM_SUCCESS;
 }
-tBTM_STATUS BTM_RegisterForVSEvents(tBTM_VS_EVT_CB* p_cb, bool is_register) {
+tBTM_STATUS BTM_RegisterForVSEvents(tBTM_VS_EVT_CB* /* p_cb */,
+                                    bool /* is_register */) {
   inc_func_call_count(__func__);
   return BTM_SUCCESS;
 }
-tBTM_STATUS BTM_SetDeviceClass(DEV_CLASS dev_class) {
+tBTM_STATUS BTM_SetDeviceClass(DEV_CLASS /* dev_class */) {
   inc_func_call_count(__func__);
   return BTM_SUCCESS;
 }
-tBTM_STATUS BTM_SetLocalDeviceName(const char* p_name) {
+tBTM_STATUS BTM_SetLocalDeviceName(const char* /* p_name */) {
   inc_func_call_count(__func__);
   return BTM_SUCCESS;
 }
@@ -83,28 +85,33 @@ uint8_t* BTM_ReadDeviceClass(void) {
   inc_func_call_count(__func__);
   return nullptr;
 }
-void BTM_VendorSpecificCommand(uint16_t opcode, uint8_t param_len,
-                               uint8_t* p_param_buf, tBTM_VSC_CMPL_CB* p_cb) {
+void BTM_VendorSpecificCommand(uint16_t /* opcode */, uint8_t /* param_len */,
+                               uint8_t* /* p_param_buf */,
+                               tBTM_VSC_CMPL_CB* /* p_cb */) {
   inc_func_call_count(__func__);
 }
-void BTM_WritePageTimeout(uint16_t timeout) { inc_func_call_count(__func__); }
-void BTM_WriteVoiceSettings(uint16_t settings) {
+void BTM_WritePageTimeout(uint16_t /* timeout */) {
+  inc_func_call_count(__func__);
+}
+void BTM_WriteVoiceSettings(uint16_t /* settings */) {
   inc_func_call_count(__func__);
 }
 void BTM_db_reset(void) { inc_func_call_count(__func__); }
 void BTM_reset_complete() { inc_func_call_count(__func__); }
-void btm_delete_stored_link_key_complete(uint8_t* p, uint16_t evt_len) {
+void btm_delete_stored_link_key_complete(uint8_t* /* p */,
+                                         uint16_t /* evt_len */) {
   inc_func_call_count(__func__);
 }
 void btm_dev_free() { inc_func_call_count(__func__); }
 void btm_dev_init() { inc_func_call_count(__func__); }
-void btm_read_local_name_complete(uint8_t* p, uint16_t evt_len) {
+void btm_read_local_name_complete(uint8_t* /* p */, uint16_t /* evt_len */) {
   inc_func_call_count(__func__);
 }
-void btm_vendor_specific_evt(const uint8_t* p, uint8_t evt_len) {
+void btm_vendor_specific_evt(const uint8_t* /* p */, uint8_t /* evt_len */) {
   inc_func_call_count(__func__);
 }
-void btm_vsc_complete(uint8_t* p, uint16_t opcode, uint16_t evt_len,
-                      tBTM_VSC_CMPL_CB* p_vsc_cplt_cback) {
+void btm_vsc_complete(uint8_t* /* p */, uint16_t /* opcode */,
+                      uint16_t /* evt_len */,
+                      tBTM_VSC_CMPL_CB* /* p_vsc_cplt_cback */) {
   inc_func_call_count(__func__);
 }
