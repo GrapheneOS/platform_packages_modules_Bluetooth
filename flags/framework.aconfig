@@ -6,3 +6,10 @@ flag {
     description: "Support more device types in bt device metadata"
     bug: "289584302"
 }
+
+flag {
+    name: "key_missing_broadcast"
+    namespace: "bluetooth"
+    description: "Broadcast when remote device it lost bond"
+    bug: "311447399"
+}
