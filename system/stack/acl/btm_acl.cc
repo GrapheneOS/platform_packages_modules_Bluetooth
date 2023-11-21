@@ -2564,6 +2564,15 @@ void btm_connection_request(const RawAddress& bda,
                             const bluetooth::types::ClassOfDevice& cod) {
   // Copy Cod information
   DEV_CLASS dc;
+
+  /* Some device may request a connection before we are done with the HCI_Reset
+   * sequence */
+  if (!controller_get_interface()->get_is_ready()) {
+    LOG_VERBOSE("Security Manager: connect request when device not ready");
+    btsnd_hcic_reject_conn(bda, HCI_ERR_HOST_REJECT_DEVICE);
+    return;
+  }
+
   dc[0] = cod.cod[2], dc[1] = cod.cod[1], dc[2] = cod.cod[0];
 
   btm_sec_conn_req(bda, dc);
