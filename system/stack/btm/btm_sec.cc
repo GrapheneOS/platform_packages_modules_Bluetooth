@@ -2077,14 +2077,6 @@ tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
 void btm_sec_conn_req(const RawAddress& bda, const DEV_CLASS dc) {
   tBTM_SEC_DEV_REC* p_dev_rec = nullptr;
 
-  /* Some device may request a connection before we are done with the HCI_Reset
-   * sequence */
-  if (!controller_get_interface()->get_is_ready()) {
-    LOG_VERBOSE("Security Manager: connect request when device not ready");
-    btsnd_hcic_reject_conn(bda, HCI_ERR_HOST_REJECT_DEVICE);
-    return;
-  }
-
   if ((btm_sec_cb.pairing_state != BTM_PAIR_STATE_IDLE) &&
       (btm_sec_cb.pairing_flags & BTM_PAIR_FLAGS_WE_STARTED_DD) &&
       (btm_sec_cb.pairing_bda == bda)) {
