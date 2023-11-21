@@ -37,6 +37,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.android.compatibility.common.util.AdoptShellPermissionsRule;
 
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,6 +53,9 @@ import pandora.HostProto.OwnAddressType;
 @RunWith(AndroidJUnit4.class)
 public class GattClientTest {
     private static final String TAG = "GattClientTest";
+    private static final int ANDROID_MTU = 517;
+    private static final int MTU_REQUESTED = 23;
+    private static final int ANOTHER_MTU_REQUESTED = 42;
 
     @ClassRule public static final AdoptShellPermissionsRule PERM = new AdoptShellPermissionsRule();
 
@@ -155,5 +159,101 @@ public class GattClientTest {
                 new StreamObserverSpliterator<>();
 
         mBumble.host().advertise(request, responseObserver);
+    }
+
+    private BluetoothGatt connectGattAndWaitConnection(BluetoothGattCallback callback) {
+        final int status = BluetoothGatt.GATT_SUCCESS;
+        final int state = BluetoothProfile.STATE_CONNECTED;
+
+        advertiseWithBumble();
+
+        BluetoothDevice device =
+                mAdapter.getRemoteLeDevice(
+                        Utils.BUMBLE_RANDOM_ADDRESS, BluetoothDevice.ADDRESS_TYPE_RANDOM);
+
+        BluetoothGatt gatt = device.connectGatt(mContext, false, callback);
+        verify(callback, timeout(1000)).onConnectionStateChange(eq(gatt), eq(status), eq(state));
+
+        return gatt;
+    }
+
+    @Test
+    @Ignore("b/307981748: requestMTU should return a direct error")
+    public void requestMtu_notConnected_isFalse() {
+        advertiseWithBumble();
+
+        BluetoothDevice device =
+                mAdapter.getRemoteLeDevice(
+                        Utils.BUMBLE_RANDOM_ADDRESS, BluetoothDevice.ADDRESS_TYPE_RANDOM);
+        BluetoothGattCallback gattCallback = mock(BluetoothGattCallback.class);
+
+        BluetoothGatt gatt = device.connectGatt(mContext, false, gattCallback);
+        // Do not wait for connection state change callback and ask MTU directly
+        assertThat(gatt.requestMtu(MTU_REQUESTED)).isFalse();
+    }
+
+    @Test
+    @Ignore("b/307981748: requestMTU should return a direct error or a error on the callback")
+    public void requestMtu_invalidParamer_isFalse() {
+        BluetoothGatt gatt = connectGattAndWaitConnection(mock(BluetoothGattCallback.class));
+
+        assertThat(gatt.requestMtu(1024)).isTrue();
+        // verify(gattCallback, timeout(5000).atLeast(1)).onMtuChanged(eq(gatt), eq(ANDROID_MTU),
+        // eq(BluetoothGatt.GATT_FAILURE));
+    }
+
+    @Test
+    public void requestMtu_once_isSuccess() {
+        BluetoothGattCallback gattCallback = mock(BluetoothGattCallback.class);
+        BluetoothGatt gatt = connectGattAndWaitConnection(gattCallback);
+
+        assertThat(gatt.requestMtu(MTU_REQUESTED)).isTrue();
+        // Check that only the ANDROID_MTU is returned, not the MTU_REQUESTED
+        verify(gattCallback, timeout(5000).atLeast(1))
+                .onMtuChanged(eq(gatt), eq(ANDROID_MTU), eq(BluetoothGatt.GATT_SUCCESS));
+        // TODO(b/308031848): remove atLeast(1):
+        // The callback should be called exactly once.
+        // When running this test along to other, we may see this being called more than once
+    }
+
+    @Test
+    public void requestMtu_multipleTimeFromSameClient_isRejected() {
+        BluetoothGattCallback gattCallback = mock(BluetoothGattCallback.class);
+        BluetoothGatt gatt = connectGattAndWaitConnection(gattCallback);
+
+        assertThat(gatt.requestMtu(MTU_REQUESTED)).isTrue();
+        // Check that only the ANDROID_MTU is returned, not the MTU_REQUESTED
+        verify(gattCallback, timeout(5000).atLeast(1))
+                .onMtuChanged(eq(gatt), eq(ANDROID_MTU), eq(BluetoothGatt.GATT_SUCCESS));
+        // TODO(b/308031848): remove atLeast(1):
+        // The callback should be called exactly once.
+        // When running this test along to other, we may see this being called more than once
+
+        assertThat(gatt.requestMtu(ANOTHER_MTU_REQUESTED)).isTrue();
+        verify(gattCallback, timeout(5000).atLeast(2))
+                .onMtuChanged(eq(gatt), eq(ANDROID_MTU), eq(BluetoothGatt.GATT_SUCCESS));
+        // TODO(b/308031848): change atLeast(2) with times(2):
+        // The callback should be called exactly twice.
+        // When running this test along to other, we may see this being called more than once
+    }
+
+    @Test
+    public void requestMtu_onceFromMultipleClient_secondIsSuccessWithoutUpdate() {
+        BluetoothGattCallback gattCallback = mock(BluetoothGattCallback.class);
+        BluetoothGatt gatt = connectGattAndWaitConnection(gattCallback);
+
+        assertThat(gatt.requestMtu(MTU_REQUESTED)).isTrue();
+        verify(gattCallback, timeout(5000))
+                .onMtuChanged(eq(gatt), eq(ANDROID_MTU), eq(BluetoothGatt.GATT_SUCCESS));
+
+        BluetoothGattCallback gattCallback2 = mock(BluetoothGattCallback.class);
+        BluetoothGatt gatt2 = connectGattAndWaitConnection(gattCallback2);
+
+        assertThat(gatt2.requestMtu(ANOTHER_MTU_REQUESTED)).isTrue();
+        verify(gattCallback2, timeout(9000).atLeast(1))
+                .onMtuChanged(eq(gatt2), eq(ANDROID_MTU), eq(BluetoothGatt.GATT_SUCCESS));
+        // TODO(b/308031848): remove atLeast(1):
+        // The callback should be called exactly once.
+        // When running this test along to other, we may see this being called more than once
     }
 }
