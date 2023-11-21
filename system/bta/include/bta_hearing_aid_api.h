@@ -239,7 +239,7 @@ class HearingAid {
   static void DebugDump(int fd);
 
   static void AddFromStorage(const HearingDevice& dev_info,
-                             uint16_t is_acceptlisted);
+                             bool is_acceptlisted);
 
   static int GetDeviceCount();
 
