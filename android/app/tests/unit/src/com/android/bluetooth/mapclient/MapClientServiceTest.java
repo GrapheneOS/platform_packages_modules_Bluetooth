@@ -71,6 +71,7 @@ public class MapClientServiceTest {
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.startService(mServiceRule, MapClientService.class);
         mService = MapClientService.getMapClientService();
+
         assertThat(mService).isNotNull();
         // Try getting the Bluetooth adapter
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -237,9 +238,32 @@ public class MapClientServiceTest {
         MceStateMachine sm = mock(MceStateMachine.class);
         mService.getInstanceMap().put(mRemoteDevice, sm);
 
-        mService.cleanupDevice(mRemoteDevice);
-
+        mService.cleanupDevice(mRemoteDevice, sm);
         assertThat(mService.getInstanceMap()).doesNotContainKey(mRemoteDevice);
+    }
+
+    @Test
+    public void disconnect_doesNotCleanUpNewStateMachineOfSameDevice() {
+        int connectionPolicy = BluetoothProfile.CONNECTION_POLICY_ALLOWED;
+        when(mDatabaseManager.getProfileConnectionPolicy(
+                        mRemoteDevice, BluetoothProfile.MAP_CLIENT))
+                .thenReturn(connectionPolicy);
+
+        mService.connect(mRemoteDevice);
+        MceStateMachine connectedSm = mService.getInstanceMap().get(mRemoteDevice);
+        assertThat(connectedSm).isNotNull();
+
+        connectedSm.sendMessage(MceStateMachine.MSG_MAS_SDP_DONE, mock(SdpMasRecord.class));
+        connectedSm.sendMessage(MceStateMachine.MSG_MAS_CONNECTED);
+        TestUtils.waitForLooperToFinishScheduledTask(connectedSm.getHandler().getLooper());
+
+        mService.disconnect(mRemoteDevice);
+        assertThat(mService.getInstanceMap()).containsKey(mRemoteDevice);
+        MceStateMachine sm = mock(MceStateMachine.class);
+        mService.getInstanceMap().put(mRemoteDevice, sm);
+        TestUtils.waitForLooperToFinishScheduledTask(connectedSm.getHandler().getLooper());
+
+        assertThat(mService.getInstanceMap()).containsKey(mRemoteDevice);
     }
 
     @Test
