@@ -36,7 +36,7 @@ int HearingAid::GetDeviceCount() {
 }
 
 void HearingAid::AddFromStorage(const HearingDevice& dev_info,
-                                uint16_t is_acceptlisted) {
+                                bool is_acceptlisted) {
   inc_func_call_count(__func__);
 }
 
