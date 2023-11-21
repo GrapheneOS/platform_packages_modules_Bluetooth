@@ -24,20 +24,22 @@
 
 #include <cstdint>
 
-#include "bta/dm/bta_dm_int.h"
-#include "bta/include/bta_api.h"
+#include "bta/dm/bta_dm_disc.h"
+#include "bta/dm/bta_dm_disc_int.h"
 #include "bta/include/bta_gatt_api.h"
 #include "bta/include/bta_sdp_api.h"
 #include "btif/include/btif_config.h"
+#include "common/circular_buffer.h"
 #include "common/init_flags.h"
+#include "common/strings.h"
 #include "device/include/interop.h"
-#include "gd/common/circular_buffer.h"
-#include "gd/common/strings.h"
 #include "include/bind_helpers.h"
 #include "main/shim/dumpsys.h"
 #include "os/log.h"
+#include "osi/include/allocator.h"
+#include "osi/include/fixed_queue.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
-#include "stack/btm/btm_int_types.h"
+#include "stack/btm/btm_int_types.h"  // TimestampedStringCircularBuffer
 #include "stack/btm/neighbor_inquiry.h"
 #include "stack/include/avrc_api.h"
 #include "stack/include/bt_dev_class.h"
@@ -46,11 +48,10 @@
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack/include/btm_log_history.h"
-#include "stack/include/btm_sec_api.h"
-#include "stack/include/gap_api.h"
-#include "stack/include/gatt_api.h"
+#include "stack/include/btm_sec_api.h"  // BTM_IsRemoteNameKnown
+#include "stack/include/gap_api.h"      // GAP_BleReadPeerPrefConnParams
 #include "stack/include/sdp_status.h"
-#include "stack/sdp/sdpint.h"
+#include "stack/sdp/sdpint.h"  // is_sdp_pbap_pce_disabled
 #include "types/raw_address.h"
 
 #ifdef TARGET_FLOSS
