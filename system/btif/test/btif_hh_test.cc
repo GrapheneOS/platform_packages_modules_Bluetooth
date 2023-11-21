@@ -23,12 +23,9 @@
 #include <future>
 #include <vector>
 
-#include "bta/hh/bta_hh_int.h"
 #include "bta/include/bta_ag_api.h"
 #include "bta/include/bta_hh_api.h"
 #include "btcore/include/module.h"
-#include "btif/include/btif_api.h"
-#include "btif/include/stack_manager.h"
 #include "include/hardware/bt_hh.h"
 #include "osi/include/allocator.h"
 #include "test/common/core_interface.h"
@@ -39,6 +36,7 @@ using namespace std::chrono_literals;
 
 void set_hal_cbacks(bt_callbacks_t* callbacks);
 
+// Used the legacy stack manager
 module_t bt_utils_module;
 module_t gd_controller_module;
 module_t gd_shim_module;
@@ -144,8 +142,8 @@ class BtifHhWithMockTest : public ::testing::Test {
 class BtifHhWithHalCallbacksTest : public BtifHhWithMockTest {
  protected:
   void SetUp() override {
-    bluetooth::common::InitFlags::SetAllForTesting();
     BtifHhWithMockTest::SetUp();
+    bluetooth::common::InitFlags::SetAllForTesting();
     g_thread_evt_promise = std::promise<bt_cb_thread_evt>();
     auto future = g_thread_evt_promise.get_future();
     bt_callbacks.thread_evt_cb = [](bt_cb_thread_evt evt) {
