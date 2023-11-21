@@ -16,7 +16,6 @@
 package com.android.server.bluetooth
 
 import android.bluetooth.BluetoothAdapter.STATE_OFF
-import android.util.Log
 import com.google.common.truth.Truth.assertThat
 import kotlin.time.Duration.Companion.days
 import kotlinx.coroutines.CoroutineStart

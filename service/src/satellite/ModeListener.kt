@@ -19,7 +19,7 @@ package com.android.server.bluetooth.satellite
 
 import android.content.ContentResolver
 import android.os.Looper
-import android.util.Log
+import com.android.server.bluetooth.Log
 import com.android.server.bluetooth.initializeRadioModeListener
 
 /**
@@ -36,7 +36,7 @@ internal const val SETTINGS_SATELLITE_MODE_RADIOS = "satellite_mode_radios"
  */
 internal const val SETTINGS_SATELLITE_MODE_ENABLED = "satellite_mode_enabled"
 
-private const val TAG = "BluetoothSatelliteModeListener"
+private const val TAG = "SatelliteModeListener"
 
 public var isOn = false
     private set
