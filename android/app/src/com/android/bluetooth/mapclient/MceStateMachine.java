@@ -250,7 +250,7 @@ class MceStateMachine extends StateMachine {
     @Override
     protected void onQuitting() {
         if (mService != null) {
-            mService.cleanupDevice(mDevice);
+            mService.cleanupDevice(mDevice, this);
         }
     }
 
