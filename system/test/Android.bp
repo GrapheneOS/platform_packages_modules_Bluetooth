@@ -232,6 +232,13 @@ filegroup {
 }
 
 filegroup {
+    name: "TestMockStackBnep",
+    srcs: [
+        "mock/mock_stack_bnep_*.cc",
+    ],
+}
+
+filegroup {
     name: "TestMockStackL2cap",
     srcs: [
         "mock/mock_stack_l2cap_*.cc",
