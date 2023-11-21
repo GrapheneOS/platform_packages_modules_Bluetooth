@@ -47,6 +47,10 @@ tHID_STATUS HID_HostGetSDPRecord(const RawAddress& /* addr */,
   inc_func_call_count(__func__);
   return HID_SUCCESS;
 }
+bool HID_HostSDPDisable(const RawAddress& /* addr */) {
+  inc_func_call_count(__func__);
+  return false;
+}
 tHID_STATUS HID_HostOpenDev(uint8_t /* dev_handle */) {
   inc_func_call_count(__func__);
   return HID_SUCCESS;
