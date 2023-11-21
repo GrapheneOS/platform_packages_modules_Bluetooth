@@ -45,7 +45,7 @@ namespace stack_a2dp_sbc {
 struct A2DP_AdjustCodecSbc {
   static bool return_value;
   std::function<bool(uint8_t* p_codec_info)> body{
-      [](uint8_t* p_codec_info) { return return_value; }};
+      [](uint8_t* /* p_codec_info */) { return return_value; }};
   bool operator()(uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_AdjustCodecSbc A2DP_AdjustCodecSbc;
@@ -57,8 +57,8 @@ struct A2DP_BuildCodecHeaderSbc {
   static bool return_value;
   std::function<bool(const uint8_t* p_codec_info, BT_HDR* p_buf,
                      uint16_t frames_per_packet)>
-      body{[](const uint8_t* p_codec_info, BT_HDR* p_buf,
-              uint16_t frames_per_packet) { return return_value; }};
+      body{[](const uint8_t* /* p_codec_info */, BT_HDR* /* p_buf */,
+              uint16_t /* frames_per_packet */) { return return_value; }};
   bool operator()(const uint8_t* p_codec_info, BT_HDR* p_buf,
                   uint16_t frames_per_packet) {
     return body(p_codec_info, p_buf, frames_per_packet);
@@ -73,9 +73,8 @@ struct A2DP_CodecEqualsSbc {
   static bool return_value;
   std::function<bool(const uint8_t* p_codec_info_a,
                      const uint8_t* p_codec_info_b)>
-      body{[](const uint8_t* p_codec_info_a, const uint8_t* p_codec_info_b) {
-        return return_value;
-      }};
+      body{[](const uint8_t* /* p_codec_info_a */,
+              const uint8_t* /* p_codec_info_b */) { return return_value; }};
   bool operator()(const uint8_t* p_codec_info_a,
                   const uint8_t* p_codec_info_b) {
     return body(p_codec_info_a, p_codec_info_b);
@@ -109,7 +108,7 @@ extern struct A2DP_CodecIndexStrSbcSink A2DP_CodecIndexStrSbcSink;
 struct A2DP_CodecInfoStringSbc {
   static std::string return_value;
   std::function<std::string(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   std::string operator()(const uint8_t* p_codec_info) {
     return body(p_codec_info);
   };
@@ -122,7 +121,7 @@ extern struct A2DP_CodecInfoStringSbc A2DP_CodecInfoStringSbc;
 struct A2DP_CodecNameSbc {
   static const char* return_value;
   std::function<const char*(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   const char* operator()(const uint8_t* p_codec_info) {
     return body(p_codec_info);
   };
@@ -136,9 +135,8 @@ struct A2DP_CodecTypeEqualsSbc {
   static bool return_value;
   std::function<bool(const uint8_t* p_codec_info_a,
                      const uint8_t* p_codec_info_b)>
-      body{[](const uint8_t* p_codec_info_a, const uint8_t* p_codec_info_b) {
-        return return_value;
-      }};
+      body{[](const uint8_t* /* p_codec_info_a */,
+              const uint8_t* /* p_codec_info_b */) { return return_value; }};
   bool operator()(const uint8_t* p_codec_info_a,
                   const uint8_t* p_codec_info_b) {
     return body(p_codec_info_a, p_codec_info_b);
@@ -152,7 +150,7 @@ extern struct A2DP_CodecTypeEqualsSbc A2DP_CodecTypeEqualsSbc;
 struct A2DP_GetAllocationMethodCodeSbc {
   static int return_value;
   std::function<int(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   int operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_GetAllocationMethodCodeSbc A2DP_GetAllocationMethodCodeSbc;
@@ -173,7 +171,7 @@ extern struct A2DP_GetBitrateSbc A2DP_GetBitrateSbc;
 struct A2DP_GetChannelModeCodeSbc {
   static int return_value;
   std::function<int(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   int operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_GetChannelModeCodeSbc A2DP_GetChannelModeCodeSbc;
@@ -184,7 +182,7 @@ extern struct A2DP_GetChannelModeCodeSbc A2DP_GetChannelModeCodeSbc;
 struct A2DP_GetDecoderInterfaceSbc {
   static const tA2DP_DECODER_INTERFACE* return_value;
   std::function<const tA2DP_DECODER_INTERFACE*(const uint8_t* p_codec_info)>
-      body{[](const uint8_t* p_codec_info) { return return_value; }};
+      body{[](const uint8_t* /* p_codec_info */) { return return_value; }};
   const tA2DP_DECODER_INTERFACE* operator()(const uint8_t* p_codec_info) {
     return body(p_codec_info);
   };
@@ -197,7 +195,7 @@ extern struct A2DP_GetDecoderInterfaceSbc A2DP_GetDecoderInterfaceSbc;
 struct A2DP_GetEncoderInterfaceSbc {
   static const tA2DP_ENCODER_INTERFACE* return_value;
   std::function<const tA2DP_ENCODER_INTERFACE*(const uint8_t* p_codec_info)>
-      body{[](const uint8_t* p_codec_info) { return return_value; }};
+      body{[](const uint8_t* /* p_codec_info */) { return return_value; }};
   const tA2DP_ENCODER_INTERFACE* operator()(const uint8_t* p_codec_info) {
     return body(p_codec_info);
   };
@@ -210,7 +208,7 @@ extern struct A2DP_GetEncoderInterfaceSbc A2DP_GetEncoderInterfaceSbc;
 struct A2DP_GetMaxBitpoolSbc {
   static int return_value;
   std::function<int(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   int operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_GetMaxBitpoolSbc A2DP_GetMaxBitpoolSbc;
@@ -221,7 +219,7 @@ extern struct A2DP_GetMaxBitpoolSbc A2DP_GetMaxBitpoolSbc;
 struct A2DP_GetMinBitpoolSbc {
   static int return_value;
   std::function<int(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   int operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_GetMinBitpoolSbc A2DP_GetMinBitpoolSbc;
@@ -232,7 +230,7 @@ extern struct A2DP_GetMinBitpoolSbc A2DP_GetMinBitpoolSbc;
 struct A2DP_GetNumberOfBlocksSbc {
   static int return_value;
   std::function<int(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   int operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_GetNumberOfBlocksSbc A2DP_GetNumberOfBlocksSbc;
@@ -243,7 +241,7 @@ extern struct A2DP_GetNumberOfBlocksSbc A2DP_GetNumberOfBlocksSbc;
 struct A2DP_GetNumberOfSubbandsSbc {
   static int return_value;
   std::function<int(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   int operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_GetNumberOfSubbandsSbc A2DP_GetNumberOfSubbandsSbc;
@@ -255,8 +253,8 @@ struct A2DP_GetPacketTimestampSbc {
   static bool return_value;
   std::function<bool(const uint8_t* p_codec_info, const uint8_t* p_data,
                      uint32_t* p_timestamp)>
-      body{[](const uint8_t* p_codec_info, const uint8_t* p_data,
-              uint32_t* p_timestamp) { return return_value; }};
+      body{[](const uint8_t* /* p_codec_info */, const uint8_t* /* p_data */,
+              uint32_t* /* p_timestamp */) { return return_value; }};
   bool operator()(const uint8_t* p_codec_info, const uint8_t* p_data,
                   uint32_t* p_timestamp) {
     return body(p_codec_info, p_data, p_timestamp);
@@ -270,7 +268,7 @@ extern struct A2DP_GetPacketTimestampSbc A2DP_GetPacketTimestampSbc;
 struct A2DP_GetSamplingFrequencyCodeSbc {
   static int return_value;
   std::function<int(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   int operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_GetSamplingFrequencyCodeSbc A2DP_GetSamplingFrequencyCodeSbc;
@@ -281,7 +279,7 @@ extern struct A2DP_GetSamplingFrequencyCodeSbc A2DP_GetSamplingFrequencyCodeSbc;
 struct A2DP_GetSinkTrackChannelTypeSbc {
   static int return_value;
   std::function<int(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   int operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_GetSinkTrackChannelTypeSbc A2DP_GetSinkTrackChannelTypeSbc;
@@ -292,7 +290,7 @@ extern struct A2DP_GetSinkTrackChannelTypeSbc A2DP_GetSinkTrackChannelTypeSbc;
 struct A2DP_GetTrackBitsPerSampleSbc {
   static int return_value;
   std::function<int(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   int operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_GetTrackBitsPerSampleSbc A2DP_GetTrackBitsPerSampleSbc;
@@ -303,7 +301,7 @@ extern struct A2DP_GetTrackBitsPerSampleSbc A2DP_GetTrackBitsPerSampleSbc;
 struct A2DP_GetTrackChannelCountSbc {
   static int return_value;
   std::function<int(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   int operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_GetTrackChannelCountSbc A2DP_GetTrackChannelCountSbc;
@@ -314,7 +312,7 @@ extern struct A2DP_GetTrackChannelCountSbc A2DP_GetTrackChannelCountSbc;
 struct A2DP_GetTrackSampleRateSbc {
   static int return_value;
   std::function<int(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   int operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_GetTrackSampleRateSbc A2DP_GetTrackSampleRateSbc;
@@ -325,7 +323,7 @@ extern struct A2DP_GetTrackSampleRateSbc A2DP_GetTrackSampleRateSbc;
 struct A2DP_InitCodecConfigSbc {
   static bool return_value;
   std::function<bool(AvdtpSepConfig* p_cfg)> body{
-      [](AvdtpSepConfig* p_cfg) { return return_value; }};
+      [](AvdtpSepConfig* /* p_cfg */) { return return_value; }};
   bool operator()(AvdtpSepConfig* p_cfg) { return body(p_cfg); };
 };
 extern struct A2DP_InitCodecConfigSbc A2DP_InitCodecConfigSbc;
@@ -336,7 +334,7 @@ extern struct A2DP_InitCodecConfigSbc A2DP_InitCodecConfigSbc;
 struct A2DP_InitCodecConfigSbcSink {
   static bool return_value;
   std::function<bool(AvdtpSepConfig* p_cfg)> body{
-      [](AvdtpSepConfig* p_cfg) { return return_value; }};
+      [](AvdtpSepConfig* /* p_cfg */) { return return_value; }};
   bool operator()(AvdtpSepConfig* p_cfg) { return body(p_cfg); };
 };
 extern struct A2DP_InitCodecConfigSbcSink A2DP_InitCodecConfigSbcSink;
@@ -345,7 +343,8 @@ extern struct A2DP_InitCodecConfigSbcSink A2DP_InitCodecConfigSbcSink;
 // Params: uint8_t* p_codec_info
 // Return: void
 struct A2DP_InitDefaultCodecSbc {
-  std::function<void(uint8_t* p_codec_info)> body{[](uint8_t* p_codec_info) {}};
+  std::function<void(uint8_t* p_codec_info)> body{
+      [](uint8_t* /* p_codec_info */) {}};
   void operator()(uint8_t* p_codec_info) { body(p_codec_info); };
 };
 extern struct A2DP_InitDefaultCodecSbc A2DP_InitDefaultCodecSbc;
@@ -356,7 +355,7 @@ extern struct A2DP_InitDefaultCodecSbc A2DP_InitDefaultCodecSbc;
 struct A2DP_IsPeerSinkCodecValidSbc {
   static bool return_value;
   std::function<bool(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   bool operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_IsPeerSinkCodecValidSbc A2DP_IsPeerSinkCodecValidSbc;
@@ -367,7 +366,7 @@ extern struct A2DP_IsPeerSinkCodecValidSbc A2DP_IsPeerSinkCodecValidSbc;
 struct A2DP_IsPeerSourceCodecSupportedSbc {
   static bool return_value;
   std::function<bool(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   bool operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_IsPeerSourceCodecSupportedSbc
@@ -379,7 +378,7 @@ extern struct A2DP_IsPeerSourceCodecSupportedSbc
 struct A2DP_IsPeerSourceCodecValidSbc {
   static bool return_value;
   std::function<bool(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   bool operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_IsPeerSourceCodecValidSbc A2DP_IsPeerSourceCodecValidSbc;
@@ -390,7 +389,7 @@ extern struct A2DP_IsPeerSourceCodecValidSbc A2DP_IsPeerSourceCodecValidSbc;
 struct A2DP_IsSinkCodecSupportedSbc {
   static bool return_value;
   std::function<bool(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   bool operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_IsSinkCodecSupportedSbc A2DP_IsSinkCodecSupportedSbc;
@@ -401,7 +400,7 @@ extern struct A2DP_IsSinkCodecSupportedSbc A2DP_IsSinkCodecSupportedSbc;
 struct A2DP_IsSinkCodecValidSbc {
   static bool return_value;
   std::function<bool(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   bool operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_IsSinkCodecValidSbc A2DP_IsSinkCodecValidSbc;
@@ -412,7 +411,7 @@ extern struct A2DP_IsSinkCodecValidSbc A2DP_IsSinkCodecValidSbc;
 struct A2DP_IsSourceCodecValidSbc {
   static bool return_value;
   std::function<bool(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   bool operator()(const uint8_t* p_codec_info) { return body(p_codec_info); };
 };
 extern struct A2DP_IsSourceCodecValidSbc A2DP_IsSourceCodecValidSbc;
@@ -423,7 +422,7 @@ extern struct A2DP_IsSourceCodecValidSbc A2DP_IsSourceCodecValidSbc;
 struct A2DP_SinkCodecIndexSbc {
   static btav_a2dp_codec_index_t return_value;
   std::function<btav_a2dp_codec_index_t(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   btav_a2dp_codec_index_t operator()(const uint8_t* p_codec_info) {
     return body(p_codec_info);
   };
@@ -436,7 +435,7 @@ extern struct A2DP_SinkCodecIndexSbc A2DP_SinkCodecIndexSbc;
 struct A2DP_SourceCodecIndexSbc {
   static btav_a2dp_codec_index_t return_value;
   std::function<btav_a2dp_codec_index_t(const uint8_t* p_codec_info)> body{
-      [](const uint8_t* p_codec_info) { return return_value; }};
+      [](const uint8_t* /* p_codec_info */) { return return_value; }};
   btav_a2dp_codec_index_t operator()(const uint8_t* p_codec_info) {
     return body(p_codec_info);
   };

@@ -91,7 +91,7 @@ bool btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC* p_dev_rec) {
   return test::mock::stack_btm_ble_privacy::btm_ble_read_resolving_list_entry(
       p_dev_rec);
 }
-void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& p_dev_rec) {
+void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& /* p_dev_rec */) {
   inc_func_call_count(__func__);
 }
 void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
