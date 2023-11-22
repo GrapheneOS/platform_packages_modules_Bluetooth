@@ -1067,6 +1067,7 @@ package android.bluetooth {
     field @NonNull public static final android.os.ParcelUuid MAP;
     field @NonNull public static final android.os.ParcelUuid MAS;
     field @NonNull public static final android.os.ParcelUuid MEDIA_CONTROL;
+    field @FlaggedApi("com.android.bluetooth.flags.mfi_has_uuid") @NonNull public static final android.os.ParcelUuid MFI_HAS;
     field @NonNull public static final android.os.ParcelUuid MNS;
     field @NonNull public static final android.os.ParcelUuid NAP;
     field @NonNull public static final android.os.ParcelUuid OBEX_OBJECT_PUSH;
