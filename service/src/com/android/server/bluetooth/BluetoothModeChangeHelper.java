@@ -26,7 +26,6 @@ import android.content.res.Resources;
 import android.os.Process;
 import android.os.UserHandle;
 import android.provider.Settings;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.android.internal.annotations.VisibleForTesting;

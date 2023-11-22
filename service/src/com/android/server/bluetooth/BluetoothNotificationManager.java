@@ -27,7 +27,6 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.UserHandle;
 import android.service.notification.StatusBarNotification;
-import android.util.Log;
 
 import com.android.internal.messages.nano.SystemMessageProto.SystemMessage;
 

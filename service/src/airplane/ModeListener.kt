@@ -25,16 +25,16 @@ import android.content.Context
 import android.content.res.Resources
 import android.os.Looper
 import android.provider.Settings
-import android.util.Log
 import android.widget.Toast
 import com.android.bluetooth.BluetoothStatsLog
 import com.android.server.bluetooth.BluetoothAdapterState
+import com.android.server.bluetooth.Log
 import com.android.server.bluetooth.initializeRadioModeListener
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
-private const val TAG = "BluetoothAirplaneModeListener"
+private const val TAG = "AirplaneModeListener"
 
 /** @return true if Bluetooth state is impacted by airplane mode */
 public var isOn = false
