@@ -32,6 +32,7 @@ import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.hfp.BluetoothHfpProtoEnums;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
@@ -181,6 +182,18 @@ public class HeadsetStateMachine extends StateMachine {
         VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.put(
                 BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_IPHONEACCEV,
                 BluetoothAssignedNumbers.APPLE);
+        VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.put(
+                BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_CGMI,
+                BluetoothAssignedNumbers.GOOGLE);
+        VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.put(
+                BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_CGMR,
+                BluetoothAssignedNumbers.GOOGLE);
+        VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.put(
+                BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_CGMM,
+                BluetoothAssignedNumbers.GOOGLE);
+        VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.put(
+                BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_CGSN,
+                BluetoothAssignedNumbers.GOOGLE);
     }
 
     private HeadsetStateMachine(BluetoothDevice device, Looper looper,
@@ -2030,7 +2043,32 @@ public class HeadsetStateMachine extends StateMachine {
     void processVendorSpecificAt(String atString, BluetoothDevice device) {
         log("processVendorSpecificAt - atString = " + atString);
 
-        // Currently we accept only SET type commands.
+        // Currently we accept only SET type commands, except the 4 AT commands
+        // which requests the device's information: +CGMI, +CGMM, +CGMR and +CGSN, which we
+        // responds to right away without any further processing.
+        boolean isIopInfoRequestAt = true;
+        switch (atString) {
+            case BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_CGMI:
+                processAtCgmi(device);
+                break;
+            case BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_CGMM:
+                processAtCgmm(device);
+                break;
+            case BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_CGMR:
+                processAtCgmr(device);
+                break;
+            case BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_CGSN:
+                processAtCgsn(device);
+                break;
+            default:
+                isIopInfoRequestAt = false;
+        }
+        if (isIopInfoRequestAt) {
+            mNativeInterface.atResponseCode(device, HeadsetHalConstants.AT_RESPONSE_OK, 0);
+            return;
+        }
+
+        // Check if the command is a SET type command.
         int indexOfEqual = atString.indexOf("=");
         if (indexOfEqual == -1) {
             Log.w(TAG, "processVendorSpecificAt: command type error in " + atString);
@@ -2219,6 +2257,47 @@ public class HeadsetStateMachine extends StateMachine {
                 Integer.parseInt(macAddress[1], 16), Integer.parseInt(macAddress[2], 16));
         // feature = 2 indicates that we support battery level reporting only
         mNativeInterface.atResponseString(device, "+XAPL=iPhone," + String.valueOf(2));
+    }
+
+    /**
+     * Process AT+CGMI AT command
+     *
+     * @param device Remote device that has sent this command
+     */
+    @VisibleForTesting
+    void processAtCgmi(BluetoothDevice device) {
+        mNativeInterface.atResponseString(device, Build.MANUFACTURER);
+    }
+
+    /**
+     * Process AT+CGMM AT command
+     *
+     * @param device Remote device that has sent this command
+     */
+    @VisibleForTesting
+    void processAtCgmm(BluetoothDevice device) {
+        mNativeInterface.atResponseString(device, Build.MODEL);
+    }
+
+    /**
+     * Process AT+CGMR AT command
+     *
+     * @param device Remote device that has sent this command
+     */
+    @VisibleForTesting
+    void processAtCgmr(BluetoothDevice device) {
+        mNativeInterface.atResponseString(
+                device, String.format("%s (%s)", Build.VERSION.RELEASE, Build.VERSION.INCREMENTAL));
+    }
+
+    /**
+     * Process AT+CGSN AT command
+     *
+     * @param device Remote device that has sent this command
+     */
+    @VisibleForTesting
+    void processAtCgsn(BluetoothDevice device) {
+        mNativeInterface.atResponseString(device, Build.getSerial());
     }
 
     @VisibleForTesting
