@@ -137,7 +137,7 @@ class VolumeControlDevice : public bluetooth::common::IRedactableLoggable {
                                         GATT_WRITE_OP_CB cb, void* cb_data);
   bool IsEncryptionEnabled();
 
-  void EnableEncryption();
+  bool EnableEncryption();
 
   bool EnqueueInitialRequests(tGATT_IF gatt_if, GATT_READ_OP_CB chrc_read_cb,
                               GATT_WRITE_OP_CB cccd_write_cb);
