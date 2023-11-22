@@ -28,7 +28,6 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.os.UserHandle;
 import android.provider.Settings;
-import android.util.Log;
 
 import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.flags.FeatureFlags;

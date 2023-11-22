@@ -23,9 +23,9 @@ import android.content.res.Resources
 import android.os.Looper
 import android.os.UserHandle
 import android.provider.Settings
-import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import com.android.server.bluetooth.BluetoothAdapterState
+import com.android.server.bluetooth.Log
 import com.android.server.bluetooth.airplane.APM_BT_ENABLED_NOTIFICATION
 import com.android.server.bluetooth.airplane.APM_BT_NOTIFICATION
 import com.android.server.bluetooth.airplane.APM_ENHANCEMENT
