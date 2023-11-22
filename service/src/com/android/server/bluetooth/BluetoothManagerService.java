@@ -1551,16 +1551,16 @@ class BluetoothManagerService {
         }
 
         private void removeProxy(IBluetoothProfileServiceConnection proxy) {
-            if (proxy != null) {
-                if (mProxies.unregister(proxy)) {
-                    try {
-                        proxy.onServiceDisconnected(mClassName);
-                    } catch (RemoteException e) {
-                        Log.e(TAG, "Unable to disconnect proxy", e);
-                    }
+            if (proxy == null) {
+                Log.w(TAG, "removeProxy: null proxy for " + mIntent);
+                return;
+            }
+            if (mProxies.unregister(proxy)) {
+                try {
+                    proxy.onServiceDisconnected(mClassName);
+                } catch (RemoteException e) {
+                    Log.e(TAG, "Unable to disconnect proxy", e);
                 }
-            } else {
-                Log.w(TAG, "Trying to remove a null proxy");
             }
         }
 
