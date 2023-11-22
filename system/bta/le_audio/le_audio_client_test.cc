@@ -603,10 +603,29 @@ class UnicastTestNoInit : public Test {
 
     // default action for WriteDescriptor function call
     ON_CALL(mock_gatt_queue_, WriteDescriptor(_, _, _, _, _, _))
-        .WillByDefault(Invoke([](uint16_t conn_id, uint16_t handle,
-                                 std::vector<uint8_t> value,
-                                 tGATT_WRITE_TYPE write_type,
-                                 GATT_WRITE_OP_CB cb, void* cb_data) -> void {
+        .WillByDefault(Invoke([this](uint16_t conn_id, uint16_t handle,
+                                     std::vector<uint8_t> value,
+                                     tGATT_WRITE_TYPE write_type,
+                                     GATT_WRITE_OP_CB cb,
+                                     void* cb_data) -> void {
+          auto& ascs = peer_devices.at(conn_id)->ascs;
+          uint8_t idx;
+
+          if (handle == ascs->ctp_ccc) {
+            value = UINT16_TO_VEC_UINT8(ascs->ctp_ccc_val);
+          } else {
+            for (idx = 0; idx < max_num_of_ases; idx++) {
+              if (handle == ascs->sink_ase_ccc[idx] + 1) {
+                value = UINT16_TO_VEC_UINT8(ascs->sink_ase_ccc_val[idx]);
+                break;
+              }
+              if (handle == ascs->source_ase_char[idx] + 1) {
+                value = UINT16_TO_VEC_UINT8(ascs->source_ase_ccc_val[idx]);
+                break;
+              }
+            }
+          }
+
           if (cb)
             do_in_main_thread(
                 FROM_HERE,
@@ -1575,10 +1594,13 @@ class UnicastTestNoInit : public Test {
       uint16_t start = 0;
       uint16_t sink_ase_char[max_num_of_ases] = {0};
       uint16_t sink_ase_ccc[max_num_of_ases] = {0};
+      uint16_t sink_ase_ccc_val[max_num_of_ases] = {0};
       uint16_t source_ase_char[max_num_of_ases] = {0};
       uint16_t source_ase_ccc[max_num_of_ases] = {0};
+      uint16_t source_ase_ccc_val[max_num_of_ases] = {0};
       uint16_t ctp_char = 0;
       uint16_t ctp_ccc = 0;
+      uint16_t ctp_ccc_val = 0;
       uint16_t end = 0;
 
       MOCK_METHOD((void), OnReadCharacteristic,
@@ -2157,7 +2179,8 @@ class UnicastTestNoInit : public Test {
       uint32_t source_audio_allocation, uint8_t sink_channel_cnt = 0x03,
       uint8_t source_channel_cnt = 0x03, uint16_t sample_freq_mask = 0x0004,
       bool add_csis = true, bool add_cas = true, bool add_pacs = true,
-      int add_ascs_cnt = 1, uint8_t set_size = 2, uint8_t rank = 1) {
+      int add_ascs_cnt = 1, uint8_t set_size = 2, uint8_t rank = 1,
+      GattStatus gatt_status = GATT_SUCCESS) {
     auto csis = std::make_unique<NiceMock<MockDeviceWrapper::csis_mock>>();
     if (add_csis) {
       // attribute handles
@@ -2255,215 +2278,235 @@ class UnicastTestNoInit : public Test {
 
       // Set pacs default read values
       ON_CALL(*peer_devices.at(conn_id)->pacs, OnReadCharacteristic(_, _, _))
-          .WillByDefault(
-              [this, conn_id, snk_allocation, src_allocation, sample_freq,
-               sink_channel_cnt, source_channel_cnt](
-                  uint16_t handle, GATT_READ_OP_CB cb, void* cb_data) {
-                auto& pacs = peer_devices.at(conn_id)->pacs;
-                std::vector<uint8_t> value;
-                if (handle == pacs->sink_pac_char + 1) {
-                  value = {
-                      // Num records
-                      0x02,
-                      // Codec_ID
-                      0x06,
-                      0x00,
-                      0x00,
-                      0x00,
-                      0x00,
-                      // Codec Spec. Caps. Len
-                      0x10,
-                      0x03, /* sample freq */
-                      0x01,
-                      sample_freq[0],
-                      sample_freq[1],
-                      0x02,
-                      0x02, /* frame duration */
-                      0x03,
-                      0x02, /* channel count */
-                      0x03,
-                      sink_channel_cnt,
-                      0x05,
-                      0x04,
-                      0x1E,
-                      0x00,
-                      0x78,
-                      0x00,
-                      // Metadata Length
-                      0x00,
-                      // Codec_ID
-                      0x06,
-                      0x00,
-                      0x00,
-                      0x00,
-                      0x00,
-                      // Codec Spec. Caps. Len
-                      0x10,
-                      0x03, /* sample freq */
-                      0x01,
-                      0x80, /* 48kHz */
-                      0x00,
-                      0x02, /* frame duration */
-                      0x02,
-                      0x03,
-                      0x02, /* channel count */
-                      0x03,
-                      sink_channel_cnt,
-                      0x05, /* octects per frame */
-                      0x04,
-                      0x78,
-                      0x00,
-                      0x78,
-                      0x00,
-                      // Metadata Length
-                      0x00,
-                  };
-                } else if (handle == pacs->sink_audio_loc_char + 1) {
-                  value = {
-                      // Audio Locations
-                      snk_allocation[0],
-                      snk_allocation[1],
-                      snk_allocation[2],
-                      snk_allocation[3],
-                  };
-                } else if (handle == pacs->source_pac_char + 1) {
-                  value = {
-                      // Num records
-                      0x02,
-                      // Codec_ID
-                      0x06,
-                      0x00,
-                      0x00,
-                      0x00,
-                      0x00,
-                      // Codec Spec. Caps. Len
-                      0x10,
-                      0x03,
-                      0x01,
-                      sample_freq[0],
-                      sample_freq[1],
-                      0x02,
-                      0x02,
-                      0x03,
-                      0x02,
-                      0x03,
-                      source_channel_cnt,
-                      0x05,
-                      0x04,
-                      0x1E,
-                      0x00,
-                      0x78,
-                      0x00,
-                      // Metadata Length
-                      0x00,
-                      // Codec_ID
-                      0x06,
-                      0x00,
-                      0x00,
-                      0x00,
-                      0x00,
-                      // Codec Spec. Caps. Len
-                      0x10,
-                      0x03,
-                      0x01,
-                      0x24,
-                      0x00,
-                      0x02,
-                      0x02,
-                      0x03,
-                      0x02,
-                      0x03,
-                      source_channel_cnt,
-                      0x05,
-                      0x04,
-                      0x1E,
-                      0x00,
-                      0x50,
-                      0x00,
-                      // Metadata Length
-                      0x00,
-                  };
-                } else if (handle == pacs->source_audio_loc_char + 1) {
-                  value = {
-                      // Audio Locations
-                      src_allocation[0],
-                      src_allocation[1],
-                      src_allocation[2],
-                      src_allocation[3],
-                  };
-                } else if (handle == pacs->avail_contexts_char + 1) {
-                  value = {
-                      // Sink Avail Contexts
-                      (uint8_t)(available_snk_context_types_),
-                      (uint8_t)(available_snk_context_types_ >> 8),
-                      // Source Avail Contexts
-                      (uint8_t)(available_src_context_types_),
-                      (uint8_t)(available_src_context_types_ >> 8),
-                  };
-                } else if (handle == pacs->supp_contexts_char + 1) {
-                  value = {
-                      // Sink Supp Contexts
-                      (uint8_t)(supported_snk_context_types_),
-                      (uint8_t)(supported_snk_context_types_ >> 8),
-                      // Source Supp Contexts
-                      (uint8_t)(supported_src_context_types_),
-                      (uint8_t)(supported_src_context_types_ >> 8),
-                  };
-                }
-                cb(conn_id, GATT_SUCCESS, handle, value.size(), value.data(),
-                   cb_data);
-              });
+          .WillByDefault([this, conn_id, snk_allocation, src_allocation,
+                          sample_freq, sink_channel_cnt, source_channel_cnt,
+                          gatt_status](uint16_t handle, GATT_READ_OP_CB cb,
+                                       void* cb_data) {
+            auto& pacs = peer_devices.at(conn_id)->pacs;
+            std::vector<uint8_t> value;
+            if (gatt_status == GATT_SUCCESS) {
+              if (handle == pacs->sink_pac_char + 1) {
+                value = {
+                    // Num records
+                    0x02,
+                    // Codec_ID
+                    0x06,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    // Codec Spec. Caps. Len
+                    0x10,
+                    0x03, /* sample freq */
+                    0x01,
+                    sample_freq[0],
+                    sample_freq[1],
+                    0x02,
+                    0x02, /* frame duration */
+                    0x03,
+                    0x02, /* channel count */
+                    0x03,
+                    sink_channel_cnt,
+                    0x05,
+                    0x04,
+                    0x1E,
+                    0x00,
+                    0x78,
+                    0x00,
+                    // Metadata Length
+                    0x00,
+                    // Codec_ID
+                    0x06,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    // Codec Spec. Caps. Len
+                    0x10,
+                    0x03, /* sample freq */
+                    0x01,
+                    0x80, /* 48kHz */
+                    0x00,
+                    0x02, /* frame duration */
+                    0x02,
+                    0x03,
+                    0x02, /* channel count */
+                    0x03,
+                    sink_channel_cnt,
+                    0x05, /* octects per frame */
+                    0x04,
+                    0x78,
+                    0x00,
+                    0x78,
+                    0x00,
+                    // Metadata Length
+                    0x00,
+                };
+              } else if (handle == pacs->sink_audio_loc_char + 1) {
+                value = {
+                    // Audio Locations
+                    snk_allocation[0],
+                    snk_allocation[1],
+                    snk_allocation[2],
+                    snk_allocation[3],
+                };
+              } else if (handle == pacs->source_pac_char + 1) {
+                value = {
+                    // Num records
+                    0x02,
+                    // Codec_ID
+                    0x06,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    // Codec Spec. Caps. Len
+                    0x10,
+                    0x03,
+                    0x01,
+                    sample_freq[0],
+                    sample_freq[1],
+                    0x02,
+                    0x02,
+                    0x03,
+                    0x02,
+                    0x03,
+                    source_channel_cnt,
+                    0x05,
+                    0x04,
+                    0x1E,
+                    0x00,
+                    0x78,
+                    0x00,
+                    // Metadata Length
+                    0x00,
+                    // Codec_ID
+                    0x06,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    // Codec Spec. Caps. Len
+                    0x10,
+                    0x03,
+                    0x01,
+                    0x24,
+                    0x00,
+                    0x02,
+                    0x02,
+                    0x03,
+                    0x02,
+                    0x03,
+                    source_channel_cnt,
+                    0x05,
+                    0x04,
+                    0x1E,
+                    0x00,
+                    0x50,
+                    0x00,
+                    // Metadata Length
+                    0x00,
+                };
+              } else if (handle == pacs->source_audio_loc_char + 1) {
+                value = {
+                    // Audio Locations
+                    src_allocation[0],
+                    src_allocation[1],
+                    src_allocation[2],
+                    src_allocation[3],
+                };
+              } else if (handle == pacs->avail_contexts_char + 1) {
+                value = {
+                    // Sink Avail Contexts
+                    (uint8_t)(available_snk_context_types_),
+                    (uint8_t)(available_snk_context_types_ >> 8),
+                    // Source Avail Contexts
+                    (uint8_t)(available_src_context_types_),
+                    (uint8_t)(available_src_context_types_ >> 8),
+                };
+              } else if (handle == pacs->supp_contexts_char + 1) {
+                value = {
+                    // Sink Supp Contexts
+                    (uint8_t)(supported_snk_context_types_),
+                    (uint8_t)(supported_snk_context_types_ >> 8),
+                    // Source Supp Contexts
+                    (uint8_t)(supported_src_context_types_),
+                    (uint8_t)(supported_src_context_types_ >> 8),
+                };
+              }
+            }
+            cb(conn_id, gatt_status, handle, value.size(), value.data(),
+               cb_data);
+          });
     }
 
     if (add_ascs_cnt > 0) {
       // Set ascs default read values
       ON_CALL(*peer_devices.at(conn_id)->ascs, OnReadCharacteristic(_, _, _))
-          .WillByDefault([this, conn_id](uint16_t handle, GATT_READ_OP_CB cb,
-                                         void* cb_data) {
+          .WillByDefault([this, conn_id, gatt_status](uint16_t handle,
+                                                      GATT_READ_OP_CB cb,
+                                                      void* cb_data) {
             auto& ascs = peer_devices.at(conn_id)->ascs;
             std::vector<uint8_t> value;
             bool is_ase_sink_request = false;
             bool is_ase_src_request = false;
+            uint8_t idx;
 
-            if (handle == ascs->ctp_ccc) {
-              value = {ccc_stored_byte_val_, 00};
+            if (handle == ascs->ctp_ccc && ccc_stored_byte_val_.has_value()) {
+              value = {*ccc_stored_byte_val_, 00};
               cb(conn_id, gatt_read_ctp_ccc_status_, handle, value.size(),
                  value.data(), cb_data);
               return;
             }
 
-            uint8_t idx;
-            for (idx = 0; idx < max_num_of_ases; idx++) {
-              if (handle == ascs->sink_ase_char[idx] + 1) {
-                is_ase_sink_request = true;
-                break;
+            if (gatt_status == GATT_SUCCESS) {
+              if (handle == ascs->ctp_ccc) {
+                value = UINT16_TO_VEC_UINT8(ascs->ctp_ccc_val);
+              } else {
+                for (idx = 0; idx < max_num_of_ases; idx++) {
+                  if (handle == ascs->sink_ase_ccc[idx] + 1) {
+                    value = UINT16_TO_VEC_UINT8(ascs->sink_ase_ccc_val[idx]);
+                    break;
+                  }
+                  if (handle == ascs->source_ase_char[idx] + 1) {
+                    value = UINT16_TO_VEC_UINT8(ascs->source_ase_ccc_val[idx]);
+                    break;
+                  }
+                }
               }
-              if (handle == ascs->source_ase_char[idx] + 1) {
-                is_ase_src_request = true;
-                break;
-              }
-            }
 
-            if (is_ase_sink_request) {
-              value = {
-                  // ASE ID
-                  static_cast<uint8_t>(idx + 1),
-                  // State
-                  static_cast<uint8_t>(
-                      le_audio::types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
-                  // No Additional ASE params for IDLE state
-              };
-            } else if (is_ase_src_request) {
-              value = {
-                  // ASE ID
-                  static_cast<uint8_t>(idx + 6),
-                  // State
-                  static_cast<uint8_t>(
-                      le_audio::types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
-                  // No Additional ASE params for IDLE state
-              };
+              for (idx = 0; idx < max_num_of_ases; idx++) {
+                if (handle == ascs->sink_ase_char[idx] + 1) {
+                  is_ase_sink_request = true;
+                  break;
+                }
+                if (handle == ascs->source_ase_char[idx] + 1) {
+                  is_ase_src_request = true;
+                  break;
+                }
+              }
+
+              if (is_ase_sink_request) {
+                value = {
+                    // ASE ID
+                    static_cast<uint8_t>(idx + 1),
+                    // State
+                    static_cast<uint8_t>(
+                        le_audio::types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
+                    // No Additional ASE params for IDLE state
+                };
+              } else if (is_ase_src_request) {
+                value = {
+                    // ASE ID
+                    static_cast<uint8_t>(idx + 6),
+                    // State
+                    static_cast<uint8_t>(
+                        le_audio::types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
+                    // No Additional ASE params for IDLE state
+                };
+              }
             }
-            cb(conn_id, GATT_SUCCESS, handle, value.size(), value.data(),
+            cb(conn_id, gatt_status, handle, value.size(), value.data(),
                cb_data);
           });
     }
@@ -2611,7 +2654,7 @@ class UnicastTestNoInit : public Test {
 
   /* CCC descriptor data */
   tGATT_STATUS gatt_read_ctp_ccc_status_ = GATT_SUCCESS;
-  uint8_t ccc_stored_byte_val_ = 0x01;
+  std::optional<uint8_t> ccc_stored_byte_val_ = std::nullopt;
 
   /* Audio track metadata */
   char* test_tags_ptr_ = nullptr;
@@ -7730,6 +7773,7 @@ TEST_F(UnicastTest, HandleDatabaseOutOfSync) {
   Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
 
   /* Simulate DATABASE OUT OF SYNC */
+  ccc_stored_byte_val_ = 0x01;
   gatt_read_ctp_ccc_status_ = GATT_DATABASE_OUT_OF_SYNC;
 
   EXPECT_CALL(mock_gatt_queue_, WriteDescriptor(_, _, _, _, _, _)).Times(0);
@@ -8024,6 +8068,126 @@ TEST_F(UnicastTest, ResetToDefaultReconnectionMode) {
   SyncOnMainLoop();
 
   Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+}
+
+TEST_F(UnicastTest, DisconnectAclBeforeGettingReadResponses) {
+  uint8_t group_size = 2;
+  int group_id = 2;
+
+  // Report working CSIS
+  ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+      .WillByDefault(Return(true));
+
+  const RawAddress test_address0 = GetTestAddress(0);
+  const RawAddress test_address1 = GetTestAddress(1);
+
+  /* Due to imitated problems with GATT read operations (status != GATT_SUCCESS)
+   * a CONNECTED state should not be propagated together with audio location
+   */
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(0);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnSinkAudioLocationAvailable(
+                  test_address0, codec_spec_conf::kLeAudioLocationFrontLeft))
+      .Times(0);
+
+  // First earbud initial connection
+  SetSampleDatabaseEarbudsValid(1 /* conn_id */, test_address0,
+                                codec_spec_conf::kLeAudioLocationFrontLeft,
+                                codec_spec_conf::kLeAudioLocationFrontLeft,
+                                default_channel_cnt, default_channel_cnt,
+                                0x0004, /* source sample freq 16khz */
+                                true,   /*add_csis*/
+                                true,   /*add_cas*/
+                                true,   /*add_pacs*/
+                                true,   /*add_ascs*/
+                                group_size, 1 /* rank */, GATT_INTERNAL_ERROR);
+  groups[test_address0] = group_id;
+  // by default indicate link as encrypted
+  ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address0, _))
+      .WillByDefault(DoAll(Return(true)));
+
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0, BTM_BLE_DIRECT_CONNECTION, _))
+      .Times(1);
+
+  do_in_main_thread(
+      FROM_HERE,
+      base::BindOnce(&LeAudioClient::Connect,
+                     base::Unretained(LeAudioClient::Get()), test_address0));
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_btm_interface_);
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  InjectGroupDeviceAdded(test_address0, group_id);
+
+  // Second earbud initial connection
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnSinkAudioLocationAvailable(
+                  test_address1, codec_spec_conf::kLeAudioLocationFrontRight))
+      .Times(1);
+
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address1, true))
+      .Times(1);
+  ConnectCsisDevice(test_address1, 2 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontRight,
+                    codec_spec_conf::kLeAudioLocationFrontRight, group_size,
+                    group_id, 2 /* rank*/, true /*connect_through_csis*/);
+
+  Mock::VerifyAndClearExpectations(&mock_btif_storage_);
+
+  /* for Target announcements AutoConnect is always there, until
+   * device is removed
+   */
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address1, false))
+      .Times(0);
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address0, false))
+      .Times(0);
+
+  // Verify grouping information
+  std::vector<RawAddress> devs =
+      LeAudioClient::Get()->GetGroupDevices(group_id);
+  ASSERT_NE(std::find(devs.begin(), devs.end(), test_address0), devs.end());
+  ASSERT_NE(std::find(devs.begin(), devs.end(), test_address1), devs.end());
+
+  /* Remove default action on the direct connect */
+  ON_CALL(mock_gatt_interface_, Open(_, _, BTM_BLE_DIRECT_CONNECTION, _))
+      .WillByDefault(Return());
+
+  /* Initiate disconnection with timeout reason, the possible reason why GATT
+   * read attribute operation may be not handled
+   */
+  InjectDisconnectedEvent(1, GATT_CONN_TIMEOUT);
+  SyncOnMainLoop();
+
+  /* After reconnection a sink audio location callback with connection state
+   * should be propagated.
+   */
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(1);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnSinkAudioLocationAvailable(
+                  test_address0, codec_spec_conf::kLeAudioLocationFrontLeft))
+      .Times(1);
+
+  /* Prepare valid GATT status responsing attributes */
+  SetSampleDatabaseEarbudsValid(1 /* conn_id */, test_address0,
+                                codec_spec_conf::kLeAudioLocationFrontLeft,
+                                codec_spec_conf::kLeAudioLocationFrontLeft,
+                                default_channel_cnt, default_channel_cnt,
+                                0x0004, /* source sample freq 16khz */
+                                true,   /*add_csis*/
+                                true,   /*add_cas*/
+                                true,   /*add_pacs*/
+                                true,   /*add_ascs*/
+                                group_size, 1 /* rank */);
+
+  /* For background connect, test needs to Inject Connected Event */
+  InjectConnectedEvent(test_address0, 1);
+  SyncOnMainLoop();
 }
 
 }  // namespace le_audio
