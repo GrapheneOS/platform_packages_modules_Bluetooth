@@ -486,6 +486,9 @@ bool BTM_IsRemoteNameKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
   inc_func_call_count(__func__);
   return test::mock::stack_btm_sec::BTM_IsRemoteNameKnown(bd_addr, transport);
 }
-
+bool BTM_BleIsLinkKeyKnown(const RawAddress /* address */) {
+  inc_func_call_count(__func__);
+  return false;
+}
 // Mocked functions complete
 // END mockcify generation

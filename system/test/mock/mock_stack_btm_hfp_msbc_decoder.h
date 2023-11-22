@@ -54,9 +54,8 @@ extern struct hfp_msbc_decoder_cleanup hfp_msbc_decoder_cleanup;
 struct hfp_msbc_decoder_decode_packet {
   static bool return_value;
   std::function<bool(const uint8_t* i_buf, int16_t* o_buf, size_t out_len)>
-      body{[](const uint8_t* i_buf, int16_t* o_buf, size_t out_len) {
-        return return_value;
-      }};
+      body{[](const uint8_t* /* i_buf */, int16_t* /* o_buf */,
+              size_t /* out_len */) { return return_value; }};
   bool operator()(const uint8_t* i_buf, int16_t* o_buf, size_t out_len) {
     return body(i_buf, o_buf, out_len);
   };

@@ -19,7 +19,7 @@
 
 #include <string>
 
-#include "bta/dm/bta_dm_int.h"
+#include "bta/dm/bta_dm_disc_int.h"
 #include "bta/test/bta_base_test.h"
 #include "osi/include/allocator.h"
 #include "test/common/main_handler.h"

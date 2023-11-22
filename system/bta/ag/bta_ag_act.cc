@@ -845,7 +845,7 @@ void bta_ag_svc_conn_open(tBTA_AG_SCB* p_scb,
 void bta_ag_setcodec(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
   tBTA_AG_PEER_CODEC codec_type = data.api_setcodec.codec;
   tBTA_AG_VAL val = {};
-  const bool aptx_voice = IS_FLAG_ENABLED(hfp_codec_aptx_voice) &&
+  const bool aptx_voice = is_hfp_aptx_voice_enabled() &&
                           (codec_type == BTA_AG_SCO_APTX_SWB_SETTINGS_Q0);
   LOG_VERBOSE("aptx_voice=%s, codec_type=%#x", logbool(aptx_voice).c_str(),
               codec_type);

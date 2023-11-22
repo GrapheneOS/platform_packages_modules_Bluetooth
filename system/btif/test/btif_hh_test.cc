@@ -23,12 +23,9 @@
 #include <future>
 #include <vector>
 
-#include "bta/hh/bta_hh_int.h"
 #include "bta/include/bta_ag_api.h"
 #include "bta/include/bta_hh_api.h"
 #include "btcore/include/module.h"
-#include "btif/include/btif_api.h"
-#include "btif/include/stack_manager.h"
 #include "include/hardware/bt_hh.h"
 #include "osi/include/allocator.h"
 #include "test/common/core_interface.h"
@@ -39,6 +36,7 @@ using namespace std::chrono_literals;
 
 void set_hal_cbacks(bt_callbacks_t* callbacks);
 
+// Used the legacy stack manager
 module_t bt_utils_module;
 module_t gd_controller_module;
 module_t gd_shim_module;
@@ -66,32 +64,6 @@ namespace mock {
 extern bool bluetooth_shim_is_gd_stack_started_up;
 }
 }  // namespace test
-
-#if __GLIBC__
-size_t strlcpy(char* dst, const char* src, size_t siz) {
-  char* d = dst;
-  const char* s = src;
-  size_t n = siz;
-
-  /* Copy as many bytes as will fit */
-  if (n != 0) {
-    while (--n != 0) {
-      if ((*d++ = *s++) == '\0') break;
-    }
-  }
-
-  /* Not enough room in dst, add NUL and traverse rest of src */
-  if (n == 0) {
-    if (siz != 0) *d = '\0'; /* NUL-terminate dst */
-    while (*s++)
-      ;
-  }
-
-  return (s - src - 1); /* count does not include NUL */
-}
-
-pid_t gettid(void) throw() { return syscall(SYS_gettid); }
-#endif
 
 namespace {
 std::array<uint8_t, 32> data32 = {
@@ -170,8 +142,8 @@ class BtifHhWithMockTest : public ::testing::Test {
 class BtifHhWithHalCallbacksTest : public BtifHhWithMockTest {
  protected:
   void SetUp() override {
-    bluetooth::common::InitFlags::SetAllForTesting();
     BtifHhWithMockTest::SetUp();
+    bluetooth::common::InitFlags::SetAllForTesting();
     g_thread_evt_promise = std::promise<bt_cb_thread_evt>();
     auto future = g_thread_evt_promise.get_future();
     bt_callbacks.thread_evt_cb = [](bt_cb_thread_evt evt) {

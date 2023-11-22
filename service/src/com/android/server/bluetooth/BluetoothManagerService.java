@@ -642,9 +642,7 @@ class BluetoothManagerService {
                             Log.d(TAG, "Bluetooth Adapter address changed to " + newAddress);
                             storeNameAndAddress(null, newAddress);
                         } else {
-                            if (DBG) {
-                                Log.e(TAG, "No Bluetooth Adapter address parameter found");
-                            }
+                            Log.e(TAG, "No Bluetooth Adapter address parameter found");
                         }
                     } else if (Intent.ACTION_SETTING_RESTORED.equals(action)) {
                         final String name = intent.getStringExtra(Intent.EXTRA_SETTING_NAME);
@@ -655,13 +653,11 @@ class BluetoothManagerService {
                             final String newValue =
                                     intent.getStringExtra(Intent.EXTRA_SETTING_NEW_VALUE);
 
-                            if (DBG) {
-                                Log.d(
-                                        TAG,
-                                        "ACTION_SETTING_RESTORED with BLUETOOTH_ON"
-                                                + (" prevValue=" + prevValue)
-                                                + (" newValue=" + newValue));
-                            }
+                            Log.d(
+                                    TAG,
+                                    "ACTION_SETTING_RESTORED with BLUETOOTH_ON"
+                                            + (" prevValue=" + prevValue)
+                                            + (" newValue=" + newValue));
 
                             if ((newValue != null)
                                     && (prevValue != null)

@@ -428,7 +428,6 @@ cc_test {
     include_dirs: btifCommonIncludes,
     srcs: [
         ":TestCommonMockFunctions",
-        ":TestMockCommon",
         ":TestMockOsi",
         "test/btif_rc_test.cc",
     ],
@@ -580,6 +579,7 @@ cc_test {
     srcs: [
         ":BtaDmSources",
         ":LibBluetoothSources",
+        ":OsiCompatSources",
         ":TestCommonCoreInterface",
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
@@ -750,7 +750,6 @@ cc_test {
         ":TestMockBtaVc",
         ":TestMockBtcore",
         ":TestMockBtu",
-        ":TestMockCommon",
         ":TestMockFrameworks",
         ":TestMockHci",
         ":TestMockMainShim",
@@ -764,8 +763,6 @@ cc_test {
     ],
     header_libs: ["libbluetooth_headers"],
     shared_libs: [
-        "android.hardware.bluetooth.audio@2.0",
-        "android.hardware.bluetooth.audio@2.1",
         "libbase",
         "libcrypto",
         "libcutils",
@@ -776,7 +773,6 @@ cc_test {
         "server_configurable_flags",
     ],
     static_libs: [
-        "android.hardware.bluetooth.a2dp@1.0",
         "avrcp-target-service",
         "bluetooth_flags_c_lib",
         "lib-bt-packets",
@@ -787,6 +783,7 @@ cc_test {
         "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
         "libbt-audio-hal-interface",
+        "libbt-common",
         "libbt-platform-protos-lite",
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
@@ -800,6 +797,7 @@ cc_test {
         "libcom.android.sysprop.bluetooth.wrapped",
         "libevent",
         "libgmock",
+        "libprotobuf-cpp-lite",
         "libstatslog_bt",
     ],
     cflags: [
@@ -809,10 +807,13 @@ cc_test {
     target: {
         android: {
             static_libs: [
+                "android.hardware.bluetooth.a2dp@1.0",
                 "android.hardware.common-V2-ndk",
                 "android.hardware.common.fmq-V1-ndk",
             ],
             shared_libs: [
+                "android.hardware.bluetooth.audio@2.0",
+                "android.hardware.bluetooth.audio@2.1",
                 "libbinder_ndk",
                 "libstatssocket",
             ],

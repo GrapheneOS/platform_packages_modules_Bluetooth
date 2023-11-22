@@ -7266,10 +7266,13 @@ public class AdapterService extends Service {
 
         final int currentState = mAdapterProperties.getState();
         if (currentState == BluetoothAdapter.STATE_OFF
+                || currentState == BluetoothAdapter.STATE_BLE_TURNING_ON
                 || currentState == BluetoothAdapter.STATE_TURNING_OFF
                 || currentState == BluetoothAdapter.STATE_BLE_TURNING_OFF) {
             writer.println();
-            writer.println("Not dumping, since Bluetooth is turning off");
+            writer.println(
+                    "Impossible to dump native stack. state="
+                            + BluetoothAdapter.nameForState(currentState));
             writer.println();
         } else {
             mNativeInterface.dump(fd, args);

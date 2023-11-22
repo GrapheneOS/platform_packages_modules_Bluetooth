@@ -33,6 +33,7 @@
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/hci/enums.pb.h>
 
+#include <cstdint>
 #include <string>
 
 #include "bt_dev_class.h"
@@ -2076,14 +2077,6 @@ tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
 void btm_sec_conn_req(const RawAddress& bda, const DEV_CLASS dc) {
   tBTM_SEC_DEV_REC* p_dev_rec = nullptr;
 
-  /* Some device may request a connection before we are done with the HCI_Reset
-   * sequence */
-  if (!controller_get_interface()->get_is_ready()) {
-    LOG_VERBOSE("Security Manager: connect request when device not ready");
-    btsnd_hcic_reject_conn(bda, HCI_ERR_HOST_REJECT_DEVICE);
-    return;
-  }
-
   if ((btm_sec_cb.pairing_state != BTM_PAIR_STATE_IDLE) &&
       (btm_sec_cb.pairing_flags & BTM_PAIR_FLAGS_WE_STARTED_DD) &&
       (btm_sec_cb.pairing_bda == bda)) {
@@ -2313,6 +2306,36 @@ static tBTM_STATUS btm_sec_dd_create_conn(tBTM_SEC_DEV_REC* p_dev_rec) {
   return (BTM_CMD_STARTED);
 }
 
+static void call_registered_rmt_name_callbacks(const RawAddress* p_bd_addr,
+                                               uint8_t* pdev_class,
+                                               uint8_t* p_bd_name,
+                                               tHCI_STATUS status) {
+  int i;
+
+  if (p_bd_addr == nullptr) {
+    // TODO Still need to send status back to get SDP state machine
+    // running
+    LOG_ERROR("Unable to issue callback with unknown address status:%s",
+              hci_status_code_text(status).c_str());
+    return;
+  }
+
+  if (pdev_class == nullptr) {
+    pdev_class = (uint8_t*)kDevClassEmpty;
+  }
+  if (p_bd_name == nullptr) {
+    p_bd_name = (uint8_t*)kBtmBdNameEmpty;
+  }
+
+  /* Notify all clients waiting for name to be resolved even if not found so
+   * clients can continue */
+  for (i = 0; i < BTM_SEC_MAX_RMT_NAME_CALLBACKS; i++) {
+    if (btm_cb.p_rmt_name_callback[i]) {
+      (*btm_cb.p_rmt_name_callback[i])(*p_bd_addr, pdev_class, p_bd_name);
+    }
+  }
+}
+
 /*******************************************************************************
  *
  * Function         btm_sec_rmt_name_request_complete
@@ -2327,8 +2350,6 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
                                        const uint8_t* p_bd_name,
                                        tHCI_STATUS status) {
   tBTM_SEC_DEV_REC* p_dev_rec = nullptr;
-
-  int i;
   uint8_t old_sec_state;
 
   LOG_INFO("btm_sec_rmt_name_request_complete for %s",
@@ -2356,7 +2377,17 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
 
   if (!p_bd_name) p_bd_name = (const uint8_t*)"";
 
-  if (p_dev_rec != nullptr) {
+  if (p_dev_rec == nullptr) {
+    LOG_DEBUG(
+        "Remote read request complete for unknown device pairing_state:%s "
+        "status:%s name:%s",
+        btm_pair_state_descr(btm_sec_cb.pairing_state),
+        hci_status_code_text(status).c_str(), p_bd_name);
+
+    call_registered_rmt_name_callbacks(p_bd_addr, nullptr, nullptr, status);
+    return;
+  }
+
     old_sec_state = p_dev_rec->sec_state;
     if (status == HCI_SUCCESS) {
       LOG_DEBUG(
@@ -2387,67 +2418,32 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
       p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
 
     /* Notify all clients waiting for name to be resolved */
-    for (i = 0; i < BTM_SEC_MAX_RMT_NAME_CALLBACKS; i++) {
-      if (btm_cb.p_rmt_name_callback[i]) {
-        if (p_bd_addr) {
-          (*btm_cb.p_rmt_name_callback[i])(*p_bd_addr, p_dev_rec->dev_class,
-                                           p_dev_rec->sec_bd_name);
-        } else {
-          // TODO Still need to send status back to get SDP state machine
-          // running
-          LOG_ERROR("Unable to issue callback with unknown address status:%s",
-                    hci_status_code_text(status).c_str());
-        }
-      }
-    }
-  } else {
-    LOG_DEBUG(
-        "Remote read request complete for unknown device pairing_state:%s "
-        "status:%s name:%s",
-        btm_pair_state_descr(btm_sec_cb.pairing_state),
-        hci_status_code_text(status).c_str(), p_bd_name);
+    call_registered_rmt_name_callbacks(p_bd_addr, p_dev_rec->dev_class,
+                                       p_dev_rec->sec_bd_name, status);
 
-    /* Notify all clients waiting for name to be resolved even if not found so
-     * clients can continue */
-    for (i = 0; i < BTM_SEC_MAX_RMT_NAME_CALLBACKS; i++) {
-      if (btm_cb.p_rmt_name_callback[i]) {
-        if (p_bd_addr) {
-          (*btm_cb.p_rmt_name_callback[i])(*p_bd_addr, (uint8_t*)kDevClassEmpty,
-                                           (uint8_t*)kBtmBdNameEmpty);
-        } else {
-          // TODO Still need to send status back to get SDP state machine
-          // running
-          LOG_ERROR("Unable to issue callback with unknown address status:%s",
-                    hci_status_code_text(status).c_str());
-        }
-      }
-    }
-    return;
-  }
+    /* If we were delaying asking UI for a PIN because name was not resolved,
+     * ask now */
+    if ((btm_sec_cb.pairing_state == BTM_PAIR_STATE_WAIT_LOCAL_PIN) &&
+        p_bd_addr && (btm_sec_cb.pairing_bda == *p_bd_addr)) {
+      LOG_VERBOSE(
+          "delayed pin now being requested flags:0x%x, "
+          "(p_pin_callback=0x%p)",
+          btm_sec_cb.pairing_flags, btm_sec_cb.api.p_pin_callback);
 
-  /* If we were delaying asking UI for a PIN because name was not resolved, ask
-   * now */
-  if ((btm_sec_cb.pairing_state == BTM_PAIR_STATE_WAIT_LOCAL_PIN) &&
-      p_bd_addr && (btm_sec_cb.pairing_bda == *p_bd_addr)) {
-    LOG_VERBOSE(
-        "delayed pin now being requested flags:0x%x, "
-        "(p_pin_callback=0x%p)",
-        btm_sec_cb.pairing_flags, btm_sec_cb.api.p_pin_callback);
-
-    if ((btm_sec_cb.pairing_flags & BTM_PAIR_FLAGS_PIN_REQD) == 0 &&
-        btm_sec_cb.api.p_pin_callback) {
+      if ((btm_sec_cb.pairing_flags & BTM_PAIR_FLAGS_PIN_REQD) == 0 &&
+          btm_sec_cb.api.p_pin_callback) {
       LOG_VERBOSE("calling pin_callback");
       btm_sec_cb.pairing_flags |= BTM_PAIR_FLAGS_PIN_REQD;
       (*btm_sec_cb.api.p_pin_callback)(
           p_dev_rec->bd_addr, p_dev_rec->dev_class, p_bd_name,
           (p_dev_rec->required_security_flags_for_pairing &
            BTM_SEC_IN_MIN_16_DIGIT_PIN));
-    }
+      }
 
     /* Set the same state again to force the timer to be restarted */
     btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_LOCAL_PIN);
     return;
-  }
+    }
 
   /* Check if we were delaying bonding because name was not resolved */
   if (btm_sec_cb.pairing_state == BTM_PAIR_STATE_GET_REM_NAME) {

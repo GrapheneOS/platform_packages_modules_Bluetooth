@@ -27,9 +27,10 @@
 #include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
-tHID_STATUS HID_DevAddRecord(uint32_t handle, char* p_name, char* p_description,
-                             char* p_provider, uint16_t subclass,
-                             uint16_t desc_len, uint8_t* p_desc_data) {
+tHID_STATUS HID_DevAddRecord(uint32_t /* handle */, char* /* p_name */,
+                             char* /* p_description */, char* /* p_provider */,
+                             uint16_t /* subclass */, uint16_t /* desc_len */,
+                             uint8_t* /* p_desc_data */) {
   inc_func_call_count(__func__);
   return HID_SUCCESS;
 }
@@ -45,46 +46,51 @@ tHID_STATUS HID_DevDisconnect(void) {
   inc_func_call_count(__func__);
   return HID_SUCCESS;
 }
-tHID_STATUS HID_DevGetDevice(RawAddress* addr) {
+tHID_STATUS HID_DevGetDevice(RawAddress* /* addr */) {
   inc_func_call_count(__func__);
   return HID_SUCCESS;
 }
-tHID_STATUS HID_DevPlugDevice(const RawAddress& addr) {
+tHID_STATUS HID_DevPlugDevice(const RawAddress& /* addr */) {
   inc_func_call_count(__func__);
   return HID_SUCCESS;
 }
-tHID_STATUS HID_DevRegister(tHID_DEV_HOST_CALLBACK* host_cback) {
+tHID_STATUS HID_DevRegister(tHID_DEV_HOST_CALLBACK* /* host_cback */) {
   inc_func_call_count(__func__);
   return HID_SUCCESS;
 }
-tHID_STATUS HID_DevReportError(uint8_t error) {
+tHID_STATUS HID_DevReportError(uint8_t /* error */) {
   inc_func_call_count(__func__);
   return HID_SUCCESS;
 }
-tHID_STATUS HID_DevSendReport(uint8_t channel, uint8_t type, uint8_t id,
-                              uint16_t len, uint8_t* p_data) {
+tHID_STATUS HID_DevSendReport(uint8_t /* channel */, uint8_t /* type */,
+                              uint8_t /* id */, uint16_t /* len */,
+                              uint8_t* /* p_data */) {
   inc_func_call_count(__func__);
   return HID_SUCCESS;
 }
-tHID_STATUS HID_DevSetIncomingPolicy(bool allow) {
+tHID_STATUS HID_DevSetIncomingPolicy(bool /* allow */) {
   inc_func_call_count(__func__);
   return HID_SUCCESS;
 }
-tHID_STATUS HID_DevSetIncomingQos(uint8_t service_type, uint32_t token_rate,
-                                  uint32_t token_bucket_size,
-                                  uint32_t peak_bandwidth, uint32_t latency,
-                                  uint32_t delay_variation) {
+tHID_STATUS HID_DevSetIncomingQos(uint8_t /* service_type */,
+                                  uint32_t /* token_rate */,
+                                  uint32_t /* token_bucket_size */,
+                                  uint32_t /* peak_bandwidth */,
+                                  uint32_t /* latency */,
+                                  uint32_t /* delay_variation */) {
   inc_func_call_count(__func__);
   return HID_SUCCESS;
 }
-tHID_STATUS HID_DevSetOutgoingQos(uint8_t service_type, uint32_t token_rate,
-                                  uint32_t token_bucket_size,
-                                  uint32_t peak_bandwidth, uint32_t latency,
-                                  uint32_t delay_variation) {
+tHID_STATUS HID_DevSetOutgoingQos(uint8_t /* service_type */,
+                                  uint32_t /* token_rate */,
+                                  uint32_t /* token_bucket_size */,
+                                  uint32_t /* peak_bandwidth */,
+                                  uint32_t /* latency */,
+                                  uint32_t /* delay_variation */) {
   inc_func_call_count(__func__);
   return HID_SUCCESS;
 }
-tHID_STATUS HID_DevUnplugDevice(const RawAddress& addr) {
+tHID_STATUS HID_DevUnplugDevice(const RawAddress& /* addr */) {
   inc_func_call_count(__func__);
   return HID_SUCCESS;
 }

@@ -31,6 +31,8 @@
 #define SWB_CODECS_UNSUPPORTED "0xFFFF"
 #define SWB_CODECS_NUMBER 4
 
+bool is_hfp_aptx_voice_enabled();
+
 void bta_ag_swb_handle_vs_at_events(tBTA_AG_SCB* p_scb, uint16_t cmd,
                                     int16_t int_arg, tBTA_AG_VAL* val);
 tBTA_AG_PEER_CODEC bta_ag_parse_qac(char* p_s);
