@@ -1366,20 +1366,28 @@ public class VolumeControlService extends ProfileService {
         } else if (toState == BluetoothProfile.STATE_CONNECTED) {
             // Restore the group volume if it was changed while the device was not yet connected.
             CsipSetCoordinatorService csipClient = mFactory.getCsipSetCoordinatorService();
-            Integer groupId = csipClient.getGroupId(device, BluetoothUuid.CAP);
-            if (groupId != IBluetoothCsipSetCoordinator.CSIS_GROUP_ID_INVALID) {
-                Integer groupVolume = mGroupVolumeCache.getOrDefault(groupId,
-                        IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME);
-                if (groupVolume != IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME) {
-                    mVolumeControlNativeInterface.setVolume(device, groupVolume);
-                }
+            if (csipClient != null) {
+                Integer groupId = csipClient.getGroupId(device, BluetoothUuid.CAP);
+                if (groupId != IBluetoothCsipSetCoordinator.CSIS_GROUP_ID_INVALID) {
+                    Integer groupVolume =
+                            mGroupVolumeCache.getOrDefault(
+                                    groupId, IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME);
+                    if (groupVolume != IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME) {
+                        mVolumeControlNativeInterface.setVolume(device, groupVolume);
+                    }
 
-                Boolean groupMute = mGroupMuteCache.getOrDefault(groupId, false);
-                if (groupMute) {
-                    mVolumeControlNativeInterface.mute(device);
-                } else {
-                    mVolumeControlNativeInterface.unmute(device);
+                    Boolean groupMute = mGroupMuteCache.getOrDefault(groupId, false);
+                    if (groupMute) {
+                        mVolumeControlNativeInterface.mute(device);
+                    } else {
+                        mVolumeControlNativeInterface.unmute(device);
+                    }
                 }
+            } else {
+                /* It could happen when Bluetooth is stopping while VC is getting
+                 * connection event
+                 */
+                Log.w(TAG, "CSIP is not available");
             }
         }
         mAdapterService.handleProfileConnectionStateChange(
