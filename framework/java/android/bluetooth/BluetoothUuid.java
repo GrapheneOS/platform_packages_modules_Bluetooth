@@ -16,6 +16,7 @@
 
 package android.bluetooth;
 
+import android.annotation.FlaggedApi;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.SuppressLint;
@@ -278,6 +279,17 @@ public final class BluetoothUuid {
     @SystemApi
     public static final ParcelUuid HAS =
             ParcelUuid.fromString("00001854-0000-1000-8000-00805F9B34FB");
+
+    /**
+     * UUID corresponding to the Made For iPhone/iPod/iPad Hearing Aid Service (MFi HAS).
+     *
+     * @hide
+     */
+    @NonNull
+    @SystemApi
+    @FlaggedApi("com.android.bluetooth.flags.mfi_has_uuid")
+    public static final ParcelUuid MFI_HAS =
+            ParcelUuid.fromString("7D74F4BD-C74A-4431-862C-CCE884371592");
 
     /**
      * UUID corresponding to Audio Stream Control (also known as Bluetooth Low Energy Audio).
