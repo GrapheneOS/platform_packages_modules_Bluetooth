@@ -20,7 +20,6 @@ import android.database.ContentObserver
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
-import android.util.Log
 
 private const val TAG = "BluetoothRadioModeListener"
 

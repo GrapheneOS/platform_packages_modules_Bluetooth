@@ -21,7 +21,6 @@ import android.bluetooth.IBluetoothCallback
 import android.content.AttributionSource
 import android.os.IBinder
 import android.os.RemoteException
-import android.util.Log
 import com.android.modules.utils.SynchronousResultReceiver
 import com.android.server.bluetooth.BluetoothManagerService.timeToLog
 import java.time.Duration
