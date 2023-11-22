@@ -1,6 +1,13 @@
 package: "com.android.bluetooth.flags"
 
 flag {
+    name: "mfi_has_uuid"
+    namespace: "bluetooth"
+    description: "Use MFi HAS uuid to judge if a device is hearing aid"
+    bug: "310543599"
+}
+
+flag {
     name: "support_metadata_device_types_apis"
     namespace: "bluetooth"
     description: "Support more device types in bt device metadata"
