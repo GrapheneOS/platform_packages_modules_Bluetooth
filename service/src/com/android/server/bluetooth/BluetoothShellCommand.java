@@ -24,7 +24,6 @@ import android.content.Context;
 import android.os.Binder;
 import android.os.Process;
 import android.os.RemoteException;
-import android.util.Log;
 
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.BasicShellCommandHandler;
