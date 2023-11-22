@@ -276,6 +276,11 @@ public class LeAudioServiceTest {
     private class LeAudioIntentReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
+            /* Ignore intent when service is inactive */
+            if (mService == null) {
+                return;
+            }
+
             if (BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED
                     .equals(intent.getAction())) {
                 try {
@@ -289,8 +294,8 @@ public class LeAudioServiceTest {
                     assertWithMessage("Cannot add Intent to the Connection State queue: "
                             + e.getMessage()).fail();
                 }
-            }
-            if (BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED.equals(intent.getAction())) {
+            } else if (BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED.equals(
+                    intent.getAction())) {
                 try {
                     BluetoothDevice device = intent.getParcelableExtra(
                             BluetoothDevice.EXTRA_DEVICE);
