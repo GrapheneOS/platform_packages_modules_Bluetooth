@@ -1213,33 +1213,24 @@ class BluetoothManagerService {
                 android.Manifest.permission.BLUETOOTH_PRIVILEGED,
             })
     private void sendBrEdrDownCallback(AttributionSource source) {
-        Log.d(TAG, "Calling sendBrEdrDownCallback callbacks");
-
-        if (mAdapter == null) {
-            Log.w(TAG, "sendBrEdrDownCallback: mAdapter is null");
-            return;
-        }
-
-        if (isBleAppPresent()) {
-            // Need to stay at BLE ON. Disconnect all Gatt connections
-            Log.i(TAG, "sendBrEdrDownCallback: Staying in BLE_ON");
-            try {
+        mAdapterLock.readLock().lock();
+        try {
+            if (mAdapter == null) {
+                Log.w(TAG, "sendBrEdrDownCallback: mAdapter is null");
+                return;
+            }
+            if (isBleAppPresent()) {
+                // Need to stay at BLE ON. Disconnect all Gatt connections
+                Log.i(TAG, "sendBrEdrDownCallback: Staying in BLE_ON");
                 mAdapter.unregAllGattClient(source);
-            } catch (RemoteException | TimeoutException e) {
-                Log.e(TAG, "Unable to disconnect all apps.", e);
+            } else {
+                Log.i(TAG, "sendBrEdrDownCallback: Stopping ble");
+                mAdapter.stopBle(source);
             }
-        } else {
-            Log.i(TAG, "sendBrEdrDownCallback: Stopping ble");
-            mAdapterLock.readLock().lock();
-            try {
-                if (mAdapter != null) {
-                    mAdapter.stopBle(source);
-                }
-            } catch (RemoteException | TimeoutException e) {
-                Log.e(TAG, "Call to stopBle() failed.", e);
-            } finally {
-                mAdapterLock.readLock().unlock();
-            }
+        } catch (RemoteException | TimeoutException e) {
+            Log.e(TAG, "sendBrEdrDownCallback: Call to mAdapter failed.", e);
+        } finally {
+            mAdapterLock.readLock().unlock();
         }
     }
 
