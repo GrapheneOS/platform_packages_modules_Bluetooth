@@ -1994,7 +1994,6 @@ class BluetoothManagerService {
                         Log.d(TAG, "MESSAGE_RESTORE_USER_SETTING: set Bluetooth state to enabled");
                         mQuietEnableExternal = false;
                         mEnableExternal = true;
-                        // waive WRITE_SECURE_SETTINGS permission check
                         sendEnableMsg(
                                 false,
                                 BluetoothProtoEnums.ENABLE_DISABLE_REASON_RESTORE_USER_SETTING,
