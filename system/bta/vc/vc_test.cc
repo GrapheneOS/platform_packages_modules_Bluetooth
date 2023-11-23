@@ -462,6 +462,8 @@ class VolumeControlTest : public ::testing::Test {
   void SetEncryptionResult(const RawAddress& address, bool success) {
     ON_CALL(btm_interface, BTM_IsEncrypted(address, _))
         .WillByDefault(DoAll(Return(false)));
+    ON_CALL(btm_interface, IsLinkKeyKnown(address, _))
+        .WillByDefault(DoAll(Return(true)));
     ON_CALL(btm_interface, SetEncryption(address, _, _, _, BTM_BLE_SEC_ENCRYPT))
         .WillByDefault(Invoke(
             [&success, this](const RawAddress& bd_addr, tBT_TRANSPORT transport,
@@ -731,6 +733,27 @@ TEST_F(VolumeControlTest, test_disconnected_while_autoconnect) {
   TestAppUnregister();
 }
 
+TEST_F(VolumeControlTest, test_disconnect_when_link_key_gone) {
+  const RawAddress test_address = GetTestAddress(0);
+  TestAppRegister();
+  TestAddFromStorage(test_address);
+
+  ON_CALL(btm_interface, BTM_IsEncrypted(test_address, _))
+      .WillByDefault(DoAll(Return(false)));
+  ON_CALL(btm_interface,
+          SetEncryption(test_address, _, _, _, BTM_BLE_SEC_ENCRYPT))
+      .WillByDefault(Return(BTM_ERR_KEY_MISSING));
+
+  // autoconnect - don't indicate disconnection
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::DISCONNECTED, test_address))
+      .Times(0);
+  EXPECT_CALL(gatt_interface, Close(1));
+  GetConnectedEvent(test_address, 1);
+  Mock::VerifyAndClearExpectations(&btm_interface);
+  TestAppUnregister();
+}
+
 TEST_F(VolumeControlTest, test_reconnect_after_encryption_failed) {
   const RawAddress test_address = GetTestAddress(0);
   TestAppRegister();
@@ -755,6 +778,8 @@ TEST_F(VolumeControlTest, test_service_discovery_completed_before_encryption) {
 
   ON_CALL(btm_interface, BTM_IsEncrypted(test_address, _))
       .WillByDefault(DoAll(Return(false)));
+  ON_CALL(btm_interface, IsLinkKeyKnown(test_address, _))
+      .WillByDefault(DoAll(Return(true)));
   ON_CALL(btm_interface, SetEncryption(test_address, _, _, _, _))
       .WillByDefault(Return(BTM_SUCCESS));
 

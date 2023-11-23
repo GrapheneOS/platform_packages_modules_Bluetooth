@@ -26,7 +26,10 @@
 
 using namespace bluetooth::vc::internal;
 
-void VolumeControlDevice::EnableEncryption() { inc_func_call_count(__func__); }
+bool VolumeControlDevice::EnableEncryption() {
+  inc_func_call_count(__func__);
+  return true;
+}
 bool VolumeControlDevice::EnqueueInitialRequests(
     tGATT_IF gatt_if, GATT_READ_OP_CB chrc_read_cb,
     GATT_WRITE_OP_CB cccd_write_cb) {
