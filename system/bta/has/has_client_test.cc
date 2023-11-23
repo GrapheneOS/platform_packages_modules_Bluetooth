@@ -892,6 +892,9 @@ class HasClientTestBase : public ::testing::Test {
 
     ON_CALL(btm_interface, BTM_IsEncrypted(address, _))
         .WillByDefault(DoAll(Return(encryption_result)));
+
+    ON_CALL(btm_interface, IsLinkKeyKnown(address, _))
+        .WillByDefault(DoAll(Return(true)));
   }
 
   void InjectNotifyReadPresetResponse(uint16_t conn_id,
@@ -1320,6 +1323,30 @@ TEST_F(HasClientTest, test_service_discovery_complete_before_encryption) {
 
   SetEncryptionResult(test_address, true);
   InjectEncryptionEvent(test_address);
+  Mock::VerifyAndClearExpectations(callbacks.get());
+}
+
+TEST_F(HasClientTest, test_disconnect_when_link_key_is_gone) {
+  const RawAddress test_address = GetTestAddress(1);
+  SetSampleDatabaseHasPresetsNtf(
+      test_address, bluetooth::has::kFeatureBitHearingAidTypeBinaural);
+
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::DISCONNECTED, test_address))
+      .Times(0);
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::CONNECTED, test_address))
+      .Times(0);
+
+  ON_CALL(btm_interface, BTM_IsEncrypted(test_address, _))
+      .WillByDefault(DoAll(Return(false)));
+  ON_CALL(btm_interface, SetEncryption(test_address, _, _, _, _))
+      .WillByDefault(Return(BTM_ERR_KEY_MISSING));
+
+  auto test_conn_id = GetTestConnId(test_address);
+  EXPECT_CALL(gatt_interface, Close(test_conn_id)).Times(1);
+  InjectConnectedEvent(test_address, GetTestConnId(test_address));
+
   Mock::VerifyAndClearExpectations(callbacks.get());
 }
 
