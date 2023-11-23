@@ -1243,7 +1243,7 @@ tBTM_STATUS btm_ble_start_encrypt(const RawAddress& bda, bool use_stk,
                              p_rec->ble_keys.ediv, p_rec->ble_keys.pltk);
   } else {
     LOG_ERROR("No key available to encrypt the link");
-    return BTM_NO_RESOURCES;
+    return BTM_ERR_KEY_MISSING;
   }
 
   if (p_rec->sec_state == BTM_SEC_STATE_IDLE)

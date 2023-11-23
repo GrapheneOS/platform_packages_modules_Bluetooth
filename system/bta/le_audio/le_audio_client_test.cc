@@ -1656,6 +1656,9 @@ class UnicastTestNoInit : public Test {
     ON_CALL(mock_btm_interface_, BTM_IsEncrypted(address, _))
         .WillByDefault(DoAll(Return(isEncrypted)));
 
+    ON_CALL(mock_btm_interface_, IsLinkKeyKnown(address, _))
+        .WillByDefault(DoAll(Return(true)));
+
     EXPECT_CALL(mock_gatt_interface_,
                 Open(gatt_if, address, BTM_BLE_DIRECT_CONNECTION, _))
         .Times(1);
@@ -3211,6 +3214,33 @@ TEST_F(UnicastTest, ConnectRemoteServiceDiscoveryCompleteBeforeEncryption) {
   InjectEncryptionChangedEvent(test_address0);
   SyncOnMainLoop();
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+}
+
+TEST_F(UnicastTest, DisconnectWhenLinkKeyIsGone) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  uint16_t conn_id = 1;
+  SetSampleDatabaseEarbudsValid(conn_id, test_address0,
+                                codec_spec_conf::kLeAudioLocationStereo,
+                                codec_spec_conf::kLeAudioLocationStereo);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::DISCONNECTED, test_address0))
+      .Times(1);
+
+  ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address0, _))
+      .WillByDefault(DoAll(Return(false)));
+
+  ON_CALL(mock_btm_interface_, SetEncryption(test_address0, _, _, _, _))
+      .WillByDefault(Return(BTM_ERR_KEY_MISSING));
+
+  EXPECT_CALL(mock_gatt_interface_, Close(conn_id)).Times(1);
+  do_in_main_thread(
+      FROM_HERE,
+      base::BindOnce(&LeAudioClient::Connect,
+                     base::Unretained(LeAudioClient::Get()), test_address0));
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_btm_interface_);
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
 }
 
 /* same as above case except the disconnect is initiated by remote */
