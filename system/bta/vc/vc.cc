@@ -184,7 +184,11 @@ class VolumeControlImpl : public VolumeControl {
       return;
     }
 
-    device->EnableEncryption();
+    if (!device->EnableEncryption()) {
+      LOG_ERROR("Link key is not known for %s, disconnect profile",
+                ADDRESS_TO_LOGGABLE_CSTR(address));
+      device->Disconnect(gatt_if_);
+    }
   }
 
   void OnEncryptionComplete(const RawAddress& address, uint8_t success) {
