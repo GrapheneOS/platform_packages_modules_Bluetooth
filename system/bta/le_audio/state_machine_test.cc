@@ -3771,15 +3771,26 @@ TEST_F(StateMachineTest, testHandlingCachedCodecConfig2Devices) {
 
   testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
 
-  /* Single disconnect as it is bidirectional Cis*/
+  /* Two disconnect as it is two bidirectional Cises */
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(2);
 
-  LOG_ERROR("STOP");
+  // Validate initial GroupStreamStatus
+  EXPECT_CALL(mock_callbacks_,
+              StatusReportCb(leaudio_group_id,
+                             bluetooth::le_audio::GroupStreamStatus::RELEASING))
+      .Times(1);
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(
+          leaudio_group_id,
+          bluetooth::le_audio::GroupStreamStatus::CONFIGURED_AUTONOMOUS))
+      .Times(0);
+
   // Stop the stream
   LeAudioGroupStateMachine::Get()->StopStream(group);
 
   for (auto& ase : firstDevice->ases_) {
-    LOG_ERROR("%s , %d, %s", ADDRESS_TO_LOGGABLE_CSTR(firstDevice->address_),
+    LOG_DEBUG("%s , %d, %s", ADDRESS_TO_LOGGABLE_CSTR(firstDevice->address_),
               ase.id, bluetooth::common::ToString(ase.state).c_str());
     ASSERT_EQ(ase.state, types::AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING);
     // Simulate autonomus configured state.
@@ -3788,8 +3799,17 @@ TEST_F(StateMachineTest, testHandlingCachedCodecConfig2Devices) {
                                &cached_codec_configuration_map_[ase.id]);
   }
 
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+
+  /* When ALL devices got inactive, we should got the proper group status */
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(
+          leaudio_group_id,
+          bluetooth::le_audio::GroupStreamStatus::CONFIGURED_AUTONOMOUS))
+      .Times(1);
   for (auto& ase : secondDevice->ases_) {
-    LOG_ERROR("%s , %d, %s", ADDRESS_TO_LOGGABLE_CSTR(firstDevice->address_),
+    LOG_DEBUG("%s , %d, %s", ADDRESS_TO_LOGGABLE_CSTR(firstDevice->address_),
               ase.id, bluetooth::common::ToString(ase.state).c_str());
     ASSERT_EQ(ase.state, types::AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING);
     // Simulate autonomus configured state.
@@ -3797,6 +3817,8 @@ TEST_F(StateMachineTest, testHandlingCachedCodecConfig2Devices) {
                                ascs::kAseStateCodecConfigured,
                                &cached_codec_configuration_map_[ase.id]);
   }
+
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
 }
 
 TEST_F(StateMachineTest, testStateTransitionTimeoutOnIdleState) {
