@@ -1959,6 +1959,17 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           return;
         }
 
+        {
+          auto activeDevice = group->GetFirstActiveDevice();
+          if (activeDevice) {
+            LOG_DEBUG(
+                "There is at least one active device %s, wait to become "
+                "inactive",
+                ADDRESS_TO_LOGGABLE_CSTR(activeDevice->address_));
+            return;
+          }
+        }
+
         /* Last node is in releasing state*/
         group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED);
         /* Remote device has cache and keep staying in configured state after
