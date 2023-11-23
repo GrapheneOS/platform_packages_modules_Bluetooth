@@ -147,7 +147,7 @@ class BluetoothServiceBinder extends IBluetoothManager.Stub {
 
     @Override
     public boolean disable(AttributionSource source, boolean persist) {
-        requireNonNull(source, "AttributionSource cannot be null in enableNoAutoConnect");
+        requireNonNull(source, "AttributionSource cannot be null in disable");
 
         if (!persist) {
             mPermissionUtils.enforcePrivileged(mContext);
