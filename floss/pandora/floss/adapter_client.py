@@ -685,6 +685,15 @@ class FlossAdapterClient(BluetoothCallbacks, BluetoothConnectionCallbacks):
         remote_device = self._make_dbus_device(address, name)
         return bool(self.proxy().RemoveBond(remote_device))
 
+    @utils.glib_call(None)
+    def get_bonded_devices(self):
+        """Get all bonded devices.
+
+        Returns:
+            List of device addresses; None on DBus error.
+        """
+        return self.proxy().GetBondedDevices()
+
     @utils.glib_call(False)
     def forget_device(self, address):
         """Forgets device from local cache and removes bonding.

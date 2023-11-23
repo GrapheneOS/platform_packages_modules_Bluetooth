@@ -196,6 +196,15 @@ class Bluetooth(object):
     def create_bond(self, address, transport):
         return self.adapter_client.create_bond(address, transport)
 
+    def remove_bond(self, address):
+        return self.adapter_client.remove_bond(address)
+
+    def get_bonded_devices(self):
+        return self.adapter_client.get_bonded_devices()
+
+    def forget_device(self, address):
+        return self.adapter_client.forget_device(address)
+
     def set_pairing_confirmation(self, address, accept):
         return self.adapter_client.set_pairing_confirmation(address, accept)
 

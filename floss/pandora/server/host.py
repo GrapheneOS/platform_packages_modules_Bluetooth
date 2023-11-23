@@ -51,6 +51,16 @@ class HostService(host_grpc_aio.HostServicer):
 
     async def FactoryReset(self, request: empty_pb2.Empty, context: grpc.ServicerContext) -> empty_pb2.Empty:
         self.waited_connections.clear()
+
+        devices = self.bluetooth.get_bonded_devices()
+        if devices is None:
+            logging.error('Failed to call get_bonded_devices.')
+        else:
+            for device in devices:
+                address = device['address']
+                logging.info('Forget device %s', address)
+                self.bluetooth.forget_device(address)
+
         asyncio.create_task(self.server.stop(None))
         return empty_pb2.Empty()
 
