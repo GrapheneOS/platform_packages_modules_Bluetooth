@@ -19,8 +19,8 @@ import android.content.ContentResolver
 import android.content.Context
 import android.os.Looper
 import android.provider.Settings
-import android.util.Log
 import androidx.test.core.app.ApplicationProvider
+import com.android.server.bluetooth.Log
 import com.android.server.bluetooth.satellite.SETTINGS_SATELLITE_MODE_ENABLED
 import com.android.server.bluetooth.satellite.SETTINGS_SATELLITE_MODE_RADIOS
 import com.android.server.bluetooth.satellite.initialize

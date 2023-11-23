@@ -20,7 +20,6 @@ import android.annotation.NonNull;
 import android.content.ContentResolver;
 import android.os.IBinder;
 import android.provider.Settings;
-import android.util.Log;
 
 import com.android.internal.annotations.VisibleForTesting;
 

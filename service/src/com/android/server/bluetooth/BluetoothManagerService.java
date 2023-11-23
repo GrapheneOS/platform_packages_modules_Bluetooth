@@ -73,7 +73,6 @@ import android.os.UserManager;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.sysprop.BluetoothProperties;
-import android.util.Log;
 import android.util.proto.ProtoOutputStream;
 
 import com.android.bluetooth.BluetoothStatsLog;
@@ -106,7 +105,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 class BluetoothManagerService {
-    private static final String TAG = "BluetoothManagerService";
+    private static final String TAG = BluetoothManagerService.class.getSimpleName();
     private static final boolean DBG = true;
 
     private static final String BLUETOOTH_PRIVILEGED =
