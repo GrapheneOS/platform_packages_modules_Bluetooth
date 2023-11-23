@@ -6087,6 +6087,16 @@ public class AdapterService extends Service {
             if (device == null) {
                 mA2dpService.removeActiveDevice(false);
             } else {
+                /* Workaround for the controller issue which is not able to handle correctly
+                 * A2DP offloader vendor specific command while ISO Data path is set.
+                 * Proper solutions should be delivered in b/312396770
+                 */
+                if (mLeAudioService != null) {
+                    List<BluetoothDevice> activeLeAudioDevices = mLeAudioService.getActiveDevices();
+                    if (activeLeAudioDevices.get(0) != null) {
+                        mLeAudioService.removeActiveDevice(true);
+                    }
+                }
                 mA2dpService.setActiveDevice(device);
             }
         }
