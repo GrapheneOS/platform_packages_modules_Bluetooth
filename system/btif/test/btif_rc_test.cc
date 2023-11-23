@@ -78,38 +78,9 @@ void AvrcpService::RegisterVolChanged(const RawAddress& bdaddr) {
 }  // namespace bluetooth
 
 namespace {
-int AVRC_BldResponse_ = 0;
-int AVRC_BldCmd_ = 0;
+const RawAddress kDeviceAddress({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 }  // namespace
 
-const RawAddress kDeviceAddress({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
-bool avrcp_absolute_volume_is_enabled() { return true; }
-
-tAVRC_STS AVRC_BldCommand(tAVRC_COMMAND* p_cmd, BT_HDR** pp_pkt) {
-  AVRC_BldCmd_++;
-  return 0;
-}
-tAVRC_STS AVRC_BldResponse(uint8_t handle, tAVRC_RESPONSE* p_rsp,
-                           BT_HDR** pp_pkt) {
-  AVRC_BldResponse_++;
-  return 0;
-}
-tAVRC_STS AVRC_Ctrl_ParsCommand(tAVRC_MSG* p_msg, tAVRC_COMMAND* p_result) {
-  return 0;
-}
-tAVRC_STS AVRC_Ctrl_ParsResponse(tAVRC_MSG* p_msg, tAVRC_RESPONSE* p_result,
-                                 uint8_t* p_buf, uint16_t* buf_len) {
-  return 0;
-}
-tAVRC_STS AVRC_ParsCommand(tAVRC_MSG* p_msg, tAVRC_COMMAND* p_result,
-                           uint8_t* p_buf, uint16_t buf_len) {
-  return 0;
-}
-tAVRC_STS AVRC_ParsResponse(tAVRC_MSG* p_msg, tAVRC_RESPONSE* p_result,
-                            UNUSED_ATTR uint8_t* p_buf,
-                            UNUSED_ATTR uint16_t buf_len) {
-  return 0;
-}
 void btif_av_clear_remote_suspend_flag(void) {}
 bool btif_av_is_connected(void) { return true; }
 bool btif_av_is_sink_enabled(void) { return true; }
@@ -158,9 +129,7 @@ class BtifRcTest : public ::testing::Test {
 };
 
 TEST_F(BtifRcTest, get_element_attr_rsp) {
-  RawAddress bd_addr;
-
-  btif_rc_cb.rc_multi_cb[0].rc_addr = bd_addr;
+  btif_rc_cb.rc_multi_cb[0].rc_addr = kDeviceAddress;
   btif_rc_cb.rc_multi_cb[0].rc_connected = true;
   btif_rc_cb.rc_multi_cb[0]
       .rc_pdu_info[IDX_GET_ELEMENT_ATTR_RSP]
@@ -170,19 +139,20 @@ TEST_F(BtifRcTest, get_element_attr_rsp) {
   btrc_element_attr_val_t p_attrs[BTRC_MAX_ELEM_ATTR_SIZE];
   uint8_t num_attr = BTRC_MAX_ELEM_ATTR_SIZE + 1;
 
-  CHECK(get_element_attr_rsp(bd_addr, num_attr, p_attrs) == BT_STATUS_SUCCESS);
-  CHECK(AVRC_BldResponse_ == 1);
+  CHECK(get_element_attr_rsp(kDeviceAddress, num_attr, p_attrs) ==
+        BT_STATUS_SUCCESS);
+  ASSERT_EQ(1, get_func_call_count("AVRC_BldResponse"));
 }
 
 TEST_F(BtifRcTest, btif_rc_get_addr_by_handle) {
-  RawAddress get_bd_addr;
+  RawAddress bd_addr;
 
   btif_rc_cb.rc_multi_cb[0].rc_addr = kDeviceAddress;
   btif_rc_cb.rc_multi_cb[0].rc_state = BTRC_CONNECTION_STATE_CONNECTED;
   btif_rc_cb.rc_multi_cb[0].rc_handle = 0;
 
-  btif_rc_get_addr_by_handle(0, get_bd_addr);
-  CHECK(kDeviceAddress == get_bd_addr);
+  btif_rc_get_addr_by_handle(0, bd_addr);
+  CHECK(kDeviceAddress == bd_addr);
 }
 
 static btrc_ctrl_callbacks_t default_btrc_ctrl_callbacks = {
@@ -278,7 +248,6 @@ class BtifRcFeatureTest : public BtifRcTest {
 };
 
 TEST_F(BtifRcFeatureTest, handle_rc_ctrl_features) {
-  AVRC_BldCmd_ = 0;
   g_btrc_feature = std::promise<rc_feature_cb_t>();
   std::future<rc_feature_cb_t> future = g_btrc_feature.get_future();
   btif_rc_device_cb_t p_dev;
@@ -290,7 +259,7 @@ TEST_F(BtifRcFeatureTest, handle_rc_ctrl_features) {
   p_dev.rc_connected = true;
 
   handle_rc_ctrl_features(&p_dev);
-  CHECK(AVRC_BldCmd_ == 1);
+  ASSERT_EQ(1, get_func_call_count("AVRC_BldCommand"));
 
   CHECK(std::future_status::ready == future.wait_for(std::chrono::seconds(2)));
   auto res = future.get();
@@ -399,8 +368,6 @@ TEST_F(BtifRcConnectionTest, handle_rc_browse_connect) {
 }
 
 TEST_F(BtifRcConnectionTest, btif_rc_check_pending_cmd) {
-  AVRC_BldCmd_ = 0;
-
   btif_rc_cb.rc_multi_cb[0].rc_handle = 0xff;
   btif_rc_cb.rc_multi_cb[0].rc_addr = kDeviceAddress;
   btif_rc_cb.rc_multi_cb[0].rc_state = BTRC_CONNECTION_STATE_CONNECTED;
@@ -410,7 +377,7 @@ TEST_F(BtifRcConnectionTest, btif_rc_check_pending_cmd) {
        RC_PENDING_ACT_REPORT_CONN);
 
   btif_rc_check_pending_cmd(kDeviceAddress);
-  CHECK(AVRC_BldCmd_ == 1);
+  ASSERT_EQ(1, get_func_call_count("AVRC_BldCommand"));
 
   CHECK(std::future_status::ready ==
         g_btrc_connection_state_future.wait_for(std::chrono::seconds(3)));
