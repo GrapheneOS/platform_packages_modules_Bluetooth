@@ -21,6 +21,7 @@ import android.annotation.SystemApi;
 import android.bluetooth.le.AdvertisingSetParameters.AddressTypeStatus;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 /**
  * The {@link AdvertiseSettings} provide a way to adjust advertising preferences for each
@@ -28,6 +29,7 @@ import android.os.Parcelable;
  * instance of this class.
  */
 public final class AdvertiseSettings implements Parcelable {
+    private static final String TAG = AdvertiseSettings.class.getSimpleName();
     /**
      * Perform Bluetooth LE advertising in low power mode. This is the default and preferred
      * advertising mode as it consumes the least power.
@@ -230,6 +232,7 @@ public final class AdvertiseSettings implements Parcelable {
                     || txPowerLevel > ADVERTISE_TX_POWER_HIGH) {
                 throw new IllegalArgumentException("unknown tx power level " + txPowerLevel);
             }
+            Log.d(TAG, "setTxPowerLevel: " + txPowerLevel);
             mTxPowerLevel = txPowerLevel;
             return this;
         }
