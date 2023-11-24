@@ -130,6 +130,7 @@ cc_test {
         "libcrypto",
         "libcutils",
         "liblog",
+        "server_configurable_flags",
     ],
     local_include_dirs: [
         "include_internal",
