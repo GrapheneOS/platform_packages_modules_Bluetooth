@@ -60,6 +60,7 @@ public class LeAudioStackEvent {
     static final int HEALTH_RECOMMENDATION_ACTION_NONE = 0;
     static final int HEALTH_RECOMMENDATION_ACTION_DISABLE = 1;
     static final int HEALTH_RECOMMENDATION_ACTION_CONSIDER_DISABLING = 2;
+    static final int HEALTH_RECOMMENDATION_ACTION_INACTIVATE_GROUP = 3;
 
     static final int GROUP_STATUS_INACTIVE = 0;
     static final int GROUP_STATUS_ACTIVE = 1;
@@ -217,6 +218,8 @@ public class LeAudioStackEvent {
                         return "ACTION_DISABLE";
                     case HEALTH_RECOMMENDATION_ACTION_CONSIDER_DISABLING:
                         return "ACTION_CONSIDER_DISABLING";
+                    case HEALTH_RECOMMENDATION_ACTION_INACTIVATE_GROUP:
+                        return "ACTION_INACTIVATE_GROUP";
                     default:
                         return "UNKNOWN";
                 }
