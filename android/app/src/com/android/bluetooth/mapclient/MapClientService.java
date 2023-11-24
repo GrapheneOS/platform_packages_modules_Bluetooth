@@ -367,10 +367,9 @@ public class MapClientService extends ProfileService {
      * cleanupDevice removes the associated state machine from the instance map
      *
      * @param device BluetoothDevice address of remote device
-     * @param sm the state machine to clean up or null for cleaning up any state machine.
      */
     @VisibleForTesting
-    public void cleanupDevice(BluetoothDevice device, MceStateMachine sm) {
+    public void cleanupDevice(BluetoothDevice device) {
         if (DBG) {
             StringBuilder sb = new StringBuilder();
             dump(sb);
@@ -380,12 +379,8 @@ public class MapClientService extends ProfileService {
         synchronized (mMapInstanceMap) {
             MceStateMachine stateMachine = mMapInstanceMap.get(device);
             if (stateMachine != null) {
-                if (sm == null || stateMachine == sm) {
-                    mMapInstanceMap.remove(device);
-                    stateMachine.doQuit();
-                } else {
-                    Log.w(TAG, "Trying to clean up wrong state machine");
-                }
+                mMapInstanceMap.remove(device);
+                stateMachine.doQuit();
             }
         }
         if (DBG) {
