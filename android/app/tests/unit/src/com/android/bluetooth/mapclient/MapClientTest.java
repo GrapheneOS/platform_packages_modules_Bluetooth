@@ -129,7 +129,7 @@ public class MapClientTest {
         TestUtils.waitForLooperToFinishScheduledTask(sm.getHandler().getLooper());
 
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTING, sm.getState());
-        mService.cleanupDevice(device, sm);
+        mService.cleanupDevice(device);
         Assert.assertNull(mService.getInstanceMap().get(device));
     }
 
