@@ -6231,7 +6231,10 @@ TEST_F(UnicastTest, ModifyContextTypeOnDeviceA_WhileDeviceB_IsDisconnected) {
   fake_osi_alarm_set_on_mloop_.cb(fake_osi_alarm_set_on_mloop_.data);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
 
-  // Device B got disconnected
+  // Device B got disconnected and will not reconnect.
+  ON_CALL(mock_gatt_interface_,
+          Open(_, test_address1, BTM_BLE_DIRECT_CONNECTION, _))
+      .WillByDefault(Return());
   InjectDisconnectedEvent(2, GATT_CONN_TERMINATE_PEER_USER);
   SyncOnMainLoop();
 
@@ -6624,8 +6627,12 @@ TEST_F(UnicastTest, TwoEarbuds2ndDisconnected) {
     InjectCisDisconnected(group_id, ase.cis_conn_hdl);
   }
 
+  /* Disconnect ACL and do not reconnect. */
+  ON_CALL(mock_gatt_interface_,
+          Open(_, device->address_, BTM_BLE_DIRECT_CONNECTION, _))
+      .WillByDefault(Return());
   EXPECT_CALL(mock_gatt_interface_,
-              Open(_, device->address_, BTM_BLE_BKG_CONNECT_ALLOW_LIST, false))
+              Open(_, device->address_, BTM_BLE_DIRECT_CONNECTION, false))
       .Times(1);
 
   // Record NumOfConnected when groupStateMachine_ gets notified about the
@@ -7968,7 +7975,7 @@ TEST_F(UnicastTest, AddMemberToAllowListWhenOneDeviceConnected) {
   /*Scenario to test
    * 1. Connect Device A and disconnect
    * 2. Connect Device B
-   * 3. verify Device B is in the allow list.
+   * 3. verify Device B is in the allow list with direct connect.
    */
   // Report working CSIS
   ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
@@ -8001,9 +8008,13 @@ TEST_F(UnicastTest, AddMemberToAllowListWhenOneDeviceConnected) {
   EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address1, true))
       .Times(1);
 
+  /* Do not connect first  device but expect Open will arrive.*/
   EXPECT_CALL(mock_gatt_interface_,
-              Open(gatt_if, test_address0, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
+              Open(gatt_if, test_address0, BTM_BLE_DIRECT_CONNECTION, _))
       .Times(1);
+  ON_CALL(mock_gatt_interface_,
+          Open(_, test_address0, BTM_BLE_DIRECT_CONNECTION, _))
+      .WillByDefault(Return());
 
   ConnectCsisDevice(test_address1, conn_id_dev_1,
                     codec_spec_conf::kLeAudioLocationFrontRight,
@@ -8065,8 +8076,11 @@ TEST_F(UnicastTest, ResetToDefaultReconnectionMode) {
 
   EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
       .Times(1);
+  ON_CALL(mock_gatt_interface_,
+          Open(_, test_address0, BTM_BLE_DIRECT_CONNECTION, _))
+      .WillByDefault(Return());
   EXPECT_CALL(mock_gatt_interface_,
-              Open(gatt_if, test_address0, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
+              Open(gatt_if, test_address0, BTM_BLE_DIRECT_CONNECTION, _))
       .Times(1);
 
   ConnectCsisDevice(test_address1, conn_id_dev_1,
