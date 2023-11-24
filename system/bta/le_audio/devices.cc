@@ -660,8 +660,9 @@ bool LeAudioDevice::HaveAllActiveAsesCisEst(void) const {
 bool LeAudioDevice::HaveAnyCisConnected(void) {
   /* Pending and Disconnecting is considered as connected in this function */
   for (auto const ase : ases_) {
-    if (ase.cis_state != CisState::ASSIGNED &&
-        ase.cis_state != CisState::IDLE) {
+    if (ase.cis_state == CisState::CONNECTED ||
+        ase.cis_state == CisState::CONNECTING ||
+        ase.cis_state == CisState::DISCONNECTING) {
       return true;
     }
   }
