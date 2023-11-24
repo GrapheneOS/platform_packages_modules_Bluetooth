@@ -35,11 +35,11 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <cstdio>
 #include <mutex>
 
-#include "avrc_defs.h"
-#include "bta_api.h"
-#include "bta_av_api.h"
+#include "bta/include/bta_api.h"
+#include "bta/include/bta_av_api.h"
 #include "btif/avrcp/avrcp_service.h"
 #include "btif_av.h"
 #include "btif_common.h"
@@ -49,9 +49,10 @@
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
 #include "osi/include/list.h"
-#include "osi/include/osi.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
 #include "osi/include/properties.h"
 #include "stack/include/avrc_api.h"
+#include "stack/include/avrc_defs.h"
 #include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
 
@@ -5745,7 +5746,15 @@ static void browse_cmd_timeout_handler(btif_rc_device_cb_t* p_dev,
   }
 
   tAVRC_RESPONSE avrc_response = {0};
-  tBTA_AV_META_MSG meta_msg = {.rc_handle = p_dev->rc_handle};
+  tBTA_AV_META_MSG meta_msg = {
+      .rc_handle = p_dev->rc_handle,
+      .len = 0,
+      .label = 0,
+      .code = 0,
+      .company_id = 0,
+      .p_data = nullptr,
+      .p_msg = nullptr,
+  };
 
   LOG_WARN("%s: timeout, addr=%s, label=%d, pdu_id=%s", __func__,
            ADDRESS_TO_LOGGABLE_CSTR(p_dev->rc_addr), label,
