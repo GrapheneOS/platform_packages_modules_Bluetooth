@@ -129,7 +129,7 @@ public class LeAudioService extends ProfileService {
     private BluetoothDevice mExposedActiveDevice;
     private LeAudioCodecConfig mLeAudioCodecConfig;
     private final Object mGroupLock = new Object();
-    private final FeatureFlags mFeatureFlags = new FeatureFlagsImpl();
+    private FeatureFlags mFeatureFlags = new FeatureFlagsImpl();
     ServiceFactory mServiceFactory = new ServiceFactory();
 
     LeAudioNativeInterface mLeAudioNativeInterface;
@@ -500,6 +500,11 @@ public class LeAudioService extends ProfileService {
             Log.d(TAG, "setLeAudioService(): set to: " + instance);
         }
         sLeAudioService = instance;
+    }
+
+    @VisibleForTesting
+    void setFeatureFlags(FeatureFlags featureFlags) {
+        mFeatureFlags = featureFlags;
     }
 
     VolumeControlService getVolumeControlService() {
@@ -1843,11 +1848,17 @@ public class LeAudioService extends ProfileService {
                                 1);
                 break;
             case LeAudioStackEvent.HEALTH_RECOMMENDATION_ACTION_INACTIVATE_GROUP:
-                LeAudioGroupDescriptor groupDescriptor = getGroupDescriptor(groupId);
-                if (groupDescriptor != null && groupDescriptor.mIsActive) {
-                    Log.i(TAG, "Group " + groupId + " is inactivated due to blocked media context");
-                    groupDescriptor.mInactivatedDueToContextType = true;
-                    setActiveGroupWithDevice(null, true);
+                if (mFeatureFlags.leaudioUnicastInactivateDeviceBasedOnContext()) {
+                    LeAudioGroupDescriptor groupDescriptor = getGroupDescriptor(groupId);
+                    if (groupDescriptor != null && groupDescriptor.mIsActive) {
+                        Log.i(
+                                TAG,
+                                "Group "
+                                        + groupId
+                                        + " is inactivated due to blocked media context");
+                        groupDescriptor.mInactivatedDueToContextType = true;
+                        setActiveGroupWithDevice(null, true);
+                    }
                 }
             default:
                 break;
