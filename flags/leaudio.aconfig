@@ -34,3 +34,10 @@ flag {
     description: "Inactivate audio device when stream cannot be created due to unavailable context type"
     bug: "313054788"
 }
+
+flag {
+    name: "leaudio_multicodec_aidl_support"
+    namespace: "bluetooth"
+    description: "Enables support for the multicodec AIDL"
+    bug: "313054645"
+}
