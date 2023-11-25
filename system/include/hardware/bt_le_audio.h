@@ -32,6 +32,7 @@ enum class LeAudioHealthBasedAction {
   NONE = 0,
   DISABLE,
   CONSIDER_DISABLING,
+  INACTIVATE_GROUP,
 };
 
 inline std::ostream& operator<<(std::ostream& os,
@@ -45,6 +46,9 @@ inline std::ostream& operator<<(std::ostream& os,
       break;
     case LeAudioHealthBasedAction::CONSIDER_DISABLING:
       os << "CONSIDER_DISABLING";
+      break;
+    case LeAudioHealthBasedAction::INACTIVATE_GROUP:
+      os << "INACTIVATE_GROUP";
       break;
     default:
       os << "UNKNOWN";

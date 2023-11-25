@@ -129,7 +129,7 @@ public class LeAudioService extends ProfileService {
     private BluetoothDevice mExposedActiveDevice;
     private LeAudioCodecConfig mLeAudioCodecConfig;
     private final Object mGroupLock = new Object();
-    private final FeatureFlags mFeatureFlags = new FeatureFlagsImpl();
+    private FeatureFlags mFeatureFlags = new FeatureFlagsImpl();
     ServiceFactory mServiceFactory = new ServiceFactory();
 
     LeAudioNativeInterface mLeAudioNativeInterface;
@@ -186,13 +186,14 @@ public class LeAudioService extends ProfileService {
             mAvailableContexts = 0;
             mInputSelectableConfig = new ArrayList<>();
             mOutputSelectableConfig = new ArrayList<>();
+            mInactivatedDueToContextType = false;
         }
 
-        public Boolean mIsConnected;
-        public Boolean mIsActive;
-        public Boolean mHasFallbackDeviceWhenGettingInactive;
-        public Integer mDirection;
-        public BluetoothLeAudioCodecStatus mCodecStatus;
+        Boolean mIsConnected;
+        Boolean mIsActive;
+        Boolean mHasFallbackDeviceWhenGettingInactive;
+        Integer mDirection;
+        BluetoothLeAudioCodecStatus mCodecStatus;
         /* This can be non empty only for the streaming time */
         BluetoothDevice mLostLeadDeviceWhileStreaming;
         BluetoothDevice mCurrentLeadDevice;
@@ -200,6 +201,7 @@ public class LeAudioService extends ProfileService {
         Integer mAvailableContexts;
         List<BluetoothLeAudioCodecConfig> mInputSelectableConfig;
         List<BluetoothLeAudioCodecConfig> mOutputSelectableConfig;
+        Boolean mInactivatedDueToContextType;
     }
 
     private static class LeAudioDeviceDescriptor {
@@ -498,6 +500,11 @@ public class LeAudioService extends ProfileService {
             Log.d(TAG, "setLeAudioService(): set to: " + instance);
         }
         sLeAudioService = instance;
+    }
+
+    @VisibleForTesting
+    void setFeatureFlags(FeatureFlags featureFlags) {
+        mFeatureFlags = featureFlags;
     }
 
     VolumeControlService getVolumeControlService() {
@@ -1522,6 +1529,21 @@ public class LeAudioService extends ProfileService {
         return mActiveAudioOutDevice != null;
     }
 
+    private void clearInactiveDueToContextTypeFlags() {
+        synchronized (mGroupLock) {
+            for (Map.Entry<Integer, LeAudioGroupDescriptor> groupEntry :
+                    mGroupDescriptors.entrySet()) {
+                LeAudioGroupDescriptor groupDescriptor = groupEntry.getValue();
+                if (groupDescriptor.mInactivatedDueToContextType) {
+                    if (DBG) {
+                        Log.d(TAG, "clearInactiveDueToContextTypeFlags " + groupEntry.getKey());
+                    }
+                    groupDescriptor.mInactivatedDueToContextType = false;
+                }
+            }
+        }
+    }
+
     /**
      * Set the active device group.
      *
@@ -1539,6 +1561,7 @@ public class LeAudioService extends ProfileService {
             }
 
             groupId = descriptor.mGroupId;
+            clearInactiveDueToContextTypeFlags();
         }
 
         int currentlyActiveGroupId = getActiveGroupId();
@@ -1824,6 +1847,19 @@ public class LeAudioService extends ProfileService {
                                                 .LE_AUDIO_NONALLOWLIST_GROUP_HEALTH_STATUS_TRENDING_BAD,
                                 1);
                 break;
+            case LeAudioStackEvent.HEALTH_RECOMMENDATION_ACTION_INACTIVATE_GROUP:
+                if (mFeatureFlags.leaudioUnicastInactivateDeviceBasedOnContext()) {
+                    LeAudioGroupDescriptor groupDescriptor = getGroupDescriptor(groupId);
+                    if (groupDescriptor != null && groupDescriptor.mIsActive) {
+                        Log.i(
+                                TAG,
+                                "Group "
+                                        + groupId
+                                        + " is inactivated due to blocked media context");
+                        groupDescriptor.mInactivatedDueToContextType = true;
+                        setActiveGroupWithDevice(null, true);
+                    }
+                }
             default:
                 break;
         }
@@ -2238,6 +2274,15 @@ public class LeAudioService extends ProfileService {
                     descriptor.mDirection = direction;
                     descriptor.mAvailableContexts = available_contexts;
                     updateInbandRingtoneForTheGroup(groupId);
+
+                    boolean mediaIsAvailable =
+                            ((descriptor.mAvailableContexts & BluetoothLeAudio.CONTEXT_TYPE_MEDIA)
+                                    != 0);
+
+                    if (descriptor.mInactivatedDueToContextType && mediaIsAvailable) {
+                        Log.i(TAG, " Media context type again available for " + groupId);
+                        setActiveGroupWithDevice(getLeadDeviceForTheGroup(groupId), true);
+                    }
                 } else {
                     Log.e(TAG, "messageFromNative: no descriptors for group: " + groupId);
                 }
@@ -4148,6 +4193,10 @@ public class LeAudioService extends ProfileService {
                         + groupDescriptor.mLostLeadDeviceWhileStreaming);
                 ProfileService.println(sb, "  mInbandRingtoneEnabled: "
                         + groupDescriptor.mInbandRingtoneEnabled);
+                ProfileService.println(
+                        sb,
+                        "mInactivatedDueToContextType: "
+                                + groupDescriptor.mInactivatedDueToContextType);
 
                 for (Map.Entry<BluetoothDevice, LeAudioDeviceDescriptor> deviceEntry
                         : mDeviceDescriptors.entrySet()) {

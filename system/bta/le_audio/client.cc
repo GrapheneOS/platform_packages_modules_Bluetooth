@@ -3815,6 +3815,10 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (!remote_contexts.sink.any() && !remote_contexts.source.any()) {
       LOG_WARN("Requested context type not available on the remote side");
+      if (leAudioHealthStatus_) {
+        leAudioHealthStatus_->AddStatisticForGroup(
+            group, LeAudioHealthGroupStatType::STREAM_CONTEXT_NOT_AVAILABLE);
+      }
       return false;
     }
 

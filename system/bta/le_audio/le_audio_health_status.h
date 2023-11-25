@@ -62,6 +62,8 @@ enum class LeAudioHealthGroupStatType {
    * e.g. ASE does not go to the proper State on time
    */
   STREAM_CREATE_SIGNALING_FAILED,
+  /* Context stream not available */
+  STREAM_CONTEXT_NOT_AVAILABLE,
 };
 
 class LeAudioHealthStatus {
@@ -85,7 +87,8 @@ class LeAudioHealthStatus {
           stream_success_cnt_(0),
           stream_failures_cnt_(0),
           stream_cis_failures_cnt_(0),
-          stream_signaling_failures_cnt_(0){};
+          stream_signaling_failures_cnt_(0),
+          stream_context_not_avail_cnt_(0){};
 
     int group_id_;
     LeAudioHealthBasedAction latest_recommendation_;
@@ -94,6 +97,7 @@ class LeAudioHealthStatus {
     int stream_failures_cnt_;
     int stream_cis_failures_cnt_;
     int stream_signaling_failures_cnt_;
+    int stream_context_not_avail_cnt_;
   };
 
   struct device_stats {
@@ -121,6 +125,9 @@ inline std::ostream& operator<<(
       break;
     case le_audio::LeAudioHealthGroupStatType::STREAM_CREATE_SIGNALING_FAILED:
       os << "STREAM_CREATE_SIGNALING_FAILED";
+      break;
+    case le_audio::LeAudioHealthGroupStatType::STREAM_CONTEXT_NOT_AVAILABLE:
+      os << "STREAM_CONTEXT_NOT_AVAILABLE";
       break;
     default:
       os << "UNKNOWN";

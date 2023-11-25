@@ -27,3 +27,10 @@ flag {
     description: "Support le audio broadcast audio routing policies"
     bug: "308171251"
 }
+
+flag {
+    name: "leaudio_unicast_inactivate_device_based_on_context"
+    namespace: "bluetooth"
+    description: "Inactivate audio device when stream cannot be created due to unavailable context type"
+    bug: "313054788"
+}

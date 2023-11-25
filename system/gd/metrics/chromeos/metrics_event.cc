@@ -208,7 +208,7 @@ static PairingState FailReasonToPairingState(int32_t fail_reason) {
       return PairingState::PAIR_FAIL_AUTH_FAILED;
     case hci::ErrorCode::ROLE_SWITCH_FAILED:
       return PairingState::PAIR_FAIL_FAILED;
-    case hci::ErrorCode::HOST_BUSY:
+    case hci::ErrorCode::HOST_BUSY_PAIRING:
       return PairingState::PAIR_FAIL_BUSY;
     case hci::ErrorCode::CONTROLLER_BUSY:
       return PairingState::PAIR_FAIL_BUSY;
