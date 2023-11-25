@@ -157,12 +157,16 @@ public final class BluetoothLeAdvertiser {
             }
 
             if (settings.getTxPowerLevel() == AdvertiseSettings.ADVERTISE_TX_POWER_ULTRA_LOW) {
+                Log.d(TAG, "TxPower == ADVERTISE_TX_POWER_ULTRA_LOW");
                 parameters.setTxPowerLevel(-21);
             } else if (settings.getTxPowerLevel() == AdvertiseSettings.ADVERTISE_TX_POWER_LOW) {
+                Log.d(TAG, "TxPower == ADVERTISE_TX_POWER_LOW");
                 parameters.setTxPowerLevel(-15);
             } else if (settings.getTxPowerLevel() == AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM) {
+                Log.d(TAG, "TxPower == ADVERTISE_TX_POWER_MEDIUM");
                 parameters.setTxPowerLevel(-7);
             } else if (settings.getTxPowerLevel() == AdvertiseSettings.ADVERTISE_TX_POWER_HIGH) {
+                Log.d(TAG, "TxPower == ADVERTISE_TX_POWER_HIGH");
                 parameters.setTxPowerLevel(1);
             }
 
