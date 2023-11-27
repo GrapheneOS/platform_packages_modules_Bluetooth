@@ -147,14 +147,21 @@ class Transport(enum.IntEnum):
     AUTO = 0
     BREDR = 1
     LE = 2
+    DUAL = 3
 
 
-class SspVariant(enum.IntEnum):
-    """Bluetooth SSP variant type."""
+class PairingVariant(enum.IntEnum):
+    """Bluetooth pairing variant type."""
+    # SSP variants.
     PASSKEY_CONFIRMATION = 0
     PASSKEY_ENTRY = 1
     CONSENT = 2
     PASSKEY_NOTIFICATION = 3
+
+    # Legacy pairing variants.
+    PIN_ENTRY = 4
+    PIN_16_DIGITS_ENTRY = 5
+    PIN_NOTIFICATION = 6
 
 
 class BleAddressType(enum.IntEnum):

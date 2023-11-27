@@ -134,7 +134,7 @@ class HostService(host_grpc_aio.HostServicer):
                 if address != self.task['address']:
                     return
 
-                if variant in (floss_enums.SspVariant.CONSENT, floss_enums.SspVariant.PASSKEY_CONFIRMATION):
+                if variant in (floss_enums.PairingVariant.CONSENT, floss_enums.PairingVariant.PASSKEY_CONFIRMATION):
                     self.client.set_pairing_confirmation(address,
                                                          True,
                                                          method_callback=self.on_set_pairing_confirmation)
