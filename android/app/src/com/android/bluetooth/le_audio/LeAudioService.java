@@ -1655,11 +1655,18 @@ public class LeAudioService extends ProfileService {
             return false;
         }
 
-        if (Utils.isDualModeAudioEnabled()) {
-            if (!mAdapterService.isAllSupportedClassicAudioProfilesActive(device)) {
-                Log.e(TAG, "setActiveDevice(" + device + "): failed because the device is not "
-                                + "active for all supported classic audio profiles");
-                return false;
+        if (!mFeatureFlags.audioRoutingCentralization()) {
+            // If AUDIO_ROUTING_CENTRALIZATION, this will be checked inside AudioRoutingManager.
+            if (Utils.isDualModeAudioEnabled()) {
+                if (!mAdapterService.isAllSupportedClassicAudioProfilesActive(device)) {
+                    Log.e(
+                            TAG,
+                            "setActiveDevice("
+                                    + device
+                                    + "): failed because the device is not "
+                                    + "active for all supported classic audio profiles");
+                    return false;
+                }
             }
         }
         setActiveGroupWithDevice(device, false);
