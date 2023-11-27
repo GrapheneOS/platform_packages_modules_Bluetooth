@@ -20,10 +20,13 @@ import android.content.Context
 import android.os.Looper
 import android.provider.Settings
 import androidx.test.core.app.ApplicationProvider
+import com.android.server.bluetooth.Log
 import com.android.server.bluetooth.initializeRadioModeListener
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.mockito.Mockito.times
 import org.robolectric.RobolectricTestRunner
@@ -57,6 +60,7 @@ internal fun enableMode(resolver: ContentResolver, looper: Looper, modeKey: Stri
 class RadioModeListenerTest {
     private val resolver: ContentResolver =
         ApplicationProvider.getApplicationContext<Context>().getContentResolver()
+    @JvmField @Rule val testName = TestName()
 
     private val looper: Looper = Looper.getMainLooper()
 
@@ -64,6 +68,7 @@ class RadioModeListenerTest {
 
     @Before
     public fun setup() {
+        Log.i("RadioModeListenerTest", "\t--> setup of " + testName.getMethodName())
         mode = ArrayList()
     }
 

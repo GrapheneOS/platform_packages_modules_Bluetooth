@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.server.bluetooth
+package com.android.server.bluetooth.test
 
 import android.bluetooth.BluetoothAdapter.STATE_OFF
+import com.android.server.bluetooth.BluetoothAdapterState
+import com.android.server.bluetooth.Log
 import com.google.common.truth.Truth.assertThat
 import kotlin.time.Duration.Companion.days
 import kotlinx.coroutines.CoroutineStart
@@ -24,7 +26,9 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
@@ -33,9 +37,11 @@ import org.robolectric.RobolectricTestRunner
 class BluetoothAdapterStateTest {
 
     lateinit var mState: BluetoothAdapterState
+    @JvmField @Rule val testName = TestName()
 
     @Before
     fun setUp() {
+        Log.i("BluetoothAdapterStateTest", "\t--> setup of " + testName.getMethodName())
         mState = BluetoothAdapterState()
     }
 
