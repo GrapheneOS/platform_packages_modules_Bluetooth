@@ -36,6 +36,7 @@ class BtifStorageInterface {
                                    uint32_t source_location) = 0;
   virtual void SetLeAudioContexts(RawAddress const& addr, uint16_t sink_context,
                                   uint16_t source_context) = 0;
+  virtual void ClearLeAudioServiceData(RawAddress const& addr) = 0;
   virtual void RemoveLeaudio(RawAddress const& addr) = 0;
   virtual void AddLeaudioHasDevice(const RawAddress& address,
                                    std::vector<uint8_t> presets_bin,
@@ -73,6 +74,8 @@ class MockBtifStorageInterface : public BtifStorageInterface {
   MOCK_METHOD((void), SetLeAudioContexts,
               (RawAddress const& addr, uint16_t sink_context,
                uint16_t source_context),
+              (override));
+  MOCK_METHOD((void), ClearLeAudioServiceData, (RawAddress const& addr),
               (override));
   MOCK_METHOD((void), RemoveLeaudio, (RawAddress const& addr), (override));
   MOCK_METHOD((void), AddLeaudioHasDevice,
