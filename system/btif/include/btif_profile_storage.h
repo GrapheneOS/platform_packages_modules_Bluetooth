@@ -123,6 +123,9 @@ void btif_storage_set_leaudio_supported_context_types(
     const RawAddress& addr, uint16_t sink_supported_context_type,
     uint16_t source_supported_context_type);
 
+/** Remove Le Audio device service data */
+void btif_storage_leaudio_clear_service_data(const RawAddress& address);
+
 /** Remove Le Audio device from the storage */
 void btif_storage_remove_leaudio(const RawAddress& address);
 
