@@ -386,6 +386,7 @@ cc_test {
         "mts_defaults",
     ],
     test_suites: ["general-tests"],
+    host_supported: true,
     include_dirs: btifCommonIncludes + [
         "frameworks/av/media/libaaudio/include",
     ],
@@ -406,11 +407,13 @@ cc_test {
         "libchrome",
         "libosi",
     ],
+    shared_libs: [
+        "liblog",
+    ],
     cflags: [
         "-DBUILDCFG",
         "-Wno-unused-parameter",
     ],
-    shared_libs: ["liblog"],
 }
 
 // btif rc unit tests for target
