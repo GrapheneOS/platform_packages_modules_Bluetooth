@@ -321,7 +321,7 @@ class TestHciLayer : public HciLayer {
     return CommandView::Create(GetPacketView(std::move(last)));
   }
 
-  CommandView GetCommand(OpCode op_code) {
+  std::optional<CommandView> GetCommandOptional(OpCode op_code) {
     if (!command_queue_.empty()) {
       std::lock_guard<std::mutex> lock(command_queue_mutex_);
       if (command_future_ != nullptr) {
@@ -329,16 +329,26 @@ class TestHciLayer : public HciLayer {
         command_promise_.reset();
       }
     } else if (command_future_ != nullptr) {
-      auto result = command_future_->wait_for(std::chrono::milliseconds(1000));
-      EXPECT_NE(std::future_status::timeout, result);
+      command_future_->wait_for(std::chrono::milliseconds(1000));
     }
     std::lock_guard<std::mutex> lock(command_queue_mutex_);
+    if (command_queue_.empty()) {
+      return std::nullopt;
+    } else {
+      CommandView command_packet_view = GetLastCommand();
+      EXPECT_TRUE(command_packet_view.IsValid());
+      EXPECT_EQ(command_packet_view.GetOpCode(), op_code);
+      return command_packet_view;
+    }
+  }
+
+  CommandView GetCommand(OpCode op_code) {
+    std::optional<CommandView> command = GetCommandOptional(op_code);
     ASSERT_LOG(
-        !command_queue_.empty(), "Expecting command %s but command queue was empty", OpCodeText(op_code).c_str());
-    CommandView command_packet_view = GetLastCommand();
-    EXPECT_TRUE(command_packet_view.IsValid());
-    EXPECT_EQ(command_packet_view.GetOpCode(), op_code);
-    return command_packet_view;
+        command.has_value(),
+        "Expecting command %s but command queue was empty",
+        OpCodeText(op_code).c_str());
+    return command.value();
   }
 
   void CommandCompleteCallback(std::unique_ptr<EventBuilder> event_builder) {
@@ -1809,6 +1819,58 @@ TEST_F(LeImplTest, DisconnectionAcceptlistCallback) {
   // assert
   EXPECT_EQ(remote_public_address_with_type_, remote_address);
   Mock::VerifyAndClearExpectations(&callbacks);
+}
+
+TEST_F(LeImplTest, direct_connection_after_background_connection) {
+  set_random_device_address_policy();
+
+  hci::AddressWithType address(
+      {0x21, 0x22, 0x23, 0x24, 0x25, 0x26}, AddressType::PUBLIC_DEVICE_ADDRESS);
+
+  // arrange: Create background connection
+  ASSERT_NO_FATAL_FAILURE(hci_layer_->SetCommandFuture());
+  le_impl_->create_le_connection(address, true, /* is_direct */ false);
+  hci_layer_->GetCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
+  ASSERT_NO_FATAL_FAILURE(hci_layer_->SetCommandFuture());
+  hci_layer_->CommandCompleteCallback(
+      LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+  auto raw_bg_create_connection = hci_layer_->GetCommand(OpCode::LE_CREATE_CONNECTION);
+  hci_layer_->CommandStatusCallback(
+      LeCreateConnectionStatusBuilder::Create(ErrorCode::SUCCESS, 0x01));
+  sync_handler();
+
+  // act: Create direct connection
+  ASSERT_NO_FATAL_FAILURE(hci_layer_->SetCommandFuture());
+  le_impl_->create_le_connection(address, true, /* is_direct */ true);
+  auto cancel_connection = hci_layer_->GetCommandOptional(OpCode::LE_CREATE_CONNECTION_CANCEL);
+  if (cancel_connection) {
+    ASSERT_NO_FATAL_FAILURE(hci_layer_->SetCommandFuture());
+    hci_layer_->CommandCompleteCallback(
+        LeCreateConnectionCancelCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+    hci_layer_->IncomingLeMetaEvent(LeConnectionCompleteBuilder::Create(
+        ErrorCode::UNKNOWN_CONNECTION,
+        kHciHandle,
+        Role::CENTRAL,
+        AddressType::PUBLIC_DEVICE_ADDRESS,
+        Address::kEmpty,
+        0x0000,
+        0x0000,
+        0x0000,
+        ClockAccuracy::PPM_30));
+  }
+  auto raw_direct_create_connection = hci_layer_->GetCommandOptional(OpCode::LE_CREATE_CONNECTION);
+
+  // assert
+  ASSERT_TRUE(raw_direct_create_connection.has_value());
+  auto bg_create_connection = LeCreateConnectionView::Create(
+      LeConnectionManagementCommandView::Create(AclCommandView::Create(raw_bg_create_connection)));
+  EXPECT_TRUE(bg_create_connection.IsValid());
+  auto direct_create_connection =
+      LeCreateConnectionView::Create(LeConnectionManagementCommandView::Create(
+          AclCommandView::Create(*raw_direct_create_connection)));
+  EXPECT_TRUE(direct_create_connection.IsValid());
+  LOG_INFO("Scan Interval %u", direct_create_connection.GetLeScanInterval());
+  ASSERT_NE(direct_create_connection.GetLeScanInterval(), bg_create_connection.GetLeScanInterval());
 }
 
 }  // namespace acl_manager
