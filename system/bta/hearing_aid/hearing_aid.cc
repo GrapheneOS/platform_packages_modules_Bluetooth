@@ -188,14 +188,6 @@ class HearingDevices {
     return (iter == devices.end()) ? nullptr : &(*iter);
   }
 
-  bool IsAnyConnectionUpdateStarted() {
-    for (const auto& d : devices) {
-      if (d.connection_update_status == STARTED) return true;
-    }
-
-    return false;
-  }
-
   void StartRssiLog() {
     int read_rssi_start_interval_count = 0;
 
@@ -514,22 +506,8 @@ class HearingAidImpl : public HearingAid {
       }
     }
 
-    /* We must update connection parameters one at a time, otherwise anchor
-     * point (start of connection event) for two devices can be too close to
-     * each other. Here, by setting min_ce_len=max_ce_len=X, we force controller
-     * to move anchor point of both connections away from each other, to make
-     * sure we'll be able to fit all the data we want in one connection event.
-     */
-    bool any_update_pending = hearingDevices.IsAnyConnectionUpdateStarted();
-    // mark the device as pending connection update. If we don't start the
-    // update now, it'll be started once current device finishes.
-    if (!any_update_pending) {
-      hearingDevice->connection_update_status = STARTED;
-      hearingDevice->requested_connection_interval =
-          UpdateBleConnParams(address);
-    } else {
-      hearingDevice->connection_update_status = AWAITING;
-    }
+    hearingDevice->connection_update_status = STARTED;
+    hearingDevice->requested_connection_interval = UpdateBleConnParams(address);
 
     if (controller_get_interface()->supports_ble_2m_phy()) {
       LOG_INFO("%s set preferred 2M PHY", ADDRESS_TO_LOGGABLE_CSTR(address));
