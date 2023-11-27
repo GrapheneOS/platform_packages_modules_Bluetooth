@@ -18,8 +18,9 @@
 
 #define LOG_TAG "bt_osi_rand"
 
+#include "osi/include/osi.h"
+
 #include <base/logging.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
@@ -28,8 +29,7 @@
 #include <unistd.h>
 
 #include "check.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
+#include "os/log.h"
 
 #define RANDOM_PATH "/dev/urandom"
 
