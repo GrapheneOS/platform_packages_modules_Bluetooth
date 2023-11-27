@@ -489,8 +489,10 @@ cc_test {
         "test/common/btm_api_mock.cc",
     ],
     shared_libs: [
+        "libbase",
         "libcrypto",
         "liblog",
+        "server_configurable_flags",
     ],
     static_libs: [
         "libbluetooth-types",
