@@ -737,6 +737,13 @@ void btif_storage_load_bonded_leaudio() {
   }
 }
 
+void btif_storage_leaudio_clear_service_data(const RawAddress& address) {
+  auto bdstr = address.ToString();
+  btif_config_remove(bdstr, BTIF_STORAGE_LEAUDIO_HANDLES_BIN);
+  btif_config_remove(bdstr, BTIF_STORAGE_LEAUDIO_SINK_PACS_BIN);
+  btif_config_remove(bdstr, BTIF_STORAGE_LEAUDIO_ASES_BIN);
+}
+
 /** Remove the Le Audio device from storage */
 void btif_storage_remove_leaudio(const RawAddress& address) {
   std::string addrstr = address.ToString();
