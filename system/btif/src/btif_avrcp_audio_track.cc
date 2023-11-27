@@ -19,15 +19,19 @@
 
 #include "btif_avrcp_audio_track.h"
 
+#ifndef __INTRODUCED_IN
+#define __INTRODUCED_IN(x)
+#endif
+
 #include <aaudio/AAudio.h>
 #include <base/logging.h>
 #include <utils/StrongPointer.h>
 
 #include <algorithm>
+#include <thread>
 
 #include "bt_target.h"
-#include "osi/include/log.h"
-#include <thread>
+#include "os/log.h"
 
 using namespace android;
 
