@@ -163,6 +163,7 @@ android_robolectric_test {
         "src/AdapterState.kt",
         "src/AdapterStateTest.kt",
         "src/Log.kt",
+        "src/LogTest.kt",
         "src/RadioModeListener.kt",
         "src/RadioModeListenerTest.kt",
         "src/airplane/ModeListener.kt",
