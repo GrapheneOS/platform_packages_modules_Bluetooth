@@ -55,6 +55,12 @@ constexpr char kBtmLogTag[] = "BOND";
 
 }
 
+static void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* p_dev_rec) {
+  p_dev_rec->link_key.fill(0);
+  memset(&p_dev_rec->ble_keys, 0, sizeof(tBTM_SEC_BLE_KEYS));
+  list_remove(btm_sec_cb.sec_dev_rec, p_dev_rec);
+}
+
 /*******************************************************************************
  *
  * Function         BTM_SecAddDevice
@@ -140,12 +146,6 @@ bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
   p_dev_rec->device_type |= BT_DEVICE_TYPE_BREDR;
 
   return true;
-}
-
-void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* p_dev_rec) {
-  p_dev_rec->link_key.fill(0);
-  memset(&p_dev_rec->ble_keys, 0, sizeof(tBTM_SEC_BLE_KEYS));
-  list_remove(btm_sec_cb.sec_dev_rec, p_dev_rec);
 }
 
 /** Removes the device from acceptlist */
@@ -791,3 +791,15 @@ bool BTM_IsRemoteNameKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
   return (p_dev_rec == nullptr) ? false : p_dev_rec->is_name_known();
 }
+
+namespace bluetooth {
+namespace testing {
+namespace legacy {
+
+void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* p_dev_rec) {
+  ::wipe_secrets_and_remove(p_dev_rec);
+}
+
+}  // namespace legacy
+}  // namespace testing
+}  // namespace bluetooth
