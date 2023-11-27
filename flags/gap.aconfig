@@ -13,3 +13,10 @@ flag {
     description: "Divide long single gap data if length is longer than HCI data length limit"
     bug: "310217895"
 }
+
+flag {
+    name: "scan_manager_refactor"
+    namespace: "bluetooth"
+    description: "Refactor scan manager as described in go/scan-manager-refactor"
+    bug: "313335632"
+}
