@@ -1794,12 +1794,7 @@ class LeAudioClientImpl : public LeAudioClient {
         return;
       }
 
-      auto group_metadata_contexts =
-          get_bidirectional(group->GetMetadataContexts());
-      auto device_available_contexts = leAudioDevice->GetAvailableContexts();
-      if (group_metadata_contexts.test_any(device_available_contexts)) {
-        AttachToStreamingGroupIfNeeded(leAudioDevice);
-      }
+      AttachToStreamingGroupIfNeeded(leAudioDevice);
 
     } else if (hdl == leAudioDevice->audio_supp_cont_hdls_.val_hdl) {
       BidirectionalPair<AudioContexts> supp_audio_contexts;
@@ -2965,10 +2960,20 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    LeAudioDeviceGroup* group = aseGroups_.FindById(active_group_id_);
+
+    auto group_metadata_contexts =
+        get_bidirectional(group->GetMetadataContexts());
+    auto device_available_contexts = leAudioDevice->GetAvailableContexts();
+    if (!group_metadata_contexts.test_any(device_available_contexts)) {
+      LOG_INFO("%s does is not have required context type",
+               ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
+      return;
+    }
+
     LOG_INFO("Attaching to group: %d", leAudioDevice->group_id_);
 
     /* Restore configuration */
-    LeAudioDeviceGroup* group = aseGroups_.FindById(active_group_id_);
     auto* stream_conf = &group->stream_conf;
 
     if (audio_sender_state_ == AudioState::IDLE &&
