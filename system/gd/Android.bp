@@ -515,9 +515,11 @@ cc_defaults {
         "BluetoothGeneratedDumpsysDataSchema_h",
     ],
     shared_libs: [
+        "libbase",
         "libcrypto",
         "libgrpc++",
         "libgrpc_wrap",
+        "server_configurable_flags",
     ],
     cflags: [
         "-DFUZZ_TARGET",

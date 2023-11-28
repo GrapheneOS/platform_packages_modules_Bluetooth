@@ -64,6 +64,11 @@ void btif_storage_set_leaudio_supported_context_types(
                                              source_supported_context_type);
 }
 
+void btif_storage_leaudio_clear_service_data(RawAddress const& addr) {
+  LOG_ASSERT(btif_storage_interface) << "Mock storage module not set!";
+  btif_storage_interface->ClearLeAudioServiceData(addr);
+}
+
 void btif_storage_remove_leaudio(RawAddress const& addr) {
   LOG_ASSERT(btif_storage_interface) << "Mock storage module not set!";
   btif_storage_interface->RemoveLeaudio(addr);
