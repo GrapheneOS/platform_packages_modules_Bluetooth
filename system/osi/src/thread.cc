@@ -20,10 +20,7 @@
 
 #include "osi/include/thread.h"
 
-#include <atomic>
-
 #include <base/logging.h>
-#include <errno.h>
 #include <malloc.h>
 #include <pthread.h>
 #include <string.h>
@@ -32,11 +29,14 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <atomic>
+#include <cerrno>
+
 #include "check.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 #include "osi/include/fixed_queue.h"
-#include "osi/include/log.h"
 #include "osi/include/reactor.h"
 #include "osi/semaphore.h"
 

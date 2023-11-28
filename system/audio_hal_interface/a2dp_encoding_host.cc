@@ -16,20 +16,17 @@
 
 #include "a2dp_encoding_host.h"
 
-#include <errno.h>
 #include <grp.h>
 #include <sys/stat.h>
 
 #include <memory>
 
 #include "a2dp_encoding.h"
-#include "a2dp_sbc_constants.h"
 #include "btif_a2dp_source.h"
 #include "btif_av.h"
-#include "btif_av_co.h"
 #include "btif_hf.h"
-#include "osi/include/log.h"
-#include "osi/include/properties.h"
+#include "os/log.h"
+#include "stack/include/avdt_api.h"
 #include "types/raw_address.h"
 #include "udrv/include/uipc.h"
 

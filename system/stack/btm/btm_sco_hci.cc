@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include <errno.h>
 #include <grp.h>
 #include <math.h>
 #include <sys/stat.h>
@@ -28,8 +27,8 @@
 
 #include "btif/include/core_callbacks.h"
 #include "btif/include/stack_manager.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "stack/btm/btm_sco.h"
 #include "udrv/include/uipc.h"
 

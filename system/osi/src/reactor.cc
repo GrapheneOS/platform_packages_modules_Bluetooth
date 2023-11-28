@@ -21,7 +21,6 @@
 #include "osi/include/reactor.h"
 
 #include <base/logging.h>
-#include <errno.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,9 +31,9 @@
 #include <mutex>
 
 #include "check.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/list.h"
-#include "osi/include/log.h"
 
 #if !defined(EFD_SEMAPHORE)
 #define EFD_SEMAPHORE (1 << 0)

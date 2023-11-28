@@ -22,14 +22,13 @@
 #include <base/stl_util.h>
 #include <base/task/single_thread_task_runner.h>
 #include <base/unguessable_token.h>
-#include <errno.h>
 #include <poll.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
 #include <unistd.h>
 
-#include <array>
+#include <cerrno>
 #include <cstring>
 #include <future>
 

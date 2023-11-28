@@ -29,13 +29,10 @@
 #include "btif_sock_thread.h"
 
 #include <alloca.h>
-#include <ctype.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <features.h>
 #include <poll.h>
 #include <pthread.h>
-#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,14 +46,9 @@
 #include <array>
 #include <mutex>
 #include <optional>
-#include <string>
 
-#include "bta_api.h"
-#include "btif_common.h"
-#include "btif_sock.h"
-#include "btif_sock_util.h"
-#include "btif_util.h"
-#include "osi/include/log.h"
+#include "os/log.h"
+#include "osi/include/osi.h"  // OSI_NO_INTR
 
 #define asrt(s)                                                       \
   do {                                                                \

@@ -15,7 +15,7 @@
  */
 
 #pragma once
-#include <errno.h>
+#include <cerrno>
 
 // A macro to re-try a syscall when it receives EINTR
 #ifndef RUN_NO_INTR
