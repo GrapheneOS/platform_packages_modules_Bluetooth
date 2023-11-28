@@ -1860,12 +1860,19 @@ class LeAudioClientImpl : public LeAudioClient {
     /* If device belongs to streaming group, add it on allow list */
     auto address = leAudioDevice->address_;
     auto group = GetGroupIfEnabled(leAudioDevice->group_id_);
+    if (group == nullptr) {
+      LOG_INFO("Group %d is invalid or disabled ", leAudioDevice->group_id_);
+      return;
+    }
 
-    if (group != nullptr && group->IsAnyDeviceConnected()) {
+    leAudioDevice->SetConnectionState(
+        DeviceConnectState::CONNECTING_AUTOCONNECT);
+
+    /* Cancel previous bakcground connect */
+    BTA_GATTC_CancelOpen(gatt_if_, address, false);
+    if (group->IsAnyDeviceConnected()) {
       LOG_INFO("Group %d in connected state. Adding %s to allow list ",
                leAudioDevice->group_id_, ADDRESS_TO_LOGGABLE_CSTR(address));
-      /* Make sure TA is canceled before adding to allow list */
-      BTA_GATTC_CancelOpen(gatt_if_, address, false);
       BTA_GATTC_Open(gatt_if_, address, BTM_BLE_BKG_CONNECT_ALLOW_LIST, false);
     } else {
       LOG_INFO(
@@ -1932,6 +1939,14 @@ class LeAudioClientImpl : public LeAudioClient {
         return;
       }
     }
+
+    /* Remove device from the background connect (it might be either Allow list
+     * or TA) and add it again with reconnection_mode_. In case it is TA, we are
+     * sure that device will not be in the allow list for other applications
+     * which are using background connect.
+     */
+    BTA_GATTC_CancelOpen(gatt_if_, address, false);
+    BTA_GATTC_Open(gatt_if_, address, reconnection_mode_, false);
 
     if (controller_get_interface()->supports_ble_2m_phy()) {
       LOG(INFO) << ADDRESS_TO_LOGGABLE_STR(address)
@@ -2275,11 +2290,6 @@ class LeAudioClientImpl : public LeAudioClient {
                  << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
-
-    /* Remove device from the background connect (it might be either Allow list
-     * or TA) and it will be added back depends on needs.
-     */
-    BTA_GATTC_CancelOpen(gatt_if_, address, false);
 
     BtaGattQueue::Clean(leAudioDevice->conn_id_);
     LeAudioDeviceGroup* group = aseGroups_.FindById(leAudioDevice->group_id_);
