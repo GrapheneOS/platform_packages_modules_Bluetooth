@@ -1110,11 +1110,12 @@ public class AvrcpControllerStateMachineTest {
      */
     @Test
     public void testRegisterAbsVolumeNotification() {
+        byte label = 42;
         setUpConnectedState(true, true);
         mAvrcpStateMachine.sendMessage(
-                AvrcpControllerStateMachine.MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION);
-        verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
-                .sendRegisterAbsVolRsp(any(), anyByte(), eq(127), anyInt());
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION, label);
+        verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
+                .sendRegisterAbsVolRsp(any(), anyByte(), eq(127), eq((int) label));
     }
 
     /**
