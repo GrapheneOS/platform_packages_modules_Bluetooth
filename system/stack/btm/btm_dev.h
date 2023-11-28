@@ -60,7 +60,7 @@ const char* BTM_SecReadDevName(const RawAddress& bd_addr);
  *
  * Function         btm_sec_alloc_dev
  *
- * Description      Look for the record in the device database for the record
+ * Description      Allocate a record in the device database
  *                  with specified address
  *
  * Returns          Pointer to the record or NULL
