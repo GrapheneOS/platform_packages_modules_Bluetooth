@@ -18,8 +18,9 @@
 
 #include "hal/syscall_wrapper_impl.h"
 
-#include <errno.h>
 #include <unistd.h>
+
+#include <cerrno>
 
 namespace bluetooth {
 namespace hal {

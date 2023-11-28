@@ -20,29 +20,27 @@
 
 #define LOG_TAG "bt_hearing_aid_hw"
 
-#include <errno.h>
+#include "audio_hearing_aid_hw/include/audio_hearing_aid_hw.h"
+
 #include <fcntl.h>
+#include <hardware/audio.h>
+#include <hardware/hardware.h>
 #include <inttypes.h>
+#include <log/log.h>
 #include <stdint.h>
-#include <sys/errno.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/un.h>
+#include <system/audio.h>
 #include <unistd.h>
 
+#include <cerrno>
 #include <mutex>
-
-#include <hardware/audio.h>
-#include <hardware/hardware.h>
-#include <log/log.h>
-#include <system/audio.h>
 
 #include "osi/include/hash_map_utils.h"
 #include "osi/include/osi.h"
 #include "osi/include/socket_utils/sockets.h"
-
-#include "audio_hearing_aid_hw/include/audio_hearing_aid_hw.h"
 
 /*****************************************************************************
  *  Constants & Macros

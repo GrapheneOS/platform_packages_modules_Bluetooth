@@ -25,7 +25,6 @@ extern "C" {
 }
 
 #include <base/logging.h>
-#include <errno.h>
 
 #include "a2dp_aac.h"
 #include "mmc/proto/mmc_config.pb.h"

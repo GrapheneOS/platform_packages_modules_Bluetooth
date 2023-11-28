@@ -17,7 +17,6 @@
 #define LOG_TAG "BTAudioHw"
 
 #include <android-base/logging.h>
-#include <errno.h>
 #include <hardware/hardware.h>
 #include <log/log.h>
 #include <malloc.h>
