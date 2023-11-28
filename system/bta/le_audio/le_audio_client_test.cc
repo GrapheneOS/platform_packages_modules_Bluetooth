@@ -1665,7 +1665,8 @@ class UnicastTestNoInit : public Test {
       ;
   }
 
-  void ConnectLeAudio(const RawAddress& address, bool isEncrypted = true) {
+  void ConnectLeAudio(const RawAddress& address, bool isEncrypted = true,
+                      bool expect_connected_event = true) {
     // by default indicate link as encrypted
     ON_CALL(mock_btm_interface_, BTM_IsEncrypted(address, _))
         .WillByDefault(DoAll(Return(isEncrypted)));
@@ -1676,6 +1677,16 @@ class UnicastTestNoInit : public Test {
     EXPECT_CALL(mock_gatt_interface_,
                 Open(gatt_if, address, BTM_BLE_DIRECT_CONNECTION, _))
         .Times(1);
+
+    /* If connected event is not expected to arrive, don't test those two below
+     */
+    if (expect_connected_event) {
+      EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, address, false));
+      EXPECT_CALL(
+          mock_gatt_interface_,
+          Open(gatt_if, address, BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+          .Times(1);
+    }
 
     do_in_main_thread(
         FROM_HERE,
@@ -3267,24 +3278,42 @@ TEST_F(UnicastTest, ConnectRemoteDisconnectOneEarbud) {
               OnConnectionState(ConnectionState::CONNECTED, test_address0))
       .Times(1);
   ConnectLeAudio(test_address0);
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+
   EXPECT_CALL(mock_audio_hal_client_callbacks_,
               OnConnectionState(ConnectionState::DISCONNECTED, test_address0))
       .Times(1);
-  /* For remote disconnection, expect stack to try background re-connect */
+  /* Make sure when remote device disconnects us, TA is used */
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, _))
+      .Times(1);
   EXPECT_CALL(mock_gatt_interface_,
               Open(gatt_if, test_address0,
                    BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
       .Times(1);
 
+  InjectDisconnectedEvent(1, GATT_CONN_TERMINATE_PEER_USER);
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+
   EXPECT_CALL(mock_audio_hal_client_callbacks_,
               OnConnectionState(ConnectionState::CONNECTED, test_address0))
       .Times(1);
-  InjectDisconnectedEvent(1, GATT_CONN_TERMINATE_PEER_USER);
-  SyncOnMainLoop();
+
+  /* When reconnected, we always remove background connect, as we do not track
+   * which type (allow list or TA) was used and then make sure the TA is used.
+   */
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, _))
+      .Times(1);
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+      .Times(1);
 
   /* For background connect, test needs to Inject Connected Event */
   InjectConnectedEvent(test_address0, 1);
   SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
 }
 
 /* same as above case except the disconnect is initiated by remote */
@@ -3310,11 +3339,14 @@ TEST_F(UnicastTest, ConnectRemoteDisconnectOnTimeoutOneEarbud) {
               Open(gatt_if, test_address0, BTM_BLE_DIRECT_CONNECTION, _))
       .Times(1);
 
+  InjectDisconnectedEvent(1, GATT_CONN_TIMEOUT);
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+
   EXPECT_CALL(mock_audio_hal_client_callbacks_,
               OnConnectionState(ConnectionState::CONNECTED, test_address0))
       .Times(1);
-  InjectDisconnectedEvent(1, GATT_CONN_TIMEOUT);
-  SyncOnMainLoop();
 
   /* For background connect, test needs to Inject Connected Event */
   InjectConnectedEvent(test_address0, 1);
@@ -4055,8 +4087,16 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGroupedDifferently) {
       .Times(1);
   ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address0, _))
       .WillByDefault(DoAll(Return(true)));
+
+  // First device will got connected
   EXPECT_CALL(mock_gatt_interface_,
               Open(gatt_if, test_address0, BTM_BLE_DIRECT_CONNECTION, _))
+      .Times(1);
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, _))
+      .Times(1);
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
       .Times(1);
 
   // Expect stored device1 to NOT connect automatically
@@ -4102,12 +4142,20 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGroupedDifferently) {
   SyncOnMainLoop();
   Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
 
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, _))
+      .Times(1);
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+      .Times(1);
+
   /* For background connect, test needs to Inject Connected Event */
   InjectConnectedEvent(test_address0, 1);
 
   // We need to wait for the storage callback before verifying stuff
   SyncOnMainLoop();
   ASSERT_TRUE(LeAudioClient::IsLeAudioClientRunning());
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
 
   std::vector<RawAddress> devs =
       LeAudioClient::Get()->GetGroupDevices(group_id0);
@@ -4786,7 +4834,7 @@ TEST_F(UnicastTest, RemoveDeviceWhenConnecting) {
   EXPECT_CALL(mock_audio_hal_client_callbacks_,
               OnConnectionState(ConnectionState::CONNECTED, test_address0))
       .Times(0);
-  ConnectLeAudio(test_address0);
+  ConnectLeAudio(test_address0, true, false);
 
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
 
@@ -4794,6 +4842,8 @@ TEST_F(UnicastTest, RemoveDeviceWhenConnecting) {
       .Times(1);
   EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
       .Times(1);
+  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address0, _, _))
+      .Times(0);
 
   /*
    * StopStream will put calls on main_loop so to keep the correct order
@@ -4840,11 +4890,11 @@ TEST_F(UnicastTest, RemoveDeviceWhenGettingConnectionReady) {
   EXPECT_CALL(mock_gatt_queue_, Clean(conn_id)).Times(AtLeast(1));
   EXPECT_CALL(mock_gatt_interface_, Close(conn_id)).Times(1);
 
-  /* First time called when RemoveDevice is called and then second time
-   * OnGattDisconnected. We accept this spare call.
-   */
+  /* Cancel should be called in RemoveDevice */
   EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
-      .Times(2);
+      .Times(1);
+  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address0, _, _))
+      .Times(0);
 
   /*
    * StopStream will put calls on main_loop so to keep the correct order
@@ -4925,7 +4975,7 @@ TEST_F(UnicastTest, DisconnectDeviceWhenConnecting) {
   EXPECT_CALL(mock_audio_hal_client_callbacks_,
               OnConnectionState(ConnectionState::CONNECTED, test_address0))
       .Times(0);
-  ConnectLeAudio(test_address0);
+  ConnectLeAudio(test_address0, true, false);
 
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
 
@@ -4935,6 +4985,8 @@ TEST_F(UnicastTest, DisconnectDeviceWhenConnecting) {
   ON_CALL(mock_gatt_interface_, Close(_)).WillByDefault(DoAll(Return()));
   EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, true))
       .Times(1);
+  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address0, _, _))
+      .Times(0);
 
   LeAudioClient::Get()->Disconnect(test_address0);
   SyncOnMainLoop();
@@ -4960,17 +5012,18 @@ TEST_F(UnicastTest, DisconnectDeviceWhenGettingConnectionReady) {
   EXPECT_CALL(mock_audio_hal_client_callbacks_,
               OnConnectionState(ConnectionState::CONNECTED, test_address0))
       .Times(0);
-  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
-      .Times(0);
   ConnectLeAudio(test_address0);
 
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
 
+  /* TA reconnect is enabled in ConnectLeAudio. Make sure this is not removed */
   EXPECT_CALL(mock_gatt_queue_, Clean(conn_id)).Times(AtLeast(1));
   EXPECT_CALL(mock_gatt_interface_, Close(conn_id)).Times(1);
-  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
-      .Times(1);
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, _))
+      .Times(0);
+  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address0, _, _))
+      .Times(0);
 
   LeAudioClient::Get()->Disconnect(test_address0);
   SyncOnMainLoop();
@@ -6967,6 +7020,7 @@ TEST_F(UnicastTest, TwoEarbuds2ndDisconnected) {
   // Make sure the state machine knows about the disconnected device
   ASSERT_EQ(1, num_of_connected);
 
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
 
   // Expect one channel ISO Data to be sent
@@ -8309,6 +8363,8 @@ TEST_F(UnicastTest, AddMemberToAllowListWhenOneDeviceConnected) {
 
   SyncOnMainLoop();
 
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, _))
+      .Times(1);
   EXPECT_CALL(mock_gatt_interface_,
               Open(gatt_if, test_address0,
                    BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
@@ -8325,6 +8381,8 @@ TEST_F(UnicastTest, AddMemberToAllowListWhenOneDeviceConnected) {
       .Times(1);
 
   /* Do not connect first  device but expect Open will arrive.*/
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
+      .Times(1);
   EXPECT_CALL(mock_gatt_interface_,
               Open(gatt_if, test_address0, BTM_BLE_DIRECT_CONNECTION, _))
       .Times(1);
@@ -8373,7 +8431,7 @@ TEST_F(UnicastTest, ResetToDefaultReconnectionMode) {
 
   SyncOnMainLoop();
 
-  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, _))
       .Times(1);
   EXPECT_CALL(mock_gatt_interface_,
               Open(gatt_if, test_address0,
@@ -8390,6 +8448,7 @@ TEST_F(UnicastTest, ResetToDefaultReconnectionMode) {
   EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address1, true))
       .Times(1);
 
+  /* Verify first earbud will start doing direct connect first */
   EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
       .Times(1);
   ON_CALL(mock_gatt_interface_,
@@ -8410,11 +8469,9 @@ TEST_F(UnicastTest, ResetToDefaultReconnectionMode) {
   SyncOnMainLoop();
   Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
 
-  // Disconnect Device B, expect default reconnection mode
+  // Disconnect Device B, expect default reconnection mode for Device A.
   EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
       .Times(1);
-  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address1, false))
-      .Times(2);
   EXPECT_CALL(mock_gatt_interface_,
               Open(gatt_if, test_address0,
                    BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
@@ -8422,6 +8479,8 @@ TEST_F(UnicastTest, ResetToDefaultReconnectionMode) {
   EXPECT_CALL(mock_gatt_interface_,
               Open(gatt_if, test_address1,
                    BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+      .Times(1);
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address1, false))
       .Times(1);
 
   InjectDisconnectedEvent(conn_id_dev_1, GATT_CONN_TERMINATE_PEER_USER);
@@ -8470,6 +8529,13 @@ TEST_F(UnicastTest, DisconnectAclBeforeGettingReadResponses) {
 
   EXPECT_CALL(mock_gatt_interface_,
               Open(gatt_if, test_address0, BTM_BLE_DIRECT_CONNECTION, _))
+      .Times(1);
+  /* When connected it will got to TA */
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, _))
+      .Times(1);
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
       .Times(1);
 
   do_in_main_thread(
