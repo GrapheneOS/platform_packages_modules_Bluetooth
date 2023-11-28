@@ -21,7 +21,6 @@
 #include "osi/semaphore.h"
 
 #include <base/logging.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <malloc.h>
 #include <string.h>
@@ -29,8 +28,8 @@
 #include <unistd.h>
 
 #include "check.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"
 
 #if !defined(EFD_SEMAPHORE)

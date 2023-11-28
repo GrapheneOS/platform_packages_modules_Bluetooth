@@ -18,11 +18,10 @@
 
 #define LOG_TAG "bt_osi_wakelock"
 
-#include <errno.h>
+#include "osi/include/wakelock.h"
+
 #include <fcntl.h>
 #include <hardware/bluetooth.h>
-#include <inttypes.h>
-#include <limits.h>
 #include <pthread.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -34,14 +33,9 @@
 #include <string>
 
 #include "base/logging.h"
-#include "check.h"
 #include "common/metrics.h"
-#include "osi/include/alarm.h"
-#include "osi/include/allocator.h"
-#include "osi/include/log.h"
+#include "os/log.h"
 #include "osi/include/osi.h"
-#include "osi/include/thread.h"
-#include "osi/include/wakelock.h"
 
 using bluetooth::common::BluetoothMetricsLogger;
 

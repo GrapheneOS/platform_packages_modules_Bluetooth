@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-#include <errno.h>
 #include <netinet/in.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>

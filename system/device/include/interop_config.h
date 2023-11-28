@@ -19,11 +19,9 @@
 
 #pragma once
 
-#include <errno.h>
 #include <stdbool.h>
 
 #include "device/include/interop.h"
-#include "device/include/interop_database.h"
 
 typedef uint16_t UINT16;
 

@@ -21,7 +21,8 @@
 #include "btif_sock_util.h"
 
 #include <arpa/inet.h>
-#include <errno.h>
+#include <hardware/bluetooth.h>
+#include <hardware/bt_sock.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <stdio.h>
@@ -33,12 +34,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_sock.h>
-
-#include "bt_target.h"
-#include "btif_util.h"
-#include "osi/include/log.h"
+#include "os/log.h"
 #include "osi/include/osi.h"
 
 #define asrt(s)                                                       \
