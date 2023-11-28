@@ -13,6 +13,8 @@
 # limitations under the License.
 """All floss utils functions."""
 
+from typing import List, Optional
+
 import functools
 import logging
 import threading
@@ -452,3 +454,43 @@ def create_observer_name(observer):
 # when we are able to use it.
 async def anext(ait):
     return await ait.__anext__()
+
+
+def parse_advertiging_data(adv_data: List[int]) -> host_pb2.DataTypes:
+    index = 0
+    data = host_pb2.DataTypes()
+
+    # advertising data packet is repeated by many advertising data and each one with the following format:
+    # | Length (0) | Type (1) | Data Payload (2~N-1)
+    # Take an advertising data packet [2, 1, 6, 5, 3, 0, 24, 1, 24] as an example,
+    # The first 3 numbers 2, 1, 6:
+    # 2 is the data length is 2 including the data type,
+    # 1 is the data type is Flags (0x01),
+    # 6 is the data payload.
+    while index < len(adv_data):
+        # Extract data length.
+        data_length = adv_data[index]
+        index = index + 1
+
+        if data_length <= 0:
+            break
+
+        # Extract data type.
+        data_type = adv_data[index]
+        index = index + 1
+
+        # Extract data payload.
+        if data_type == floss_enums.AdvertisingDataType.COMPLETE_LOCAL_NAME:
+            data.complete_local_name = parse_complete_local_name(adv_data[index:index + data_length - 1])
+            logging.info('complete_local_name: %s', data.complete_local_name)
+        else:
+            logging.debug('Unsupported advertising data type to parse: %s', data_type)
+
+        index = index + data_length - 1
+
+    logging.info('Parsed data: %s', data)
+    return data
+
+
+def parse_complete_local_name(data: List[int]) -> Optional[str]:
+    return ''.join(chr(char) for char in data) if data else None
