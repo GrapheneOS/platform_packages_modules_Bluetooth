@@ -18,9 +18,6 @@ package android.bluetooth;
 
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -163,19 +160,6 @@ public final class BluetoothProfileConnector extends Handler {
                 }
             }
         }
-    }
-
-    void connect(Context context, BluetoothProfile.ServiceListener listener) {
-        // Preserve legacy compatibility where apps were depending on
-        // registerStateChangeCallback() performing a permissions check which
-        // has been relaxed in modern platform versions
-        if (context.getApplicationInfo().targetSdkVersion <= Build.VERSION_CODES.R
-                && context.checkSelfPermission(android.Manifest.permission.BLUETOOTH)
-                        != PackageManager.PERMISSION_GRANTED) {
-            throw new SecurityException("Need BLUETOOTH permission");
-        }
-
-        connect(context.getPackageName(), listener);
     }
 
     /** @hide */
