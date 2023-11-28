@@ -54,6 +54,7 @@ cc_library_static {
     visibility: [
         "//hardware/interfaces/bluetooth/aidl/vts",
         "//packages/modules/Bluetooth/system:__subpackages__",
+        "//vendor:__subpackages__",
     ],
     apex_available: [
         "com.android.btservices",
