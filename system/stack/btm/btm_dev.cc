@@ -366,7 +366,7 @@ tBTM_SEC_DEV_REC* btm_find_dev_by_handle(uint16_t handle) {
   return NULL;
 }
 
-bool is_address_equal(void* data, void* context) {
+static bool is_address_equal(void* data, void* context) {
   tBTM_SEC_DEV_REC* p_dev_rec = static_cast<tBTM_SEC_DEV_REC*>(data);
   const RawAddress* bd_addr = ((RawAddress*)context);
 
