@@ -685,19 +685,6 @@ struct btm_sec_encrypt_change {
 };
 extern struct btm_sec_encrypt_change btm_sec_encrypt_change;
 
-// Name: btm_sec_execute_procedure
-// Params: tBTM_SEC_DEV_REC* p_dev_rec
-// Return: tBTM_STATUS
-struct btm_sec_execute_procedure {
-  static tBTM_STATUS return_value;
-  std::function<tBTM_STATUS(tBTM_SEC_DEV_REC* p_dev_rec)> body{
-      [](tBTM_SEC_DEV_REC* /* p_dev_rec */) { return return_value; }};
-  tBTM_STATUS operator()(tBTM_SEC_DEV_REC* p_dev_rec) {
-    return body(p_dev_rec);
-  };
-};
-extern struct btm_sec_execute_procedure btm_sec_execute_procedure;
-
 // Name: btm_sec_find_first_serv
 // Params: bool is_originator, uint16_t psm
 // Return: tBTM_SEC_SERV_REC*
