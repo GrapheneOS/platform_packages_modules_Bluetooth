@@ -94,8 +94,6 @@ bool btm_dev_support_role_switch(const RawAddress& bd_addr);
  ******************************************************************************/
 tBTM_SEC_DEV_REC* btm_find_dev_by_handle(uint16_t handle);
 
-bool is_address_equal(void* data, void* context);
-
 /*******************************************************************************
  *
  * Function         btm_find_dev
