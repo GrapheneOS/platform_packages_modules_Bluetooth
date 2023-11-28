@@ -34,7 +34,7 @@
 #include "btif_hf.h"
 #include "osi/include/osi.h"
 #include "types/raw_address.h"
-#include "uipc.h"
+#include "udrv/include/uipc.h"
 
 #define A2DP_DATA_READ_POLL_MS 10
 
