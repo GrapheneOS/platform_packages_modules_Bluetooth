@@ -15,18 +15,17 @@
 //
 
 #define LOG_TAG "android.hardware.bluetooth@1.1-btlinux"
-#include <errno.h>
+#include "bluetooth_hci.h"
+
 #include <fcntl.h>
 #include <poll.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <sys/socket.h>
-
 #include <utils/Log.h>
 
-#include "bluetooth_hci.h"
+#include <cerrno>
 
 #define BTPROTO_HCI 1
 

@@ -21,7 +21,6 @@
 #include <base/files/file_util.h>
 #include <base/logging.h>
 #include <ctype.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <libgen.h>
 #include <log/log.h>
@@ -31,6 +30,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <cerrno>
 #include <sstream>
 #include <type_traits>
 
