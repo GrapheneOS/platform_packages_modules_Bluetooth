@@ -33,6 +33,7 @@
 #include "bta_gatt_api.h"
 #include "bta_gatt_queue.h"
 #include "bta_groups.h"
+#include "bta_le_audio_uuids.h"
 #include "bta_sec_api.h"
 #include "btif_storage.h"
 #include "crypto_toolbox/crypto_toolbox.h"
@@ -664,6 +665,7 @@ class CsisClientImpl : public CsisClient {
       devices_.push_back(device);
     }
 
+    bool is_le_audio_device = false;
     for (const auto& csis_group : csis_groups_) {
       if (!csis_group->IsDeviceInTheGroup(device)) continue;
 
@@ -677,11 +679,20 @@ class CsisClientImpl : public CsisClient {
         callbacks_->OnDeviceAvailable(device->addr, group_id,
                                       csis_group->GetDesiredSize(), rank,
                                       csis_group->GetUuid());
+
+        if (csis_group->GetUuid() ==
+            bluetooth::Uuid::From16Bit(UUID_COMMON_AUDIO_SERVICE)) {
+          is_le_audio_device = true;
+        }
       }
     }
 
+    /* For now, if this is LeAudio device, CSIP is opportunistic profile. */
+    bool is_opportunistic = is_le_audio_device;
+
     if (autoconnect) {
-      BTA_GATTC_Open(gatt_if_, addr, BTM_BLE_BKG_CONNECT_ALLOW_LIST, false);
+      BTA_GATTC_Open(gatt_if_, addr, BTM_BLE_BKG_CONNECT_ALLOW_LIST,
+                     is_opportunistic);
     }
   }
 
@@ -695,6 +706,7 @@ class CsisClientImpl : public CsisClient {
     }
 
     devices_.clear();
+    csis_groups_.clear();
 
     CsisObserverSetBackground(false);
     dev_groups_->CleanUp(device_group_callbacks);
