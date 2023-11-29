@@ -23,13 +23,7 @@
 
 #include "bta/ag/bta_ag_int.h"
 #include "common/strings.h"
-#include "device/include/interop.h"
-#include "include/hardware/bt_hf.h"
-#include "internal_include/bt_trace.h"
-#include "stack/btm/btm_sco_hfp_hal.h"
 #include "stack/include/btm_api_types.h"
-#include "types/raw_address.h"
-#include "utl.h"
 
 bool is_hfp_aptx_voice_enabled() {
   return IS_FLAG_ENABLED(hfp_codec_aptx_voice) &&

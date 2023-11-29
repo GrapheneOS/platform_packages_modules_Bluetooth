@@ -29,10 +29,9 @@
 
 #include "avrc_int.h"
 #include "btif/include/btif_config.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/fixed_queue.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_uuid16.h"
