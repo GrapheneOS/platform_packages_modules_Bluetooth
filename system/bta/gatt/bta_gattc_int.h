@@ -108,6 +108,12 @@ typedef struct {
 
 typedef struct {
   BT_HDR_RIGID hdr;
+
+  /* it is important that is_multi_read field stays at same position between
+   * tBTA_GATTC_API_READ and tBTA_GATTC_API_READ_MULTI, as it is read from
+   * parent union */
+  uint8_t is_multi_read;
+
   tGATT_AUTH_REQ auth_req;
 
   // read by handle data
@@ -159,9 +165,17 @@ typedef struct {
 
 typedef struct {
   BT_HDR_RIGID hdr;
+
+  /* it is important that is_multi_read field stays at same position between
+   * tBTA_GATTC_API_READ and tBTA_GATTC_API_READ_MULTI, as it is read from
+   * parent union */
+  uint8_t is_multi_read;
+
   tGATT_AUTH_REQ auth_req;
-  uint8_t num_attr;
-  uint16_t handles[GATT_MAX_READ_MULTI_HANDLES];
+  tBTA_GATTC_MULTI handles;
+  uint8_t variable_len;
+  GATT_READ_MULTI_OP_CB read_cb;
+  void* read_cb_data;
 } tBTA_GATTC_API_READ_MULTI;
 
 typedef struct {
