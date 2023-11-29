@@ -54,6 +54,9 @@ namespace le_audio {
   ((vec.data()[3] << 24) + (vec.data()[2] << 16) + (vec.data()[1] << 8) + \
    vec.data()[0])
 
+enum class DsaMode { DISABLED = 0, ACL, ISO_SW, ISO_HW };
+typedef std::vector<DsaMode> DsaModes;
+
 namespace uuid {
 /* CAP service
  * This service is used to identify peer role (which we are not using for now)
@@ -282,6 +285,10 @@ constexpr uint8_t kLeAudioCodingFormatVendorSpecific =
     bluetooth::hci::kIsoCodingFormatVendorSpecific;
 constexpr uint16_t kLeAudioVendorCompanyIdUndefined = 0x00;
 constexpr uint16_t kLeAudioVendorCodecIdUndefined = 0x00;
+
+constexpr uint16_t kLeAudioVendorCompanyIdGoogle = 0x00E0;
+/* Todo: Temporary value */
+constexpr uint16_t kLeAudioVendorCodecIdHeadtracking = 0x0001;
 
 /* Metadata types from Assigned Numbers */
 constexpr uint8_t kLeAudioMetadataTypePreferredAudioContext = 0x01;
@@ -838,6 +845,11 @@ struct LeAudioCodecId {
     return !(lhs == rhs);
   }
 };
+
+/* Google vendor specific codec for Headtracking */
+constexpr LeAudioCodecId kLeAudioCodecHeadtracking = {
+    kLeAudioCodingFormatVendorSpecific, kLeAudioVendorCompanyIdGoogle,
+    kLeAudioVendorCodecIdHeadtracking};
 
 struct hdl_pair {
   hdl_pair() = default;

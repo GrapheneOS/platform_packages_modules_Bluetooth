@@ -35,6 +35,7 @@ using ::bluetooth::audio::hidl::SessionType_2_1;
 
 using ::bluetooth::audio::le_audio::LeAudioClientInterface;
 using ::bluetooth::audio::le_audio::StartRequestState;
+using ::le_audio::DsaMode;
 
 /**
  * Helper utils
@@ -190,7 +191,7 @@ void LeAudioTransport::MetadataChanged(
   const source_metadata_v7_t source_metadata_v7 = {
       .track_count = tracks_vec.size(), .tracks = tracks_vec.data()};
 
-  stream_cb_.on_metadata_update_(source_metadata_v7);
+  stream_cb_.on_metadata_update_(source_metadata_v7, DsaMode::DISABLED);
 }
 
 void LeAudioTransport::ResetPresentationPosition() {

@@ -99,6 +99,8 @@ using le_audio::LeAudioGroupStateMachine;
 
 using bluetooth::hci::ErrorCode;
 using bluetooth::hci::ErrorCodeText;
+using le_audio::DsaMode;
+using le_audio::DsaModes;
 using le_audio::types::ase;
 using le_audio::types::AseState;
 using le_audio::types::AudioContexts;
@@ -1279,6 +1281,55 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     return ((1000 * max_latency_ms) >= sdu_interval_us);
   }
 
+  void ApplyDsaParams(LeAudioDeviceGroup* group,
+                      bluetooth::hci::iso_manager::cig_create_params& param) {
+    if (!IS_FLAG_ENABLED(leaudio_dynamic_spatial_audio)) {
+      return;
+    }
+
+    LOG_INFO("DSA mode selected: %d", (int)group->dsa_mode_);
+
+    /* Unidirectional streaming */
+    if (param.sdu_itv_stom != 0) {
+      LOG_INFO("Media streaming, apply DSA parameters");
+
+      switch (group->dsa_mode_) {
+        case DsaMode::ISO_HW:
+        case DsaMode::ISO_SW: {
+          auto& cis_cfgs = param.cis_cfgs;
+          auto it = cis_cfgs.begin();
+
+          for (auto dsa_modes : group->GetAllowedDsaModesList()) {
+            if (!dsa_modes.empty() && it != cis_cfgs.end()) {
+              if (std::find(dsa_modes.begin(), dsa_modes.end(),
+                            group->dsa_mode_) != dsa_modes.end()) {
+                LOG_INFO("Device found with support for selected DsaMode");
+
+                param.sdu_itv_stom = 20000;
+                param.max_trans_lat_stom = 10;
+                it->max_sdu_size_stom = 15;
+                it->rtn_stom = 2;
+
+                it++;
+              }
+            }
+          }
+        } break;
+
+        case DsaMode::ACL:
+          /* Todo: Prioritize the ACL */
+          break;
+
+        case DsaMode::DISABLED:
+        default:
+          /* No need to change ISO parameters */
+          break;
+      }
+    } else {
+      LOG_DEBUG("Bidirection streaming, ignore DSA mode");
+    }
+  }
+
   bool CigCreate(LeAudioDeviceGroup* group) {
     uint32_t sdu_interval_mtos, sdu_interval_stom;
     uint16_t max_trans_lat_mtos, max_trans_lat_stom;
@@ -1397,6 +1448,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         .max_trans_lat_mtos = max_trans_lat_mtos,
         .cis_cfgs = std::move(cis_cfgs),
     };
+
+    ApplyDsaParams(group, param);
 
     log_history_->AddLogHistory(
         kLogStateMachineTag, group->group_id_, RawAddress::kEmpty,

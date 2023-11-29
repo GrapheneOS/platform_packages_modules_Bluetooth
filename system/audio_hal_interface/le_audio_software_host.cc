@@ -71,6 +71,8 @@ bool LeAudioClientInterface::ReleaseSource(
   return false;
 }
 
+void LeAudioClientInterface::SetAllowedDsaModes(DsaModes dsa_modes) { return; }
+
 }  // namespace le_audio
 }  // namespace audio
 }  // namespace bluetooth

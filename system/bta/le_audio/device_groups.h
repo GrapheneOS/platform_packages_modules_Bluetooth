@@ -81,12 +81,14 @@ class LeAudioDeviceGroup {
   /* Whether LE Audio is preferred for OUTPUT_ONLY and DUPLEX cases */
   bool is_output_preference_le_audio;
   bool is_duplex_preference_le_audio;
+  DsaMode dsa_mode_;
 
   explicit LeAudioDeviceGroup(const int group_id)
       : group_id_(group_id),
         cig(this),
         stream_conf({}),
         audio_directions_(0),
+        dsa_mode_(DsaMode::DISABLED),
         is_enabled_(true),
         transport_latency_mtos_us_(0),
         transport_latency_stom_us_(0),
@@ -298,6 +300,31 @@ class LeAudioDeviceGroup {
 
   types::AudioContexts GetSupportedContexts(
       int direction = types::kLeAudioDirectionBoth) const;
+
+  DsaModes GetAllowedDsaModes() {
+    DsaModes dsa_modes = {};
+    for (auto leAudioDevice : leAudioDevices_) {
+      if (leAudioDevice.expired()) continue;
+
+      dsa_modes.insert(dsa_modes.end(),
+                       leAudioDevice.lock()->GetDsaModes().begin(),
+                       leAudioDevice.lock()->GetDsaModes().end());
+    }
+    return dsa_modes;
+  }
+
+  std::vector<DsaModes> GetAllowedDsaModesList() {
+    std::vector<DsaModes> dsa_modes_list = {};
+    for (auto leAudioDevice : leAudioDevices_) {
+      DsaModes dsa_modes = {};
+
+      if (!leAudioDevice.expired()) {
+        dsa_modes = leAudioDevice.lock()->GetDsaModes();
+      }
+      dsa_modes_list.push_back(dsa_modes);
+    }
+    return dsa_modes_list;
+  }
 
   types::BidirectionalPair<types::AudioContexts> GetLatestAvailableContexts(
       void) const;
