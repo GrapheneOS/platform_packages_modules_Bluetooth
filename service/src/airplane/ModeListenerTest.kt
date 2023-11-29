@@ -71,8 +71,7 @@ class ModeListenerTest {
 
     @Before
     public fun setup() {
-        Log.i("AirplaneModeListenerTest", "-------------------------------------------------------")
-        Log.i("AirplaneModeListenerTest", "--> Start of test: " + testName.getMethodName())
+        Log.i("AirplaneModeListenerTest", "\t--> setup of " + testName.getMethodName())
 
         // Most test will expect the system to be sensitive + off
         enableSensitive()
