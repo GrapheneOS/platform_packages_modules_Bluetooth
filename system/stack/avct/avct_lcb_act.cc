@@ -27,14 +27,11 @@
 #include "avct_api.h"
 #include "avct_int.h"
 #include "bt_target.h"
-#include "bta/include/bta_api.h"
 #include "bta/include/bta_sec_api.h"
-#include "btm_api.h"
 #include "device/include/device_iot_config.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"
-#include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
 
 /* packet header length lookup table */
