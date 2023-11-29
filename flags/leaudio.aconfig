@@ -41,3 +41,10 @@ flag {
     description: "Enables support for the multicodec AIDL"
     bug: "313054645"
 }
+
+flag {
+    name: "leaudio_dynamic_spatial_audio"
+    namespace: "bluetooth"
+    description: "Support Dynamic Spatial Audio for LE Audio"
+    bug: "309665975"
+}

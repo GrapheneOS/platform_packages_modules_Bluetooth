@@ -20,6 +20,7 @@
 #include <base/strings/string_number_conversions.h>
 
 #include "acl_api.h"
+#include "android_bluetooth_flags.h"
 #include "bta_gatt_queue.h"
 #include "btif_storage.h"
 
@@ -354,6 +355,8 @@ void LeAudioDevice::RegisterPACs(
     pac_db->clear();
   }
 
+  dsa_modes_ = {DsaMode::DISABLED};
+
   /* TODO wrap this logging part with debug flag */
   for (const struct types::acs_ac_record& pac : *pac_recs) {
     LOG(INFO) << "Registering PAC"
@@ -366,6 +369,18 @@ void LeAudioDevice::RegisterPACs(
                                               types::CodecCapabilitiesLtvFormat)
               << "\n\tMetadata: "
               << base::HexEncode(pac.metadata.data(), pac.metadata.size());
+
+    if (IS_FLAG_ENABLED(leaudio_dynamic_spatial_audio)) {
+      if (pac.codec_id == types::kLeAudioCodecHeadtracking) {
+        /* Todo: Set DSA modes according to the codec configuration */
+        dsa_modes_ = {
+            DsaMode::DISABLED,
+            DsaMode::ISO_SW,
+            DsaMode::ISO_HW,
+        };
+        /* Todo: Remove the headtracking codec from the list */
+      }
+    }
   }
 
   pac_db->insert(pac_db->begin(), pac_recs->begin(), pac_recs->end());
@@ -1007,6 +1022,7 @@ void LeAudioDevice::UpdateDeviceAllowlistFlag(void) {
     }
   }
 }
+DsaModes LeAudioDevice::GetDsaModes(void) { return dsa_modes_; }
 
 /* LeAudioDevices Class methods implementation */
 void LeAudioDevices::Add(const RawAddress& address, DeviceConnectState state,
