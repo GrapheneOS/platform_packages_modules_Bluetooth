@@ -42,9 +42,6 @@
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
-void gatt_notify_conn_update(const RawAddress& remote, uint16_t interval,
-                             uint16_t latency, uint16_t timeout,
-                             tHCI_STATUS status);
 void gatt_notify_phy_updated(tHCI_STATUS status, uint16_t handle,
                              uint8_t tx_phy, uint8_t rx_phy);
 
