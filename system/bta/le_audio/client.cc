@@ -1909,6 +1909,12 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (!leAudioDevice) return;
 
+    if (leAudioDevice->conn_id_ != GATT_INVALID_CONN_ID) {
+      LOG_DEBUG("Already connected %s, conn_id=0x%04x",
+                ADDRESS_TO_LOGGABLE_CSTR(address), leAudioDevice->conn_id_);
+      return;
+    }
+
     if (status != GATT_SUCCESS) {
       /* Clear current connection request and let it be set again if needed */
       BTA_GATTC_CancelOpen(gatt_if_, address, false);
@@ -1947,6 +1953,9 @@ class LeAudioClientImpl : public LeAudioClient {
       }
     }
 
+    leAudioDevice->conn_id_ = conn_id;
+    leAudioDevice->mtu_ = mtu;
+
     /* Remove device from the background connect (it might be either Allow list
      * or TA) and add it again with reconnection_mode_. In case it is TA, we are
      * sure that device will not be in the allow list for other applications
@@ -1972,8 +1981,6 @@ class LeAudioClientImpl : public LeAudioClient {
           DeviceConnectState::CONNECTED_BY_USER_GETTING_READY);
     }
 
-    leAudioDevice->conn_id_ = conn_id;
-    leAudioDevice->mtu_ = mtu;
     /* Check if the device is in allow list and update the flag */
     leAudioDevice->UpdateDeviceAllowlistFlag();
     if (BTM_SecIsSecurityPending(address)) {
