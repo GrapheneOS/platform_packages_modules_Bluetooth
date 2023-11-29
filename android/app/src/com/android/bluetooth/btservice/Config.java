@@ -18,12 +18,10 @@ package com.android.bluetooth.btservice;
 
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
-import android.content.res.Resources;
 import android.os.SystemProperties;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
@@ -181,7 +179,6 @@ public class Config {
 
     private static List<Class> sSupportedProfiles = new ArrayList<>();
 
-    private static boolean sIsGdEnabledUptoScanningLayer = false;
 
     static void init(Context ctx) {
         if (LeAudioService.isBroadcastEnabled()) {
@@ -231,15 +228,6 @@ public class Config {
                 }
             }
         }
-
-        if (ctx == null) {
-            return;
-        }
-        Resources resources = ctx.getResources();
-        if (resources == null) {
-            return;
-        }
-        sIsGdEnabledUptoScanningLayer = resources.getBoolean(R.bool.enable_gd_up_to_scanning_layer);
     }
 
     static void setLeAudioProfileStatus(Boolean enable) {
@@ -298,10 +286,6 @@ public class Config {
         synchronized (sSupportedProfiles) {
             return sSupportedProfiles.toArray(new Class[0]);
         }
-    }
-
-    static boolean isGdEnabledUpToScanningLayer() {
-        return sIsGdEnabledUptoScanningLayer;
     }
 
     private static long getProfileMask(Class profile) {
