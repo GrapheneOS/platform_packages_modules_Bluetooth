@@ -103,9 +103,6 @@ void BTM_SecClearSecurityFlags(const RawAddress& /* bd_addr */) {
 void btm_consolidate_dev(tBTM_SEC_DEV_REC* /* p_target_rec */) {
   inc_func_call_count(__func__);
 }
-void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* /* p_dev_rec */) {
-  inc_func_call_count(__func__);
-}
 void btm_dev_consolidate_existing_connections(const RawAddress& /* bd_addr */) {
   inc_func_call_count(__func__);
 }
