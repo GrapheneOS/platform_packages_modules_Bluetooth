@@ -51,6 +51,7 @@ import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
+import com.android.modules.expresslog.Counter;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -1360,6 +1361,20 @@ public class HeadsetStateMachine extends StateMachine {
                     && !hasDeferredMessages(DISCONNECT_AUDIO)) {
                 mHeadsetService.setActiveDevice(mDevice);
             }
+
+            // TODO (b/276463350): Remove check when Express metrics no longer need jni
+            if (!Utils.isInstrumentationTestMode()) {
+                if (mHasSwbLc3Enabled) {
+                    Counter.logIncrement("bluetooth.value_lc3_codec_usage_over_hfp");
+                } else if (mHasSwbAptXEnabled) {
+                    Counter.logIncrement("bluetooth.value_aptx_codec_usage_over_hfp");
+                } else if (mHasWbsEnabled) {
+                    Counter.logIncrement("bluetooth.value_msbc_codec_usage_over_hfp");
+                } else {
+                    Counter.logIncrement("bluetooth.value_cvsd_codec_usage_over_hfp");
+                }
+            }
+
             setAudioParameters();
 
             mSystemInterface.getAudioManager().setAudioServerStateCallback(
