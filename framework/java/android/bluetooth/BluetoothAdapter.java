@@ -53,6 +53,7 @@ import android.bluetooth.le.ScanSettings;
 import android.compat.annotation.UnsupportedAppUsage;
 import android.content.AttributionSource;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Binder;
 import android.os.BluetoothServiceManager;
 import android.os.Build;
@@ -3685,11 +3686,20 @@ public final class BluetoothAdapter {
             return false;
         }
 
+        // Preserve legacy compatibility where apps were depending on
+        // registerStateChangeCallback() performing a permissions check which
+        // has been relaxed in modern platform versions
+        if (context.getApplicationInfo().targetSdkVersion <= Build.VERSION_CODES.R
+                && context.checkSelfPermission(android.Manifest.permission.BLUETOOTH)
+                        != PackageManager.PERMISSION_GRANTED) {
+            throw new SecurityException("Need BLUETOOTH permission");
+        }
+
         BluetoothProfile profileProxy = constructor.apply(context, this);
 
         BluetoothProfileConnector connector = new BluetoothProfileConnector(profileProxy, profile);
         mProfileConnectors.put(profileProxy, connector);
-        connector.connect(context, listener);
+        connector.connect(context.getPackageName(), listener);
 
         return true;
     }
