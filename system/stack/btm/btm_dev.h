@@ -20,8 +20,6 @@
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
-void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* p_dev_rec);
-
 /** Free resources associated with the device associated with |bd_addr| address.
  *
  * *** WARNING ***
