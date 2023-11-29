@@ -45,7 +45,6 @@
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "osi/include/stack_power_telemetry.h"
-#include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/acl_api.h"
@@ -60,6 +59,22 @@
 #include "stack/include/inq_hci_link_interface.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
+
+/* MACRO to set the service bit mask in a bit stream */
+#define BTM_EIR_SET_SERVICE(p, service)                              \
+  (((uint32_t*)(p))[(((uint32_t)(service)) / BTM_EIR_ARRAY_BITS)] |= \
+   ((uint32_t)1 << (((uint32_t)(service)) % BTM_EIR_ARRAY_BITS)))
+
+/* MACRO to clear the service bit mask in a bit stream */
+#define BTM_EIR_CLR_SERVICE(p, service)                              \
+  (((uint32_t*)(p))[(((uint32_t)(service)) / BTM_EIR_ARRAY_BITS)] &= \
+   ~((uint32_t)1 << (((uint32_t)(service)) % BTM_EIR_ARRAY_BITS)))
+
+/* MACRO to check the service bit mask in a bit stream */
+#define BTM_EIR_HAS_SERVICE(p, service)                               \
+  ((((uint32_t*)(p))[(((uint32_t)(service)) / BTM_EIR_ARRAY_BITS)] &  \
+    ((uint32_t)1 << (((uint32_t)(service)) % BTM_EIR_ARRAY_BITS))) >> \
+   (((uint32_t)(service)) % BTM_EIR_ARRAY_BITS))
 
 namespace {
 constexpr char kBtmLogTag[] = "SCAN";
