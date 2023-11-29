@@ -38,6 +38,9 @@ class MockBtaGattQueue {
                tGATT_WRITE_TYPE write_type, GATT_WRITE_OP_CB cb,
                void* cb_data));
   MOCK_METHOD((void), ConfigureMtu, (uint16_t conn_id, uint16_t mtu));
+  MOCK_METHOD((void), ReadMultiCharacteristic,
+              (uint16_t conn_id, tBTA_GATTC_MULTI& p_read_multi,
+               bool variable_len, GATT_READ_MULTI_OP_CB cb, void* cb_data));
 };
 
 /**
