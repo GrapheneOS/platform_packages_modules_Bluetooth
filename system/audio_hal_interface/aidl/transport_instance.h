@@ -71,7 +71,7 @@ class IBluetoothTransportInstance {
 
   virtual void StopRequest() = 0;
 
-  virtual void SetLowLatency(bool is_low_latency) = 0;
+  virtual void SetLatencyMode(LatencyMode latency_mode) = 0;
 
   virtual bool GetPresentationPosition(uint64_t* remote_delay_report_ns,
                                        uint64_t* total_bytes_readed,
