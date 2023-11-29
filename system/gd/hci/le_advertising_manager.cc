@@ -1230,6 +1230,12 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
 
     if (enable) {
       enabled_sets_[advertiser_id].advertising_handle_ = advertiser_id;
+      if (advertising_api_type_ == AdvertisingApiType::EXTENDED) {
+        enabled_sets_[advertiser_id].duration_ = duration;
+        enabled_sets_[advertiser_id].max_extended_advertising_events_ =
+            max_extended_advertising_events;
+      }
+
       advertising_sets_[advertiser_id].duration = duration;
       advertising_sets_[advertiser_id].max_extended_advertising_events = max_extended_advertising_events;
     } else {
