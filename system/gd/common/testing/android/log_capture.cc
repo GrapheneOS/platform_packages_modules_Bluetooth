@@ -16,12 +16,10 @@
 
 #include "common/testing/log_capture.h"
 
-#include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 
 #include <cstddef>
-#include <sstream>
 #include <string>
 
 #include "os/log.h"

@@ -16,16 +16,12 @@
 
 #define LOG_TAG "hal_util"
 
+#include "btcore/include/hal_util.h"
+
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
-#include <hardware/bluetooth.h>
-
 #include <dlfcn.h>
-#include <errno.h>
-#include <string.h>
-
-#include "btcore/include/hal_util.h"
-#include "osi/include/log.h"
+#include <hardware/bluetooth.h>
 
 using base::StringPrintf;
 

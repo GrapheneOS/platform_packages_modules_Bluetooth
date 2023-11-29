@@ -24,10 +24,8 @@
  *
  *****************************************************************************/
 
-#include <errno.h>
 #include <fcntl.h>
 #include <poll.h>
-#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,17 +36,18 @@
 #include <sys/stat.h>
 #include <sys/un.h>
 #include <unistd.h>
+
+#include <cerrno>
 #include <mutex>
-#include <set>
 
 // Define before including log.h
 #define LOG_TAG "uipc"
 
 #include "audio_a2dp_hw/include/audio_a2dp_hw.h"
-#include "osi/include/log.h"
+#include "os/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/socket_utils/sockets.h"
-#include "uipc.h"
+#include "udrv/include/uipc.h"
 
 /*****************************************************************************
  *  Constants & Macros
