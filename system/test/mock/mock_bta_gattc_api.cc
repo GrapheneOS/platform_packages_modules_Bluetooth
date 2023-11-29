@@ -128,8 +128,9 @@ void BTA_GATTC_ReadCharacteristic(uint16_t conn_id, uint16_t handle,
                                   GATT_READ_OP_CB callback, void* cb_data) {
   inc_func_call_count(__func__);
 }
-void BTA_GATTC_ReadMultiple(uint16_t conn_id, tBTA_GATTC_MULTI* p_read_multi,
-                            tGATT_AUTH_REQ auth_req) {
+void BTA_GATTC_ReadMultiple(uint16_t conn_id, tBTA_GATTC_MULTI& handles,
+                            bool variable_len, tGATT_AUTH_REQ auth_req,
+                            GATT_READ_MULTI_OP_CB callback, void* cb_data) {
   inc_func_call_count(__func__);
 }
 void BTA_GATTC_ReadUsingCharUuid(uint16_t conn_id, const bluetooth::Uuid& uuid,

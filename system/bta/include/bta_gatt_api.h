@@ -621,7 +621,9 @@ typedef void (*GATT_WRITE_OP_CB)(uint16_t conn_id, tGATT_STATUS status,
                                  const uint8_t* value, void* data);
 typedef void (*GATT_CONFIGURE_MTU_OP_CB)(uint16_t conn_id, tGATT_STATUS status,
                                          void* data);
-
+typedef void (*GATT_READ_MULTI_OP_CB)(uint16_t conn_id, tGATT_STATUS status,
+                                      tBTA_GATTC_MULTI& handles, uint16_t len,
+                                      uint8_t* value, void* data);
 /*******************************************************************************
  *
  * Function         BTA_GATTC_ReadCharacteristic
@@ -793,13 +795,16 @@ void BTA_GATTC_ExecuteWrite(uint16_t conn_id, bool is_execute);
  *                  characteristic descriptors.
  *
  * Parameters       conn_id - connectino ID.
- *                    p_read_multi - read multiple parameters.
+ *                  p_read_multi - read multiple parameters.
+ *                  variable_len - whether "read multi variable length" variant
+ *                                 shall be used.
  *
  * Returns          None
  *
  ******************************************************************************/
-void BTA_GATTC_ReadMultiple(uint16_t conn_id, tBTA_GATTC_MULTI* p_read_multi,
-                            tGATT_AUTH_REQ auth_req);
+void BTA_GATTC_ReadMultiple(uint16_t conn_id, tBTA_GATTC_MULTI& p_read_multi,
+                            bool variable_len, tGATT_AUTH_REQ auth_req,
+                            GATT_READ_MULTI_OP_CB callback, void* cb_data);
 
 /*******************************************************************************
  *
