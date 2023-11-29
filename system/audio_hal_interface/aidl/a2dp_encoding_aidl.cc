@@ -140,7 +140,8 @@ void A2dpTransport::StopRequest() {
   btif_av_stream_stop(RawAddress::kEmpty);
 }
 
-void A2dpTransport::SetLowLatency(bool is_low_latency) {
+void A2dpTransport::SetLatencyMode(LatencyMode latency_mode) {
+  bool is_low_latency = latency_mode == LatencyMode::LOW_LATENCY ? true : false;
   btif_av_set_low_latency(is_low_latency);
 }
 
@@ -485,7 +486,11 @@ void start_session() {
     LOG(ERROR) << __func__ << ": BluetoothAudio HAL is not enabled";
     return;
   }
-  active_hal_interface->SetLowLatencyModeAllowed(is_low_latency_mode_allowed);
+  std::vector<LatencyMode> latency_modes = {LatencyMode::FREE};
+  if (is_low_latency_mode_allowed) {
+    latency_modes.push_back(LatencyMode::LOW_LATENCY);
+  }
+  active_hal_interface->SetAllowedLatencyModes(latency_modes);
   active_hal_interface->StartSession();
 }
 
@@ -575,7 +580,11 @@ void set_low_latency_mode_allowed(bool allowed) {
     LOG(ERROR) << __func__ << ": BluetoothAudio HAL is not enabled";
     return;
   }
-  active_hal_interface->SetLowLatencyModeAllowed(allowed);
+  std::vector<LatencyMode> latency_modes = {LatencyMode::FREE};
+  if (is_low_latency_mode_allowed) {
+    latency_modes.push_back(LatencyMode::LOW_LATENCY);
+  }
+  active_hal_interface->SetAllowedLatencyModes(latency_modes);
 }
 
 }  // namespace a2dp

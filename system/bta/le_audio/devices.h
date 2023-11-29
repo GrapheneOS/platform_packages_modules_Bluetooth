@@ -140,7 +140,8 @@ class LeAudioDevice {
         audio_directions_(0),
         model_name_(""),
         allowlist_flag_(false),
-        link_quality_timer(nullptr) {}
+        link_quality_timer(nullptr),
+        dsa_modes_({DsaMode::DISABLED}) {}
   ~LeAudioDevice(void);
 
   void SetConnectionState(DeviceConnectState state);
@@ -248,10 +249,12 @@ class LeAudioDevice {
 
   void GetDeviceModelName(void);
   void UpdateDeviceAllowlistFlag(void);
+  DsaModes GetDsaModes(void);
 
  private:
   types::BidirectionalPair<types::AudioContexts> avail_contexts_;
   types::BidirectionalPair<types::AudioContexts> supp_contexts_;
+  DsaModes dsa_modes_;
   static constexpr char kLeAudioDeviceAllowListProp[] =
       "persist.bluetooth.leaudio.allow_list";
 

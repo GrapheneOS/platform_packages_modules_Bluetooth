@@ -124,7 +124,25 @@ void LeAudioTransport::StopRequest() {
   }
 }
 
-void LeAudioTransport::SetLowLatency(bool is_low_latency) {}
+void LeAudioTransport::SetLatencyMode(LatencyMode latency_mode) {
+  switch (latency_mode) {
+    case LatencyMode::FREE:
+      dsa_mode_ = DsaMode::DISABLED;
+      break;
+    case LatencyMode::LOW_LATENCY:
+      dsa_mode_ = DsaMode::ACL;
+      break;
+    case LatencyMode::DYNAMIC_SPATIAL_AUDIO_SOFTWARE:
+      dsa_mode_ = DsaMode::ISO_SW;
+      break;
+    case LatencyMode::DYNAMIC_SPATIAL_AUDIO_HARDWARE:
+      dsa_mode_ = DsaMode::ISO_HW;
+      break;
+    default:
+      LOG(WARNING) << ", invalid latency mode: " << (int)latency_mode;
+      break;
+  }
+}
 
 bool LeAudioTransport::GetPresentationPosition(uint64_t* remote_delay_report_ns,
                                                uint64_t* total_bytes_processed,
@@ -152,7 +170,7 @@ void LeAudioTransport::SourceMetadataChanged(
     return;
   }
 
-  stream_cb_.on_metadata_update_(source_metadata);
+  stream_cb_.on_metadata_update_(source_metadata, dsa_mode_);
 }
 
 void LeAudioTransport::SinkMetadataChanged(
@@ -280,8 +298,8 @@ BluetoothAudioCtrlAck LeAudioSinkTransport::SuspendRequest() {
 
 void LeAudioSinkTransport::StopRequest() { transport_->StopRequest(); }
 
-void LeAudioSinkTransport::SetLowLatency(bool is_low_latency) {
-  transport_->SetLowLatency(is_low_latency);
+void LeAudioSinkTransport::SetLatencyMode(LatencyMode latency_mode) {
+  transport_->SetLatencyMode(latency_mode);
 }
 
 bool LeAudioSinkTransport::GetPresentationPosition(
@@ -370,8 +388,8 @@ BluetoothAudioCtrlAck LeAudioSourceTransport::SuspendRequest() {
 
 void LeAudioSourceTransport::StopRequest() { transport_->StopRequest(); }
 
-void LeAudioSourceTransport::SetLowLatency(bool is_low_latency) {
-  transport_->SetLowLatency(is_low_latency);
+void LeAudioSourceTransport::SetLatencyMode(LatencyMode latency_mode) {
+  transport_->SetLatencyMode(latency_mode);
 }
 
 bool LeAudioSourceTransport::GetPresentationPosition(

@@ -41,7 +41,8 @@ class SinkImpl : public LeAudioSinkAudioHalClient {
  public:
   // Interface implementation
   bool Start(const LeAudioCodecConfiguration& codecConfiguration,
-             LeAudioSinkAudioHalClient::Callbacks* audioReceiver) override;
+             LeAudioSinkAudioHalClient::Callbacks* audioReceiver,
+             DsaModes dsa_modes) override;
   void Stop();
   size_t SendData(uint8_t* data, uint16_t size) override;
   void ConfirmStreamingRequest() override;
@@ -175,7 +176,8 @@ bool SinkImpl::OnMetadataUpdateReq(const sink_metadata_v7_t& sink_metadata) {
 }
 
 bool SinkImpl::Start(const LeAudioCodecConfiguration& codec_configuration,
-                     LeAudioSinkAudioHalClient::Callbacks* audioReceiver) {
+                     LeAudioSinkAudioHalClient::Callbacks* audioReceiver,
+                     DsaModes dsa_modes) {
   if (!halSourceInterface_) {
     LOG_ERROR("Audio HAL Audio source interface not acquired");
     return false;
@@ -198,6 +200,7 @@ bool SinkImpl::Start(const LeAudioCodecConfiguration& codec_configuration,
       .channels_count = codec_configuration.num_channels};
 
   halSourceInterface_->SetPcmParameters(pcmParameters);
+  LeAudioClientInterface::Get()->SetAllowedDsaModes(dsa_modes);
   halSourceInterface_->StartSession();
 
   audioSinkCallbacks_ = audioReceiver;

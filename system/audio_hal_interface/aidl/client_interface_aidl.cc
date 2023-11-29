@@ -49,7 +49,8 @@ BluetoothAudioClientInterface::BluetoothAudioClientInterface(
       provider_factory_(nullptr),
       session_started_(false),
       data_mq_(nullptr),
-      transport_(instance) {
+      transport_(instance),
+      latency_modes_({LatencyMode::FREE}) {
   death_recipient_ = ::ndk::ScopedAIBinder_DeathRecipient(
       AIBinder_DeathRecipient_new(binderDiedCallbackAidl));
 }
@@ -241,19 +242,32 @@ bool BluetoothAudioClientInterface::UpdateAudioConfig(
   return true;
 }
 
-bool BluetoothAudioClientInterface::SetLowLatencyModeAllowed(bool allowed) {
-  is_low_latency_allowed_ = allowed;
+bool BluetoothAudioClientInterface::SetAllowedLatencyModes(
+    std::vector<LatencyMode> latency_modes) {
   if (provider_ == nullptr) {
     LOG(INFO) << __func__ << ": BluetoothAudioHal nullptr";
     return false;
   }
 
+  /* Ensure that FREE is always included and remove duplicates if any */
+  std::set<LatencyMode> temp_set(latency_modes.begin(), latency_modes.end());
+  temp_set.insert(LatencyMode::FREE);
+  latency_modes_.clear();
+  latency_modes_.assign(temp_set.begin(), temp_set.end());
+
+  for (auto latency_mode : latency_modes) {
+    LOG(INFO) << "Latency mode allowed: "
+              << ::aidl::android::hardware::bluetooth::audio::toString(
+                     latency_mode);
+  }
+
+  /* Low latency mode is used if modes other than FREE are present */
+  bool allowed = (latency_modes_.size() > 1);
   auto aidl_retval = provider_->setLowLatencyModeAllowed(allowed);
   if (!aidl_retval.isOk()) {
     LOG(WARNING) << __func__ << ": BluetoothAudioHal is not ready: "
-               << aidl_retval.getDescription()
-               << ". is_low_latency_allowed_ is saved "
-               <<"and it will be sent to BluetoothAudioHal at StartSession.";
+                 << aidl_retval.getDescription() << ". latency_modes_ is saved "
+                 << "and it will be sent to BluetoothAudioHal at StartSession.";
   }
   return true;
 }
@@ -275,12 +289,9 @@ int BluetoothAudioClientInterface::StartSession() {
 
   std::unique_ptr<DataMQ> data_mq;
   DataMQDesc mq_desc;
-  std::vector<LatencyMode> latency_modes = {LatencyMode::FREE};
-  if (is_low_latency_allowed_) {
-    latency_modes.push_back(LatencyMode::LOW_LATENCY);
-  }
+
   auto aidl_retval = provider_->startSession(
-      stack_if, transport_->GetAudioConfiguration(), latency_modes, &mq_desc);
+      stack_if, transport_->GetAudioConfiguration(), latency_modes_, &mq_desc);
   if (!aidl_retval.isOk()) {
     if (aidl_retval.getExceptionCode() == EX_ILLEGAL_ARGUMENT) {
       LOG(ERROR) << __func__ << ": BluetoothAudioHal Error: "
