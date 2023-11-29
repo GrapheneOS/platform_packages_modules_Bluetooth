@@ -977,7 +977,8 @@ tGATT_STATUS GATTC_Read(uint16_t conn_id, tGATT_READ_TYPE type,
       p_clcb->e_handle = p_read->service.e_handle;
       p_clcb->uuid = p_read->service.uuid;
       break;
-    case GATT_READ_MULTIPLE: {
+    case GATT_READ_MULTIPLE:
+    case GATT_READ_MULTIPLE_VAR_LEN: {
       p_clcb->s_handle = 0;
       /* copy multiple handles in CB */
       tGATT_READ_MULTI* p_read_multi =
