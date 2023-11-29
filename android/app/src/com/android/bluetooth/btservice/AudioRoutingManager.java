@@ -26,6 +26,7 @@ import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHearingAid;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothSinkAudioPolicy;
 import android.media.AudioDeviceCallback;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
@@ -190,30 +191,44 @@ public class AudioRoutingManager extends ActiveDeviceManager {
     }
 
     /**
-     * Checks CoD and metadata to determine if the device is a watch
+     * Checks whether it is Okay to activate HFP when the device is connected.
      *
      * @param device the remote device
-     * @return {@code true} if it's a watch, {@code false} otherwise
+     * @return {@code true} if the device should be activated when connected.
      */
-    private boolean isWatch(BluetoothDevice device) {
+    private boolean shouldActivateWhenConnected(BluetoothDevice device) {
         // Check CoD
         BluetoothClass deviceClass = device.getBluetoothClass();
         if (deviceClass != null
                 && deviceClass.getDeviceClass() == BluetoothClass.Device.WEARABLE_WRIST_WATCH) {
-            return true;
+            Log.i(TAG, "Do not set profile active for watch device when connected: " + device);
+            return false;
+        }
+        // Check the audio device policy
+        HeadsetService service = mFactory.getHeadsetService();
+        BluetoothSinkAudioPolicy audioPolicy = service.getHfpCallAudioPolicy(device);
+        if (audioPolicy != null
+                && audioPolicy.getActiveDevicePolicyAfterConnection()
+                        == BluetoothSinkAudioPolicy.POLICY_NOT_ALLOWED) {
+            Log.i(
+                    TAG,
+                    "The device's HFP call audio policy doesn't allow it to be activated when"
+                            + " connected: "
+                            + device);
+            return false;
         }
 
         // Check metadata
         byte[] deviceType = mDbManager.getCustomMeta(device, BluetoothDevice.METADATA_DEVICE_TYPE);
         if (deviceType == null) {
-            return false;
+            return true;
         }
         String deviceTypeStr = new String(deviceType);
         if (deviceTypeStr.equals(BluetoothDevice.DEVICE_TYPE_WATCH)) {
-            return true;
+            Log.i(TAG, "Do not set profile active for watch device when connected: " + device);
+            return false;
         }
-
-        return false;
+        return true;
     }
 
     /** Notifications of audio device connection and disconnection events. */
@@ -262,13 +277,10 @@ public class AudioRoutingManager extends ActiveDeviceManager {
         public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) {}
     }
 
-    // TODO: make AudioRoutingHandler private
-    class AudioRoutingHandler extends Handler {
-        // TODO: make mConnectedDevices private
-        public final ArrayMap<BluetoothDevice, AudioRoutingDevice> mConnectedDevices =
+    private class AudioRoutingHandler extends Handler {
+        private final ArrayMap<BluetoothDevice, AudioRoutingDevice> mConnectedDevices =
                 new ArrayMap<>();
-        // TODO: make mActiveDevices private
-        public final SparseArray<List<BluetoothDevice>> mActiveDevices = new SparseArray<>();
+        private final SparseArray<List<BluetoothDevice>> mActiveDevices = new SparseArray<>();
 
         AudioRoutingHandler(Looper looper) {
             super(looper);
@@ -292,8 +304,7 @@ public class AudioRoutingManager extends ActiveDeviceManager {
                 return;
             }
             arDevice.connectedProfiles.add(profile);
-            if (isWatch(device)) {
-                Log.i(TAG, "Do not set profile active for watch device when connected: " + device);
+            if (!shouldActivateWhenConnected(device)) {
                 return;
             }
             if (!arDevice.canActivateNow(profile)) {
@@ -396,9 +407,8 @@ public class AudioRoutingManager extends ActiveDeviceManager {
             return false;
         }
 
-        // TODO: make getAudioRoutingDevice private
         // TODO: handle the connection policy change events.
-        public AudioRoutingDevice getAudioRoutingDevice(@NonNull BluetoothDevice device) {
+        private AudioRoutingDevice getAudioRoutingDevice(@NonNull BluetoothDevice device) {
             Objects.requireNonNull(device);
             AudioRoutingDevice arDevice = mConnectedDevices.get(device);
             if (arDevice != null) {
@@ -676,8 +686,7 @@ public class AudioRoutingManager extends ActiveDeviceManager {
             mActiveDevices.clear();
         }
 
-        // TODO: make AudioRoutingDevice private
-        public static class AudioRoutingDevice {
+        private static class AudioRoutingDevice {
             public BluetoothDevice device;
             public Set<Integer> supportedProfiles;
             public Set<Integer> connectedProfiles;
