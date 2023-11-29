@@ -264,6 +264,7 @@ cc_test {
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
+        "libbase",
         "libcrypto",
         "libcutils",
         "liblog",
@@ -271,7 +272,6 @@ cc_test {
     ],
     static_libs: [
         "bluetooth_flags_c_lib",
-        "libbase",
         "libbluetooth-types",
         "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
@@ -1205,11 +1205,11 @@ cc_test {
         "test/bta_hh_test.cc",
     ],
     shared_libs: [
+        "libbase",
         "libcrypto",
         "liblog",
     ],
     static_libs: [
-        "libbase",
         "libbluetooth-types",
         "libbluetooth_crypto_toolbox",
         "libbluetooth_gd",
