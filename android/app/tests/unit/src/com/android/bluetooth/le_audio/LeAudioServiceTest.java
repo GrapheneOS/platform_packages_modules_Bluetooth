@@ -194,8 +194,17 @@ public class LeAudioServiceTest {
         doAnswer(invocation -> mBondedDevices.toArray(new BluetoothDevice[]{})).when(
                 mAdapterService).getBondedDevices();
 
+        mFakeFlagsImpl = new FakeFeatureFlagsImpl();
+        mFakeFlagsImpl.setFlag(Flags.FLAG_LEAUDIO_UNICAST_INACTIVATE_DEVICE_BASED_ON_CONTEXT,
+                false);
+        mFakeFlagsImpl.setFlag(Flags.FLAG_AUDIO_ROUTING_CENTRALIZATION,
+                false);
+        mFakeFlagsImpl.setFlag(Flags.FLAG_LEAUDIO_BROADCAST_AUDIO_HANDOVER_POLICIES, false);
+
         LeAudioNativeInterface.setInstance(mNativeInterface);
-        startService();
+        mService = new LeAudioService(mTargetContext, mFakeFlagsImpl);
+        mService.doStart();
+
         mService.mAudioManager = mAudioManager;
         mService.mMcpService = mMcpService;
         mService.mTbsService = mTbsService;
@@ -256,24 +265,12 @@ public class LeAudioServiceTest {
 
         mBondedDevices.clear();
         mGroupIntentQueue.clear();
-        stopService();
+        mService.doStop();
         if (mDeviceQueueMap != null) {
             mDeviceQueueMap.clear();
         }
         TestUtils.clearAdapterService(mAdapterService);
         LeAudioNativeInterface.setInstance(null);
-    }
-
-    private void startService() throws TimeoutException {
-        TestUtils.startService(mServiceRule, LeAudioService.class);
-        mService = LeAudioService.getLeAudioService();
-        assertThat(mService).isNotNull();
-    }
-
-    private void stopService() throws TimeoutException {
-        TestUtils.stopService(mServiceRule, LeAudioService.class);
-        mService = LeAudioService.getLeAudioService();
-        assertThat(mService).isNull();
     }
 
     private class LeAudioIntentReceiver extends BroadcastReceiver {
@@ -1542,10 +1539,8 @@ public class LeAudioServiceTest {
     @Test
     public void testMediaContextUnavailableForAWhile() {
 
-        mFakeFlagsImpl = new FakeFeatureFlagsImpl();
         mFakeFlagsImpl.setFlag(Flags.FLAG_LEAUDIO_UNICAST_INACTIVATE_DEVICE_BASED_ON_CONTEXT, true);
         mFakeFlagsImpl.setFlag(Flags.FLAG_AUDIO_ROUTING_CENTRALIZATION, true);
-        mService.setFeatureFlags(mFakeFlagsImpl);
 
         doReturn(true).when(mNativeInterface).connectLeAudio(any(BluetoothDevice.class));
         connectTestDevice(mSingleDevice, testGroupId);
