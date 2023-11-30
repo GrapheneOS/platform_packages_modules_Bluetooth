@@ -110,20 +110,6 @@ tAVRC_STS AVRC_ParsResponse(tAVRC_MSG* p_msg, tAVRC_RESPONSE* p_result,
                             UNUSED_ATTR uint16_t buf_len) {
   return 0;
 }
-void BTA_AvCloseRc(uint8_t rc_handle) {}
-void BTA_AvMetaCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_CMD cmd_code,
-                   BT_HDR* p_pkt) {}
-void BTA_AvMetaRsp(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE rsp_code,
-                   BT_HDR* p_pkt) {}
-void BTA_AvRemoteCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_RC rc_id,
-                     tBTA_AV_STATE key_state) {}
-void BTA_AvRemoteVendorUniqueCmd(uint8_t rc_handle, uint8_t label,
-                                 tBTA_AV_STATE key_state, uint8_t* p_msg,
-                                 uint8_t buf_len) {}
-void BTA_AvVendorCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE cmd_code,
-                     uint8_t* p_data, uint16_t len) {}
-void BTA_AvVendorRsp(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE rsp_code,
-                     uint8_t* p_data, uint16_t len, uint32_t company_id) {}
 void btif_av_clear_remote_suspend_flag(void) {}
 bool btif_av_is_connected(void) { return true; }
 bool btif_av_is_sink_enabled(void) { return true; }
