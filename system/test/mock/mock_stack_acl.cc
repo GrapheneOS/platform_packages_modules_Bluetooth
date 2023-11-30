@@ -105,7 +105,6 @@ struct BTM_default_block_role_switch BTM_default_block_role_switch;
 struct BTM_default_unblock_role_switch BTM_default_unblock_role_switch;
 struct BTM_unblock_role_switch_for BTM_unblock_role_switch_for;
 struct BTM_unblock_sniff_mode_for BTM_unblock_sniff_mode_for;
-struct HACK_acl_check_sm4 HACK_acl_check_sm4;
 struct acl_disconnect_after_role_switch acl_disconnect_after_role_switch;
 struct acl_disconnect_from_handle acl_disconnect_from_handle;
 struct acl_packets_completed acl_packets_completed;
@@ -437,10 +436,6 @@ void BTM_unblock_role_switch_for(const RawAddress& peer_addr) {
 void BTM_unblock_sniff_mode_for(const RawAddress& peer_addr) {
   inc_func_call_count(__func__);
   test::mock::stack_acl::BTM_unblock_sniff_mode_for(peer_addr);
-}
-void HACK_acl_check_sm4(tBTM_SEC_DEV_REC& record) {
-  inc_func_call_count(__func__);
-  test::mock::stack_acl::HACK_acl_check_sm4(record);
 }
 void acl_disconnect_after_role_switch(uint16_t conn_handle, tHCI_STATUS reason,
                                       std::string comment) {

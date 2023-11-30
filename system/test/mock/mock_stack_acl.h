@@ -673,15 +673,6 @@ struct BTM_unblock_sniff_mode_for {
   void operator()(const RawAddress& peer_addr) { body(peer_addr); };
 };
 extern struct BTM_unblock_sniff_mode_for BTM_unblock_sniff_mode_for;
-// Name: HACK_acl_check_sm4
-// Params: tBTM_SEC_DEV_REC& record
-// Returns: void
-struct HACK_acl_check_sm4 {
-  std::function<void(tBTM_SEC_DEV_REC& record)> body{
-      [](tBTM_SEC_DEV_REC& /* record */) { ; }};
-  void operator()(tBTM_SEC_DEV_REC& record) { body(record); };
-};
-extern struct HACK_acl_check_sm4 HACK_acl_check_sm4;
 // Name: acl_disconnect_after_role_switch
 // Params: uint16_t conn_handle, tHCI_STATUS reason
 // Returns: void
