@@ -17,8 +17,8 @@ sudo apt-get install \
 Then, we need to set up podman for [rootless
 mode](https://docs.podman.io/en/latest/markdown/podman.1.html#rootless-mode):
 ```
-sudo usermod --add-subuids 10000-75535 $USERNAME
-sudo usermod --add-subgids 10000-75535 $USERNAME
+sudo usermod --add-subuids 10000-75535 USERNAME
+sudo usermod --add-subgids 10000-75535 USERNAME
 ```
 
 ## Container binary: setting up docker (alternative)

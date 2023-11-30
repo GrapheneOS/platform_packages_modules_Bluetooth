@@ -25,6 +25,8 @@ namespace a2dp {
 
 namespace {
 
+using ::bluetooth::audio::aidl::LatencyMode;
+
 BluetoothAudioCtrlAck a2dp_ack_to_bt_audio_ctrl_ack(tA2DP_CTRL_ACK ack);
 
 // Provide call-in APIs for the Bluetooth Audio HAL
@@ -39,7 +41,7 @@ class A2dpTransport
 
   void StopRequest() override;
 
-  void SetLowLatency(bool is_low_latency) override;
+  void SetLatencyMode(LatencyMode latency_mode) override;
 
   bool GetPresentationPosition(uint64_t* remote_delay_report_ns,
                                uint64_t* total_bytes_read,

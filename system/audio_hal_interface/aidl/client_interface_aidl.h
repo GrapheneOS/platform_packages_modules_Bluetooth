@@ -85,7 +85,7 @@ class BluetoothAudioClientInterface {
 
   bool UpdateAudioConfig(const AudioConfiguration& audioConfig);
 
-  bool SetLowLatencyModeAllowed(bool allowed);
+  bool SetAllowedLatencyModes(std::vector<LatencyMode> latency_modes);
 
   void FlushAudioData();
 
@@ -121,7 +121,7 @@ class BluetoothAudioClientInterface {
  private:
   IBluetoothTransportInstance* transport_;
   std::vector<AudioCapabilities> capabilities_;
-  bool is_low_latency_allowed_{false};
+  std::vector<LatencyMode> latency_modes_;
 };
 
 /***

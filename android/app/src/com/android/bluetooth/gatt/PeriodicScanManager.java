@@ -195,13 +195,21 @@ public class PeriodicScanManager {
                     e.setValue(new SyncInfo(syncHandle, sid, address, e.getValue().skip,
                                             e.getValue().timeout, e.getValue().deathRecipient,
                                             callback));
-                    callback.onSyncEstablished(syncHandle, mAdapter.getRemoteDevice(address),
-                                               sid, e.getValue().skip, e.getValue().timeout,
-                                               status);
+                    callback.onSyncEstablished(
+                            syncHandle,
+                            mAdapter.getRemoteLeDevice(address, addressType),
+                            sid,
+                            e.getValue().skip,
+                            e.getValue().timeout,
+                            status);
                 } else {
-                    callback.onSyncEstablished(syncHandle, mAdapter.getRemoteDevice(address),
-                                               sid, e.getValue().skip, e.getValue().timeout,
-                                               status);
+                    callback.onSyncEstablished(
+                            syncHandle,
+                            mAdapter.getRemoteLeDevice(address, addressType),
+                            sid,
+                            e.getValue().skip,
+                            e.getValue().timeout,
+                            status);
                     IBinder binder = e.getKey();
                     binder.unlinkToDeath(e.getValue().deathRecipient, 0);
                     mSyncs.remove(binder);
@@ -266,9 +274,17 @@ public class PeriodicScanManager {
         }
 
         String address = scanResult.getDevice().getAddress();
+        int addressType = scanResult.getDevice().getAddressType();
         int sid = scanResult.getAdvertisingSid();
         if (DBG) {
-            Log.d(TAG, "startSync for Device: " + address + " sid: " + sid);
+            Log.d(
+                    TAG,
+                    "startSync for Device: "
+                            + address
+                            + " addressType: "
+                            + addressType
+                            + " sid: "
+                            + sid);
         }
         synchronized (mSyncs) {
             Map.Entry<IBinder, SyncInfo> entry = findMatchingSync(sid, address);
@@ -282,10 +298,13 @@ public class PeriodicScanManager {
                         callback));
                 if (entry.getValue().id >= 0) {
                     try {
-                        callback.onSyncEstablished(entry.getValue().id,
-                                                   mAdapter.getRemoteDevice(address),
-                                                   sid, entry.getValue().skip,
-                                                   entry.getValue().timeout, 0 /*success*/);
+                        callback.onSyncEstablished(
+                                entry.getValue().id,
+                                mAdapter.getRemoteLeDevice(address, addressType),
+                                sid,
+                                entry.getValue().skip,
+                                entry.getValue().timeout,
+                                0 /*success*/);
                     } catch (RemoteException e) {
                         throw new IllegalArgumentException("Can't invoke callback");
                     }
