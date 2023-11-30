@@ -147,10 +147,6 @@ bool btif_av_peer_is_sink(const RawAddress& peer_address) { return false; }
 bool btif_av_peer_is_source(const RawAddress& peer_address) { return true; }
 bool btif_av_both_enable(void) { return true; }
 
-const char* dump_rc_event(uint8_t event) { return nullptr; }
-const char* dump_rc_notification_event_id(uint8_t event_id) { return nullptr; }
-const char* dump_rc_pdu(uint8_t pdu) { return nullptr; }
-const char* dump_rc_opcode(uint8_t pdu) { return nullptr; }
 static bluetooth::common::MessageLoopThread jni_thread("bt_jni_thread");
 bt_status_t do_in_jni_thread(const base::Location& from_here,
                              base::OnceClosure task) {
