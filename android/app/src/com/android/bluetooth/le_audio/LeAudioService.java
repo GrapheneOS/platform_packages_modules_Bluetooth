@@ -72,6 +72,7 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
+import com.android.bluetooth.bass_client.BassClientService;
 import com.android.bluetooth.flags.FeatureFlags;
 import com.android.bluetooth.flags.FeatureFlagsImpl;
 import com.android.bluetooth.hap.HapClientService;
@@ -166,6 +167,8 @@ public class LeAudioService extends ProfileService {
 
     @VisibleForTesting
     CsipSetCoordinatorService mCsipSetCoordinatorService;
+
+    @VisibleForTesting BassClientService mBassClientService;
 
     @VisibleForTesting
     RemoteCallbackList<IBluetoothLeBroadcastCallback> mBroadcastCallbacks;
@@ -489,6 +492,7 @@ public class LeAudioService extends ProfileService {
         mTbsService = null;
         mVolumeControlService = null;
         mCsipSetCoordinatorService = null;
+        mBassClientService = null;
 
         return true;
     }
@@ -526,6 +530,16 @@ public class LeAudioService extends ProfileService {
             }
         }
         return mVolumeControlService;
+    }
+
+    BassClientService getBassClientService() {
+        if (mBassClientService == null) {
+            mBassClientService = mServiceFactory.getBassClientService();
+            if (mBassClientService == null) {
+                Log.e(TAG, "BASS service is not available");
+            }
+        }
+        return mBassClientService;
     }
 
     @VisibleForTesting
@@ -2543,6 +2557,11 @@ public class LeAudioService extends ProfileService {
             // TODO: Improve reason reporting or extend the native stack event with reason code
             notifyOnBroadcastStopped(broadcastId, BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
 
+            BassClientService bassClientService = getBassClientService();
+            if (bassClientService != null) {
+                bassClientService.stopReceiversSourceSynchronization(broadcastId);
+            }
+
             LeAudioBroadcastDescriptor descriptor = mBroadcastDescriptors.get(broadcastId);
             if (descriptor == null) {
                 Log.e(TAG, "EVENT_TYPE_BROADCAST_DESTROYED: No valid descriptor for broadcastId: "
@@ -2570,6 +2589,7 @@ public class LeAudioService extends ProfileService {
             }
             previousState = descriptor.mState;
             descriptor.mState = state;
+            BassClientService bassClientService = getBassClientService();
 
             switch (descriptor.mState) {
                 case LeAudioStackEvent.BROADCAST_STATE_STOPPED:
@@ -2610,6 +2630,10 @@ public class LeAudioService extends ProfileService {
                     notifyPlaybackStopped(broadcastId,
                             BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST);
 
+                    if (bassClientService != null) {
+                        bassClientService.suspendReceiversSourceSynchronization(broadcastId);
+                    }
+
                     // Notify audio manager
                     updateBroadcastActiveDevice(null, mActiveAudioOutDevice);
 
@@ -2625,6 +2649,12 @@ public class LeAudioService extends ProfileService {
                     // Stream resumed
                     notifyPlaybackStarted(broadcastId,
                             BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST);
+
+                    if (previousState == LeAudioStackEvent.BROADCAST_STATE_PAUSED) {
+                        if (bassClientService != null) {
+                            bassClientService.resumeReceiversSourceSynchronization(broadcastId);
+                        }
+                    }
 
                     // Notify audio manager
                     if (mBroadcastDescriptors.values().stream()
