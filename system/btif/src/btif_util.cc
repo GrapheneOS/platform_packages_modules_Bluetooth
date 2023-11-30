@@ -114,6 +114,7 @@ const char* dump_dm_search_event(uint16_t event) {
     CASE_RETURN_STR(BTA_DM_DISC_CMPL_EVT)
     CASE_RETURN_STR(BTA_DM_SEARCH_CANCEL_CMPL_EVT)
     CASE_RETURN_STR(BTA_DM_GATT_OVER_SDP_RES_EVT)
+    CASE_RETURN_STR(BTA_DM_NAME_READ_EVT)
 
     default:
       return "UNKNOWN MSG ID";
