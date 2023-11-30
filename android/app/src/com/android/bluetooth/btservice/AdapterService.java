@@ -1041,16 +1041,11 @@ public class AdapterService extends Service {
                     false, LeAudioService.class, BluetoothProfile.LE_AUDIO_BROADCAST);
         }
 
-        if (!nonSupportedProfiles.isEmpty()) {
-            // Remove non-supported profiles from the supported list
-            // since the controller doesn't support
-            Config.removeProfileFromSupportedList(nonSupportedProfiles);
-
-            // Disable the non-supported profiles service
-            for (Class profileService : nonSupportedProfiles) {
-                if (isStartedProfile(profileService.getSimpleName())) {
-                    setProfileServiceState(profileService, BluetoothAdapter.STATE_OFF);
-                }
+        // Disable the non-supported profiles service
+        for (Class profileService : nonSupportedProfiles) {
+            Config.setProfileEnabled(profileService, false);
+            if (isStartedProfile(profileService.getSimpleName())) {
+                setProfileServiceState(profileService, BluetoothAdapter.STATE_OFF);
             }
         }
     }
