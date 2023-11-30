@@ -53,7 +53,6 @@ import com.android.internal.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 
 public class Config {
@@ -233,23 +232,6 @@ public class Config {
             setProfileEnabled(BassClientService.class, enable);
             updateSupportedProfileMask(
                     enable, LeAudioService.class, BluetoothProfile.LE_AUDIO_BROADCAST);
-        }
-    }
-
-    /**
-     * Remove the input profiles from the supported list.
-     */
-    static void removeProfileFromSupportedList(HashSet<Class> nonSupportedProfiles) {
-        synchronized (sSupportedProfiles) {
-            Iterator<Class> iter = sSupportedProfiles.iterator();
-            while (iter.hasNext()) {
-                Class profileClass = iter.next();
-
-                if (nonSupportedProfiles.contains(profileClass)) {
-                    iter.remove();
-                    Log.v(TAG, "Remove " + profileClass.getSimpleName() + " from supported list.");
-                }
-            }
         }
     }
 
