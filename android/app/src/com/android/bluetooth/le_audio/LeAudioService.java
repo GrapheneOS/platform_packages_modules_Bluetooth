@@ -261,11 +261,6 @@ public class LeAudioService extends ProfileService {
         return BluetoothProperties.isProfileBapBroadcastSourceEnabled().orElse(false);
     }
 
-    @Override
-    protected void create() {
-        Log.i(TAG, "create()");
-    }
-
     private boolean registerTmap() {
         if (mTmapGattServer != null) {
             throw new IllegalStateException("TMAP GATT server started before start() is called");
