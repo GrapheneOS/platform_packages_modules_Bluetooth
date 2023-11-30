@@ -1,0 +1,8 @@
+package: "com.android.bluetooth.flags"
+
+flag {
+    name: "synchronous_bta_sec"
+    namespace: "bluetooth"
+    description: "Make BTA_DmXXX security APIs synchronous"
+    bug: "311196228"
+}
