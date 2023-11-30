@@ -258,6 +258,20 @@ public class LeAudioNativeInterface {
         }
         sendMessageToService(event);
     }
+
+    @VisibleForTesting
+    void onUnicastMonitorModeStatus(int direction, int status) {
+        LeAudioStackEvent event =
+                new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_UNICAST_MONITOR_MODE_STATUS);
+        event.valueInt1 = direction;
+        event.valueInt2 = status;
+
+        if (DBG) {
+            Log.d(TAG, "onUnicastMonitorModeStatus: " + event);
+        }
+        sendMessageToService(event);
+    }
+
     /**
      * Initializes the native interface.
      *
@@ -367,6 +381,20 @@ public class LeAudioNativeInterface {
     }
 
     /**
+     * Set unicast monitor mode flag.
+     *
+     * @param direction direction for which monitor mode should be used
+     * @param enable true when LE Audio device should be listening for streaming status
+     *     on direction stream. false otherwise
+     */
+    public void setUnicastMonitorMode(int direction, boolean enable) {
+        if (DBG) {
+            Log.d(TAG, "setUnicastMonitorMode enable: " + enable + ", direction : " + direction);
+        }
+        setUnicastMonitorModeNative(direction, enable);
+    }
+
+    /**
      * Sends the audio preferences for the groupId to the native stack.
      *
      * @param groupId is the groupId corresponding to the preferences
@@ -398,6 +426,8 @@ public class LeAudioNativeInterface {
             BluetoothLeAudioCodecConfig outputCodecConfig);
     private native void setCcidInformationNative(int ccid, int contextType);
     private native void setInCallNative(boolean inCall);
+
+    private native void setUnicastMonitorModeNative(int direction, boolean enable);
     /*package*/
     private native void sendAudioProfilePreferencesNative(int groupId,
             boolean isOutputPreferenceLeAudio, boolean isDuplexPreferenceLeAudio);
