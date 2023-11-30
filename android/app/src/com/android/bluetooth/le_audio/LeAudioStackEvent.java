@@ -40,8 +40,9 @@ public class LeAudioStackEvent {
     public static final int EVENT_TYPE_NATIVE_INITIALIZED = 9;
     public static final int EVENT_TYPE_HEALTH_BASED_DEV_RECOMMENDATION = 10;
     public static final int EVENT_TYPE_HEALTH_BASED_GROUP_RECOMMENDATION = 11;
+    public static final int EVENT_TYPE_UNICAST_MONITOR_MODE_STATUS = 12;
     // -------- DO NOT PUT ANY NEW UNICAST EVENTS BELOW THIS LINE-------------
-    public static final int EVENT_TYPE_UNICAST_MAX = 12;
+    public static final int EVENT_TYPE_UNICAST_MAX = 13;
 
     // Broadcast related events
     public static final int EVENT_TYPE_BROADCAST_CREATED = EVENT_TYPE_UNICAST_MAX + 1;
@@ -76,6 +77,17 @@ public class LeAudioStackEvent {
     static final int BROADCAST_STATE_PAUSED = 2;
     static final int BROADCAST_STATE_STOPPING = 3;
     static final int BROADCAST_STATE_STREAMING = 4;
+
+    // Do not modify without updating the HAL bt_le_audio.h files.
+    // Match up with UnicastMonitorModeStatus enum of bt_le_audio.h
+    static final int STATUS_LOCAL_STREAM_REQUESTED = 0;
+    static final int STATUS_LOCAL_STREAM_STREAMING = 1;
+    static final int STATUS_LOCAL_STREAM_SUSPENDED = 2;
+
+    // Do not modify without updating le_audio_types.h
+    // Match up with defines of le_audio_types.h
+    static final int DIRECTION_SINK = 1;
+    static final int DIRECTION_SOURCE = 2;
 
     public int type = EVENT_TYPE_NONE;
     public BluetoothDevice device;
@@ -170,6 +182,8 @@ public class LeAudioStackEvent {
                 return "EVENT_TYPE_HEALTH_BASED_DEV_RECOMMENDATION";
             case EVENT_TYPE_HEALTH_BASED_GROUP_RECOMMENDATION:
                 return "EVENT_TYPE_HEALTH_BASED_GROUP_RECOMMENDATION";
+            case EVENT_TYPE_UNICAST_MONITOR_MODE_STATUS:
+                return "EVENT_TYPE_UNICAST_MONITOR_MODE_STATUS";
             default:
                 return "EVENT_TYPE_UNKNOWN:" + type;
         }
@@ -223,6 +237,15 @@ public class LeAudioStackEvent {
                     default:
                         return "UNKNOWN";
                 }
+            case EVENT_TYPE_UNICAST_MONITOR_MODE_STATUS:
+                switch (value) {
+                    case DIRECTION_SINK:
+                        return "DIRECTION_SINK";
+                    case DIRECTION_SOURCE:
+                        return "DIRECTION_SOURCE";
+                    default:
+                        return "UNKNOWN";
+                }
             default:
                 break;
         }
@@ -262,6 +285,17 @@ public class LeAudioStackEvent {
                         return "ACTION_DISABLE";
                     case HEALTH_RECOMMENDATION_ACTION_CONSIDER_DISABLING:
                         return "ACTION_CONSIDER_DISABLING";
+                    default:
+                        return "UNKNOWN";
+                }
+            case EVENT_TYPE_UNICAST_MONITOR_MODE_STATUS:
+                switch (value) {
+                    case STATUS_LOCAL_STREAM_REQUESTED:
+                        return "STATUS_LOCAL_STREAM_REQUESTED";
+                    case STATUS_LOCAL_STREAM_STREAMING:
+                        return "STATUS_LOCAL_STREAM_STREAMING";
+                    case STATUS_LOCAL_STREAM_SUSPENDED:
+                        return "STATUS_LOCAL_STREAM_SUSPENDED";
                     default:
                         return "UNKNOWN";
                 }
