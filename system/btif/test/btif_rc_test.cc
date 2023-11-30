@@ -339,9 +339,6 @@ class BtifRcConnectionTest : public BtifRcTest {
 
 TEST_F(BtifRcConnectionTest, btif_rc_check_pending_cmd) {
   AVRC_BldCmd_ = 0;
-  g_btrc_connection_state_promise = std::promise<rc_connection_state_cb_t>();
-  std::future<rc_connection_state_cb_t> future =
-      g_btrc_connection_state_promise.get_future();
 
   btif_rc_cb.rc_multi_cb[0].rc_handle = 0xff;
   btif_rc_cb.rc_multi_cb[0].rc_addr = kDeviceAddress;
