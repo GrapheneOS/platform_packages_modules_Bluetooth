@@ -284,6 +284,8 @@ class MockAudioHalClientCallbacks
               (override));
   MOCK_METHOD((void), OnHealthBasedGroupRecommendationAction,
               (int group_id, LeAudioHealthBasedAction action), (override));
+  MOCK_METHOD((void), OnUnicastMonitorModeStatus,
+              (uint8_t direction, UnicastMonitorModeStatus status));
 };
 
 class MockLeAudioSinkHalClient : public LeAudioSinkAudioHalClient {
