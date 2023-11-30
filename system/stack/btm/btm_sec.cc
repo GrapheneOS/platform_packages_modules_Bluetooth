@@ -92,7 +92,6 @@ bool btm_ble_init_pseudo_addr(tBTM_SEC_DEV_REC* p_dev_rec,
 void bta_dm_remove_device(const RawAddress& bd_addr);
 void bta_dm_process_remove_device(const RawAddress& bd_addr);
 void btm_inq_clear_ssp(void);
-void HACK_acl_check_sm4(tBTM_SEC_DEV_REC& p_dev_rec);
 
 /*******************************************************************************
  *             L O C A L    F U N C T I O N     P R O T O T Y P E S            *
