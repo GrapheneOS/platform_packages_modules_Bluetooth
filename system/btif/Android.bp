@@ -432,6 +432,7 @@ cc_test {
     srcs: [
         ":TestCommonMockFunctions",
         ":TestMockOsi",
+        "src/btif_util.cc",
         "test/btif_rc_test.cc",
     ],
     header_libs: ["libbluetooth_headers"],
