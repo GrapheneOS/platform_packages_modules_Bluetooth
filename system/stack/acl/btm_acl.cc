@@ -203,19 +203,6 @@ static void disconnect_acl(tACL_CONN& p_acl, tHCI_STATUS reason,
            hci_error_code_text(reason).c_str(), comment.c_str());
   p_acl.disconnect_reason = reason;
 
-  if (bluetooth::common::init_flags::
-          use_unified_connection_manager_is_enabled()) {
-    if (!p_acl.is_transport_br_edr()) {
-      // TODO(aryarahul): this should be moved into GATT, so when a client
-      // disconnects, it removes its request to autoConnect, even if the ACL
-      // link stays up due to the presence of other clients.
-      bluetooth::connection::GetConnectionManager()
-          .stop_all_connections_to_device(bluetooth::core::ToRustAddress(
-              tBLE_BD_ADDR{.type = p_acl.active_remote_addr_type,
-                           .bda = p_acl.active_remote_addr}));
-    }
-  }
-
   return bluetooth::shim::ACL_Disconnect(
       p_acl.hci_handle, p_acl.is_transport_br_edr(), reason, comment);
 }
