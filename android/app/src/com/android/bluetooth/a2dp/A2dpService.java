@@ -148,11 +148,6 @@ public class A2dpService extends ProfileService {
     }
 
     @Override
-    protected void create() {
-        Log.i(TAG, "create()");
-    }
-
-    @Override
     protected boolean start() {
         Log.i(TAG, "start()");
         if (sA2dpService != null) {
