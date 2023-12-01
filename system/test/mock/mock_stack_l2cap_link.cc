@@ -69,11 +69,7 @@ void l2c_link_sec_comp(const RawAddress* /* p_bda */,
                        uint8_t /* status */) {
   inc_func_call_count(__func__);
 }
-void l2c_link_sec_comp2(const RawAddress& /* p_bda */,
-                        tBT_TRANSPORT /* transport */, void* /* p_ref_data */,
-                        uint8_t /* status */) {
-  inc_func_call_count(__func__);
-}
+
 void l2c_link_segments_xmitted(BT_HDR* /* p_msg */) {
   inc_func_call_count(__func__);
 }
