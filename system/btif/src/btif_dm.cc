@@ -1374,7 +1374,7 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
   LOG_VERBOSE("%s event=%s", __func__, dump_dm_search_event(event));
 
   switch (event) {
-    case BTA_DM_DISC_RES_EVT: {
+    case BTA_DM_NAME_READ_EVT: {
       /* Remote name update */
       if (strlen((const char*)p_search_data->disc_res.bd_name)) {
         /** Fix inquiry time too long @{ */
@@ -1399,10 +1399,10 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
         BTIF_STORAGE_FILL_PROPERTY(&properties[2], BT_PROPERTY_CLASS_OF_DEVICE, sizeof(uint32_t), &cod);
         if (btif_storage_get_remote_device_property(
                         &bdaddr, &properties[2]) == BT_STATUS_SUCCESS) {
-          LOG_VERBOSE("%s, BTA_DM_DISC_RES_EVT, cod in storage = 0x%08x",
+          LOG_VERBOSE("%s, BTA_DM_NAME_READ_EVT, cod in storage = 0x%08x",
                       __func__, cod);
         } else {
-          LOG_VERBOSE("%s, BTA_DM_DISC_RES_EVT, no cod in storage", __func__);
+          LOG_VERBOSE("%s, BTA_DM_NAME_READ_EVT, no cod in storage", __func__);
           cod = 0;
         }
         if (cod != 0) {
@@ -2023,6 +2023,10 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       /* Send the event to the BTIF */
       GetInterfaceToProfiles()->events->invoke_remote_device_properties_cb(
           BT_STATUS_SUCCESS, bd_addr, 1, &prop_did);
+    } break;
+
+    case BTA_DM_NAME_READ_EVT: {
+      LOG_INFO("Skipping name read event - called on bad callback.");
     } break;
 
     default: {
@@ -3018,7 +3022,8 @@ bt_status_t btif_dm_get_adapter_property(bt_property_t* prop) {
  *
  ******************************************************************************/
 void btif_dm_get_remote_services(RawAddress remote_addr, const int transport) {
-  LOG_VERBOSE("%s: transport=%d, remote_addr=%s", __func__, transport,
+  LOG_VERBOSE("%s: transport=%s, remote_addr=%s", __func__,
+              bt_transport_text(transport).c_str(),
               ADDRESS_TO_LOGGABLE_CSTR(remote_addr));
 
   BTM_LogHistory(

@@ -53,18 +53,10 @@ import com.android.internal.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 public class Config {
     private static final String TAG = "AdapterServiceConfig";
-
-    private static final String FEATURE_HEARING_AID = "settings_bluetooth_hearing_aid";
-    private static final String FEATURE_BATTERY = "settings_bluetooth_battery";
-
-    private static final String FFLAG_OVERRIDE_PREFIX = "sys.fflag.override.";
-    private static final String PERSIST_PREFIX = "persist." + FFLAG_OVERRIDE_PREFIX;
 
     private static final String LE_AUDIO_DYNAMIC_SWITCH_PROPERTY =
             "ro.bluetooth.leaudio_switcher.supported";
@@ -72,11 +64,6 @@ public class Config {
             "ro.bluetooth.leaudio_broadcast_switcher.supported";
     private static final String LE_AUDIO_SWITCHER_DISABLED_PROPERTY =
             "persist.bluetooth.leaudio_switcher.disabled";
-
-    private static final Set<String> PERSISTENT_FLAGS = Set.of(
-            FEATURE_HEARING_AID,
-            FEATURE_BATTERY
-    );
 
     private static class ProfileConfig {
         Class mClass;
@@ -245,23 +232,6 @@ public class Config {
             setProfileEnabled(BassClientService.class, enable);
             updateSupportedProfileMask(
                     enable, LeAudioService.class, BluetoothProfile.LE_AUDIO_BROADCAST);
-        }
-    }
-
-    /**
-     * Remove the input profiles from the supported list.
-     */
-    static void removeProfileFromSupportedList(HashSet<Class> nonSupportedProfiles) {
-        synchronized (sSupportedProfiles) {
-            Iterator<Class> iter = sSupportedProfiles.iterator();
-            while (iter.hasNext()) {
-                Class profileClass = iter.next();
-
-                if (nonSupportedProfiles.contains(profileClass)) {
-                    iter.remove();
-                    Log.v(TAG, "Remove " + profileClass.getSimpleName() + " from supported list.");
-                }
-            }
         }
     }
 

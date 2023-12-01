@@ -110,20 +110,6 @@ tAVRC_STS AVRC_ParsResponse(tAVRC_MSG* p_msg, tAVRC_RESPONSE* p_result,
                             UNUSED_ATTR uint16_t buf_len) {
   return 0;
 }
-void BTA_AvCloseRc(uint8_t rc_handle) {}
-void BTA_AvMetaCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_CMD cmd_code,
-                   BT_HDR* p_pkt) {}
-void BTA_AvMetaRsp(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE rsp_code,
-                   BT_HDR* p_pkt) {}
-void BTA_AvRemoteCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_RC rc_id,
-                     tBTA_AV_STATE key_state) {}
-void BTA_AvRemoteVendorUniqueCmd(uint8_t rc_handle, uint8_t label,
-                                 tBTA_AV_STATE key_state, uint8_t* p_msg,
-                                 uint8_t buf_len) {}
-void BTA_AvVendorCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE cmd_code,
-                     uint8_t* p_data, uint16_t len) {}
-void BTA_AvVendorRsp(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE rsp_code,
-                     uint8_t* p_data, uint16_t len, uint32_t company_id) {}
 void btif_av_clear_remote_suspend_flag(void) {}
 bool btif_av_is_connected(void) { return true; }
 bool btif_av_is_sink_enabled(void) { return true; }
@@ -147,10 +133,6 @@ bool btif_av_peer_is_sink(const RawAddress& peer_address) { return false; }
 bool btif_av_peer_is_source(const RawAddress& peer_address) { return true; }
 bool btif_av_both_enable(void) { return true; }
 
-const char* dump_rc_event(uint8_t event) { return nullptr; }
-const char* dump_rc_notification_event_id(uint8_t event_id) { return nullptr; }
-const char* dump_rc_pdu(uint8_t pdu) { return nullptr; }
-const char* dump_rc_opcode(uint8_t pdu) { return nullptr; }
 static bluetooth::common::MessageLoopThread jni_thread("bt_jni_thread");
 bt_status_t do_in_jni_thread(const base::Location& from_here,
                              base::OnceClosure task) {

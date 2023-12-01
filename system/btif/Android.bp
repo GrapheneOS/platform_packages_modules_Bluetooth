@@ -431,7 +431,9 @@ cc_test {
     include_dirs: btifCommonIncludes,
     srcs: [
         ":TestCommonMockFunctions",
+        ":TestMockBtaAv",
         ":TestMockOsi",
+        "src/btif_util.cc",
         "test/btif_rc_test.cc",
     ],
     header_libs: ["libbluetooth_headers"],

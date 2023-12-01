@@ -217,13 +217,14 @@ typedef void(tBTA_DM_ACL_CBACK)(tBTA_DM_ACL_EVT event, tBTA_DM_ACL* p_data);
 typedef enum : uint8_t {
   BTA_DM_INQ_RES_EVT = 0,  /* Inquiry result for a peer device. */
   BTA_DM_INQ_CMPL_EVT = 1, /* Inquiry complete. */
-  BTA_DM_DISC_RES_EVT = 2, /* Discovery result for a peer device. */
+  BTA_DM_DISC_RES_EVT = 2, /* Service Discovery result for a peer device. */
   BTA_DM_GATT_OVER_LE_RES_EVT =
       3,                    /* GATT services over LE transport discovered */
   BTA_DM_DISC_CMPL_EVT = 4, /* Discovery complete. */
   BTA_DM_SEARCH_CANCEL_CMPL_EVT = 5, /* Search cancelled */
   BTA_DM_DID_RES_EVT = 6,            /* Vendor/Product ID search result */
   BTA_DM_GATT_OVER_SDP_RES_EVT = 7,  /* GATT services over SDP discovered */
+  BTA_DM_NAME_READ_EVT = 8,          /* Name read complete. */
 } tBTA_DM_SEARCH_EVT;
 
 #ifndef CASE_RETURN_TEXT
@@ -242,6 +243,7 @@ inline std::string bta_dm_search_evt_text(const tBTA_DM_SEARCH_EVT& event) {
     CASE_RETURN_TEXT(BTA_DM_SEARCH_CANCEL_CMPL_EVT);
     CASE_RETURN_TEXT(BTA_DM_DID_RES_EVT);
     CASE_RETURN_TEXT(BTA_DM_GATT_OVER_SDP_RES_EVT);
+    CASE_RETURN_TEXT(BTA_DM_NAME_READ_EVT);
     default:
       return base::StringPrintf("UNKNOWN[%hhu]", event);
   }
