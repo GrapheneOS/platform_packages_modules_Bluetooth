@@ -329,6 +329,51 @@ static void cleanupNative(JNIEnv* env, jobject /* object */) {
   }
 }
 
+static jobjectArray getSupportedCodecTypesNative(JNIEnv* env) {
+  ALOGI("%s: %p", __func__, sBluetoothA2dpInterface);
+
+  jclass android_bluetooth_BluetoothCodecType_clazz = (jclass)env->NewGlobalRef(
+      env->FindClass("android/bluetooth/BluetoothCodecType"));
+  if (android_bluetooth_BluetoothCodecType_clazz == nullptr) {
+    ALOGE("%s: Failed to allocate Global Ref for BluetoothCodecType class",
+          __func__);
+    return nullptr;
+  }
+
+  jmethodID createFromType = env->GetStaticMethodID(
+      android_bluetooth_BluetoothCodecType_clazz, "createFromType",
+      "(I)Landroid/bluetooth/BluetoothCodecType;");
+  if (createFromType == nullptr) {
+    ALOGE(
+        "%s: Failed to find method createFromType of BluetoothCodecType class",
+        __func__);
+    return nullptr;
+  }
+
+  std::array<btav_a2dp_codec_index_t, 6> default_supported_codecs = {
+      BTAV_A2DP_CODEC_INDEX_SOURCE_SBC,  BTAV_A2DP_CODEC_INDEX_SOURCE_AAC,
+      BTAV_A2DP_CODEC_INDEX_SOURCE_APTX, BTAV_A2DP_CODEC_INDEX_SOURCE_APTX_HD,
+      BTAV_A2DP_CODEC_INDEX_SOURCE_LDAC, BTAV_A2DP_CODEC_INDEX_SOURCE_OPUS,
+  };
+  jobjectArray result =
+      env->NewObjectArray(default_supported_codecs.size(),
+                          android_bluetooth_BluetoothCodecType_clazz, nullptr);
+  if (result == nullptr) {
+    ALOGE("%s: Failed to allocate result array of BluetoothCodecType",
+          __func__);
+    return nullptr;
+  }
+
+  for (size_t index = 0; index < default_supported_codecs.size(); index++) {
+    jobject codec_type = env->CallStaticObjectMethod(
+        android_bluetooth_BluetoothCodecType_clazz, createFromType,
+        (jint)default_supported_codecs[index]);
+    env->SetObjectArrayElement(result, index, codec_type);
+  }
+
+  return result;
+}
+
 static jboolean connectA2dpNative(JNIEnv* env, jobject /* object */,
                                   jbyteArray address) {
   ALOGI("%s: sBluetoothA2dpInterface: %p", __func__, sBluetoothA2dpInterface);
@@ -466,6 +511,9 @@ int register_com_android_bluetooth_a2dp(JNIEnv* env) {
        "[Landroid/bluetooth/BluetoothCodecConfig;)V",
        (void*)initNative},
       {"cleanupNative", "()V", (void*)cleanupNative},
+      {"getSupportedCodecTypesNative",
+       "()[Landroid/bluetooth/BluetoothCodecType;",
+       (void*)getSupportedCodecTypesNative},
       {"connectA2dpNative", "([B)Z", (void*)connectA2dpNative},
       {"disconnectA2dpNative", "([B)Z", (void*)disconnectA2dpNative},
       {"setSilenceDeviceNative", "([BZ)Z", (void*)setSilenceDeviceNative},
