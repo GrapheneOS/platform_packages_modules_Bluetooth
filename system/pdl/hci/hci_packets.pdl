@@ -5816,7 +5816,6 @@ packet ConnectionComplete : Event (event_code = CONNECTION_COMPLETE) {
 }
 
 enum ConnectionRequestLinkType : 8 {
-  UNKNOWN = 0xFF,
   SCO = 0x00,
   ACL = 0x01,
   ESCO = 0x02,
