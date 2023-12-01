@@ -48,3 +48,10 @@ flag {
     description: "Support Dynamic Spatial Audio for LE Audio"
     bug: "309665975"
 }
+
+flag {
+    name: "asymmetric_phy_for_unidirectional_cis"
+    namespace: "bluetooth"
+    description: "Apply asymetric PHY setting for unidirectional CIS"
+    bug: "314176433"
+}
