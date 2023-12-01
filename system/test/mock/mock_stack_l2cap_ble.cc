@@ -175,7 +175,7 @@ void l2cble_sec_comp(const RawAddress* bda, tBT_TRANSPORT transport,
 }
 tL2CAP_LE_RESULT_CODE l2ble_sec_access_req(const RawAddress& bd_addr,
                                            uint16_t psm, bool is_originator,
-                                           tL2CAP_SEC_CBACK* p_callback,
+                                           tBTM_SEC_CALLBACK* p_callback,
                                            void* p_ref_data) {
   inc_func_call_count(__func__);
   return test::mock::stack_l2cap_ble::l2ble_sec_access_req(
