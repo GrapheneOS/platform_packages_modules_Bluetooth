@@ -221,7 +221,8 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
     }
 
     @Override
-    protected void create() {
+    public void onCreate() {
+        super.onCreate();
         if (V) {
             Log.v(TAG, "onCreate");
         }
