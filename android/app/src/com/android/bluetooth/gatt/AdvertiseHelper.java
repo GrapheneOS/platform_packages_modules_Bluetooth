@@ -229,9 +229,15 @@ class AdvertiseHelper {
 
     static void check_length(int type, int length) {
         if (length > 255) {
-            Log.w(TAG, "Length of data with type " + Integer.toString(type, 16)
-                    + " is grater than 255");
-            throw new IllegalArgumentException("Length of data is grater than 255");
+            Log.w(
+                    TAG,
+                    "Length ("
+                            + length
+                            + ") of data with type "
+                            + Integer.toString(type, 16)
+                            + " is greater than 255");
+            throw new IllegalArgumentException("Length of data is greater than 255");
         }
     }
 }
+
