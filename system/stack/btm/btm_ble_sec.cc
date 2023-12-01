@@ -749,13 +749,11 @@ tL2CAP_LE_RESULT_CODE btm_ble_start_sec_check(const RawAddress& bd_addr,
       is_originator, bd_addr, p_serv_rec->security_flags);
 
   tBTM_BLE_SEC_ACT ble_sec_act = BTM_BLE_SEC_NONE;
-  tL2CAP_LE_RESULT_CODE result = L2CAP_LE_RESULT_CONN_OK;
 
   switch (sec_act) {
     case BTM_SEC_OK:
       LOG_DEBUG("Security met");
       p_callback(&bd_addr, BT_TRANSPORT_LE, p_ref_data, BTM_SUCCESS);
-      result = L2CAP_LE_RESULT_CONN_OK;
       break;
 
     case BTM_SEC_ENCRYPT:
@@ -779,7 +777,7 @@ tL2CAP_LE_RESULT_CODE btm_ble_start_sec_check(const RawAddress& bd_addr,
   }
 
   if (ble_sec_act == BTM_BLE_SEC_NONE && sec_act != BTM_SEC_ENC_PENDING) {
-    return result;
+    return L2CAP_LE_RESULT_CONN_OK;
   }
 
   l2cble_update_sec_act(bd_addr, sec_act);
