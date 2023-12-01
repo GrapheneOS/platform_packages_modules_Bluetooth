@@ -1371,6 +1371,15 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return false;
     }
 
+    // Use 1M Phy for the ACK packet from remote device to phone for better
+    // sensitivity
+    if (IS_FLAG_ENABLED(asymmetric_phy_for_unidirectional_cis) &&
+        max_sdu_size_stom == 0 &&
+        (phy_stom & bluetooth::hci::kIsoCigPhy1M) != 0) {
+      LOG_INFO("Use asymmetric PHY for unidirectional CIS");
+      phy_stom = bluetooth::hci::kIsoCigPhy1M;
+    }
+
     uint8_t rtn_mtos = 0;
     uint8_t rtn_stom = 0;
 
