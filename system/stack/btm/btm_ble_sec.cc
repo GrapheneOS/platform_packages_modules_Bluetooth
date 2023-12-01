@@ -411,8 +411,7 @@ void BTM_BleSetPrefConnParams(const RawAddress& bd_addr, uint16_t min_conn_int,
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
 
   LOG_VERBOSE(
-      "BTM_BleSetPrefConnParams min: %u  max: %u  latency: %u  \
-                    tout: %u",
+      "BTM_BleSetPrefConnParams min: %u  max: %u  latency: %u tout: %u",
       min_conn_int, max_conn_int, peripheral_latency, supervision_tout);
 
   if (BTM_BLE_ISVALID_PARAM(min_conn_int, BTM_BLE_CONN_INT_MIN,
