@@ -2950,8 +2950,8 @@ void l2cu_send_peer_ble_credit_based_conn_req(tL2C_CCB* p_ccb) {
   initial_credit = p_ccb->local_conn_cfg.credits;
 
   LOG_VERBOSE(
-      "l2cu_send_peer_ble_credit_based_conn_req PSM:0x%04x local_cid:%d\
-                mtu:%d mps:%d initial_credit:%d",
+      "l2cu_send_peer_ble_credit_based_conn_req PSM:0x%04x local_cid:%d"
+      " mtu:%d mps:%d initial_credit:%d",
       p_ccb->p_rcb->real_psm, p_ccb->local_cid, mtu, mps, initial_credit);
 
   UINT16_TO_STREAM(p, p_ccb->p_rcb->real_psm);

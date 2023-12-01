@@ -214,11 +214,11 @@ void ProfilesFilter::PrintProfilesConfig() {
   for (int i = 0; i < FILTER_PROFILE_MAX; i++) {
     if (profiles[i].enabled) {
       LOG_DEBUG(
-          "\ntype: %s \
-                \nenabled: %d, l2cap_opened: %d, rfcomm_opened: %d\
-                \nflow_ext_l2cap: %d, flow_ext_rfcomm: %d\
-                \nlcid: %d, rcid: %d, rfcomm_uuid: %d, psm: %d\
-                \nscn: %d \n",
+          "\ntype: %s"
+          "\nenabled: %d, l2cap_opened: %d, rfcomm_opened: %d"
+          "\nflow_ext_l2cap: %d, flow_ext_rfcomm: %d"
+          "\nlcid: %d, rcid: %d, rfcomm_uuid: %d, psm: %d"
+          "\nscn: %d\n",
           ProfilesFilter::ProfileToString(profiles[i].type).c_str(),
           profiles[i].enabled,
           profiles[i].l2cap_opened,
