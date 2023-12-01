@@ -30,8 +30,8 @@
 #include "device/include/device_iot_config.h"
 #include "main/shim/l2c_api.h"
 #include "main/shim/shim.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_api.h"
@@ -182,19 +182,13 @@ void l2c_link_hci_conn_comp(tHCI_STATUS status, uint16_t handle,
 void l2c_link_sec_comp(const RawAddress* p_bda,
                        UNUSED_ATTR tBT_TRANSPORT transport, void* p_ref_data,
                        tBTM_STATUS status) {
-  l2c_link_sec_comp2(*p_bda, transport, p_ref_data, status);
-}
-
-void l2c_link_sec_comp2(const RawAddress& p_bda,
-                        UNUSED_ATTR tBT_TRANSPORT transport, void* p_ref_data,
-                        tBTM_STATUS status) {
   tL2C_CONN_INFO ci;
   tL2C_LCB* p_lcb;
   tL2C_CCB* p_ccb;
   tL2C_CCB* p_next_ccb;
 
   LOG_DEBUG("btm_status=%s, BD_ADDR=%s, transport=%s",
-            btm_status_text(status).c_str(), ADDRESS_TO_LOGGABLE_CSTR(p_bda),
+            btm_status_text(status).c_str(), ADDRESS_TO_LOGGABLE_CSTR(*p_bda),
             bt_transport_text(transport).c_str());
 
   if (status == BTM_SUCCESS_NO_SECURITY) {
@@ -203,9 +197,9 @@ void l2c_link_sec_comp2(const RawAddress& p_bda,
 
   /* Save the parameters */
   ci.status = status;
-  ci.bd_addr = p_bda;
+  ci.bd_addr = *p_bda;
 
-  p_lcb = l2cu_find_lcb_by_bd_addr(p_bda, transport);
+  p_lcb = l2cu_find_lcb_by_bd_addr(*p_bda, transport);
 
   /* If we don't have one, this is an error */
   if (!p_lcb) {
@@ -235,7 +229,6 @@ void l2c_link_sec_comp2(const RawAddress& p_bda,
           l2c_csm_execute(p_ccb, L2CEVT_SEC_COMP_NEG, &ci);
           break;
       }
-      break;
     }
   }
 }
