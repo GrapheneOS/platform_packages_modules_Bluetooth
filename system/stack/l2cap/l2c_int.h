@@ -814,8 +814,6 @@ void l2c_link_adjust_allocation(void);
 
 void l2c_link_sec_comp(const RawAddress* p_bda, tBT_TRANSPORT trasnport,
                        void* p_ref_data, tBTM_STATUS status);
-void l2c_link_sec_comp2(const RawAddress& p_bda, tBT_TRANSPORT trasnport,
-                        void* p_ref_data, tBTM_STATUS status);
 void l2c_link_adjust_chnl_allocation(void);
 
 #if (L2CAP_CONFORMANCE_TESTING == TRUE)
