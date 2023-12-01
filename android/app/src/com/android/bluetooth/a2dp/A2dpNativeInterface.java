@@ -25,6 +25,7 @@ import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothCodecConfig;
 import android.bluetooth.BluetoothCodecStatus;
+import android.bluetooth.BluetoothCodecType;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
@@ -34,6 +35,7 @@ import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -47,6 +49,8 @@ public class A2dpNativeInterface {
 
     @GuardedBy("INSTANCE_LOCK")
     private static A2dpNativeInterface sInstance;
+
+    private static BluetoothCodecType[] sSupportedCodecTypes;
 
     private static final Object INSTANCE_LOCK = new Object();
 
@@ -97,6 +101,14 @@ public class A2dpNativeInterface {
     /** Cleanup the native interface. */
     public void cleanup() {
         cleanupNative();
+    }
+
+    /** Returns the list of locally supported codec types. */
+    public List<BluetoothCodecType> getSupportedCodecTypes() {
+        if (sSupportedCodecTypes == null) {
+            sSupportedCodecTypes = getSupportedCodecTypesNative();
+        }
+        return Arrays.asList(sSupportedCodecTypes);
     }
 
     /**
@@ -235,6 +247,9 @@ public class A2dpNativeInterface {
                                    BluetoothCodecConfig[] codecConfigPriorities,
                                    BluetoothCodecConfig[] codecConfigOffloading);
     private native void cleanupNative();
+
+    private native BluetoothCodecType[] getSupportedCodecTypesNative();
+
     private native boolean connectA2dpNative(byte[] address);
     private native boolean disconnectA2dpNative(byte[] address);
     private native boolean setSilenceDeviceNative(byte[] address, boolean silence);
