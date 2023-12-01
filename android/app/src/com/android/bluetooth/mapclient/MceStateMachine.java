@@ -53,6 +53,7 @@ import android.bluetooth.BluetoothUuid;
 import android.bluetooth.SdpMasRecord;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Looper;
 import android.os.Message;
 import android.os.SystemProperties;
 import android.provider.Telephony;
@@ -219,17 +220,39 @@ class MceStateMachine extends StateMachine {
         this(service, device, null, null);
     }
 
+    MceStateMachine(MapClientService service, BluetoothDevice device, Looper looper) {
+        this(service, device, null, null, looper);
+    }
+
     @VisibleForTesting
     MceStateMachine(MapClientService service, BluetoothDevice device, MasClient masClient,
             MapClientContent database) {
         super(TAG);
-        mMasClient = masClient;
         mService = service;
+        mMasClient = masClient;
+        mDevice = device;
         mDatabase = database;
+        initStateMachine();
+    }
 
+    @VisibleForTesting
+    MceStateMachine(
+            MapClientService service,
+            BluetoothDevice device,
+            MasClient masClient,
+            MapClientContent database,
+            Looper looper) {
+        super(TAG, looper);
+        mService = service;
+        mMasClient = masClient;
+        mDevice = device;
+        mDatabase = database;
+        initStateMachine();
+    }
+
+    private void initStateMachine() {
         mPreviousState = BluetoothProfile.STATE_DISCONNECTED;
 
-        mDevice = device;
         mDisconnected = new Disconnected();
         mConnecting = new Connecting();
         mDisconnecting = new Disconnecting();
@@ -250,7 +273,7 @@ class MceStateMachine extends StateMachine {
     @Override
     protected void onQuitting() {
         if (mService != null) {
-            mService.cleanupDevice(mDevice);
+            mService.cleanupDevice(mDevice, this);
         }
     }
 
