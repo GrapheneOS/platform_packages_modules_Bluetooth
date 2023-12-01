@@ -81,13 +81,6 @@ public abstract class ProfileService extends Service {
     protected abstract IProfileServiceBinder initBinder();
 
     /**
-     * Called in {@link #onCreate()} to init basic stuff in this service
-     */
-    // Suppressed since this is called from framework
-    @SuppressLint("AndroidFrameworkRequiresPermission")
-    protected void create() {}
-
-    /**
      * Called in {@link #onStartCommand(Intent, int, int)} when the service is started by intent
      *
      * @return True in successful condition, False otherwise
@@ -135,7 +128,6 @@ public abstract class ProfileService extends Service {
         super.onCreate();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mBinder = initBinder();
-        create();
     }
 
     @Override

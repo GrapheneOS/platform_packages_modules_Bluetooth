@@ -239,13 +239,6 @@ public class VolumeControlService extends ProfileService {
     }
 
     @Override
-    protected void create() {
-        if (DBG) {
-            Log.d(TAG, "create()");
-        }
-    }
-
-    @Override
     protected boolean start() {
         if (DBG) {
             Log.d(TAG, "start()");
