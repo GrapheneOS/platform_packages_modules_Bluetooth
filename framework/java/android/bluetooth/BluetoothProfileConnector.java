@@ -50,14 +50,14 @@ public final class BluetoothProfileConnector extends Handler {
 
     private final IBluetoothStateChangeCallback mBluetoothStateChangeCallback =
             new IBluetoothStateChangeCallback.Stub() {
-        public void onBluetoothStateChange(boolean up) {
-            if (up) {
-                doBind();
-            } else {
-                doUnbind();
-            }
-        }
-    };
+                public void onBluetoothStateChange(boolean up) {
+                    if (up) {
+                        doBind();
+                    } else {
+                        doUnbind();
+                    }
+                }
+            };
 
     private final IBluetoothProfileServiceConnection mConnection =
             new IBluetoothProfileServiceConnection.Stub() {

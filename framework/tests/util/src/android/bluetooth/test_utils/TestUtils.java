@@ -41,6 +41,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /** Utility class for Bluetooth CTS test. */
 public class TestUtils {
     protected static final String TAG = TestUtils.class.getSimpleName();
+
     /**
      * Checks whether this device has Bluetooth feature
      *

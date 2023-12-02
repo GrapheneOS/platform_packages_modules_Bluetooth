@@ -25,10 +25,10 @@ import junit.framework.TestSuite;
 
 /**
  * Instrumentation test runner for Bluetooth tests.
- * <p>
- * To run:
- * <pre>
- * {@code
+ *
+ * <p>To run:
+ *
+ * <pre>{@code
  * adb shell am instrument \
  *     [-e enable_iterations <iterations>] \
  *     [-e discoverable_iterations <iterations>] \
@@ -49,8 +49,7 @@ import junit.framework.TestSuite;
  *     [-e pair_pin <pin>] \
  *     [-e pair_passkey <passkey>] \
  *     -w com.android.bluetooth.tests/android.bluetooth.BluetoothTestRunner
- * }
- * </pre>
+ * }</pre>
  */
 public class BluetoothTestRunner extends InstrumentationTestRunner {
     private static final String TAG = "BluetoothTestRunner";

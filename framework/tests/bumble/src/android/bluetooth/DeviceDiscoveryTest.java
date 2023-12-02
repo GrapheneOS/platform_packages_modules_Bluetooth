@@ -35,10 +35,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.ArrayList;
-
 import pandora.HostProto.DiscoverabilityMode;
 import pandora.HostProto.SetDiscoverabilityModeRequest;
+
+import java.util.ArrayList;
 
 /** Test cases for {@link DeviceDiscoveryManager}. */
 @RunWith(AndroidJUnit4.class)

@@ -26,9 +26,7 @@ import androidx.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-/**
- * Test cases for {@link SdpMasRecord}.
- */
+/** Test cases for {@link SdpMasRecord}. */
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class SdpMasRecordTest {
@@ -43,15 +41,15 @@ public class SdpMasRecordTest {
         int supportedMessageTypes = 1;
         String serviceName = "MasRecord";
 
-        SdpMasRecord record = new SdpMasRecord(
-                masInstanceId,
-                l2capPsm,
-                rfcommChannelNumber,
-                profileVersion,
-                supportedFeatures,
-                supportedMessageTypes,
-                serviceName
-        );
+        SdpMasRecord record =
+                new SdpMasRecord(
+                        masInstanceId,
+                        l2capPsm,
+                        rfcommChannelNumber,
+                        profileVersion,
+                        supportedFeatures,
+                        supportedMessageTypes,
+                        serviceName);
 
         assertThat(record.getMasInstanceId()).isEqualTo(masInstanceId);
         assertThat(record.getL2capPsm()).isEqualTo(l2capPsm);
@@ -72,15 +70,15 @@ public class SdpMasRecordTest {
         int supportedMessageTypes = 1;
         String serviceName = "MasRecord";
 
-        SdpMasRecord originalRecord = new SdpMasRecord(
-                masInstanceId,
-                l2capPsm,
-                rfcommChannelNumber,
-                profileVersion,
-                supportedFeatures,
-                supportedMessageTypes,
-                serviceName
-        );
+        SdpMasRecord originalRecord =
+                new SdpMasRecord(
+                        masInstanceId,
+                        l2capPsm,
+                        rfcommChannelNumber,
+                        profileVersion,
+                        supportedFeatures,
+                        supportedMessageTypes,
+                        serviceName);
 
         Parcel parcel = Parcel.obtain();
         originalRecord.writeToParcel(parcel, 0);
@@ -89,20 +87,16 @@ public class SdpMasRecordTest {
         SdpMasRecord recordOut = (SdpMasRecord) SdpMasRecord.CREATOR.createFromParcel(parcel);
         parcel.recycle();
 
-        assertThat(recordOut.getMasInstanceId())
-                .isEqualTo(originalRecord.getMasInstanceId());
-        assertThat(recordOut.getL2capPsm())
-                .isEqualTo(originalRecord.getL2capPsm());
+        assertThat(recordOut.getMasInstanceId()).isEqualTo(originalRecord.getMasInstanceId());
+        assertThat(recordOut.getL2capPsm()).isEqualTo(originalRecord.getL2capPsm());
         assertThat(recordOut.getRfcommCannelNumber())
                 .isEqualTo(originalRecord.getRfcommCannelNumber());
-        assertThat(recordOut.getProfileVersion())
-                .isEqualTo(originalRecord.getProfileVersion());
+        assertThat(recordOut.getProfileVersion()).isEqualTo(originalRecord.getProfileVersion());
         assertThat(recordOut.getSupportedFeatures())
                 .isEqualTo(originalRecord.getSupportedFeatures());
         assertThat(recordOut.getSupportedMessageTypes())
                 .isEqualTo(originalRecord.getSupportedMessageTypes());
-        assertThat(recordOut.getServiceName())
-                .isEqualTo(originalRecord.getServiceName());
+        assertThat(recordOut.getServiceName()).isEqualTo(originalRecord.getServiceName());
     }
 
     @Test
@@ -115,25 +109,40 @@ public class SdpMasRecordTest {
         int supportedMessageTypes = 1;
         String serviceName = "MasRecord";
 
-        SdpMasRecord record = new SdpMasRecord(
-                masInstanceId,
-                l2capPsm,
-                rfcommChannelNumber,
-                profileVersion,
-                supportedFeatures,
-                supportedMessageTypes,
-                serviceName
-        );
+        SdpMasRecord record =
+                new SdpMasRecord(
+                        masInstanceId,
+                        l2capPsm,
+                        rfcommChannelNumber,
+                        profileVersion,
+                        supportedFeatures,
+                        supportedMessageTypes,
+                        serviceName);
 
         String sdpMasRecordString = record.toString();
-        String expectedToString = "Bluetooth MAS SDP Record:\n"
-                + "Mas Instance Id: " + masInstanceId + "\n"
-                + "RFCOMM Chan Number: " + l2capPsm + "\n"
-                + "L2CAP PSM: " + rfcommChannelNumber + "\n"
-                + "Service Name: " + serviceName + "\n"
-                + "Profile version: " + profileVersion + "\n"
-                + "Supported msg types: " + supportedMessageTypes + "\n"
-                + "Supported features: " + supportedFeatures + "\n";
+        String expectedToString =
+                "Bluetooth MAS SDP Record:\n"
+                        + "Mas Instance Id: "
+                        + masInstanceId
+                        + "\n"
+                        + "RFCOMM Chan Number: "
+                        + l2capPsm
+                        + "\n"
+                        + "L2CAP PSM: "
+                        + rfcommChannelNumber
+                        + "\n"
+                        + "Service Name: "
+                        + serviceName
+                        + "\n"
+                        + "Profile version: "
+                        + profileVersion
+                        + "\n"
+                        + "Supported msg types: "
+                        + supportedMessageTypes
+                        + "\n"
+                        + "Supported features: "
+                        + supportedFeatures
+                        + "\n";
 
         assertThat(sdpMasRecordString).isEqualTo(expectedToString);
     }

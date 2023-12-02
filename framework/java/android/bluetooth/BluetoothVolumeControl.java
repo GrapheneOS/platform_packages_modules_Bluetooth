@@ -51,9 +51,9 @@ import java.util.concurrent.TimeoutException;
 /**
  * This class provides the public APIs to control the Bluetooth Volume Control service.
  *
- * <p>BluetoothVolumeControl is a proxy object for controlling the Bluetooth VC
- * Service via IPC. Use {@link BluetoothAdapter#getProfileProxy} to get
- * the BluetoothVolumeControl proxy object.
+ * <p>BluetoothVolumeControl is a proxy object for controlling the Bluetooth VC Service via IPC. Use
+ * {@link BluetoothAdapter#getProfileProxy} to get the BluetoothVolumeControl proxy object.
+ *
  * @hide
  */
 @SystemApi
@@ -66,30 +66,29 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
     private final Map<Callback, Executor> mCallbackExecutorMap = new HashMap<>();
 
     /**
-     * This class provides a callback that is invoked when volume offset value changes on
-     * the remote device.
+     * This class provides a callback that is invoked when volume offset value changes on the remote
+     * device.
      *
-     * <p> In order to balance volume on the group of Le Audio devices,
-     * Volume Offset Control Service (VOCS) shall be used. User can verify
-     * if the remote device supports VOCS by calling {@link #isVolumeOffsetAvailable(device)}.
+     * <p>In order to balance volume on the group of Le Audio devices, Volume Offset Control Service
+     * (VOCS) shall be used. User can verify if the remote device supports VOCS by calling {@link
+     * #isVolumeOffsetAvailable(device)}.
      *
      * @hide
      */
     @SystemApi
     public interface Callback {
         /**
-         * Callback invoked when callback is registered and when volume offset
-         * changes on the remote device. Change can be triggered autonomously by the remote device
-         * or after volume offset change on the user request done by calling
-         * {@link #setVolumeOffset(device, volumeOffset)}
+         * Callback invoked when callback is registered and when volume offset changes on the remote
+         * device. Change can be triggered autonomously by the remote device or after volume offset
+         * change on the user request done by calling {@link #setVolumeOffset(device, volumeOffset)}
          *
          * @param device remote device whose volume offset changed
          * @param volumeOffset latest volume offset for this device
          * @hide
          */
         @SystemApi
-        void onVolumeOffsetChanged(@NonNull BluetoothDevice device,
-                                   @IntRange(from = -255, to = 255) int volumeOffset);
+        void onVolumeOffsetChanged(
+                @NonNull BluetoothDevice device, @IntRange(from = -255, to = 255) int volumeOffset);
 
         /**
          * Callback for le audio connected device volume level change
@@ -134,19 +133,19 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
             };
 
     /**
-     * Intent used to broadcast the change in connection state of the Volume Control
-     * profile.
+     * Intent used to broadcast the change in connection state of the Volume Control profile.
      *
      * <p>This intent will have 3 extras:
+     *
      * <ul>
-     * <li> {@link #EXTRA_STATE} - The current state of the profile. </li>
-     * <li> {@link #EXTRA_PREVIOUS_STATE}- The previous state of the profile.</li>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. </li>
+     *   <li>{@link #EXTRA_STATE} - The current state of the profile.
+     *   <li>{@link #EXTRA_PREVIOUS_STATE}- The previous state of the profile.
+     *   <li>{@link BluetoothDevice#EXTRA_DEVICE} - The remote device.
      * </ul>
      *
-     * <p>{@link #EXTRA_STATE} or {@link #EXTRA_PREVIOUS_STATE} can be any of
-     * {@link #STATE_DISCONNECTED}, {@link #STATE_CONNECTING},
-     * {@link #STATE_CONNECTED}, {@link #STATE_DISCONNECTING}.
+     * <p>{@link #EXTRA_STATE} or {@link #EXTRA_PREVIOUS_STATE} can be any of {@link
+     * #STATE_DISCONNECTED}, {@link #STATE_CONNECTING}, {@link #STATE_CONNECTED}, {@link
+     * #STATE_DISCONNECTING}.
      *
      * @hide
      */
@@ -164,8 +163,8 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
     private IBluetoothVolumeControl mService;
 
     /**
-     * Create a BluetoothVolumeControl proxy object for interacting with the local
-     * Bluetooth Volume Control service.
+     * Create a BluetoothVolumeControl proxy object for interacting with the local Bluetooth Volume
+     * Control service.
      */
     /*package*/ BluetoothVolumeControl(Context context, BluetoothAdapter adapter) {
         mAdapter = adapter;
@@ -244,15 +243,15 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
      * Get the list of connected devices. Currently at most one.
      *
      * @return list of connected devices
-     *
      * @hide
      */
     @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
     public @NonNull List<BluetoothDevice> getConnectedDevices() {
         if (DBG) log("getConnectedDevices()");
         final IBluetoothVolumeControl service = getService();
@@ -279,7 +278,6 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
      * Get the list of devices matching specified states. Currently at most one.
      *
      * @return list of matching devices
-     *
      * @hide
      */
     @RequiresBluetoothConnectPermission
@@ -310,7 +308,6 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
      * Get connection state of device
      *
      * @return device connection state
-     *
      * @hide
      */
     @RequiresBluetoothConnectPermission
@@ -335,13 +332,12 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
     }
 
     /**
-     * Register a {@link Callback} that will be invoked during the
-     * operation of this profile.
+     * Register a {@link Callback} that will be invoked during the operation of this profile.
      *
-     * Repeated registration of the same <var>callback</var> object will have no effect after
-     * the first call to this method, even when the <var>executor</var> is different. API caller
-     * would have to call {@link #unregisterCallback(Callback)} with
-     * the same callback object before registering it again.
+     * <p>Repeated registration of the same <var>callback</var> object will have no effect after the
+     * first call to this method, even when the <var>executor</var> is different. API caller would
+     * have to call {@link #unregisterCallback(Callback)} with the same callback object before
+     * registering it again.
      *
      * @param executor an {@link Executor} to execute given callback
      * @param callback user implementation of the {@link Callback}
@@ -350,12 +346,13 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
      */
     @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
-    public void registerCallback(@NonNull @CallbackExecutor Executor executor,
-            @NonNull Callback callback) {
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
+    public void registerCallback(
+            @NonNull @CallbackExecutor Executor executor, @NonNull Callback callback) {
         Objects.requireNonNull(executor, "executor cannot be null");
         Objects.requireNonNull(callback, "callback cannot be null");
         if (DBG) log("registerCallback");
@@ -373,7 +370,7 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
                     final IBluetoothVolumeControl service = getService();
                     if (service != null) {
                         final SynchronousResultReceiver<Integer> recv =
-                                                        SynchronousResultReceiver.get();
+                                SynchronousResultReceiver.get();
                         service.registerCallback(mCallback, mAttributionSource, recv);
                         recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
                     }
@@ -395,8 +392,9 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
 
     /**
      * Unregister the specified {@link Callback}.
-     * <p>The same {@link Callback} object used when calling
-     * {@link #registerCallback(Executor, Callback)} must be used.
+     *
+     * <p>The same {@link Callback} object used when calling {@link #registerCallback(Executor,
+     * Callback)} must be used.
      *
      * <p>Callbacks are automatically unregistered when application process goes away
      *
@@ -406,10 +404,11 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
      */
     @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
     public void unregisterCallback(@NonNull Callback callback) {
         Objects.requireNonNull(callback, "callback cannot be null");
         if (DBG) log("unregisterCallback");
@@ -442,18 +441,18 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
      *
      * @param device {@link BluetoothDevice} representing the remote device
      * @param volumeOffset volume offset to be set on the remote device
-     *
      * @hide
      */
     @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
-    public void setVolumeOffset(@NonNull BluetoothDevice device,
-            @IntRange(from = -255, to = 255) int volumeOffset) {
-        if (DBG) log("setVolumeOffset(" + device  + " volumeOffset: " + volumeOffset + ")");
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
+    public void setVolumeOffset(
+            @NonNull BluetoothDevice device, @IntRange(from = -255, to = 255) int volumeOffset) {
+        if (DBG) log("setVolumeOffset(" + device + " volumeOffset: " + volumeOffset + ")");
         final IBluetoothVolumeControl service = getService();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
@@ -470,22 +469,21 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
     }
 
     /**
-     * Provides information about the possibility to set volume offset on the remote device.
-     * If the remote device supports Volume Offset Control Service, it is automatically
-     * connected.
+     * Provides information about the possibility to set volume offset on the remote device. If the
+     * remote device supports Volume Offset Control Service, it is automatically connected.
      *
      * @param device {@link BluetoothDevice} representing the remote device
      * @return {@code true} if volume offset function is supported and available to use on the
-     *         remote device. When Bluetooth is off, the return value should always be
-     *         {@code false}.
+     *     remote device. When Bluetooth is off, the return value should always be {@code false}.
      * @hide
      */
     @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
     public boolean isVolumeOffsetAvailable(@NonNull BluetoothDevice device) {
         if (DBG) log("isVolumeOffsetAvailable(" + device + ")");
         final IBluetoothVolumeControl service = getService();
@@ -514,9 +512,9 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
     /**
      * Set connection policy of the profile
      *
-     * <p> The device should already be paired.
-     * Connection policy can be one of {@link #CONNECTION_POLICY_ALLOWED},
-     * {@link #CONNECTION_POLICY_FORBIDDEN}, {@link #CONNECTION_POLICY_UNKNOWN}
+     * <p>The device should already be paired. Connection policy can be one of {@link
+     * #CONNECTION_POLICY_ALLOWED}, {@link #CONNECTION_POLICY_FORBIDDEN}, {@link
+     * #CONNECTION_POLICY_UNKNOWN}
      *
      * @param device Paired bluetooth device
      * @param connectionPolicy is the connection policy to set to for this profile
@@ -525,21 +523,23 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
      */
     @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
-    public boolean setConnectionPolicy(@NonNull BluetoothDevice device,
-            @ConnectionPolicy int connectionPolicy) {
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
+    public boolean setConnectionPolicy(
+            @NonNull BluetoothDevice device, @ConnectionPolicy int connectionPolicy) {
         if (DBG) log("setConnectionPolicy(" + device + ", " + connectionPolicy + ")");
         final IBluetoothVolumeControl service = getService();
         final boolean defaultValue = false;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else if (isEnabled() && isValidDevice(device)
+        } else if (isEnabled()
+                && isValidDevice(device)
                 && (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN
-                    || connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
+                        || connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
             try {
                 final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
                 service.setConnectionPolicy(device, connectionPolicy, mAttributionSource, recv);
@@ -554,9 +554,8 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
     /**
      * Get the connection policy of the profile.
      *
-     * <p> The connection policy can be any of:
-     * {@link #CONNECTION_POLICY_ALLOWED}, {@link #CONNECTION_POLICY_FORBIDDEN},
-     * {@link #CONNECTION_POLICY_UNKNOWN}
+     * <p>The connection policy can be any of: {@link #CONNECTION_POLICY_ALLOWED}, {@link
+     * #CONNECTION_POLICY_FORBIDDEN}, {@link #CONNECTION_POLICY_UNKNOWN}
      *
      * @param device Bluetooth device
      * @return connection policy of the device
@@ -564,10 +563,11 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
      */
     @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
     public @ConnectionPolicy int getConnectionPolicy(@NonNull BluetoothDevice device) {
         if (VDBG) log("getConnectionPolicy(" + device + ")");
         final IBluetoothVolumeControl service = getService();

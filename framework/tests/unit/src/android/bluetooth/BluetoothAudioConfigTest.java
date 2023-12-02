@@ -27,9 +27,7 @@ import androidx.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-/**
- * Test cases for {@link BluetoothAudioConfig}.
- */
+/** Test cases for {@link BluetoothAudioConfig}. */
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class BluetoothAudioConfigTest {
@@ -39,11 +37,9 @@ public class BluetoothAudioConfigTest {
 
     @Test
     public void createBluetoothAudioConfig() {
-        BluetoothAudioConfig audioConfig = new BluetoothAudioConfig(
-                TEST_SAMPLE_RATE,
-                TEST_CHANNEL_COUNT,
-                AudioFormat.ENCODING_PCM_16BIT
-        );
+        BluetoothAudioConfig audioConfig =
+                new BluetoothAudioConfig(
+                        TEST_SAMPLE_RATE, TEST_CHANNEL_COUNT, AudioFormat.ENCODING_PCM_16BIT);
 
         assertThat(audioConfig.getSampleRate()).isEqualTo(TEST_SAMPLE_RATE);
         assertThat(audioConfig.getChannelConfig()).isEqualTo(TEST_CHANNEL_COUNT);
@@ -52,11 +48,9 @@ public class BluetoothAudioConfigTest {
 
     @Test
     public void writeToParcel() {
-        BluetoothAudioConfig originalConfig = new BluetoothAudioConfig(
-                TEST_SAMPLE_RATE,
-                TEST_CHANNEL_COUNT,
-                AudioFormat.ENCODING_PCM_16BIT
-        );
+        BluetoothAudioConfig originalConfig =
+                new BluetoothAudioConfig(
+                        TEST_SAMPLE_RATE, TEST_CHANNEL_COUNT, AudioFormat.ENCODING_PCM_16BIT);
 
         Parcel parcel = Parcel.obtain();
         originalConfig.writeToParcel(parcel, 0);
@@ -65,24 +59,21 @@ public class BluetoothAudioConfigTest {
         BluetoothAudioConfig configOut = BluetoothAudioConfig.CREATOR.createFromParcel(parcel);
         parcel.recycle();
 
-        assertThat(configOut.getSampleRate())
-                .isEqualTo(originalConfig.getSampleRate());
-        assertThat(configOut.getChannelConfig())
-                .isEqualTo(originalConfig.getChannelConfig());
-        assertThat(configOut.getAudioFormat())
-                .isEqualTo(originalConfig.getAudioFormat());
+        assertThat(configOut.getSampleRate()).isEqualTo(originalConfig.getSampleRate());
+        assertThat(configOut.getChannelConfig()).isEqualTo(originalConfig.getChannelConfig());
+        assertThat(configOut.getAudioFormat()).isEqualTo(originalConfig.getAudioFormat());
     }
 
     @Test
     public void bluetoothAudioConfigHashCode() {
-        BluetoothAudioConfig audioConfig = new BluetoothAudioConfig(
-                TEST_SAMPLE_RATE,
-                TEST_CHANNEL_COUNT,
-                AudioFormat.ENCODING_PCM_16BIT
-        );
+        BluetoothAudioConfig audioConfig =
+                new BluetoothAudioConfig(
+                        TEST_SAMPLE_RATE, TEST_CHANNEL_COUNT, AudioFormat.ENCODING_PCM_16BIT);
 
-        int hashCode = audioConfig.getSampleRate() | (audioConfig.getChannelConfig() << 24) | (
-                audioConfig.getAudioFormat() << 28);
+        int hashCode =
+                audioConfig.getSampleRate()
+                        | (audioConfig.getChannelConfig() << 24)
+                        | (audioConfig.getAudioFormat() << 28);
         int describeContents = 0;
 
         assertThat(audioConfig.hashCode()).isEqualTo(hashCode);
@@ -91,16 +82,19 @@ public class BluetoothAudioConfigTest {
 
     @Test
     public void bluetoothAudioConfigToString() {
-        BluetoothAudioConfig audioConfig = new BluetoothAudioConfig(
-                TEST_SAMPLE_RATE,
-                TEST_CHANNEL_COUNT,
-                AudioFormat.ENCODING_PCM_16BIT
-        );
+        BluetoothAudioConfig audioConfig =
+                new BluetoothAudioConfig(
+                        TEST_SAMPLE_RATE, TEST_CHANNEL_COUNT, AudioFormat.ENCODING_PCM_16BIT);
 
         String audioConfigString = audioConfig.toString();
-        String expectedToString = "{mSampleRate:" + audioConfig.getSampleRate()
-                + ",mChannelConfig:" + audioConfig.getChannelConfig()
-                + ",mAudioFormat:" + audioConfig.getAudioFormat() + "}";
+        String expectedToString =
+                "{mSampleRate:"
+                        + audioConfig.getSampleRate()
+                        + ",mChannelConfig:"
+                        + audioConfig.getChannelConfig()
+                        + ",mAudioFormat:"
+                        + audioConfig.getAudioFormat()
+                        + "}";
 
         assertThat(audioConfigString).isEqualTo(expectedToString);
     }
