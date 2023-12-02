@@ -41,11 +41,15 @@ enum : uint8_t {
   BTM_SUCCESS_NO_SECURITY, /* 17 security passed, no security set  */
   BTM_FAILED_ON_SECURITY,  /* 18 security failed                   */
   BTM_REPEATED_ATTEMPTS,   /* 19 repeated attempts for LE security requests */
-  BTM_MODE4_LEVEL4_NOT_SUPPORTED, /* 20 Secure Connections Only Mode can't be
-                                     supported */
-  BTM_DEV_RESTRICT_LISTED,        /* 21 The device is restrict listed */
-  BTM_ERR_KEY_MISSING,            /* 22 Handle for Pin or Key Missing */
-  BTM_MAX_STATUS_VALUE = BTM_DEV_RESTRICT_LISTED,
+  BTM_MODE4_LEVEL4_NOT_SUPPORTED,    /* 20 Secure Connections Only Mode can't be
+                                        supported */
+  BTM_DEV_RESTRICT_LISTED,           /* 21 The device is restrict listed */
+  BTM_ERR_KEY_MISSING,               /* 22 Handle for Pin or Key Missing */
+  BTM_NOT_AUTHENTICATED,             /* 23 the link is not authenticated */
+  BTM_NOT_ENCRYPTED,                 /* 24 the link is not encrypted */
+  BTM_INSUFFICIENT_ENCRYPT_KEY_SIZE, /* 25 the encrypt key size not sufficient
+                                      */
+  BTM_MAX_STATUS_VALUE,
   BTM_UNDEFINED = 0xFF,
 };
 typedef uint8_t tBTM_STATUS;
@@ -55,7 +59,7 @@ inline uint8_t btm_status_value(const tBTM_STATUS& status) {
 }
 
 inline tBTM_STATUS to_btm_status(const uint8_t& value) {
-  if (value > BTM_MAX_STATUS_VALUE) return BTM_UNDEFINED;
+  if (value >= BTM_MAX_STATUS_VALUE) return BTM_UNDEFINED;
   return static_cast<tBTM_STATUS>(value);
 }
 
@@ -88,6 +92,9 @@ inline std::string btm_status_text(const tBTM_STATUS& status) {
     CASE_RETURN_TEXT(BTM_MODE4_LEVEL4_NOT_SUPPORTED);
     CASE_RETURN_TEXT(BTM_DEV_RESTRICT_LISTED);
     CASE_RETURN_TEXT(BTM_ERR_KEY_MISSING);
+    CASE_RETURN_TEXT(BTM_NOT_AUTHENTICATED);
+    CASE_RETURN_TEXT(BTM_NOT_ENCRYPTED);
+    CASE_RETURN_TEXT(BTM_INSUFFICIENT_ENCRYPT_KEY_SIZE);
     default:
       return base::StringPrintf("UNKNOWN[%hhu]", status);
   }
