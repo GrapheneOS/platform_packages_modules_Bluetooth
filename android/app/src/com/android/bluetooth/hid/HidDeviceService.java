@@ -28,6 +28,7 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothHidDevice;
 import android.bluetooth.IBluetoothHidDeviceCallback;
 import android.content.AttributionSource;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
@@ -86,6 +87,13 @@ public class HidDeviceService extends ProfileService {
     private ActivityManager mActivityManager;
 
     private HidDeviceServiceHandler mHandler;
+
+    HidDeviceService() {}
+
+    @VisibleForTesting
+    HidDeviceService(Context ctx) {
+        super(ctx);
+    }
 
     public static boolean isEnabled() {
         return BluetoothProperties.isProfileHidDeviceEnabled().orElse(false);

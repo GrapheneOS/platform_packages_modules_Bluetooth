@@ -107,12 +107,18 @@ public class SapService extends ProfileService implements AdapterService.Bluetoo
             BluetoothUuid.SAP,
     };
 
-    public static boolean isEnabled() {
-        return BluetoothProperties.isProfileSapServerEnabled().orElse(false);
-    }
-
     public SapService() {
         BluetoothSap.invalidateBluetoothGetConnectionStateCache();
+    }
+
+    @VisibleForTesting
+    SapService(Context ctx) {
+        super(ctx);
+        BluetoothSap.invalidateBluetoothGetConnectionStateCache();
+    }
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileSapServerEnabled().orElse(false);
     }
 
     /***

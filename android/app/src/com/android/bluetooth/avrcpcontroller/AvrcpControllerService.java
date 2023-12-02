@@ -139,10 +139,9 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     @VisibleForTesting
-    AvrcpControllerService(Context ctx, AvrcpControllerNativeInterface nativeInterface) {
-        attachBaseContext(ctx);
+    public AvrcpControllerService(Context ctx, AvrcpControllerNativeInterface nativeInterface) {
+        super(ctx);
         mNativeInterface = requireNonNull(nativeInterface);
-        onCreate();
     }
 
     public static boolean isEnabled() {

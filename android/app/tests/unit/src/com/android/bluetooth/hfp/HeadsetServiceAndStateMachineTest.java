@@ -47,7 +47,6 @@ import androidx.test.InstrumentationRegistry;
 import androidx.test.espresso.intent.Intents;
 import androidx.test.espresso.intent.matcher.IntentMatchers;
 import androidx.test.filters.MediumTest;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
@@ -61,7 +60,6 @@ import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -94,7 +92,6 @@ public class HeadsetServiceAndStateMachineTest {
     private static final String TEST_PHONE_NUMBER = "1234567890";
     private static final String TEST_CALLER_ID = "Test Name";
 
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     private Context mTargetContext;
     private HeadsetService mHeadsetService;
@@ -223,9 +220,9 @@ public class HeadsetServiceAndStateMachineTest {
         // Modify start VR timeout to a smaller value for testing
         mOriginalVrTimeoutMs = HeadsetService.sStartVrTimeoutMs;
         HeadsetService.sStartVrTimeoutMs = START_VR_TIMEOUT_MILLIS;
-        TestUtils.startService(mServiceRule, HeadsetService.class);
+        mHeadsetService = new HeadsetService(mTargetContext);
+        mHeadsetService.doStart();
         mIsHeadsetServiceStarted = true;
-        mHeadsetService = HeadsetService.getHeadsetService();
         Assert.assertNotNull(mHeadsetService);
         verify(mObjectsFactory).makeSystemInterface(mHeadsetService);
         verify(mObjectsFactory).getNativeInterface();
@@ -251,7 +248,7 @@ public class HeadsetServiceAndStateMachineTest {
 
         if (mIsHeadsetServiceStarted) {
             mTargetContext.unregisterReceiver(mHeadsetIntentReceiver);
-            TestUtils.stopService(mServiceRule, HeadsetService.class);
+            mHeadsetService.doStop();
             mHeadsetService = HeadsetService.getHeadsetService();
             Assert.assertNull(mHeadsetService);
             // Clear classes that is spied on and has static life time

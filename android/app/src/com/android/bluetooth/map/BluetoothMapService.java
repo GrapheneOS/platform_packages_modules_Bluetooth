@@ -172,6 +172,12 @@ public class BluetoothMapService extends ProfileService {
         BluetoothMap.invalidateBluetoothGetConnectionStateCache();
     }
 
+    @VisibleForTesting
+    BluetoothMapService(Context ctx) {
+        super(ctx);
+        BluetoothMap.invalidateBluetoothGetConnectionStateCache();
+    }
+
     private synchronized void closeService() {
         if (DEBUG) {
             Log.d(TAG, "closeService() in");
