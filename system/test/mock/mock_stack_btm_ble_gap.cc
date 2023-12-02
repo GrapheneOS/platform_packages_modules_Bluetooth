@@ -250,11 +250,11 @@ void BTM_BlePeriodicSyncTxParameters(RawAddress /* addr */, uint8_t /* mode */,
                                      StartSyncCb /* syncCb */) {
   inc_func_call_count(__func__);
 }
-void btm_ble_periodic_adv_sync_tx_rcvd(uint8_t* /* p */,
+void btm_ble_periodic_adv_sync_tx_rcvd(const uint8_t* /* p */,
                                        uint16_t /* param_len */) {
   inc_func_call_count(__func__);
 }
-void btm_ble_biginfo_adv_report_rcvd(uint8_t* /* p */,
+void btm_ble_biginfo_adv_report_rcvd(const uint8_t* /* p */,
                                      uint16_t /* param_len */) {
   inc_func_call_count(__func__);
 }
