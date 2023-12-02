@@ -113,12 +113,6 @@ static void bta_dm_ctrl_features_rd_cmpl_cback(tHCI_STATUS result);
 #define PROPERTY_PAGE_TIMEOUT "bluetooth.core.classic.page_timeout"
 #endif
 
-void bta_dm_disc_disable_search_and_disc();
-void bta_dm_disc_discover_next_device();
-void bta_dm_disc_gatt_refresh(const RawAddress& bd_addr);
-void bta_dm_disc_gattc_register();
-void bta_dm_disc_remove_device(const RawAddress& bd_addr);
-
 namespace {
 
 struct WaitForAllAclConnectionsToDrain {
