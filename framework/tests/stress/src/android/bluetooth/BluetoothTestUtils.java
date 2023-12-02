@@ -184,9 +184,9 @@ public class BluetoothTestUtils extends Assert {
             }
 
             if (BluetoothDevice.ACTION_PAIRING_REQUEST.equals(intent.getAction())) {
-                int varient = intent.getIntExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, -1);
-                assertNotSame(-1, varient);
-                switch (varient) {
+                int variant = intent.getIntExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, -1);
+                assertNotSame(-1, variant);
+                switch (variant) {
                     case BluetoothDevice.PAIRING_VARIANT_PIN:
                     case BluetoothDevice.PAIRING_VARIANT_PIN_16_DIGITS:
                         mDevice.setPin(mPin);
@@ -648,7 +648,7 @@ public class BluetoothTestUtils extends Assert {
 
     /**
      * Puts the local device into connectable only mode and checks to make sure that the local
-     * device is in in connectable mode and that the correct actions were broadcast.
+     * device is in connectable mode and that the correct actions were broadcast.
      *
      * @param adapter The BT adapter.
      */

@@ -331,7 +331,7 @@ public final class BluetoothSocket implements Closeable {
         if (fds == null || fds.length != 1) {
             Log.e(TAG, "socket fd passed from stack failed, fds: " + Arrays.toString(fds));
             as.close();
-            throw new IOException("bt socket acept failed");
+            throw new IOException("bt socket accept failed");
         }
 
         as.mPfd = ParcelFileDescriptor.dup(fds[0]);
