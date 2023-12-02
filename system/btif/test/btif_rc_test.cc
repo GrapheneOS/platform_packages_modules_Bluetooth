@@ -19,6 +19,7 @@
 #include <stdio.h>
 
 #include <cstdint>
+#include <future>
 
 #include "bta/include/bta_av_api.h"
 #include "btif/include/btif_common.h"
@@ -26,7 +27,6 @@
 #include "device/include/interop.h"
 #include "include/hardware/bt_rc.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/btm_api_types.h"
 #include "test/common/mock_functions.h"
 #include "test/mock/mock_osi_alarm.h"
 #include "test/mock/mock_osi_allocator.h"
@@ -78,38 +78,9 @@ void AvrcpService::RegisterVolChanged(const RawAddress& bdaddr) {
 }  // namespace bluetooth
 
 namespace {
-int AVRC_BldResponse_ = 0;
-int AVRC_BldCmd_ = 0;
+const RawAddress kDeviceAddress({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 }  // namespace
 
-const RawAddress kDeviceAddress({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
-bool avrcp_absolute_volume_is_enabled() { return true; }
-
-tAVRC_STS AVRC_BldCommand(tAVRC_COMMAND* p_cmd, BT_HDR** pp_pkt) {
-  AVRC_BldCmd_++;
-  return 0;
-}
-tAVRC_STS AVRC_BldResponse(uint8_t handle, tAVRC_RESPONSE* p_rsp,
-                           BT_HDR** pp_pkt) {
-  AVRC_BldResponse_++;
-  return 0;
-}
-tAVRC_STS AVRC_Ctrl_ParsCommand(tAVRC_MSG* p_msg, tAVRC_COMMAND* p_result) {
-  return 0;
-}
-tAVRC_STS AVRC_Ctrl_ParsResponse(tAVRC_MSG* p_msg, tAVRC_RESPONSE* p_result,
-                                 uint8_t* p_buf, uint16_t* buf_len) {
-  return 0;
-}
-tAVRC_STS AVRC_ParsCommand(tAVRC_MSG* p_msg, tAVRC_COMMAND* p_result,
-                           uint8_t* p_buf, uint16_t buf_len) {
-  return 0;
-}
-tAVRC_STS AVRC_ParsResponse(tAVRC_MSG* p_msg, tAVRC_RESPONSE* p_result,
-                            UNUSED_ATTR uint8_t* p_buf,
-                            UNUSED_ATTR uint16_t buf_len) {
-  return 0;
-}
 void btif_av_clear_remote_suspend_flag(void) {}
 bool btif_av_is_connected(void) { return true; }
 bool btif_av_is_sink_enabled(void) { return true; }
@@ -151,12 +122,14 @@ bool interop_match_addr(const interop_feature_t feature,
 /**
  * Test class to test selected functionality in hci/src/hci_layer.cc
  */
-class BtifRcTest : public ::testing::Test {};
+class BtifRcTest : public ::testing::Test {
+ protected:
+  void SetUp() override { reset_mock_function_count_map(); }
+  void TearDown() override {}
+};
 
 TEST_F(BtifRcTest, get_element_attr_rsp) {
-  RawAddress bd_addr;
-
-  btif_rc_cb.rc_multi_cb[0].rc_addr = bd_addr;
+  btif_rc_cb.rc_multi_cb[0].rc_addr = kDeviceAddress;
   btif_rc_cb.rc_multi_cb[0].rc_connected = true;
   btif_rc_cb.rc_multi_cb[0]
       .rc_pdu_info[IDX_GET_ELEMENT_ATTR_RSP]
@@ -166,44 +139,75 @@ TEST_F(BtifRcTest, get_element_attr_rsp) {
   btrc_element_attr_val_t p_attrs[BTRC_MAX_ELEM_ATTR_SIZE];
   uint8_t num_attr = BTRC_MAX_ELEM_ATTR_SIZE + 1;
 
-  CHECK(get_element_attr_rsp(bd_addr, num_attr, p_attrs) == BT_STATUS_SUCCESS);
-  CHECK(AVRC_BldResponse_ == 1);
+  CHECK(get_element_attr_rsp(kDeviceAddress, num_attr, p_attrs) ==
+        BT_STATUS_SUCCESS);
+  ASSERT_EQ(1, get_func_call_count("AVRC_BldResponse"));
 }
 
 TEST_F(BtifRcTest, btif_rc_get_addr_by_handle) {
-  RawAddress get_bd_addr;
+  RawAddress bd_addr;
 
   btif_rc_cb.rc_multi_cb[0].rc_addr = kDeviceAddress;
   btif_rc_cb.rc_multi_cb[0].rc_state = BTRC_CONNECTION_STATE_CONNECTED;
   btif_rc_cb.rc_multi_cb[0].rc_handle = 0;
 
-  btif_rc_get_addr_by_handle(0, get_bd_addr);
-  CHECK(kDeviceAddress == get_bd_addr);
+  btif_rc_get_addr_by_handle(0, bd_addr);
+  CHECK(kDeviceAddress == bd_addr);
 }
 
-static btrc_ctrl_callbacks_t btrc_ctrl_callbacks = {
+static btrc_ctrl_callbacks_t default_btrc_ctrl_callbacks = {
     .size = sizeof(btrc_ctrl_callbacks_t),
-    .passthrough_rsp_cb = NULL,
-    .groupnavigation_rsp_cb = NULL,
-    .connection_state_cb = NULL,
-    .getrcfeatures_cb = NULL,
-    .setplayerappsetting_rsp_cb = NULL,
-    .playerapplicationsetting_cb = NULL,
-    .playerapplicationsetting_changed_cb = NULL,
-    .setabsvol_cmd_cb = NULL,
-    .registernotification_absvol_cb = NULL,
-    .track_changed_cb = NULL,
-    .play_position_changed_cb = NULL,
-    .play_status_changed_cb = NULL,
-    .get_folder_items_cb = NULL,
-    .change_folder_path_cb = NULL,
-    .set_browsed_player_cb = NULL,
-    .set_addressed_player_cb = NULL,
-    .addressed_player_changed_cb = NULL,
-    .now_playing_contents_changed_cb = NULL,
-    .available_player_changed_cb = NULL,
-    .get_cover_art_psm_cb = NULL,
+    .passthrough_rsp_cb = [](const RawAddress& /* bd_addr */, int /* id */,
+                             int /* key_state */) { FAIL(); },
+    .groupnavigation_rsp_cb = [](int /* id */, int /* key_state */) { FAIL(); },
+    .connection_state_cb = [](bool /* rc_connect */, bool /* bt_connect */,
+                              const RawAddress& /* bd_addr */) { FAIL(); },
+    .getrcfeatures_cb = [](const RawAddress& /* bd_addr */,
+                           int /* features */) { FAIL(); },
+    .setplayerappsetting_rsp_cb = [](const RawAddress& /* bd_addr */,
+                                     uint8_t /* accepted */) { FAIL(); },
+    .playerapplicationsetting_cb =
+        [](const RawAddress& /* bd_addr */, uint8_t /* num_attr */,
+           btrc_player_app_attr_t* /* app_attrs */, uint8_t /* num_ext_attr */,
+           btrc_player_app_ext_attr_t* /* ext_attrs */) { FAIL(); },
+    .playerapplicationsetting_changed_cb =
+        [](const RawAddress& /* bd_addr */,
+           const btrc_player_settings_t& /* vals */) { FAIL(); },
+    .setabsvol_cmd_cb = [](const RawAddress& /* bd_addr */,
+                           uint8_t /* abs_vol */,
+                           uint8_t /* label */) { FAIL(); },
+    .registernotification_absvol_cb = [](const RawAddress& /* bd_addr */,
+                                         uint8_t /* label */) { FAIL(); },
+    .track_changed_cb = [](const RawAddress& /* bd_addr */,
+                           uint8_t /* num_attr */,
+                           btrc_element_attr_val_t* /* p_attrs */) { FAIL(); },
+    .play_position_changed_cb = [](const RawAddress& /* bd_addr */,
+                                   uint32_t /* song_len */,
+                                   uint32_t /* song_pos */) { FAIL(); },
+    .play_status_changed_cb =
+        [](const RawAddress& /* bd_addr */,
+           btrc_play_status_t /* play_status */) { FAIL(); },
+    .get_folder_items_cb = [](const RawAddress& /* bd_addr */,
+                              btrc_status_t /* status */,
+                              const btrc_folder_items_t* /* folder_items */,
+                              uint8_t /* count */) { FAIL(); },
+    .change_folder_path_cb = [](const RawAddress& /* bd_addr */,
+                                uint32_t /* count */) { FAIL(); },
+    .set_browsed_player_cb = [](const RawAddress& /* bd_addr */,
+                                uint8_t /* num_items */,
+                                uint8_t /* depth */) { FAIL(); },
+    .set_addressed_player_cb = [](const RawAddress& /* bd_addr */,
+                                  uint8_t /* status */) { FAIL(); },
+    .addressed_player_changed_cb = [](const RawAddress& /* bd_addr */,
+                                      uint16_t /* id */) { FAIL(); },
+    .now_playing_contents_changed_cb =
+        [](const RawAddress& /* bd_addr */) { FAIL(); },
+    .available_player_changed_cb =
+        [](const RawAddress& /* bd_addr */) { FAIL(); },
+    .get_cover_art_psm_cb = [](const RawAddress& /* bd_addr */,
+                               const uint16_t /* psm */) { FAIL(); },
 };
+static btrc_ctrl_callbacks_t btrc_ctrl_callbacks = default_btrc_ctrl_callbacks;
 
 struct rc_connection_state_cb_t {
   bool rc_state;
@@ -217,8 +221,6 @@ struct rc_feature_cb_t {
 };
 
 static std::promise<rc_connection_state_cb_t> g_btrc_connection_state_promise;
-static std::promise<rc_connection_state_cb_t>
-    g_btrc_browse_connection_state_promise;
 static std::promise<rc_feature_cb_t> g_btrc_feature;
 
 class BtifRcFeatureTest : public BtifRcTest {
@@ -238,6 +240,7 @@ class BtifRcFeatureTest : public BtifRcTest {
   }
 
   void TearDown() override {
+    jni_thread.ShutDown();
     bt_rc_ctrl_callbacks->getrcfeatures_cb = [](const RawAddress& bd_addr,
                                                 int features) {};
     BtifRcTest::TearDown();
@@ -245,7 +248,6 @@ class BtifRcFeatureTest : public BtifRcTest {
 };
 
 TEST_F(BtifRcFeatureTest, handle_rc_ctrl_features) {
-  AVRC_BldCmd_ = 0;
   g_btrc_feature = std::promise<rc_feature_cb_t>();
   std::future<rc_feature_cb_t> future = g_btrc_feature.get_future();
   btif_rc_device_cb_t p_dev;
@@ -257,7 +259,7 @@ TEST_F(BtifRcFeatureTest, handle_rc_ctrl_features) {
   p_dev.rc_connected = true;
 
   handle_rc_ctrl_features(&p_dev);
-  CHECK(AVRC_BldCmd_ == 1);
+  ASSERT_EQ(1, get_func_call_count("AVRC_BldCommand"));
 
   CHECK(std::future_status::ready == future.wait_for(std::chrono::seconds(2)));
   auto res = future.get();
@@ -279,11 +281,12 @@ class BtifRcBrowseConnectionTest : public BtifRcTest {
           .bt_state = bt_state,
           .raw_address = bd_addr,
       };
-      g_btrc_browse_connection_state_promise.set_value(rc_connection_state);
+      g_btrc_connection_state_promise.set_value(rc_connection_state);
     };
   }
 
   void TearDown() override {
+    jni_thread.ShutDown();
     bt_rc_ctrl_callbacks->connection_state_cb =
         [](bool rc_state, bool bt_state, const RawAddress& bd_addr) {};
     BtifRcTest::TearDown();
@@ -291,13 +294,13 @@ class BtifRcBrowseConnectionTest : public BtifRcTest {
 };
 
 TEST_F(BtifRcBrowseConnectionTest, handle_rc_browse_connect) {
-  g_btrc_browse_connection_state_promise =
-      std::promise<rc_connection_state_cb_t>();
+  g_btrc_connection_state_promise = std::promise<rc_connection_state_cb_t>();
   std::future<rc_connection_state_cb_t> future =
-      g_btrc_browse_connection_state_promise.get_future();
+      g_btrc_connection_state_promise.get_future();
 
   tBTA_AV_RC_BROWSE_OPEN browse_data = {
       .rc_handle = 0,
+      .peer_addr = {},
       .status = BTA_AV_SUCCESS,
   };
 
@@ -319,6 +322,9 @@ class BtifRcConnectionTest : public BtifRcTest {
     BtifRcTest::SetUp();
     init_ctrl(&btrc_ctrl_callbacks);
     jni_thread.StartUp();
+    g_btrc_connection_state_promise = std::promise<rc_connection_state_cb_t>();
+    g_btrc_connection_state_future =
+        g_btrc_connection_state_promise.get_future();
     btrc_ctrl_callbacks.connection_state_cb = [](bool rc_state, bool bt_state,
                                                  const RawAddress& bd_addr) {
       rc_connection_state_cb_t rc_connection_state = {
@@ -331,18 +337,37 @@ class BtifRcConnectionTest : public BtifRcTest {
   }
 
   void TearDown() override {
+    jni_thread.ShutDown();
     bt_rc_ctrl_callbacks->connection_state_cb =
         [](bool rc_state, bool bt_state, const RawAddress& bd_addr) {};
     BtifRcTest::TearDown();
   }
+  std::future<rc_connection_state_cb_t> g_btrc_connection_state_future;
 };
 
-TEST_F(BtifRcConnectionTest, btif_rc_check_pending_cmd) {
-  AVRC_BldCmd_ = 0;
-  g_btrc_connection_state_promise = std::promise<rc_connection_state_cb_t>();
-  std::future<rc_connection_state_cb_t> future =
-      g_btrc_connection_state_promise.get_future();
+TEST_F(BtifRcConnectionTest, btif_rc_connection_test) {}
 
+TEST_F(BtifRcConnectionTest, handle_rc_browse_connect) {
+  tBTA_AV_RC_BROWSE_OPEN browse_data = {
+      .rc_handle = 0,
+      .peer_addr = {},
+      .status = BTA_AV_SUCCESS,
+  };
+
+  btif_rc_cb.rc_multi_cb[0].rc_handle = 0;
+  btif_rc_cb.rc_multi_cb[0].rc_addr = RawAddress::kEmpty;
+  btif_rc_cb.rc_multi_cb[0].rc_state = BTRC_CONNECTION_STATE_CONNECTED;
+  btif_rc_cb.rc_multi_cb[0].rc_connected = false;
+
+  /* process unit test  handle_rc_browse_connect */
+  handle_rc_browse_connect(&browse_data);
+  CHECK(std::future_status::ready ==
+        g_btrc_connection_state_future.wait_for(std::chrono::seconds(2)));
+  auto res = g_btrc_connection_state_future.get();
+  CHECK(res.bt_state == true);
+}
+
+TEST_F(BtifRcConnectionTest, btif_rc_check_pending_cmd) {
   btif_rc_cb.rc_multi_cb[0].rc_handle = 0xff;
   btif_rc_cb.rc_multi_cb[0].rc_addr = kDeviceAddress;
   btif_rc_cb.rc_multi_cb[0].rc_state = BTRC_CONNECTION_STATE_CONNECTED;
@@ -352,17 +377,19 @@ TEST_F(BtifRcConnectionTest, btif_rc_check_pending_cmd) {
        RC_PENDING_ACT_REPORT_CONN);
 
   btif_rc_check_pending_cmd(kDeviceAddress);
-  CHECK(AVRC_BldCmd_ == 1);
+  ASSERT_EQ(1, get_func_call_count("AVRC_BldCommand"));
 
-  CHECK(std::future_status::ready == future.wait_for(std::chrono::seconds(3)));
-  auto res = future.get();
+  CHECK(std::future_status::ready ==
+        g_btrc_connection_state_future.wait_for(std::chrono::seconds(3)));
+  auto res = g_btrc_connection_state_future.get();
   CHECK(res.rc_state == true);
 }
 
-TEST_F(BtifRcConnectionTest, BTA_AV_RC_OPEN_EVT) {
-  g_btrc_connection_state_promise = std::promise<rc_connection_state_cb_t>();
-  std::future<rc_connection_state_cb_t> future =
-      g_btrc_connection_state_promise.get_future();
+TEST_F(BtifRcConnectionTest, bt_av_rc_open_evt) {
+  btrc_ctrl_callbacks.get_cover_art_psm_cb = [](const RawAddress& /* bd_addr */,
+                                                const uint16_t /* psm */) {};
+  btrc_ctrl_callbacks.getrcfeatures_cb = [](const RawAddress& /* bd_addr */,
+                                            int /* features */) {};
 
   /* handle_rc_connect  */
   tBTA_AV data = {
@@ -389,8 +416,9 @@ TEST_F(BtifRcConnectionTest, BTA_AV_RC_OPEN_EVT) {
   CHECK(btif_rc_cb.rc_multi_cb[data.rc_open.rc_handle].rc_state ==
         BTRC_CONNECTION_STATE_CONNECTED);
 
-  CHECK(std::future_status::ready == future.wait_for(std::chrono::seconds(2)));
-  auto res = future.get();
+  CHECK(std::future_status::ready ==
+        g_btrc_connection_state_future.wait_for(std::chrono::seconds(2)));
+  auto res = g_btrc_connection_state_future.get();
   CHECK(res.rc_state == true);
 }
 
@@ -407,6 +435,7 @@ class BtifTrackChangeCBTest : public BtifRcTest {
   }
 
   void TearDown() override {
+    jni_thread.ShutDown();
     btrc_ctrl_callbacks.track_changed_cb = [](const RawAddress& bd_addr,
                        uint8_t num_attr, btrc_element_attr_val_t* p_attrs) {};
     BtifRcTest::TearDown();
@@ -415,12 +444,21 @@ class BtifTrackChangeCBTest : public BtifRcTest {
 
 TEST_F(BtifTrackChangeCBTest, handle_get_metadata_attr_response) {
   tBTA_AV_META_MSG meta_msg = {
-    .rc_handle = 0,
+      .rc_handle = 0,
+      .len = 0,
+      .label = 0,
+      .code{},
+      .company_id = 0,
+      .p_data = {},
+      .p_msg = nullptr,
   };
 
   tAVRC_GET_ATTRS_RSP rsp = {
-    .status = AVRC_STS_NO_ERROR,
-    .num_attrs = 0,
+      .pdu = 0,
+      .status = AVRC_STS_NO_ERROR,
+      .opcode = 0,
+      .num_attrs = 0,
+      .p_attrs = nullptr,
   };
 
   btif_rc_cb.rc_multi_cb[0].rc_handle = 0;

@@ -41,6 +41,7 @@
 #include "osi/include/fixed_queue.h"
 #include "osi/include/list.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/btm_sec_api_types.h"
 #include "stack/include/hci_error_code.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
@@ -271,15 +272,11 @@ typedef struct {
 #define L2CAP_CBB_DEFAULT_DATA_RATE_BUFF_QUOTA 100
 #endif
 
-typedef void(tL2CAP_SEC_CBACK)(const RawAddress& bd_addr,
-                               tBT_TRANSPORT trasnport, void* p_ref_data,
-                               tBTM_STATUS result);
-
 typedef struct {
   uint16_t psm;
   tBT_TRANSPORT transport;
   bool is_originator;
-  tL2CAP_SEC_CBACK* p_callback;
+  tBTM_SEC_CALLBACK* p_callback;
   void* p_ref_data;
 } tL2CAP_SEC_DATA;
 
@@ -817,8 +814,6 @@ void l2c_link_adjust_allocation(void);
 
 void l2c_link_sec_comp(const RawAddress* p_bda, tBT_TRANSPORT trasnport,
                        void* p_ref_data, tBTM_STATUS status);
-void l2c_link_sec_comp2(const RawAddress& p_bda, tBT_TRANSPORT trasnport,
-                        void* p_ref_data, tBTM_STATUS status);
 void l2c_link_adjust_chnl_allocation(void);
 
 #if (L2CAP_CONFORMANCE_TESTING == TRUE)
@@ -873,7 +868,7 @@ void l2cble_send_peer_disc_req(tL2C_CCB* p_ccb);
 void l2cble_send_flow_control_credit(tL2C_CCB* p_ccb, uint16_t credit_value);
 tL2CAP_LE_RESULT_CODE l2ble_sec_access_req(const RawAddress& bd_addr,
                                            uint16_t psm, bool is_originator,
-                                           tL2CAP_SEC_CBACK* p_callback,
+                                           tBTM_SEC_CALLBACK* p_callback,
                                            void* p_ref_data);
 
 void l2cble_update_data_length(tL2C_LCB* p_lcb);

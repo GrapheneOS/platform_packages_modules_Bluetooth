@@ -214,7 +214,7 @@ void l2cu_release_lcb(tL2C_LCB* p_lcb) {
       tL2CAP_SEC_DATA* p_buf =
           (tL2CAP_SEC_DATA*)fixed_queue_try_dequeue(p_lcb->le_sec_pending_q);
       if (p_buf->p_callback)
-        p_buf->p_callback(p_lcb->remote_bd_addr, p_lcb->transport,
+        p_buf->p_callback(&p_lcb->remote_bd_addr, p_lcb->transport,
                           p_buf->p_ref_data, BTM_DEV_RESET);
       osi_free(p_buf);
     }
@@ -2950,8 +2950,8 @@ void l2cu_send_peer_ble_credit_based_conn_req(tL2C_CCB* p_ccb) {
   initial_credit = p_ccb->local_conn_cfg.credits;
 
   LOG_VERBOSE(
-      "l2cu_send_peer_ble_credit_based_conn_req PSM:0x%04x local_cid:%d\
-                mtu:%d mps:%d initial_credit:%d",
+      "l2cu_send_peer_ble_credit_based_conn_req PSM:0x%04x local_cid:%d"
+      " mtu:%d mps:%d initial_credit:%d",
       p_ccb->p_rcb->real_psm, p_ccb->local_cid, mtu, mps, initial_credit);
 
   UINT16_TO_STREAM(p, p_ccb->p_rcb->real_psm);

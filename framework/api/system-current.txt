@@ -154,6 +154,11 @@ package android.bluetooth {
     field public static final int PROFILE_PANU = 4; // 0x4
   }
 
+  @FlaggedApi("com.android.bluetooth.flags.a2dp_offload_codec_extensibility") public final class BluetoothCodecType implements android.os.Parcelable {
+    ctor public BluetoothCodecType(int, long, @NonNull String);
+    method @FlaggedApi("com.android.bluetooth.flags.a2dp_offload_codec_extensibility") @Nullable public static android.bluetooth.BluetoothCodecType createFromType(int);
+  }
+
   public final class BluetoothCsipSetCoordinator implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
     method @NonNull @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED) public java.util.List<java.lang.Integer> getAllGroupIds(@Nullable android.os.ParcelUuid);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED) public int getConnectionPolicy(@Nullable android.bluetooth.BluetoothDevice);

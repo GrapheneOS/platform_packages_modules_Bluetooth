@@ -203,19 +203,6 @@ static void disconnect_acl(tACL_CONN& p_acl, tHCI_STATUS reason,
            hci_error_code_text(reason).c_str(), comment.c_str());
   p_acl.disconnect_reason = reason;
 
-  if (bluetooth::common::init_flags::
-          use_unified_connection_manager_is_enabled()) {
-    if (!p_acl.is_transport_br_edr()) {
-      // TODO(aryarahul): this should be moved into GATT, so when a client
-      // disconnects, it removes its request to autoConnect, even if the ACL
-      // link stays up due to the presence of other clients.
-      bluetooth::connection::GetConnectionManager()
-          .stop_all_connections_to_device(bluetooth::core::ToRustAddress(
-              tBLE_BD_ADDR{.type = p_acl.active_remote_addr_type,
-                           .bda = p_acl.active_remote_addr}));
-    }
-  }
-
   return bluetooth::shim::ACL_Disconnect(
       p_acl.hci_handle, p_acl.is_transport_br_edr(), reason, comment);
 }
@@ -2820,39 +2807,6 @@ bool ACL_SupportTransparentSynchronousData(const RawAddress& bd_addr) {
   }
 
   return HCI_LMP_TRANSPNT_SUPPORTED(p_acl->peer_lmp_feature_pages[0]);
-}
-
-/**
- * Confusingly, immutable device features are stored in the
- * ephemeral connection data structure while connection security
- * is stored in the device record.
- *
- * This HACK allows legacy security protocols to work as intended under
- * those conditions.
- */
-void HACK_acl_check_sm4(tBTM_SEC_DEV_REC& record) {
-  // Return if we already know this info
-  if ((record.sm4 & BTM_SM4_TRUE) != BTM_SM4_UNKNOWN) return;
-
-  tACL_CONN* p_acl =
-      internal_.btm_bda_to_acl(record.RemoteAddress(), BT_TRANSPORT_BR_EDR);
-  if (p_acl == nullptr) {
-    LOG_WARN("Unable to find active acl for authentication device:%s",
-             ADDRESS_TO_LOGGABLE_CSTR(record.RemoteAddress()));
-    return;
-  }
-
-  // If we have not received the SSP feature record
-  // we have to wait
-  if (!p_acl->peer_lmp_feature_valid[1]) {
-    LOG_WARN(
-        "Authentication started without extended feature page 1 request "
-        "response");
-    return;
-  }
-  record.sm4 = (HCI_SSP_HOST_SUPPORTED(p_acl->peer_lmp_feature_pages[1]))
-                   ? BTM_SM4_TRUE
-                   : BTM_SM4_KNOWN;
 }
 
 tACL_CONN* btm_acl_for_bda(const RawAddress& bd_addr, tBT_TRANSPORT transport) {

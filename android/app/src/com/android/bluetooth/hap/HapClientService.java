@@ -131,13 +131,6 @@ public class HapClientService extends ProfileService {
     }
 
     @Override
-    protected void create() {
-        if (DBG) {
-            Log.d(TAG, "create()");
-        }
-    }
-
-    @Override
     protected void cleanup() {
         if (DBG) {
             Log.d(TAG, "cleanup()");

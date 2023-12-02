@@ -530,8 +530,8 @@ static uint8_t avrc_proc_far_msg(uint8_t handle, uint8_t label, uint8_t cr,
       /* Received a CONTINUE/END, but no corresponding START
                       (or previous fragmented response was dropped) */
       LOG_VERBOSE(
-          "Received a CONTINUE/END without no corresponding START \
-                                (or previous fragmented response was dropped)");
+          "Received a CONTINUE/END without no corresponding START"
+          " (or previous fragmented response was dropped)");
       drop_code = 5;
       osi_free(p_pkt);
       *pp_pkt = NULL;
