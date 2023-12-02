@@ -45,7 +45,7 @@ enum : uint8_t {
                                      supported */
   BTM_DEV_RESTRICT_LISTED,        /* 21 The device is restrict listed */
   BTM_ERR_KEY_MISSING,            /* 22 Handle for Pin or Key Missing */
-  BTM_MAX_STATUS_VALUE = BTM_DEV_RESTRICT_LISTED,
+  BTM_MAX_STATUS_VALUE,
   BTM_UNDEFINED = 0xFF,
 };
 typedef uint8_t tBTM_STATUS;
@@ -55,7 +55,7 @@ inline uint8_t btm_status_value(const tBTM_STATUS& status) {
 }
 
 inline tBTM_STATUS to_btm_status(const uint8_t& value) {
-  if (value > BTM_MAX_STATUS_VALUE) return BTM_UNDEFINED;
+  if (value >= BTM_MAX_STATUS_VALUE) return BTM_UNDEFINED;
   return static_cast<tBTM_STATUS>(value);
 }
 
