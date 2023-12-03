@@ -25,6 +25,7 @@
 #include <cstdint>
 #include <optional>
 
+#include "stack/include/btm_api_types.h"
 #include "test/common/mock_functions.h"
 
 // Original usings

@@ -17,6 +17,8 @@
 
 #define LOG_TAG "ble_sec"
 
+#include "stack/btm/btm_ble_sec.h"
+
 #include <base/strings/stringprintf.h>
 
 #include <cstddef>
