@@ -23,16 +23,11 @@
 #include <type_traits>
 
 #include "bt_trace.h"
+#include "macros.h"
 #include "sdp_common.h"
 
 namespace bluetooth {
 namespace sdp {
-
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif
 
 inline std::string PduIdText(const PduId& id) {
   switch (id) {

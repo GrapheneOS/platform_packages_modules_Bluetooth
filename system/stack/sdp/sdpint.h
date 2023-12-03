@@ -30,6 +30,7 @@
 #include <cstdint>
 
 #include "bt_target.h"
+#include "macros.h"
 #include "osi/include/alarm.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/l2c_api.h"
@@ -135,12 +136,6 @@ enum : uint8_t {
 };
 typedef uint8_t tSDP_STATE;
 
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif
-
 inline std::string sdp_state_text(const tSDP_STATE& state) {
   switch (state) {
     CASE_RETURN_TEXT(SDP_STATE_IDLE);
@@ -169,8 +164,6 @@ inline std::string sdp_flags_text(const tSDP_FLAGS& flags) {
       return std::string("UNKNOWN[") + std::to_string(flags) + std::string("]");
   }
 }
-
-#undef CASE_RETURN_TEXT
 
 enum : uint8_t {
   SDP_DISC_WAIT_CONN = 0,
@@ -220,12 +213,6 @@ struct tCONN_CB {
   tCONN_CB(const tCONN_CB&) = delete;
 };
 
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif
-
 inline std::string sdp_disc_wait_text(const tSDP_DISC_WAIT& state) {
   switch (state) {
     CASE_RETURN_TEXT(SDP_DISC_WAIT_CONN);
@@ -237,8 +224,6 @@ inline std::string sdp_disc_wait_text(const tSDP_DISC_WAIT& state) {
       return base::StringPrintf("UNKNOWN[%d]", state);
   }
 }
-
-#undef CASE_RETURN_TEXT
 
 /*  The main SDP control block */
 typedef struct {

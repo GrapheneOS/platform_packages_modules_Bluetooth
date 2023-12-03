@@ -19,6 +19,7 @@
 #include <cstdint>
 
 #include "bt_target.h"  // BTM_NO_SSP_ON_INQUIRY
+#include "macros.h"
 #include "osi/include/alarm.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/bt_name.h"
@@ -197,12 +198,6 @@ typedef struct {
   long long start_time_ms;
 } tBTM_INQUIRY_CMPL;
 
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif
-
 inline std::string btm_inquiry_cmpl_status_text(
     const tBTM_INQUIRY_CMPL::STATUS& status) {
   switch (status) {
@@ -215,7 +210,6 @@ inline std::string btm_inquiry_cmpl_status_text(
              std::string("]");
   }
 }
-#undef CASE_RETURN_TEXT
 
 /* Structure returned with remote name  request */
 typedef struct {

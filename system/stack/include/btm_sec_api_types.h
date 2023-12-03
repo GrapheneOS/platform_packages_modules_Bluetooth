@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <string>
 
+#include "macros.h"
 #include "stack/include/bt_dev_class.h"
 #include "stack/include/bt_name.h"
 #include "stack/include/bt_octets.h"
@@ -261,12 +262,6 @@ enum {
 
 typedef uint8_t tBTM_OOB_DATA;
 
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif
-
 inline std::string btm_oob_data_text(const tBTM_OOB_DATA& data) {
   switch (data) {
     CASE_RETURN_TEXT(BTM_OOB_NONE);
@@ -278,8 +273,6 @@ inline std::string btm_oob_data_text(const tBTM_OOB_DATA& data) {
       return std::string("UNKNOWN[") + std::to_string(data) + std::string("]");
   }
 }
-
-#undef CASE_RETURN_TEXT
 
 /* data type for BTM_SP_IO_REQ_EVT */
 typedef struct {
@@ -479,10 +472,6 @@ enum tBTM_BOND_TYPE : uint8_t {
   BOND_TYPE_TEMPORARY = 2
 };
 
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-
 inline std::string bond_type_text(const tBTM_BOND_TYPE& bond_type) {
   switch (bond_type) {
     CASE_RETURN_TEXT(BOND_TYPE_UNKNOWN);
@@ -492,5 +481,3 @@ inline std::string bond_type_text(const tBTM_BOND_TYPE& bond_type) {
       return base::StringPrintf("UNKNOWN[%hhu]", bond_type);
   }
 }
-
-#undef CASE_RETURN_TEXT

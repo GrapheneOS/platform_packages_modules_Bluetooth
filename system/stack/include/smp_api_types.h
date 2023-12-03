@@ -23,6 +23,7 @@
 
 #include <cstdint>
 
+#include "macros.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btm_status.h"
 #include "stack/include/smp_status.h"
@@ -51,10 +52,6 @@ typedef enum : uint8_t {
   SMP_OPCODE_PAIR_COMMITM = 0x0F,
 } tSMP_OPCODE;
 
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-
 inline std::string smp_opcode_text(const tSMP_OPCODE& opcode) {
   switch (opcode) {
     CASE_RETURN_TEXT(SMP_OPCODE_PAIRING_REQ);
@@ -76,7 +73,6 @@ inline std::string smp_opcode_text(const tSMP_OPCODE& opcode) {
       return base::StringPrintf("UNKNOWN[%hhu]", opcode);
   }
 }
-#undef CASE_RETURN_TEXT
 
 /* SMP event type */
 typedef enum : uint8_t {

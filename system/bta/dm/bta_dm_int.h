@@ -32,16 +32,11 @@
 #include "bta/include/bta_api.h"
 #include "bta/include/bta_sec_api.h"
 #include "bta/sys/bta_sys.h"
+#include "macros.h"
 #include "stack/btm/neighbor_inquiry.h"
 #include "stack/include/sdp_status.h"
 #include "stack/sdp/sdp_discovery_db.h"
 #include "types/raw_address.h"
-
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif
 
 /*****************************************************************************
  *  Constants and data types
@@ -236,8 +231,6 @@ typedef struct {
 
   alarm_t* switch_delay_timer;
 } tBTA_DM_CB;
-
-#undef CASE_RETURN_TEXT
 
 /* DI control block */
 typedef struct {
