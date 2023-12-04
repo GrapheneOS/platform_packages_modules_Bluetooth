@@ -25,7 +25,7 @@
 #include "main/shim/controller.h"
 #include "main/shim/helpers.h"
 #include "main/shim/stack.h"
-#include "stack/btm/btm_ble_int.h"
+#include "stack/btm/btm_ble_sec.h"
 #include "types/raw_address.h"
 
 uint16_t bluetooth::shim::BTM_GetHCIConnHandle(const RawAddress& remote_bda,

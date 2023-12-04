@@ -35,6 +35,7 @@
 #include "crypto_toolbox/crypto_toolbox.h"
 #include "device/include/controller.h"
 #include "os/log.h"
+#include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btm_ble_privacy.h"
