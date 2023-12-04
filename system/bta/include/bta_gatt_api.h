@@ -34,6 +34,7 @@
 
 #include "bta/gatt/database.h"
 #include "hardware/bt_gatt_types.h"
+#include "macros.h"
 #include "stack/include/gatt_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
@@ -75,10 +76,6 @@ typedef enum : uint8_t {
   BTA_GATTC_SUBRATE_CHG_EVT = 27,   /* Subrate Change event */
 } tBTA_GATTC_EVT;
 
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-
 inline std::string gatt_client_event_text(const tBTA_GATTC_EVT& event) {
   switch (event) {
     CASE_RETURN_TEXT(BTA_GATTC_DEREG_EVT);
@@ -102,7 +99,6 @@ inline std::string gatt_client_event_text(const tBTA_GATTC_EVT& event) {
       return base::StringPrintf("UNKNOWN[%hhu]", event);
   }
 }
-#undef CASE_RETURN_TEXT
 
 typedef struct {
   uint16_t unit;  /* as UUIUD defined by SIG */

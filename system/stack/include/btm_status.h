@@ -17,7 +17,10 @@
 #pragma once
 
 #include <base/strings/stringprintf.h>
+
 #include <cstdint>
+
+#include "macros.h"
 
 /* BTM application return status codes */
 enum : uint8_t {
@@ -63,10 +66,6 @@ inline tBTM_STATUS to_btm_status(const uint8_t& value) {
   return static_cast<tBTM_STATUS>(value);
 }
 
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-
 inline std::string btm_status_text(const tBTM_STATUS& status) {
   switch (status) {
     CASE_RETURN_TEXT(BTM_SUCCESS);
@@ -99,5 +98,3 @@ inline std::string btm_status_text(const tBTM_STATUS& status) {
       return base::StringPrintf("UNKNOWN[%hhu]", status);
   }
 }
-
-#undef CASE_RETURN_TEXT
