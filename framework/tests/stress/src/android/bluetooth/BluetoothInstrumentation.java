@@ -31,16 +31,18 @@ public class BluetoothInstrumentation extends Instrumentation {
 
     private BluetoothTestUtils getBluetoothTestUtils() {
         if (mUtils == null) {
-            mUtils = new BluetoothTestUtils(getContext(),
-                    BluetoothInstrumentation.class.getSimpleName());
+            mUtils =
+                    new BluetoothTestUtils(
+                            getContext(), BluetoothInstrumentation.class.getSimpleName());
         }
         return mUtils;
     }
 
     private BluetoothAdapter getBluetoothAdapter() {
         if (mAdapter == null) {
-            mAdapter = ((BluetoothManager) getContext().getSystemService(
-                    Context.BLUETOOTH_SERVICE)).getAdapter();
+            mAdapter =
+                    ((BluetoothManager) getContext().getSystemService(Context.BLUETOOTH_SERVICE))
+                            .getAdapter();
         }
         return mAdapter;
     }

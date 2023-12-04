@@ -39,11 +39,11 @@ import java.util.concurrent.TimeoutException;
  * This class provides the public APIs to control the Bluetooth AVRCP Controller. It currently
  * supports player information, playback support and track metadata.
  *
- * <p>BluetoothAvrcpController is a proxy object for controlling the Bluetooth AVRCP
- * Service via IPC. Use {@link BluetoothAdapter#getProfileProxy} to get
- * the BluetoothAvrcpController proxy object.
+ * <p>BluetoothAvrcpController is a proxy object for controlling the Bluetooth AVRCP Service via
+ * IPC. Use {@link BluetoothAdapter#getProfileProxy} to get the BluetoothAvrcpController proxy
+ * object.
  *
- * {@hide}
+ * <p>{@hide}
  */
 public final class BluetoothAvrcpController implements BluetoothProfile {
     private static final String TAG = "BluetoothAvrcpController";
@@ -51,19 +51,19 @@ public final class BluetoothAvrcpController implements BluetoothProfile {
     private static final boolean VDBG = false;
 
     /**
-     * Intent used to broadcast the change in connection state of the AVRCP Controller
-     * profile.
+     * Intent used to broadcast the change in connection state of the AVRCP Controller profile.
      *
      * <p>This intent will have 3 extras:
+     *
      * <ul>
-     * <li> {@link #EXTRA_STATE} - The current state of the profile. </li>
-     * <li> {@link #EXTRA_PREVIOUS_STATE}- The previous state of the profile.</li>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. </li>
+     *   <li>{@link #EXTRA_STATE} - The current state of the profile.
+     *   <li>{@link #EXTRA_PREVIOUS_STATE}- The previous state of the profile.
+     *   <li>{@link BluetoothDevice#EXTRA_DEVICE} - The remote device.
      * </ul>
      *
-     * <p>{@link #EXTRA_STATE} or {@link #EXTRA_PREVIOUS_STATE} can be any of
-     * {@link #STATE_DISCONNECTED}, {@link #STATE_CONNECTING},
-     * {@link #STATE_CONNECTED}, {@link #STATE_DISCONNECTING}.
+     * <p>{@link #EXTRA_STATE} or {@link #EXTRA_PREVIOUS_STATE} can be any of {@link
+     * #STATE_DISCONNECTED}, {@link #STATE_CONNECTING}, {@link #STATE_CONNECTED}, {@link
+     * #STATE_DISCONNECTING}.
      */
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
@@ -76,9 +76,10 @@ public final class BluetoothAvrcpController implements BluetoothProfile {
      * Intent used to broadcast the change in player application setting state on AVRCP AG.
      *
      * <p>This intent will have the following extras:
+     *
      * <ul>
-     * <li> {@link #EXTRA_PLAYER_SETTING} - {@link BluetoothAvrcpPlayerSettings} containing the
-     * most recent player setting. </li>
+     *   <li>{@link #EXTRA_PLAYER_SETTING} - {@link BluetoothAvrcpPlayerSettings} containing the
+     *       most recent player setting.
      * </ul>
      */
     @RequiresBluetoothConnectPermission
@@ -96,8 +97,8 @@ public final class BluetoothAvrcpController implements BluetoothProfile {
     private IBluetoothAvrcpController mService;
 
     /**
-     * Create a BluetoothAvrcpController proxy object for interacting with the local
-     * Bluetooth AVRCP service.
+     * Create a BluetoothAvrcpController proxy object for interacting with the local Bluetooth AVRCP
+     * service.
      */
     /* package */ BluetoothAvrcpController(Context context, BluetoothAdapter adapter) {
         mAdapter = adapter;
@@ -130,9 +131,7 @@ public final class BluetoothAvrcpController implements BluetoothProfile {
     @Override
     public void finalize() {}
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -158,9 +157,7 @@ public final class BluetoothAvrcpController implements BluetoothProfile {
         return defaultValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -186,9 +183,7 @@ public final class BluetoothAvrcpController implements BluetoothProfile {
         return defaultValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -240,8 +235,8 @@ public final class BluetoothAvrcpController implements BluetoothProfile {
     }
 
     /**
-     * Sets the player app setting for current player.
-     * returns true in case setting is supported by remote, false otherwise
+     * Sets the player app setting for current player. returns true in case setting is supported by
+     * remote, false otherwise
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -265,14 +260,20 @@ public final class BluetoothAvrcpController implements BluetoothProfile {
     }
 
     /**
-     * Send Group Navigation Command to Remote.
-     * possible keycode values: next_grp, previous_grp defined above
+     * Send Group Navigation Command to Remote. possible keycode values: next_grp, previous_grp
+     * defined above
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void sendGroupNavigationCmd(BluetoothDevice device, int keyCode, int keyState) {
-        Log.d(TAG, "sendGroupNavigationCmd dev = " + device + " key " + keyCode + " State = "
-                + keyState);
+        Log.d(
+                TAG,
+                "sendGroupNavigationCmd dev = "
+                        + device
+                        + " key "
+                        + keyCode
+                        + " State = "
+                        + keyState);
         final IBluetoothAvrcpController service = getService();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");

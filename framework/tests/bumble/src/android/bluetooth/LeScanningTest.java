@@ -51,16 +51,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 
+import pandora.HostProto;
+import pandora.HostProto.AdvertiseRequest;
+import pandora.HostProto.AdvertiseResponse;
+import pandora.HostProto.OwnAddressType;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-
-import pandora.HostProto;
-import pandora.HostProto.AdvertiseRequest;
-import pandora.HostProto.AdvertiseResponse;
-import pandora.HostProto.OwnAddressType;
 
 @RunWith(AndroidJUnit4.class)
 public class LeScanningTest {
@@ -69,8 +69,7 @@ public class LeScanningTest {
 
     @Rule public final AdoptShellPermissionsRule mPermissionRule = new AdoptShellPermissionsRule();
 
-    @Rule
-    public final PandoraDevice mBumble = new PandoraDevice();
+    @Rule public final PandoraDevice mBumble = new PandoraDevice();
 
     private static final String TEST_ADDRESS_RANDOM_STATIC = "F0:43:A8:23:10:11";
 

@@ -63,33 +63,37 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
      * Intent used to broadcast the change in connection state of the MAP Client profile.
      *
      * <p>This intent will have 3 extras:
+     *
      * <ul>
-     * <li> {@link #EXTRA_STATE} - The current state of the profile. </li>
-     * <li> {@link #EXTRA_PREVIOUS_STATE}- The previous state of the profile.</li>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. </li>
+     *   <li>{@link #EXTRA_STATE} - The current state of the profile.
+     *   <li>{@link #EXTRA_PREVIOUS_STATE}- The previous state of the profile.
+     *   <li>{@link BluetoothDevice#EXTRA_DEVICE} - The remote device.
      * </ul>
      *
-     * <p>{@link #EXTRA_STATE} or {@link #EXTRA_PREVIOUS_STATE} can be any of
-     * {@link #STATE_DISCONNECTED}, {@link #STATE_CONNECTING},
-     * {@link #STATE_CONNECTED}, {@link #STATE_DISCONNECTING}.
+     * <p>{@link #EXTRA_STATE} or {@link #EXTRA_PREVIOUS_STATE} can be any of {@link
+     * #STATE_DISCONNECTED}, {@link #STATE_CONNECTING}, {@link #STATE_CONNECTED}, {@link
+     * #STATE_DISCONNECTING}.
      *
      * @hide
      */
     @SystemApi
     @SuppressLint("ActionValue")
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_CONNECTION_STATE_CHANGED =
             "android.bluetooth.mapmce.profile.action.CONNECTION_STATE_CHANGED";
+
     /** @hide */
     @RequiresPermission(android.Manifest.permission.RECEIVE_SMS)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_MESSAGE_RECEIVED =
             "android.bluetooth.mapmce.profile.action.MESSAGE_RECEIVED";
+
     /* Actions to be used for pending intents */
     /** @hide */
     @RequiresBluetoothConnectPermission
@@ -97,6 +101,7 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_MESSAGE_SENT_SUCCESSFULLY =
             "android.bluetooth.mapmce.profile.action.MESSAGE_SENT_SUCCESSFULLY";
+
     /** @hide */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -127,31 +132,32 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
             "android.bluetooth.mapmce.profile.action.MESSAGE_DELETED_STATUS_CHANGED";
 
     /**
-     * Extras used in ACTION_MESSAGE_RECEIVED intent.
-     * NOTE: HANDLE is only valid for a single session with the device.
+     * Extras used in ACTION_MESSAGE_RECEIVED intent. NOTE: HANDLE is only valid for a single
+     * session with the device.
      */
     /** @hide */
     public static final String EXTRA_MESSAGE_HANDLE =
             "android.bluetooth.mapmce.profile.extra.MESSAGE_HANDLE";
+
     /** @hide */
     public static final String EXTRA_MESSAGE_TIMESTAMP =
             "android.bluetooth.mapmce.profile.extra.MESSAGE_TIMESTAMP";
+
     /** @hide */
     public static final String EXTRA_MESSAGE_READ_STATUS =
             "android.bluetooth.mapmce.profile.extra.MESSAGE_READ_STATUS";
+
     /** @hide */
     public static final String EXTRA_SENDER_CONTACT_URI =
             "android.bluetooth.mapmce.profile.extra.SENDER_CONTACT_URI";
+
     /** @hide */
     public static final String EXTRA_SENDER_CONTACT_NAME =
             "android.bluetooth.mapmce.profile.extra.SENDER_CONTACT_NAME";
 
     /**
-     * Used as a boolean extra in ACTION_MESSAGE_DELETED_STATUS_CHANGED
-     * Contains the MAP message deleted status
-     * Possible values are:
-     * true: deleted
-     * false: undeleted
+     * Used as a boolean extra in ACTION_MESSAGE_DELETED_STATUS_CHANGED Contains the MAP message
+     * deleted status Possible values are: true: deleted false: undeleted
      *
      * @hide
      */
@@ -160,30 +166,32 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
 
     /**
      * Extra used in ACTION_MESSAGE_READ_STATUS_CHANGED or ACTION_MESSAGE_DELETED_STATUS_CHANGED
-     * Possible values are:
-     * 0: failure
-     * 1: success
+     * Possible values are: 0: failure 1: success
      *
      * @hide
      */
-    public static final String EXTRA_RESULT_CODE =
-            "android.bluetooth.device.extra.RESULT_CODE";
+    public static final String EXTRA_RESULT_CODE = "android.bluetooth.device.extra.RESULT_CODE";
 
     /**
      * There was an error trying to obtain the state
+     *
      * @hide
      */
     public static final int STATE_ERROR = -1;
 
     /** @hide */
     public static final int RESULT_FAILURE = 0;
+
     /** @hide */
     public static final int RESULT_SUCCESS = 1;
+
     /**
      * Connection canceled before completion.
+     *
      * @hide
      */
     public static final int RESULT_CANCELED = 2;
+
     /** @hide */
     private static final int UPLOADING_FEATURE_BITMASK = 0x08;
 
@@ -194,10 +202,13 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
 
     /** @hide */
     public static final int UNREAD = 0;
+
     /** @hide */
     public static final int READ = 1;
+
     /** @hide */
     public static final int UNDELETED = 2;
+
     /** @hide */
     public static final int DELETED = 3;
 
@@ -206,9 +217,7 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
 
     private IBluetoothMapClient mService;
 
-    /**
-     * Create a BluetoothMapClient proxy object.
-     */
+    /** Create a BluetoothMapClient proxy object. */
     /* package */ BluetoothMapClient(Context context, BluetoothAdapter adapter) {
         if (DBG) Log.d(TAG, "Create BluetoothMapClient proxy object");
         mAdapter = adapter;
@@ -264,9 +273,9 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
     }
 
     /**
-     * Returns true if the specified Bluetooth device is connected.
-     * Returns false if not connected, or if this proxy object is not
-     * currently connected to the Map service.
+     * Returns true if the specified Bluetooth device is connected. Returns false if not connected,
+     * or if this proxy object is not currently connected to the Map service.
+     *
      * @hide
      */
     @RequiresBluetoothConnectPermission
@@ -291,16 +300,16 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
     }
 
     /**
-     * Initiate connection. Initiation of outgoing connections is not
-     * supported for MAP server.
+     * Initiate connection. Initiation of outgoing connections is not supported for MAP server.
      *
      * @hide
      */
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
     public boolean connect(BluetoothDevice device) {
         if (DBG) Log.d(TAG, "connect(" + device + ")" + "for MAPS MCE");
         final IBluetoothMapClient service = getService();
@@ -325,14 +334,14 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
      *
      * @param device Remote Bluetooth Device
      * @return false on error, true otherwise
-     *
      * @hide
      */
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
     public boolean disconnect(BluetoothDevice device) {
         if (DBG) Log.d(TAG, "disconnect(" + device + ")");
         final IBluetoothMapClient service = getService();
@@ -354,15 +363,17 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
 
     /**
      * {@inheritDoc}
+     *
      * @hide
      */
     @SystemApi
     @Override
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
     public @NonNull List<BluetoothDevice> getConnectedDevices() {
         if (DBG) Log.d(TAG, "getConnectedDevices()");
         final IBluetoothMapClient service = getService();
@@ -390,15 +401,17 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
 
     /**
      * {@inheritDoc}
+     *
      * @hide
      */
     @SystemApi
     @Override
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
     @NonNull
     public List<BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[] states) {
         if (DBG) Log.d(TAG, "getDevicesMatchingStates()");
@@ -427,19 +440,21 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
 
     /**
      * {@inheritDoc}
+     *
      * @hide
      */
     @SystemApi
     @Override
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
     public @BtProfileState int getConnectionState(@NonNull BluetoothDevice device) {
         if (DBG) Log.d(TAG, "getConnectionState(" + device + ")");
         final IBluetoothMapClient service = getService();
-        final int defaultValue =  BluetoothProfile.STATE_DISCONNECTED;
+        final int defaultValue = BluetoothProfile.STATE_DISCONNECTED;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) Log.d(TAG, Log.getStackTraceString(new Throwable()));
@@ -461,8 +476,8 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
     /**
      * Set priority of the profile
      *
-     * <p> The device should already be paired.
-     * Priority can be one of {@link #PRIORITY_ON} or {@link #PRIORITY_OFF},
+     * <p>The device should already be paired. Priority can be one of {@link #PRIORITY_ON} or {@link
+     * #PRIORITY_OFF},
      *
      * @param device Paired bluetooth device
      * @param priority
@@ -470,10 +485,11 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
      * @hide
      */
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
     public boolean setPriority(BluetoothDevice device, int priority) {
         if (DBG) Log.d(TAG, "setPriority(" + device + ", " + priority + ")");
         return setConnectionPolicy(device, BluetoothAdapter.priorityToConnectionPolicy(priority));
@@ -482,9 +498,9 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
     /**
      * Set connection policy of the profile
      *
-     * <p> The device should already be paired.
-     * Connection policy can be one of {@link #CONNECTION_POLICY_ALLOWED},
-     * {@link #CONNECTION_POLICY_FORBIDDEN}, {@link #CONNECTION_POLICY_UNKNOWN}
+     * <p>The device should already be paired. Connection policy can be one of {@link
+     * #CONNECTION_POLICY_ALLOWED}, {@link #CONNECTION_POLICY_FORBIDDEN}, {@link
+     * #CONNECTION_POLICY_UNKNOWN}
      *
      * @param device Paired bluetooth device
      * @param connectionPolicy is the connection policy to set to for this profile
@@ -493,21 +509,23 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
      */
     @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
-    public boolean setConnectionPolicy(@NonNull BluetoothDevice device,
-            @ConnectionPolicy int connectionPolicy) {
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
+    public boolean setConnectionPolicy(
+            @NonNull BluetoothDevice device, @ConnectionPolicy int connectionPolicy) {
         if (DBG) Log.d(TAG, "setConnectionPolicy(" + device + ", " + connectionPolicy + ")");
         final IBluetoothMapClient service = getService();
         final boolean defaultValue = false;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) Log.d(TAG, Log.getStackTraceString(new Throwable()));
-        } else if (isEnabled() && isValidDevice(device)
+        } else if (isEnabled()
+                && isValidDevice(device)
                 && (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN
-                    || connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
+                        || connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
             try {
                 final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
                 service.setConnectionPolicy(device, connectionPolicy, mAttributionSource, recv);
@@ -525,18 +543,19 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
     /**
      * Get the priority of the profile.
      *
-     * <p> The priority can be any of:
-     * {@link #PRIORITY_OFF}, {@link #PRIORITY_ON}, {@link #PRIORITY_UNDEFINED}
+     * <p>The priority can be any of: {@link #PRIORITY_OFF}, {@link #PRIORITY_ON}, {@link
+     * #PRIORITY_UNDEFINED}
      *
      * @param device Bluetooth device
      * @return priority of the device
      * @hide
      */
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
     public int getPriority(BluetoothDevice device) {
         if (VDBG) Log.d(TAG, "getPriority(" + device + ")");
         return BluetoothAdapter.connectionPolicyToPriority(getConnectionPolicy(device));
@@ -545,9 +564,8 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
     /**
      * Get the connection policy of the profile.
      *
-     * <p> The connection policy can be any of:
-     * {@link #CONNECTION_POLICY_ALLOWED}, {@link #CONNECTION_POLICY_FORBIDDEN},
-     * {@link #CONNECTION_POLICY_UNKNOWN}
+     * <p>The connection policy can be any of: {@link #CONNECTION_POLICY_ALLOWED}, {@link
+     * #CONNECTION_POLICY_FORBIDDEN}, {@link #CONNECTION_POLICY_UNKNOWN}
      *
      * @param device Bluetooth device
      * @return connection policy of the device
@@ -555,10 +573,11 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
      */
     @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
     public @ConnectionPolicy int getConnectionPolicy(@NonNull BluetoothDevice device) {
         if (VDBG) Log.d(TAG, "getConnectionPolicy(" + device + ")");
         final IBluetoothMapClient service = getService();
@@ -584,7 +603,8 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
     /**
      * Send a message.
      *
-     * Send an SMS message to either the contacts primary number or the telephone number specified.
+     * <p>Send an SMS message to either the contacts primary number or the telephone number
+     * specified.
      *
      * @param device Bluetooth device
      * @param contacts Uri Collection of the contacts
@@ -596,21 +616,30 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
      */
     @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.SEND_SMS,
-    })
-    public boolean sendMessage(@NonNull BluetoothDevice device, @NonNull Collection<Uri> contacts,
-            @NonNull String message, @Nullable PendingIntent sentIntent,
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.SEND_SMS,
+            })
+    public boolean sendMessage(
+            @NonNull BluetoothDevice device,
+            @NonNull Collection<Uri> contacts,
+            @NonNull String message,
+            @Nullable PendingIntent sentIntent,
             @Nullable PendingIntent deliveredIntent) {
-        return sendMessage(device, contacts.toArray(new Uri[contacts.size()]), message, sentIntent,
+        return sendMessage(
+                device,
+                contacts.toArray(new Uri[contacts.size()]),
+                message,
+                sentIntent,
                 deliveredIntent);
     }
 
-     /**
+    /**
      * Send a message.
      *
-     * Send an SMS message to either the contacts primary number or the telephone number specified.
+     * <p>Send an SMS message to either the contacts primary number or the telephone number
+     * specified.
      *
      * @param device Bluetooth device
      * @param contacts Uri[] of the contacts
@@ -622,15 +651,19 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
      */
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.SEND_SMS,
-    })
-    public boolean sendMessage(BluetoothDevice device, Uri[] contacts, String message,
-            PendingIntent sentIntent, PendingIntent deliveredIntent) {
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.SEND_SMS,
+            })
+    public boolean sendMessage(
+            BluetoothDevice device,
+            Uri[] contacts,
+            String message,
+            PendingIntent sentIntent,
+            PendingIntent deliveredIntent) {
         if (DBG) {
-            Log.d(TAG, "sendMessage(" + device + ", " + Arrays.toString(contacts)
-                    + ", " + message);
+            Log.d(TAG, "sendMessage(" + device + ", " + Arrays.toString(contacts) + ", " + message);
         }
         final IBluetoothMapClient service = getService();
         final boolean defaultValue = false;
@@ -640,8 +673,14 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
         } else if (isEnabled() && isValidDevice(device)) {
             try {
                 final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
-                service.sendMessage(device, contacts, message, sentIntent, deliveredIntent,
-                        mAttributionSource, recv);
+                service.sendMessage(
+                        device,
+                        contacts,
+                        message,
+                        sentIntent,
+                        deliveredIntent,
+                        mAttributionSource,
+                        recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
@@ -651,17 +690,18 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
     }
 
     /**
-     * Get unread messages.  Unread messages will be published via {@link #ACTION_MESSAGE_RECEIVED}.
+     * Get unread messages. Unread messages will be published via {@link #ACTION_MESSAGE_RECEIVED}.
      *
      * @param device Bluetooth device
      * @return true if the message is enqueued, false on error
      * @hide
      */
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.READ_SMS,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.READ_SMS,
+            })
     public boolean getUnreadMessages(BluetoothDevice device) {
         if (DBG) Log.d(TAG, "getUnreadMessages(" + device + ")");
         final IBluetoothMapClient service = getService();
@@ -682,11 +722,12 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
     }
 
     /**
-     * Returns the "Uploading" feature bit value from the SDP record's
-     * MapSupportedFeatures field (see Bluetooth MAP 1.4 spec, page 114).
+     * Returns the "Uploading" feature bit value from the SDP record's MapSupportedFeatures field
+     * (see Bluetooth MAP 1.4 spec, page 114).
+     *
      * @param device The Bluetooth device to get this value for.
-     * @return Returns true if the Uploading bit value in SDP record's
-     *         MapSupportedFeatures field is set. False is returned otherwise.
+     * @return Returns true if the Uploading bit value in SDP record's MapSupportedFeatures field is
+     *     set. False is returned otherwise.
      * @hide
      */
     @RequiresBluetoothConnectPermission
@@ -703,7 +744,8 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
                 final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
                 service.getSupportedFeatures(device, mAttributionSource, recv);
                 return (recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue)
-                        & UPLOADING_FEATURE_BITMASK) > 0;
+                                & UPLOADING_FEATURE_BITMASK)
+                        > 0;
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
@@ -713,25 +755,24 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
 
     /**
      * Set message status of message on MSE
-     * <p>
-     * When read status changed, the result will be published via
-     * {@link #ACTION_MESSAGE_READ_STATUS_CHANGED}
-     * When deleted status changed, the result will be published via
-     * {@link #ACTION_MESSAGE_DELETED_STATUS_CHANGED}
+     *
+     * <p>When read status changed, the result will be published via {@link
+     * #ACTION_MESSAGE_READ_STATUS_CHANGED} When deleted status changed, the result will be
+     * published via {@link #ACTION_MESSAGE_DELETED_STATUS_CHANGED}
      *
      * @param device Bluetooth device
      * @param handle message handle
-     * @param status <code>UNREAD</code> for "unread", <code>READ</code> for
-     *            "read", <code>UNDELETED</code> for "undeleted", <code>DELETED</code> for
-     *            "deleted", otherwise return error
+     * @param status <code>UNREAD</code> for "unread", <code>READ</code> for "read", <code>UNDELETED
+     *     </code> for "undeleted", <code>DELETED</code> for "deleted", otherwise return error
      * @return <code>true</code> if request has been sent, <code>false</code> on error
      * @hide
      */
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.READ_SMS,
-    })
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.READ_SMS,
+            })
     public boolean setMessageStatus(BluetoothDevice device, String handle, int status) {
         if (DBG) Log.d(TAG, "setMessageStatus(" + device + ", " + handle + ", " + status + ")");
         final IBluetoothMapClient service = getService();
@@ -739,8 +780,13 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) Log.d(TAG, Log.getStackTraceString(new Throwable()));
-        } else if (isEnabled() && isValidDevice(device) && handle != null && (status == READ
-                    || status == UNREAD || status == UNDELETED  || status == DELETED)) {
+        } else if (isEnabled()
+                && isValidDevice(device)
+                && handle != null
+                && (status == READ
+                        || status == UNREAD
+                        || status == UNDELETED
+                        || status == DELETED)) {
             try {
                 final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
                 service.setMessageStatus(device, handle, status, mAttributionSource, recv);

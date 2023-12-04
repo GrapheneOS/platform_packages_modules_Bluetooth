@@ -31,9 +31,7 @@ import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 
-/**
- * Test cases for {@link BluetoothActivityEnergyInfo}.
- */
+/** Test cases for {@link BluetoothActivityEnergyInfo}. */
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class BluetoothActivityEnergyInfoTest {
@@ -46,8 +44,9 @@ public class BluetoothActivityEnergyInfoTest {
         long rxTime = 200;
         long idleTime = 300;
         long energyUsed = 10;
-        BluetoothActivityEnergyInfo info = new BluetoothActivityEnergyInfo(
-                timestamp, stackState, txTime, rxTime, idleTime, energyUsed);
+        BluetoothActivityEnergyInfo info =
+                new BluetoothActivityEnergyInfo(
+                        timestamp, stackState, txTime, rxTime, idleTime, energyUsed);
 
         assertThat(info.getTimestampMillis()).isEqualTo(timestamp);
         assertThat(info.getBluetoothStackState()).isEqualTo(stackState);
@@ -66,8 +65,9 @@ public class BluetoothActivityEnergyInfoTest {
         long rxTime = 200;
         long idleTime = 300;
         long energyUsed = 10;
-        BluetoothActivityEnergyInfo info = new BluetoothActivityEnergyInfo(
-                timestamp, stackState, txTime, rxTime, idleTime, energyUsed);
+        BluetoothActivityEnergyInfo info =
+                new BluetoothActivityEnergyInfo(
+                        timestamp, stackState, txTime, rxTime, idleTime, energyUsed);
 
         ArrayList<UidTraffic> traffics = new ArrayList<>();
         UidTraffic traffic = new UidTraffic(123, 300, 400);
@@ -86,21 +86,25 @@ public class BluetoothActivityEnergyInfoTest {
         long rxTime = 200;
         long idleTime = 300;
         long energyUsed = 10;
-        BluetoothActivityEnergyInfo info = new BluetoothActivityEnergyInfo(
-                timestamp, stackState, txTime, rxTime, idleTime, energyUsed);
+        BluetoothActivityEnergyInfo info =
+                new BluetoothActivityEnergyInfo(
+                        timestamp, stackState, txTime, rxTime, idleTime, energyUsed);
 
         assertThat(info.isValid()).isEqualTo(true);
 
-        info = new BluetoothActivityEnergyInfo(
-                timestamp, stackState, -1, rxTime, idleTime, energyUsed);
+        info =
+                new BluetoothActivityEnergyInfo(
+                        timestamp, stackState, -1, rxTime, idleTime, energyUsed);
         assertThat(info.isValid()).isEqualTo(false);
 
-        info = new BluetoothActivityEnergyInfo(
-                timestamp, stackState, txTime, -1, idleTime, energyUsed);
+        info =
+                new BluetoothActivityEnergyInfo(
+                        timestamp, stackState, txTime, -1, idleTime, energyUsed);
         assertThat(info.isValid()).isEqualTo(false);
 
-        info = new BluetoothActivityEnergyInfo(
-                timestamp, stackState, txTime, rxTime, -1, energyUsed);
+        info =
+                new BluetoothActivityEnergyInfo(
+                        timestamp, stackState, txTime, rxTime, -1, energyUsed);
         assertThat(info.isValid()).isEqualTo(false);
     }
 
@@ -112,8 +116,9 @@ public class BluetoothActivityEnergyInfoTest {
         long rxTime = 200;
         long idleTime = 300;
         long energyUsed = 10;
-        BluetoothActivityEnergyInfo info = new BluetoothActivityEnergyInfo(
-                timestamp, stackState, txTime, rxTime, idleTime, energyUsed);
+        BluetoothActivityEnergyInfo info =
+                new BluetoothActivityEnergyInfo(
+                        timestamp, stackState, txTime, rxTime, idleTime, energyUsed);
 
         Parcel parcel = Parcel.obtain();
         info.writeToParcel(parcel, 0);
@@ -140,8 +145,9 @@ public class BluetoothActivityEnergyInfoTest {
         long rxTime = 200;
         long idleTime = 300;
         long energyUsed = 10;
-        BluetoothActivityEnergyInfo info = new BluetoothActivityEnergyInfo(
-                timestamp, stackState, txTime, rxTime, idleTime, energyUsed);
+        BluetoothActivityEnergyInfo info =
+                new BluetoothActivityEnergyInfo(
+                        timestamp, stackState, txTime, rxTime, idleTime, energyUsed);
 
         try {
             String infoString = info.toString();

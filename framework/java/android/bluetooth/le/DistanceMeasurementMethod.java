@@ -27,9 +27,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.Objects;
 
 /**
- * Method of distance measurement. A list of this class will be returned by
- * {@link DistanceMeasurementManager#getSupportedMethods()} to indicate the supported methods and
- * their capability about angle measurement.
+ * Method of distance measurement. A list of this class will be returned by {@link
+ * DistanceMeasurementManager#getSupportedMethods()} to indicate the supported methods and their
+ * capability about angle measurement.
  *
  * @hide
  */
@@ -40,34 +40,28 @@ public final class DistanceMeasurementMethod implements Parcelable {
     private final boolean mIsAzimuthAngleSupported;
     private final boolean mIsAltitudeAngleSupported;
 
-    /**
-     * @hide
-     */
+    /** @hide */
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef(value = {
-            DISTANCE_MEASUREMENT_METHOD_AUTO,
-            DISTANCE_MEASUREMENT_METHOD_RSSI})
-    @interface DistanceMeasurementMethodId  {}
+    @IntDef(value = {DISTANCE_MEASUREMENT_METHOD_AUTO, DISTANCE_MEASUREMENT_METHOD_RSSI})
+    @interface DistanceMeasurementMethodId {}
 
     /**
-     * Choose method automatically, Bluetooth will use the most accurate method that local
-     * device supported to measurement distance.
+     * Choose method automatically, Bluetooth will use the most accurate method that local device
+     * supported to measurement distance.
      *
      * @hide
      */
-    @SystemApi
-    public static final int DISTANCE_MEASUREMENT_METHOD_AUTO = 0;
+    @SystemApi public static final int DISTANCE_MEASUREMENT_METHOD_AUTO = 0;
 
     /**
      * Use remote RSSI and transmit power to measure the distance.
      *
      * @hide
      */
-    @SystemApi
-    public static final int DISTANCE_MEASUREMENT_METHOD_RSSI = 1;
+    @SystemApi public static final int DISTANCE_MEASUREMENT_METHOD_RSSI = 1;
 
-    private DistanceMeasurementMethod(int id, boolean isAzimuthAngleSupported,
-            boolean isAltitudeAngleSupported) {
+    private DistanceMeasurementMethod(
+            int id, boolean isAzimuthAngleSupported, boolean isAltitudeAngleSupported) {
         mId = id;
         mIsAzimuthAngleSupported = isAzimuthAngleSupported;
         mIsAltitudeAngleSupported = isAltitudeAngleSupported;
@@ -77,7 +71,6 @@ public final class DistanceMeasurementMethod implements Parcelable {
      * Id of the method used for {@link DistanceMeasurementParams.Builder#setMethod(int)}
      *
      * @return id of the method
-     *
      * @hide
      */
     @SystemApi
@@ -89,7 +82,6 @@ public final class DistanceMeasurementMethod implements Parcelable {
      * Checks whether the azimuth angle is supported for this method.
      *
      * @return true if azimuth angle is supported, false otherwise
-     *
      * @hide
      */
     @SystemApi
@@ -101,7 +93,6 @@ public final class DistanceMeasurementMethod implements Parcelable {
      * Checks whether the altitude angle is supported for this method.
      *
      * @return true if altitude angle is supported, false otherwise
-     *
      * @hide
      */
     @SystemApi
@@ -111,6 +102,7 @@ public final class DistanceMeasurementMethod implements Parcelable {
 
     /**
      * {@inheritDoc}
+     *
      * @hide
      */
     @Override
@@ -120,6 +112,7 @@ public final class DistanceMeasurementMethod implements Parcelable {
 
     /**
      * {@inheritDoc}
+     *
      * @hide
      */
     @Override
@@ -129,13 +122,18 @@ public final class DistanceMeasurementMethod implements Parcelable {
         out.writeBoolean(mIsAltitudeAngleSupported);
     }
 
-    /** @hide **/
+    /**
+     * @hide *
+     */
     @Override
     public String toString() {
         return "DistanceMeasurementMethod["
-                + "id: " + mId
-                + ", isAzimuthAngleSupported: " + mIsAzimuthAngleSupported
-                + ", isAltitudeAngleSupported: " + mIsAltitudeAngleSupported
+                + "id: "
+                + mId
+                + ", isAzimuthAngleSupported: "
+                + mIsAzimuthAngleSupported
+                + ", isAltitudeAngleSupported: "
+                + mIsAltitudeAngleSupported
                 + "]";
     }
 
@@ -159,23 +157,22 @@ public final class DistanceMeasurementMethod implements Parcelable {
         return Objects.hash(mId);
     }
 
-    /**
-     * A {@link Parcelable.Creator} to create {@link DistanceMeasurementMethod} from parcel.
-     *
-     */
+    /** A {@link Parcelable.Creator} to create {@link DistanceMeasurementMethod} from parcel. */
     public static final @NonNull Parcelable.Creator<DistanceMeasurementMethod> CREATOR =
             new Parcelable.Creator<DistanceMeasurementMethod>() {
                 @Override
                 public @NonNull DistanceMeasurementMethod createFromParcel(@NonNull Parcel in) {
-                    return new Builder(in.readInt()).setAzimuthAngleSupported(in.readBoolean())
-                            .setAltitudeAngleSupported(in.readBoolean()).build();
+                    return new Builder(in.readInt())
+                            .setAzimuthAngleSupported(in.readBoolean())
+                            .setAltitudeAngleSupported(in.readBoolean())
+                            .build();
                 }
 
                 @Override
                 public @NonNull DistanceMeasurementMethod[] newArray(int size) {
                     return new DistanceMeasurementMethod[size];
                 }
-        };
+            };
 
     /**
      * Builder for {@link DistanceMeasurementMethod}.
@@ -204,11 +201,10 @@ public final class DistanceMeasurementMethod implements Parcelable {
             }
         }
 
-         /**
+        /**
          * Set if azimuth angle supported or not.
          *
          * @param supported {@code true} if azimuth angle supported, {@code false} otherwise
-         *
          * @hide
          */
         @SystemApi
@@ -222,7 +218,6 @@ public final class DistanceMeasurementMethod implements Parcelable {
          * Set if altitude angle supported or not.
          *
          * @param supported {@code true} if altitude angle supported, {@code false} otherwise
-         *
          * @hide
          */
         @SystemApi
@@ -240,8 +235,8 @@ public final class DistanceMeasurementMethod implements Parcelable {
         @SystemApi
         @NonNull
         public DistanceMeasurementMethod build() {
-            return new DistanceMeasurementMethod(mId, mIsAzimuthAngleSupported,
-                    mIsAltitudeAngleSupported);
+            return new DistanceMeasurementMethod(
+                    mId, mIsAzimuthAngleSupported, mIsAltitudeAngleSupported);
         }
     }
 }

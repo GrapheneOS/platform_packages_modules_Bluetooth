@@ -26,9 +26,7 @@ import androidx.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-/**
- * Test cases for {@link SdpSapsRecord}.
- */
+/** Test cases for {@link SdpSapsRecord}. */
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class SdpSapsRecordTest {
@@ -39,11 +37,7 @@ public class SdpSapsRecordTest {
         int profileVersion = 1;
         String serviceName = "SdpSapsRecord";
 
-        SdpSapsRecord record = new SdpSapsRecord(
-                rfcommChannelNumber,
-                profileVersion,
-                serviceName
-        );
+        SdpSapsRecord record = new SdpSapsRecord(rfcommChannelNumber, profileVersion, serviceName);
 
         assertThat(record.getRfcommCannelNumber()).isEqualTo(rfcommChannelNumber);
         assertThat(record.getProfileVersion()).isEqualTo(profileVersion);
@@ -56,11 +50,8 @@ public class SdpSapsRecordTest {
         int profileVersion = 1;
         String serviceName = "SdpSapsRecord";
 
-        SdpSapsRecord originalRecord = new SdpSapsRecord(
-                rfcommChannelNumber,
-                profileVersion,
-                serviceName
-        );
+        SdpSapsRecord originalRecord =
+                new SdpSapsRecord(rfcommChannelNumber, profileVersion, serviceName);
 
         Parcel parcel = Parcel.obtain();
         originalRecord.writeToParcel(parcel, 0);
@@ -71,10 +62,8 @@ public class SdpSapsRecordTest {
 
         assertThat(recordOut.getRfcommCannelNumber())
                 .isEqualTo(originalRecord.getRfcommCannelNumber());
-        assertThat(recordOut.getProfileVersion())
-                .isEqualTo(originalRecord.getProfileVersion());
-        assertThat(recordOut.getServiceName())
-                .isEqualTo(originalRecord.getServiceName());
+        assertThat(recordOut.getProfileVersion()).isEqualTo(originalRecord.getProfileVersion());
+        assertThat(recordOut.getServiceName()).isEqualTo(originalRecord.getServiceName());
     }
 
     @Test
@@ -83,17 +72,20 @@ public class SdpSapsRecordTest {
         int profileVersion = 1;
         String serviceName = "SdpSapsRecord";
 
-        SdpSapsRecord record = new SdpSapsRecord(
-                rfcommChannelNumber,
-                profileVersion,
-                serviceName
-        );
+        SdpSapsRecord record = new SdpSapsRecord(rfcommChannelNumber, profileVersion, serviceName);
 
         String sdpSapsRecordString = record.toString();
-        String expectedToString = "Bluetooth MAS SDP Record:\n"
-                + "RFCOMM Chan Number: " + rfcommChannelNumber + "\n"
-                + "Service Name: " + serviceName + "\n"
-                + "Profile version: " + profileVersion + "\n";
+        String expectedToString =
+                "Bluetooth MAS SDP Record:\n"
+                        + "RFCOMM Chan Number: "
+                        + rfcommChannelNumber
+                        + "\n"
+                        + "Service Name: "
+                        + serviceName
+                        + "\n"
+                        + "Profile version: "
+                        + profileVersion
+                        + "\n";
 
         assertThat(sdpSapsRecordString).isEqualTo(expectedToString);
     }
