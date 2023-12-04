@@ -31,11 +31,9 @@
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "os/log.h"
-#include "p_256_ecc_pp.h"
 #include "smp_int.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/include/bt_octets.h"
-#include "stack_config.h"
 #include "types/raw_address.h"
 
 /*******************************************************************************
@@ -47,26 +45,7 @@
  * Returns          void
  *
  ******************************************************************************/
-void SMP_Init(uint8_t init_security_mode) {
-  memset(&smp_cb, 0, sizeof(tSMP_CB));
-
-  smp_cb.init_security_mode = init_security_mode;
-
-  smp_cb.smp_rsp_timer_ent = alarm_new("smp.smp_rsp_timer_ent");
-  smp_cb.delayed_auth_timer_ent = alarm_new("smp.delayed_auth_timer_ent");
-
-  LOG_VERBOSE("init_security_mode:%d", init_security_mode);
-
-  smp_l2cap_if_init();
-  /* initialization of P-256 parameters */
-  p_256_init_curve();
-
-  /* Initialize failure case for certification */
-  smp_cb.cert_failure = static_cast<tSMP_STATUS>(
-      stack_config_get_interface()->get_pts_smp_failure_case());
-  if (smp_cb.cert_failure)
-    LOG_ERROR("PTS FAILURE MODE IN EFFECT (CASE %d)", smp_cb.cert_failure);
-}
+void SMP_Init(uint8_t init_security_mode) { smp_cb.init(init_security_mode); }
 
 /*******************************************************************************
  *
