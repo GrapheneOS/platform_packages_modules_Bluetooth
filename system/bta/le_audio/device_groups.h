@@ -35,6 +35,8 @@
 #include <android/sysprop/BluetoothProperties.sysprop.h>
 #endif
 
+#include <android_bluetooth_flags.h>
+
 #include "devices.h"
 #include "le_audio_types.h"
 
@@ -82,6 +84,7 @@ class LeAudioDeviceGroup {
   bool is_output_preference_le_audio;
   bool is_duplex_preference_le_audio;
   DsaMode dsa_mode_;
+  bool asymmetric_phy_for_unidirectional_cis_supported;
 
   explicit LeAudioDeviceGroup(const int group_id)
       : group_id_(group_id),
@@ -118,6 +121,8 @@ class LeAudioDeviceGroup {
     is_output_preference_le_audio = true;
     is_duplex_preference_le_audio = true;
 #endif
+    asymmetric_phy_for_unidirectional_cis_supported =
+        IS_FLAG_ENABLED(asymmetric_phy_for_unidirectional_cis);
   }
   ~LeAudioDeviceGroup(void);
 
