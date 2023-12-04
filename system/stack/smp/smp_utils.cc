@@ -39,6 +39,7 @@
 #include "stack/include/btm_ble_sec_api.h"
 #include "stack/include/btm_log_history.h"
 #include "stack/include/l2c_api.h"
+#include "stack/include/smp_api_types.h"
 #include "stack/include/smp_status.h"
 #include "stack/include/stack_metrics_logging.h"
 #include "types/raw_address.h"
@@ -318,7 +319,7 @@ static tSMP_ASSO_MODEL smp_select_association_model_secure_connections(
 void smp_log_metrics(const RawAddress& bd_addr, bool is_outgoing,
                      const uint8_t* p_buf, size_t buf_len, bool is_over_br) {
   if (buf_len < 1) {
-    LOG(WARNING) << __func__ << ": buffer is too small, size is " << buf_len;
+    LOG_WARN("buffer is too small");
     return;
   }
   uint8_t raw_cmd;
@@ -356,7 +357,8 @@ bool smp_send_msg_to_L2CAP(const RawAddress& rem_bda, BT_HDR* p_toL2CAP) {
     fixed_cid = L2CAP_SMP_BR_CID;
   }
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("rem_bda:%s, over_bredr:%d", ADDRESS_TO_LOGGABLE_CSTR(rem_bda),
+              smp_cb.smp_over_br);
 
   smp_log_metrics(rem_bda, true /* outgoing */,
                   p_toL2CAP->data + p_toL2CAP->offset, p_toL2CAP->len,
@@ -432,7 +434,7 @@ bool smp_send_cmd(uint8_t cmd_code, tSMP_CB* p_cb) {
 void smp_rsp_timeout(UNUSED_ATTR void* data) {
   tSMP_CB* p_cb = &smp_cb;
 
-  LOG_VERBOSE("%s state:%d br_state:%d", __func__, p_cb->state, p_cb->br_state);
+  LOG_VERBOSE("state:%d br_state:%d", p_cb->state, p_cb->br_state);
 
   tSMP_INT_DATA smp_int_data;
   smp_int_data.status = SMP_RSP_TIMEOUT;
@@ -459,7 +461,7 @@ void smp_delayed_auth_complete_timeout(UNUSED_ATTR void* data) {
    * the state is still in bond pending.
    */
   if (smp_get_state() == SMP_STATE_BOND_PENDING) {
-    LOG_VERBOSE("%s sending delayed auth complete.", __func__);
+    LOG_VERBOSE("sending delayed auth complete.");
     tSMP_INT_DATA smp_int_data;
     smp_int_data.status = SMP_SUCCESS;
     smp_sm_event(&smp_cb, SMP_AUTH_CMPL_EVT, &smp_int_data);
@@ -478,7 +480,8 @@ BT_HDR* smp_build_pairing_cmd(uint8_t cmd_code, tSMP_CB* p_cb) {
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + SMP_PAIRING_REQ_SIZE +
                                       L2CAP_MIN_OFFSET);
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("building cmd:%s",
+              smp_opcode_text(static_cast<tSMP_OPCODE>(cmd_code)).c_str());
 
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
   UINT8_TO_STREAM(p, cmd_code);
@@ -509,7 +512,7 @@ static BT_HDR* smp_build_confirm_cmd(UNUSED_ATTR uint8_t cmd_code,
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + SMP_CONFIRM_CMD_SIZE +
                                       L2CAP_MIN_OFFSET);
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
@@ -534,7 +537,7 @@ static BT_HDR* smp_build_rand_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_CB* p_cb) {
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + SMP_RAND_CMD_SIZE +
                                       L2CAP_MIN_OFFSET);
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
   UINT8_TO_STREAM(p, SMP_OPCODE_RAND);
@@ -559,7 +562,7 @@ static BT_HDR* smp_build_encrypt_info_cmd(UNUSED_ATTR uint8_t cmd_code,
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + SMP_ENC_INFO_SIZE +
                                       L2CAP_MIN_OFFSET);
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
   UINT8_TO_STREAM(p, SMP_OPCODE_ENCRYPT_INFO);
@@ -584,7 +587,7 @@ static BT_HDR* smp_build_central_id_cmd(UNUSED_ATTR uint8_t cmd_code,
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + SMP_CENTRAL_ID_SIZE +
                                       L2CAP_MIN_OFFSET);
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
   UINT8_TO_STREAM(p, SMP_OPCODE_CENTRAL_ID);
@@ -610,7 +613,7 @@ static BT_HDR* smp_build_identity_info_cmd(UNUSED_ATTR uint8_t cmd_code,
   BT_HDR* p_buf =
       (BT_HDR*)osi_malloc(sizeof(BT_HDR) + SMP_ID_INFO_SIZE + L2CAP_MIN_OFFSET);
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
@@ -638,7 +641,7 @@ static BT_HDR* smp_build_id_addr_cmd(UNUSED_ATTR uint8_t cmd_code,
   BT_HDR* p_buf =
       (BT_HDR*)osi_malloc(sizeof(BT_HDR) + SMP_ID_ADDR_SIZE + L2CAP_MIN_OFFSET);
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
   UINT8_TO_STREAM(p, SMP_OPCODE_ID_ADDR);
@@ -664,7 +667,7 @@ static BT_HDR* smp_build_signing_info_cmd(UNUSED_ATTR uint8_t cmd_code,
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + SMP_SIGN_INFO_SIZE +
                                       L2CAP_MIN_OFFSET);
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
   UINT8_TO_STREAM(p, SMP_OPCODE_SIGN_INFO);
@@ -689,7 +692,7 @@ static BT_HDR* smp_build_pairing_fail(UNUSED_ATTR uint8_t cmd_code,
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + SMP_PAIR_FAIL_SIZE +
                                       L2CAP_MIN_OFFSET);
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
   UINT8_TO_STREAM(p, SMP_OPCODE_PAIRING_FAILED);
@@ -713,7 +716,7 @@ static BT_HDR* smp_build_security_request(UNUSED_ATTR uint8_t cmd_code,
   uint8_t* p;
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + 2 + L2CAP_MIN_OFFSET);
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
   UINT8_TO_STREAM(p, SMP_OPCODE_SEC_REQ);
@@ -743,7 +746,7 @@ static BT_HDR* smp_build_pair_public_key_cmd(UNUSED_ATTR uint8_t cmd_code,
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + SMP_PAIR_PUBL_KEY_SIZE +
                                       L2CAP_MIN_OFFSET);
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   memcpy(p_publ_key, p_cb->loc_publ_key.x, BT_OCTET32_LEN);
   memcpy(p_publ_key + BT_OCTET32_LEN, p_cb->loc_publ_key.y, BT_OCTET32_LEN);
@@ -771,7 +774,7 @@ static BT_HDR* smp_build_pairing_commitment_cmd(UNUSED_ATTR uint8_t cmd_code,
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + SMP_PAIR_COMMITM_SIZE +
                                       L2CAP_MIN_OFFSET);
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
   UINT8_TO_STREAM(p, SMP_OPCODE_CONFIRM);
@@ -796,7 +799,7 @@ static BT_HDR* smp_build_pair_dhkey_check_cmd(UNUSED_ATTR uint8_t cmd_code,
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(
       sizeof(BT_HDR) + SMP_PAIR_DHKEY_CHECK_SIZE + L2CAP_MIN_OFFSET);
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
   UINT8_TO_STREAM(p, SMP_OPCODE_PAIR_DHKEY_CHECK);
@@ -821,7 +824,7 @@ static BT_HDR* smp_build_pairing_keypress_notification_cmd(
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(
       sizeof(BT_HDR) + SMP_PAIR_KEYPR_NOTIF_SIZE + L2CAP_MIN_OFFSET);
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
   UINT8_TO_STREAM(p, SMP_OPCODE_PAIR_KEYPR_NOTIF);
@@ -909,7 +912,7 @@ void smp_cb_cleanup(tSMP_CB* p_cb) {
  *
  ******************************************************************************/
 void smp_remove_fixed_channel(tSMP_CB* p_cb) {
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   if (p_cb->smp_over_br)
     L2CA_RemoveFixedChnl(L2CAP_SMP_BR_CID, p_cb->pairing_bda);
@@ -929,7 +932,7 @@ void smp_remove_fixed_channel(tSMP_CB* p_cb) {
  *
  ******************************************************************************/
 void smp_reset_control_value(tSMP_CB* p_cb) {
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("reset smp_cb");
 
   alarm_cancel(p_cb->smp_rsp_timer_ent);
   p_cb->flags = 0;
@@ -1028,8 +1031,7 @@ bool smp_command_has_invalid_length(tSMP_CB* p_cb) {
 
   if ((cmd_code > (SMP_OPCODE_MAX + 1 /* for SMP_OPCODE_PAIR_COMMITM */)) ||
       (cmd_code < SMP_OPCODE_MIN)) {
-    LOG_WARN("%s: Received command with RESERVED code 0x%02x", __func__,
-             cmd_code);
+    LOG_WARN("Received command with RESERVED code 0x%02x", cmd_code);
     return true;
   }
 
@@ -1057,19 +1059,17 @@ bool smp_command_has_invalid_parameters(tSMP_CB* p_cb) {
 
   if ((cmd_code > (SMP_OPCODE_MAX + 1 /* for SMP_OPCODE_PAIR_COMMITM */)) ||
       (cmd_code < SMP_OPCODE_MIN)) {
-    LOG_WARN("%s: Received command with RESERVED code 0x%02x", __func__,
-             cmd_code);
+    LOG_WARN("Received command with RESERVED code 0x%02x", cmd_code);
     return true;
   }
 
   if (!(*smp_cmd_len_is_valid[cmd_code])(p_cb)) {
-    LOG_WARN("%s: Command length not valid for cmd_code 0x%02x", __func__,
-             cmd_code);
+    LOG_WARN("Command length not valid for cmd_code 0x%02x", cmd_code);
     return true;
   }
 
   if (!(*smp_cmd_param_ranges_are_valid[cmd_code])(p_cb)) {
-    LOG_WARN("%s: Parameter ranges not valid code 0x%02x", __func__, cmd_code);
+    LOG_WARN("Parameter ranges not valid code 0x%02x", cmd_code);
     return true;
   }
 
@@ -1090,7 +1090,7 @@ bool smp_command_has_invalid_parameters(tSMP_CB* p_cb) {
 bool smp_command_has_valid_fixed_length(tSMP_CB* p_cb) {
   uint8_t cmd_code = p_cb->rcvd_cmd_code;
 
-  LOG_VERBOSE("%s for cmd code 0x%02x", __func__, cmd_code);
+  LOG_VERBOSE("cmd code 0x%02x", cmd_code);
 
   if (p_cb->rcvd_cmd_len != smp_cmd_size_per_spec[cmd_code]) {
     LOG_WARN(
@@ -1125,7 +1125,7 @@ bool smp_pairing_request_response_parameters_are_valid(tSMP_CB* p_cb) {
       p_cb->peer_auth_req & 0x03;  // 0x03 is gen bond with appropriate mask
   uint8_t enc_size = p_cb->peer_enc_size;
 
-  LOG_VERBOSE("%s for cmd code 0x%02x", __func__, p_cb->rcvd_cmd_code);
+  LOG_VERBOSE("cmd code 0x%02x", p_cb->rcvd_cmd_code);
 
   if (io_caps >= BTM_IO_CAP_MAX) {
     LOG_WARN(
@@ -1175,7 +1175,7 @@ bool smp_pairing_request_response_parameters_are_valid(tSMP_CB* p_cb) {
 bool smp_pairing_keypress_notification_is_valid(tSMP_CB* p_cb) {
   tSMP_SC_KEY_TYPE keypress_notification = p_cb->peer_keypress_notification;
 
-  LOG_VERBOSE("%s for cmd code 0x%02x", __func__, p_cb->rcvd_cmd_code);
+  LOG_VERBOSE("cmd code 0x%02x", p_cb->rcvd_cmd_code);
 
   if (keypress_notification >= SMP_SC_KEY_OUT_OF_RANGE) {
     LOG_WARN(
@@ -1225,7 +1225,7 @@ void smp_reject_unexpected_pairing_command(const RawAddress& bd_addr) {
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + SMP_PAIR_FAIL_SIZE +
                                       L2CAP_MIN_OFFSET);
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("bd_addr:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
   UINT8_TO_STREAM(p, SMP_OPCODE_PAIRING_FAILED);
@@ -1258,14 +1258,13 @@ tSMP_ASSO_MODEL smp_select_association_model(tSMP_CB* p_cb) {
   tSMP_ASSO_MODEL model = SMP_MODEL_OUT_OF_RANGE;
   p_cb->le_secure_connections_mode_is_used = false;
 
-  LOG_VERBOSE("%s", __func__);
-  LOG_VERBOSE("%s p_cb->peer_io_caps = %d p_cb->local_io_capability = %d",
-              __func__, p_cb->peer_io_caps, p_cb->local_io_capability);
-  LOG_VERBOSE("%s p_cb->peer_oob_flag = %d p_cb->loc_oob_flag = %d", __func__,
+  LOG_VERBOSE("p_cb->peer_io_caps = %d p_cb->local_io_capability = %d",
+              p_cb->peer_io_caps, p_cb->local_io_capability);
+  LOG_VERBOSE("p_cb->peer_oob_flag = %d p_cb->loc_oob_flag = %d",
               p_cb->peer_oob_flag, p_cb->loc_oob_flag);
-  LOG_VERBOSE("%s p_cb->peer_auth_req = 0x%02x p_cb->loc_auth_req = 0x%02x",
-              __func__, p_cb->peer_auth_req, p_cb->loc_auth_req);
-  LOG_VERBOSE("%s p_cb->secure_connections_only_mode_required = %s", __func__,
+  LOG_VERBOSE("p_cb->peer_auth_req = 0x%02x p_cb->loc_auth_req = 0x%02x",
+              p_cb->peer_auth_req, p_cb->loc_auth_req);
+  LOG_VERBOSE("p_cb->secure_connections_only_mode_required = %s",
               p_cb->secure_connections_only_mode_required ? "true" : "false");
 
   if ((p_cb->peer_auth_req & SMP_SC_SUPPORT_BIT) &&
@@ -1300,7 +1299,7 @@ tSMP_ASSO_MODEL smp_select_association_model(tSMP_CB* p_cb) {
 tSMP_ASSO_MODEL smp_select_legacy_association_model(tSMP_CB* p_cb) {
   tSMP_ASSO_MODEL model = SMP_MODEL_OUT_OF_RANGE;
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
   /* if OOB data is present on both devices, then use OOB association model */
   if (p_cb->peer_oob_flag == SMP_OOB_PRESENT &&
       p_cb->loc_oob_flag == SMP_OOB_PRESENT)
@@ -1337,7 +1336,7 @@ tSMP_ASSO_MODEL smp_select_legacy_association_model(tSMP_CB* p_cb) {
 tSMP_ASSO_MODEL smp_select_association_model_secure_connections(tSMP_CB* p_cb) {
   tSMP_ASSO_MODEL model = SMP_MODEL_OUT_OF_RANGE;
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
   /* if OOB data is present on at least one device, then use OOB association
    * model */
   if (p_cb->peer_oob_flag == SMP_OOB_PRESENT ||
@@ -1381,10 +1380,9 @@ uint8_t smp_calculate_random_input(uint8_t* random, uint8_t round) {
   uint8_t j = round % 8;
   uint8_t ri;
 
-  LOG_VERBOSE("random: 0x%02x, round: %d, i: %d, j: %d", random[i], round, i,
-              j);
   ri = ((random[i] >> j) & 1) | 0x80;
-  LOG_VERBOSE("%s ri=0x%02x", __func__, ri);
+  LOG_VERBOSE("random:0x%02x, round:%d, i:%d, j:%d, ri:0x%02x", random[i],
+              round, i, j, ri);
   return ri;
 }
 
@@ -1398,7 +1396,7 @@ uint8_t smp_calculate_random_input(uint8_t* random, uint8_t round) {
  *
  ******************************************************************************/
 void smp_collect_local_io_capabilities(uint8_t* iocap, tSMP_CB* p_cb) {
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   iocap[0] = p_cb->local_io_capability;
   iocap[1] = p_cb->loc_oob_flag;
@@ -1415,7 +1413,7 @@ void smp_collect_local_io_capabilities(uint8_t* iocap, tSMP_CB* p_cb) {
  *
  ******************************************************************************/
 void smp_collect_peer_io_capabilities(uint8_t* iocap, tSMP_CB* p_cb) {
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   iocap[0] = p_cb->peer_io_caps;
   iocap[1] = p_cb->peer_oob_flag;
@@ -1437,7 +1435,7 @@ void smp_collect_local_ble_address(uint8_t* le_addr, tSMP_CB* p_cb) {
   RawAddress bda;
   uint8_t* p = le_addr;
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   BTM_ReadConnectionAddr(p_cb->pairing_bda, bda, &addr_type, true);
   BDADDR_TO_STREAM(p, bda);
@@ -1459,7 +1457,7 @@ void smp_collect_peer_ble_address(uint8_t* le_addr, tSMP_CB* p_cb) {
   RawAddress bda;
   uint8_t* p = le_addr;
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   if (!BTM_ReadRemoteConnectionAddr(p_cb->pairing_bda, bda, &addr_type, true)) {
     LOG_ERROR("can not collect peer le addr information for unknown device");
@@ -1482,18 +1480,17 @@ void smp_collect_peer_ble_address(uint8_t* le_addr, tSMP_CB* p_cb) {
  *
  ******************************************************************************/
 bool smp_check_commitment(tSMP_CB* p_cb) {
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   Octet16 expected = smp_calculate_peer_commitment(p_cb);
   print128(expected, (const uint8_t*)"calculated peer commitment");
   print128(p_cb->remote_commitment, (const uint8_t*)"received peer commitment");
 
   if (memcmp(p_cb->remote_commitment.data(), expected.data(), OCTET16_LEN)) {
-    LOG_WARN("%s: Commitment check fails", __func__);
+    LOG_WARN("Commitment check fails");
     return false;
   }
 
-  LOG_VERBOSE("%s: Commitment check succeeds", __func__);
   return true;
 }
 
@@ -1508,7 +1505,7 @@ bool smp_check_commitment(tSMP_CB* p_cb) {
  *
  ******************************************************************************/
 void smp_save_secure_connections_long_term_key(tSMP_CB* p_cb) {
-  LOG_VERBOSE("%s-Save LTK as local LTK key", __func__);
+  LOG_VERBOSE("Save LTK as local and peer key");
   tBTM_LE_KEY_VALUE lle_key = {
       .lenc_key =
           {
@@ -1520,7 +1517,6 @@ void smp_save_secure_connections_long_term_key(tSMP_CB* p_cb) {
   };
   btm_sec_save_le_key(p_cb->pairing_bda, BTM_LE_KEY_LENC, &lle_key, true);
 
-  LOG_VERBOSE("%s-Save LTK as peer LTK key", __func__);
   tBTM_LE_KEY_VALUE ple_key = {
       .penc_key =
           {
@@ -1543,7 +1539,7 @@ void smp_calculate_f5_mackey_and_long_term_key(tSMP_CB* p_cb) {
   Octet16 na;
   Octet16 nb;
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   if (p_cb->role == HCI_ROLE_CENTRAL) {
     smp_collect_local_ble_address(a, p_cb);
@@ -1558,8 +1554,6 @@ void smp_calculate_f5_mackey_and_long_term_key(tSMP_CB* p_cb) {
   }
 
   crypto_toolbox::f5(p_cb->dhkey, na, nb, a, b, &p_cb->mac_key, &p_cb->ltk);
-
-  LOG_VERBOSE("%s is completed", __func__);
 }
 
 /*******************************************************************************
@@ -1575,7 +1569,7 @@ void smp_calculate_f5_mackey_and_long_term_key(tSMP_CB* p_cb) {
 bool smp_request_oob_data(tSMP_CB* p_cb) {
   tSMP_OOB_DATA_TYPE req_oob_type = SMP_OOB_INVALID_TYPE;
 
-  LOG_VERBOSE("%s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   if (p_cb->peer_oob_flag == SMP_OOB_PRESENT &&
       p_cb->loc_oob_flag == SMP_OOB_PRESENT) {
@@ -1588,7 +1582,7 @@ bool smp_request_oob_data(tSMP_CB* p_cb) {
     req_oob_type = SMP_OOB_PEER;
   }
 
-  LOG_VERBOSE("req_oob_type = %d", req_oob_type);
+  LOG_VERBOSE("req_oob_type=%d", req_oob_type);
 
   if (req_oob_type == SMP_OOB_INVALID_TYPE) return false;
 
@@ -1605,10 +1599,11 @@ void print128(const Octet16& x, const uint8_t* key_name) {
   if (VLOG_IS_ON(2) && DLOG_IS_ON(INFO)) {
     uint8_t* p = (uint8_t*)x.data();
 
-    VLOG(1) << key_name << " (MSB ~ LSB) = ";
+    LOG_INFO("%s(MSB~LSB):", key_name);
     for (int i = 0; i < 4; i++) {
-      VLOG(1) << +p[OCTET16_LEN - i * 4 - 1] << +p[OCTET16_LEN - i * 4 - 2]
-              << +p[OCTET16_LEN - i * 4 - 3] << +p[OCTET16_LEN - i * 4 - 4];
+      LOG_INFO("%02x:%02x:%02x:%02x", p[OCTET16_LEN - i * 4 - 1],
+               p[OCTET16_LEN - i * 4 - 2], p[OCTET16_LEN - i * 4 - 3],
+               p[OCTET16_LEN - i * 4 - 4]);
     }
   }
 }
