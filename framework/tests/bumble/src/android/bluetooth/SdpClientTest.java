@@ -37,11 +37,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.ArrayList;
-import java.util.UUID;
-
 import pandora.HostProto.ConnectRequest;
 import pandora.HostProto.WaitConnectionRequest;
+
+import java.util.ArrayList;
+import java.util.UUID;
 
 /** Test cases for {@link ServiceDiscoveryManager}. */
 @RunWith(AndroidJUnit4.class)

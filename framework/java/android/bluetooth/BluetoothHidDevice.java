@@ -78,6 +78,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
      *     BluetoothHidDeviceAppQosSettings, Executor, Callback)
      */
     public static final byte SUBCLASS1_NONE = (byte) 0x00;
+
     /**
      * Constant representing keyboard subclass.
      *
@@ -85,6 +86,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
      *     BluetoothHidDeviceAppQosSettings, Executor, Callback)
      */
     public static final byte SUBCLASS1_KEYBOARD = (byte) 0x40;
+
     /**
      * Constant representing mouse subclass.
      *
@@ -92,6 +94,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
      *     BluetoothHidDeviceAppQosSettings, Executor, Callback)
      */
     public static final byte SUBCLASS1_MOUSE = (byte) 0x80;
+
     /**
      * Constant representing combo keyboard and mouse subclass.
      *
@@ -107,6 +110,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
      *     BluetoothHidDeviceAppQosSettings, Executor, Callback)
      */
     public static final byte SUBCLASS2_UNCATEGORIZED = (byte) 0x00;
+
     /**
      * Constant representing joystick subclass.
      *
@@ -114,6 +118,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
      *     BluetoothHidDeviceAppQosSettings, Executor, Callback)
      */
     public static final byte SUBCLASS2_JOYSTICK = (byte) 0x01;
+
     /**
      * Constant representing gamepad subclass.
      *
@@ -121,6 +126,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
      *     BluetoothHidDeviceAppQosSettings, Executor, Callback)
      */
     public static final byte SUBCLASS2_GAMEPAD = (byte) 0x02;
+
     /**
      * Constant representing remote control subclass.
      *
@@ -128,6 +134,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
      *     BluetoothHidDeviceAppQosSettings, Executor, Callback)
      */
     public static final byte SUBCLASS2_REMOTE_CONTROL = (byte) 0x03;
+
     /**
      * Constant representing sensing device subclass.
      *
@@ -135,6 +142,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
      *     BluetoothHidDeviceAppQosSettings, Executor, Callback)
      */
     public static final byte SUBCLASS2_SENSING_DEVICE = (byte) 0x04;
+
     /**
      * Constant representing digitizer tablet subclass.
      *
@@ -142,6 +150,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
      *     BluetoothHidDeviceAppQosSettings, Executor, Callback)
      */
     public static final byte SUBCLASS2_DIGITIZER_TABLET = (byte) 0x05;
+
     /**
      * Constant representing card reader subclass.
      *
@@ -158,6 +167,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
      * @see Callback#onInterruptData(BluetoothDevice, byte, byte[])
      */
     public static final byte REPORT_TYPE_INPUT = (byte) 1;
+
     /**
      * Constant representing HID Output Report type.
      *
@@ -166,6 +176,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
      * @see Callback#onInterruptData(BluetoothDevice, byte, byte[])
      */
     public static final byte REPORT_TYPE_OUTPUT = (byte) 2;
+
     /**
      * Constant representing HID Feature Report type.
      *
@@ -181,30 +192,35 @@ public final class BluetoothHidDevice implements BluetoothProfile {
      * @see Callback#onSetReport(BluetoothDevice, byte, byte, byte[])
      */
     public static final byte ERROR_RSP_SUCCESS = (byte) 0;
+
     /**
      * Constant representing error response for Set Report due to "not ready".
      *
      * @see Callback#onSetReport(BluetoothDevice, byte, byte, byte[])
      */
     public static final byte ERROR_RSP_NOT_READY = (byte) 1;
+
     /**
      * Constant representing error response for Set Report due to "invalid report ID".
      *
      * @see Callback#onSetReport(BluetoothDevice, byte, byte, byte[])
      */
     public static final byte ERROR_RSP_INVALID_RPT_ID = (byte) 2;
+
     /**
      * Constant representing error response for Set Report due to "unsupported request".
      *
      * @see Callback#onSetReport(BluetoothDevice, byte, byte, byte[])
      */
     public static final byte ERROR_RSP_UNSUPPORTED_REQ = (byte) 3;
+
     /**
      * Constant representing error response for Set Report due to "invalid parameter".
      *
      * @see Callback#onSetReport(BluetoothDevice, byte, byte, byte[])
      */
     public static final byte ERROR_RSP_INVALID_PARAM = (byte) 4;
+
     /**
      * Constant representing error response for Set Report with unknown reason.
      *
@@ -219,6 +235,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
      * @see Callback#onSetProtocol(BluetoothDevice, byte)
      */
     public static final byte PROTOCOL_BOOT_MODE = (byte) 0;
+
     /**
      * Constant representing report protocol mode used set by host. Default is always {@link
      * #PROTOCOL_REPORT_MODE} unless notified otherwise.
@@ -713,8 +730,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
     /**
      * Gets the application name of the current HidDeviceService user.
      *
-     * @return the current user name, or empty string if cannot get the name
-     * {@hide}
+     * @return the current user name, or empty string if cannot get the name {@hide}
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -793,38 +809,38 @@ public final class BluetoothHidDevice implements BluetoothProfile {
 
     /**
      * Connects Hid Device if connectionPolicy is {@link BluetoothProfile#CONNECTION_POLICY_ALLOWED}
-     * and disconnects Hid device if connectionPolicy is
-     * {@link BluetoothProfile#CONNECTION_POLICY_FORBIDDEN}.
+     * and disconnects Hid device if connectionPolicy is {@link
+     * BluetoothProfile#CONNECTION_POLICY_FORBIDDEN}.
      *
-     * <p> The device should already be paired.
-     * Connection policy can be one of:
-     * {@link BluetoothProfile#CONNECTION_POLICY_ALLOWED},
-     * {@link BluetoothProfile#CONNECTION_POLICY_FORBIDDEN},
-     * {@link BluetoothProfile#CONNECTION_POLICY_UNKNOWN}
+     * <p>The device should already be paired. Connection policy can be one of: {@link
+     * BluetoothProfile#CONNECTION_POLICY_ALLOWED}, {@link
+     * BluetoothProfile#CONNECTION_POLICY_FORBIDDEN}, {@link
+     * BluetoothProfile#CONNECTION_POLICY_UNKNOWN}
      *
      * @param device Paired bluetooth device
      * @param connectionPolicy determines whether hid device should be connected or disconnected
      * @return true if hid device is connected or disconnected, false otherwise
-     *
      * @hide
      */
     @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
-    public boolean setConnectionPolicy(@NonNull BluetoothDevice device,
-            @ConnectionPolicy int connectionPolicy) {
+    @RequiresPermission(
+            allOf = {
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            })
+    public boolean setConnectionPolicy(
+            @NonNull BluetoothDevice device, @ConnectionPolicy int connectionPolicy) {
         if (DBG) log("setConnectionPolicy(" + device + ", " + connectionPolicy + ")");
         final IBluetoothHidDevice service = getService();
         final boolean defaultValue = false;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else if (isEnabled() && isValidDevice(device)
+        } else if (isEnabled()
+                && isValidDevice(device)
                 && (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN
-                    || connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
+                        || connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
             try {
                 final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
                 service.setConnectionPolicy(device, connectionPolicy, mAttributionSource, recv);

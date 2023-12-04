@@ -37,12 +37,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import pandora.HostProto.ScanRequest;
+import pandora.HostProto.ScanningResponse;
+
 import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-
-import pandora.HostProto.ScanRequest;
-import pandora.HostProto.ScanningResponse;
 
 /** Test cases for {@link AdvertiseManager}. */
 @RunWith(AndroidJUnit4.class)

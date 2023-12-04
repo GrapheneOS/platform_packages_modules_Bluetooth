@@ -21,10 +21,9 @@ import android.test.InstrumentationTestCase;
 
 /**
  * Instrumentation test case for stress test involving rebooting the device.
- * <p>
- * This test case tests that bluetooth is enabled after a device reboot. Because
- * the device will reboot, the instrumentation must be driven by a script on the
- * host side.
+ *
+ * <p>This test case tests that bluetooth is enabled after a device reboot. Because the device will
+ * reboot, the instrumentation must be driven by a script on the host side.
  */
 public class BluetoothRebootStressTest extends InstrumentationTestCase {
     private static final String TAG = "BluetoothRebootStressTest";
@@ -47,18 +46,16 @@ public class BluetoothRebootStressTest extends InstrumentationTestCase {
         mTestUtils.close();
     }
 
-    /**
-     * Test method used to start the test by turning bluetooth on.
-     */
+    /** Test method used to start the test by turning bluetooth on. */
     public void testStart() {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         mTestUtils.enable(adapter);
     }
 
     /**
-     * Test method used in the middle iterations of the test to check if
-     * bluetooth is on. Does not toggle bluetooth after the check. Assumes that
-     * bluetooth has been turned on by {@code #testStart()}
+     * Test method used in the middle iterations of the test to check if bluetooth is on. Does not
+     * toggle bluetooth after the check. Assumes that bluetooth has been turned on by {@code
+     * #testStart()}
      */
     public void testMiddleNoToggle() {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
@@ -67,9 +64,8 @@ public class BluetoothRebootStressTest extends InstrumentationTestCase {
     }
 
     /**
-     * Test method used in the middle iterations of the test to check if
-     * bluetooth is on. Toggles bluetooth after the check. Assumes that
-     * bluetooth has been turned on by {@code #testStart()}
+     * Test method used in the middle iterations of the test to check if bluetooth is on. Toggles
+     * bluetooth after the check. Assumes that bluetooth has been turned on by {@code #testStart()}
      */
     public void testMiddleToggle() {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
@@ -81,8 +77,8 @@ public class BluetoothRebootStressTest extends InstrumentationTestCase {
     }
 
     /**
-     * Test method used in the stop the test by turning bluetooth off. Assumes
-     * that bluetooth has been turned on by {@code #testStart()}
+     * Test method used in the stop the test by turning bluetooth off. Assumes that bluetooth has
+     * been turned on by {@code #testStart()}
      */
     public void testStop() {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();

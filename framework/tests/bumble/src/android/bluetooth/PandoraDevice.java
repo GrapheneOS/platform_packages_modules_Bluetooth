@@ -27,13 +27,13 @@ import io.grpc.okhttp.OkHttpChannelBuilder;
 
 import org.junit.rules.ExternalResource;
 
-import java.util.concurrent.TimeUnit;
-
 import pandora.DckGrpc;
 import pandora.GATTGrpc;
 import pandora.HostGrpc;
 import pandora.HostProto;
 import pandora.SecurityGrpc;
+
+import java.util.concurrent.TimeUnit;
 
 public final class PandoraDevice extends ExternalResource {
     private static final String TAG = PandoraDevice.class.getSimpleName();
