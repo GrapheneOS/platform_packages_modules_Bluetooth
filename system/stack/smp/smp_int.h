@@ -24,12 +24,10 @@
 #ifndef SMP_INT_H
 #define SMP_INT_H
 
-#include "btm_api.h"
-#include "btm_ble_api.h"
-#include "crypto_toolbox/crypto_toolbox.h"
-#include "smp_api.h"
+#include "osi/include/alarm.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/smp_api_types.h"
 #include "types/raw_address.h"
 
 typedef enum : uint16_t {
