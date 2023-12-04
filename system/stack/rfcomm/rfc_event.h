@@ -18,6 +18,8 @@
 
 #include <cstdint>
 
+#include "macros.h"
+
 /*
  * Events that can be received by multiplexer as well as port state machines
  */
@@ -79,10 +81,6 @@ enum tRFC_PORT_EVENT : uint16_t {
   RFC_PORT_EVENT_SEC_COMPLETE = 15,
 };
 
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-
 // Common events for both port and mux
 inline std::string rfcomm_event_text(const tRFC_EVENT& event) {
   switch (event) {
@@ -138,5 +136,3 @@ inline std::string rfcomm_port_event_text(const tRFC_PORT_EVENT& event) {
       return std::string("UNKNOWN[") + std::to_string(event) + std::string("]");
   }
 }
-
-#undef CASE_RETURN_TEXT

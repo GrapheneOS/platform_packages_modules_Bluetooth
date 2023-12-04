@@ -22,6 +22,8 @@
 
 #include <cstdint>
 
+#include "macros.h"
+
 /*****************************************************************************
  *  Constants
  ****************************************************************************/
@@ -54,12 +56,6 @@ typedef enum : uint16_t {
 using tSDP_RESULT = tSDP_STATUS;
 using tSDP_REASON = tSDP_STATUS;
 
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif  // CASE_RETURN_TEXT
-
 inline std::string sdp_status_text(const tSDP_STATUS& status) {
   switch (status) {
     CASE_RETURN_TEXT(SDP_SUCCESS);
@@ -89,5 +85,3 @@ inline std::string sdp_status_text(const tSDP_STATUS& status) {
   }
 }
 const auto sdp_result_text = sdp_status_text;
-
-#undef CASE_RETURN_TEXT
