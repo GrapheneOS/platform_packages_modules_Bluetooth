@@ -23,7 +23,7 @@
  ******************************************************************************/
 
 #include "p_256_multprecision.h"
-#include <string.h>
+
 #include "p_256_ecc_pp.h"
 
 void multiprecision_init(uint32_t* c) {

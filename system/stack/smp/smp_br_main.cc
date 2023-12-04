@@ -16,11 +16,9 @@
  *
  ******************************************************************************/
 
-#include "bt_target.h"
+#define LOG_TAG "smp"
 
-#include <string.h>
-
-#include "osi/include/log.h"
+#include "os/log.h"
 #include "smp_int.h"
 #include "types/hci_role.h"
 

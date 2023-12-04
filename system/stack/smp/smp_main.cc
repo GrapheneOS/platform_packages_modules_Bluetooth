@@ -16,11 +16,9 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bluetooth"
+#define LOG_TAG "smp"
 
-#include <string.h>
-
-#include "osi/include/log.h"
+#include "os/log.h"
 #include "smp_int.h"
 #include "stack/include/btm_log_history.h"
 
