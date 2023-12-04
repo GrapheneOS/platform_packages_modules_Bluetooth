@@ -33,6 +33,7 @@
 #include "btm_ble_api.h"
 #include "common/init_flags.h"
 #include "gatt_api.h"
+#include "macros.h"
 #include "osi/include/fixed_queue.h"
 #include "stack/include/bt_hdr.h"
 #include "types/bluetooth/uuid.h"
@@ -56,10 +57,6 @@ typedef enum : uint8_t {
   GATT_SEC_ENC_PENDING = 6,     /* wait for link encryption pending */
 } tGATT_SEC_ACTION;
 
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-
 inline std::string gatt_security_action_text(const tGATT_SEC_ACTION& action) {
   switch (action) {
     CASE_RETURN_TEXT(GATT_SEC_NONE);
@@ -73,8 +70,6 @@ inline std::string gatt_security_action_text(const tGATT_SEC_ACTION& action) {
       return base::StringPrintf("UNKNOWN[%hhu]", action);
   }
 }
-
-#undef CASE_RETURN_TEXT
 
 #define GATT_INDEX_INVALID 0xff
 
@@ -246,10 +241,6 @@ typedef enum : uint8_t {
   GATT_CH_OPEN = 4,
 } tGATT_CH_STATE;
 
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-
 inline std::string gatt_channel_state_text(const tGATT_CH_STATE& state) {
   switch (state) {
     CASE_RETURN_TEXT(GATT_CH_CLOSE);
@@ -261,7 +252,6 @@ inline std::string gatt_channel_state_text(const tGATT_CH_STATE& state) {
       return base::StringPrintf("UNKNOWN[%hhu]", state);
   }
 }
-#undef CASE_RETURN_TEXT
 
 // If you change these values make sure to look at b/262219144 before.
 // Some platform rely on this to never changes

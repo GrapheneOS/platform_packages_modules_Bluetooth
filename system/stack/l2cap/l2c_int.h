@@ -37,6 +37,7 @@
 #include "l2cap_hci_link_interface.h"
 #include "l2cap_security_interface.h"
 #include "l2cdefs.h"
+#include "macros.h"
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/list.h"
@@ -86,10 +87,6 @@ typedef enum {
   CST_W4_L2CA_DISCONNECT_RSP   /* Waiting for upper layer disc rsp */
 } tL2C_CHNL_STATE;
 
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-
 inline std::string channel_state_text(const tL2C_CHNL_STATE& state) {
   switch (state) {
     CASE_RETURN_TEXT(CST_CLOSED);
@@ -105,7 +102,6 @@ inline std::string channel_state_text(const tL2C_CHNL_STATE& state) {
       return base::StringPrintf("UNKNOWN[%d]", state);
   }
 }
-#undef CASE_RETURN_TEXT
 
 /* Define the possible L2CAP link states
 */

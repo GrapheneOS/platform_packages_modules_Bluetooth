@@ -25,14 +25,14 @@
 #ifndef BTA_AG_API_H
 #define BTA_AG_API_H
 
-#include "bta_api.h"
-#include "bta_hfp_api.h"
-
 #include <string>
 #include <vector>
 
 #include "bta/include/bta_ag_api.h"
 #include "bta/include/bta_api.h"
+#include "bta_api.h"
+#include "bta_hfp_api.h"
+#include "macros.h"
 #include "types/raw_address.h"
 
 /*****************************************************************************
@@ -107,10 +107,6 @@ typedef uint8_t tBTA_AG_STATUS;
 #endif
 
 #define BTA_AG_HANDLE_SCO_NO_CHANGE 0xFFFF
-
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
 
 typedef enum : uint8_t {
   /* AG result codes used with BTA_AgResult */

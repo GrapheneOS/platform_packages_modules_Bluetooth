@@ -31,6 +31,7 @@
 #include <string>
 
 #include "bt_target.h"  // Must be first to define build configuration
+#include "macros.h"
 #include "osi/include/alarm.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/hci_error_code.h"
@@ -104,12 +105,6 @@ typedef enum : uint8_t {
   BTA_ID_MAX = (44 + BTA_DM_NUM_JV_ID),
 } tBTA_SYS_ID;
 
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif
-
 inline std::string BtaIdSysText(const tBTA_SYS_ID& sys_id) {
   switch (sys_id) {
     CASE_RETURN_TEXT(BTA_ID_SYS);
@@ -150,8 +145,6 @@ inline std::string BtaIdSysText(const tBTA_SYS_ID& sys_id) {
       return base::StringPrintf("Unknown[%hhu]", sys_id);
   }
 }
-
-#undef CASE_RETURN_TEXT
 
 typedef enum : uint8_t {
   BTA_SYS_CONN_OPEN = 0x00,
