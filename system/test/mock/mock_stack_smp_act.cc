@@ -42,7 +42,6 @@ struct smp_send_pair_fail smp_send_pair_fail;
 struct smp_send_pair_req smp_send_pair_req;
 struct smp_send_pair_rsp smp_send_pair_rsp;
 struct smp_send_confirm smp_send_confirm;
-struct smp_send_init smp_send_init;
 struct smp_send_rand smp_send_rand;
 struct smp_send_pair_public_key smp_send_pair_public_key;
 struct smp_send_commitment smp_send_commitment;
@@ -137,10 +136,6 @@ void smp_send_pair_rsp(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 void smp_send_confirm(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   inc_func_call_count(__func__);
   test::mock::stack_smp_act::smp_send_confirm(p_cb, p_data);
-}
-void smp_send_init(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
-  inc_func_call_count(__func__);
-  test::mock::stack_smp_act::smp_send_init(p_cb, p_data);
 }
 void smp_send_rand(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   inc_func_call_count(__func__);
