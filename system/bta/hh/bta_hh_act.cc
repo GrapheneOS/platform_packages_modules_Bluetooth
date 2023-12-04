@@ -899,7 +899,6 @@ void bta_hh_open_failure(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
  *
  ******************************************************************************/
 void bta_hh_close_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
-  tBTA_HH_CONN conn_dat;
   tBTA_HH_CBDATA disc_dat = {BTA_HH_OK, 0};
 
   uint32_t reason = p_data->hid_cback.data; /* Reason for closing (32-bit) */
@@ -924,46 +923,22 @@ void bta_hh_close_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
                                     hid_status_text(hid_status).c_str(),
                                     overlay_fail.c_str()));
 
-  /* Check reason for closing */
-  if ((reason & (HID_L2CAP_CONN_FAIL |
-                 HID_L2CAP_REQ_FAIL)) || /* Failure to initialize connection
-                                            (page timeout or l2cap error) */
-      (reason ==
-       HID_ERR_AUTH_FAILED) || /* Authenication error (while initiating) */
-      (reason == HID_ERR_L2CAP_FAILED)) /* Failure creating l2cap connection */
-  {
-    /* Failure in opening connection */
-    conn_dat.handle = p_cb->hid_handle;
-    conn_dat.status =
-        (reason == HID_ERR_AUTH_FAILED) ? BTA_HH_ERR_AUTH_FAILED : BTA_HH_ERR;
-    conn_dat.bda = p_cb->addr;
-    HID_HostCloseDev(p_cb->hid_handle);
+  /* inform role manager */
+  bta_sys_conn_close(BTA_ID_HH, p_cb->app_id, p_cb->addr);
+  /* update total conn number */
+  bta_hh_cb.cnt_num--;
 
-    /* Report OPEN fail event */
-    (*bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH*)&conn_dat);
+  if (disc_dat.status) disc_dat.status = BTA_HH_ERR;
 
-    bta_hh_trace_dev_db();
-    return;
+  (*bta_hh_cb.p_cback)(event, (tBTA_HH*)&disc_dat);
+
+  /* if virtually unplug, remove device */
+  if (p_cb->vp) {
+    HID_HostRemoveDev(p_cb->hid_handle);
+    bta_hh_clean_up_kdev(p_cb);
   }
-  /* otherwise report CLOSE/VC_UNPLUG event */
-  else {
-    /* inform role manager */
-    bta_sys_conn_close(BTA_ID_HH, p_cb->app_id, p_cb->addr);
-    /* update total conn number */
-    bta_hh_cb.cnt_num--;
 
-    if (disc_dat.status) disc_dat.status = BTA_HH_ERR;
-
-    (*bta_hh_cb.p_cback)(event, (tBTA_HH*)&disc_dat);
-
-    /* if virtually unplug, remove device */
-    if (p_cb->vp) {
-      HID_HostRemoveDev(p_cb->hid_handle);
-      bta_hh_clean_up_kdev(p_cb);
-    }
-
-    bta_hh_trace_dev_db();
-  }
+  bta_hh_trace_dev_db();
 
   /* clean up control block, but retain SDP info and device handle */
   p_cb->vp = false;
