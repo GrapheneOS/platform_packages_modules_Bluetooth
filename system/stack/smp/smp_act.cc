@@ -316,15 +316,6 @@ void smp_send_confirm(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 }
 
 /*******************************************************************************
- * Function     smp_send_init
- * Description  process pairing initializer to peripheral device
- ******************************************************************************/
-void smp_send_init(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
-  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
-  smp_send_cmd(SMP_OPCODE_INIT, p_cb);
-}
-
-/*******************************************************************************
  * Function     smp_send_rand
  * Description  send pairing random to the peer
  ******************************************************************************/
