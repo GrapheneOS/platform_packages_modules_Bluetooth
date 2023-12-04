@@ -64,8 +64,6 @@ typedef enum : uint8_t {
 #define SMP_WAIT_FOR_RSP_TIMEOUT_MS (30 * 1000)
 #define SMP_DELAYED_AUTH_TIMEOUT_MS 500
 
-#define SMP_OPCODE_INIT 0x04
-
 /* SMP command code */
 typedef enum : uint8_t {
   SMP_OPCODE_PAIRING_REQ = 0x01,
