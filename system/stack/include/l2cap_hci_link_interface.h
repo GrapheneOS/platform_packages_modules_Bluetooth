@@ -20,6 +20,7 @@
 #include <cstdint>
 
 #include "stack/include/hci_error_code.h"
+#include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
 // This header contains functions for HCI-LinkManagement to invoke
@@ -32,10 +33,6 @@ void l2c_link_role_changed(const RawAddress* bd_addr, uint8_t new_role,
 bool l2cble_conn_comp(uint16_t handle, uint8_t role, const RawAddress& bda,
                       tBLE_ADDR_TYPE type, uint16_t conn_interval,
                       uint16_t conn_latency, uint16_t conn_timeout);
-
-bool l2cble_conn_comp_from_address_with_type(
-    uint16_t handle, uint8_t role, const tBLE_BD_ADDR& address_with_type,
-    uint16_t conn_interval, uint16_t conn_latency, uint16_t conn_timeout);
 
 void l2cble_process_conn_update_evt(uint16_t handle, uint8_t status,
                                     uint16_t interval, uint16_t latency,
