@@ -23,6 +23,7 @@
  ******************************************************************************/
 #define LOG_TAG "smp"
 
+#include <cstdint>
 #include <cstring>
 
 #include "crypto_toolbox/crypto_toolbox.h"
@@ -30,6 +31,7 @@
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
+#include "p_256_ecc_pp.h"
 #include "smp_int.h"
 #include "stack/btm/btm_ble_sec.h"
 #include "stack/btm/btm_dev.h"
@@ -42,6 +44,7 @@
 #include "stack/include/l2c_api.h"
 #include "stack/include/smp_status.h"
 #include "stack/include/stack_metrics_logging.h"
+#include "stack_config.h"
 #include "types/raw_address.h"
 
 #define SMP_PAIRING_REQ_SIZE 7
@@ -876,30 +879,52 @@ void smp_xor_128(Octet16* a, const Octet16& b) {
   }
 }
 
+void tSMP_CB::init(uint8_t security_mode) {
+  *this = {};
+
+  init_security_mode = security_mode;
+  smp_cb.smp_rsp_timer_ent = alarm_new("smp.smp_rsp_timer_ent");
+  smp_cb.delayed_auth_timer_ent = alarm_new("smp.delayed_auth_timer_ent");
+
+  LOG_VERBOSE("init_security_mode:%d", init_security_mode);
+
+  smp_l2cap_if_init();
+  /* initialization of P-256 parameters */
+  p_256_init_curve();
+
+  /* Initialize failure case for certification */
+  smp_cb.cert_failure = static_cast<tSMP_STATUS>(
+      stack_config_get_interface()->get_pts_smp_failure_case());
+  if (smp_cb.cert_failure)
+    LOG_ERROR("PTS FAILURE MODE IN EFFECT (CASE %d)", smp_cb.cert_failure);
+}
+
 /*******************************************************************************
  *
- * Function         smp_cb_cleanup
+ * Function         reset
  *
- * Description      Clean up SMP control block
+ * Description      reset SMP control block
  *
  * Returns          void
  *
  ******************************************************************************/
-void smp_cb_cleanup(tSMP_CB* p_cb) {
-  tSMP_CALLBACK* p_callback = p_cb->p_callback;
-  uint8_t init_security_mode = p_cb->init_security_mode;
-  alarm_t* smp_rsp_timer_ent = p_cb->smp_rsp_timer_ent;
-  alarm_t* delayed_auth_timer_ent = p_cb->delayed_auth_timer_ent;
+void tSMP_CB::reset() {
+  tSMP_CALLBACK* p_callback = this->p_callback;
+  uint8_t init_security_mode = this->init_security_mode;
+  alarm_t* smp_rsp_timer_ent = this->smp_rsp_timer_ent;
+  alarm_t* delayed_auth_timer_ent = this->delayed_auth_timer_ent;
 
-  LOG_VERBOSE("smp_cb_cleanup");
+  LOG_VERBOSE("resetting SMP_CB");
 
-  alarm_cancel(p_cb->smp_rsp_timer_ent);
-  alarm_cancel(p_cb->delayed_auth_timer_ent);
-  memset(p_cb, 0, sizeof(tSMP_CB));
-  p_cb->p_callback = p_callback;
-  p_cb->init_security_mode = init_security_mode;
-  p_cb->smp_rsp_timer_ent = smp_rsp_timer_ent;
-  p_cb->delayed_auth_timer_ent = delayed_auth_timer_ent;
+  alarm_cancel(this->smp_rsp_timer_ent);
+  alarm_cancel(this->delayed_auth_timer_ent);
+
+  init(init_security_mode);
+
+  this->p_callback = p_callback;
+  this->init_security_mode = init_security_mode;
+  this->smp_rsp_timer_ent = smp_rsp_timer_ent;
+  this->delayed_auth_timer_ent = delayed_auth_timer_ent;
 }
 
 /*******************************************************************************
@@ -945,7 +970,7 @@ void smp_reset_control_value(tSMP_CB* p_cb) {
 
   /* We can tell L2CAP to remove the fixed channel (if it has one) */
   smp_remove_fixed_channel(p_cb);
-  smp_cb_cleanup(p_cb);
+  p_cb->reset();
 }
 
 /*******************************************************************************
