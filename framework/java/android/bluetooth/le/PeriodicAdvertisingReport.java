@@ -33,7 +33,7 @@ public final class PeriodicAdvertisingReport implements Parcelable {
     public static final int DATA_COMPLETE = 0;
 
     /**
-     * The data returned is incomplete. The controller was unsuccessfull to receive all chained
+     * The data returned is incomplete. The controller was unsuccessful to receive all chained
      * packets, returning only partial data.
      */
     public static final int DATA_INCOMPLETE_TRUNCATED = 2;

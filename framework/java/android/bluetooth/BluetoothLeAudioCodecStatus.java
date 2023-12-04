@@ -50,8 +50,8 @@ public final class BluetoothLeAudioCodecStatus implements Parcelable {
     /**
      * Represents the codec status for a Bluetooth LE Audio source device.
      *
-     * @param inputCodecConfig the current input code configutration.
-     * @param outputCodecConfig the current output code configutration.
+     * @param inputCodecConfig the current input codec configuration.
+     * @param outputCodecConfig the current output codec configuration.
      * @param inputCodecsLocalCapabilities the local input codecs capabilities.
      * @param outputCodecsLocalCapabilities the local output codecs capabilities.
      * @param inputCodecsSelectableCapabilities the selectable input codecs capabilities.

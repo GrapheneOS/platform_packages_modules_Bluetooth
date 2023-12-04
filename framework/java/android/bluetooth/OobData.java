@@ -739,7 +739,7 @@ public final class OobData implements Parcelable {
     }
 
     /**
-     * @return Flags used to determing discoverable mode to use, BR/EDR Support, and Capability.
+     * @return Flags used to determining discoverable mode to use, BR/EDR Support, and Capability.
      *     <p>Possible LE Flags: {@link LE_FLAG_LIMITED_DISCOVERY_MODE} LE Limited Discoverable
      *     Mode. {@link LE_FLAG_GENERAL_DISCOVERY_MODE} LE General Discoverable Mode. {@link
      *     LE_FLAG_BREDR_NOT_SUPPORTED} BR/EDR Not Supported. Bit 37 of LMP Feature Mask

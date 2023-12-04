@@ -117,7 +117,7 @@ public final class DistanceMeasurementManager {
      * @param params parameters of this operation
      * @param executor Executor to run callback
      * @param callback callback to associate with the {@link DistanceMeasurementSession} that is
-     *     being started. The callback is registered by this function and unregisted when {@link
+     *     being started. The callback is registered by this function and unregistered when {@link
      *     DistanceMeasurementSession.Callback#onStartFail(int)} or {@link
      *     DistanceMeasurementSession .Callback#onStopped(DistanceMeasurementSession, int)}
      * @return a CancellationSignal that may be used to cancel the starting of the {@link

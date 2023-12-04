@@ -358,7 +358,7 @@ public final class AdvertisingSetParameters implements Parcelable {
         }
 
         /**
-         * Set whether advertiser address should be ommited from all packets. If this mode is used,
+         * Set whether advertiser address should be omitted from all packets. If this mode is used,
          * periodic advertising can't be enabled for this set.
          *
          * <p>This is used only if legacy mode is not used.

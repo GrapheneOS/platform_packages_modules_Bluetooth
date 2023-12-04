@@ -37,7 +37,7 @@ import java.util.UUID;
  */
 public class BluetoothGattCharacteristic implements Parcelable {
 
-    /** Characteristic proprty: Characteristic is broadcastable. */
+    /** Characteristic property: Characteristic is broadcastable. */
     public static final int PROPERTY_BROADCAST = 0x01;
 
     /** Characteristic property: Characteristic is readable. */
@@ -310,7 +310,7 @@ public class BluetoothGattCharacteristic implements Parcelable {
     }
 
     /**
-     * Get a descriptor by UUID and isntance id.
+     * Get a descriptor by UUID and instance id.
      *
      * @hide
      */
@@ -326,7 +326,7 @@ public class BluetoothGattCharacteristic implements Parcelable {
     /**
      * Returns the service this characteristic belongs to.
      *
-     * @return The asscociated service
+     * @return The associated service
      */
     public BluetoothGattService getService() {
         return mService;
@@ -470,7 +470,7 @@ public class BluetoothGattCharacteristic implements Parcelable {
      * Return the stored value of this characteristic.
      *
      * <p>The formatType parameter determines how the characteristic value is to be interpreted. For
-     * example, settting formatType to {@link #FORMAT_UINT16} specifies that the first two bytes of
+     * example, setting formatType to {@link #FORMAT_UINT16} specifies that the first two bytes of
      * the characteristic value at the given offset are interpreted to generate the return value.
      *
      * @param formatType The format type used to interpret the characteristic value.
