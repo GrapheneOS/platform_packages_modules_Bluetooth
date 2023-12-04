@@ -39,7 +39,8 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
     private final BluetoothLeAudioContentMetadata mContentMetadata;
     private final List<BluetoothLeBroadcastChannel> mChannels;
 
-    private BluetoothLeBroadcastSubgroup(long codecId,
+    private BluetoothLeBroadcastSubgroup(
+            long codecId,
             BluetoothLeAudioCodecConfigMetadata codecSpecificConfig,
             BluetoothLeAudioContentMetadata contentMetadata,
             List<BluetoothLeBroadcastChannel> channels) {
@@ -69,12 +70,10 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
     /**
      * Get the codec ID field as defined by the Basic Audio Profile.
      *
-     * The codec ID field has 5 octets, with
-     * - Octet 0: Coding_Format as defined in Bluetooth Assigned Numbers
-     * - Octet 1-2: Company ID as defined in Bluetooth Assigned Numbers
-     *              Shall be 0x0000 if octet 0 != 0xFF
-     * - Octet 3-4: Vendor-specific codec ID
-     *              Shall be 0x0000 if octet 0 != 0xFF
+     * <p>The codec ID field has 5 octets, with - Octet 0: Coding_Format as defined in Bluetooth
+     * Assigned Numbers - Octet 1-2: Company ID as defined in Bluetooth Assigned Numbers Shall be
+     * 0x0000 if octet 0 != 0xFF - Octet 3-4: Vendor-specific codec ID Shall be 0x0000 if octet 0 !=
+     * 0xFF
      *
      * @return 5-byte codec ID field in Java long format
      * @hide
@@ -110,10 +109,10 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
     /**
      * Indicate if Broadcast Sink should have a preferred Broadcast Channel (BIS).
      *
-     * Only used by Broadcast Assistant and Sink. Ignored by Broadcast Source
+     * <p>Only used by Broadcast Assistant and Sink. Ignored by Broadcast Source
      *
      * @return true if Broadcast Sink has at least one preferred Broadcast Channel (BIS) as
-     * indicated by {@link BluetoothLeBroadcastChannel#isSelected()}
+     *     indicated by {@link BluetoothLeBroadcastChannel#isSelected()}
      * @hide
      */
     @SystemApi
@@ -124,9 +123,9 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
     /**
      * Get list of Broadcast Channels included in this Broadcast subgroup.
      *
-     * Each Broadcast Channel represents a Broadcast Isochronous Stream (BIS)
+     * <p>Each Broadcast Channel represents a Broadcast Isochronous Stream (BIS)
      *
-     * A Broadcast subgroup should contain at least 1 Broadcast Channel
+     * <p>A Broadcast subgroup should contain at least 1 Broadcast Channel
      *
      * @return list of Broadcast Channels included in this Broadcast subgroup
      * @hide
@@ -138,6 +137,7 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
 
     /**
      * {@inheritDoc}
+     *
      * @hide
      */
     @Override
@@ -147,6 +147,7 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
 
     /**
      * {@inheritDoc}
+     *
      * @hide
      */
     @Override
@@ -159,35 +160,37 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
 
     /**
      * A {@link Parcelable.Creator} to create {@link BluetoothLeBroadcastSubgroup} from parcel.
+     *
      * @hide
      */
-    @SystemApi
-    @NonNull
-    public static final Creator<BluetoothLeBroadcastSubgroup> CREATOR = new Creator<>() {
-        public @NonNull BluetoothLeBroadcastSubgroup createFromParcel(@NonNull Parcel in) {
-            Builder builder = new Builder();
-            builder.setCodecId(in.readLong());
-            builder.setCodecSpecificConfig(in.readTypedObject(
-                    BluetoothLeAudioCodecConfigMetadata.CREATOR));
-            builder.setContentMetadata(
-                    in.readTypedObject(BluetoothLeAudioContentMetadata.CREATOR));
-            List<BluetoothLeBroadcastChannel> channels = new ArrayList<>();
-            in.readTypedList(channels, BluetoothLeBroadcastChannel.CREATOR);
-            for (BluetoothLeBroadcastChannel channel : channels) {
-                builder.addChannel(channel);
-            }
-            return builder.build();
-        }
+    @SystemApi @NonNull
+    public static final Creator<BluetoothLeBroadcastSubgroup> CREATOR =
+            new Creator<>() {
+                public @NonNull BluetoothLeBroadcastSubgroup createFromParcel(@NonNull Parcel in) {
+                    Builder builder = new Builder();
+                    builder.setCodecId(in.readLong());
+                    builder.setCodecSpecificConfig(
+                            in.readTypedObject(BluetoothLeAudioCodecConfigMetadata.CREATOR));
+                    builder.setContentMetadata(
+                            in.readTypedObject(BluetoothLeAudioContentMetadata.CREATOR));
+                    List<BluetoothLeBroadcastChannel> channels = new ArrayList<>();
+                    in.readTypedList(channels, BluetoothLeBroadcastChannel.CREATOR);
+                    for (BluetoothLeBroadcastChannel channel : channels) {
+                        builder.addChannel(channel);
+                    }
+                    return builder.build();
+                }
 
-        public @NonNull BluetoothLeBroadcastSubgroup[] newArray(int size) {
-            return new BluetoothLeBroadcastSubgroup[size];
-        }
-    };
+                public @NonNull BluetoothLeBroadcastSubgroup[] newArray(int size) {
+                    return new BluetoothLeBroadcastSubgroup[size];
+                }
+            };
 
     private static final int UNKNOWN_VALUE_PLACEHOLDER = -1;
 
     /**
      * Builder for {@link BluetoothLeBroadcastSubgroup}.
+     *
      * @hide
      */
     @SystemApi
@@ -222,12 +225,10 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
         /**
          * Set the codec ID field as defined by the Basic Audio Profile.
          *
-         * The codec ID field has 5 octets, with
-         * - Octet 0: Coding_Format as defined in Bluetooth Assigned Numbers
-         * - Octet 1-2: Company ID as defined in Bluetooth Assigned Numbers
-         *              Shall be 0x0000 if octet 0 != 0xFF
-         * - Octet 3-4: Vendor-specific codec ID
-         *              Shall be 0x0000 if octet 0 != 0xFF
+         * <p>The codec ID field has 5 octets, with - Octet 0: Coding_Format as defined in Bluetooth
+         * Assigned Numbers - Octet 1-2: Company ID as defined in Bluetooth Assigned Numbers Shall
+         * be 0x0000 if octet 0 != 0xFF - Octet 3-4: Vendor-specific codec ID Shall be 0x0000 if
+         * octet 0 != 0xFF
          *
          * @param codecId 5-byte codec ID field in Java long format
          * @return this builder
@@ -276,11 +277,11 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
         /**
          * Add a Broadcast Channel to this Broadcast subgroup.
          *
-         * Each Broadcast Channel represents a Broadcast Isochronous Stream (BIS)
+         * <p>Each Broadcast Channel represents a Broadcast Isochronous Stream (BIS)
          *
-         * A Broadcast subgroup should contain at least 1 Broadcast Channel
+         * <p>A Broadcast subgroup should contain at least 1 Broadcast Channel
          *
-         * @param channel  a Broadcast Channel to be added to this Broadcast subgroup
+         * @param channel a Broadcast Channel to be added to this Broadcast subgroup
          * @throws NullPointerException if channel is null
          * @return this builder
          * @hide
@@ -320,8 +321,8 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
             if (mChannels.isEmpty()) {
                 throw new IllegalArgumentException("Must have at least one channel");
             }
-            return new BluetoothLeBroadcastSubgroup(mCodecId, mCodecSpecificConfig,
-                    mContentMetadata, mChannels);
+            return new BluetoothLeBroadcastSubgroup(
+                    mCodecId, mCodecSpecificConfig, mContentMetadata, mChannels);
         }
     }
 }

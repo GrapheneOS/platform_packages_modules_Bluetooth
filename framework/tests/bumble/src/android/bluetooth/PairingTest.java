@@ -51,12 +51,12 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.hamcrest.MockitoHamcrest;
 
+import pandora.SecurityProto.PairingEvent;
+import pandora.SecurityProto.PairingEventAnswer;
+
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import pandora.SecurityProto.PairingEvent;
-import pandora.SecurityProto.PairingEventAnswer;
 
 @RunWith(AndroidJUnit4.class)
 public class PairingTest {

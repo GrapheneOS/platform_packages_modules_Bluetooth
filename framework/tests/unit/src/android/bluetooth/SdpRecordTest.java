@@ -28,9 +28,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Arrays;
 
-/**
- * Test cases for {@link SdpRecord}.
- */
+/** Test cases for {@link SdpRecord}. */
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class SdpRecordTest {
@@ -38,12 +36,9 @@ public class SdpRecordTest {
     @Test
     public void createSdpRecord() {
         int rawSize = 1;
-        byte[] rawData = new byte[]{0x1};
+        byte[] rawData = new byte[] {0x1};
 
-        SdpRecord record = new SdpRecord(
-                rawSize,
-                rawData
-        );
+        SdpRecord record = new SdpRecord(rawSize, rawData);
 
         assertThat(record.getRawSize()).isEqualTo(rawSize);
         assertThat(record.getRawData()).isEqualTo(rawData);
@@ -52,12 +47,9 @@ public class SdpRecordTest {
     @Test
     public void writeToParcel() {
         int rawSize = 1;
-        byte[] rawData = new byte[]{0x1};
+        byte[] rawData = new byte[] {0x1};
 
-        SdpRecord originalRecord = new SdpRecord(
-                rawSize,
-                rawData
-        );
+        SdpRecord originalRecord = new SdpRecord(rawSize, rawData);
 
         Parcel parcel = Parcel.obtain();
         originalRecord.writeToParcel(parcel, 0);
@@ -66,25 +58,24 @@ public class SdpRecordTest {
         SdpRecord recordOut = (SdpRecord) SdpRecord.CREATOR.createFromParcel(parcel);
         parcel.recycle();
 
-        assertThat(recordOut.getRawSize())
-                .isEqualTo(originalRecord.getRawSize());
-        assertThat(recordOut.getRawData())
-                .isEqualTo(originalRecord.getRawData());
+        assertThat(recordOut.getRawSize()).isEqualTo(originalRecord.getRawSize());
+        assertThat(recordOut.getRawData()).isEqualTo(originalRecord.getRawData());
     }
 
     @Test
     public void sdpRecordToString() {
         int rawSize = 1;
-        byte[] rawData = new byte[]{0x1};
+        byte[] rawData = new byte[] {0x1};
 
-        SdpRecord record = new SdpRecord(
-                rawSize,
-                rawData
-        );
+        SdpRecord record = new SdpRecord(rawSize, rawData);
 
         String sdpRecordString = record.toString();
-        String expectedToString = "BluetoothSdpRecord [rawData=" + Arrays.toString(rawData)
-                + ", rawSize=" + rawSize + "]";
+        String expectedToString =
+                "BluetoothSdpRecord [rawData="
+                        + Arrays.toString(rawData)
+                        + ", rawSize="
+                        + rawSize
+                        + "]";
 
         assertThat(sdpRecordString).isEqualTo(expectedToString);
     }

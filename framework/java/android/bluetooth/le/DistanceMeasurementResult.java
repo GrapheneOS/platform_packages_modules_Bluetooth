@@ -37,8 +37,13 @@ public final class DistanceMeasurementResult implements Parcelable {
     private final double mAltitudeAngle;
     private final double mErrorAltitudeAngle;
 
-    private DistanceMeasurementResult(double meters, double errorMeters, double azimuthAngle,
-            double errorAzimuthAngle, double altitudeAngle, double errorAltitudeAngle) {
+    private DistanceMeasurementResult(
+            double meters,
+            double errorMeters,
+            double azimuthAngle,
+            double errorAzimuthAngle,
+            double altitudeAngle,
+            double errorAltitudeAngle) {
         mMeters = meters;
         mErrorMeters = errorMeters;
         mAzimuthAngle = azimuthAngle;
@@ -51,7 +56,6 @@ public final class DistanceMeasurementResult implements Parcelable {
      * Distance measurement in meters.
      *
      * @return distance in meters
-     *
      * @hide
      */
     @SystemApi
@@ -61,10 +65,10 @@ public final class DistanceMeasurementResult implements Parcelable {
 
     /**
      * Error of distance measurement in meters.
+     *
      * <p>Must be positive.
      *
      * @return error of distance measurement in meters
-     *
      * @hide
      */
     @SystemApi
@@ -76,12 +80,12 @@ public final class DistanceMeasurementResult implements Parcelable {
     /**
      * Azimuth Angle measurement in degrees.
      *
-     * Azimuth of remote device in horizontal coordinate system, this measured from azimuth north
+     * <p>Azimuth of remote device in horizontal coordinate system, this measured from azimuth north
      * and increasing eastward. When the remote device in azimuth north, this angle is 0, whe the
      * remote device in azimuth south, this angle is 180.
      *
      * <p>See: <a href="https://en.wikipedia.org/wiki/Horizontal_coordinate_system">Horizontal
-     *  coordinate system</a>for the details
+     * coordinate system</a>for the details
      *
      * <p>On an Android device, azimuth north is defined as the angle perpendicular away from the
      * back of the device when holding it in portrait mode upright.
@@ -90,7 +94,6 @@ public final class DistanceMeasurementResult implements Parcelable {
      * facing when it is placed flat.
      *
      * @return azimuth angle in degrees or Double.NaN if not available
-     *
      * @hide
      */
     @SystemApi
@@ -105,7 +108,6 @@ public final class DistanceMeasurementResult implements Parcelable {
      * <p>Must be a positive value.
      *
      * @return azimuth angle measurement error in degrees or Double.NaN if not available
-     *
      * @hide
      */
     @SystemApi
@@ -123,7 +125,6 @@ public final class DistanceMeasurementResult implements Parcelable {
      * <p>See: https://en.wikipedia.org/wiki/Horizontal_coordinate_system
      *
      * @return altitude angle in degrees or Double.NaN if not available
-     *
      * @hide
      */
     @SystemApi
@@ -138,7 +139,6 @@ public final class DistanceMeasurementResult implements Parcelable {
      * <p>Must be a positive value.
      *
      * @return altitude angle measurement error in degrees or Double.NaN if not available
-     *
      * @hide
      */
     @SystemApi
@@ -148,6 +148,7 @@ public final class DistanceMeasurementResult implements Parcelable {
 
     /**
      * {@inheritDoc}
+     *
      * @hide
      */
     @Override
@@ -157,6 +158,7 @@ public final class DistanceMeasurementResult implements Parcelable {
 
     /**
      * {@inheritDoc}
+     *
      * @hide
      */
     @Override
@@ -169,23 +171,28 @@ public final class DistanceMeasurementResult implements Parcelable {
         out.writeDouble(mErrorAltitudeAngle);
     }
 
-    /** @hide **/
+    /**
+     * @hide *
+     */
     @Override
     public String toString() {
         return "DistanceMeasurement["
-                + "meters: " + mMeters
-                + ", errorMeters: " + mErrorMeters
-                + ", azimuthAngle: " + mAzimuthAngle
-                + ", errorAzimuthAngle: " + mErrorAzimuthAngle
-                + ", altitudeAngle: " + mAltitudeAngle
-                + ", errorAltitudeAngle: " + mErrorAltitudeAngle
+                + "meters: "
+                + mMeters
+                + ", errorMeters: "
+                + mErrorMeters
+                + ", azimuthAngle: "
+                + mAzimuthAngle
+                + ", errorAzimuthAngle: "
+                + mErrorAzimuthAngle
+                + ", altitudeAngle: "
+                + mAltitudeAngle
+                + ", errorAltitudeAngle: "
+                + mErrorAltitudeAngle
                 + "]";
     }
 
-    /**
-     * A {@link Parcelable.Creator} to create {@link DistanceMeasurementResult} from parcel.
-     *
-     */
+    /** A {@link Parcelable.Creator} to create {@link DistanceMeasurementResult} from parcel. */
     public static final @NonNull Parcelable.Creator<DistanceMeasurementResult> CREATOR =
             new Parcelable.Creator<DistanceMeasurementResult>() {
                 @Override
@@ -202,7 +209,7 @@ public final class DistanceMeasurementResult implements Parcelable {
                 public @NonNull DistanceMeasurementResult[] newArray(int size) {
                     return new DistanceMeasurementResult[size];
                 }
-        };
+            };
 
     /**
      * Builder for {@link DistanceMeasurementResult}.
@@ -225,11 +232,10 @@ public final class DistanceMeasurementResult implements Parcelable {
          * @param errorMeters distance error in meters
          * @throws IllegalArgumentException if meters is NaN or error is negative or NaN
          */
-        public Builder(@FloatRange(from = 0.0) double meters,
-                @FloatRange(from = 0.0)double errorMeters) {
+        public Builder(
+                @FloatRange(from = 0.0) double meters, @FloatRange(from = 0.0) double errorMeters) {
             if (Double.isNaN(meters) || meters < 0.0) {
-                throw new IllegalArgumentException(
-                        "meters must be >= 0.0 and not NaN: " + meters);
+                throw new IllegalArgumentException("meters must be >= 0.0 and not NaN: " + meters);
             }
             if (Double.isNaN(errorMeters) || errorMeters < 0.0) {
                 throw new IllegalArgumentException(
@@ -244,7 +250,6 @@ public final class DistanceMeasurementResult implements Parcelable {
          *
          * @param angle azimuth angle in degrees
          * @throws IllegalArgumentException if value is invalid
-         *
          * @hide
          */
         @SystemApi
@@ -263,7 +268,6 @@ public final class DistanceMeasurementResult implements Parcelable {
          *
          * @param angle azimuth angle error in degrees
          * @throws IllegalArgumentException if value is invalid
-         *
          * @hide
          */
         @SystemApi
@@ -282,7 +286,6 @@ public final class DistanceMeasurementResult implements Parcelable {
          *
          * @param angle altitude angle in degrees
          * @throws IllegalArgumentException if value is invalid
-         *
          * @hide
          */
         @SystemApi
@@ -301,7 +304,6 @@ public final class DistanceMeasurementResult implements Parcelable {
          *
          * @param angle altitude angle error in degrees
          * @throws IllegalArgumentException if value is invalid
-         *
          * @hide
          */
         @SystemApi
@@ -319,14 +321,18 @@ public final class DistanceMeasurementResult implements Parcelable {
          * Builds the {@link DistanceMeasurementResult} object.
          *
          * @throws IllegalStateException if meters, error, or confidence are not set
-         *
          * @hide
          */
         @SystemApi
         @NonNull
         public DistanceMeasurementResult build() {
-            return new DistanceMeasurementResult(mMeters, mErrorMeters, mAzimuthAngle,
-                    mErrorAzimuthAngle, mAltitudeAngle, mErrorAltitudeAngle);
+            return new DistanceMeasurementResult(
+                    mMeters,
+                    mErrorMeters,
+                    mAzimuthAngle,
+                    mErrorAzimuthAngle,
+                    mAltitudeAngle,
+                    mErrorAltitudeAngle);
         }
     }
 }
