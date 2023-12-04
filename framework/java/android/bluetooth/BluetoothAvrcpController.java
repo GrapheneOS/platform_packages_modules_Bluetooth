@@ -43,7 +43,7 @@ import java.util.concurrent.TimeoutException;
  * IPC. Use {@link BluetoothAdapter#getProfileProxy} to get the BluetoothAvrcpController proxy
  * object.
  *
- * <p>{@hide}
+ * @hide
  */
 public final class BluetoothAvrcpController implements BluetoothProfile {
     private static final String TAG = "BluetoothAvrcpController";
@@ -129,6 +129,7 @@ public final class BluetoothAvrcpController implements BluetoothProfile {
     }
 
     @Override
+    @SuppressWarnings("Finalize") // empty finalize for api signature
     public void finalize() {}
 
     /** {@inheritDoc} */
@@ -209,7 +210,7 @@ public final class BluetoothAvrcpController implements BluetoothProfile {
     /**
      * Gets the player application settings.
      *
-     * @return the {@link BluetoothAvrcpPlayerSettings} or {@link null} if there is an error.
+     * @return the {@link BluetoothAvrcpPlayerSettings} or {@code null} if there is an error.
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)

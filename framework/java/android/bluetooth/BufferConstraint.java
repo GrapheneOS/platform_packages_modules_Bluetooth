@@ -24,7 +24,7 @@ import android.os.Parcelable;
 /**
  * Stores a codec's constraints on buffering length in milliseconds.
  *
- * <p>{@hide}
+ * @hide
  */
 @SystemApi
 public final class BufferConstraint implements Parcelable {

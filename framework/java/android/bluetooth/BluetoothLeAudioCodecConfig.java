@@ -33,7 +33,7 @@ import java.util.Objects;
  *
  * <p>The source codec type values are the same as those supported by the device hardware.
  *
- * <p>{@see BluetoothLeAudioCodecConfig}
+ * @see BluetoothLeAudioCodecConfig
  */
 public final class BluetoothLeAudioCodecConfig implements Parcelable {
     // Add an entry for each source codec here.

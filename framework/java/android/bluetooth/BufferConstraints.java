@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * A parcelable collection of buffer constraints by codec type.
  *
- * <p>{@hide}
+ * @hide
  */
 @SystemApi
 public final class BufferConstraints implements Parcelable {

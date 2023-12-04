@@ -45,7 +45,7 @@ public class BluetoothLeUtils {
     }
 
     /** Returns a string composed from a byte array. */
-    static <T> String toString(byte[] data) {
+    static String toString(byte[] data) {
         if (data == null) {
             return "null";
         }

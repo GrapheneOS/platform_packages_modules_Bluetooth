@@ -104,7 +104,7 @@ public final class BluetoothHeadsetClientCall implements Parcelable, Attributabl
         mCreationElapsedMilli = SystemClock.elapsedRealtime();
     }
 
-    /** {@hide} */
+    /** @hide */
     public void setAttributionSource(@NonNull AttributionSource attributionSource) {
         Attributable.setAttributionSource(mDevice, attributionSource);
     }

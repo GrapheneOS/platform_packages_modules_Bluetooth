@@ -31,9 +31,11 @@ import java.lang.annotation.RetentionPolicy;
  * <p>This object represents optional data obtained from a remote device through an out-of-band
  * channel (eg. NFC, QR).
  *
- * <p>References: NFC AD Forum SSP 1.1 (AD) {@link
- * https://members.nfc-forum.org//apps/group_public/download.php/24620/NFCForum-AD-BTSSP_1_1.pdf}
- * Core Specification Supplement (CSS) V9
+ * <p>References: <a
+ * href="https://members.nfc-forum.org//apps/group_public/download.php/24620/NFCForum-AD-BTSSP_1_1.pdf">NFC
+ * AD Forum SSP 1.1 (AD)</a>
+ *
+ * <p>Core Specification Supplement (CSS) V9
  *
  * <p>There are several BR/EDR Examples
  *
@@ -906,11 +908,6 @@ public final class OobData implements Parcelable {
     @NonNull
     private String toHexString(int b) {
         return toHexString(new byte[] {(byte) b});
-    }
-
-    @NonNull
-    private String toHexString(byte b) {
-        return toHexString(new byte[] {b});
     }
 
     @NonNull

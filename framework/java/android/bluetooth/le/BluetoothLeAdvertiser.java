@@ -60,7 +60,6 @@ public final class BluetoothLeAdvertiser {
 
     private static final String TAG = "BluetoothLeAdvertiser";
 
-    private static final int MAX_ADVERTISING_DATA_BYTES = 1650;
     private static final int MAX_LEGACY_ADVERTISING_DATA_BYTES = 31;
     // Each fields need one byte for field length and another byte for field type.
     private static final int OVERHEAD_BYTES_PER_FIELD = 2;
@@ -82,7 +81,6 @@ public final class BluetoothLeAdvertiser {
     /**
      * Use BluetoothAdapter.getLeAdvertiser() instead.
      *
-     * @param bluetoothManager BluetoothManager that conducts overall Bluetooth Management
      * @hide
      */
     public BluetoothLeAdvertiser(BluetoothAdapter bluetoothAdapter) {
