@@ -1785,9 +1785,9 @@ public final class BluetoothQualityReport implements Parcelable {
         }
 
         /**
-         * Get the count of missed Mic interrrupts.
+         * Get the count of missed Mic interrupts.
          *
-         * @return the count of missed Mic interrrupts
+         * @return the count of missed Mic interrupts
          * @hide
          */
         @SystemApi
@@ -1796,9 +1796,9 @@ public final class BluetoothQualityReport implements Parcelable {
         }
 
         /**
-         * Get the count of missed LPA interrrupts.
+         * Get the count of missed LPA interrupts.
          *
-         * @return the count of missed LPA interrrupts
+         * @return the count of missed LPA interrupts
          * @hide
          */
         @SystemApi
@@ -1807,9 +1807,9 @@ public final class BluetoothQualityReport implements Parcelable {
         }
 
         /**
-         * Get the count of missed Speaker interrrupts.
+         * Get the count of missed Speaker interrupts.
          *
-         * @return the count of missed Speaker interrrupts
+         * @return the count of missed Speaker interrupts
          * @hide
          */
         @SystemApi

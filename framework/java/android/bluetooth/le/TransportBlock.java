@@ -111,8 +111,8 @@ public final class TransportBlock implements Parcelable {
             };
 
     /**
-     * Gets the Organization ID of the Transport Block which corresponds to one of the the Bluetooth
-     * SIG Assigned Numbers.
+     * Gets the Organization ID of the Transport Block which corresponds to one of the Bluetooth SIG
+     * Assigned Numbers.
      */
     public int getOrgId() {
         return mOrgId;

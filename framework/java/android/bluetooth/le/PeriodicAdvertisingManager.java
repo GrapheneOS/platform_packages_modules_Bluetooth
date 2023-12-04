@@ -293,7 +293,7 @@ public final class PeriodicAdvertisingManager {
                                     // App can still unregister the sync until notified it failed.
                                     // Remove
                                     // callback
-                                    // after app was notifed.
+                                    // after app was notified.
                                     mCallbackWrappers.remove(callback);
                                 }
                             }
@@ -317,7 +317,7 @@ public final class PeriodicAdvertisingManager {
                             public void run() {
                                 callback.onSyncLost(syncHandle);
                                 // App can still unregister the sync until notified it's lost.
-                                // Remove callback after app was notifed.
+                                // Remove callback after app was notified.
                                 mCallbackWrappers.remove(callback);
                             }
                         });

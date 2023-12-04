@@ -200,7 +200,7 @@ public final class BluetoothManager {
      *
      * @param context App context
      * @param callback GATT server callback handler that will receive asynchronous callbacks.
-     * @param eattSupport idicates if server should use eatt channel for notifications.
+     * @param eattSupport indicates if server should use eatt channel for notifications.
      * @return BluetoothGattServer instance
      * @hide
      */
@@ -243,7 +243,7 @@ public final class BluetoothManager {
      * @param transport preferred transport for GATT connections to remote dual-mode devices {@link
      *     BluetoothDevice#TRANSPORT_AUTO} or {@link BluetoothDevice#TRANSPORT_BREDR} or {@link
      *     BluetoothDevice#TRANSPORT_LE}
-     * @param eattSupport idicates if server should use eatt channel for notifications.
+     * @param eattSupport indicates if server should use eatt channel for notifications.
      * @return BluetoothGattServer instance
      * @hide
      */

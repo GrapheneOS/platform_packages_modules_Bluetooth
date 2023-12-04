@@ -30,7 +30,8 @@ import java.util.Objects;
 public final class ScanResult implements Parcelable, Attributable {
 
     /**
-     * For chained advertisements, inidcates tha the data contained in this scan result is complete.
+     * For chained advertisements, indicates that the data contained in this scan result is
+     * complete.
      */
     public static final int DATA_COMPLETE = 0x00;
 
@@ -243,7 +244,7 @@ public final class ScanResult implements Parcelable, Attributable {
     }
 
     /**
-     * Returns the primary Physical Layer on which this advertisment was received. Can be one of
+     * Returns the primary Physical Layer on which this advertisement was received. Can be one of
      * {@link BluetoothDevice#PHY_LE_1M} or {@link BluetoothDevice#PHY_LE_CODED}.
      */
     public int getPrimaryPhy() {
@@ -251,7 +252,7 @@ public final class ScanResult implements Parcelable, Attributable {
     }
 
     /**
-     * Returns the secondary Physical Layer on which this advertisment was received. Can be one of
+     * Returns the secondary Physical Layer on which this advertisement was received. Can be one of
      * {@link BluetoothDevice#PHY_LE_1M}, {@link BluetoothDevice#PHY_LE_2M}, {@link
      * BluetoothDevice#PHY_LE_CODED} or {@link ScanResult#PHY_UNUSED} - if the advertisement was not
      * received on a secondary physical channel.

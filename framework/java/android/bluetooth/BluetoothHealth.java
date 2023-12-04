@@ -220,7 +220,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      * Get the file descriptor of the main channel associated with the remote device and application
      * configuration.
      *
-     * <p>Its the responsibility of the caller to close the ParcelFileDescriptor when done.
+     * <p>It's the responsibility of the caller to close the ParcelFileDescriptor when done.
      *
      * @param device The remote Bluetooth health device
      * @param config The application configuration

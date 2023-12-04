@@ -85,7 +85,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
          *
          * @param groupId group identifier
          * @param opStatus status of lock operation
-         * @param isLocked inidcates if group is locked
+         * @param isLocked indicates if group is locked
          * @hide
          */
         @SystemApi

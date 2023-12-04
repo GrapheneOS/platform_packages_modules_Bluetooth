@@ -186,7 +186,7 @@ public abstract class BluetoothGattCallback {
      * Callback indicating the result of a descriptor write operation.
      *
      * @param gatt GATT client invoked {@link BluetoothGatt#writeDescriptor}
-     * @param descriptor Descriptor that was writte to the associated remote device.
+     * @param descriptor Descriptor that was written to the associated remote device.
      * @param status The result of the write operation {@link BluetoothGatt#GATT_SUCCESS} if the
      *     operation succeeds.
      */

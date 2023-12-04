@@ -230,7 +230,7 @@ public final class AdvertiseSettings implements Parcelable {
         /**
          * Set whether the advertisement type should be connectable or non-connectable.
          *
-         * @param connectable Controls whether the advertisment type will be connectable (true) or
+         * @param connectable Controls whether the advertisement type will be connectable (true) or
          *     non-connectable (false).
          */
         public Builder setConnectable(boolean connectable) {
@@ -241,7 +241,7 @@ public final class AdvertiseSettings implements Parcelable {
         /**
          * Set whether the advertisement type should be discoverable or non-discoverable.
          *
-         * @param discoverable Controls whether the advertisment type will be discoverable ({@code
+         * @param discoverable Controls whether the advertisement type will be discoverable ({@code
          *     true}) or non-discoverable ({@code false}).
          */
         public @NonNull Builder setDiscoverable(boolean discoverable) {
