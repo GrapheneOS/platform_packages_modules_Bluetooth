@@ -56,7 +56,7 @@ static void bta_hh_better_state_machine(tBTA_HH_DEV_CB* p_cb, uint16_t event,
           bta_hh_open_act(p_cb, p_data);
           break;
         case BTA_HH_INT_CLOSE_EVT:
-          bta_hh_close_act(p_cb, p_data);
+          bta_hh_open_failure(p_cb, p_data);
           break;
         case BTA_HH_API_MAINT_DEV_EVT:
           bta_hh_maint_dev_act(p_cb, p_data);
