@@ -23,9 +23,10 @@
  *
  ******************************************************************************/
 #include "p_256_ecc_pp.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
+#include <cstdint>
+#include <cstring>
+
 #include "p_256_multprecision.h"
 
 elliptic_curve_t curve;

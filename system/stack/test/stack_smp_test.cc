@@ -21,17 +21,16 @@
 
 #include <string>
 
-#include "bt_trace.h"
+#include "crypto_toolbox/crypto_toolbox.h"
 #include "hci/include/packet_fragmenter.h"
 #include "internal_include/stack_config.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_octets.h"
-#include "stack/include/smp_api.h"
+#include "stack/include/btm_ble_api.h"
 #include "stack/include/smp_status.h"
 #include "stack/smp/p_256_ecc_pp.h"
 #include "stack/smp/smp_int.h"
-#include "test/common/mock_functions.h"
 #include "test/mock/mock_stack_acl.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"

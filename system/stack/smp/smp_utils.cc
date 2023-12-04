@@ -21,28 +21,27 @@
  *  This file contains functions for the SMP L2CAP utility functions
  *
  ******************************************************************************/
-#include <base/logging.h>
-#include <ctype.h>
-#include <string.h>
+#define LOG_TAG "smp"
 
-#include "bt_target.h"
-#include "btm_ble_api.h"
+#include <cstring>
+
+#include "crypto_toolbox/crypto_toolbox.h"
 #include "device/include/controller.h"
-#include "l2c_api.h"
-#include "osi/include/log.h"
+#include "os/log.h"
 #include "osi/include/osi.h"
 #include "smp_int.h"
 #include "stack/btm/btm_ble_int.h"
-#include "stack/include/btm_ble_sec_api.h"
+#include "stack/btm/btm_dev.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btm_ble_api.h"
+#include "stack/include/btm_ble_sec_api.h"
 #include "stack/include/btm_log_history.h"
+#include "stack/include/l2c_api.h"
 #include "stack/include/smp_status.h"
 #include "stack/include/stack_metrics_logging.h"
 #include "types/raw_address.h"
-
-void btm_dev_consolidate_existing_connections(const RawAddress& bd_addr);
 
 #define SMP_PAIRING_REQ_SIZE 7
 #define SMP_CONFIRM_CMD_SIZE (OCTET16_LEN + 1)

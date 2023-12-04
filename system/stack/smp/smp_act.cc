@@ -18,13 +18,14 @@
 
 #define LOG_TAG "smp_act"
 
-#include <string>
+#include <cstring>
 
 #include "btif/include/btif_common.h"
 #include "btif/include/core_callbacks.h"
 #include "btif/include/stack_manager.h"
+#include "crypto_toolbox/crypto_toolbox.h"
 #include "device/include/interop.h"
-#include "internal_include/bt_target.h"
+#include "os/log.h"
 #include "p_256_ecc_pp.h"
 #include "smp_int.h"
 #include "stack/btm/btm_ble_int.h"
