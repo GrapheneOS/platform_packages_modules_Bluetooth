@@ -24,6 +24,8 @@
 
 #define LOG_TAG "ble_bgconn"
 
+#include "stack/btm/btm_ble_bgconn.h"
+
 #include <cstdint>
 #include <unordered_map>
 
@@ -33,8 +35,6 @@
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
-#include "stack/btm/security_device_record.h"
-#include "stack/include/acl_api.h"
 #include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;

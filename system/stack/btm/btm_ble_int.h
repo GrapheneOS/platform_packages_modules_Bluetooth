@@ -26,11 +26,8 @@
 #ifndef BTM_BLE_INT_H
 #define BTM_BLE_INT_H
 
-#include "bt_target.h"
-#include "btm_ble_api.h"
-#include "btm_ble_int_types.h"
-#include "btm_int_types.h"
-#include "smp_api.h"
+#include "stack/btm/btm_ble_int_types.h"
+#include "stack/btm/security_device_record.h"
 #include "stack/include/hci_error_code.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
@@ -49,32 +46,6 @@ void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
                        uint8_t role, tBLE_ADDR_TYPE addr_type,
                        bool addr_matched,
                        bool can_read_discoverable_characteristics);
-
-/* LE security function from btm_sec.cc */
-void btm_ble_link_sec_check(const RawAddress& bd_addr,
-                            tBTM_LE_AUTH_REQ auth_req,
-                            tBTM_BLE_SEC_REQ_ACT* p_sec_req_act);
-void btm_ble_ltk_request_reply(const RawAddress& bda, bool use_stk,
-                               const Octet16& stk);
-tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
-                               const tSMP_EVT_DATA* p_data);
-tBTM_STATUS btm_ble_set_encryption(const RawAddress& bd_addr,
-                                   tBTM_BLE_SEC_ACT sec_act, uint8_t link_role);
-tBTM_STATUS btm_ble_start_encrypt(const RawAddress& bda, bool use_stk,
-                                  Octet16* p_stk);
-void btm_ble_link_encrypted(const RawAddress& bd_addr, uint8_t encr_enable);
-
-/* LE device management functions */
-void btm_ble_reset_id(void);
-
-bool btm_get_local_div(const RawAddress& bd_addr, uint16_t* p_div);
-bool btm_ble_get_enc_key_type(const RawAddress& bd_addr, uint8_t* p_key_types);
-
-void btm_sec_save_le_key(const RawAddress& bd_addr, tBTM_LE_KEY_TYPE key_type,
-                         tBTM_LE_KEY_VALUE* p_keys, bool pass_to_application);
-void btm_ble_update_sec_key_size(const RawAddress& bd_addr,
-                                 uint8_t enc_key_size);
-uint8_t btm_ble_read_sec_key_size(const RawAddress& bd_addr);
 
 /* acceptlist function */
 void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy);
