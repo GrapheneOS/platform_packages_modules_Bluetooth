@@ -2014,7 +2014,7 @@ void smp_set_local_oob_random_commitment(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   // connector will fail commitment check and dhkey exchange.
   smp_save_local_oob_data(p_cb);
 
-  smp_cb_cleanup(p_cb);
+  p_cb->reset();
 }
 
 /*******************************************************************************
