@@ -415,7 +415,7 @@ public final class ScanSettings implements Parcelable {
         }
 
         /**
-         * Set whether only legacy advertisments should be returned in scan results. Legacy
+         * Set whether only legacy advertisements should be returned in scan results. Legacy
          * advertisements include advertisements as specified by the Bluetooth core specification
          * 4.2 and below. This is true by default for compatibility with older apps.
          *

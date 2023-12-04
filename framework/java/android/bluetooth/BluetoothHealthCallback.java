@@ -58,10 +58,10 @@ public abstract class BluetoothHealthCallback {
     /**
      * Callback to inform change in channel state.
      *
-     * <p>Its the responsibility of the implementor of this callback to close the parcel file
+     * <p>It's the responsibility of the implementer of this callback to close the parcel file
      * descriptor when done. This callback is called on the Binder thread (not the UI thread)
      *
-     * @param config The Health app configutation
+     * @param config The Health app configuration
      * @param device The Bluetooth Device
      * @param prevState The previous state of the channel
      * @param newState The new state of the channel.

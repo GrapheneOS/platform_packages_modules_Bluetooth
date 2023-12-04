@@ -63,7 +63,7 @@ public class BluetoothFrameworkInitializer {
 
     /**
      * Called by {@link ActivityThread}'s static initializer to set the callback enabling Bluetooth
-     * {@link BinderCallsStats} registeration.
+     * {@link BinderCallsStats} registration.
      *
      * @param binderCallsStatsConsumer called by bluetooth service to create a new binder calls
      *     stats observer

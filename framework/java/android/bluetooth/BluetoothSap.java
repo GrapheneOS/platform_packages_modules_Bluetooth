@@ -99,7 +99,7 @@ public final class BluetoothSap implements BluetoothProfile, AutoCloseable {
     public static final int STATE_ERROR = -1;
 
     /**
-     * Connection state change succceeded.
+     * Connection state change succeeded.
      *
      * @hide
      */
