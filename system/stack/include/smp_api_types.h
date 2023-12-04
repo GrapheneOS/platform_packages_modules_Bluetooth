@@ -23,56 +23,11 @@
 
 #include <cstdint>
 
-#include "macros.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btm_status.h"
 #include "stack/include/smp_status.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
-
-/* SMP command code */
-typedef enum : uint8_t {
-  SMP_OPCODE_PAIRING_REQ = 0x01,
-  SMP_OPCODE_PAIRING_RSP = 0x02,
-  SMP_OPCODE_CONFIRM = 0x03,
-  SMP_OPCODE_RAND = 0x04,
-  SMP_OPCODE_PAIRING_FAILED = 0x05,
-  SMP_OPCODE_ENCRYPT_INFO = 0x06,
-  SMP_OPCODE_CENTRAL_ID = 0x07,
-  SMP_OPCODE_IDENTITY_INFO = 0x08,
-  SMP_OPCODE_ID_ADDR = 0x09,
-  SMP_OPCODE_SIGN_INFO = 0x0A,
-  SMP_OPCODE_SEC_REQ = 0x0B,
-  SMP_OPCODE_PAIR_PUBLIC_KEY = 0x0C,
-  SMP_OPCODE_PAIR_DHKEY_CHECK = 0x0D,
-  SMP_OPCODE_PAIR_KEYPR_NOTIF = 0x0E,
-  SMP_OPCODE_MAX = SMP_OPCODE_PAIR_KEYPR_NOTIF,
-  SMP_OPCODE_MIN = SMP_OPCODE_PAIRING_REQ,
-  // NOTE: For some reason this is outside the MAX/MIN values
-  SMP_OPCODE_PAIR_COMMITM = 0x0F,
-} tSMP_OPCODE;
-
-inline std::string smp_opcode_text(const tSMP_OPCODE& opcode) {
-  switch (opcode) {
-    CASE_RETURN_TEXT(SMP_OPCODE_PAIRING_REQ);
-    CASE_RETURN_TEXT(SMP_OPCODE_PAIRING_RSP);
-    CASE_RETURN_TEXT(SMP_OPCODE_CONFIRM);
-    CASE_RETURN_TEXT(SMP_OPCODE_RAND);
-    CASE_RETURN_TEXT(SMP_OPCODE_PAIRING_FAILED);
-    CASE_RETURN_TEXT(SMP_OPCODE_ENCRYPT_INFO);
-    CASE_RETURN_TEXT(SMP_OPCODE_CENTRAL_ID);
-    CASE_RETURN_TEXT(SMP_OPCODE_IDENTITY_INFO);
-    CASE_RETURN_TEXT(SMP_OPCODE_ID_ADDR);
-    CASE_RETURN_TEXT(SMP_OPCODE_SIGN_INFO);
-    CASE_RETURN_TEXT(SMP_OPCODE_SEC_REQ);
-    CASE_RETURN_TEXT(SMP_OPCODE_PAIR_PUBLIC_KEY);
-    CASE_RETURN_TEXT(SMP_OPCODE_PAIR_DHKEY_CHECK);
-    CASE_RETURN_TEXT(SMP_OPCODE_PAIR_KEYPR_NOTIF);
-    CASE_RETURN_TEXT(SMP_OPCODE_PAIR_COMMITM);
-    default:
-      return base::StringPrintf("UNKNOWN[%hhu]", opcode);
-  }
-}
 
 /* SMP event type */
 typedef enum : uint8_t {
