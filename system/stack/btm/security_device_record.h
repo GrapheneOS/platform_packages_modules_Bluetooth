@@ -25,6 +25,7 @@
 #include <string>
 
 #include "bt_target.h"
+#include "macros.h"
 #include "os/logging/log_adapter.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/bt_name.h"
@@ -155,10 +156,6 @@ enum : uint16_t {
   /* pairing is done with 16 digit pin */
   BTM_SEC_16_DIGIT_PIN_AUTHED = 0x4000,
 };
-
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
 
 typedef enum : uint8_t {
   BTM_SEC_STATE_IDLE = 0,

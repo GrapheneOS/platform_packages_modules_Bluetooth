@@ -224,10 +224,3 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG should never be NULL");
       LOG_ALWAYS_FATAL("assertion '" #condition "' failed - " fmt, ##args); \
     }                                                                       \
   } while (false)
-
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif
-

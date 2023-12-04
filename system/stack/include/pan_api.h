@@ -29,6 +29,7 @@
 #include <cstdint>
 
 #include "bnep_api.h"
+#include "macros.h"
 #include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
 
@@ -97,10 +98,6 @@ typedef enum : uint8_t {
   PAN_HOTSPOT_DISABLED = 20,              /* Hotspot disabled             */
 } tPAN_RESULT;
 
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-
 inline const std::string pan_result_text(const tPAN_RESULT& result) {
   switch (result) {
     CASE_RETURN_TEXT(PAN_SUCCESS);
@@ -128,8 +125,6 @@ inline const std::string pan_result_text(const tPAN_RESULT& result) {
       return base::StringPrintf("UNKNOWN[%hhu]", result);
   }
 }
-
-#undef CASE_RETURN_TEXT
 
 /*****************************************************************
  *       Callback Function Prototypes

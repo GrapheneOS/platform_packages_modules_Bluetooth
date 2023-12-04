@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,6 @@
 
 #pragma once
 
-#include <base/strings/stringprintf.h>
-
-#include <string>
-
-#include "macros.h"
-
-#define BT_TRANSPORT_AUTO 0
-#define BT_TRANSPORT_BR_EDR 1
-#define BT_TRANSPORT_LE 2
-typedef uint8_t tBT_TRANSPORT;
-
-inline std::string bt_transport_text(const tBT_TRANSPORT& transport) {
-  switch (transport) {
-    CASE_RETURN_TEXT(BT_TRANSPORT_AUTO);
-    CASE_RETURN_TEXT(BT_TRANSPORT_BR_EDR);
-    CASE_RETURN_TEXT(BT_TRANSPORT_LE);
-    default:
-      return base::StringPrintf("UNKNOWN[%hhu]", transport);
-  }
-}
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code

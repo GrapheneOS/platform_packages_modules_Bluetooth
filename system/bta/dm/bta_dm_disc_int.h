@@ -22,18 +22,13 @@
 
 #include "bta/include/bta_api.h"
 #include "bta/sys/bta_sys.h"
+#include "macros.h"
 #include "stack/btm/neighbor_inquiry.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/sdp_status.h"
 #include "stack/sdp/sdp_discovery_db.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif
 
 #define BTA_SERVICE_ID_TO_SERVICE_MASK(id) (1 << (id))
 
@@ -155,7 +150,6 @@ inline std::string bta_dm_state_text(const tBTA_DM_STATE& state) {
       return base::StringPrintf("UNKNOWN[%d]", state);
   }
 }
-#undef CASE_RETURN_TEXT
 
 /* DM search control block */
 typedef struct {

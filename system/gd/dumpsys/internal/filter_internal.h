@@ -21,6 +21,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
+#include "macros.h"
 
 namespace bluetooth {
 namespace dumpsys {
@@ -121,10 +122,6 @@ bool FilterTypeLong(const reflection::Field& field, flatbuffers::Table* table, P
 bool FilterTypeString(const reflection::Field& field, flatbuffers::Table* table, PrivacyLevel privacy_level);
 bool FilterTypeStruct(const reflection::Field& field, flatbuffers::Table* table, PrivacyLevel privacy_level);
 
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-
 inline std::string FlatbufferTypeText(const flatbuffers::BaseType& type) {
   switch (type) {
     CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_NONE);
@@ -147,7 +144,6 @@ inline std::string FlatbufferTypeText(const flatbuffers::BaseType& type) {
       return base::StringPrintf("UNKNOWN[%d]", (int)type);
   }
 }
-#undef CASE_RETURN_TEXT
 
 }  // namespace internal
 }  // namespace dumpsys

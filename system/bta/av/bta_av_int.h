@@ -31,6 +31,7 @@
 #include "bta/include/bta_sec_api.h"
 #include "bta/sys/bta_sys.h"
 #include "include/hardware/bt_av.h"
+#include "macros.h"
 #include "osi/include/list.h"
 #include "stack/include/a2dp_error_codes.h"
 #include "stack/include/avdt_api.h"
@@ -39,10 +40,6 @@
 #include "stack/sdp/sdp_discovery_db.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
-
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
 
 /*****************************************************************************
  *  Constants
