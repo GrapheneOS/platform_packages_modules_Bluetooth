@@ -643,7 +643,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @SystemApi public static final int METADATA_UNTETHERED_LEFT_BATTERY = 10;
 
     /**
-     * Battery level of rigth headset Data type should be {@String} 0-100 as {@link Byte} array,
+     * Battery level of right headset Data type should be {@String} 0-100 as {@link Byte} array,
      * otherwise as invalid.
      *
      * @hide
@@ -983,7 +983,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             "android.bluetooth.device.action.CONNECTION_ACCESS_CANCEL";
 
     /**
-     * Intent to broadcast silence mode changed. Alway contains the extra field {@link
+     * Intent to broadcast silence mode changed. Always contains the extra field {@link
      * #EXTRA_DEVICE}
      *
      * @hide
@@ -1332,7 +1332,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     /** Address is either resolvable, non-resolvable or static. */
     public static final int ADDRESS_TYPE_RANDOM = 1;
 
-    /** Address type is unknown or unavailable * */
+    /** Address type is unknown or unavailable */
     public static final int ADDRESS_TYPE_UNKNOWN = 0xFFFF;
 
     private static final String NULL_MAC_ADDRESS = "00:00:00:00:00:00";
@@ -3025,7 +3025,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * Create an RFCOMM {@link BluetoothSocket} socket ready to start an insecure outgoing
      * connection to this remote device using SDP lookup of uuid.
      *
-     * <p>The communication channel will not have an authenticated link key i.e it will be subject
+     * <p>The communication channel will not have an authenticated link key i.e. it will be subject
      * to person-in-the-middle attacks. For Bluetooth 2.1 devices, the link key will be encrypted,
      * as encryption is mandatory. For legacy devices (pre Bluetooth 2.1 devices) the link key will
      * be not be encrypted. Use {@link #createRfcommSocketToServiceRecord} if an encrypted and
@@ -3440,7 +3440,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     }
 
     /**
-     * Get the maxinum metadata key ID.
+     * Get the maximum metadata key ID.
      *
      * @return the last supported metadata key
      * @hide
@@ -3570,7 +3570,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * <p>This API will throw an exception if the feature is not supported but still invoked.
      *
-     * <p>This API will return null if 1. The bleutooth service is not started yet, 2. It is invoked
+     * <p>This API will return null if 1. The bluetooth service is not started yet, 2. It is invoked
      * for a device which is not bonded, or 3. The used transport, for example, HFP Client profile
      * is not enabled or connected yet.
      *

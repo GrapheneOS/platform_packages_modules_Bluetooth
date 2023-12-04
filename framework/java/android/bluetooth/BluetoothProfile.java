@@ -246,8 +246,8 @@ public interface BluetoothProfile {
     int MAX_PROFILE_ID = 30;
 
     /**
-     * Default priority for devices that we try to auto-connect to and and allow incoming
-     * connections for the profile
+     * Default priority for devices that we try to auto-connect to and allow incoming connections
+     * for the profile
      *
      * @hide
      */
@@ -419,7 +419,7 @@ public interface BluetoothProfile {
      * Convert an integer value of profile ID into human readable string
      *
      * @param profile profile ID
-     * @return profile name as String, UNKOWN_PROFILE if the profile ID is not defined.
+     * @return profile name as String, UNKNOWN_PROFILE if the profile ID is not defined.
      * @hide
      */
     @SystemApi

@@ -132,7 +132,7 @@ public final class BluetoothLeScanner {
     /**
      * Start Bluetooth LE scan. The scan results will be delivered through {@code callback}. For
      * unfiltered scans, scanning is stopped on screen off to save power. Scanning is resumed when
-     * screen is turned on again. To avoid this, do filetered scanning by using proper {@link
+     * screen is turned on again. To avoid this, do filtered scanning by using proper {@link
      * ScanFilter}.
      *
      * <p>An app must have {@link android.Manifest.permission#ACCESS_COARSE_LOCATION
@@ -436,7 +436,7 @@ public final class BluetoothLeScanner {
                     recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
                     wait(REGISTRATION_CALLBACK_TIMEOUT_MILLIS);
                 } catch (TimeoutException | InterruptedException | RemoteException e) {
-                    Log.e(TAG, "application registeration exception", e);
+                    Log.e(TAG, "application registration exception", e);
                     postCallbackError(mScanCallback, ScanCallback.SCAN_FAILED_INTERNAL_ERROR);
                 }
                 if (mScannerId > 0) {
@@ -524,7 +524,7 @@ public final class BluetoothLeScanner {
                         mScannerId = -1;
                     }
                 } else if (status == ScanCallback.SCAN_FAILED_SCANNING_TOO_FREQUENTLY) {
-                    // applicaiton was scanning too frequently
+                    // application was scanning too frequently
                     mScannerId = -2;
                 } else {
                     // registration failed
