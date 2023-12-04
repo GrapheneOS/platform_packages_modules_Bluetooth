@@ -215,7 +215,7 @@ public class PanService extends ProfileService {
     }
 
     private final Handler mHandler =
-            new Handler() {
+            new Handler(Looper.getMainLooper()) {
                 @Override
                 public void handleMessage(Message msg) {
                     switch (msg.what) {
