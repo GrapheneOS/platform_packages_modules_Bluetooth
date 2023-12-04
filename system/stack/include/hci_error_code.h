@@ -21,6 +21,8 @@
 #include <cstdint>
 #include <string>
 
+#include "macros.h"
+
 /*
  *  Definitions for HCI Error Codes that are passed in the events
  */
@@ -72,12 +74,6 @@ typedef enum : uint8_t {
 
 #define HCI_ERR_MAX_ERR _HCI_ERR_MAX_ERR  // HACK for now for SMP
 
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif
-
 inline std::string hci_error_code_text(const tHCI_ERROR_CODE& error_code) {
   switch (error_code) {
     CASE_RETURN_TEXT(HCI_SUCCESS);
@@ -124,8 +120,6 @@ inline std::string hci_error_code_text(const tHCI_ERROR_CODE& error_code) {
       return base::StringPrintf("UNKNOWN[0x%02hx]", error_code);
   }
 }
-
-#undef CASE_RETURN_TEXT
 
 // Context equivalence
 using tHCI_STATUS = tHCI_ERROR_CODE;

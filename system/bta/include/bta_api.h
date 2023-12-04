@@ -33,6 +33,7 @@
 
 #include "bt_target.h"  // Must be first to define build configuration
 #include "bta_api_data_types.h"
+#include "macros.h"
 #include "os/log.h"
 #include "stack/btm/power_mode.h"
 #include "stack/include/bt_name.h"
@@ -123,10 +124,6 @@ inline tBTA_PREF_ROLES toBTA_PREF_ROLES(uint8_t role) {
   return static_cast<tBTA_PREF_ROLES>(role);
 }
 
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-
 inline std::string preferred_role_text(const tBTA_PREF_ROLES& role) {
   switch (role) {
     CASE_RETURN_TEXT(BTA_ANY_ROLE);
@@ -137,7 +134,6 @@ inline std::string preferred_role_text(const tBTA_PREF_ROLES& role) {
       return base::StringPrintf("UNKNOWN[%hhu]", role);
   }
 }
-#undef CASE_RETURN_TEXT
 
 enum {
 
@@ -227,12 +223,6 @@ typedef enum : uint8_t {
   BTA_DM_NAME_READ_EVT = 8,          /* Name read complete. */
 } tBTA_DM_SEARCH_EVT;
 
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif
-
 inline std::string bta_dm_search_evt_text(const tBTA_DM_SEARCH_EVT& event) {
   switch (event) {
     CASE_RETURN_TEXT(BTA_DM_INQ_RES_EVT);
@@ -248,8 +238,6 @@ inline std::string bta_dm_search_evt_text(const tBTA_DM_SEARCH_EVT& event) {
       return base::StringPrintf("UNKNOWN[%hhu]", event);
   }
 }
-
-#undef CASE_RETURN_TEXT
 
 /* Structure associated with BTA_DM_INQ_RES_EVT */
 typedef struct {
