@@ -39,7 +39,6 @@
 #include "stack/include/btm_ble_sec_api.h"
 #include "stack/include/btm_log_history.h"
 #include "stack/include/l2c_api.h"
-#include "stack/include/smp_api_types.h"
 #include "stack/include/smp_status.h"
 #include "stack/include/stack_metrics_logging.h"
 #include "types/raw_address.h"
