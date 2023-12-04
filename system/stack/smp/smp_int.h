@@ -359,9 +359,6 @@ typedef void (*tSMP_ACT)(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 
 extern tSMP_CB smp_cb;
 
-/* Functions provided by att_main.cc */
-void smp_init(void);
-
 /* smp main */
 bool smp_sm_event(tSMP_CB* p_cb, tSMP_EVENT event, tSMP_INT_DATA* p_data);
 
