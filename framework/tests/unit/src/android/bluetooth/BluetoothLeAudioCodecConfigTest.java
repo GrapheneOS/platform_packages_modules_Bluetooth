@@ -20,14 +20,13 @@ import android.test.suitebuilder.annotation.SmallTest;
 
 import junit.framework.TestCase;
 
-/**
- * Unit test cases for {@link BluetoothLeAudioCodecConfig}.
- */
+/** Unit test cases for {@link BluetoothLeAudioCodecConfig}. */
 public class BluetoothLeAudioCodecConfigTest extends TestCase {
-    private int[] mCodecTypeArray = new int[] {
-        BluetoothLeAudioCodecConfig.SOURCE_CODEC_TYPE_LC3,
-        BluetoothLeAudioCodecConfig.SOURCE_CODEC_TYPE_INVALID,
-    };
+    private int[] mCodecTypeArray =
+            new int[] {
+                BluetoothLeAudioCodecConfig.SOURCE_CODEC_TYPE_LC3,
+                BluetoothLeAudioCodecConfig.SOURCE_CODEC_TYPE_INVALID,
+            };
 
     @SmallTest
     public void testBluetoothLeAudioCodecConfig_valid_get_methods() {
@@ -50,9 +49,6 @@ public class BluetoothLeAudioCodecConfigTest extends TestCase {
     }
 
     private BluetoothLeAudioCodecConfig buildBluetoothLeAudioCodecConfig(int sourceCodecType) {
-        return new BluetoothLeAudioCodecConfig.Builder()
-                    .setCodecType(sourceCodecType)
-                    .build();
-
+        return new BluetoothLeAudioCodecConfig.Builder().setCodecType(sourceCodecType).build();
     }
 }

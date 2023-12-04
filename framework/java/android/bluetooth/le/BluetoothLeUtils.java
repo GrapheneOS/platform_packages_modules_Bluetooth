@@ -34,9 +34,7 @@ import java.util.UUID;
  */
 public class BluetoothLeUtils {
 
-    /**
-     * Timeout value for synchronous binder call
-     */
+    /** Timeout value for synchronous binder call */
     private static final Duration SYNC_CALLS_TIMEOUT = Duration.ofSeconds(5);
 
     /**
@@ -46,9 +44,7 @@ public class BluetoothLeUtils {
         return SYNC_CALLS_TIMEOUT;
     }
 
-    /**
-     * Returns a string composed from a byte array.
-     */
+    /** Returns a string composed from a byte array. */
     static <T> String toString(byte[] data) {
         if (data == null) {
             return "null";
@@ -68,9 +64,7 @@ public class BluetoothLeUtils {
         return buffer.toString();
     }
 
-    /**
-     * Returns a string composed from a {@link SparseArray}.
-     */
+    /** Returns a string composed from a {@link SparseArray}. */
     static String toString(SparseArray<byte[]> array) {
         if (array == null) {
             return "null";
@@ -87,9 +81,7 @@ public class BluetoothLeUtils {
         return buffer.toString();
     }
 
-    /**
-     * Returns a string composed from a {@link Map}.
-     */
+    /** Returns a string composed from a {@link Map}. */
     static <T> String toString(Map<T, byte[]> map) {
         if (map == null) {
             return "null";
@@ -112,9 +104,7 @@ public class BluetoothLeUtils {
         return buffer.toString();
     }
 
-    /**
-     * Check whether two {@link SparseArray} equal.
-     */
+    /** Check whether two {@link SparseArray} equal. */
     static boolean equals(SparseArray<byte[]> array, SparseArray<byte[]> otherArray) {
         if (array == otherArray) {
             return true;
@@ -136,9 +126,7 @@ public class BluetoothLeUtils {
         return true;
     }
 
-    /**
-     * Check whether two {@link Map} equal.
-     */
+    /** Check whether two {@link Map} equal. */
     static <T> boolean equals(Map<T, byte[]> map, Map<T, byte[]> otherMap) {
         if (map == otherMap) {
             return true;
@@ -165,7 +153,7 @@ public class BluetoothLeUtils {
      * Ensure Bluetooth is turned on.
      *
      * @throws IllegalStateException If {@code adapter} is null or Bluetooth state is not {@link
-     * BluetoothAdapter#STATE_ON}.
+     *     BluetoothAdapter#STATE_ON}.
      */
     static void checkAdapterStateOn(BluetoothAdapter adapter) {
         if (adapter == null || !adapter.isLeEnabled()) {
@@ -186,8 +174,8 @@ public class BluetoothLeUtils {
             return Objects.equals(data, uuid);
         }
         return (data.getLeastSignificantBits() & mask.getLeastSignificantBits())
-                == (uuid.getLeastSignificantBits() & mask.getLeastSignificantBits())
+                        == (uuid.getLeastSignificantBits() & mask.getLeastSignificantBits())
                 && (data.getMostSignificantBits() & mask.getMostSignificantBits())
-                == (uuid.getMostSignificantBits() & mask.getMostSignificantBits());
+                        == (uuid.getMostSignificantBits() & mask.getMostSignificantBits());
     }
 }

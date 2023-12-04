@@ -28,9 +28,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Arrays;
 
-/**
- * Test cases for {@link SdpOppOpsRecord}.
- */
+/** Test cases for {@link SdpOppOpsRecord}. */
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class SdpOppOpsRecordTest {
@@ -41,15 +39,10 @@ public class SdpOppOpsRecordTest {
         int rfcommChannel = 1;
         int l2capPsm = 1;
         int version = 1;
-        byte[] formatsList = new byte[]{0x01};
+        byte[] formatsList = new byte[] {0x01};
 
-        SdpOppOpsRecord record = new SdpOppOpsRecord(
-                serviceName,
-                rfcommChannel,
-                l2capPsm,
-                version,
-                formatsList
-        );
+        SdpOppOpsRecord record =
+                new SdpOppOpsRecord(serviceName, rfcommChannel, l2capPsm, version, formatsList);
 
         assertThat(record.getServiceName()).isEqualTo(serviceName);
         assertThat(record.getRfcommChannel()).isEqualTo(rfcommChannel);
@@ -64,15 +57,10 @@ public class SdpOppOpsRecordTest {
         int rfcommChannel = 1;
         int l2capPsm = 1;
         int version = 1;
-        byte[] formatsList = new byte[]{0x01};
+        byte[] formatsList = new byte[] {0x01};
 
-        SdpOppOpsRecord originalRecord = new SdpOppOpsRecord(
-                serviceName,
-                rfcommChannel,
-                l2capPsm,
-                version,
-                formatsList
-        );
+        SdpOppOpsRecord originalRecord =
+                new SdpOppOpsRecord(serviceName, rfcommChannel, l2capPsm, version, formatsList);
 
         Parcel parcel = Parcel.obtain();
         originalRecord.writeToParcel(parcel, 0);
@@ -82,18 +70,12 @@ public class SdpOppOpsRecordTest {
                 (SdpOppOpsRecord) SdpOppOpsRecord.CREATOR.createFromParcel(parcel);
         parcel.recycle();
 
-        assertThat(recordOut.getServiceName())
-                .isEqualTo(originalRecord.getServiceName());
-        assertThat(recordOut.getRfcommChannel())
-                .isEqualTo(originalRecord.getRfcommChannel());
-        assertThat(recordOut.getL2capPsm())
-                .isEqualTo(originalRecord.getL2capPsm());
-        assertThat(recordOut.getProfileVersion())
-                .isEqualTo(originalRecord.getProfileVersion());
-        assertThat(recordOut.getProfileVersion())
-                .isEqualTo(originalRecord.getProfileVersion());
-        assertThat(recordOut.getFormatsList())
-                .isEqualTo(originalRecord.getFormatsList());
+        assertThat(recordOut.getServiceName()).isEqualTo(originalRecord.getServiceName());
+        assertThat(recordOut.getRfcommChannel()).isEqualTo(originalRecord.getRfcommChannel());
+        assertThat(recordOut.getL2capPsm()).isEqualTo(originalRecord.getL2capPsm());
+        assertThat(recordOut.getProfileVersion()).isEqualTo(originalRecord.getProfileVersion());
+        assertThat(recordOut.getProfileVersion()).isEqualTo(originalRecord.getProfileVersion());
+        assertThat(recordOut.getFormatsList()).isEqualTo(originalRecord.getFormatsList());
     }
 
     @Test
@@ -102,23 +84,28 @@ public class SdpOppOpsRecordTest {
         int rfcommChannel = 1;
         int l2capPsm = 1;
         int version = 1;
-        byte[] formatsList = new byte[]{0x01};
+        byte[] formatsList = new byte[] {0x01};
 
-        SdpOppOpsRecord record = new SdpOppOpsRecord(
-                serviceName,
-                rfcommChannel,
-                l2capPsm,
-                version,
-                formatsList
-        );
+        SdpOppOpsRecord record =
+                new SdpOppOpsRecord(serviceName, rfcommChannel, l2capPsm, version, formatsList);
 
         String sdpOppOpsRecordString = record.toString();
-        String expectedToString = "Bluetooth OPP Server SDP Record:\n"
-                + "  RFCOMM Chan Number: " + rfcommChannel + "\n"
-                + "  L2CAP PSM: " + l2capPsm + "\n"
-                + "  Profile version: " + version + "\n"
-                + "  Service Name: " + serviceName + "\n"
-                + "  Formats List: " + Arrays.toString(formatsList);
+        String expectedToString =
+                "Bluetooth OPP Server SDP Record:\n"
+                        + "  RFCOMM Chan Number: "
+                        + rfcommChannel
+                        + "\n"
+                        + "  L2CAP PSM: "
+                        + l2capPsm
+                        + "\n"
+                        + "  Profile version: "
+                        + version
+                        + "\n"
+                        + "  Service Name: "
+                        + serviceName
+                        + "\n"
+                        + "  Formats List: "
+                        + Arrays.toString(formatsList);
 
         assertThat(sdpOppOpsRecordString).isEqualTo(expectedToString);
     }
