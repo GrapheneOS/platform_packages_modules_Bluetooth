@@ -1303,7 +1303,7 @@ public final class BluetoothAdapter {
      * <p>If the internal Adapter state is STATE_BLE_ON, this would trigger the transition to
      * STATE_OFF and completely shut-down Bluetooth
      *
-     * <p>If the Adapter state is STATE_ON, This would unregister the existance of special Bluetooth
+     * <p>If the Adapter state is STATE_ON, This would unregister the existence of special Bluetooth
      * LE application and hence the further turning off of Bluetooth from UI would ensure the
      * complete turn-off of Bluetooth rather than staying back BLE only state
      *
@@ -1311,7 +1311,7 @@ public final class BluetoothAdapter {
      * {@link #ACTION_BLE_STATE_CHANGED} to be notified of subsequent adapter state changes If this
      * call returns true, then the adapter state will immediately transition from {@link #STATE_ON}
      * to {@link #STATE_TURNING_OFF}, and some time later transition to either {@link #STATE_BLE_ON}
-     * or {@link #STATE_OFF} based on the existance of the further Always BLE ON enabled
+     * or {@link #STATE_OFF} based on the existence of the further Always BLE ON enabled
      * applications If this call returns false then there was an immediate problem that will prevent
      * the QAdapter from being turned off - such as the QAadapter already being turned off.
      *
@@ -2698,7 +2698,7 @@ public final class BluetoothAdapter {
      * feature is supported, {@link BluetoothStatusCodes#FEATURE_NOT_SUPPORTED} if the feature is
      * not supported, or an error code.
      *
-     * @return whether the LE audio broadcast assistent is supported
+     * @return whether the LE audio broadcast assistant is supported
      * @throws IllegalStateException if the bluetooth service is null
      */
     @RequiresNoPermission
@@ -3429,7 +3429,7 @@ public final class BluetoothAdapter {
     /**
      * Create a listening, insecure RFCOMM Bluetooth socket with Service Record.
      *
-     * <p>The link key is not required to be authenticated, i.e the communication may be vulnerable
+     * <p>The link key is not required to be authenticated, i.e. the communication may be vulnerable
      * to Person In the Middle attacks. For Bluetooth 2.1 devices, the link will be encrypted, as
      * encryption is mandatory. For legacy devices (pre Bluetooth 2.1 devices) the link will not be
      * encrypted. Use {@link #listenUsingRfcommWithServiceRecord}, if an encrypted and authenticated
@@ -3466,7 +3466,7 @@ public final class BluetoothAdapter {
     /**
      * Create a listening, encrypted, RFCOMM Bluetooth socket with Service Record.
      *
-     * <p>The link will be encrypted, but the link key is not required to be authenticated i.e the
+     * <p>The link will be encrypted, but the link key is not required to be authenticated i.e. the
      * communication is vulnerable to Person In the Middle attacks. Use {@link
      * #listenUsingRfcommWithServiceRecord}, to ensure an authenticated link key.
      *
@@ -4048,7 +4048,7 @@ public final class BluetoothAdapter {
         /**
          * Wrapper function to relay to the {@link OobDataCallback#onError}
          *
-         * @param errorCode - the code descibing the type of error that occurred.
+         * @param errorCode - the code describing the type of error that occurred.
          * @hide
          */
         public void onError(@OobError int errorCode) {
@@ -4568,7 +4568,7 @@ public final class BluetoothAdapter {
      * assign a dynamic PSM value. This socket can be used to listen for incoming connections. The
      * supported Bluetooth transport is LE only.
      *
-     * <p>The link key is not required to be authenticated, i.e the communication may be vulnerable
+     * <p>The link key is not required to be authenticated, i.e. the communication may be vulnerable
      * to person-in-the-middle attacks. Use {@link #listenUsingL2capChannel}, if an encrypted and
      * authenticated communication channel is desired.
      *
@@ -4679,7 +4679,7 @@ public final class BluetoothAdapter {
                     // Check whether this device is already registered by the listener
                     if (listenerList.stream().anyMatch((pair) -> (pair.first.equals(listener)))) {
                         throw new IllegalArgumentException(
-                                "listener was already regestered" + " for the device");
+                                "listener was already registered" + " for the device");
                     }
                 }
 

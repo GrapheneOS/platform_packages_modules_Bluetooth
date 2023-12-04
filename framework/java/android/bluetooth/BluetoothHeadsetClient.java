@@ -157,8 +157,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
     /**
      * Intent that notifies about vendor specific event arrival. Events not defined in HFP spec will
      * be matched with supported vendor event list and this intent will be broadcasted upon a match.
-     * Supported vendor events are of format of of "+eventCode" or "+eventCode=xxxx" or
-     * "+eventCode:=xxxx". Vendor event can be a response to an vendor specific command or
+     * Supported vendor events are of format of "+eventCode" or "+eventCode=xxxx" or
+     * "+eventCode:=xxxx". Vendor event can be a response to a vendor specific command or
      * unsolicited.
      *
      * @hide
@@ -546,7 +546,7 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
     public static final int CME_EMERGENCY_SERVICE_ONLY = 32;
 
     /** @hide */
-    public static final int CME_NO_SIMULTANOUS_VOIP_CS_CALLS = 33;
+    public static final int CME_NO_SIMULTANEOUS_VOIP_CS_CALLS = 33;
 
     /** @hide */
     public static final int CME_NOT_SUPPORTED_FOR_VOIP = 34;
@@ -1643,7 +1643,7 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
         }
 
         /**
-         * Get the network service availablility state
+         * Get the network service availability state
          *
          * @return True if there is service available, False otherwise
          * @hide

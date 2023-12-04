@@ -45,7 +45,7 @@ public final class BluetoothHidDeviceAppQosSettings implements Parcelable {
 
     /**
      * Create a BluetoothHidDeviceAppQosSettings object for the Bluetooth L2CAP channel. The QoS
-     * Settings is optional. Please refer to Bluetooth HID Specfication v1.1.1 Section 5.2 and
+     * Settings is optional. Please refer to Bluetooth HID Specification v1.1.1 Section 5.2 and
      * Appendix D for parameters.
      *
      * @param serviceType L2CAP service type, default = SERVICE_BEST_EFFORT

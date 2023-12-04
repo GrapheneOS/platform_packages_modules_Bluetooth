@@ -38,7 +38,7 @@ instead.
 
 ## Run existing tests
 
-You can run all the exisiting BumbleBluetoothTests by doing so:
+You can run all the existing BumbleBluetoothTests by doing so:
 ```shell
 atest BumbleBluetoothTests
 ```
