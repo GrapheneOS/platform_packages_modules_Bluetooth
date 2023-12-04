@@ -26,9 +26,7 @@ import androidx.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-/**
- * Test cases for {@link SdpMnsRecord}.
- */
+/** Test cases for {@link SdpMnsRecord}. */
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class SdpMnsRecordTest {
@@ -41,13 +39,13 @@ public class SdpMnsRecordTest {
         int supportedFeatures = 1;
         String serviceName = "MnsRecord";
 
-        SdpMnsRecord record = new SdpMnsRecord(
-                l2capPsm,
-                rfcommChannelNumber,
-                profileVersion,
-                supportedFeatures,
-                serviceName
-        );
+        SdpMnsRecord record =
+                new SdpMnsRecord(
+                        l2capPsm,
+                        rfcommChannelNumber,
+                        profileVersion,
+                        supportedFeatures,
+                        serviceName);
 
         assertThat(record.getL2capPsm()).isEqualTo(l2capPsm);
         assertThat(record.getRfcommChannelNumber()).isEqualTo(rfcommChannelNumber);
@@ -64,13 +62,13 @@ public class SdpMnsRecordTest {
         int supportedFeatures = 1;
         String serviceName = "MnsRecord";
 
-        SdpMnsRecord originalRecord = new SdpMnsRecord(
-                l2capPsm,
-                rfcommChannelNumber,
-                profileVersion,
-                supportedFeatures,
-                serviceName
-        );
+        SdpMnsRecord originalRecord =
+                new SdpMnsRecord(
+                        l2capPsm,
+                        rfcommChannelNumber,
+                        profileVersion,
+                        supportedFeatures,
+                        serviceName);
 
         Parcel parcel = Parcel.obtain();
         originalRecord.writeToParcel(parcel, 0);
@@ -79,16 +77,13 @@ public class SdpMnsRecordTest {
         SdpMnsRecord recordOut = (SdpMnsRecord) SdpMnsRecord.CREATOR.createFromParcel(parcel);
         parcel.recycle();
 
-        assertThat(recordOut.getL2capPsm())
-                .isEqualTo(originalRecord.getL2capPsm());
+        assertThat(recordOut.getL2capPsm()).isEqualTo(originalRecord.getL2capPsm());
         assertThat(recordOut.getRfcommChannelNumber())
                 .isEqualTo(originalRecord.getRfcommChannelNumber());
-        assertThat(recordOut.getProfileVersion())
-                .isEqualTo(originalRecord.getProfileVersion());
+        assertThat(recordOut.getProfileVersion()).isEqualTo(originalRecord.getProfileVersion());
         assertThat(recordOut.getSupportedFeatures())
                 .isEqualTo(originalRecord.getSupportedFeatures());
-        assertThat(recordOut.getServiceName())
-                .isEqualTo(originalRecord.getServiceName());
+        assertThat(recordOut.getServiceName()).isEqualTo(originalRecord.getServiceName());
     }
 
     @Test
@@ -99,21 +94,32 @@ public class SdpMnsRecordTest {
         int supportedFeatures = 1;
         String serviceName = "MnsRecord";
 
-        SdpMnsRecord record = new SdpMnsRecord(
-                l2capPsm,
-                rfcommChannelNumber,
-                profileVersion,
-                supportedFeatures,
-                serviceName
-        );
+        SdpMnsRecord record =
+                new SdpMnsRecord(
+                        l2capPsm,
+                        rfcommChannelNumber,
+                        profileVersion,
+                        supportedFeatures,
+                        serviceName);
 
         String sdpMnsRecordString = record.toString();
-        String expectedToString = "Bluetooth MNS SDP Record:\n"
-                + "RFCOMM Chan Number: " + rfcommChannelNumber + "\n"
-                + "L2CAP PSM: " + l2capPsm + "\n"
-                + "Service Name: " + serviceName + "\n"
-                + "Supported features: " + supportedFeatures + "\n"
-                + "Profile_version: " + profileVersion + "\n";
+        String expectedToString =
+                "Bluetooth MNS SDP Record:\n"
+                        + "RFCOMM Chan Number: "
+                        + rfcommChannelNumber
+                        + "\n"
+                        + "L2CAP PSM: "
+                        + l2capPsm
+                        + "\n"
+                        + "Service Name: "
+                        + serviceName
+                        + "\n"
+                        + "Supported features: "
+                        + supportedFeatures
+                        + "\n"
+                        + "Profile_version: "
+                        + profileVersion
+                        + "\n";
 
         assertThat(sdpMnsRecordString).isEqualTo(expectedToString);
     }
