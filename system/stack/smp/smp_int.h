@@ -24,6 +24,8 @@
 #ifndef SMP_INT_H
 #define SMP_INT_H
 
+#include <cstdint>
+
 #include "macros.h"
 #include "osi/include/alarm.h"
 #include "stack/include/bt_hdr.h"
@@ -274,7 +276,12 @@ typedef struct {
 } tSMP_REQ_Q_ENTRY;
 
 /* SMP control block */
-typedef struct {
+class tSMP_CB {
+ public:
+  void init(uint8_t security_mode);
+  void reset();
+
+ public:
   uint8_t init_security_mode{0};
   tSMP_CALLBACK* p_callback;
   alarm_t* smp_rsp_timer_ent;
@@ -352,7 +359,7 @@ typedef struct {
   tSMP_STATUS cert_failure; /*failure case for certification */
   alarm_t* delayed_auth_timer_ent;
   tBLE_BD_ADDR pairing_ble_bd_addr;
-} tSMP_CB;
+};
 
 /* Server Action functions are of this type */
 typedef void (*tSMP_ACT)(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
@@ -452,7 +459,6 @@ void smp_data_ind(const RawAddress& bd_addr, BT_HDR* p_buf);
 void smp_log_metrics(const RawAddress& bd_addr, bool is_outgoing,
                      const uint8_t* p_buf, size_t buf_len, bool is_over_br);
 bool smp_send_cmd(uint8_t cmd_code, tSMP_CB* p_cb);
-void smp_cb_cleanup(tSMP_CB* p_cb);
 void smp_reset_control_value(tSMP_CB* p_cb);
 void smp_proc_pairing_cmpl(tSMP_CB* p_cb);
 void smp_convert_string_to_tk(Octet16* tk, uint32_t passkey);
