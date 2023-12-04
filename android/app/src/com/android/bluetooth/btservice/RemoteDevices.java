@@ -54,6 +54,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -1151,6 +1153,11 @@ public class RemoteDevices {
             } else if (device.getBondState() == BluetoothDevice.BOND_NONE) {
                 String key = Utils.getAddressStringFromByte(address);
                 mDevices.remove(key);
+                mDeviceQueue.remove(key); // Remove from LRU cache
+
+                // Remove from dual mode device mappings
+                mDualDevicesMap.values().remove(key);
+                mDualDevicesMap.remove(key);
             }
             if (state == BluetoothAdapter.STATE_ON || state == BluetoothAdapter.STATE_TURNING_OFF) {
                 mAdapterService.notifyAclDisconnected(device, transportLinkType);
