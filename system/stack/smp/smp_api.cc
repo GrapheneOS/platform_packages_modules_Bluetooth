@@ -48,9 +48,10 @@
  *
  ******************************************************************************/
 void SMP_Init(uint8_t init_security_mode) {
+  memset(&smp_cb, 0, sizeof(tSMP_CB));
+
   smp_cb.init_security_mode = init_security_mode;
 
-  memset(&smp_cb, 0, sizeof(tSMP_CB));
   smp_cb.smp_rsp_timer_ent = alarm_new("smp.smp_rsp_timer_ent");
   smp_cb.delayed_auth_timer_ent = alarm_new("smp.delayed_auth_timer_ent");
 
