@@ -27,9 +27,10 @@
 #include <optional>
 
 // Original included files, if any
-#include "stack/btm/btm_ble_int_types.h"
-#include "stack/btm/security_device_record.h"
+#include "stack/btm/btm_ble_sec.h"
+#include "stack/include/bt_device_type.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btm_api_types.h"
 #include "stack/include/btm_ble_api_types.h"
 #include "stack/include/btm_ble_sec_api_types.h"
 #include "stack/include/btm_sec_api_types.h"
