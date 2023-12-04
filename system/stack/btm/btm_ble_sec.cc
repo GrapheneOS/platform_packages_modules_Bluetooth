@@ -1550,7 +1550,8 @@ void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
  *****************************************************************************/
 tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
                                const tSMP_EVT_DATA* p_data) {
-  LOG_VERBOSE("bd_addr:%s, event=%d", ADDRESS_TO_LOGGABLE_CSTR(bd_addr), event);
+  LOG_VERBOSE("bd_addr:%s, event=%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
+              smp_evt_to_text(event).c_str());
 
   if (event == SMP_SC_LOC_OOB_DATA_UP_EVT) {
     btm_sec_cr_loc_oob_data_cback_event(RawAddress{}, p_data->loc_oob_data);
@@ -1609,9 +1610,8 @@ tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
             LOG_ERROR("p_dev_rec is NULL");
             return BTM_SUCCESS;
           }
-          LOG_VERBOSE(
-              "evt=SMP_COMPLT_EVT before update sec_level=0x%x sec_flags=0x%x",
-              p_data->cmplt.sec_level, p_dev_rec->sec_flags);
+          LOG_VERBOSE("before update sec_level=0x%x sec_flags=0x%x",
+                      p_data->cmplt.sec_level, p_dev_rec->sec_flags);
 
           res = (p_data->cmplt.reason == SMP_SUCCESS) ? BTM_SUCCESS
                                                       : BTM_ERR_PROCESSING;
@@ -1693,11 +1693,12 @@ tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
         break;
 
       default:
-        LOG_VERBOSE("unknown event=%d", event);
+        LOG_VERBOSE("unknown event=%s", smp_evt_to_text(event).c_str());
         break;
     }
   } else {
-    LOG_WARN("Unexpected event '%d' for unknown device.", event);
+    LOG_WARN("Unexpected event '%s' for unknown device.",
+             smp_evt_to_text(event).c_str());
   }
 
   return BTM_SUCCESS;
