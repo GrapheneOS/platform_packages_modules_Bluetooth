@@ -1704,8 +1704,8 @@ tBTM_STATUS btm_sec_l2cap_access_req_by_requirement(
 
       if (rc == BTM_SUCCESS) {
         if (p_callback)
-          (*p_callback)(&bd_addr, transport, (void*)p_ref_data, BTM_SUCCESS);
-        return (BTM_SUCCESS);
+          (*p_callback)(&bd_addr, transport, (void*)p_ref_data, rc);
+        return rc;
       }
     }
 
