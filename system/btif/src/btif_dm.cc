@@ -87,7 +87,6 @@
 #include "stack/include/btm_sec_api_types.h"
 #include "stack/include/smp_api.h"
 #include "stack/sdp/sdpint.h"
-#include "stack_config.h"
 #include "types/raw_address.h"
 
 #ifdef __ANDROID__
