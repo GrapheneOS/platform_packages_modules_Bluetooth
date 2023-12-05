@@ -33,141 +33,154 @@
 #include "os/handler.h"
 
 namespace bluetooth {
-
 namespace security {
 class SecurityModule;
-}
+}  // namespace security
 namespace shim {
 namespace legacy {
 class Acl;
-}
+}  // namespace legacy
 
 class Btm;
 bool L2CA_SetAclPriority(uint16_t, bool);
-}
+}  // namespace shim
 
 namespace hci {
 
 class AclManager : public Module {
- friend class bluetooth::shim::Btm;
- friend class bluetooth::shim::legacy::Acl;
- friend bool bluetooth::shim::L2CA_SetAclPriority(uint16_t, bool);
- friend class bluetooth::hci::LeScanningManager;
- friend class bluetooth::hci::DistanceMeasurementManager;
+  friend class bluetooth::shim::Btm;
+  friend class bluetooth::shim::legacy::Acl;
+  friend bool bluetooth::shim::L2CA_SetAclPriority(uint16_t, bool);
+  friend class bluetooth::hci::LeScanningManager;
+  friend class bluetooth::hci::DistanceMeasurementManager;
 
-public:
- AclManager();
- AclManager(const AclManager&) = delete;
- AclManager& operator=(const AclManager&) = delete;
+ public:
+  AclManager();
+  AclManager(const AclManager&) = delete;
+  AclManager& operator=(const AclManager&) = delete;
 
- // NOTE: It is necessary to forward declare a default destructor that overrides the base class one, because
- // "struct impl" is forwarded declared in .cc and compiler needs a concrete definition of "struct impl" when
- // compiling AclManager's destructor. Hence we need to forward declare the destructor for AclManager to delay
- // compiling AclManager's destructor until it starts linking the .cc file.
- ~AclManager();
+  // NOTE: It is necessary to forward declare a default destructor that
+  // overrides the base class one, because "struct impl" is forwarded declared
+  // in .cc and compiler needs a concrete definition of "struct impl" when
+  // compiling AclManager's destructor. Hence we need to forward declare the
+  // destructor for AclManager to delay compiling AclManager's destructor until
+  // it starts linking the .cc file.
+  ~AclManager();
 
- // Should register only once when user module starts.
- // Generates OnConnectSuccess when an incoming connection is established.
- virtual void RegisterCallbacks(acl_manager::ConnectionCallbacks* callbacks, os::Handler* handler);
- virtual void UnregisterCallbacks(acl_manager::ConnectionCallbacks* callbacks, std::promise<void> promise);
+  // Should register only once when user module starts.
+  // Generates OnConnectSuccess when an incoming connection is established.
+  virtual void RegisterCallbacks(acl_manager::ConnectionCallbacks* callbacks, os::Handler* handler);
+  virtual void UnregisterCallbacks(
+      acl_manager::ConnectionCallbacks* callbacks, std::promise<void> promise);
 
- // Should register only once when user module starts.
- virtual void RegisterLeCallbacks(acl_manager::LeConnectionCallbacks* callbacks, os::Handler* handler);
- virtual void UnregisterLeCallbacks(acl_manager::LeConnectionCallbacks* callbacks, std::promise<void> promise);
- void RegisterLeAcceptlistCallbacks(acl_manager::LeAcceptlistCallbacks* callbacks);
- void UnregisterLeAcceptlistCallbacks(
-     acl_manager::LeAcceptlistCallbacks* callbacks, std::promise<void> promise);
+  // Should register only once when user module starts.
+  virtual void RegisterLeCallbacks(
+      acl_manager::LeConnectionCallbacks* callbacks, os::Handler* handler);
+  virtual void UnregisterLeCallbacks(
+      acl_manager::LeConnectionCallbacks* callbacks, std::promise<void> promise);
+  void RegisterLeAcceptlistCallbacks(acl_manager::LeAcceptlistCallbacks* callbacks);
+  void UnregisterLeAcceptlistCallbacks(
+      acl_manager::LeAcceptlistCallbacks* callbacks, std::promise<void> promise);
 
- // Generates OnConnectSuccess if connected, or OnConnectFail otherwise
- virtual void CreateConnection(Address address);
+  // Generates OnConnectSuccess if connected, or OnConnectFail otherwise
+  virtual void CreateConnection(Address address);
 
- // Generates OnLeConnectSuccess if connected, or OnLeConnectFail otherwise
- virtual void CreateLeConnection(AddressWithType address_with_type, bool is_direct);
+  // Generates OnLeConnectSuccess if connected, or OnLeConnectFail otherwise
+  virtual void CreateLeConnection(AddressWithType address_with_type, bool is_direct);
 
- // Ask the controller for specific data parameters
- virtual void SetLeSuggestedDefaultDataParameters(uint16_t octets, uint16_t time);
+  // Ask the controller for specific data parameters
+  virtual void SetLeSuggestedDefaultDataParameters(uint16_t octets, uint16_t time);
 
- virtual void LeSetDefaultSubrate(
-     uint16_t subrate_min, uint16_t subrate_max, uint16_t max_latency, uint16_t cont_num, uint16_t sup_tout);
+  virtual void LeSetDefaultSubrate(
+      uint16_t subrate_min,
+      uint16_t subrate_max,
+      uint16_t max_latency,
+      uint16_t cont_num,
+      uint16_t sup_tout);
 
- virtual void SetPrivacyPolicyForInitiatorAddress(
-     LeAddressManager::AddressPolicy address_policy,
-     AddressWithType fixed_address,
-     std::chrono::milliseconds minimum_rotation_time,
-     std::chrono::milliseconds maximum_rotation_time);
+  virtual void SetPrivacyPolicyForInitiatorAddress(
+      LeAddressManager::AddressPolicy address_policy,
+      AddressWithType fixed_address,
+      std::chrono::milliseconds minimum_rotation_time,
+      std::chrono::milliseconds maximum_rotation_time);
 
- // TODO(jpawlowski): remove once we have config file abstraction in cert tests
- virtual void SetPrivacyPolicyForInitiatorAddressForTest(
-     LeAddressManager::AddressPolicy address_policy,
-     AddressWithType fixed_address,
-     Octet16 rotation_irk,
-     std::chrono::milliseconds minimum_rotation_time,
-     std::chrono::milliseconds maximum_rotation_time);
+  // TODO(jpawlowski): remove once we have config file abstraction in cert tests
+  virtual void SetPrivacyPolicyForInitiatorAddressForTest(
+      LeAddressManager::AddressPolicy address_policy,
+      AddressWithType fixed_address,
+      Octet16 rotation_irk,
+      std::chrono::milliseconds minimum_rotation_time,
+      std::chrono::milliseconds maximum_rotation_time);
 
- // Generates OnConnectFail with error code "terminated by local host 0x16" if cancelled, or OnConnectSuccess if not
- // successfully cancelled and already connected
- virtual void CancelConnect(Address address);
- virtual void RemoveFromBackgroundList(AddressWithType address_with_type);
- virtual void IsOnBackgroundList(AddressWithType address_with_type, std::promise<bool> promise);
+  // Generates OnConnectFail with error code "terminated by local host 0x16" if
+  // cancelled, or OnConnectSuccess if not successfully cancelled and already
+  // connected
+  virtual void CancelConnect(Address address);
+  virtual void RemoveFromBackgroundList(AddressWithType address_with_type);
+  virtual void IsOnBackgroundList(AddressWithType address_with_type, std::promise<bool> promise);
 
- virtual void CancelLeConnect(AddressWithType address_with_type);
+  virtual void CancelLeConnect(AddressWithType address_with_type);
 
- virtual void ClearFilterAcceptList();
+  virtual void ClearFilterAcceptList();
 
- virtual void AddDeviceToResolvingList(
-     AddressWithType address_with_type,
-     const std::array<uint8_t, 16>& peer_irk,
-     const std::array<uint8_t, 16>& local_irk);
- virtual void RemoveDeviceFromResolvingList(AddressWithType address_with_type);
- virtual void ClearResolvingList();
+  virtual void AddDeviceToResolvingList(
+      AddressWithType address_with_type,
+      const std::array<uint8_t, 16>& peer_irk,
+      const std::array<uint8_t, 16>& local_irk);
+  virtual void RemoveDeviceFromResolvingList(AddressWithType address_with_type);
+  virtual void ClearResolvingList();
 
- virtual void CentralLinkKey(KeyFlag key_flag);
- virtual void SwitchRole(Address address, Role role);
- virtual uint16_t ReadDefaultLinkPolicySettings();
- virtual void WriteDefaultLinkPolicySettings(uint16_t default_link_policy_settings);
+  virtual void CentralLinkKey(KeyFlag key_flag);
+  virtual void SwitchRole(Address address, Role role);
+  virtual uint16_t ReadDefaultLinkPolicySettings();
+  virtual void WriteDefaultLinkPolicySettings(uint16_t default_link_policy_settings);
 
- // Callback from Advertising Manager to notify the advitiser (local) address
- virtual void OnAdvertisingSetTerminated(
-     ErrorCode status,
-     uint16_t conn_handle,
-     uint8_t adv_set_id,
-     hci::AddressWithType adv_address,
-     bool is_discoverable);
+  // Callback from Advertising Manager to notify the advitiser (local) address
+  virtual void OnAdvertisingSetTerminated(
+      ErrorCode status,
+      uint16_t conn_handle,
+      uint8_t adv_set_id,
+      hci::AddressWithType adv_address,
+      bool is_discoverable);
 
- // In order to avoid circular dependency use setter rather than module dependency.
- virtual void SetSecurityModule(security::SecurityModule* security_module);
+  // In order to avoid circular dependency use setter rather than module
+  // dependency.
+  virtual void SetSecurityModule(security::SecurityModule* security_module);
 
- virtual LeAddressManager* GetLeAddressManager();
+  virtual LeAddressManager* GetLeAddressManager();
 
- // Virtual ACL disconnect emitted during suspend.
- virtual void OnClassicSuspendInitiatedDisconnect(uint16_t handle, ErrorCode reason);
- virtual void OnLeSuspendInitiatedDisconnect(uint16_t handle, ErrorCode reason);
- virtual void SetSystemSuspendState(bool suspended);
+  // Virtual ACL disconnect emitted during suspend.
+  virtual void OnClassicSuspendInitiatedDisconnect(uint16_t handle, ErrorCode reason);
+  virtual void OnLeSuspendInitiatedDisconnect(uint16_t handle, ErrorCode reason);
+  virtual void SetSystemSuspendState(bool suspended);
 
- static const ModuleFactory Factory;
+  static const ModuleFactory Factory;
 
-protected:
- void ListDependencies(ModuleList* list) const override;
+ protected:
+  void ListDependencies(ModuleList* list) const override;
 
- void Start() override;
+  void Start() override;
 
- void Stop() override;
+  void Stop() override;
 
- std::string ToString() const override;
+  std::string ToString() const override;
 
- DumpsysDataFinisher GetDumpsysData(flatbuffers::FlatBufferBuilder* builder) const override;  // Module
+  DumpsysDataFinisher GetDumpsysData(
+      flatbuffers::FlatBufferBuilder* builder) const override;  // Module
 
-private:
- virtual uint16_t HACK_GetHandle(const Address address);
- virtual uint16_t HACK_GetLeHandle(const Address address);
+ private:
+  virtual uint16_t HACK_GetHandle(const Address address);
+  virtual uint16_t HACK_GetLeHandle(const Address address);
 
- // Hack for the shim to get non-acl disconnect callback. Shim needs to post to their handler!
- virtual void HACK_SetNonAclDisconnectCallback(std::function<void(uint16_t /* handle */, uint8_t /* reason */)>);
+  // Hack for the shim to get non-acl disconnect callback. Shim needs to post to
+  // their handler!
+  virtual void HACK_SetNonAclDisconnectCallback(
+      std::function<void(uint16_t /* handle */, uint8_t /* reason */)>);
 
- virtual void HACK_SetAclTxPriority(uint8_t handle, bool high_priority);
+  virtual void HACK_SetAclTxPriority(uint8_t handle, bool high_priority);
 
- struct impl;
- std::unique_ptr<impl> pimpl_;
+  struct impl;
+  std::unique_ptr<impl> pimpl_;
 };
 
 }  // namespace hci
