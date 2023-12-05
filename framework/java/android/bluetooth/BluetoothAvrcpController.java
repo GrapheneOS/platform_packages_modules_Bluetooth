@@ -215,7 +215,6 @@ public final class BluetoothAvrcpController implements BluetoothProfile {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public BluetoothAvrcpPlayerSettings getPlayerSettings(BluetoothDevice device) {
         if (DBG) Log.d(TAG, "getPlayerSettings");
-        BluetoothAvrcpPlayerSettings settings = null;
         final IBluetoothAvrcpController service = getService();
         final BluetoothAvrcpPlayerSettings defaultValue = null;
         if (service == null) {
@@ -226,7 +225,7 @@ public final class BluetoothAvrcpController implements BluetoothProfile {
                 final SynchronousResultReceiver<BluetoothAvrcpPlayerSettings> recv =
                         SynchronousResultReceiver.get();
                 service.getPlayerSettings(device, mAttributionSource, recv);
-                settings = recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
