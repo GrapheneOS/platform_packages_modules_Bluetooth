@@ -19,6 +19,7 @@
 #ifndef BTM_BLE_INT_TYPES_H
 #define BTM_BLE_INT_TYPES_H
 
+#include "macros.h"
 #include "osi/include/alarm.h"
 #include "stack/btm/neighbor_inquiry.h"
 #include "stack/include/btm_ble_api_types.h"
@@ -62,33 +63,6 @@
 #define BTM_BLE_GAP_ADV_DIR_MIN_INT 400
 
 #define BTM_BLE_GAP_FAST_ADV_TIMEOUT_MS (30 * 1000)
-
-typedef enum : uint8_t {
-  BTM_BLE_SEC_REQ_ACT_NONE = 0,
-  /* encrypt the link using current key or key refresh */
-  BTM_BLE_SEC_REQ_ACT_ENCRYPT = 1,
-  BTM_BLE_SEC_REQ_ACT_PAIR = 2,
-  /* discard the sec request while encryption is started but not completed */
-  BTM_BLE_SEC_REQ_ACT_DISCARD = 3,
-} tBTM_BLE_SEC_REQ_ACT;
-
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif
-
-inline std::string btm_ble_sec_req_act_text(
-    const tBTM_BLE_SEC_REQ_ACT& action) {
-  switch (action) {
-    CASE_RETURN_TEXT(BTM_BLE_SEC_REQ_ACT_NONE);
-    CASE_RETURN_TEXT(BTM_BLE_SEC_REQ_ACT_ENCRYPT);
-    CASE_RETURN_TEXT(BTM_BLE_SEC_REQ_ACT_PAIR);
-    CASE_RETURN_TEXT(BTM_BLE_SEC_REQ_ACT_DISCARD);
-  }
-}
-
-#undef CASE_RETURN_TEXT
 
 #define BTM_VSC_CHIP_CAPABILITY_L_VERSION 55
 #define BTM_VSC_CHIP_CAPABILITY_M_VERSION 95

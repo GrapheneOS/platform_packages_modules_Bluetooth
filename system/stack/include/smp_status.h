@@ -22,6 +22,8 @@
 
 #include <cstdint>
 
+#include "macros.h"
+
 /* pairing failure reason code */
 typedef enum : uint8_t {
   SMP_SUCCESS = 0,
@@ -60,12 +62,6 @@ typedef enum : uint8_t {
   SMP_USER_CANCELLED = (SMP_MAX_FAIL_RSN_PER_SPEC + 0x0D),   /* 0x1b */
 } tSMP_STATUS;
 
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif
-
 inline std::string smp_status_text(const tSMP_STATUS& status) {
   switch (status) {
     CASE_RETURN_TEXT(SMP_SUCCESS);
@@ -97,4 +93,3 @@ inline std::string smp_status_text(const tSMP_STATUS& status) {
       return base::StringPrintf("UNKNOWN[%hhu]", status);
   }
 }
-#undef CASE_RETURN_TEXT

@@ -16,11 +16,9 @@
  *
  ******************************************************************************/
 
-#include "bt_target.h"
+#define LOG_TAG "smp"
 
-#include <string.h>
-
-#include "osi/include/log.h"
+#include "os/log.h"
 #include "smp_int.h"
 #include "types/hci_role.h"
 
@@ -248,12 +246,12 @@ static const tSMP_BR_ENTRY_TBL smp_br_entry_table[] = {
  ******************************************************************************/
 void smp_set_br_state(tSMP_BR_STATE br_state) {
   if (br_state < SMP_BR_STATE_MAX) {
-    LOG_VERBOSE("BR_State change: %s(%d) ==> %s(%d)",
+    LOG_VERBOSE("BR_State change:%s(%d)==>%s(%d)",
                 smp_get_br_state_name(smp_cb.br_state), smp_cb.br_state,
                 smp_get_br_state_name(br_state), br_state);
     smp_cb.br_state = br_state;
   } else {
-    LOG_VERBOSE("%s invalid br_state =%d", __func__, br_state);
+    LOG_VERBOSE("invalid br_state=%d", br_state);
   }
 }
 
@@ -307,20 +305,20 @@ void smp_br_state_machine_event(tSMP_CB* p_cb, tSMP_BR_EVENT event,
   tSMP_BR_SM_TBL state_table;
   uint8_t action, entry;
 
-  LOG_VERBOSE("main %s", __func__);
+  LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
   if (curr_state >= SMP_BR_STATE_MAX) {
     LOG_VERBOSE("Invalid br_state: %d", curr_state);
     return;
   }
 
   if (p_cb->role > HCI_ROLE_PERIPHERAL) {
-    LOG_ERROR("%s: invalid role %d", __func__, p_cb->role);
+    LOG_ERROR("invalid role %d", p_cb->role);
     return;
   }
 
   tSMP_BR_ENTRY_TBL entry_table = smp_br_entry_table[p_cb->role];
 
-  LOG_VERBOSE("SMP Role: %s State: [%s (%d)], Event: [%s (%d)]",
+  LOG_VERBOSE("SMP Role:%s State:[%s(%d)], Event:[%s(%d)]",
               (p_cb->role == HCI_ROLE_PERIPHERAL) ? "Peripheral" : "Central",
               smp_get_br_state_name(p_cb->br_state), p_cb->br_state,
               smp_get_br_event_name(event), event);
@@ -338,7 +336,7 @@ void smp_br_state_machine_event(tSMP_CB* p_cb, tSMP_BR_EVENT event,
       state_table = smp_br_state_table[curr_state][p_cb->role];
     }
   } else {
-    LOG_VERBOSE("Ignore event [%s (%d)] in state [%s (%d)]",
+    LOG_VERBOSE("Ignore event[%s(%d)] in state[%s(%d)]",
                 smp_get_br_event_name(event), event,
                 smp_get_br_state_name(curr_state), curr_state);
     return;
@@ -360,5 +358,5 @@ void smp_br_state_machine_event(tSMP_CB* p_cb, tSMP_BR_EVENT event,
       break;
     }
   }
-  LOG_VERBOSE("result state = %s", smp_get_br_state_name(p_cb->br_state));
+  LOG_VERBOSE("result state=%s", smp_get_br_state_name(p_cb->br_state));
 }

@@ -26,6 +26,7 @@
 #include <stdint.h>
 
 #include "bta/include/bta_hh_api.h"
+#include "macros.h"
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 #include "types/raw_address.h"
@@ -67,10 +68,6 @@ typedef enum : unsigned {
   BTIF_HH_DEV_DISCONNECTED
 } BTIF_HH_STATUS;
 
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-
 inline std::string btif_hh_status_text(const BTIF_HH_STATUS& status) {
   switch (status) {
     CASE_RETURN_TEXT(BTIF_HH_DISABLED);
@@ -84,7 +81,6 @@ inline std::string btif_hh_status_text(const BTIF_HH_STATUS& status) {
       return base::StringPrintf("UNKNOWN[%u]", status);
   }
 }
-#undef CASE_RETURN_TEXT
 
 // Shared with uhid polling thread
 typedef struct {

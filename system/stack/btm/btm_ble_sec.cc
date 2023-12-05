@@ -17,6 +17,8 @@
 
 #define LOG_TAG "ble_sec"
 
+#include "stack/btm/btm_ble_sec.h"
+
 #include <base/strings/stringprintf.h>
 
 #include <cstddef>
@@ -641,9 +643,8 @@ tBTM_STATUS BTM_SetBleDataLength(const RawAddress& bd_addr,
  * Returns          The appropriate security action required.
  *
  ******************************************************************************/
-tBTM_SEC_ACTION btm_ble_determine_security_act(bool is_originator,
-                                               const RawAddress& bdaddr,
-                                               uint16_t security_required) {
+static tBTM_SEC_ACTION btm_ble_determine_security_act(
+    bool is_originator, const RawAddress& bdaddr, uint16_t security_required) {
   tBTM_LE_AUTH_REQ auth_req = 0x00;
 
   if (is_originator) {
@@ -800,7 +801,8 @@ tL2CAP_LE_RESULT_CODE btm_ble_start_sec_check(const RawAddress& bd_addr,
  * Returns         None
  *
  ******************************************************************************/
-void btm_ble_increment_sign_ctr(const RawAddress& bd_addr, bool is_local) {
+static void btm_ble_increment_sign_ctr(const RawAddress& bd_addr,
+                                       bool is_local) {
   tBTM_SEC_DEV_REC* p_dev_rec;
 
   LOG_VERBOSE("btm_ble_increment_sign_ctr is_local=%d", is_local);
@@ -1410,8 +1412,8 @@ void btm_ble_ltk_request_reply(const RawAddress& bda, bool use_stk,
  * Returns          void
  *
  ******************************************************************************/
-uint8_t btm_ble_io_capabilities_req(tBTM_SEC_DEV_REC* p_dev_rec,
-                                    tBTM_LE_IO_REQ* p_data) {
+static uint8_t btm_ble_io_capabilities_req(tBTM_SEC_DEV_REC* p_dev_rec,
+                                           tBTM_LE_IO_REQ* p_data) {
   uint8_t callback_rc = BTM_SUCCESS;
   LOG_VERBOSE("p_dev_rec->bd_addr:%s",
               ADDRESS_TO_LOGGABLE_CSTR(p_dev_rec->bd_addr));
@@ -1476,8 +1478,8 @@ uint8_t btm_ble_io_capabilities_req(tBTM_SEC_DEV_REC* p_dev_rec,
  * Returns          void
  *
  ******************************************************************************/
-uint8_t btm_ble_br_keys_req(tBTM_SEC_DEV_REC* p_dev_rec,
-                            tBTM_LE_IO_REQ* p_data) {
+static uint8_t btm_ble_br_keys_req(tBTM_SEC_DEV_REC* p_dev_rec,
+                                   tBTM_LE_IO_REQ* p_data) {
   uint8_t callback_rc = BTM_SUCCESS;
   LOG_VERBOSE("p_dev_rec->bd_addr:%s",
               ADDRESS_TO_LOGGABLE_CSTR(p_dev_rec->bd_addr));

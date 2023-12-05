@@ -21,6 +21,7 @@
  *  this file contains GATT authentication handling functions
  *
  ******************************************************************************/
+#include <base/logging.h>
 #include <string.h>
 
 #include "bt_target.h"
@@ -28,15 +29,11 @@
 #include "gatt_int.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
-#include "stack/btm/btm_ble_int.h"
-#include "stack/btm/btm_ble_int_types.h"
+#include "stack/btm/btm_ble_sec.h"
 #include "stack/btm/btm_sec.h"
-#include "stack/include/btm_ble_sec_api.h"
-#include "stack/include/btm_sec_api.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/btm_ble_sec_api.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 using base::StringPrintf;
 

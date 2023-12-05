@@ -22,22 +22,15 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bluetooth"
+#define LOG_TAG "smp"
 
-#include <base/logging.h>
-#include <string.h>
-
-#include "bt_target.h"
-#include "btm_ble_api.h"
-#include "common/metrics.h"
-#include "l2c_api.h"
-#include "main/shim/dumpsys.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "smp_int.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/l2c_api.h"
 #include "types/raw_address.h"
 
 static void smp_connect_callback(uint16_t channel, const RawAddress& bd_addr,
@@ -62,7 +55,7 @@ static void smp_br_data_received(uint16_t channel, const RawAddress& bd_addr,
  ******************************************************************************/
 void smp_l2cap_if_init(void) {
   tL2CAP_FIXED_CHNL_REG fixed_reg;
-  LOG_VERBOSE("SMDBG l2c %s", __func__);
+  LOG_VERBOSE("SMDBG l2c");
 
   fixed_reg.pL2CA_FixedConn_Cb = smp_connect_callback;
   fixed_reg.pL2CA_FixedData_Cb = smp_data_received;
@@ -96,29 +89,22 @@ static void smp_connect_callback(UNUSED_ATTR uint16_t channel,
   tSMP_CB* p_cb = &smp_cb;
   tSMP_INT_DATA int_data;
 
+  LOG_DEBUG("bd_addr:%s transport:%s, connected:%d",
+            ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
+            bt_transport_text(transport).c_str(), connected);
+
   if (bd_addr.IsEmpty()) {
-    LOG_WARN("Received unexpected callback for empty address");
+    LOG_WARN("empty address");
     return;
   }
 
   if (transport == BT_TRANSPORT_BR_EDR) {
-    LOG_WARN("Received unexpected callback on classic channel peer:%s",
-             ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+    LOG_WARN("unexpected transport");
     return;
   }
 
-  if (connected) {
-    LOG_DEBUG("SMP Received connect callback bd_addr:%s transport:%s",
-              ADDRESS_TO_LOGGABLE_CSTR(bd_addr), bt_transport_text(transport).c_str());
-  } else {
-    LOG_DEBUG("SMP Received disconnect callback bd_addr:%s transport:%s",
-              ADDRESS_TO_LOGGABLE_CSTR(bd_addr), bt_transport_text(transport).c_str());
-  }
-
   if (bd_addr == p_cb->pairing_bda) {
-    LOG_DEBUG("Received callback for device in pairing process:%s state:%s",
-              ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
-              (connected) ? "connected" : "disconnected");
+    LOG_DEBUG("in pairing process");
 
     if (connected) {
       if (!p_cb->connect_initialized) {
@@ -157,19 +143,19 @@ static void smp_data_received(uint16_t channel, const RawAddress& bd_addr,
   uint8_t cmd;
 
   if (p_buf->len < 1) {
-    LOG_WARN("%s: smp packet length %d too short: must be at least 1", __func__,
-             p_buf->len);
+    LOG_WARN("packet too short");
     osi_free(p_buf);
     return;
   }
 
   STREAM_TO_UINT8(cmd, p);
 
-  LOG_VERBOSE("%s: SMDBG l2c, cmd=0x%x", __func__, cmd);
+  LOG_VERBOSE("cmd=%s[0x%02x]",
+              smp_opcode_text(static_cast<tSMP_OPCODE>(cmd)).c_str(), cmd);
 
   /* sanity check */
   if ((SMP_OPCODE_MAX < cmd) || (SMP_OPCODE_MIN > cmd)) {
-    LOG_WARN("Ignore received command with RESERVED code 0x%02x", cmd);
+    LOG_WARN("invalid command");
     osi_free(p_buf);
     return;
   }
@@ -199,10 +185,8 @@ static void smp_data_received(uint16_t channel, const RawAddress& bd_addr,
                     false /* is_over_br */);
 
     if (cmd == SMP_OPCODE_CONFIRM) {
-      LOG_VERBOSE(
-          "in %s cmd = 0x%02x, peer_auth_req = 0x%02x,"
-          "loc_auth_req = 0x%02x",
-          __func__, cmd, p_cb->peer_auth_req, p_cb->loc_auth_req);
+      LOG_VERBOSE("peer_auth_req=0x%02x, loc_auth_req=0x%02x",
+                  p_cb->peer_auth_req, p_cb->loc_auth_req);
 
       if ((p_cb->peer_auth_req & SMP_SC_SUPPORT_BIT) &&
           (p_cb->loc_auth_req & SMP_SC_SUPPORT_BIT)) {
@@ -237,17 +221,14 @@ static void smp_br_connect_callback(uint16_t channel, const RawAddress& bd_addr,
   tSMP_CB* p_cb = &smp_cb;
   tSMP_INT_DATA int_data;
 
-  LOG_VERBOSE("%s", __func__);
-
   if (transport != BT_TRANSPORT_BR_EDR) {
-    LOG_WARN("%s is called on unexpected transport %d", __func__, transport);
+    LOG_WARN("unexpected transport %s", bt_transport_text(transport).c_str());
     return;
   }
 
-  VLOG(1) << __func__ << " for pairing BDA: "
-          << ADDRESS_TO_LOGGABLE_STR(bd_addr)
-          << ", pairing_bda:" << ADDRESS_TO_LOGGABLE_STR(p_cb->pairing_bda)
-          << " Event: " << ((connected) ? "connected" : "disconnected");
+  LOG_INFO("BDA:%s pairing_bda:%s, connected:%d",
+           ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
+           ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda), connected);
 
   if (bd_addr != p_cb->pairing_bda) return;
 
@@ -305,20 +286,21 @@ static void smp_br_data_received(uint16_t channel, const RawAddress& bd_addr,
   tSMP_CB* p_cb = &smp_cb;
   uint8_t* p = (uint8_t*)(p_buf + 1) + p_buf->offset;
   uint8_t cmd;
-  LOG_VERBOSE("SMDBG l2c %s", __func__);
+  LOG_VERBOSE("SMDBG l2c");
 
   if (p_buf->len < 1) {
-    LOG_WARN("%s: smp packet length %d too short: must be at least 1", __func__,
-             p_buf->len);
+    LOG_WARN("packet too short");
     osi_free(p_buf);
     return;
   }
 
   STREAM_TO_UINT8(cmd, p);
+  LOG_VERBOSE("cmd=%s[0x%02x]",
+              smp_opcode_text(static_cast<tSMP_OPCODE>(cmd)).c_str(), cmd);
 
   /* sanity check */
   if ((SMP_OPCODE_MAX < cmd) || (SMP_OPCODE_MIN > cmd)) {
-    LOG_WARN("Ignore received command with RESERVED code 0x%02x", cmd);
+    LOG_WARN("invalid command 0x%02x", cmd);
     osi_free(p_buf);
     return;
   }

@@ -21,6 +21,7 @@
 
 #include "btm_sco_hfp_hal.h"
 #include "device/include/esco_parameters.h"
+#include "macros.h"
 #include "raw_address.h"
 #include "stack/btm/sco_pkt_status.h"
 #include "stack/include/btm_api_types.h"
@@ -187,12 +188,6 @@ size_t dequeue_packet(const uint8_t** output);
 tBTM_SCO_PKT_STATUS* get_pkt_status();
 }  // namespace bluetooth::audio::sco::swb
 
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif
-
 /* Define the structures needed by sco */
 typedef enum : uint16_t {
   SCO_ST_UNUSED = 0,
@@ -222,8 +217,6 @@ inline std::string sco_state_text(const tSCO_STATE& state) {
        std::to_string(static_cast<uint16_t>(state));
   }
 }
-
-#undef CASE_RETURN_TEXT
 
 /* Define the structure that contains (e)SCO data */
 typedef struct {

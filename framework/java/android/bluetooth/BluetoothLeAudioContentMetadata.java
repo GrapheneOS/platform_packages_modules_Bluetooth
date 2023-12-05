@@ -45,8 +45,8 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
     private final String mLanguage;
     private final byte[] mRawMetadata;
 
-    private BluetoothLeAudioContentMetadata(String programInfo, String language,
-            byte[] rawMetadata) {
+    private BluetoothLeAudioContentMetadata(
+            String programInfo, String language, byte[] rawMetadata) {
         mProgramInfo = programInfo;
         mLanguage = language;
         mRawMetadata = rawMetadata;
@@ -72,7 +72,7 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
      * Get the title and/or summary of Audio Stream content in UTF-8 format.
      *
      * @return title and/or summary of Audio Stream content in UTF-8 format, null if this metadata
-     * does not exist
+     *     does not exist
      * @hide
      */
     @SystemApi
@@ -93,8 +93,9 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
 
     /**
      * Get the raw bytes of stream metadata in Bluetooth LTV format as defined in the Generic Audio
-     * section of <a href="https://www.bluetooth.com/specifications/assigned-numbers/">Bluetooth Assigned Numbers</a>,
-     * including metadata that was not covered by the getter methods in this class
+     * section of <a href="https://www.bluetooth.com/specifications/assigned-numbers/">Bluetooth
+     * Assigned Numbers</a>, including metadata that was not covered by the getter methods in this
+     * class
      *
      * @return raw bytes of stream metadata in Bluetooth LTV format
      */
@@ -102,9 +103,9 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
         return mRawMetadata;
     }
 
-
     /**
      * {@inheritDoc}
+     *
      * @hide
      */
     @Override
@@ -114,6 +115,7 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
 
     /**
      * {@inheritDoc}
+     *
      * @hide
      */
     @Override
@@ -126,37 +128,39 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
 
     /**
      * A {@link Parcelable.Creator} to create {@link BluetoothLeAudioContentMetadata} from parcel.
+     *
      * @hide
      */
-    @SystemApi
-    @NonNull
-    public static final Creator<BluetoothLeAudioContentMetadata> CREATOR = new Creator<>() {
-        public @NonNull BluetoothLeAudioContentMetadata createFromParcel(@NonNull Parcel in) {
-            final String programInfo = in.readString();
-            final String language = in.readString();
-            final int rawMetadataLength = in.readInt();
-            byte[] rawMetadata = new byte[rawMetadataLength];
-            in.readByteArray(rawMetadata);
-            return new BluetoothLeAudioContentMetadata(programInfo, language, rawMetadata);
-        }
+    @SystemApi @NonNull
+    public static final Creator<BluetoothLeAudioContentMetadata> CREATOR =
+            new Creator<>() {
+                public @NonNull BluetoothLeAudioContentMetadata createFromParcel(
+                        @NonNull Parcel in) {
+                    final String programInfo = in.readString();
+                    final String language = in.readString();
+                    final int rawMetadataLength = in.readInt();
+                    byte[] rawMetadata = new byte[rawMetadataLength];
+                    in.readByteArray(rawMetadata);
+                    return new BluetoothLeAudioContentMetadata(programInfo, language, rawMetadata);
+                }
 
-        public @NonNull BluetoothLeAudioContentMetadata[] newArray(int size) {
-            return new BluetoothLeAudioContentMetadata[size];
-        }
-    };
+                public @NonNull BluetoothLeAudioContentMetadata[] newArray(int size) {
+                    return new BluetoothLeAudioContentMetadata[size];
+                }
+            };
 
     /**
      * Construct a {@link BluetoothLeAudioContentMetadata} from raw bytes.
      *
-     * The byte array will be parsed and values for each getter will be populated
+     * <p>The byte array will be parsed and values for each getter will be populated
      *
-     * Raw metadata cannot be set using builder in order to maintain raw bytes and getter value
+     * <p>Raw metadata cannot be set using builder in order to maintain raw bytes and getter value
      * consistency
      *
      * @param rawBytes raw bytes of stream metadata in Bluetooth LTV format
      * @return parsed {@link BluetoothLeAudioContentMetadata} object
      * @throws IllegalArgumentException if <var>rawBytes</var> is null or when the raw bytes cannot
-     * be parsed to build the object
+     *     be parsed to build the object
      * @hide
      */
     @SystemApi
@@ -166,8 +170,8 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
         }
         List<TypeValueEntry> entries = BluetoothUtils.parseLengthTypeValueBytes(rawBytes);
         if (rawBytes.length > 0 && rawBytes[0] > 0 && entries.isEmpty()) {
-            throw new IllegalArgumentException("No LTV entries are found from rawBytes of size "
-                    + rawBytes.length);
+            throw new IllegalArgumentException(
+                    "No LTV entries are found from rawBytes of size " + rawBytes.length);
         }
         String programInfo = null;
         String language = null;
@@ -179,8 +183,12 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
             } else if (language == null && entry.getType() == LANGUAGE_TYPE) {
                 byte[] bytes = entry.getValue();
                 if (bytes.length != LANGUAGE_LENGTH) {
-                    throw new IllegalArgumentException("Language byte size " + bytes.length
-                            + " is less than " + LANGUAGE_LENGTH + ", needed for ISO 639-3");
+                    throw new IllegalArgumentException(
+                            "Language byte size "
+                                    + bytes.length
+                                    + " is less than "
+                                    + LANGUAGE_LENGTH
+                                    + ", needed for ISO 639-3");
                 }
                 // Parse 3 bytes ISO 639-3 only
                 language = new String(bytes, 0, LANGUAGE_LENGTH, StandardCharsets.US_ASCII);
@@ -191,6 +199,7 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
 
     /**
      * Builder for {@link BluetoothLeAudioContentMetadata}.
+     *
      * @hide
      */
     @SystemApi
@@ -223,8 +232,8 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
         /**
          * Set the title and/or summary of Audio Stream content in UTF-8 format.
          *
-         * @param programInfo  title and/or summary of Audio Stream content in UTF-8 format, null
-         *                     if this metadata does not exist
+         * @param programInfo title and/or summary of Audio Stream content in UTF-8 format, null if
+         *     this metadata does not exist
          * @return this builder
          * @hide
          */
@@ -235,8 +244,8 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
         }
 
         /**
-         * Set language of the audio stream in 3-byte, lower case language code as defined in
-         * ISO 639-3.
+         * Set language of the audio stream in 3-byte, lower case language code as defined in ISO
+         * 639-3.
          *
          * @return this builder
          * @hide
@@ -260,22 +269,30 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
             if (mRawMetadata != null) {
                 entries = BluetoothUtils.parseLengthTypeValueBytes(mRawMetadata);
                 if (mRawMetadata.length > 0 && mRawMetadata[0] > 0 && entries.isEmpty()) {
-                    throw new IllegalArgumentException("No LTV entries are found from rawBytes of"
-                            + " size " + mRawMetadata.length + " please check the original object"
-                            + " passed to Builder's copy constructor");
+                    throw new IllegalArgumentException(
+                            "No LTV entries are found from rawBytes of"
+                                    + " size "
+                                    + mRawMetadata.length
+                                    + " please check the original object"
+                                    + " passed to Builder's copy constructor");
                 }
             }
             if (mProgramInfo != null) {
                 entries.removeIf(entry -> entry.getType() == PROGRAM_INFO_TYPE);
-                entries.add(new TypeValueEntry(PROGRAM_INFO_TYPE,
-                        mProgramInfo.getBytes(StandardCharsets.UTF_8)));
+                entries.add(
+                        new TypeValueEntry(
+                                PROGRAM_INFO_TYPE, mProgramInfo.getBytes(StandardCharsets.UTF_8)));
             }
             if (mLanguage != null) {
                 String cleanedLanguage = mLanguage.toLowerCase().strip();
                 byte[] languageBytes = cleanedLanguage.getBytes(StandardCharsets.US_ASCII);
                 if (languageBytes.length != LANGUAGE_LENGTH) {
-                    throw new IllegalArgumentException("Language byte size " + languageBytes.length
-                            + " is less than " + LANGUAGE_LENGTH + ", needed ISO 639-3, to build");
+                    throw new IllegalArgumentException(
+                            "Language byte size "
+                                    + languageBytes.length
+                                    + " is less than "
+                                    + LANGUAGE_LENGTH
+                                    + ", needed ISO 639-3, to build");
                 }
                 entries.removeIf(entry -> entry.getType() == LANGUAGE_TYPE);
                 entries.add(new TypeValueEntry(LANGUAGE_TYPE, languageBytes));

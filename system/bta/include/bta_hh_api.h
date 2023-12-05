@@ -24,6 +24,7 @@
 #include <string>
 
 #include "bta/include/bta_api.h"
+#include "macros.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/hiddefs.h"
 #include "types/raw_address.h"
@@ -41,12 +42,6 @@
 
 #ifndef BTA_HH_SSR_MIN_TOUT_DEF
 #define BTA_HH_SSR_MIN_TOUT_DEF 2
-#endif
-
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
 #endif
 
 /* BTA HID Host callback events */

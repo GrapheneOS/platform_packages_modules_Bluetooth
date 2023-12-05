@@ -22,7 +22,8 @@
  *
  ******************************************************************************/
 
-#include <string.h>
+#include <cstring>
+
 #include "p_256_ecc_pp.h"
 
 void p_256_init_curve() {

@@ -23,6 +23,8 @@
 
 #include <string>
 
+#include "macros.h"
+
 __BEGIN_DECLS
 
 #define BTHH_MAX_DSC_LEN 884
@@ -37,9 +39,6 @@ typedef enum {
 } bthh_connection_state_t;
 
 __END_DECLS
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
 
 inline std::string bthh_connection_state_text(
     const bthh_connection_state_t& state) {
@@ -53,7 +52,7 @@ inline std::string bthh_connection_state_text(
       return base::StringPrintf("UNKNOWN[%d]", state);
   }
 }
-#undef CASE_RETURN_TEXT
+
 __BEGIN_DECLS
 
 typedef enum {

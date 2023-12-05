@@ -20,6 +20,9 @@
 #define L2CDEFS_H
 
 #include <cstdint>
+
+#include "macros.h"
+
 /* L2CAP command codes
 */
 #define L2CAP_CMD_REJECT 0x01
@@ -156,12 +159,6 @@ typedef enum : uint16_t {
       L2CAP_CONN_LE_MASK + L2CAP_LE_RESULT_INVALID_PARAMETERS,
 } tL2CAP_CONN;
 
-#ifndef CASE_RETURN_TEXT
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-#endif
-
 inline std::string l2cap_result_code_text(const tL2CAP_CONN& result) {
   switch (result) {
     CASE_RETURN_TEXT(L2CAP_CONN_OK);
@@ -218,8 +215,6 @@ static inline std::string l2cap_command_code_text(uint8_t cmd) {
              std::string("]");
   }
 }
-
-#undef CASE_RETURN_TEXT
 
 inline tL2CAP_CONN to_l2cap_result_code(uint16_t result) {
   return static_cast<tL2CAP_CONN>(result);

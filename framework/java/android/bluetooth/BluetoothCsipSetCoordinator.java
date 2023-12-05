@@ -53,10 +53,9 @@ import java.util.concurrent.TimeoutException;
 /**
  * This class provides the public APIs to control the Bluetooth CSIP set coordinator.
  *
- * <p>BluetoothCsipSetCoordinator is a proxy object for controlling the Bluetooth CSIP set
- * Service via IPC. Use {@link BluetoothAdapter#getProfileProxy} to get
- * the BluetoothCsipSetCoordinator proxy object.
- *
+ * <p>BluetoothCsipSetCoordinator is a proxy object for controlling the Bluetooth CSIP set Service
+ * via IPC. Use {@link BluetoothAdapter#getProfileProxy} to get the BluetoothCsipSetCoordinator
+ * proxy object.
  */
 public final class BluetoothCsipSetCoordinator implements BluetoothProfile, AutoCloseable {
     private static final String TAG = "BluetoothCsipSetCoordinator";
@@ -65,20 +64,19 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
 
     private CloseGuard mCloseGuard;
 
-    /**
-     * @hide
-     */
+    /** @hide */
     @SystemApi
     public interface ClientLockCallback {
         /** @hide */
-        @IntDef(value = {
-                BluetoothStatusCodes.SUCCESS,
-                BluetoothStatusCodes.ERROR_DEVICE_NOT_CONNECTED,
-                BluetoothStatusCodes.ERROR_CSIP_INVALID_GROUP_ID,
-                BluetoothStatusCodes.ERROR_CSIP_GROUP_LOCKED_BY_OTHER,
-                BluetoothStatusCodes.ERROR_CSIP_LOCKED_GROUP_MEMBER_LOST,
-                BluetoothStatusCodes.ERROR_UNKNOWN,
-        })
+        @IntDef(
+                value = {
+                    BluetoothStatusCodes.SUCCESS,
+                    BluetoothStatusCodes.ERROR_DEVICE_NOT_CONNECTED,
+                    BluetoothStatusCodes.ERROR_CSIP_INVALID_GROUP_ID,
+                    BluetoothStatusCodes.ERROR_CSIP_GROUP_LOCKED_BY_OTHER,
+                    BluetoothStatusCodes.ERROR_CSIP_LOCKED_GROUP_MEMBER_LOST,
+                    BluetoothStatusCodes.ERROR_UNKNOWN,
+                })
         @Retention(RetentionPolicy.SOURCE)
         @interface Status {}
 
@@ -87,8 +85,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
          *
          * @param groupId group identifier
          * @param opStatus status of lock operation
-         * @param isLocked inidcates if group is locked
-         *
+         * @param isLocked indicates if group is locked
          * @hide
          */
         @SystemApi
@@ -110,22 +107,23 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
         public void onGroupLockSet(int groupId, int opStatus, boolean isLocked) {
             mExecutor.execute(() -> mCallback.onGroupLockSet(groupId, opStatus, isLocked));
         }
-    };
+    }
+    ;
 
     /**
-     * Intent used to broadcast the change in connection state of the CSIS
-     * Client.
+     * Intent used to broadcast the change in connection state of the CSIS Client.
      *
      * <p>This intent will have 3 extras:
+     *
      * <ul>
-     * <li> {@link #EXTRA_STATE} - The current state of the profile. </li>
-     * <li> {@link #EXTRA_PREVIOUS_STATE}- The previous state of the profile.</li>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. </li>
+     *   <li>{@link #EXTRA_STATE} - The current state of the profile.
+     *   <li>{@link #EXTRA_PREVIOUS_STATE}- The previous state of the profile.
+     *   <li>{@link BluetoothDevice#EXTRA_DEVICE} - The remote device.
      * </ul>
      *
-     * <p>{@link #EXTRA_STATE} or {@link #EXTRA_PREVIOUS_STATE} can be any of
-     * {@link #STATE_DISCONNECTED}, {@link #STATE_CONNECTING},
-     * {@link #STATE_CONNECTED}, {@link #STATE_DISCONNECTING}.
+     * <p>{@link #EXTRA_STATE} or {@link #EXTRA_PREVIOUS_STATE} can be any of {@link
+     * #STATE_DISCONNECTED}, {@link #STATE_CONNECTING}, {@link #STATE_CONNECTED}, {@link
+     * #STATE_DISCONNECTING}.
      */
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
@@ -136,11 +134,12 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
      * Intent used to expose broadcast receiving device.
      *
      * <p>This intent will have 2 extras:
+     *
      * <ul>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote Broadcast receiver device. </li>
-     * <li> {@link #EXTRA_CSIS_GROUP_ID} - Group identifier. </li>
-     * <li> {@link #EXTRA_CSIS_GROUP_SIZE} - Group size. </li>
-     * <li> {@link #EXTRA_CSIS_GROUP_TYPE_UUID} - Group type UUID. </li>
+     *   <li>{@link BluetoothDevice#EXTRA_DEVICE} - The remote Broadcast receiver device.
+     *   <li>{@link #EXTRA_CSIS_GROUP_ID} - Group identifier.
+     *   <li>{@link #EXTRA_CSIS_GROUP_SIZE} - Group size.
+     *   <li>{@link #EXTRA_CSIS_GROUP_TYPE_UUID} - Group type UUID.
      * </ul>
      *
      * @hide
@@ -152,12 +151,12 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
             "android.bluetooth.action.CSIS_DEVICE_AVAILABLE";
 
     /**
-     * Used as an extra field in {@link #ACTION_CSIS_DEVICE_AVAILABLE} intent.
-     * Contains the group id.
+     * Used as an extra field in {@link #ACTION_CSIS_DEVICE_AVAILABLE} intent. Contains the group
+     * id.
      *
-     * <p>Possible Values:
-     * {@link GROUP_ID_INVALID} Invalid group identifier
-     * 0x01 - 0xEF Valid group identifier
+     * <p>Possible Values: {@link GROUP_ID_INVALID} Invalid group identifier 0x01 - 0xEF Valid group
+     * identifier
+     *
      * @hide
      */
     @SystemApi
@@ -179,14 +178,14 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
             "android.bluetooth.extra.CSIS_GROUP_TYPE_UUID";
 
     /**
-     * Intent used to broadcast information about identified set member
-     * ready to connect.
+     * Intent used to broadcast information about identified set member ready to connect.
      *
      * <p>This intent will have one extra:
+     *
      * <ul>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. It can
-     * be null if no device is active. </li>
-     * <li>  {@link #EXTRA_CSIS_GROUP_ID} - Group identifier. </li>
+     *   <li>{@link BluetoothDevice#EXTRA_DEVICE} - The remote device. It can be null if no device
+     *       is active.
+     *   <li>{@link #EXTRA_CSIS_GROUP_ID} - Group identifier.
      * </ul>
      *
      * @hide
@@ -211,8 +210,8 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
     private IBluetoothCsipSetCoordinator mService;
 
     /**
-     * Create a BluetoothCsipSetCoordinator proxy object for interacting with the local
-     * Bluetooth CSIS service.
+     * Create a BluetoothCsipSetCoordinator proxy object for interacting with the local Bluetooth
+     * CSIS service.
      */
     /*package*/ BluetoothCsipSetCoordinator(Context context, BluetoothAdapter adapter) {
         mAdapter = adapter;
@@ -222,9 +221,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
         mCloseGuard.open("close");
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     protected void finalize() {
         if (mCloseGuard != null) {
             mCloseGuard.warnIfOpen();
@@ -262,20 +259,21 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
 
     /**
      * Lock the set.
+     *
      * @param groupId group ID to lock,
      * @param executor callback executor,
      * @param callback callback to report lock and unlock events - stays valid until the app unlocks
-     *           using the returned lock identifier or the lock timeouts on the remote side,
-     *           as per CSIS specification,
+     *     using the returned lock identifier or the lock timeouts on the remote side, as per CSIS
+     *     specification,
      * @return unique lock identifier used for unlocking or null if lock has failed.
      * @throws {@link IllegalArgumentException} when executor or callback is null
-     *
      * @hide
      */
     @SystemApi
     @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
-    public
-    @Nullable UUID lockGroup(int groupId, @NonNull @CallbackExecutor Executor executor,
+    public @Nullable UUID lockGroup(
+            int groupId,
+            @NonNull @CallbackExecutor Executor executor,
             @NonNull ClientLockCallback callback) {
         if (VDBG) log("lockGroup()");
         Objects.requireNonNull(executor, "executor cannot be null");
@@ -304,10 +302,10 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
 
     /**
      * Unlock the set.
+     *
      * @param lockUuid unique lock identifier
      * @return true if unlocked, false on error
      * @throws {@link IllegalArgumentException} when lockUuid is null
-     *
      * @hide
      */
     @SystemApi
@@ -337,9 +335,9 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
 
     /**
      * Get device's groups.
+     *
      * @param device the active device
      * @return Map of groups ids and related UUIDs
-     *
      * @hide
      */
     @SystemApi
@@ -368,9 +366,9 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
 
     /**
      * Get group id for the given UUID
+     *
      * @param uuid
      * @return list of group IDs
-     *
      * @hide
      */
     @SystemApi
@@ -397,9 +395,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
         return defaultValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public @NonNull List<BluetoothDevice> getConnectedDevices() {
         if (VDBG) log("getConnectedDevices()");
@@ -423,9 +419,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
         return defaultValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @NonNull
     public List<BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[] states) {
@@ -450,9 +444,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
         return defaultValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @BluetoothProfile.BtProfileState
     public int getConnectionState(@Nullable BluetoothDevice device) {
@@ -479,14 +471,13 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
     /**
      * Set connection policy of the profile
      *
-     * <p> The device should already be paired.
-     * Connection policy can be one of {@link #CONNECTION_POLICY_ALLOWED},
-     * {@link #CONNECTION_POLICY_FORBIDDEN}, {@link #CONNECTION_POLICY_UNKNOWN}
+     * <p>The device should already be paired. Connection policy can be one of {@link
+     * #CONNECTION_POLICY_ALLOWED}, {@link #CONNECTION_POLICY_FORBIDDEN}, {@link
+     * #CONNECTION_POLICY_UNKNOWN}
      *
      * @param device Paired bluetooth device
      * @param connectionPolicy is the connection policy to set to for this profile
      * @return true if connectionPolicy is set, false on error
-     *
      * @hide
      */
     @SystemApi
@@ -499,9 +490,10 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else if (isEnabled() && isValidDevice(device)
+        } else if (isEnabled()
+                && isValidDevice(device)
                 && (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN
-                    || connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
+                        || connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
             try {
                 final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
                 service.setConnectionPolicy(device, connectionPolicy, mAttributionSource, recv);
@@ -518,13 +510,11 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
     /**
      * Get the connection policy of the profile.
      *
-     * <p> The connection policy can be any of:
-     * {@link #CONNECTION_POLICY_ALLOWED}, {@link #CONNECTION_POLICY_FORBIDDEN},
-     * {@link #CONNECTION_POLICY_UNKNOWN}
+     * <p>The connection policy can be any of: {@link #CONNECTION_POLICY_ALLOWED}, {@link
+     * #CONNECTION_POLICY_FORBIDDEN}, {@link #CONNECTION_POLICY_UNKNOWN}
      *
      * @param device Bluetooth device
      * @return connection policy of the device
-     *
      * @hide
      */
     @SystemApi

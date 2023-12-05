@@ -43,6 +43,7 @@ public class BluetoothAdapterUtils {
      * AdapterState.BREDR_START_TIMEOUT_DELAY + (10 seconds of additional delay)
      */
     private static final Duration ADAPTER_ENABLE_TIMEOUT = Duration.ofSeconds(18);
+
     /**
      * ADAPTER_DISABLE_TIMEOUT_MS = AdapterState.BLE_STOP_TIMEOUT_DELAY +
      * AdapterState.BREDR_STOP_TIMEOUT_DELAY

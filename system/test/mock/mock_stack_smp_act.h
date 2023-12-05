@@ -79,15 +79,6 @@ struct smp_send_confirm {
   void operator()(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) { body(p_cb, p_data); };
 };
 extern struct smp_send_confirm smp_send_confirm;
-// Name: smp_send_init
-// Params: tSMP_CB* p_cb, tSMP_INT_DATA* p_data
-// Returns: void
-struct smp_send_init {
-  std::function<void(tSMP_CB* p_cb, tSMP_INT_DATA* p_data)> body{
-      [](tSMP_CB* /* p_cb */, tSMP_INT_DATA* /* p_data */) {}};
-  void operator()(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) { body(p_cb, p_data); };
-};
-extern struct smp_send_init smp_send_init;
 // Name: smp_send_rand
 // Params: tSMP_CB* p_cb, tSMP_INT_DATA* p_data
 // Returns: void

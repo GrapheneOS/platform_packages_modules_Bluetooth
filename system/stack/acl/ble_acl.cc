@@ -22,6 +22,7 @@
 #include "os/log.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
+#include "stack/btm/btm_int_types.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/acl_api.h"

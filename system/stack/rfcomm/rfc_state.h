@@ -16,6 +16,10 @@
 
 #pragma once
 
+#include <cstdint>
+
+#include "macros.h"
+
 /*
  * Define states and events for the RFC multiplexer state machine
  */
@@ -40,10 +44,6 @@ typedef enum : uint8_t {
   RFC_STATE_OPENED = 4,
   RFC_STATE_DISC_WAIT_UA = 5,
 } tRFC_PORT_STATE;
-
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
 
 inline std::string rfcomm_mx_state_text(const tRFC_MX_STATE& state) {
   switch (state) {
@@ -71,5 +71,3 @@ inline std::string rfcomm_port_state_text(const tRFC_PORT_STATE& state) {
       return std::string("UNKNOWN[") + std::to_string(state) + std::string("]");
   }
 }
-
-#undef CASE_RETURN_TEXT
