@@ -32,8 +32,8 @@
 #include "l2cdefs.h"
 #include "os/log.h"
 #include "smp_int.h"
-#include "stack/btm/btm_dev.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btm_sec_api_types.h"
 #include "types/raw_address.h"
 
 /*******************************************************************************
@@ -294,11 +294,6 @@ void SMP_PasskeyReply(const RawAddress& bd_addr, uint8_t res,
     return;
   }
 
-  if (btm_find_dev(bd_addr) == NULL) {
-    LOG_ERROR("no dev CB");
-    return;
-  }
-
   if (passkey > BTM_MAX_PASSKEY_VAL || res != SMP_SUCCESS) {
     LOG_WARN("Wrong key len:%d or passkey entry fail", passkey);
     /* send pairing failure */
@@ -343,11 +338,6 @@ void SMP_ConfirmReply(const RawAddress& bd_addr, uint8_t res) {
 
   if (bd_addr != p_cb->pairing_bda) {
     LOG_ERROR("Wrong BD Addr");
-    return;
-  }
-
-  if (btm_find_dev(bd_addr) == NULL) {
-    LOG_ERROR("no dev CB");
     return;
   }
 
@@ -524,11 +514,6 @@ void SMP_SirkConfirmDeviceReply(const RawAddress& bd_addr, uint8_t res) {
     LOG_WARN("Wrong confirmation BD Addr: %s vs expected %s",
              ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
              ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
-    return;
-  }
-
-  if (btm_find_dev(bd_addr) == NULL) {
-    LOG_ERROR("No dev CB");
     return;
   }
 
