@@ -1045,16 +1045,14 @@ jobject prepareBluetoothLeBroadcastMetadataObject(
     return nullptr;
   }
 
-  // Skip the leading null char bytes
+  // Remove the ending null char bytes
   int nativeCodeSize = 16;
-  int nativeCodeLeadingZeros = 0;
   if (broadcast_metadata.broadcast_code) {
     auto& nativeCode = broadcast_metadata.broadcast_code.value();
-    nativeCodeLeadingZeros =
+    nativeCodeSize =
         std::find_if(nativeCode.cbegin(), nativeCode.cend(),
-                     [](int x) { return x != 0x00; }) -
+                     [](int x) { return x == 0x00; }) -
         nativeCode.cbegin();
-    nativeCodeSize = nativeCode.size() - nativeCodeLeadingZeros;
   }
 
   ScopedLocalRef<jbyteArray> code(env, env->NewByteArray(nativeCodeSize));
@@ -1066,8 +1064,7 @@ jobject prepareBluetoothLeBroadcastMetadataObject(
   if (broadcast_metadata.broadcast_code) {
     env->SetByteArrayRegion(
         code.get(), 0, nativeCodeSize,
-        (const jbyte*)broadcast_metadata.broadcast_code->data() +
-            nativeCodeLeadingZeros);
+        (const jbyte*)broadcast_metadata.broadcast_code->data());
     CHECK(!env->ExceptionCheck());
   }
 
