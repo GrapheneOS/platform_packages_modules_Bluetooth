@@ -208,7 +208,8 @@ static void btsock_l2cap_free_l(l2cap_socket* sock) {
 
   btif_sock_connection_logger(
       SOCKET_CONNECTION_STATE_DISCONNECTED,
-      sock->server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, sock->addr);
+      sock->server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, sock->addr,
+      sock->channel, sock->name);
 
   // Whenever a socket is freed, the connection must be dropped
   log_socket_connection_state(
@@ -413,7 +414,8 @@ static void on_srv_l2cap_listen_started(tBTA_JV_L2CAP_START* p_start,
 
   btif_sock_connection_logger(
       SOCKET_CONNECTION_STATE_LISTENING,
-      sock->server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, sock->addr);
+      sock->server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, sock->addr,
+      sock->channel, sock->name);
 
   log_socket_connection_state(
       sock->addr, sock->id, sock->is_le_coc ? BTSOCK_L2CAP_LE : BTSOCK_L2CAP,
@@ -481,7 +483,7 @@ static void on_srv_l2cap_psm_connect_l(tBTA_JV_L2CAP_OPEN* p_open,
   btif_sock_connection_logger(
       SOCKET_CONNECTION_STATE_CONNECTED,
       accept_rs->server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION,
-      accept_rs->addr);
+      accept_rs->addr, accept_rs->channel, accept_rs->name);
 
   log_socket_connection_state(
       accept_rs->addr, accept_rs->id,
@@ -525,7 +527,8 @@ static void on_cl_l2cap_psm_connect_l(tBTA_JV_L2CAP_OPEN* p_open,
 
   btif_sock_connection_logger(
       SOCKET_CONNECTION_STATE_CONNECTED,
-      sock->server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, sock->addr);
+      sock->server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, sock->addr,
+      sock->channel, sock->name);
 
   log_socket_connection_state(
       sock->addr, sock->id, sock->is_le_coc ? BTSOCK_L2CAP_LE : BTSOCK_L2CAP,
@@ -581,7 +584,8 @@ static void on_l2cap_close(tBTA_JV_L2CAP_CLOSE* p_close, uint32_t id) {
 
   btif_sock_connection_logger(
       SOCKET_CONNECTION_STATE_DISCONNECTING,
-      sock->server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, sock->addr);
+      sock->server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, sock->addr,
+      sock->channel, sock->name);
 
   log_socket_connection_state(
       sock->addr, sock->id, sock->is_le_coc ? BTSOCK_L2CAP_LE : BTSOCK_L2CAP,
