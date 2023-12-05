@@ -67,13 +67,19 @@ public class MapClientService extends ProfileService {
     @VisibleForTesting
     private Handler mHandler;
 
-    @VisibleForTesting Looper mSmLooper;
+    private Looper mSmLooper;
 
     MapClientService() {}
 
     @VisibleForTesting
     MapClientService(Context ctx) {
         super(ctx);
+    }
+
+    @VisibleForTesting
+    MapClientService(Context ctx, Looper looper) {
+        this(ctx);
+        mSmLooper = looper;
     }
 
     public static boolean isEnabled() {

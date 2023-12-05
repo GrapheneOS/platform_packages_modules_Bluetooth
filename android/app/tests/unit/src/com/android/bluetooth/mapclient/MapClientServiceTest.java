@@ -74,9 +74,8 @@ public class MapClientServiceTest {
 
         mTestLooper = new TestLooper();
 
-        mService = new MapClientService(targetContext);
+        mService = new MapClientService(targetContext, mTestLooper.getLooper());
         mService.doStart();
-        mService.mSmLooper = mTestLooper.getLooper();
 
         // Try getting the Bluetooth adapter
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -86,7 +85,6 @@ public class MapClientServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        mService.mSmLooper = null;
         mService.doStop();
         mService = MapClientService.getMapClientService();
         assertThat(mService).isNull();
