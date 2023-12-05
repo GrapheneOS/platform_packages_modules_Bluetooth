@@ -46,6 +46,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.android.compatibility.common.util.AdoptShellPermissionsRule;
 
+import com.google.protobuf.ByteString;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -308,6 +310,36 @@ public class LeScanningTest {
         assertThat(results).isNotNull();
         assertThat(results.get(0).isConnectable()).isFalse();
         assertThat(results.get(1).isConnectable()).isFalse();
+    }
+
+    @Test
+    public void startBleScan_withNonConnectableScannablePublicAdvertisement() {
+        byte[] payload = {0x02, 0x03};
+        // first 2 bytes are the manufacturer ID 0x00E0 (Google) in little endian
+        byte[] manufacturerData = {(byte) 0xE0, 0x00, payload[0], payload[1]};
+        HostProto.DataTypes.Builder scanResponse =
+                HostProto.DataTypes.newBuilder()
+                        .setManufacturerSpecificData(ByteString.copyFrom(manufacturerData));
+
+        AdvertiseRequest.Builder requestBuilder =
+                AdvertiseRequest.newBuilder()
+                        .setConnectable(false)
+                        .setOwnAddressType(OwnAddressType.PUBLIC)
+                        .setScanResponseData(scanResponse);
+        advertiseWithBumble(requestBuilder);
+
+        ScanFilter scanFilter =
+                new ScanFilter.Builder()
+                        .setDeviceAddress(mBumble.getRemoteDevice().getAddress())
+                        .build();
+
+        List<ScanResult> results =
+                startScanning(scanFilter, ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
+
+        assertThat(results).isNotNull();
+        assertThat(results.get(0).isConnectable()).isFalse();
+        assertThat(results.get(0).getScanRecord().getManufacturerSpecificData(0x00E0))
+                .isEqualTo(payload);
     }
 
     private List<ScanResult> startScanning(ScanFilter scanFilter, int callbackType) {
