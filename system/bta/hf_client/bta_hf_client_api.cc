@@ -30,9 +30,9 @@
 
 #include <cstdint>
 
-#include "bt_trace.h"  // Legacy trace logging
 #include "bta/hf_client/bta_hf_client_int.h"
 #include "bta/sys/bta_sys.h"
+#include "internal_include/bt_trace.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 #include "stack/include/bt_hdr.h"

@@ -947,6 +947,6 @@
  *
  *****************************************************************************/
 
-#include "bt_trace.h"
+#include "internal_include/bt_trace.h"
 
 #endif /* BT_TARGET_H */
