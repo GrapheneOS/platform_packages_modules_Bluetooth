@@ -51,16 +51,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 
-import pandora.HostProto;
-import pandora.HostProto.AdvertiseRequest;
-import pandora.HostProto.AdvertiseResponse;
-import pandora.HostProto.OwnAddressType;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+
+import pandora.HostProto;
+import pandora.HostProto.AdvertiseRequest;
+import pandora.HostProto.AdvertiseResponse;
+import pandora.HostProto.OwnAddressType;
 
 @RunWith(AndroidJUnit4.class)
 public class LeScanningTest {
@@ -289,6 +289,27 @@ public class LeScanningTest {
         mLeScanner.stopScan(lastMockScanCallback);
     }
 
+    @Test
+    public void startBleScan_withNonConnectablePublicAdvertisement() {
+        AdvertiseRequest.Builder requestBuilder =
+                AdvertiseRequest.newBuilder()
+                        .setConnectable(false)
+                        .setOwnAddressType(OwnAddressType.PUBLIC);
+        advertiseWithBumble(requestBuilder);
+
+        ScanFilter scanFilter =
+                new ScanFilter.Builder()
+                        .setDeviceAddress(mBumble.getRemoteDevice().getAddress())
+                        .build();
+
+        List<ScanResult> results =
+                startScanning(scanFilter, ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
+
+        assertThat(results).isNotNull();
+        assertThat(results.get(0).isConnectable()).isFalse();
+        assertThat(results.get(1).isConnectable()).isFalse();
+    }
+
     private List<ScanResult> startScanning(ScanFilter scanFilter, int callbackType) {
         CompletableFuture<List<ScanResult>> future = new CompletableFuture<>();
         List<ScanResult> scanResults = new ArrayList<>();
@@ -306,7 +327,11 @@ public class LeScanningTest {
                         Log.i(
                                 TAG,
                                 "onScanResult "
-                                        + "callbackType: "
+                                        + "address: "
+                                        + result.getDevice().getAddress()
+                                        + ", connectable: "
+                                        + result.isConnectable()
+                                        + ", callbackType: "
                                         + callbackType
                                         + ", service uuids: "
                                         + result.getScanRecord().getServiceUuids());
@@ -342,7 +367,7 @@ public class LeScanningTest {
 
     private void advertiseWithBumble(String serviceUuid, OwnAddressType addressType) {
         AdvertiseRequest.Builder requestBuilder =
-                AdvertiseRequest.newBuilder().setLegacy(true).setOwnAddressType(addressType);
+                AdvertiseRequest.newBuilder().setOwnAddressType(addressType);
 
         if (serviceUuid != null) {
             HostProto.DataTypes.Builder dataTypeBuilder = HostProto.DataTypes.newBuilder();
@@ -350,9 +375,15 @@ public class LeScanningTest {
             requestBuilder.setData(dataTypeBuilder.build());
         }
 
+        advertiseWithBumble(requestBuilder);
+    }
+
+    private void advertiseWithBumble(AdvertiseRequest.Builder requestBuilder) {
+        // Bumble currently only supports legacy advertising.
+        requestBuilder.setLegacy(true);
+        // Collect and ignore responses.
         StreamObserverSpliterator<AdvertiseResponse> responseObserver =
                 new StreamObserverSpliterator<>();
-
         mBumble.host().advertise(requestBuilder.build(), responseObserver);
     }
 }
