@@ -21,8 +21,8 @@
 
 #include "bta/include/bta_api.h"
 #include "bta/include/bta_sec_api.h"
-#include "bte_appl.h"
 #include "btif_uid.h"
+#include "internal_include/bte_appl.h"
 #include "types/raw_address.h"
 
 /*******************************************************************************

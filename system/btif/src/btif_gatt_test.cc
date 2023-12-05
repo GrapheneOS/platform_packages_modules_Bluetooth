@@ -24,8 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bte_appl.h"
 #include "gatt_api.h"
+#include "internal_include/bte_appl.h"
 #include "os/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/btm_ble_sec_api.h"
