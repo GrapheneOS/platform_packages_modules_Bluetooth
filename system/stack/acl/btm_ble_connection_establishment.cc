@@ -26,9 +26,6 @@
 
 extern tBTM_CB btm_cb;
 
-void btm_ble_advertiser_notify_terminated_legacy(uint8_t status,
-                                                 uint16_t connection_handle);
-
 /** LE connection complete. */
 void btm_ble_create_ll_conn_complete(tHCI_STATUS status) {
   if (status == HCI_SUCCESS) return;
