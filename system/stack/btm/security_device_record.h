@@ -281,46 +281,7 @@ struct tBTM_SEC_DEV_REC {
   tBTM_LE_CONN_PRAMS conn_params;
   tREMOTE_VERSION_INFO remote_version_info;
 
- private:
   bool is_originator; /* true if device is originating ACL connection */
-
-  // friend functions
-  friend bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
-                               const BD_NAME& bd_name, uint8_t* features,
-                               LinkKey* p_link_key, uint8_t key_type,
-                               uint8_t pin_length);
-  friend void BTM_PINCodeReply(const RawAddress& bd_addr, tBTM_STATUS res,
-                               uint8_t pin_len, uint8_t* p_pin);
-  friend void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status);
-  friend void btm_sec_connected(const RawAddress& bda, uint16_t handle,
-                                tHCI_STATUS status, uint8_t enc_mode,
-                                tHCI_ROLE);
-  friend void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
-                                     uint8_t encr_enable);
-  friend void btm_sec_link_key_notification(const RawAddress& p_bda,
-                                            const Octet16& link_key,
-                                            uint8_t key_type);
-  friend tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
-                                               tBLE_ADDR_TYPE addr_type,
-                                               tBT_TRANSPORT transport);
-  friend tBTM_STATUS BTM_SetEncryption(const RawAddress& bd_addr,
-                                       tBT_TRANSPORT transport,
-                                       tBTM_SEC_CALLBACK* p_callback,
-                                       void* p_ref_data,
-                                       tBTM_BLE_SEC_ACT sec_act);
-  friend tBTM_STATUS btm_sec_l2cap_access_req_by_requirement(
-      const RawAddress& bd_addr, uint16_t security_required, bool is_originator,
-      tBTM_SEC_CALLBACK* p_callback, void* p_ref_data);
-  friend tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
-                                               bool is_originator,
-                                               uint16_t security_required,
-                                               tBTM_SEC_CALLBACK* p_callback,
-                                               void* p_ref_data);
-  friend void btm_sec_set_peer_sec_caps(uint16_t hci_handle, bool ssp_supported,
-                                        bool sc_supported,
-                                        bool hci_role_switch_supported,
-                                        bool br_edr_supported,
-                                        bool le_supported);
 
  public:
   RawAddress RemoteAddress() const { return bd_addr; }
