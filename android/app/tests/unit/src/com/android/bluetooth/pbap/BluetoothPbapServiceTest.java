@@ -29,12 +29,13 @@ import static org.mockito.Mockito.when;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Message;
 import android.os.test.TestLooper;
 
+import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.BluetoothMethodProxy;
@@ -44,7 +45,6 @@ import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -64,7 +64,6 @@ public class BluetoothPbapServiceTest {
     private boolean mIsBluetoothPabpServiceStarted;
     private TestLooper mTestLooper;
 
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     @Mock private AdapterService mAdapterService;
     @Mock private DatabaseManager mDatabaseManager;
@@ -72,6 +71,7 @@ public class BluetoothPbapServiceTest {
 
     @Before
     public void setUp() throws Exception {
+        Context targetContext = InstrumentationRegistry.getTargetContext();
         MockitoAnnotations.initMocks(this);
         mTestLooper = new TestLooper();
         BluetoothMethodProxy.setInstanceForTesting(mMethodProxy);
@@ -82,9 +82,8 @@ public class BluetoothPbapServiceTest {
         mIsAdapterServiceSet = true;
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
-        TestUtils.startService(mServiceRule, BluetoothPbapService.class);
-        mService = BluetoothPbapService.getBluetoothPbapService();
-        assertThat(mService).isNotNull();
+        mService = new BluetoothPbapService(targetContext);
+        mService.doStart();
         mIsBluetoothPabpServiceStarted = true;
         // Try getting the Bluetooth adapter
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -100,7 +99,7 @@ public class BluetoothPbapServiceTest {
             return;
         }
         if (mIsBluetoothPabpServiceStarted) {
-            TestUtils.stopService(mServiceRule, BluetoothPbapService.class);
+            mService.doStop();
             mService = BluetoothPbapService.getBluetoothPbapService();
             assertThat(mService).isNull();
         }

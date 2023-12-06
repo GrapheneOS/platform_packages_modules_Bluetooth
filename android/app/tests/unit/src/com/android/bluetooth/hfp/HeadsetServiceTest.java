@@ -47,7 +47,6 @@ import android.os.SystemClock;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
@@ -61,7 +60,6 @@ import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -90,8 +88,6 @@ public class HeadsetServiceTest {
     private BluetoothAdapter mAdapter;
     private BluetoothDevice mCurrentDevice;
     private final HashMap<BluetoothDevice, HeadsetStateMachine> mStateMachines = new HashMap<>();
-
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     @Spy private HeadsetObjectsFactory mObjectsFactory = HeadsetObjectsFactory.getInstance();
     @Mock private AdapterService mAdapterService;
@@ -163,9 +159,8 @@ public class HeadsetServiceTest {
         doReturn(mSystemInterface).when(mObjectsFactory).makeSystemInterface(any());
         doReturn(mNativeInterface).when(mObjectsFactory).getNativeInterface();
         HeadsetNativeInterface.setInstance(mNativeInterface);
-        TestUtils.startService(mServiceRule, HeadsetService.class);
-        mHeadsetService = HeadsetService.getHeadsetService();
-        Assert.assertNotNull(mHeadsetService);
+        mHeadsetService = new HeadsetService(mTargetContext);
+        mHeadsetService.doStart();
         verify(mObjectsFactory).makeSystemInterface(mHeadsetService);
         verify(mObjectsFactory).getNativeInterface();
         mHeadsetService.setForceScoAudio(true);
@@ -173,7 +168,7 @@ public class HeadsetServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        TestUtils.stopService(mServiceRule, HeadsetService.class);
+        mHeadsetService.doStop();
         HeadsetNativeInterface.setInstance(null);
         mHeadsetService = HeadsetService.getHeadsetService();
         Assert.assertNull(mHeadsetService);

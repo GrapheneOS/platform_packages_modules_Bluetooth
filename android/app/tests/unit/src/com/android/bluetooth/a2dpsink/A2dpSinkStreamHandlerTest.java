@@ -52,6 +52,7 @@ import org.mockito.MockitoAnnotations;
 public class A2dpSinkStreamHandlerTest {
     private static final int DUCK_PERCENT = 75;
     private HandlerThread mHandlerThread;
+    private AvrcpControllerService mService;
     private A2dpSinkStreamHandler mStreamHandler;
     private Context mTargetContext;
 
@@ -65,9 +66,6 @@ public class A2dpSinkStreamHandlerTest {
     @Mock private Resources mMockResources;
 
     @Mock private PackageManager mMockPackageManager;
-
-    @Rule
-    public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     @Rule
     public final ServiceTestRule mBluetoothBrowserMediaServiceTestRule = new ServiceTestRule();
@@ -86,7 +84,8 @@ public class A2dpSinkStreamHandlerTest {
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         AvrcpControllerNativeInterface.setInstance(mMockAvrcpControllerNativeInterface);
-        TestUtils.startService(mServiceRule, AvrcpControllerService.class);
+        mService = new AvrcpControllerService(mTargetContext, mMockAvrcpControllerNativeInterface);
+        mService.doStart();
         final Intent bluetoothBrowserMediaServiceStartIntent =
                 TestUtils.prepareIntentToStartBluetoothBrowserMediaService();
         mBluetoothBrowserMediaServiceTestRule.startService(bluetoothBrowserMediaServiceStartIntent);
@@ -113,7 +112,7 @@ public class A2dpSinkStreamHandlerTest {
 
     @After
     public void tearDown() throws Exception {
-        TestUtils.stopService(mServiceRule, AvrcpControllerService.class);
+        mService.doStop();
         AvrcpControllerNativeInterface.setInstance(null);
         TestUtils.clearAdapterService(mAdapterService);
     }

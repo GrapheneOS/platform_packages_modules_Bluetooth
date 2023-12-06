@@ -17,7 +17,6 @@
 package com.android.bluetooth.pbapclient;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -25,7 +24,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import android.accounts.Account;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.SdpPseRecord;
@@ -37,7 +35,6 @@ import android.os.Looper;
 
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
@@ -45,9 +42,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
-import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -64,9 +59,6 @@ public class PbapClientConnectionHandlerTest {
     private Looper mLooper;
     private Context mTargetContext;
     private BluetoothDevice mRemoteDevice;
-
-    @Rule
-    public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     @Mock
     private AdapterService mAdapterService;
@@ -91,9 +83,8 @@ public class PbapClientConnectionHandlerTest {
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(true, false).when(mAdapterService)
                 .isStartedProfile(anyString());
-        TestUtils.startService(mServiceRule, PbapClientService.class);
-        mService = PbapClientService.getPbapClientService();
-        assertThat(mService).isNotNull();
+        mService = new PbapClientService(mTargetContext);
+        mService.doStart();
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -113,7 +104,7 @@ public class PbapClientConnectionHandlerTest {
 
     @After
     public void tearDown() throws Exception {
-        TestUtils.stopService(mServiceRule, PbapClientService.class);
+        mService.doStop();
         mService = PbapClientService.getPbapClientService();
         assertThat(mService).isNull();
         TestUtils.clearAdapterService(mAdapterService);
