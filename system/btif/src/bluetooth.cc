@@ -90,6 +90,7 @@
 #include "device/include/interop_config.h"
 #include "gd/common/init_flags.h"
 #include "gd/os/parameter_provider.h"
+#include "internal_include/stack_config.h"
 #include "main/shim/dumpsys.h"
 #include "main/shim/shim.h"
 #include "osi/include/alarm.h"
@@ -110,7 +111,6 @@
 #include "stack/include/hidh_api.h"
 #include "stack/include/main_thread.h"
 #include "stack/include/pan_api.h"
-#include "stack_config.h"
 #include "types/raw_address.h"
 
 using bluetooth::csis::CsisClientInterface;

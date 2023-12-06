@@ -26,7 +26,7 @@
 #include "avrcp_packet.h"
 #include "avrcp_test_helper.h"
 #include "device.h"
-#include "stack_config.h"
+#include "internal_include/stack_config.h"
 #include "tests/avrcp/avrcp_test_packets.h"
 #include "tests/packet_test_helper.h"
 #include "types/raw_address.h"
