@@ -35,6 +35,3 @@ void btm_ble_read_resolving_list_entry_complete(const uint8_t* p,
 void btm_ble_remove_resolving_list_entry_complete(uint8_t* p, uint16_t evt_len);
 void btm_ble_add_resolving_list_entry_complete(uint8_t* p, uint16_t evt_len);
 void btm_ble_clear_resolving_list_complete(uint8_t* p, uint16_t evt_len);
-void btm_ble_process_periodic_adv_pkt(uint8_t len, const uint8_t* p);
-void btm_ble_process_periodic_adv_sync_est_evt(uint8_t len, const uint8_t* p);
-void btm_ble_process_periodic_adv_sync_lost_evt(uint8_t len, uint8_t* p);
