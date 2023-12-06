@@ -28,6 +28,7 @@
 
 #include "crypto_toolbox/crypto_toolbox.h"
 #include "device/include/controller.h"
+#include "internal_include/stack_config.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
@@ -44,7 +45,6 @@
 #include "stack/include/l2c_api.h"
 #include "stack/include/smp_status.h"
 #include "stack/include/stack_metrics_logging.h"
-#include "stack_config.h"
 #include "types/raw_address.h"
 
 #define SMP_PAIRING_REQ_SIZE 7

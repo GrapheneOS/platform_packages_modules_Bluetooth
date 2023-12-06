@@ -19,11 +19,11 @@
 
 #include <cstdint>
 
+#include "internal_include/stack_config.h"
 #include "osi/include/allocator.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/list.h"
 #include "stack/btm/security_device_record.h"
-#include "stack_config.h"
 #include "types/raw_address.h"
 
 void tBTM_SEC_CB::Init(uint8_t initial_security_mode) {

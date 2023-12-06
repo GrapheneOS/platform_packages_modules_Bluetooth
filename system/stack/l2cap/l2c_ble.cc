@@ -36,6 +36,7 @@
 #include "btif/include/core_callbacks.h"
 #include "btif/include/stack_manager.h"
 #include "device/include/controller.h"
+#include "internal_include/stack_config.h"
 #include "main/shim/acl_api.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
@@ -50,7 +51,6 @@
 #include "stack/include/l2c_api.h"
 #include "stack/include/l2cdefs.h"
 #include "stack/l2cap/l2c_int.h"
-#include "stack_config.h"
 #include "types/raw_address.h"
 
 namespace {
