@@ -752,13 +752,6 @@ class BleAdvertiserHciExtendedImpl : public BleAdvertiserHciInterface {
 
 }  // namespace
 
-void btm_le_on_advertising_set_terminated(uint8_t* p, uint16_t length) {
-  if (BleAdvertiserHciInterface::Get()) {
-    ((BleAdvertiserHciExtendedImpl*)BleAdvertiserHciInterface::Get())
-        ->OnAdvertisingSetTerminated(length, p);
-  }
-}
-
 bool legacy_advertising_in_use = false;
 void btm_ble_advertiser_notify_terminated_legacy(uint8_t status,
                                                  uint16_t connection_handle) {
