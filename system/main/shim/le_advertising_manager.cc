@@ -29,7 +29,6 @@
 #include "gd/hci/le_advertising_manager.h"
 #include "main/shim/entry.h"
 #include "main/shim/helpers.h"
-#include "stack/include/ble_advertiser.h"
 #include "stack/include/btm_log_history.h"
 #include "stack/include/main_thread.h"
 #include "types/raw_address.h"
@@ -123,7 +122,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
                         AdvertiseParameters params,
                         std::vector<uint8_t> advertise_data,
                         std::vector<uint8_t> scan_response_data, int timeout_s,
-                        MultiAdvCb timeout_cb) override {
+                        StatusCallback timeout_cb) override {
     LOG(INFO) << __func__ << " in shim layer";
 
     bluetooth::hci::AdvertisingConfig config{};

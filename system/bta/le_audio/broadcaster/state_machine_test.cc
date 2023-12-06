@@ -21,11 +21,10 @@
 #include <gtest/gtest.h>
 
 #include "../le_audio_types.h"
-#include "ble_advertiser.h"
 #include "btm_iso_api.h"
 #include "mock_ble_advertising_manager.h"
 #include "mock_iso_manager.h"
-#include "stack/include/ble_advertiser.h"
+#include "stack/include/btm_ble_api_types.h"
 #include "state_machine.h"
 #include "test/common/mock_functions.h"
 
