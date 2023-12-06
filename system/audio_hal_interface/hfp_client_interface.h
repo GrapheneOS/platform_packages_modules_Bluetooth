@@ -59,17 +59,32 @@ class HfpClientInterface {
     size_t Write(const uint8_t* p_buf, uint32_t len);
   };
 
-  // Get HFP sink client interface if it's not previously acquired and not
-  // yet released.
-  Decode* GetDecode(bluetooth::common::MessageLoopThread* message_loop);
-  // Release sink interface if belongs to HFP client interface
-  bool ReleaseDecode(Decode* sink);
+  class Offload : public IClientInterfaceEndpoint {
+   public:
+    virtual ~Offload() = default;
 
-  // Get HFP source client interface if it's not previously acquired and
-  // not yet released.
+    void Cleanup() override;
+    void StartSession() override;
+    void StopSession() override;
+    void UpdateAudioConfigToHal(const ::hfp::offload_config& config) override;
+  };
+
+  // Get HFP software decoding client interface if it's not previously acquired
+  // and not yet released.
+  Decode* GetDecode(bluetooth::common::MessageLoopThread* message_loop);
+  // Release interface if belongs to HFP client interface
+  bool ReleaseDecode(Decode* decode);
+
+  // Get HFP software encoding client interface if it's not previously acquired
+  // and not yet released.
   Encode* GetEncode(bluetooth::common::MessageLoopThread* message_loop);
-  // Release source interface if belongs to HFP client interface
-  bool ReleaseEncode(Encode* source);
+  // Release interface if belongs to HFP client interface
+  bool ReleaseEncode(Encode* encode);
+
+  // Get HFP offload client interface
+  Offload GetOffload(bluetooth::common::MessageLoopThread* message_loop);
+  // Release offload interface if belongs to HFP client interface
+  bool ReleaseOffload(Encode* encode);
 
   // Get interface, if previously not initialized - it'll initialize singleton.
   static HfpClientInterface* Get();
@@ -78,6 +93,7 @@ class HfpClientInterface {
   static HfpClientInterface* interface;
   Decode* decode_ = nullptr;
   Encode* encode_ = nullptr;
+  Offload* offload_ = nullptr;
 };
 }  // namespace hfp
 }  // namespace audio
