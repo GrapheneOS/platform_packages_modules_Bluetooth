@@ -328,23 +328,6 @@ struct btm_clr_inq_result_flt {
 };
 extern struct btm_clr_inq_result_flt btm_clr_inq_result_flt;
 
-// Name: btm_initiate_rem_name
-// Params: const RawAddress& remote_bda, uint8_t origin, uint64_t timeout_ms,
-// tBTM_NAME_CMPL_CB* p_cb Return: tBTM_STATUS
-struct btm_initiate_rem_name {
-  static tBTM_STATUS return_value;
-  std::function<tBTM_STATUS(const RawAddress& remote_bda, uint8_t origin,
-                            uint64_t timeout_ms, tBTM_NAME_CMPL_CB* p_cb)>
-      body{[](const RawAddress& /* remote_bda */, uint8_t /* origin */,
-              uint64_t /* timeout_ms */,
-              tBTM_NAME_CMPL_CB* /* p_cb */) { return return_value; }};
-  tBTM_STATUS operator()(const RawAddress& remote_bda, uint8_t origin,
-                         uint64_t timeout_ms, tBTM_NAME_CMPL_CB* p_cb) {
-    return body(remote_bda, origin, timeout_ms, p_cb);
-  };
-};
-extern struct btm_initiate_rem_name btm_initiate_rem_name;
-
 // Name: btm_inq_clear_ssp
 // Params: void
 // Return: void
