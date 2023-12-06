@@ -37,7 +37,6 @@ import android.os.BatteryManager;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
@@ -49,7 +48,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -66,8 +64,6 @@ public class HeadsetClientServiceTest {
     private boolean mIsHeadsetClientServiceStarted;
 
     private static final int STANDARD_WAIT_MILLIS = 1000;
-
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     @Mock private AdapterService mAdapterService;
     @Mock private HeadsetClientStateMachine mStateMachine;
@@ -205,10 +201,9 @@ public class HeadsetClientServiceTest {
     }
 
     private void startService() throws Exception {
-        TestUtils.startService(mServiceRule, HeadsetClientService.class);
         // At this point the service should have started so check NOT null
-        mService = HeadsetClientService.getHeadsetClientService();
-        Assert.assertNotNull(mService);
+        mService = new HeadsetClientService(mTargetContext);
+        mService.doStart();
         // Try getting the Bluetooth adapter
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         Assert.assertNotNull(mAdapter);
@@ -217,7 +212,7 @@ public class HeadsetClientServiceTest {
 
     private void stopServiceIfStarted() throws Exception {
         if (mIsHeadsetClientServiceStarted) {
-            TestUtils.stopService(mServiceRule, HeadsetClientService.class);
+            mService.doStop();
             mService = HeadsetClientService.getHeadsetClientService();
             Assert.assertNull(mService);
         }

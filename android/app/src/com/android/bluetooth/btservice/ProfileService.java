@@ -25,6 +25,7 @@ import android.annotation.SuppressLint;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.IBinder;
@@ -116,6 +117,12 @@ public abstract class ProfileService extends Service {
 
     protected ProfileService() {
         mName = getName();
+    }
+
+    protected ProfileService(Context ctx) {
+        this();
+        attachBaseContext(ctx);
+        onCreate();
     }
 
     @Override

@@ -26,18 +26,14 @@ import android.os.Looper;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -49,9 +45,6 @@ public class McpServiceTest {
     private BluetoothAdapter mAdapter;
     private McpService mMcpService;
     private Context mTargetContext;
-
-    @Rule
-    public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     @Mock
     private AdapterService mAdapterService;
@@ -74,9 +67,8 @@ public class McpServiceTest {
 
         doReturn(true).when(mAdapterService).isStartedProfile(anyString());
         McpService.setMediaControlProfileForTesting(mMediaControlProfile);
-        TestUtils.startService(mServiceRule, McpService.class);
-        mMcpService = McpService.getMcpService();
-        Assert.assertNotNull(mMcpService);
+        mMcpService = new McpService(mTargetContext);
+        mMcpService.doStart();
     }
 
     @After
@@ -86,7 +78,7 @@ public class McpServiceTest {
         }
 
         doReturn(false).when(mAdapterService).isStartedProfile(anyString());
-        TestUtils.stopService(mServiceRule, McpService.class);
+        mMcpService.doStop();
         mMcpService = McpService.getMcpService();
         Assert.assertNull(mMcpService);
         reset(mMediaControlProfile);

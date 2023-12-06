@@ -62,7 +62,6 @@ import android.os.RemoteException;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
@@ -70,11 +69,11 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
+import com.android.bluetooth.flags.FeatureFlagsImpl;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -138,8 +137,6 @@ public class BassClientServiceTest {
     private BluetoothDevice mCurrentDevice;
     private BluetoothDevice mCurrentDevice1;
     private BassIntentReceiver mBassIntentReceiver;
-
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     @Spy private BassObjectsFactory mObjectsFactory = BassObjectsFactory.getInstance();
     @Mock private AdapterService mAdapterService;
@@ -244,9 +241,8 @@ public class BassClientServiceTest {
         doReturn(mBluetoothLeScannerWrapper).when(mObjectsFactory)
                 .getBluetoothLeScannerWrapper(any());
 
-        TestUtils.startService(mServiceRule, BassClientService.class);
-        mBassClientService = BassClientService.getBassClientService();
-        assertThat(mBassClientService).isNotNull();
+        mBassClientService = new BassClientService(mTargetContext, new FeatureFlagsImpl());
+        mBassClientService.doStart();
 
         mBassClientService.mServiceFactory = mServiceFactory;
         doReturn(mCsipService).when(mServiceFactory).getCsipSetCoordinatorService();
@@ -274,7 +270,7 @@ public class BassClientServiceTest {
         }
         mBassClientService.unregisterCallback(mCallback);
 
-        TestUtils.stopService(mServiceRule, BassClientService.class);
+        mBassClientService.doStop();
         mBassClientService = BassClientService.getBassClientService();
         assertThat(mBassClientService).isNull();
         mStateMachines.clear();
