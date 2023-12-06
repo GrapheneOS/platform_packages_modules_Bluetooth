@@ -26,7 +26,6 @@ import android.os.UserHandle;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
@@ -37,7 +36,6 @@ import com.android.bluetooth.btservice.storage.DatabaseManager;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -61,7 +59,6 @@ public class MapClientTest {
     @Mock private MnsService mMockMnsService;
     @Mock private DatabaseManager mDatabaseManager;
 
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     @Before
     public void setUp() throws Exception {
@@ -72,17 +69,16 @@ public class MapClientTest {
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         MapUtils.setMnsService(mMockMnsService);
-        TestUtils.startService(mServiceRule, MapClientService.class);
         mIsMapClientServiceStarted = true;
-        mService = MapClientService.getMapClientService();
-        Assert.assertNotNull(mService);
+        mService = new MapClientService(mTargetContext);
+        mService.doStart();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
     @After
     public void tearDown() throws Exception {
         if (mIsMapClientServiceStarted) {
-            TestUtils.stopService(mServiceRule, MapClientService.class);
+            mService.doStop();
             mService = MapClientService.getMapClientService();
             Assert.assertNull(mService);
         }

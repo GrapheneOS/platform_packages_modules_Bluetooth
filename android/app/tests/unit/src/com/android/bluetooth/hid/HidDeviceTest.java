@@ -32,19 +32,15 @@ import android.os.Looper;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -87,7 +83,6 @@ public class HidDeviceTest {
     private final BlockingQueue<Intent> mConnectionStateChangedQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<Integer> mCallbackQueue = new LinkedBlockingQueue<>();
 
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     private static void setHidDeviceNativeInterfaceInstance(HidDeviceNativeInterface instance)
             throws Exception {
@@ -116,9 +111,8 @@ public class HidDeviceTest {
         // Get a device for testing
         mTestDevice = mAdapter.getRemoteDevice("10:11:12:13:14:15");
 
-        TestUtils.startService(mServiceRule, HidDeviceService.class);
-        mHidDeviceService = HidDeviceService.getHidDeviceService();
-        Assert.assertNotNull(mHidDeviceService);
+        mHidDeviceService = new HidDeviceService(mTargetContext);
+        mHidDeviceService.doStart();
 
         // Force unregister app first
         mHidDeviceService.unregisterApp();
@@ -144,7 +138,7 @@ public class HidDeviceTest {
 
     @After
     public void tearDown() throws Exception {
-        TestUtils.stopService(mServiceRule, HidDeviceService.class);
+        mHidDeviceService.doStop();
         mHidDeviceService = HidDeviceService.getHidDeviceService();
         Assert.assertNull(mHidDeviceService);
         mTargetContext.unregisterReceiver(mConnectionStateChangedReceiver);

@@ -81,10 +81,9 @@ public class A2dpSinkService extends ProfileService {
 
     @VisibleForTesting
     A2dpSinkService(Context ctx, A2dpSinkNativeInterface nativeInterface, Looper looper) {
-        attachBaseContext(ctx);
+        super(ctx);
         mNativeInterface = requireNonNull(nativeInterface);
         mLooper = looper;
-        onCreate();
     }
 
     public static boolean isEnabled() {

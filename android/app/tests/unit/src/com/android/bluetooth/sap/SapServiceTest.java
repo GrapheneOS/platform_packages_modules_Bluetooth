@@ -30,7 +30,6 @@ import android.content.Intent;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
@@ -39,7 +38,6 @@ import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -58,8 +56,6 @@ public class SapServiceTest {
     private BluetoothAdapter mAdapter = null;
     private Context mTargetContext;
 
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
-
     @Mock private AdapterService mAdapterService;
     @Mock private DatabaseManager mDatabaseManager;
     private BluetoothDevice mDevice;
@@ -70,9 +66,8 @@ public class SapServiceTest {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
-        TestUtils.startService(mServiceRule, SapService.class);
-        mService = SapService.getSapService();
-        assertThat(mService).isNotNull();
+        mService = new SapService(mTargetContext);
+        mService.doStart();
         // Try getting the Bluetooth adapter
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         assertThat(mAdapter).isNotNull();
@@ -81,7 +76,7 @@ public class SapServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        TestUtils.stopService(mServiceRule, SapService.class);
+        mService.doStop();
         mService = SapService.getSapService();
         assertThat(mService).isNull();
         TestUtils.clearAdapterService(mAdapterService);
