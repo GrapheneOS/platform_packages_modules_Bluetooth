@@ -31,27 +31,28 @@
 
 /* SMP event type */
 typedef enum : uint8_t {
-  SMP_EVT_NONE = 0,           /* Default no event */
-  SMP_IO_CAP_REQ_EVT = 1,     /* IO capability request event */
-  SMP_SEC_REQUEST_EVT = 2,    /* SMP pairing request */
-  SMP_PASSKEY_NOTIF_EVT = 3,  /* passkey notification event */
-  SMP_PASSKEY_REQ_EVT = 4,    /* passkey request event */
-  SMP_OOB_REQ_EVT = 5,        /* OOB request event */
-  SMP_NC_REQ_EVT = 6,         /* Numeric Comparison request event */
-  SMP_COMPLT_EVT = 7,         /* SMP complete event */
-  SMP_PEER_KEYPR_NOT_EVT = 8, /* Peer keypress notification */
+  SMP_EVT_NONE,           /* Default no event */
+  SMP_IO_CAP_REQ_EVT,     /* IO capability request event */
+  SMP_SEC_REQUEST_EVT,    /* SMP pairing request */
+  SMP_PASSKEY_NOTIF_EVT,  /* passkey notification event */
+  SMP_PASSKEY_REQ_EVT,    /* passkey request event */
+  SMP_OOB_REQ_EVT,        /* OOB request event */
+  SMP_NC_REQ_EVT,         /* Numeric Comparison request event */
+  SMP_COMPLT_EVT,         /* SMP complete event */
+  SMP_PEER_KEYPR_NOT_EVT, /* Peer keypress notification */
 
   /* SC OOB request event (both local and peer OOB data can be expected in
    * response) */
-  SMP_SC_OOB_REQ_EVT = 9,
-  /* SC OOB local data set is created (as result of SMP_CrLocScOobData(...)) */
-  SMP_SC_LOC_OOB_DATA_UP_EVT = 10,
-  SMP_UNUSED11 = 11,
-  SMP_BR_KEYS_REQ_EVT = 12, /* SMP over BR keys request event */
-  SMP_UNUSED13 = 13,
-  SMP_CONSENT_REQ_EVT = 14,           /* Consent request event */
-  SMP_LE_ADDR_ASSOC_EVT = 15,         /* Identity address association event */
-  SMP_SIRK_VERIFICATION_REQ_EVT = 16, /* SIRK verification request event */
+  SMP_SC_OOB_REQ_EVT,
+  /* SC OOB local data set is created (as result of SMP_CrLocScOobData(...))
+   */
+  SMP_SC_LOC_OOB_DATA_UP_EVT,
+  SMP_UNUSED11,
+  SMP_BR_KEYS_REQ_EVT, /* SMP over BR keys request event */
+  SMP_UNUSED13,
+  SMP_CONSENT_REQ_EVT,           /* Consent request event */
+  SMP_LE_ADDR_ASSOC_EVT,         /* Identity address association event */
+  SMP_SIRK_VERIFICATION_REQ_EVT, /* SIRK verification request event */
 } tSMP_EVT;
 
 /* Device IO capability */
