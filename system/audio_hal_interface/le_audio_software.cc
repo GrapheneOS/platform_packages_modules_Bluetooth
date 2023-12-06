@@ -892,8 +892,12 @@ void LeAudioClientInterface::SetAllowedDsaModes(DsaModes dsa_modes) {
           break;
       }
     }
-    aidl::le_audio::LeAudioSourceTransport::interface->SetAllowedLatencyModes(
-        latency_modes);
+    if (aidl::le_audio::LeAudioSourceTransport::interface) {
+      aidl::le_audio::LeAudioSourceTransport::interface->SetAllowedLatencyModes(
+          latency_modes);
+    } else {
+      LOG(WARNING) << "LeAudioSourceTransport::interface is null";
+    }
   }
 }
 
