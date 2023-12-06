@@ -200,6 +200,13 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
     private static boolean sIsPseDynamicVersionUpgradeEnabled;
 
+    BluetoothPbapService() {}
+
+    @VisibleForTesting
+    BluetoothPbapService(Context ctx) {
+        super(ctx);
+    }
+
     public static boolean isEnabled() {
         return BluetoothProperties.isProfilePbapServerEnabled().orElse(false);
     }

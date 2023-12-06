@@ -48,7 +48,6 @@ import android.os.RemoteException;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
@@ -62,7 +61,6 @@ import com.android.bluetooth.x.com.android.modules.utils.SynchronousResultReceiv
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -86,7 +84,6 @@ public class HapClientTest {
     private final String mFlagDexmarker = System.getProperty("dexmaker.share_classloader", "false");
 
     private static final int TIMEOUT_MS = 1000;
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
     private BluetoothAdapter mAdapter;
     private BluetoothDevice mDevice;
     private BluetoothDevice mDevice2;
@@ -234,13 +231,12 @@ public class HapClientTest {
     }
 
     private void startService() throws TimeoutException {
-        TestUtils.startService(mServiceRule, HapClientService.class);
-        mService = HapClientService.getHapClientService();
-        Assert.assertNotNull(mService);
+        mService = new HapClientService(mTargetContext);
+        mService.doStart();
     }
 
     private void stopService() throws TimeoutException {
-        TestUtils.stopService(mServiceRule, HapClientService.class);
+        mService.doStop();
         mService = HapClientService.getHapClientService();
         Assert.assertNull(mService);
     }

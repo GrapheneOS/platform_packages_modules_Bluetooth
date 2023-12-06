@@ -25,8 +25,10 @@ import static org.mockito.Mockito.doReturn;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.content.Context;
 import android.content.Intent;
 
+import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
@@ -48,9 +50,6 @@ public class AvrcpBipClientTest {
     private static final int TEST_PSM = 1;
 
     @Rule
-    public final ServiceTestRule mServiceRule = new ServiceTestRule();
-
-    @Rule
     public final ServiceTestRule mBluetoothBrowserMediaServiceTestRule = new ServiceTestRule();
 
     @Mock private AdapterService mAdapterService;
@@ -64,12 +63,13 @@ public class AvrcpBipClientTest {
 
     @Before
     public void setUp() throws Exception {
+        Context targetContext = InstrumentationRegistry.getTargetContext();
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         AvrcpControllerNativeInterface.setInstance(mNativeInterface);
-        TestUtils.startService(mServiceRule, AvrcpControllerService.class);
-        mService = AvrcpControllerService.getAvrcpControllerService();
+        mService = new AvrcpControllerService(targetContext, mNativeInterface);
+        mService.doStart();
         final Intent bluetoothBrowserMediaServiceStartIntent =
                 TestUtils.prepareIntentToStartBluetoothBrowserMediaService();
         mBluetoothBrowserMediaServiceTestRule.startService(bluetoothBrowserMediaServiceStartIntent);
@@ -87,7 +87,7 @@ public class AvrcpBipClientTest {
 
     @After
     public void tearDown() throws Exception {
-        TestUtils.stopService(mServiceRule, AvrcpControllerService.class);
+        mService.doStop();
         AvrcpControllerNativeInterface.setInstance(null);
         mService = AvrcpControllerService.getAvrcpControllerService();
         assertThat(mService).isNull();

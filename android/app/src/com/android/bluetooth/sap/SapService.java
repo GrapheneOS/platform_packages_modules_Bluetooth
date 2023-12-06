@@ -93,7 +93,7 @@ public class SapService extends ProfileService implements AdapterService.Bluetoo
     private BluetoothDevice mRemoteDevice = null;
     private static String sRemoteDeviceName = null;
     private volatile boolean mInterrupted;
-    private int mState;
+    private int mState = BluetoothSap.STATE_DISCONNECTED;
     private SapServer mSapServer = null;
     private AlarmManager mAlarmManager = null;
     private boolean mRemoveTimeoutMsg = false;
@@ -107,13 +107,18 @@ public class SapService extends ProfileService implements AdapterService.Bluetoo
             BluetoothUuid.SAP,
     };
 
-    public static boolean isEnabled() {
-        return BluetoothProperties.isProfileSapServerEnabled().orElse(false);
+    public SapService() {
+        BluetoothSap.invalidateBluetoothGetConnectionStateCache();
     }
 
-    public SapService() {
-        mState = BluetoothSap.STATE_DISCONNECTED;
+    @VisibleForTesting
+    SapService(Context ctx) {
+        super(ctx);
         BluetoothSap.invalidateBluetoothGetConnectionStateCache();
+    }
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileSapServerEnabled().orElse(false);
     }
 
     /***
