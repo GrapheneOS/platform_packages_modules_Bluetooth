@@ -45,7 +45,6 @@ import android.os.ParcelFileDescriptor;
 import android.os.UserManager;
 import android.permission.PermissionManager;
 
-
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 

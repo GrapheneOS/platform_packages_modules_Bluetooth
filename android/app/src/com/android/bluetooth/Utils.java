@@ -63,7 +63,6 @@ import android.provider.DeviceConfig;
 import android.provider.Telephony;
 import android.util.Log;
 
-
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 

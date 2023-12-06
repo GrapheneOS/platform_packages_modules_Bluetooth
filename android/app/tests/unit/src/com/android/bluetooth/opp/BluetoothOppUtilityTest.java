@@ -43,6 +43,7 @@ import android.net.Uri;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.android.bluetooth.BluetoothMethodProxy;
+import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.opp.BluetoothOppTestUtils.CursorMockData;
 
@@ -58,8 +59,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import com.android.bluetooth.R;
 
 public class BluetoothOppUtilityTest {
 

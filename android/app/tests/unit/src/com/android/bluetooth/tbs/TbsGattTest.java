@@ -17,8 +17,10 @@
 
 package com.android.bluetooth.tbs;
 
-import static org.mockito.Mockito.*;
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+
 import static org.mockito.AdditionalMatchers.*;
+import static org.mockito.Mockito.*;
 
 import android.bluetooth.*;
 import android.bluetooth.BluetoothGattDescriptor;
@@ -29,10 +31,10 @@ import android.util.Pair;
 import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
-import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
+
 import com.google.common.primitives.Bytes;
 
 import org.junit.After;
@@ -47,8 +49,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;

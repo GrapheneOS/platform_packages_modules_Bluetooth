@@ -25,6 +25,10 @@ import com.android.bluetooth.FakeObexServer;
 import com.android.bluetooth.map.BluetoothMapAppParams;
 import com.android.bluetooth.map.BluetoothMapFolderElement;
 import com.android.bluetooth.mapclient.RequestSetMessageStatus.StatusIndicator;
+import com.android.obex.ClientSession;
+import com.android.obex.HeaderSet;
+import com.android.obex.Operation;
+import com.android.obex.ResponseCodes;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,11 +39,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-
-import com.android.obex.ClientSession;
-import com.android.obex.HeaderSet;
-import com.android.obex.Operation;
-import com.android.obex.ResponseCodes;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
