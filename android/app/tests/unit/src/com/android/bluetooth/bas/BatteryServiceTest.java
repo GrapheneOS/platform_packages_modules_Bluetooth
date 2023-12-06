@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.spy;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -32,16 +31,13 @@ import android.os.ParcelUuid;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.LargeTest;
-import androidx.test.rule.ServiceTestRule;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -65,7 +61,6 @@ public class BatteryServiceTest {
     @Mock private AdapterService mAdapterService;
     @Mock private DatabaseManager mDatabaseManager;
 
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
     @Rule
     public final MockitoRule mockito = MockitoJUnit.rule();
 
@@ -100,13 +95,12 @@ public class BatteryServiceTest {
     }
 
     private void startService() throws TimeoutException {
-        TestUtils.startService(mServiceRule, BatteryService.class);
-        mService = BatteryService.getBatteryService();
-        Assert.assertNotNull(mService);
+        mService = new BatteryService(mTargetContext);
+        mService.doStart();
     }
 
     private void stopService() throws TimeoutException {
-        TestUtils.stopService(mServiceRule, BatteryService.class);
+        mService.doStop();
         mService = BatteryService.getBatteryService();
         Assert.assertNull(mService);
     }

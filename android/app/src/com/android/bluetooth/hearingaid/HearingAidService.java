@@ -28,6 +28,7 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothHearingAid;
 import android.content.AttributionSource;
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioDeviceCallback;
 import android.media.AudioDeviceInfo;
@@ -99,6 +100,13 @@ public class HearingAidService extends ProfileService {
             new AudioManagerOnAudioDevicesRemovedCallback();
 
     private final ServiceFactory mFactory = new ServiceFactory();
+
+    HearingAidService() {}
+
+    @VisibleForTesting
+    HearingAidService(Context ctx) {
+        super(ctx);
+    }
 
     public static boolean isEnabled() {
         return BluetoothProperties.isProfileAshaCentralEnabled().orElse(true);

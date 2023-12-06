@@ -40,7 +40,6 @@ import android.os.ParcelUuid;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
@@ -52,7 +51,6 @@ import com.android.bluetooth.x.com.android.modules.utils.SynchronousResultReceiv
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -85,8 +83,6 @@ public class HearingAidServiceTest {
     @Mock private DatabaseManager mDatabaseManager;
     @Mock private HearingAidNativeInterface mNativeInterface;
     @Mock private AudioManager mAudioManager;
-
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     @Before
     public void setUp() throws Exception {
@@ -146,13 +142,12 @@ public class HearingAidServiceTest {
     }
 
     private void startService() throws TimeoutException {
-        TestUtils.startService(mServiceRule, HearingAidService.class);
-        mService = HearingAidService.getHearingAidService();
-        Assert.assertNotNull(mService);
+        mService = new HearingAidService(mTargetContext);
+        mService.doStart();
     }
 
     private void stopService() throws TimeoutException {
-        TestUtils.stopService(mServiceRule, HearingAidService.class);
+        mService.doStop();
         mService = HearingAidService.getHearingAidService();
         Assert.assertNull(mService);
     }

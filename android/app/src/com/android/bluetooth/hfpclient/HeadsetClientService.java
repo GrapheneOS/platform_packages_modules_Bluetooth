@@ -91,8 +91,7 @@ public class HeadsetClientService extends ProfileService {
 
     @VisibleForTesting
     HeadsetClientService(Context ctx) {
-        attachBaseContext(ctx);
-        onCreate();
+        super(ctx);
     }
 
     public static boolean isEnabled() {

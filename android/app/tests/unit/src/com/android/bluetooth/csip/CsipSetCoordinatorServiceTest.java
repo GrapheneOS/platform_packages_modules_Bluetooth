@@ -31,7 +31,6 @@ import android.os.RemoteException;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
@@ -61,7 +60,6 @@ import org.mockito.Spy;
 public class CsipSetCoordinatorServiceTest {
     private final String mFlagDexmarker = System.getProperty("dexmaker.share_classloader", "false");
 
-    public final ServiceTestRule mServiceRule = new ServiceTestRule();
     private Context mTargetContext;
     private BluetoothAdapter mAdapter;
     private BluetoothDevice mTestDevice;
@@ -165,13 +163,12 @@ public class CsipSetCoordinatorServiceTest {
     }
 
     private void startService() throws TimeoutException {
-        TestUtils.startService(mServiceRule, CsipSetCoordinatorService.class);
-        mService = CsipSetCoordinatorService.getCsipSetCoordinatorService();
-        Assert.assertNotNull(mService);
+        mService = new CsipSetCoordinatorService(mTargetContext);
+        mService.doStart();
     }
 
     private void stopService() throws TimeoutException {
-        TestUtils.stopService(mServiceRule, CsipSetCoordinatorService.class);
+        mService.doStop();
         mService = CsipSetCoordinatorService.getCsipSetCoordinatorService();
         Assert.assertNull(mService);
     }

@@ -30,11 +30,12 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.SdpMasRecord;
+import android.content.Context;
 import android.os.Looper;
 import android.os.test.TestLooper;
 
+import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.BluetoothMethodProxy;
@@ -44,7 +45,6 @@ import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -55,7 +55,6 @@ import org.mockito.MockitoAnnotations;
 public class MapClientServiceTest {
     private static final String REMOTE_DEVICE_ADDRESS = "00:00:00:00:00:00";
 
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     @Mock private AdapterService mAdapterService;
     @Mock private DatabaseManager mDatabaseManager;
@@ -67,17 +66,16 @@ public class MapClientServiceTest {
 
     @Before
     public void setUp() throws Exception {
+        Context targetContext = InstrumentationRegistry.getTargetContext();
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
-        TestUtils.startService(mServiceRule, MapClientService.class);
 
         mTestLooper = new TestLooper();
 
-        mService = MapClientService.getMapClientService();
-        assertThat(mService).isNotNull();
-        mService.mSmLooper = mTestLooper.getLooper();
+        mService = new MapClientService(targetContext, mTestLooper.getLooper());
+        mService.doStart();
 
         // Try getting the Bluetooth adapter
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -87,8 +85,7 @@ public class MapClientServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        mService.mSmLooper = null;
-        TestUtils.stopService(mServiceRule, MapClientService.class);
+        mService.doStop();
         mService = MapClientService.getMapClientService();
         assertThat(mService).isNull();
         TestUtils.clearAdapterService(mAdapterService);
