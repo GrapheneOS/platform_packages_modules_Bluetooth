@@ -28,17 +28,17 @@
 #include "common/init_flags.h"
 #include "common/strings.h"
 #include "hal/snoop_logger_common.h"
-#include "hal/syscall_wrapper_impl.h"
-#include "os/fake_timer/fake_timerfd.h"
 #include "os/files.h"
 #include "os/log.h"
 #include "os/parameter_provider.h"
 #include "os/system_properties.h"
 
-namespace bluetooth {
 #ifdef USE_FAKE_TIMERS
-using os::fake_timer::fake_timerfd_get_clock;
+#include "os/fake_timer/fake_timerfd.h"
+using bluetooth::os::fake_timer::fake_timerfd_get_clock;
 #endif
+
+namespace bluetooth {
 namespace hal {
 
 // Adds L2CAP channel to acceptlist.
