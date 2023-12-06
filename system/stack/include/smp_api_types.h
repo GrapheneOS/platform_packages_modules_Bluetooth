@@ -22,7 +22,9 @@
 #include <base/strings/stringprintf.h>
 
 #include <cstdint>
+#include <string>
 
+#include "macros.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btm_status.h"
 #include "stack/include/smp_status.h"
@@ -54,6 +56,30 @@ typedef enum : uint8_t {
   SMP_LE_ADDR_ASSOC_EVT,         /* Identity address association event */
   SMP_SIRK_VERIFICATION_REQ_EVT, /* SIRK verification request event */
 } tSMP_EVT;
+
+inline std::string smp_evt_to_text(const tSMP_EVT evt) {
+  switch (evt) {
+    CASE_RETURN_TEXT(SMP_EVT_NONE);
+    CASE_RETURN_TEXT(SMP_IO_CAP_REQ_EVT);
+    CASE_RETURN_TEXT(SMP_SEC_REQUEST_EVT);
+    CASE_RETURN_TEXT(SMP_PASSKEY_NOTIF_EVT);
+    CASE_RETURN_TEXT(SMP_PASSKEY_REQ_EVT);
+    CASE_RETURN_TEXT(SMP_OOB_REQ_EVT);
+    CASE_RETURN_TEXT(SMP_NC_REQ_EVT);
+    CASE_RETURN_TEXT(SMP_COMPLT_EVT);
+    CASE_RETURN_TEXT(SMP_PEER_KEYPR_NOT_EVT);
+    CASE_RETURN_TEXT(SMP_SC_OOB_REQ_EVT);
+    CASE_RETURN_TEXT(SMP_SC_LOC_OOB_DATA_UP_EVT);
+    CASE_RETURN_TEXT(SMP_UNUSED11);
+    CASE_RETURN_TEXT(SMP_BR_KEYS_REQ_EVT);
+    CASE_RETURN_TEXT(SMP_UNUSED13);
+    CASE_RETURN_TEXT(SMP_CONSENT_REQ_EVT);
+    CASE_RETURN_TEXT(SMP_LE_ADDR_ASSOC_EVT);
+    CASE_RETURN_TEXT(SMP_SIRK_VERIFICATION_REQ_EVT);
+    default:
+      return "UNKNOWN SMP EVENT";
+  }
+}
 
 /* Device IO capability */
 #define SMP_IO_CAP_IO BTM_IO_CAP_IO         /* DisplayYesNo */
