@@ -125,7 +125,7 @@ typedef uint8_t tBTA_JV_PM_ID;
 /* define maximum number of registered PM entities. should be in sync with bta
  * pm! */
 #ifndef BTA_JV_PM_MAX_NUM
-#define BTA_JV_PM_MAX_NUM 5
+#define BTA_JV_PM_MAX_NUM 12
 #endif
 
 /* JV pm connection states */
