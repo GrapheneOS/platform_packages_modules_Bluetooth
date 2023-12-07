@@ -481,7 +481,7 @@ void btm_consolidate_dev(tBTM_SEC_DEV_REC* p_target_rec) {
   }
 }
 
-BTM_CONSOLIDATION_CB* btm_consolidate_cb = nullptr;
+static BTM_CONSOLIDATION_CB* btm_consolidate_cb = nullptr;
 
 void BTM_SetConsolidationCallback(BTM_CONSOLIDATION_CB* cb) {
   btm_consolidate_cb = cb;
