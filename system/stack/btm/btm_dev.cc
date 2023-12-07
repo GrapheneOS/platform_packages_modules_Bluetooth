@@ -338,7 +338,7 @@ bool btm_dev_support_role_switch(const RawAddress& bd_addr) {
   return false;
 }
 
-bool is_handle_equal(void* data, void* context) {
+static bool is_handle_equal(void* data, void* context) {
   tBTM_SEC_DEV_REC* p_dev_rec = static_cast<tBTM_SEC_DEV_REC*>(data);
   uint16_t* handle = static_cast<uint16_t*>(context);
 
