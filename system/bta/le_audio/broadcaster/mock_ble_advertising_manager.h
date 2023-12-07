@@ -22,7 +22,6 @@
 #include <base/memory/weak_ptr.h>
 #include <gmock/gmock.h>
 
-#include "ble_advertiser.h"
 #include "include/hardware/ble_advertiser.h"
 
 class MockBleAdvertisingManager : public BleAdvertiserInterface {
@@ -42,7 +41,7 @@ class MockBleAdvertisingManager : public BleAdvertiserInterface {
               (uint8_t advertiser_id, StatusCallback cb,
                AdvertiseParameters params, std::vector<uint8_t> advertise_data,
                std::vector<uint8_t> scan_response_data, int timeout_s,
-               MultiAdvCb timeout_cb),
+               StatusCallback timeout_cb),
               (override));
   MOCK_METHOD((void), StartAdvertisingSet,
               (uint8_t client_id, int reg_id,
