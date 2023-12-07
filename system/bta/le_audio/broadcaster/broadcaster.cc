@@ -157,7 +157,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     BasicAudioAnnouncementData announcement;
 
     /* Prepare the announcement */
-    announcement.presentation_delay = 0x004E20; /* TODO: Use the proper value */
+    announcement.presentation_delay = 40000; /* us */
 
     auto const& codec_id = codec_config.GetLeAudioCodecId();
 
