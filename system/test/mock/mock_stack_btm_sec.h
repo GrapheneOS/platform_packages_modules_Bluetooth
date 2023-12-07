@@ -685,21 +685,6 @@ struct btm_sec_encrypt_change {
 };
 extern struct btm_sec_encrypt_change btm_sec_encrypt_change;
 
-// Name: btm_sec_find_first_serv
-// Params: bool is_originator, uint16_t psm
-// Return: tBTM_SEC_SERV_REC*
-struct btm_sec_find_first_serv {
-  static tBTM_SEC_SERV_REC* return_value;
-  std::function<tBTM_SEC_SERV_REC*(bool is_originator, uint16_t psm)> body{
-      [](bool /* is_originator */, uint16_t /* psm */) {
-        return return_value;
-      }};
-  tBTM_SEC_SERV_REC* operator()(bool is_originator, uint16_t psm) {
-    return body(is_originator, psm);
-  };
-};
-extern struct btm_sec_find_first_serv btm_sec_find_first_serv;
-
 // Name: btm_sec_is_a_bonded_dev
 // Params: const RawAddress& bda
 // Return: bool

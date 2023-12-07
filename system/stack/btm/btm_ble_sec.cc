@@ -717,7 +717,8 @@ tL2CAP_LE_RESULT_CODE btm_ble_start_sec_check(const RawAddress& bd_addr,
                                               tBTM_SEC_CALLBACK* p_callback,
                                               void* p_ref_data) {
   /* Find the service record for the PSM */
-  tBTM_SEC_SERV_REC* p_serv_rec = btm_sec_find_first_serv(is_originator, psm);
+  tBTM_SEC_SERV_REC* p_serv_rec =
+      btm_sec_cb.find_first_serv_rec(is_originator, psm);
 
   /* If there is no application registered with this PSM do not allow connection
    */
