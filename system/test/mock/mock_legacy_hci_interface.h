@@ -20,7 +20,7 @@
 
 #include "stack/include/hcimsgs.h"
 
-namespace bluetooth::legacy::hci {
+namespace bluetooth::legacy::hci::testing {
 class MockInterface : public Interface {
  public:
   MOCK_METHOD(void, StartInquiry,
@@ -37,7 +37,5 @@ class MockInterface : public Interface {
                std::vector<uint8_t> vendor_config),
               (const));
 };
-namespace testing {
-bluetooth::legacy::hci::MockInterface& GetMock();
-}
-}  // namespace bluetooth::legacy::hci
+void SetMock(const MockInterface& interface);
+}  // namespace bluetooth::legacy::hci::testing
