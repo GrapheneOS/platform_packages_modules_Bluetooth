@@ -23,7 +23,6 @@
 #include <ble.sysprop.h>
 #include <bta.sysprop.h>
 #include <hfp.sysprop.h>
-#include <pan.sysprop.h>
 
 #define GET_SYSPROP(namespace, prop, default) \
   android::sysprop::bluetooth::namespace ::prop().value_or(default)
