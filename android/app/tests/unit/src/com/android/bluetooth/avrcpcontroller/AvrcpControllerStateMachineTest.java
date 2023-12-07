@@ -42,8 +42,8 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
-import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.a2dpsink.A2dpSinkNativeInterface;
+import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 

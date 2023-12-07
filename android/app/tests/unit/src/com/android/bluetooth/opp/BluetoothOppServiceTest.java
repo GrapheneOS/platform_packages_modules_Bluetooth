@@ -17,6 +17,8 @@ package com.android.bluetooth.opp;
 
 import static com.android.bluetooth.opp.BluetoothOppService.WHERE_INVISIBLE_UNCONFIRMED;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -26,8 +28,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
-
-import static com.google.common.truth.Truth.assertThat;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.ContentResolver;

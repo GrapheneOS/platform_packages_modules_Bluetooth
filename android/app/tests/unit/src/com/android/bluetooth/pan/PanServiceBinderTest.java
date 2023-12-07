@@ -16,9 +16,6 @@
 
 package com.android.bluetooth.pan;
 
-import static org.mockito.Mockito.isNull;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 
 import android.bluetooth.BluetoothAdapter;

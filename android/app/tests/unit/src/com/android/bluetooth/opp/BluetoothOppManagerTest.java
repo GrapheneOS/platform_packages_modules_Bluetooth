@@ -19,7 +19,6 @@ package com.android.bluetooth.opp;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.Intents.intending;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.anyIntent;
-import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 
 import static com.android.bluetooth.opp.BluetoothOppManager.ALLOWED_INSERT_SHARE_THREAD_NUMBER;
 import static com.android.bluetooth.opp.BluetoothOppManager.OPP_PREFERENCE_FILE;
@@ -40,7 +39,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.net.Uri;
-import android.util.Log;
 
 import androidx.test.espresso.intent.Intents;
 import androidx.test.platform.app.InstrumentationRegistry;

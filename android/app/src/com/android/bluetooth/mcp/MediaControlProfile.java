@@ -39,8 +39,8 @@ import com.android.bluetooth.audio_util.MediaPlayerWrapper;
 import com.android.bluetooth.le_audio.ContentControlIdKeeper;
 import com.android.internal.annotations.VisibleForTesting;
 
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
