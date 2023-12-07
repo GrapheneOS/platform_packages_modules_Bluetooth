@@ -17,6 +17,7 @@
 package com.android.bluetooth.opp;
 
 import static com.google.common.truth.Truth.assertThat;
+
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
@@ -32,7 +33,6 @@ import com.android.bluetooth.BluetoothMethodProxy;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)

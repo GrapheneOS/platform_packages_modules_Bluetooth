@@ -21,8 +21,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import android.bluetooth.BluetoothLeAudio;
-import android.bluetooth.BluetoothLeAudioCodecConfig;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
 
 import androidx.test.runner.AndroidJUnit4;

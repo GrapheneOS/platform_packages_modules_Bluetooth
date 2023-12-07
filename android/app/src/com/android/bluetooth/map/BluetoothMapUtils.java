@@ -36,7 +36,6 @@ import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 /**
  * Various utility methods and generic defines that can be used throughout MAPS
  */

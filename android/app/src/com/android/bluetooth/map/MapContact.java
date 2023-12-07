@@ -16,7 +16,6 @@ package com.android.bluetooth.map;
 
 import com.android.bluetooth.SignedLongLong;
 
-
 /**
  * Local representation of an Android contact
  */
