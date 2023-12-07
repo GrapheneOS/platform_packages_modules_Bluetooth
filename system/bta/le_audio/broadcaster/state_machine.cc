@@ -27,10 +27,10 @@
 #include "base/logging.h"
 #include "bta/le_audio/broadcaster/broadcaster_types.h"
 #include "bta/le_audio/le_audio_types.h"
-#include "gd/common/strings.h"
+#include "common/strings.h"
+#include "hci/le_advertising_manager.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
-#include "stack/include/ble_advertiser.h"
 #include "stack/include/btm_iso_api.h"
 
 using bluetooth::common::ToString;
@@ -143,11 +143,12 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
              tx_power, status);
 
     /* If this callback gets called the advertising_sid is valid even though the
-     * status can be other than BTM_BLE_MULTI_ADV_SUCCESS.
+     * status can be other than SUCCESS.
      */
     advertising_sid_ = advertising_sid;
 
-    if (status != BTM_BLE_MULTI_ADV_SUCCESS) {
+    if (status !=
+        bluetooth::hci::AdvertisingCallback::AdvertisingStatus::SUCCESS) {
       LOG_ERROR("Creating Announcement failed");
       callbacks_->OnStateMachineCreateStatus(GetBroadcastId(), false);
       return;
@@ -169,7 +170,8 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
     LOG_INFO("operation=%s, broadcast_id=%d, status=%d",
              (enable ? "enable" : "disable"), GetBroadcastId(), status);
 
-    if (status == BTM_BLE_MULTI_ADV_SUCCESS) {
+    if (status ==
+        bluetooth::hci::AdvertisingCallback::AdvertisingStatus::SUCCESS) {
       /* Periodic is enabled but without BIGInfo. Stream is suspended. */
       if (enable) {
         SetState(State::CONFIGURED);
