@@ -140,14 +140,10 @@ public class GattClientTest {
 
     @Test
     public void clientGattDiscoverServices() throws Exception {
-
         BluetoothGattCallback gattCallback = mock(BluetoothGattCallback.class);
         BluetoothGatt gatt = connectGattAndWaitConnection(gattCallback);
 
         try {
-            verify(gattCallback, timeout(1000))
-                    .onConnectionStateChange(any(), anyInt(), eq(BluetoothProfile.STATE_CONNECTED));
-
             gatt.discoverServices();
             verify(gattCallback, timeout(10000))
                     .onServicesDiscovered(any(), eq(BluetoothGatt.GATT_SUCCESS));
@@ -162,14 +158,10 @@ public class GattClientTest {
 
     @Test
     public void clientGattReadCharacteristics() throws Exception {
-
         BluetoothGattCallback gattCallback = mock(BluetoothGattCallback.class);
         BluetoothGatt gatt = connectGattAndWaitConnection(gattCallback);
 
         try {
-            verify(gattCallback, timeout(1000))
-                    .onConnectionStateChange(any(), anyInt(), eq(BluetoothProfile.STATE_CONNECTED));
-
             gatt.discoverServices();
             verify(gattCallback, timeout(10000))
                     .onServicesDiscovered(any(), eq(BluetoothGatt.GATT_SUCCESS));
@@ -196,9 +188,6 @@ public class GattClientTest {
         BluetoothGatt gatt = connectGattAndWaitConnection(gattCallback);
 
         try {
-            verify(gattCallback, timeout(1000))
-                    .onConnectionStateChange(any(), anyInt(), eq(BluetoothProfile.STATE_CONNECTED));
-
             gatt.discoverServices();
             verify(gattCallback, timeout(10000))
                     .onServicesDiscovered(any(), eq(BluetoothGatt.GATT_SUCCESS));
