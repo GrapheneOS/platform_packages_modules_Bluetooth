@@ -38,7 +38,6 @@ import android.os.Looper;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.BluetoothMethodProxy;
@@ -50,7 +49,6 @@ import com.android.bluetooth.x.com.android.modules.utils.SynchronousResultReceiv
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -69,8 +67,6 @@ public class PbapClientServiceTest {
     boolean mIsAdapterServiceSet;
     boolean mIsPbapClientServiceStarted;
 
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
-
     @Mock private AdapterService mAdapterService;
 
     @Mock private DatabaseManager mDatabaseManager;
@@ -83,10 +79,9 @@ public class PbapClientServiceTest {
         mIsAdapterServiceSet = true;
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
-        TestUtils.startService(mServiceRule, PbapClientService.class);
+        mService = new PbapClientService(mTargetContext);
+        mService.doStart();
         mIsPbapClientServiceStarted = true;
-        mService = PbapClientService.getPbapClientService();
-        Assert.assertNotNull(mService);
         // Try getting the Bluetooth adapter
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         Assert.assertNotNull(mAdapter);
@@ -99,7 +94,7 @@ public class PbapClientServiceTest {
             return;
         }
         if (mIsPbapClientServiceStarted) {
-            TestUtils.stopService(mServiceRule, PbapClientService.class);
+            mService.doStop();
             mService = PbapClientService.getPbapClientService();
             Assert.assertNull(mService);
         }

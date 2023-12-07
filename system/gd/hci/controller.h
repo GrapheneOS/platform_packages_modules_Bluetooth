@@ -20,7 +20,6 @@
 #include "hci/hci_packets.h"
 #include "hci/le_rand_callback.h"
 #include "module.h"
-#include "os/handler.h"
 
 // TODO Remove this once all QTI specific hacks are removed.
 #define LMP_COMPID_QTI 0x001D

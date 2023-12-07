@@ -31,11 +31,11 @@ import static com.google.common.truth.Truth.assertThat;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.database.MatrixCursor;
 
 import androidx.test.filters.MediumTest;
 import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.BluetoothMethodProxy;
@@ -45,7 +45,6 @@ import com.android.bluetooth.btservice.AdapterService;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -60,7 +59,6 @@ public class BluetoothOppServiceTest {
     private boolean mIsAdapterServiceSet;
     private boolean mIsBluetoothOppServiceStarted;
 
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     @Mock BluetoothMethodProxy mBluetoothMethodProxy;
 
@@ -68,6 +66,7 @@ public class BluetoothOppServiceTest {
 
     @Before
     public void setUp() throws Exception {
+        Context targetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         MockitoAnnotations.initMocks(this);
 
         BluetoothMethodProxy.setInstanceForTesting(mBluetoothMethodProxy);
@@ -81,11 +80,10 @@ public class BluetoothOppServiceTest {
         TestUtils.setAdapterService(mAdapterService);
         mIsAdapterServiceSet = true;
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
-        TestUtils.startService(mServiceRule, BluetoothOppService.class);
+        mService = new BluetoothOppService(targetContext);
+        mService.doStart();
         mIsBluetoothOppServiceStarted = true;
-        mService = BluetoothOppService.getBluetoothOppService();
 
-        Assert.assertNotNull(mService);
         // Try getting the Bluetooth adapter
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         Assert.assertNotNull(mAdapter);
@@ -115,7 +113,7 @@ public class BluetoothOppServiceTest {
 
         BluetoothMethodProxy.setInstanceForTesting(null);
         if (mIsBluetoothOppServiceStarted) {
-            TestUtils.stopService(mServiceRule, BluetoothOppService.class);
+            mService.doStop();
         }
         if (mIsAdapterServiceSet) {
             TestUtils.clearAdapterService(mAdapterService);

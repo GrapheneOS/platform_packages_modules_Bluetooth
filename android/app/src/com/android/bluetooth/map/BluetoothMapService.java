@@ -141,7 +141,7 @@ public class BluetoothMapService extends ProfileService {
     private ArrayList<BluetoothMapAccountItem> mEnabledAccounts = null;
     private static String sRemoteDeviceName = null;
 
-    private int mState;
+    private int mState = BluetoothMap.STATE_DISCONNECTED;
     private BluetoothMapAppObserver mAppObserver = null;
     private AlarmManager mAlarmManager = null;
 
@@ -169,7 +169,12 @@ public class BluetoothMapService extends ProfileService {
     }
 
     public BluetoothMapService() {
-        mState = BluetoothMap.STATE_DISCONNECTED;
+        BluetoothMap.invalidateBluetoothGetConnectionStateCache();
+    }
+
+    @VisibleForTesting
+    BluetoothMapService(Context ctx) {
+        super(ctx);
         BluetoothMap.invalidateBluetoothGetConnectionStateCache();
     }
 

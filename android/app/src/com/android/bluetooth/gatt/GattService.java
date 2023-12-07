@@ -300,8 +300,7 @@ public class GattService extends ProfileService {
     private final Object mTestModeLock = new Object();
 
     public GattService(Context ctx) {
-        attachBaseContext(ctx);
-        onCreate();
+        super(ctx);
     }
 
     public static boolean isEnabled() {
