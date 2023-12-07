@@ -24,7 +24,7 @@
 #define BUILDCFG
 #endif
 
-#include "bt_types.h" /* This must be defined AFTER buildcfg.h */
+#include "stack/include/bt_types.h" /* This must be defined AFTER buildcfg.h */
 
 #ifndef FALSE
 #define FALSE false
