@@ -65,10 +65,6 @@ bool btm_set_bond_type_dev(const RawAddress& /* bd_addr */,
   inc_func_call_count(__func__);
   return false;
 }
-bool is_handle_equal(void* /* data */, void* /* context */) {
-  inc_func_call_count(__func__);
-  return false;
-}
 const char* BTM_SecReadDevName(const RawAddress& /* bd_addr */) {
   inc_func_call_count(__func__);
   return nullptr;
