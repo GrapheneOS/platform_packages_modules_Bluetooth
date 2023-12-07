@@ -2115,7 +2115,7 @@ impl IBluetoothGatt for BluetoothGatt {
 
     fn start_advertising_set(
         &mut self,
-        parameters: AdvertisingSetParameters,
+        mut parameters: AdvertisingSetParameters,
         advertise_data: AdvertiseData,
         scan_response: Option<AdvertiseData>,
         periodic_parameters: Option<PeriodicAdvertisingParameters>,
@@ -2129,9 +2129,19 @@ impl IBluetoothGatt for BluetoothGatt {
         }
 
         let device_name = self.get_adapter_name();
-        let is_legacy = parameters.is_legacy;
-        let params = parameters.into();
         let adv_bytes = advertise_data.make_with(&device_name);
+        let is_le_extended_advertising_supported = match &self.adapter {
+            Some(adapter) => adapter.lock().unwrap().is_le_extended_advertising_supported(),
+            _ => false,
+        };
+        // TODO(b/311417973): Remove this once we have more robust /device/bluetooth APIs to control extended advertising
+        let is_legacy = parameters.is_legacy
+            && !AdvertiseData::can_upgrade(
+                &mut parameters,
+                &adv_bytes,
+                is_le_extended_advertising_supported,
+            );
+        let params = parameters.into();
         if !AdvertiseData::validate_raw_data(is_legacy, &adv_bytes) {
             log::warn!("Failed to start advertising set with invalid advertise data");
             return INVALID_REG_ID;

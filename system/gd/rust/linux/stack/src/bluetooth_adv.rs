@@ -348,6 +348,24 @@ impl AdvertiseData {
     pub fn validate_raw_data(is_legacy: bool, bytes: &Vec<u8>) -> bool {
         bytes.len() <= if is_legacy { LEGACY_ADV_DATA_LEN_MAX } else { EXT_ADV_DATA_LEN_MAX }
     }
+
+    /// Checks if the advertisement can be upgraded to extended.
+    pub fn can_upgrade(
+        parameters: &mut AdvertisingSetParameters,
+        adv_bytes: &Vec<u8>,
+        is_le_extended_advertising_supported: bool,
+    ) -> bool {
+        if parameters.is_legacy
+            && is_le_extended_advertising_supported
+            && !AdvertiseData::validate_raw_data(true, adv_bytes)
+        {
+            log::info!("Auto upgrading advertisement to extended");
+            parameters.is_legacy = false;
+            return true;
+        }
+
+        false
+    }
 }
 
 impl Into<bt_topshim::profiles::gatt::PeriodicAdvertisingParameters>
