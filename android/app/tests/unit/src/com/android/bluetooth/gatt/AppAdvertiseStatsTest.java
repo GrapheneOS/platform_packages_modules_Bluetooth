@@ -27,10 +27,10 @@ import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertisingSetParameters;
 import android.bluetooth.le.PeriodicAdvertisingParameters;
 
-import com.android.bluetooth.btservice.MetricsLogger;
-
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
+
+import com.android.bluetooth.btservice.MetricsLogger;
 
 import org.junit.After;
 import org.junit.Before;

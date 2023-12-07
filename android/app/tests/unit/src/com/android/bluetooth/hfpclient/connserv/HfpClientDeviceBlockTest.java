@@ -31,8 +31,6 @@ import android.telecom.TelecomManager;
 import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.hfpclient.HeadsetClientService;
-
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;

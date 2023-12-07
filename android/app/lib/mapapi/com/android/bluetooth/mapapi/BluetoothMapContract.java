@@ -19,7 +19,6 @@ package com.android.bluetooth.mapapi;
 import android.content.ContentResolver;
 import android.net.Uri;
 
-
 /**
  * This class defines the minimum sets of data needed for a client to
  * implement to claim support for the Bluetooth Message Access Profile.

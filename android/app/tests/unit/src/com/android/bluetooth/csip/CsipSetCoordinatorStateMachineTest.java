@@ -36,10 +36,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.test.suitebuilder.annotation.MediumTest;
 
-import androidx.test.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 

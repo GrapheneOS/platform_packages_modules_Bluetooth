@@ -22,6 +22,7 @@ import android.bluetooth.BluetoothLeAudioCodecConfig;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
 
 import java.util.List;
+
 /**
  * Stack event sent via a callback from JNI to Java, or generated
  * internally by the LeAudio State Machine.
