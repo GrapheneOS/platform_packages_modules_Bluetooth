@@ -79,6 +79,7 @@ class StackBtmWithQueuesTest : public StackBtmTest {
     down_handler_ = new bluetooth::os::Handler(down_thread_);
     bluetooth::hci::testing::mock_hci_layer_ = &mock_hci_;
     bluetooth::hci::testing::mock_gd_shim_handler_ = up_handler_;
+    bluetooth::legacy::hci::testing::SetMock(legacy_hci_mock_);
   }
   void TearDown() override {
     up_handler_->Clear();
@@ -93,6 +94,7 @@ class StackBtmWithQueuesTest : public StackBtmTest {
                                bluetooth::hci::ScoBuilder>
       sco_queue_{10};
   bluetooth::hci::testing::MockHciLayer mock_hci_;
+  bluetooth::legacy::hci::testing::MockInterface legacy_hci_mock_;
   bluetooth::os::Thread* up_thread_;
   bluetooth::os::Handler* up_handler_;
   bluetooth::os::Thread* down_thread_;
@@ -199,20 +201,15 @@ TEST_F(StackBtmWithQueuesTest, change_packet_type) {
   uint64_t features = 0xffffffffffffffff;
   acl_process_supported_features(0x123, features);
 
-  EXPECT_CALL(
-      bluetooth::legacy::hci::testing::GetMock(),
-      ChangeConnectionPacketType(handle, 0x4400 | HCI_PKT_TYPES_MASK_DM1));
-  EXPECT_CALL(
-      bluetooth::legacy::hci::testing::GetMock(),
-      ChangeConnectionPacketType(
-          handle, (0xcc00 | HCI_PKT_TYPES_MASK_DM1 | HCI_PKT_TYPES_MASK_DH1)));
-  EXPECT_CALL(
-      bluetooth::legacy::hci::testing::GetMock(),
-      ChangeConnectionPacketType(
-          handle, (0xcc00 | HCI_PKT_TYPES_MASK_DM1 | HCI_PKT_TYPES_MASK_DH1)));
+  EXPECT_CALL(legacy_hci_mock_, ChangeConnectionPacketType(
+                                    handle, 0x4400 | HCI_PKT_TYPES_MASK_DM1));
+  EXPECT_CALL(legacy_hci_mock_, ChangeConnectionPacketType(
+                                    handle, (0xcc00 | HCI_PKT_TYPES_MASK_DM1 |
+                                             HCI_PKT_TYPES_MASK_DH1)));
 
   btm_set_packet_types_from_address(bda, 0x55aa);
   btm_set_packet_types_from_address(bda, 0xffff);
+  // Illegal mask, won't be sent.
   btm_set_packet_types_from_address(bda, 0x0);
 
   get_btm_client_interface().lifecycle.btm_free();
