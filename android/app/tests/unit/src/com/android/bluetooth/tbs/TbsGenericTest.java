@@ -14,11 +14,12 @@
 
 package com.android.bluetooth.tbs;
 
-import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 
-import static org.mockito.Mockito.*;
+import static com.google.common.truth.Truth.assertThat;
+
 import static org.mockito.AdditionalMatchers.*;
+import static org.mockito.Mockito.*;
 
 import android.bluetooth.*;
 import android.bluetooth.IBluetoothLeCallControlCallback;
@@ -28,7 +29,6 @@ import android.os.RemoteException;
 
 import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
-import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.le_audio.LeAudioService;
@@ -42,8 +42,8 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;

@@ -18,10 +18,8 @@ package com.android.bluetooth.a2dp;
 
 import static android.bluetooth.BluetoothCodecConfig.SOURCE_CODEC_TYPE_INVALID;
 
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;

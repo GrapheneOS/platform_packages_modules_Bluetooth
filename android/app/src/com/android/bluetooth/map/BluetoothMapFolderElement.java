@@ -30,7 +30,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Locale;
 
-
 /**
  * Class to contain a single folder element representation.
  *

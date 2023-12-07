@@ -19,7 +19,6 @@ package com.android.bluetooth.avrcpcontroller;
 import static org.mockito.Mockito.verify;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothAvrcpPlayerSettings;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 

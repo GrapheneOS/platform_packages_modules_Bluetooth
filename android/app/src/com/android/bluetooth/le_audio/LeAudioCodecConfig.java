@@ -20,6 +20,7 @@ import android.bluetooth.BluetoothLeAudioCodecConfig;
 import android.content.Context;
 import android.media.AudioManager;
 import android.util.Log;
+
 /*
  * LeAudio Codec Configuration setup.
  */

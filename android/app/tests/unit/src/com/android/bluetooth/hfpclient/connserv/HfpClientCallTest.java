@@ -29,8 +29,6 @@ import androidx.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Set;
-
 @RunWith(AndroidJUnit4.class)
 public class HfpClientCallTest {
     private static final String TEST_DEVICE_ADDRESS = "00:11:22:33:44:55";
