@@ -27,29 +27,37 @@ root of your Android repository:
 ```shell
 cd $ANDROID_BUILD_TOP
 source build/envsetup.sh
-lunch aosp_cf_x86_64_phone-userdebug
+lunch aosp_cf_x86_64_phone-trunk_staging-userdebug
 acloud create # Create a remote instance using the latest know good build image.
 acloud create --local-image # OR: Create a remote instance using a local image.
 acloud create --local-image --local-instance # OR: Create a local instance using a local image.
 ```
 
+Install virtual env:
+
+```shell
+sudo apt install virtualenv
+```
 Note: For Googlers, from an internal Android repository, use the `cf_x86_64_phone-userdebug` target
 instead.
 
 ## Run existing tests
 
 You can run all the existing BumbleBluetoothTests by doing so:
+
 ```shell
 atest BumbleBluetoothTests
 ```
 
 If you wish to run a specific test file:
+
 ```shell
 atest BumbleBluetoothTests:<package_name>.<test_file_name>
 atest BumbleBluetoothTests:android.bluetooth.DckTest
 ```
 
 And to run a specific test from a test file:
+
 ```shell
 atest BumbleBluetoothTests:<package_name>.<test_file_name>#<test_name>
 atest BumbleBluetoothTests:android.bluetooth.DckTest#testDiscoverDkGattService
@@ -57,6 +65,7 @@ atest BumbleBluetoothTests:android.bluetooth.DckTest#testDiscoverDkGattService
 
 Note: The process might not shut down correctly when interrupted with a SIGINT (Ctrl + C) command.
 This can leave behind a ghost process. To locate and terminate it, simply follow these steps:
+
 ```shell
 ps aux | grep python3 # Identify the ghost process and its process id
 kill <pid>
@@ -72,12 +81,14 @@ However for this example we will build one in Kotlin.
 Let say we are creating a DCK test.
 
 First, create your file under `p/m/Blueooth/frameworks/bumble/src/android/bluetooth` like so:
+
 ```shell
 cd p/m/Bluetooth/frameworks/bumble/src/android/bluetooth
 touch DckTest.kt # We usualy name our test file <test_suite_name>Test.kt/.java
 ```
 
 Then add the minimum requirements:
+
 ```kotlin
 import androidx.test.ext.junit.runners.AndroidJUnit4
 
@@ -153,12 +164,14 @@ val bumbleDevice =
 
 Interactions over Bluetooth often involve callback mechanisms. Here, we're mocking the callback
 with Mockito to verify later that expected events occurred.
+
 ```kotlin
 val gattCallback = mock(BluetoothGattCallback::class.java)
 ```
 ### 5. Initiate and Verify Connection
 
 To bond with Bumble, we initiate a connection and then verify that the connection is successful.
+
 ```kotlin
 var bumbleGatt = bumbleDevice.connectGatt(context, false, gattCallback)
 verify(gattCallback, timeout(TIMEOUT))
