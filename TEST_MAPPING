@@ -325,6 +325,9 @@
     },
     {
       "name": "bluetooth_test_gdx_unit"
+    },
+    {
+      "name": "asrc_resampler_test"
     }
   ]
 }
