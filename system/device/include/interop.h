@@ -339,6 +339,10 @@ typedef enum {
   // both encryption complete and SMP key exchange completed.
   INTEROP_SUSPEND_ATT_TRAFFIC_DURING_PAIRING,
 
+  // This triggers a +CIEV command to set the call status for HFP devices.
+  // It is required for some devices to provide sound.
+  INTEROP_INSERT_CALL_WHEN_SCO_START,
+
   END_OF_INTEROP_LIST
 } interop_feature_t;
 
