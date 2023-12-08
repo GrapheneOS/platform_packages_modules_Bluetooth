@@ -34,6 +34,7 @@
 #include "mock_controller.h"
 #include "mock_csis_client.h"
 #include "mock_iso_manager.h"
+#include "stack/include/bt_types.h"
 #include "test/common/mock_functions.h"
 #include "types/bt_transport.h"
 

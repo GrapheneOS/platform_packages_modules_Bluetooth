@@ -39,6 +39,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_sco_hfp_hal.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/main_thread.h"

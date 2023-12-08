@@ -21,7 +21,6 @@
 
 #include <mutex>
 
-#include "bta/include/bta_le_audio_api.h"
 #include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "bta/le_audio/broadcaster/state_machine.h"
 #include "bta/le_audio/codec_interface.h"
@@ -29,11 +28,12 @@
 #include "bta/le_audio/le_audio_types.h"
 #include "bta/le_audio/le_audio_utils.h"
 #include "bta/le_audio/metrics_collector.h"
+#include "common/strings.h"
 #include "device/include/controller.h"
-#include "gd/common/strings.h"
 #include "internal_include/stack_config.h"
-#include "osi/include/log.h"
+#include "os/log.h"
 #include "osi/include/properties.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_iso_api.h"
 

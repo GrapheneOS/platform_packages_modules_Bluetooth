@@ -47,6 +47,7 @@
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/gatt/gatt_int.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/btm_ble_sec_api.h"
 
 using base::Closure;

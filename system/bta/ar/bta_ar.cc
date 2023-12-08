@@ -28,6 +28,7 @@
 #include "bta/sys/bta_sys.h"
 #include "stack/include/avct_api.h"
 #include "stack/include/avrc_api.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/sdp_api.h"
 #include "types/raw_address.h"

@@ -22,6 +22,7 @@
 #include "gd/common/strings.h"
 #include "le_audio_types.h"
 #include "osi/include/log.h"
+#include "stack/include/bt_types.h"
 
 using le_audio::types::hdl_pair;
 
