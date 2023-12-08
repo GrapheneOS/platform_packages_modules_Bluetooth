@@ -289,7 +289,6 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
      * Source service.
      *
      * @param context for to operate this API class
-     * @param listener listens for service callbacks across binder
      * @hide
      */
     /*package*/ BluetoothLeBroadcast(Context context, BluetoothAdapter adapter) {
@@ -302,6 +301,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
     }
 
     /** @hide */
+    @SuppressWarnings("Finalize") // TODO(b/314811467)
     protected void finalize() {
         if (mCloseGuard != null) {
             mCloseGuard.warnIfOpen();

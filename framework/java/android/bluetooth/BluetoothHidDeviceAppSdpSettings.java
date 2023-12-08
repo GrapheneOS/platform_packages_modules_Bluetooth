@@ -27,7 +27,7 @@ import android.util.EventLog;
  * <p>The BluetoothHidDevice framework adds the SDP record during app registration, so that the
  * Android device can be discovered as a Bluetooth HID Device.
  *
- * <p>{@see BluetoothHidDevice}
+ * @see BluetoothHidDevice
  */
 public final class BluetoothHidDeviceAppSdpSettings implements Parcelable {
 

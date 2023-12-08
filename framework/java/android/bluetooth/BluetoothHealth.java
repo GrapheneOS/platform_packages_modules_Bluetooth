@@ -49,7 +49,7 @@ import java.util.List;
  *
  * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should use
  *     Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
- *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+ *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
  *     BluetoothDevice#createL2capChannel(int)}
  */
 @Deprecated
@@ -61,7 +61,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      *
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated public static final int SOURCE_ROLE = 1 << 0;
@@ -71,7 +71,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      *
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated public static final int SINK_ROLE = 1 << 1;
@@ -81,7 +81,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      *
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated public static final int CHANNEL_TYPE_RELIABLE = 10;
@@ -91,7 +91,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      *
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated public static final int CHANNEL_TYPE_STREAMING = 11;
@@ -131,7 +131,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      * @return If true, callback will be called.
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated
@@ -153,7 +153,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      * @return Success or failure.
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated
@@ -177,7 +177,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      * @return If true, the callback associated with the application config will be called.
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated
@@ -202,7 +202,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      * @return If true, the callback associated with the application config will be called.
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated
@@ -227,7 +227,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      * @return null on failure, ParcelFileDescriptor on success.
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated
@@ -311,7 +311,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      *
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated public static final int STATE_CHANNEL_DISCONNECTED = 0;
@@ -321,7 +321,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      *
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated public static final int STATE_CHANNEL_CONNECTING = 1;
@@ -331,7 +331,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      *
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated public static final int STATE_CHANNEL_CONNECTED = 2;
@@ -341,7 +341,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      *
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated public static final int STATE_CHANNEL_DISCONNECTING = 3;
@@ -351,7 +351,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      *
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated public static final int APP_CONFIG_REGISTRATION_SUCCESS = 0;
@@ -361,7 +361,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      *
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated public static final int APP_CONFIG_REGISTRATION_FAILURE = 1;
@@ -371,7 +371,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      *
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated public static final int APP_CONFIG_UNREGISTRATION_SUCCESS = 2;
@@ -381,7 +381,7 @@ public final class BluetoothHealth implements BluetoothProfile {
      *
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated public static final int APP_CONFIG_UNREGISTRATION_FAILURE = 3;

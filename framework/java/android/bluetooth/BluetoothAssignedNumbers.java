@@ -1177,7 +1177,7 @@ public class BluetoothAssignedNumbers {
      * @hide
      */
     @SystemApi
-    public class OrganizationId {
+    public static class OrganizationId {
         /*
          * This is for Bluetooth SIG Organization ID .
          */

@@ -730,8 +730,8 @@ public class BluetoothGattCharacteristic implements Parcelable {
 
     /** Convert an unsigned integer value to a two's-complement encoded signed value. */
     private int unsignedToSigned(int unsigned, int size) {
-        if ((unsigned & (1 << size - 1)) != 0) {
-            unsigned = -1 * ((1 << size - 1) - (unsigned & ((1 << size - 1) - 1)));
+        if ((unsigned & (1 << (size - 1))) != 0) {
+            unsigned = -1 * ((1 << (size - 1)) - (unsigned & ((1 << (size - 1)) - 1)));
         }
         return unsigned;
     }
@@ -739,7 +739,7 @@ public class BluetoothGattCharacteristic implements Parcelable {
     /** Convert an integer into the signed bits of a given length. */
     private int intToSignedBits(int i, int size) {
         if (i < 0) {
-            i = (1 << size - 1) + (i & ((1 << size - 1) - 1));
+            i = (1 << (size - 1)) + (i & ((1 << (size - 1)) - 1));
         }
         return i;
     }

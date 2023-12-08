@@ -730,7 +730,8 @@ public final class BluetoothHidDevice implements BluetoothProfile {
     /**
      * Gets the application name of the current HidDeviceService user.
      *
-     * @return the current user name, or empty string if cannot get the name {@hide}
+     * @return the current user name, or empty string if cannot get the name
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
