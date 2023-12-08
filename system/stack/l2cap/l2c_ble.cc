@@ -48,6 +48,8 @@
 #include "stack/btm/btm_sec_int_types.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_psm_types.h"
+#include "stack/include/bt_types.h"
+#include "stack/include/btm_ble_api.h"
 #include "stack/include/btm_log_history.h"
 #include "stack/include/l2c_api.h"
 #include "stack/include/l2cdefs.h"

@@ -21,12 +21,10 @@
 #include <map>
 #include <memory>
 #include <mutex>
-#include <set>
 
 #include "base/functional/bind.h"
 #include "base/functional/callback.h"
 #include "base/logging.h"
-#include "bind_helpers.h"
 #include "btm_dev.h"
 #include "btm_iso_api.h"
 #include "common/time_util.h"
@@ -34,9 +32,10 @@
 #include "hci/include/hci_layer.h"
 #include "internal_include/stack_config.h"
 #include "main/shim/hci_layer.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/btm_log_history.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/hcidefs.h"

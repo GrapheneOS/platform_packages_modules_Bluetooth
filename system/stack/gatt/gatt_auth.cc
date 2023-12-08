@@ -32,6 +32,7 @@
 #include "stack/btm/btm_ble_sec.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/btm_ble_sec_api.h"
 #include "types/raw_address.h"
 
