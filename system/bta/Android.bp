@@ -100,7 +100,9 @@ cc_library_static {
         "hh/bta_hh_le.cc",
         "hh/bta_hh_main.cc",
         "hh/bta_hh_utils.cc",
+        "le_audio/audio_hal_client/asrc_tables.cc",
         "le_audio/audio_hal_client/audio_sink_hal_client.cc",
+        "le_audio/audio_hal_client/audio_source_hal_asrc.cc",
         "le_audio/audio_hal_client/audio_source_hal_client.cc",
         "le_audio/broadcaster/broadcaster.cc",
         "le_audio/broadcaster/broadcaster_types.cc",
@@ -806,8 +808,10 @@ cc_test {
         ":TestMockBtaLeAudioHalVerifier",
         ":TestMockMainShim",
         ":TestStubOsi",
+        "le_audio/audio_hal_client/asrc_tables.cc",
         "le_audio/audio_hal_client/audio_hal_client_test.cc",
         "le_audio/audio_hal_client/audio_sink_hal_client.cc",
+        "le_audio/audio_hal_client/audio_source_hal_asrc.cc",
         "le_audio/audio_hal_client/audio_source_hal_client.cc",
         "le_audio/client_parser.cc",
         "le_audio/client_parser_test.cc",
@@ -1242,4 +1246,38 @@ cc_test {
         },
     },
     cflags: ["-Wno-unused-parameter"],
+}
+
+cc_library_host_shared {
+    name: "libasrc_resampler_test",
+    defaults: ["bluetooth_cflags"],
+    srcs: [
+        "le_audio/audio_hal_client/asrc_resampler_test.cc",
+        "le_audio/audio_hal_client/asrc_tables.cc",
+    ],
+    static_libs: [
+        "libchrome",
+        "libflatbuffers-cpp",
+    ],
+    stl: "libc++_static",
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
+    ],
+    generated_headers: [
+        "BluetoothGeneratedDumpsysDataSchema_h",
+    ],
+}
+
+python_test_host {
+    name: "asrc_resampler_test",
+    main: "le_audio/audio_hal_client/asrc_resampler_test.py",
+    srcs: ["le_audio/audio_hal_client/asrc_resampler_test.py"],
+    libs: ["mobly"],
+    data: [":libasrc_resampler_test"],
+    test_config: "le_audio/audio_hal_client/asrc_resampler_test.config",
+    test_suites: ["general-tests"],
+    test_options: {
+        unit_test: false,
+    },
 }

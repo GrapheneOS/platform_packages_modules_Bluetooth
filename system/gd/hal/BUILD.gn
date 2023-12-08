@@ -16,6 +16,7 @@
 
 source_set("BluetoothHalSources") {
   sources = [
+    "nocp_iso_clocker.cc",
     "snoop_logger.cc",
     "snoop_logger_socket.cc",
     "snoop_logger_socket_thread.cc",

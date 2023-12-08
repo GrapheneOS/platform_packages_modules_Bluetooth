@@ -10,6 +10,7 @@ package {
 filegroup {
     name: "BluetoothHalSources",
     srcs: [
+        "nocp_iso_clocker.cc",
         "snoop_logger.cc",
         "snoop_logger_socket.cc",
         "snoop_logger_socket_thread.cc",
