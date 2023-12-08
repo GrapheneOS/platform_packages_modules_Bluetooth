@@ -141,7 +141,7 @@ package android.bluetooth {
     method public void onPreferredAudioProfilesChanged(@NonNull android.bluetooth.BluetoothDevice, @NonNull android.os.Bundle, int);
   }
 
-  public class BluetoothAssignedNumbers.OrganizationId {
+  public static class BluetoothAssignedNumbers.OrganizationId {
     field public static final int BLUETOOTH_SIG = 1; // 0x1
     field public static final int WIFI_ALLIANCE_NEIGHBOR_AWARENESS_NETWORKING = 2; // 0x2
     field public static final int WIFI_ALLIANCE_SERVICE_ADVERTISEMENT = 3; // 0x3

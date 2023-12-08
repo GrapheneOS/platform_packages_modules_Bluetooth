@@ -35,4 +35,5 @@ import java.lang.annotation.Target;
  */
 @Retention(SOURCE)
 @Target({METHOD, FIELD})
+@SuppressWarnings("InvalidBlockTag")
 public @interface RequiresBluetoothLocationPermission {}

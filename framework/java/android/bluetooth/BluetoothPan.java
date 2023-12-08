@@ -275,6 +275,7 @@ public final class BluetoothPan implements BluetoothProfile {
     }
 
     /** @hide */
+    @SuppressWarnings("Finalize") // TODO(b/314811467)
     protected void finalize() {
         close();
     }

@@ -28,7 +28,7 @@ import android.os.Parcelable;
  *
  * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should use
  *     Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
- *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+ *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
  *     BluetoothDevice#createL2capChannel(int)}
  */
 @Deprecated
@@ -52,7 +52,7 @@ public final class BluetoothHealthAppConfiguration implements Parcelable {
      * @return dataType
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated
@@ -66,7 +66,7 @@ public final class BluetoothHealthAppConfiguration implements Parcelable {
      * @return String name
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated
@@ -80,7 +80,7 @@ public final class BluetoothHealthAppConfiguration implements Parcelable {
      * @return One of {@link BluetoothHealth#SOURCE_ROLE} or {@link BluetoothHealth#SINK_ROLE}
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated
@@ -91,7 +91,7 @@ public final class BluetoothHealthAppConfiguration implements Parcelable {
     /**
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @Deprecated @NonNull
