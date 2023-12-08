@@ -20,12 +20,10 @@
 
 #define LOG_TAG "a2dp_codec"
 
-#include "a2dp_codec_api.h"
-
 #include <base/logging.h>
-#include <inttypes.h>
 
 #include "a2dp_aac.h"
+#include "a2dp_codec_api.h"
 #include "a2dp_sbc.h"
 #include "a2dp_vendor.h"
 

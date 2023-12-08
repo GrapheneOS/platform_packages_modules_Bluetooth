@@ -25,12 +25,12 @@
 #include "a2dp_aac.h"
 #include "a2dp_aac_encoder.h"
 #include "common/time_util.h"
+#include "internal_include/bt_target.h"
 #include "mmc/codec_client/codec_client.h"
 #include "mmc/proto/mmc_config.pb.h"
+#include "os/log.h"
 #include "os/rand.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
 
 const int A2DP_AAC_HEADER_LEN = 9;

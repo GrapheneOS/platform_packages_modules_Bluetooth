@@ -16,7 +16,6 @@
 
 // Stubbed non-standard codec.
 
-#include "a2dp_vendor.h"
 #include "a2dp_vendor_ldac.h"
 
 bool A2DP_IsVendorSourceCodecValidLdac(const uint8_t* p_codec_info) {
