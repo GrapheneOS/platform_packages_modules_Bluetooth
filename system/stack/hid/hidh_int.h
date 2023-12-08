@@ -27,6 +27,7 @@
 
 #include <cstdint>
 
+#include "internal_include/bt_target.h"
 #include "stack/hid/hid_conn.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/hidh_api.h"

@@ -32,6 +32,7 @@
 #include "hiddefs.h"
 #include "hidh_api.h"
 #include "hidh_int.h"
+#include "internal_include/bt_target.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "os/log.h"
