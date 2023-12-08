@@ -19,10 +19,10 @@
 
 #include <cstring>
 
-#include "bt_target.h"  // Must be first to define build configuration
 #include "bta/hh/bta_hh_int.h"
 #include "btif/include/btif_storage.h"
 #include "device/include/interop.h"
+#include "internal_include/bt_target.h"
 #include "osi/include/allocator.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack/include/sdp_api.h"
