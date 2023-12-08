@@ -68,7 +68,7 @@ import android.util.Log;
 import android.util.Pair;
 
 import com.android.internal.annotations.GuardedBy;
-import com.android.modules.expresslog.StatsExpressLog;
+import com.android.modules.expresslog.Counter;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.io.IOException;
@@ -3747,11 +3747,8 @@ public final class BluetoothAdapter {
                             + proxy.getAdapter()
                             + " but expected "
                             + this);
-            // farmhash::Fingerprint64("bluetooth.value_close_profile_proxy_adapter_mismatch")
-            // TODO(b/310684444): Remove this magic value
-            long metricIdHash = 5174922474613897731L;
-            StatsExpressLog.write(
-                    StatsExpressLog.EXPRESS_UID_EVENT_REPORTED, metricIdHash, 1, Process.myUid());
+            Counter.logIncrementWithUid(
+                    "bluetooth.value_close_profile_proxy_adapter_mismatch", Process.myUid());
             proxy.getAdapter().closeProfileProxy(proxy);
             return;
         }
