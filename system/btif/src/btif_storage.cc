@@ -48,6 +48,7 @@
 #include "btif_util.h"
 #include "core_callbacks.h"
 #include "device/include/controller.h"
+#include "internal_include/bt_target.h"
 #include "osi/include/allocator.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/bt_uuid16.h"

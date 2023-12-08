@@ -28,13 +28,13 @@
 #include <mutex>
 #include <vector>
 
-#include "bt_target.h"  // Must be first to define build configuration
 #include "bta/include/bta_av_api.h"
 #include "bta/include/bta_av_ci.h"
 #include "btif/include/btif_a2dp_source.h"
 #include "btif/include/btif_av.h"
 #include "device/include/device_iot_config.h"
 #include "include/hardware/bt_av.h"
+#include "internal_include/bt_trace.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/a2dp_codec_api.h"
