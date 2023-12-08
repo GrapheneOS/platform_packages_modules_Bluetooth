@@ -42,7 +42,6 @@ import android.os.UserHandle;
 import android.os.UserManager;
 import android.permission.PermissionManager;
 
-
 import java.util.Objects;
 
 class BtPermissionUtils {

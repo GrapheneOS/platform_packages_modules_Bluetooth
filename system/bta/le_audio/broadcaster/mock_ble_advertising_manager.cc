@@ -19,7 +19,6 @@
 
 #include <base/memory/weak_ptr.h>
 
-#include "ble_advertiser_hci_interface.h"
 #include "main/shim/le_advertising_manager.h"
 
 namespace {

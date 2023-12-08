@@ -15,7 +15,6 @@
  */
 package com.android.bluetooth.mapclient;
 
-import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.Mockito.verify;
 

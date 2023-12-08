@@ -20,7 +20,6 @@ package com.android.bluetooth.leaudio;
 import android.app.Application;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.bluetooth.BluetoothLeBroadcastSettings;
-import android.bluetooth.BluetoothLeAudioContentMetadata;
 
 import androidx.annotation.NonNull;
 import androidx.core.util.Pair;

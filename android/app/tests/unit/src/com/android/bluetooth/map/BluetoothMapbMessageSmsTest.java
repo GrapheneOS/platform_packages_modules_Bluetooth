@@ -21,8 +21,8 @@ import static com.google.common.truth.Truth.assertThat;
 import android.content.Context;
 import android.telephony.SmsManager;
 
-import androidx.test.filters.SmallTest;
 import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.map.BluetoothMapSmsPdu.SmsPdu;

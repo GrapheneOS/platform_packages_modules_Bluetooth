@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 
-
 /**
  * Class that manages Telephony states
  *

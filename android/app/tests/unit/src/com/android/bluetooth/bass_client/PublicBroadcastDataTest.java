@@ -16,11 +16,11 @@
 
 package com.android.bluetooth.bass_client;
 
-import android.bluetooth.BluetoothLeBroadcastMetadata;
-
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.junit.Assert.assertThrows;
+
+import android.bluetooth.BluetoothLeBroadcastMetadata;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

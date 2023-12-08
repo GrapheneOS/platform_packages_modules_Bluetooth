@@ -17,25 +17,26 @@
 package com.android.bluetooth.gatt;
 
 import static com.google.common.truth.Truth.assertThat;
+
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.le.ScanResult;
+import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.IPeriodicAdvertisingCallback;
+import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.os.IBinder;
 
+import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
-import androidx.test.InstrumentationRegistry;
 
 import com.android.bluetooth.btservice.AdapterService;
 

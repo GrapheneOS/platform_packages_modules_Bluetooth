@@ -21,7 +21,7 @@
 #include <cstdarg>
 #include <cstdint>
 
-#include "bt_trace.h"
+#include "internal_include/bt_trace.h"
 #include "internal_include/stack_config.h"
 #include "main/main_int.h"
 

@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_stack_config"
 
-#include "stack_config.h"
+#include "internal_include/stack_config.h"
 
 #include <base/logging.h>
 

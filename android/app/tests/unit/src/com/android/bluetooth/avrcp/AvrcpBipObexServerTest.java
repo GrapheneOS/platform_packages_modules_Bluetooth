@@ -17,7 +17,6 @@
 package com.android.bluetooth.avrcp;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -25,8 +24,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import android.content.Context;
-import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -38,6 +35,9 @@ import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.audio_util.Image;
 import com.android.bluetooth.avrcpcontroller.BipEncoding;
 import com.android.bluetooth.avrcpcontroller.BipImageDescriptor;
+import com.android.obex.HeaderSet;
+import com.android.obex.Operation;
+import com.android.obex.ResponseCodes;
 
 import org.junit.After;
 import org.junit.Before;
@@ -47,10 +47,6 @@ import org.junit.runner.RunWith;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import com.android.obex.HeaderSet;
-import com.android.obex.Operation;
-import com.android.obex.ResponseCodes;
 
 @RunWith(AndroidJUnit4.class)
 public class AvrcpBipObexServerTest {

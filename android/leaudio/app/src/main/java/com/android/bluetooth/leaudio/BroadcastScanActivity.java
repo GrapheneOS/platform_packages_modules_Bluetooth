@@ -17,7 +17,6 @@
 
 package com.android.bluetooth.leaudio;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothLeAudioContentMetadata;
 import android.bluetooth.BluetoothLeBroadcastChannel;
@@ -28,8 +27,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
-import android.text.TextUtils;
-import android.view.LayoutInflater;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,9 +36,8 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.Objects;
 import java.util.List;
-
+import java.util.Objects;
 
 public class BroadcastScanActivity extends AppCompatActivity {
     private BluetoothDevice device;

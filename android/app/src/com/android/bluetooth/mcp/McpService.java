@@ -34,10 +34,10 @@ import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
-import java.util.HashMap;
 import java.util.Collections;
-import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides Media Control Profile, as a service in the Bluetooth application.

@@ -49,13 +49,14 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
-import com.android.bluetooth.x.android.hardware.radio.V1_0.ISap;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 
 import androidx.test.filters.LargeTest;
 import androidx.test.runner.AndroidJUnit4;
+
+import com.android.bluetooth.x.android.hardware.radio.V1_0.ISap;
 
 import org.junit.After;
 import org.junit.Before;

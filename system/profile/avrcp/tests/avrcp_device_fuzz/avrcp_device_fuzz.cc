@@ -3,8 +3,8 @@
 
 #include "avrcp_packet.h"
 #include "device.h"
+#include "internal_include/stack_config.h"
 #include "packet_test_helper.h"
-#include "stack_config.h"
 #include "types/raw_address.h"
 
 bool btif_av_src_sink_coexist_enabled(void) { return true; }

@@ -27,3 +27,10 @@ flag {
     description: "use codec on the DSP when the BT controller does not support it"
     bug: "308838380"
 }
+
+flag {
+    name: "is_sco_managed_by_audio"
+    namespace: "bluetooth"
+    description: "start and stop of the SCO is managed by Audio instead of Bluetooth"
+    bug: "315234036"
+}

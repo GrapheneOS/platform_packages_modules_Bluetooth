@@ -25,7 +25,6 @@ import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
-import android.os.Bundle;
 
 import androidx.test.InstrumentationRegistry;
 

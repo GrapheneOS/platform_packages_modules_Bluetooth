@@ -33,8 +33,8 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
-import android.provider.CallLog;
 import android.os.Looper;
+import android.provider.CallLog;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;

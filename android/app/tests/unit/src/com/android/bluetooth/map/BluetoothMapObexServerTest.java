@@ -40,7 +40,6 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.mapapi.BluetoothMapContract;
 import com.android.obex.ResponseCodes;
-import com.android.obex.Operation;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -89,8 +89,6 @@ extern tBTM_CB btm_cb;
    BTM_SEC_LE_LINK_KEY_KNOWN | BTM_SEC_LE_LINK_KEY_AUTHED)
 
 void btm_inq_stop_on_ssp(void);
-void btm_ble_advertiser_notify_terminated_legacy(uint8_t status,
-                                                 uint16_t connection_handle);
 bool btm_ble_init_pseudo_addr(tBTM_SEC_DEV_REC* p_dev_rec,
                               const RawAddress& new_pseudo_addr);
 void bta_dm_remove_device(const RawAddress& bd_addr);
@@ -3928,12 +3926,6 @@ void btm_sec_disconnected(uint16_t handle, tHCI_REASON reason,
     if ((p_dev_rec->sec_flags & BTM_SEC_LE_LINK_KEY_KNOWN) == 0) {
       p_dev_rec->sec_flags &=
           ~(BTM_SEC_LE_LINK_KEY_AUTHED | BTM_SEC_LE_AUTHENTICATED);
-    }
-
-    // This is for chips that don't support being in connected and advertising
-    // state at same time.
-    if (!p_dev_rec->IsLocallyInitiated()) {
-      btm_ble_advertiser_notify_terminated_legacy(HCI_SUCCESS, handle);
     }
   } else {
     p_dev_rec->hci_handle = HCI_INVALID_HANDLE;

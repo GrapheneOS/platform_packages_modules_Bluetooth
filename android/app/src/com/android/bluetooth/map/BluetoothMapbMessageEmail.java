@@ -19,7 +19,6 @@ import android.util.Log;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
-
 public class BluetoothMapbMessageEmail extends BluetoothMapbMessage {
 
     private String mEmailBody = null;

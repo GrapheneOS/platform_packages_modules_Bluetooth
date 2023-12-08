@@ -26,7 +26,6 @@ import com.android.bluetooth.R;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-
 public class BluetoothMapSettings extends Activity {
 
     private static final String TAG = "BluetoothMapSettings";

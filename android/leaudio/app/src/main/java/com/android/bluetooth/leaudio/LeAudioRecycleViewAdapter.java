@@ -23,9 +23,9 @@ import static android.bluetooth.BluetoothLeBroadcastReceiveState.BIG_ENCRYPTION_
 import static android.bluetooth.BluetoothLeBroadcastReceiveState.BIG_ENCRYPTION_STATE_NOT_ENCRYPTED;
 import static android.bluetooth.BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_FAILED_TO_SYNCHRONIZE;
 import static android.bluetooth.BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_IDLE;
+import static android.bluetooth.BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_NO_PAST;
 import static android.bluetooth.BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_SYNCHRONIZED;
 import static android.bluetooth.BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_SYNCINFO_REQUEST;
-import static android.bluetooth.BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_NO_PAST;
 
 import android.animation.ObjectAnimator;
 import android.bluetooth.BluetoothDevice;

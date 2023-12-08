@@ -17,6 +17,8 @@
 
 package com.android.bluetooth.tbs;
 
+import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
+
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothLeCall;
 import android.bluetooth.BluetoothProfile;
@@ -27,8 +29,6 @@ import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
-
-import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.ProfileService;

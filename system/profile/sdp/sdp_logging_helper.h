@@ -22,7 +22,7 @@
 #include <string>
 #include <type_traits>
 
-#include "bt_trace.h"
+#include "internal_include/bt_trace.h"
 #include "macros.h"
 #include "sdp_common.h"
 

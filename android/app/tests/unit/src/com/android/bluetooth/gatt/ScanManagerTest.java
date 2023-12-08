@@ -17,11 +17,11 @@
 package com.android.bluetooth.gatt;
 
 import static android.bluetooth.le.ScanSettings.CALLBACK_TYPE_ALL_MATCHES_AUTO_BATCH;
-import static android.bluetooth.le.ScanSettings.SCAN_MODE_OPPORTUNISTIC;
-import static android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_POWER;
+import static android.bluetooth.le.ScanSettings.SCAN_MODE_AMBIENT_DISCOVERY;
 import static android.bluetooth.le.ScanSettings.SCAN_MODE_BALANCED;
 import static android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_LATENCY;
-import static android.bluetooth.le.ScanSettings.SCAN_MODE_AMBIENT_DISCOVERY;
+import static android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_POWER;
+import static android.bluetooth.le.ScanSettings.SCAN_MODE_OPPORTUNISTIC;
 import static android.bluetooth.le.ScanSettings.SCAN_MODE_SCREEN_OFF;
 import static android.bluetooth.le.ScanSettings.SCAN_MODE_SCREEN_OFF_BALANCED;
 
@@ -70,12 +70,6 @@ import com.android.bluetooth.btservice.BluetoothAdapterProxy;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.internal.app.IBatteryStats;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -87,6 +81,12 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Test cases for {@link ScanManager}.

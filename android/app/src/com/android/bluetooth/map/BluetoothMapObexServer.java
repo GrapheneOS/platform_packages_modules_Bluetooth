@@ -46,7 +46,6 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Calendar;
 
-
 public class BluetoothMapObexServer extends ServerRequestHandler {
 
     private static final String TAG = "BluetoothMapObexServer";

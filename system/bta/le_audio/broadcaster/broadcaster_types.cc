@@ -21,11 +21,11 @@
 
 #include <vector>
 
-#include "bt_types.h"
 #include "bta_le_audio_broadcaster_api.h"
 #include "btm_ble_api_types.h"
 #include "internal_include/stack_config.h"
 #include "osi/include/properties.h"
+#include "stack/include/bt_types.h"
 
 using bluetooth::le_audio::BasicAudioAnnouncementBisConfig;
 using bluetooth::le_audio::BasicAudioAnnouncementCodecConfig;

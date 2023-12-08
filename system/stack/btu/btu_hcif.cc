@@ -359,26 +359,8 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
           btm_ble_process_ext_adv_pkt(hci_evt_len, p);
           break;
 
-        case HCI_LE_ADVERTISING_SET_TERMINATED_EVT:
-          btm_le_on_advertising_set_terminated(p, hci_evt_len);
-          break;
-
         case HCI_BLE_REQ_PEER_SCA_CPL_EVT:
           btm_acl_process_sca_cmpl_pkt(ble_evt_len, p);
-          break;
-
-        case HCI_BLE_PERIODIC_ADV_SYNC_EST_EVT:
-          btm_ble_process_periodic_adv_sync_est_evt(
-              ble_evt_len, const_cast<const uint8_t*>(p));
-          break;
-
-        case HCI_BLE_PERIODIC_ADV_REPORT_EVT:
-          btm_ble_process_periodic_adv_pkt(ble_evt_len,
-                                           const_cast<const uint8_t*>(p));
-          break;
-
-        case HCI_BLE_PERIODIC_ADV_SYNC_LOST_EVT:
-          btm_ble_process_periodic_adv_sync_lost_evt(ble_evt_len, p);
           break;
 
         case HCI_BLE_CIS_EST_EVT:

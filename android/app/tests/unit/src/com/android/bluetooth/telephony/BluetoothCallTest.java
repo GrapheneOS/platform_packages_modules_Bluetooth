@@ -16,9 +16,9 @@
 
 package com.android.bluetooth.telephony;
 
-import static org.junit.Assert.assertThrows;
-
 import static com.google.common.truth.Truth.assertThat;
+
+import static org.junit.Assert.assertThrows;
 
 import android.telecom.Call;
 

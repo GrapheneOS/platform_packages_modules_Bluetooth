@@ -31,6 +31,7 @@ import com.android.bluetooth.R;
 
 import java.util.List;
 import java.util.Objects;
+
 /*
  * A2DP Codec Configuration setup.
  */

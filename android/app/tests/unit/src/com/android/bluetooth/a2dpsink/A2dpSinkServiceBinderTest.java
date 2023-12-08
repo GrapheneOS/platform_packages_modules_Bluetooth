@@ -17,7 +17,6 @@
 package com.android.bluetooth.a2dpsink;
 
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.doReturn;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAudioConfig;

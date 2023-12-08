@@ -29,11 +29,11 @@
 #include <cstdint>
 
 #include "bt_target.h"  // Must be first to define build configuration
-#include "bt_trace.h"   // Legacy trace logging
 #include "bta/ag/bta_ag_int.h"
 #include "bta_ag_swb_aptx.h"
 #include "common/init_flags.h"
 #include "device/include/controller.h"
+#include "internal_include/bt_trace.h"
 #include "main/shim/dumpsys.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR

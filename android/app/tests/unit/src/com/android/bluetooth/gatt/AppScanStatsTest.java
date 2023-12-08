@@ -17,6 +17,7 @@
 package com.android.bluetooth.gatt;
 
 import static com.google.common.truth.Truth.assertThat;
+
 import static org.mockito.Mockito.mock;
 
 import android.bluetooth.le.ScanFilter;

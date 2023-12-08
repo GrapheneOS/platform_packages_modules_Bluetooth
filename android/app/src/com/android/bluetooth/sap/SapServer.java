@@ -34,7 +34,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 
-
 /**
  * The SapServer uses two threads, one for reading messages from the RFCOMM socket and
  * one for writing the responses.

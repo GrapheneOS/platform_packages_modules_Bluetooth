@@ -20,10 +20,8 @@ import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothLeAudio;
 import android.os.ParcelUuid;
-
-import android.os.ParcelUuid;
 import android.util.Pair;
-import androidx.test.InstrumentationRegistry;
+
 import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
@@ -34,7 +32,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 

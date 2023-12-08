@@ -14,7 +14,6 @@
 */
 package com.android.bluetooth.map;
 
-import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;

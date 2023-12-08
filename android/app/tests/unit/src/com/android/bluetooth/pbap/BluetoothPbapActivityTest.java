@@ -26,6 +26,7 @@ import static androidx.lifecycle.Lifecycle.State.DESTROYED;
 
 import static com.android.bluetooth.pbap.BluetoothPbapActivity.DISMISS_TIMEOUT_DIALOG;
 import static com.android.bluetooth.pbap.BluetoothPbapActivity.DISMISS_TIMEOUT_DIALOG_DELAY_MS;
+
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 
