@@ -2,19 +2,44 @@
 ///Tokio's time
 use nix::sys::time::TimeSpec;
 use nix::sys::timerfd::{ClockId, Expiration, TimerFd, TimerFlags, TimerSetTimeFlags};
+use std::os::fd::{AsFd, AsRawFd, RawFd};
 use std::time::Duration;
 use tokio::io::unix::AsyncFd;
 
+/// A wrapper for `TimerFd` which implements `AsRawFd`.
+#[derive(Debug)]
+struct TimerFdWrapper(TimerFd);
+
+impl TimerFdWrapper {
+    fn get(&self) -> nix::Result<Option<Expiration>> {
+        self.0.get()
+    }
+
+    fn set(&self, expiration: Expiration, flags: TimerSetTimeFlags) -> nix::Result<()> {
+        self.0.set(expiration, flags)
+    }
+
+    fn wait(&self) -> nix::Result<()> {
+        self.0.wait()
+    }
+}
+
+impl AsRawFd for TimerFdWrapper {
+    fn as_raw_fd(&self) -> RawFd {
+        self.0.as_fd().as_raw_fd()
+    }
+}
+
 /// A single shot Alarm
 pub struct Alarm {
-    fd: AsyncFd<TimerFd>,
+    fd: AsyncFd<TimerFdWrapper>,
 }
 
 impl Alarm {
     /// Construct a new alarm
     pub fn new() -> Self {
         let timer = TimerFd::new(get_clock(), TimerFlags::empty()).unwrap();
-        Self { fd: AsyncFd::new(timer).unwrap() }
+        Self { fd: AsyncFd::new(TimerFdWrapper(timer)).unwrap() }
     }
 
     /// Reset the alarm to duration, starting from now
@@ -53,12 +78,12 @@ pub fn interval(period: Duration) -> Interval {
     let timer = TimerFd::new(get_clock(), TimerFlags::empty()).unwrap();
     timer.set(Expiration::Interval(TimeSpec::from(period)), TimerSetTimeFlags::empty()).unwrap();
 
-    Interval { fd: AsyncFd::new(timer).unwrap() }
+    Interval { fd: AsyncFd::new(TimerFdWrapper(timer)).unwrap() }
 }
 
 /// Future returned by interval()
 pub struct Interval {
-    fd: AsyncFd<TimerFd>,
+    fd: AsyncFd<TimerFdWrapper>,
 }
 
 impl Interval {
