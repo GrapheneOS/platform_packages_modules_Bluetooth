@@ -20,8 +20,8 @@
 #include "avrc_api.h"
 #include "avrc_defs.h"
 #include "avrc_int.h"
-
-#include "osi/include/log.h"
+#include "os/log.h"
+#include "stack/include/bt_types.h"
 
 /*****************************************************************************
  *  Global data

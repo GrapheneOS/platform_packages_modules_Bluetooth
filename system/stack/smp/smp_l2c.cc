@@ -30,6 +30,7 @@
 #include "smp_int.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/l2c_api.h"
 #include "types/raw_address.h"
 

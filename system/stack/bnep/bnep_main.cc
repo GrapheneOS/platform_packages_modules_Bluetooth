@@ -40,6 +40,7 @@
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_psm_types.h"
+#include "stack/include/bt_types.h"
 #include "types/raw_address.h"
 
 /******************************************************************************/
