@@ -18,7 +18,7 @@
 
 #include <cstdint>
 
-#include "bt_target.h"  // BTM_NO_SSP_ON_INQUIRY
+#include "internal_include/bt_target.h"
 #include "macros.h"
 #include "osi/include/alarm.h"
 #include "stack/include/bt_device_type.h"
