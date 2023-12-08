@@ -405,7 +405,6 @@ public final class BluetoothHidHost implements BluetoothProfile {
      * #PRIORITY_OFF},
      *
      * @param device Paired bluetooth device
-     * @param priority
      * @return true if priority is set, false on error
      * @hide
      */

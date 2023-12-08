@@ -82,9 +82,6 @@ public final class AdvertisingSetParameters implements Parcelable {
     /** Maximum value for TX power. */
     public static final int TX_POWER_MAX = 1;
 
-    /** The maximum limited advertisement duration as specified by the Bluetooth SIG */
-    private static final int LIMITED_ADVERTISING_MAX_MILLIS = 180 * 1000;
-
     /** @hide */
     @IntDef(
             prefix = "ADDRESS_TYPE_",

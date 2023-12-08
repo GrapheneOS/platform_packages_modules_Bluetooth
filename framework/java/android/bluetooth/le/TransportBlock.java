@@ -97,6 +97,12 @@ public final class TransportBlock implements Parcelable {
         return Arrays.equals(toByteArray(), other.toByteArray());
     }
 
+    /** @hide */
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(toByteArray());
+    }
+
     public static final @NonNull Creator<TransportBlock> CREATOR =
             new Creator<TransportBlock>() {
                 @Override

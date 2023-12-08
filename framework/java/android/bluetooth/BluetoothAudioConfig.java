@@ -24,9 +24,8 @@ import android.os.Parcelable;
 /**
  * Represents the audio configuration for a Bluetooth A2DP source device.
  *
- * <p>{@see BluetoothA2dpSink}
- *
- * <p>{@hide}
+ * @see BluetoothA2dpSink
+ * @hide
  */
 public final class BluetoothAudioConfig implements Parcelable {
 

@@ -26,7 +26,7 @@ import android.os.Parcelable;
  * <p>The BluetoothHidDevice framework will update the L2CAP QoS settings for the app during
  * registration.
  *
- * <p>{@see BluetoothHidDevice}
+ * @see BluetoothHidDevice
  */
 public final class BluetoothHidDeviceAppQosSettings implements Parcelable {
 

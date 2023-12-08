@@ -50,7 +50,6 @@ public abstract class PeriodicAdvertisingCallback {
      *     receive in force. @see PeriodicAdvertisingManager#createSync
      * @param timeout Synchronization timeout for the periodic advertising in force. One unit is
      *     10ms. @see PeriodicAdvertisingManager#createSync
-     * @param timeout
      * @param status operation status.
      */
     public void onSyncEstablished(
@@ -77,9 +76,6 @@ public abstract class PeriodicAdvertisingCallback {
 
     /**
      * Callback when periodic sync transferred.
-     *
-     * @param device
-     * @param status
      */
     public void onSyncTransferred(BluetoothDevice device, int status) {}
 

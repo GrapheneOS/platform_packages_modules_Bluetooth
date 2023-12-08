@@ -354,7 +354,7 @@ public final class ScanRecord {
     // Raw bytes of scan record.
     private final byte[] mBytes;
 
-    private final HashMap<Integer, byte[]> mAdvertisingDataMap;
+    private final Map<Integer, byte[]> mAdvertisingDataMap;
 
     // Transport Discovery data.
     private final TransportDiscoveryData mTransportDiscoveryData;
@@ -491,7 +491,7 @@ public final class ScanRecord {
             int advertiseFlags,
             int txPowerLevel,
             String localName,
-            HashMap<Integer, byte[]> advertisingDataMap,
+            Map<Integer, byte[]> advertisingDataMap,
             TransportDiscoveryData transportDiscoveryData,
             byte[] bytes) {
         mServiceSolicitationUuids = serviceSolicitationUuids;

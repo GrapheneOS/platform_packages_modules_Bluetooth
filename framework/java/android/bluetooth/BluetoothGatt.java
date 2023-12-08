@@ -84,13 +84,11 @@ public final class BluetoothGatt implements BluetoothProfile {
     private final AttributionSource mAttributionSource;
 
     private static final int AUTH_RETRY_STATE_IDLE = 0;
-    private static final int AUTH_RETRY_STATE_NO_MITM = 1;
     private static final int AUTH_RETRY_STATE_MITM = 2;
 
     private static final int CONN_STATE_IDLE = 0;
     private static final int CONN_STATE_CONNECTING = 1;
     private static final int CONN_STATE_CONNECTED = 2;
-    private static final int CONN_STATE_DISCONNECTING = 3;
     private static final int CONN_STATE_CLOSED = 4;
 
     private static final int WRITE_CHARACTERISTIC_MAX_RETRIES = 5;
@@ -590,6 +588,7 @@ public final class BluetoothGatt implements BluetoothProfile {
                                 try {
                                     Thread.sleep(WRITE_CHARACTERISTIC_TIME_TO_WAIT);
                                 } catch (InterruptedException e) {
+                                    Log.e(TAG, "", e);
                                 }
                             }
                             mAuthRetryState++;
@@ -1177,7 +1176,6 @@ public final class BluetoothGatt implements BluetoothProfile {
      * (autoConnect set to false) and subsequent connections to known devices should be invoked with
      * the autoConnect parameter set to true.
      *
-     * @param device Remote device to connect to
      * @param autoConnect Whether to directly connect to the remote device (false) or to
      *     automatically connect as soon as the remote device becomes available (true).
      * @return true, if the connection attempt was initiated successfully
@@ -1664,6 +1662,7 @@ public final class BluetoothGatt implements BluetoothProfile {
                 try {
                     Thread.sleep(WRITE_CHARACTERISTIC_TIME_TO_WAIT);
                 } catch (InterruptedException e) {
+                    Log.e(TAG, "", e);
                 }
             }
         } catch (TimeoutException e) {
@@ -2271,7 +2270,7 @@ public final class BluetoothGatt implements BluetoothProfile {
     /**
      * @deprecated Not supported - please use {@link BluetoothManager#getConnectedDevices(int)} with
      *     {@link BluetoothProfile#GATT} as argument
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException on every call
      */
     @Override
     @RequiresNoPermission
@@ -2283,7 +2282,7 @@ public final class BluetoothGatt implements BluetoothProfile {
     /**
      * @deprecated Not supported - please use {@link BluetoothManager#getConnectedDevices(int)} with
      *     {@link BluetoothProfile#GATT} as argument
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException on every call
      */
     @Override
     @RequiresNoPermission
@@ -2297,7 +2296,7 @@ public final class BluetoothGatt implements BluetoothProfile {
      * @deprecated Not supported - please use {@link
      *     BluetoothManager#getDevicesMatchingConnectionStates(int, int[])} with {@link
      *     BluetoothProfile#GATT} as first argument
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException on every call
      */
     @Override
     @RequiresNoPermission

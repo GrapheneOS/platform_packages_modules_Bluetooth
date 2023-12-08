@@ -650,6 +650,7 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
     }
 
     /** @hide */
+    @SuppressWarnings("Finalize") // TODO(b/314811467)
     protected void finalize() {
         if (mCloseGuard != null) {
             mCloseGuard.warnIfOpen();
@@ -840,7 +841,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
      * #PRIORITY_OFF}
      *
      * @param device Paired bluetooth device
-     * @param priority
      * @return true if priority is set, false on error
      * @hide
      */
@@ -1314,7 +1314,7 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
      * @param device remote device
      * @param number valid phone number
      * @return <code>{@link BluetoothHeadsetClientCall} call</code> if command has been issued
-     *     successfully; <code>{@link null}</code> otherwise; upon completion HFP sends {@link
+     *     successfully; <code>{@code null}</code> otherwise; upon completion HFP sends {@link
      *     #ACTION_CALL_CHANGED} intent in case of success; {@link #ACTION_RESULT} is sent
      *     otherwise;
      * @hide

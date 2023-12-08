@@ -28,7 +28,7 @@ import java.util.Objects;
 /**
  * Represents the codec status (configuration and capability) for a Bluetooth A2DP source device.
  *
- * <p>{@see BluetoothA2dp}
+ * @see BluetoothA2dp
  */
 public final class BluetoothCodecStatus implements Parcelable {
     /**

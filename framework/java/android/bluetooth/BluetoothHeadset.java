@@ -397,8 +397,9 @@ public final class BluetoothHeadset implements BluetoothProfile {
         return mAdapter;
     }
 
-    /** {@hide} */
+    /** @hide */
     @Override
+    @SuppressWarnings("Finalize") // empty finalize for api signature
     protected void finalize() throws Throwable {
         // The empty finalize needs to be kept or the
         // cts signature tests would fail.

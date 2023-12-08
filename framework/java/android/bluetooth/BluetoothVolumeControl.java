@@ -176,6 +176,7 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
+    @SuppressWarnings("Finalize") // TODO(b/314811467)
     protected void finalize() {
         if (mCloseGuard != null) {
             mCloseGuard.warnIfOpen();
