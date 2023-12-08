@@ -77,3 +77,33 @@ void BTM_Sec_Init() {
 }
 
 void BTM_Sec_Free() { btm_sec_cb.Free(); }
+
+/*******************************************************************************
+ *
+ * Function         find_first_serv_rec
+ *
+ * Description      Look for the first record in the service database
+ *                  with specified PSM
+ *
+ * Returns          Pointer to the record or NULL
+ *
+ ******************************************************************************/
+tBTM_SEC_SERV_REC* tBTM_SEC_CB::find_first_serv_rec(bool is_originator,
+                                                    uint16_t psm) {
+  tBTM_SEC_SERV_REC* p_serv_rec = &sec_serv_rec[0];
+  int i;
+
+  if (is_originator && p_out_serv && p_out_serv->psm == psm) {
+    /* If this is outgoing connection and the PSM matches p_out_serv,
+     * use it as the current service */
+    return p_out_serv;
+  }
+
+  /* otherwise, just find the first record with the specified PSM */
+  for (i = 0; i < BTM_SEC_MAX_SERVICE_RECORDS; i++, p_serv_rec++) {
+    if ((p_serv_rec->security_flags & BTM_SEC_IN_USE) &&
+        (p_serv_rec->psm == psm))
+      return (p_serv_rec);
+  }
+  return (NULL);
+}
