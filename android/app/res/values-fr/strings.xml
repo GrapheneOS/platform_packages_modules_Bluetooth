@@ -16,7 +16,6 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name" msgid="2326164424236203271">"Bluetooth"</string>
     <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"Accéder au gestionnaire de téléchargement"</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"Permet à l\'application d\'accéder au gestionnaire BluetoothShare et de l\'utiliser pour le transfert de fichiers."</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"Ajouter des appareils Bluetooth à la liste d\'autorisation"</string>
@@ -131,9 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Impossible de transférer les fichiers supérieurs à 4 Go"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Se connecter au Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth activé en mode Avion"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="6168686193308136881">"Si vous laissez le Bluetooth activé, votre appareil s\'en souviendra et le Bluetooth restera activé la prochaine fois que vous serez en mode Avion"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Si vous laissez le Bluetooth activé, votre téléphone s\'en souviendra et le Bluetooth restera activé la prochaine fois que vous serez en mode Avion"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Le Bluetooth reste activé"</string>
-    <string name="bluetooth_stays_on_message" msgid="3669663452593157737">"Le Bluetooth de votre appareil restera activé en mode Avion, mais vous pouvez le désactiver."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Le Bluetooth restera activé en mode Avion. Vous pouvez le désactiver si vous le souhaitez."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Le Wi-Fi et le Bluetooth restent activés"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="7848565203843882558">"Le Wi‑Fi et le Bluetooth de votre appareil resteront activés en mode Avion, mais vous pouvez les désactivez."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Le Wi‑Fi et le Bluetooth de votre téléphone resteront activés en mode Avion. Vous pouvez les désactivez si vous le souhaitez."</string>
 </resources>
