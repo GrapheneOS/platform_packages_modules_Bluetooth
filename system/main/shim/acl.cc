@@ -46,6 +46,7 @@
 #include "gd/hci/class_of_device.h"
 #include "gd/hci/controller.h"
 #include "gd/os/handler.h"
+#include "internal_include/bt_target.h"
 #include "main/shim/dumpsys.h"
 #include "main/shim/entry.h"
 #include "main/shim/helpers.h"

@@ -24,6 +24,7 @@
 
 #include "avrc_defs.h"
 #include "avrcp_message_converter.h"
+#include "internal_include/bt_target.h"
 #include "packet/avrcp/avrcp_packet.h"
 // TODO (apanicke): Remove dependency on this header once we cleanup feature
 // handling.

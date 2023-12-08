@@ -22,8 +22,8 @@
 
 #include "osi/include/allocator.h"
 #include "stack/include/bt_hdr.h"
-#include "stack/include/sdp_api.h"
 #include "stack/include/sdpdefs.h"
+#include "stack/sdp/internal/sdp_api.h"
 #include "stack/sdp/sdpint.h"
 #include "test/fake/fake_osi.h"
 #include "test/mock/mock_btif_config.h"
