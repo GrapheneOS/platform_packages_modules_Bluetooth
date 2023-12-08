@@ -32,12 +32,12 @@
 #include <cstdint>
 #include <string>
 
-#include "bt_target.h"
 #include "gd/hal/snoop_logger.h"
+#include "internal_include/bt_target.h"
 #include "internal_include/bt_trace.h"
 #include "main/shim/entry.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/mutex.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"

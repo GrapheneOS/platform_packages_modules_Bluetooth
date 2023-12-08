@@ -27,13 +27,13 @@
 
 #include <cstdint>
 
+#include "internal_include/bt_target.h"
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 #include "stack/include/l2c_api.h"
 #include "stack/include/port_api.h"
 #include "stack/include/rfcdefs.h"
 #include "types/raw_address.h"
-
 /*
  * Flow control configuration values for the mux
 */
