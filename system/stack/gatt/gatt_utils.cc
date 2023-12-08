@@ -40,6 +40,7 @@
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_psm_types.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/l2cdefs.h"
 #include "stack/include/sdp_api.h"

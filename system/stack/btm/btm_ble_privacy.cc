@@ -34,6 +34,7 @@
 #include "osi/include/allocator.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/btm_api.h"
 #include "types/raw_address.h"
 

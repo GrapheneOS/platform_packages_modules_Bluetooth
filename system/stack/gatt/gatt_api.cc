@@ -42,6 +42,7 @@
 #include "stack/gatt/connection_manager.h"
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"

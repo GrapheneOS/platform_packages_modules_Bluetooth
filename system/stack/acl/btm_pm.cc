@@ -43,8 +43,7 @@
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "osi/include/stack_power_telemetry.h"
 #include "stack/btm/btm_int_types.h"
-#include "stack/include/btm_api.h"
-#include "stack/include/btm_api_types.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/btm_log_history.h"
 #include "stack/include/btm_status.h"
 #include "types/raw_address.h"
