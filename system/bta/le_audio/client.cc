@@ -4286,8 +4286,9 @@ class LeAudioClientImpl : public LeAudioClient {
         "r_state: " + ToString(audio_receiver_state_) +
             ", s_state: " + ToString(audio_sender_state_));
 
-    if (active_group_id_ == bluetooth::groups::kGroupUnknown) {
-      if (sink_monitor_mode_ && !sink_monitor_notified_status_) {
+    if (sink_monitor_mode_ &&
+        active_group_id_ == bluetooth::groups::kGroupUnknown) {
+      if (!sink_monitor_notified_status_) {
         notifyAudioLocalSink(UnicastMonitorModeStatus::STREAMING_REQUESTED);
       }
       CancelLocalAudioSinkStreamingRequest();
