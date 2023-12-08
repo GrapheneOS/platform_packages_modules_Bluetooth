@@ -29,10 +29,9 @@
 
 #include "bnep_api.h"
 #include "bnep_int.h"
-#include "bt_target.h"
-#include "bta/include/bta_api.h"
 #include "bta/include/bta_sec_api.h"
 #include "device/include/controller.h"
+#include "internal_include/bt_target.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "os/log.h"
