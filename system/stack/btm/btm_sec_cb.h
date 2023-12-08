@@ -93,6 +93,8 @@ class tBTM_SEC_CB {
 
   void Init(uint8_t initial_security_mode);
   void Free();
+
+  tBTM_SEC_SERV_REC* find_first_serv_rec(bool is_originator, uint16_t psm);
 };
 
 extern tBTM_SEC_CB btm_sec_cb;

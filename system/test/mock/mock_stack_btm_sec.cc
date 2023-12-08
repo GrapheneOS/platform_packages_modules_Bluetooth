@@ -90,7 +90,6 @@ struct btm_sec_dev_reset btm_sec_dev_reset;
 struct btm_sec_disconnect btm_sec_disconnect;
 struct btm_sec_disconnected btm_sec_disconnected;
 struct btm_sec_encrypt_change btm_sec_encrypt_change;
-struct btm_sec_find_first_serv btm_sec_find_first_serv;
 struct btm_sec_is_a_bonded_dev btm_sec_is_a_bonded_dev;
 struct btm_sec_l2cap_access_req btm_sec_l2cap_access_req;
 struct btm_sec_l2cap_access_req_by_requirement
@@ -143,7 +142,6 @@ bool BTM_SetSecurityLevel::return_value = false;
 const uint8_t* btm_get_dev_class::return_value = nullptr;
 tBTM_STATUS btm_sec_bond_by_transport::return_value = 0;
 tBTM_STATUS btm_sec_disconnect::return_value = 0;
-tBTM_SEC_SERV_REC* btm_sec_find_first_serv::return_value = nullptr;
 bool btm_sec_is_a_bonded_dev::return_value = false;
 tBTM_STATUS btm_sec_l2cap_access_req::return_value = 0;
 tBTM_STATUS btm_sec_l2cap_access_req_by_requirement::return_value = 0;
@@ -387,11 +385,6 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
   inc_func_call_count(__func__);
   test::mock::stack_btm_sec::btm_sec_encrypt_change(handle, status,
                                                     encr_enable);
-}
-
-tBTM_SEC_SERV_REC* btm_sec_find_first_serv(bool is_originator, uint16_t psm) {
-  inc_func_call_count(__func__);
-  return test::mock::stack_btm_sec::btm_sec_find_first_serv(is_originator, psm);
 }
 bool btm_sec_is_a_bonded_dev(const RawAddress& bda) {
   inc_func_call_count(__func__);

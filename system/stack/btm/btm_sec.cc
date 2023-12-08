@@ -95,11 +95,6 @@ void bta_dm_remove_device(const RawAddress& bd_addr);
 void bta_dm_process_remove_device(const RawAddress& bd_addr);
 void btm_inq_clear_ssp(void);
 
-/*******************************************************************************
- *             L O C A L    F U N C T I O N     P R O T O T Y P E S            *
- ******************************************************************************/
-tBTM_SEC_SERV_REC* btm_sec_find_first_serv(bool is_originator, uint16_t psm);
-
 static tBTM_STATUS btm_sec_execute_procedure(tBTM_SEC_DEV_REC* p_dev_rec);
 static bool btm_sec_start_get_name(tBTM_SEC_DEV_REC* p_dev_rec);
 static void btm_sec_wait_and_start_authentication(tBTM_SEC_DEV_REC* p_dev_rec);
@@ -1858,7 +1853,8 @@ tBTM_STATUS btm_sec_l2cap_access_req(const RawAddress& bd_addr, uint16_t psm,
   LOG_DEBUG("is_originator:%d, psm=0x%04x", is_originator, psm);
 
   // Find the service record for the PSM
-  tBTM_SEC_SERV_REC* p_serv_rec = btm_sec_find_first_serv(is_originator, psm);
+  tBTM_SEC_SERV_REC* p_serv_rec =
+      btm_sec_cb.find_first_serv_rec(is_originator, psm);
 
   // If there is no application registered with this PSM do not allow connection
   if (!p_serv_rec) {
@@ -4690,36 +4686,6 @@ static void btm_sec_auth_timer_timeout(void* data) {
     p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
     btsnd_hcic_auth_request(p_dev_rec->hci_handle);
   }
-}
-
-/*******************************************************************************
- *
- * Function         btm_sec_find_first_serv
- *
- * Description      Look for the first record in the service database
- *                  with specified PSM
- *
- * Returns          Pointer to the record or NULL
- *
- ******************************************************************************/
-tBTM_SEC_SERV_REC* btm_sec_find_first_serv(bool is_originator, uint16_t psm) {
-  tBTM_SEC_SERV_REC* p_serv_rec = &btm_sec_cb.sec_serv_rec[0];
-  int i;
-
-  if (is_originator && btm_sec_cb.p_out_serv &&
-      btm_sec_cb.p_out_serv->psm == psm) {
-    /* If this is outgoing connection and the PSM matches p_out_serv,
-     * use it as the current service */
-    return btm_sec_cb.p_out_serv;
-  }
-
-  /* otherwise, just find the first record with the specified PSM */
-  for (i = 0; i < BTM_SEC_MAX_SERVICE_RECORDS; i++, p_serv_rec++) {
-    if ((p_serv_rec->security_flags & BTM_SEC_IN_USE) &&
-        (p_serv_rec->psm == psm))
-      return (p_serv_rec);
-  }
-  return (NULL);
 }
 
 /*******************************************************************************

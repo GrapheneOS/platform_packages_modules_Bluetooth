@@ -42,11 +42,6 @@
 #define BTM_SEC_MAX_COLLISION_DELAY (5000)
 
 /*******************************************************************************
- *             L O C A L    F U N C T I O N     P R O T O T Y P E S            *
- ******************************************************************************/
-tBTM_SEC_SERV_REC* btm_sec_find_first_serv(bool is_originator, uint16_t psm);
-
-/*******************************************************************************
  *
  * Function         BTM_SecRegister
  *
@@ -714,18 +709,6 @@ void btm_sec_pin_code_request(const RawAddress bda);
  *
  ******************************************************************************/
 void btm_sec_update_clock_offset(uint16_t handle, uint16_t clock_offset);
-
-/*******************************************************************************
- *
- * Function         btm_sec_find_first_serv
- *
- * Description      Look for the first record in the service database
- *                  with specified PSM
- *
- * Returns          Pointer to the record or NULL
- *
- ******************************************************************************/
-tBTM_SEC_SERV_REC* btm_sec_find_first_serv(bool is_originator, uint16_t psm);
 
 /*******************************************************************************
  *
