@@ -27,14 +27,12 @@
 
 #include "avdt_api.h"
 #include "avdt_int.h"
-#include "avdtc_api.h"
-#include "bt_target.h"
+#include "internal_include/bt_target.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "osi/include/allocator.h"
-#include "osi/include/osi.h"
-#include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/btm_sec_api_types.h"
 
 AvdtpScb* AvdtpAdaptationLayer::LookupAvdtpScb(
     const AvdtpTransportChannel& tc) {
