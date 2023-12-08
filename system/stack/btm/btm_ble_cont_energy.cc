@@ -23,8 +23,9 @@
 
 #include "bt_target.h"
 #include "btm_ble_api.h"
-#include "osi/include/log.h"
+#include "os/log.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/include/bt_types.h"
 
 extern tBTM_CB btm_cb;
 

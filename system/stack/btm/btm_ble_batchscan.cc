@@ -28,6 +28,7 @@
 #include "device/include/controller.h"
 #include "os/log.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack/include/btu_hcif.h"
 
