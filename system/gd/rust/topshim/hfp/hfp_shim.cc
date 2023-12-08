@@ -17,6 +17,7 @@
 #include "gd/rust/topshim/hfp/hfp_shim.h"
 
 #include "btif/include/btif_hf.h"
+#include "device/include/interop.h"
 #include "gd/common/strings.h"
 #include "gd/os/log.h"
 #include "include/hardware/bt_hf.h"
@@ -436,6 +437,10 @@ std::unique_ptr<HfpIntf> GetHfpProfile(const unsigned char* btif) {
   internal::g_hfpif = hfpif.get();
 
   return hfpif;
+}
+
+bool interop_insert_call_when_sco_start(RawAddress addr) {
+  return interop_match_addr(interop_feature_t::INTEROP_INSERT_CALL_WHEN_SCO_START, &addr);
 }
 
 }  // namespace rust
