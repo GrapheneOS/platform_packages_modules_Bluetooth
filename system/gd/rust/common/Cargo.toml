@@ -25,7 +25,7 @@ futures = "0.3.13"
 grpcio = "0.9"
 lazy_static = "1.4"
 log = "0.4"
-nix = "0.23"
+nix = { version = "0.27.1", features = ["time", "user"] }
 tokio = { version = "1.0", features = ['bytes', 'macros', 'net', 'rt-multi-thread', 'time'] }
 
 # Proc Macro dependency
