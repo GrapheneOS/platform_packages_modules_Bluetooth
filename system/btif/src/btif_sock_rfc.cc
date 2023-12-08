@@ -228,6 +228,7 @@ static rfc_slot_t* alloc_rfc_slot(const RawAddress* addr, const char* name,
   }
   slot->id = rfc_slot_id;
   slot->f.server = server;
+  slot->role = server;
   slot->tx_bytes = 0;
   slot->rx_bytes = 0;
   return slot;
@@ -422,8 +423,10 @@ static void cleanup_rfc_slot(rfc_slot_t* slot) {
     close(slot->fd);
     btif_sock_connection_logger(
         SOCKET_CONNECTION_STATE_DISCONNECTED,
-        slot->f.server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION,
-        slot->addr);
+        slot->role ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, slot->addr,
+        slot->scn,
+        slot->role ? slot->service_name
+                   : slot->service_uuid.ToString().c_str());
     log_socket_connection_state(
         slot->addr, slot->id, BTSOCK_RFCOMM,
         android::bluetooth::SOCKET_CONNECTION_STATE_DISCONNECTED,
@@ -517,7 +520,8 @@ static void on_srv_rfc_listen_started(tBTA_JV_RFCOMM_START* p_start,
   slot->rfc_handle = p_start->handle;
   btif_sock_connection_logger(
       SOCKET_CONNECTION_STATE_LISTENING,
-      slot->f.server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, slot->addr);
+      slot->role ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, slot->addr,
+      slot->scn, slot->service_name);
   log_socket_connection_state(slot->addr, slot->id, BTSOCK_RFCOMM,
                               android::bluetooth::SocketConnectionstateEnum::
                                   SOCKET_CONNECTION_STATE_LISTENING,
@@ -543,8 +547,8 @@ static uint32_t on_srv_rfc_connect(tBTA_JV_RFCOMM_SRV_OPEN* p_open,
 
   btif_sock_connection_logger(
       SOCKET_CONNECTION_STATE_CONNECTED,
-      accept_rs->f.server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION,
-      accept_rs->addr);
+      accept_rs->role ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION,
+      accept_rs->addr, accept_rs->scn, accept_rs->service_name);
   log_socket_connection_state(
       accept_rs->addr, accept_rs->id, BTSOCK_RFCOMM,
       android::bluetooth::SOCKET_CONNECTION_STATE_CONNECTED, 0, 0,
@@ -584,7 +588,8 @@ static void on_cli_rfc_connect(tBTA_JV_RFCOMM_OPEN* p_open, uint32_t id) {
 
   btif_sock_connection_logger(
       SOCKET_CONNECTION_STATE_CONNECTED,
-      slot->f.server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, slot->addr);
+      slot->role ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, slot->addr,
+      slot->scn, slot->service_uuid.ToString().c_str());
   log_socket_connection_state(
       slot->addr, slot->id, BTSOCK_RFCOMM,
       android::bluetooth::SOCKET_CONNECTION_STATE_CONNECTED, 0, 0,
