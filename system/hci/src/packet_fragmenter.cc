@@ -31,6 +31,7 @@
 #include "hci/include/hci_layer.h"
 #include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 
 #define HCI_ISO_BF_FIRST_FRAGMENTED_PACKET (0)
 #define HCI_ISO_BF_CONTINUATION_FRAGMENT_PACKET (1)
