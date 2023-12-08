@@ -8,6 +8,7 @@ aconfig_declarations {
     package: "com.android.bluetooth.flags",
     srcs: [
         "a2dp.aconfig",
+        "asha.aconfig",
         "audio_routing.aconfig",
         "bta_dm.aconfig",
         "framework.aconfig",
