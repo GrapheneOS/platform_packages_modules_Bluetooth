@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -284,7 +285,7 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
                                 PROGRAM_INFO_TYPE, mProgramInfo.getBytes(StandardCharsets.UTF_8)));
             }
             if (mLanguage != null) {
-                String cleanedLanguage = mLanguage.toLowerCase().strip();
+                String cleanedLanguage = mLanguage.toLowerCase(Locale.US).strip();
                 byte[] languageBytes = cleanedLanguage.getBytes(StandardCharsets.US_ASCII);
                 if (languageBytes.length != LANGUAGE_LENGTH) {
                     throw new IllegalArgumentException(

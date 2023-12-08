@@ -22,6 +22,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /** @hide */
+@SuppressWarnings("InconsistentHashCode") // TODO(b/314811467)
 public final class BluetoothMasInstance implements Parcelable {
     private final int mId;
     private final String mName;

@@ -118,6 +118,7 @@ public final class BluetoothA2dpSink implements BluetoothProfile {
     }
 
     @Override
+    @SuppressWarnings("Finalize") // empty finalize for api signature
     public void finalize() {}
 
     /**
@@ -294,7 +295,7 @@ public final class BluetoothA2dpSink implements BluetoothProfile {
      *
      * @param device Remote bluetooth device.
      * @return audio configuration for the device, or null
-     *     <p>{@see BluetoothAudioConfig}
+     * @see BluetoothAudioConfig
      * @hide
      */
     @RequiresLegacyBluetoothPermission
@@ -327,7 +328,6 @@ public final class BluetoothA2dpSink implements BluetoothProfile {
      * #PRIORITY_OFF}
      *
      * @param device Paired bluetooth device
-     * @param priority
      * @return true if priority is set, false on error
      * @hide
      */

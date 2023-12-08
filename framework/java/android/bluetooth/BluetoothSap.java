@@ -128,6 +128,7 @@ public final class BluetoothSap implements BluetoothProfile, AutoCloseable {
     }
 
     /** @hide */
+    @SuppressWarnings("Finalize") // TODO(b/314811467)
     protected void finalize() {
         if (mCloseGuard != null) {
             mCloseGuard.warnIfOpen();
@@ -458,7 +459,6 @@ public final class BluetoothSap implements BluetoothProfile, AutoCloseable {
      * #PRIORITY_OFF},
      *
      * @param device Paired bluetooth device
-     * @param priority
      * @return true if priority is set, false on error
      * @hide
      */

@@ -37,7 +37,6 @@ import android.util.Log;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.IdentityHashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
@@ -59,19 +58,16 @@ public final class PeriodicAdvertisingManager {
     private static final int TIMEOUT_MIN = 10;
     private static final int TIMEOUT_MAX = 16384;
 
-    private static final int SYNC_STARTING = -1;
-
     private final BluetoothAdapter mBluetoothAdapter;
     private final AttributionSource mAttributionSource;
 
     /* maps callback, to callback wrapper and sync handle */
-    Map<PeriodicAdvertisingCallback, IPeriodicAdvertisingCallback /* callbackWrapper */>
+    IdentityHashMap<PeriodicAdvertisingCallback, IPeriodicAdvertisingCallback /* callbackWrapper */>
             mCallbackWrappers;
 
     /**
      * Use {@link BluetoothAdapter#getBluetoothLeScanner()} instead.
      *
-     * @param bluetoothManager BluetoothManager that conducts overall Bluetooth Management.
      * @hide
      */
     public PeriodicAdvertisingManager(BluetoothAdapter bluetoothAdapter) {

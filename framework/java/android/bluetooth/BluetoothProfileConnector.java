@@ -31,7 +31,6 @@ import java.util.Objects;
 /**
  * Connector for Bluetooth profile proxies to bind manager service and profile services
  *
- * @param <T> The Bluetooth profile interface for this connection.
  * @hide
  */
 @SuppressLint("AndroidFrameworkBluetoothPermission")
@@ -105,8 +104,9 @@ public final class BluetoothProfileConnector extends Handler {
                 BluetoothAdapter.getDefaultAdapter().getBluetoothManager());
     }
 
-    /** {@hide} */
+    /** @hide */
     @Override
+    @SuppressWarnings("Finalize") // TODO(b/314811467)
     public void finalize() {
         mCloseGuard.warnIfOpen();
         doUnbind();

@@ -19,7 +19,7 @@ package android.bluetooth;
 /**
  * This class contains constants for Bluetooth AVRCP profile.
  *
- * <p>{@hide}
+ * @hide
  */
 public final class BluetoothAvrcp {
 

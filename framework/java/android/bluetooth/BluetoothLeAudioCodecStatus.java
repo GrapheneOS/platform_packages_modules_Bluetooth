@@ -29,7 +29,7 @@ import java.util.Objects;
  * Represents the codec status (configuration and capability) for a Bluetooth Le Audio source
  * device.
  *
- * <p>{@see BluetoothLeAudio}
+ * @see BluetoothLeAudio
  */
 public final class BluetoothLeAudioCodecStatus implements Parcelable {
     /**

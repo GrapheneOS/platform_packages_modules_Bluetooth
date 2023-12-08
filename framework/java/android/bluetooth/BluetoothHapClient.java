@@ -504,6 +504,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     }
 
     /** @hide */
+    @SuppressWarnings("Finalize") // TODO(b/314811467)
     protected void finalize() {
         if (mCloseGuard != null) {
             mCloseGuard.warnIfOpen();
@@ -869,7 +870,6 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * considered a valid HAP group. In such case -1 is returned even if such device is a valid Le
      * Audio Coordinated Set member.
      *
-     * @param device
      * @return valid group identifier or -1
      * @hide
      */

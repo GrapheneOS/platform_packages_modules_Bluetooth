@@ -37,7 +37,7 @@ import java.util.Objects;
  *
  * <p>The source codec type values are the same as those supported by the device hardware.
  *
- * <p>{@see BluetoothA2dp}
+ * @see BluetoothA2dp
  */
 public final class BluetoothCodecConfig implements Parcelable {
     /** @hide */

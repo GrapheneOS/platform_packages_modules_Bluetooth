@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/** {@hide} */
+/** @hide */
 public final class BluetoothUtils {
     private static final String TAG = "BluetoothUtils";
 
@@ -92,6 +92,7 @@ public final class BluetoothUtils {
      * @param rawBytes raw bytes of Length-Value-Entry array
      * @hide
      */
+    @SuppressWarnings("MixedMutabilityReturnType") // TODO(b/314811467)
     public static List<TypeValueEntry> parseLengthTypeValueBytes(byte[] rawBytes) {
         if (rawBytes == null) {
             return Collections.emptyList();

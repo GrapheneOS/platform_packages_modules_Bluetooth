@@ -222,6 +222,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
     }
 
     /** @hide */
+    @SuppressWarnings("Finalize") // TODO(b/314811467)
     protected void finalize() {
         if (mCloseGuard != null) {
             mCloseGuard.warnIfOpen();
@@ -266,7 +267,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
      *     using the returned lock identifier or the lock timeouts on the remote side, as per CSIS
      *     specification,
      * @return unique lock identifier used for unlocking or null if lock has failed.
-     * @throws {@link IllegalArgumentException} when executor or callback is null
+     * @throws IllegalArgumentException when executor or callback is null
      * @hide
      */
     @SystemApi
@@ -305,7 +306,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
      *
      * @param lockUuid unique lock identifier
      * @return true if unlocked, false on error
-     * @throws {@link IllegalArgumentException} when lockUuid is null
+     * @throws IllegalArgumentException when lockUuid is null
      * @hide
      */
     @SystemApi
@@ -367,7 +368,6 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
     /**
      * Get group id for the given UUID
      *
-     * @param uuid
      * @return list of group IDs
      * @hide
      */

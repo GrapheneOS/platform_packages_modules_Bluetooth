@@ -107,6 +107,12 @@ public final class TransportDiscoveryData implements Parcelable {
         return Arrays.equals(toByteArray(), other.toByteArray());
     }
 
+    /** @hide */
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(toByteArray());
+    }
+
     @Override
     public void writeToParcel(@NonNull Parcel dest, int flags) {
         dest.writeInt(mTransportDataType);

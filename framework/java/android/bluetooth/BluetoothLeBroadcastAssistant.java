@@ -29,7 +29,6 @@ import android.bluetooth.annotations.RequiresBluetoothLocationPermission;
 import android.bluetooth.annotations.RequiresBluetoothScanPermission;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
-import android.content.AttributionSource;
 import android.content.Context;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -474,9 +473,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
             "android.bluetooth.action.CONNECTION_STATE_CHANGED";
 
     private CloseGuard mCloseGuard;
-    private Context mContext;
     private BluetoothAdapter mBluetoothAdapter;
-    private final AttributionSource mAttributionSource;
 
     private IBluetoothLeBroadcastAssistant mService;
 
@@ -487,15 +484,14 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
      */
     /*package*/ BluetoothLeBroadcastAssistant(
             @NonNull Context context, @NonNull BluetoothAdapter bluetoothAdapter) {
-        mContext = context;
         mBluetoothAdapter = bluetoothAdapter;
-        mAttributionSource = mBluetoothAdapter.getAttributionSource();
         mService = null;
         mCloseGuard = new CloseGuard();
         mCloseGuard.open("close");
     }
 
     /** @hide */
+    @SuppressWarnings("Finalize") // TODO(b/314811467)
     protected void finalize() {
         if (mCloseGuard != null) {
             mCloseGuard.warnIfOpen();
@@ -644,10 +640,10 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     /**
      * Set connection policy of the profile.
      *
-     * <p>The device should already be paired. Connection policy can be one of {
+     * <p>The device should already be paired. Connection policy can be one of {@link
+     * #CONNECTION_POLICY_ALLOWED}, {@link #CONNECTION_POLICY_FORBIDDEN}, {@link
+     * #CONNECTION_POLICY_UNKNOWN}
      *
-     * @link #CONNECTION_POLICY_ALLOWED}, {@link #CONNECTION_POLICY_FORBIDDEN}, {@link
-     *     #CONNECTION_POLICY_UNKNOWN}
      * @param device Paired bluetooth device
      * @param connectionPolicy is the connection policy to set to for this profile
      * @return true if connectionPolicy is set, false on error
