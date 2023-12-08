@@ -22,20 +22,21 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
+
 #include <string>
 #include <vector>
 
 #include "bta/ag/bta_ag_int.h"
-#include "main/shim/dumpsys.h"
+#include "bta/include/bta_hfp_api.h"
+#include "internal_include/bt_target.h"
+#include "os/log.h"
 #include "osi/include/alarm.h"
 #include "osi/include/compat.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 /*****************************************************************************
  * Constants and types

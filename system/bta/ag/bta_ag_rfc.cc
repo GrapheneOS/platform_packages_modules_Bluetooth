@@ -26,10 +26,9 @@
 #include <base/functional/bind.h>
 #include <base/logging.h>
 
-#include <cstring>
-
 #include "bta/ag/bta_ag_int.h"
 #include "bta/include/bta_sec_api.h"
+#include "internal_include/bt_trace.h"
 #include "osi/include/osi.h"
 #include "stack/include/main_thread.h"
 #include "stack/include/port_api.h"
