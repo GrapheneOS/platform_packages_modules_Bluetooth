@@ -26,6 +26,7 @@
 #include "gatt_api.h"
 #include "gd/common/strings.h"
 #include "stack/btm/btm_sec.h"
+#include "stack/include/bt_types.h"
 #include "types/bluetooth/uuid.h"
 
 using namespace bluetooth::vc::internal;
