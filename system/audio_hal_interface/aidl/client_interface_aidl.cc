@@ -19,6 +19,7 @@
 #include "client_interface_aidl.h"
 
 #include <android/binder_manager.h>
+#include <android_bluetooth_flags.h>
 
 namespace bluetooth {
 namespace audio {
@@ -135,7 +136,7 @@ void BluetoothAudioClientInterface::FetchAudioProvider() {
   CHECK(provider_ != nullptr);
 
   binder_status_t binder_status = AIBinder_linkToDeath(
-     provider_factory->asBinder().get(), death_recipient_.get(), this);
+      provider_factory->asBinder().get(), death_recipient_.get(), this);
   if (binder_status != STATUS_OK) {
     LOG(ERROR) << "Failed to linkToDeath " << static_cast<int>(binder_status);
   }
@@ -155,8 +156,8 @@ BluetoothAudioSinkClientInterface::BluetoothAudioSinkClientInterface(
 
 BluetoothAudioSinkClientInterface::~BluetoothAudioSinkClientInterface() {
   if (provider_factory_ != nullptr) {
-    AIBinder_unlinkToDeath(provider_factory_->asBinder().get(), death_recipient_.get(),
-                           nullptr);
+    AIBinder_unlinkToDeath(provider_factory_->asBinder().get(),
+                           death_recipient_.get(), nullptr);
   }
 }
 
@@ -169,8 +170,8 @@ BluetoothAudioSourceClientInterface::BluetoothAudioSourceClientInterface(
 
 BluetoothAudioSourceClientInterface::~BluetoothAudioSourceClientInterface() {
   if (provider_factory_ != nullptr) {
-    AIBinder_unlinkToDeath(provider_factory_->asBinder().get(), death_recipient_.get(),
-                           nullptr);
+    AIBinder_unlinkToDeath(provider_factory_->asBinder().get(),
+                           death_recipient_.get(), nullptr);
   }
 }
 
@@ -196,7 +197,12 @@ bool BluetoothAudioClientInterface::UpdateAudioConfig(
        transport_->GetSessionType() ==
            SessionType::LE_AUDIO_SOFTWARE_DECODING_DATAPATH ||
        transport_->GetSessionType() ==
-           SessionType::LE_AUDIO_BROADCAST_SOFTWARE_ENCODING_DATAPATH);
+           SessionType::LE_AUDIO_BROADCAST_SOFTWARE_ENCODING_DATAPATH ||
+       (IS_FLAG_ENABLED(is_sco_managed_by_audio) &&
+        (transport_->GetSessionType() ==
+             SessionType::HFP_SOFTWARE_ENCODING_DATAPATH ||
+         transport_->GetSessionType() ==
+             SessionType::HFP_SOFTWARE_DECODING_DATAPATH)));
   bool is_a2dp_offload_session =
       (transport_->GetSessionType() ==
        SessionType::A2DP_HARDWARE_OFFLOAD_ENCODING_DATAPATH);
@@ -221,9 +227,15 @@ bool BluetoothAudioClientInterface::UpdateAudioConfig(
   bool is_leaudio_broadcast_offload_audio_config =
       (is_leaudio_broadcast_offload_session &&
        audio_config_tag == AudioConfiguration::leAudioBroadcastConfig);
+  bool is_hfp_offload_audio_config =
+      (IS_FLAG_ENABLED(is_sco_managed_by_audio) &&
+       transport_->GetSessionType() ==
+           SessionType::HFP_HARDWARE_OFFLOAD_DATAPATH &&
+       audio_config_tag == AudioConfiguration::hfpConfig);
   if (!is_software_audio_config && !is_a2dp_offload_audio_config &&
       !is_leaudio_unicast_offload_audio_config &&
-      !is_leaudio_broadcast_offload_audio_config) {
+      !is_leaudio_broadcast_offload_audio_config &&
+      !is_hfp_offload_audio_config) {
     return false;
   }
   transport_->UpdateAudioConfiguration(audio_config);
@@ -315,7 +327,10 @@ int BluetoothAudioClientInterface::StartSession() {
                  SessionType::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH ||
              transport_->GetSessionType() ==
                  SessionType::
-                     LE_AUDIO_BROADCAST_HARDWARE_OFFLOAD_ENCODING_DATAPATH) {
+                     LE_AUDIO_BROADCAST_HARDWARE_OFFLOAD_ENCODING_DATAPATH ||
+             (IS_FLAG_ENABLED(is_sco_managed_by_audio) &&
+              transport_->GetSessionType() ==
+                  SessionType::HFP_HARDWARE_OFFLOAD_DATAPATH)) {
     transport_->ResetPresentationPosition();
     session_started_ = true;
     return 0;
@@ -406,7 +421,10 @@ void BluetoothAudioClientInterface::FlushAudioData() {
       transport_->GetSessionType() ==
           SessionType::LE_AUDIO_HARDWARE_OFFLOAD_DECODING_DATAPATH ||
       transport_->GetSessionType() ==
-          SessionType::LE_AUDIO_BROADCAST_HARDWARE_OFFLOAD_ENCODING_DATAPATH) {
+          SessionType::LE_AUDIO_BROADCAST_HARDWARE_OFFLOAD_ENCODING_DATAPATH ||
+      (IS_FLAG_ENABLED(is_sco_managed_by_audio) &&
+       transport_->GetSessionType() ==
+           SessionType::HFP_HARDWARE_OFFLOAD_DATAPATH)) {
     return;
   }
 
