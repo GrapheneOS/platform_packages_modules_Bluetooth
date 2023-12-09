@@ -1522,6 +1522,10 @@ void bta_ag_sco_conn_rsp(tBTA_AG_SCB* p_scb,
   bta_ag_create_pending_sco(p_scb, bta_ag_cb.sco.is_local);
 }
 
+bool bta_ag_get_sco_offload_enabled() {
+  return hfp_hal_interface::get_offload_enabled();
+}
+
 void bta_ag_set_sco_offload_enabled(bool value) {
   hfp_hal_interface::enable_offload(value);
 }

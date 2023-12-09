@@ -429,6 +429,7 @@ void bta_ag_sco_codec_nego(tBTA_AG_SCB* p_scb, bool result);
 void bta_ag_codec_negotiate(tBTA_AG_SCB* p_scb);
 bool bta_ag_is_sco_open_allowed(tBTA_AG_SCB* p_scb, const std::string event);
 void bta_ag_send_bcs(tBTA_AG_SCB* p_scb);
+bool bta_ag_get_sco_offload_enabled();
 void bta_ag_set_sco_offload_enabled(bool value);
 void bta_ag_set_sco_allowed(bool value);
 const RawAddress& bta_ag_get_active_device();
