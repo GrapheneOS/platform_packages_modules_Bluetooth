@@ -85,7 +85,7 @@ class BtaDipTest : public ::testing::Test {
 
     g_attr_vendor_product_primary_record.p_next_attr = &g_attr_vendor_product_primary_record;
     g_attr_vendor_product_primary_record.attr_id = ATTR_ID_PRIMARY_RECORD;
-    g_attr_vendor_product_primary_record.attr_len_type = (BOOLEAN_DESC_TYPE<<12);
+    g_attr_vendor_product_primary_record.attr_len_type = (BOOLEAN_DESC_TYPE<<12)|1;
     g_attr_vendor_product_primary_record.attr_value.v.u8 = 1;
 
     g_rec.p_first_attr = &g_attr_service_class_id_list;
@@ -126,6 +126,76 @@ TEST_F(BtaDipTest, test_bta_create_dip_sdp_record) {
   ASSERT_EQ(record.dip.version, 0x0100);
   ASSERT_EQ(record.dip.primary_record, true);
 }
+
+// test for b/263958603
+TEST_F(BtaDipTest, test_invalid_type_checks) {
+  bluetooth_sdp_record record{};
+
+  // here we provide the wrong types of records
+  // and verify that the provided values are not accepted
+  g_attr_spec_id.attr_len_type = (BOOLEAN_DESC_TYPE<<12)|1;
+  g_attr_spec_id.attr_value.v.u16 = 0x0103;
+
+  g_attr_vendor_id.attr_len_type = (BOOLEAN_DESC_TYPE<<12)|2;
+  g_attr_vendor_id.attr_value.v.u16 = 0x18d1;
+
+  g_attr_vendor_id_src.attr_len_type = (BOOLEAN_DESC_TYPE<<12)|2;
+  g_attr_vendor_id_src.attr_value.v.u16 = 1;
+
+  g_attr_vendor_product_id.attr_len_type = (BOOLEAN_DESC_TYPE<<12)|2;
+  g_attr_vendor_product_id.attr_value.v.u16 = 0x1234;
+
+  g_attr_vendor_product_version.attr_len_type = (BOOLEAN_DESC_TYPE<<12)|2;
+  g_attr_vendor_product_version.attr_value.v.u16 = 0x0100;
+
+  g_attr_vendor_product_primary_record.attr_len_type = (UINT_DESC_TYPE<<12)|1;
+  g_attr_vendor_product_primary_record.attr_value.v.u8 = 1;
+
+  bluetooth::testing::bta_create_dip_sdp_record(&record, &g_rec);
+
+  ASSERT_EQ(record.dip.spec_id, 0);
+  ASSERT_EQ(record.dip.vendor, 0);
+  ASSERT_EQ(record.dip.vendor_id_source, 0);
+  ASSERT_EQ(record.dip.product, 0);
+  ASSERT_EQ(record.dip.version, 0);
+  ASSERT_EQ(record.dip.primary_record, false);
+}
+
+// test for b/263958603
+TEST_F(BtaDipTest, test_invalid_size_checks) {
+  bluetooth_sdp_record record{};
+
+  // here we provide the wrong sizes of records
+  // and verify that the provided values are not accepted
+  g_attr_spec_id.attr_len_type = (UINT_DESC_TYPE<<12)|1;
+  g_attr_spec_id.attr_value.v.u16 = 0x0103;
+
+  g_attr_vendor_id.attr_len_type = (UINT_DESC_TYPE<<12)|1;
+  g_attr_vendor_id.attr_value.v.u16 = 0x18d1;
+
+  g_attr_vendor_id_src.attr_len_type = (UINT_DESC_TYPE<<12)|1;
+  g_attr_vendor_id_src.attr_value.v.u16 = 1;
+
+  g_attr_vendor_product_id.attr_len_type = (UINT_DESC_TYPE<<12)|1;
+  g_attr_vendor_product_id.attr_value.v.u16 = 0x1234;
+
+  g_attr_vendor_product_version.attr_len_type = (UINT_DESC_TYPE<<12)|1;
+  g_attr_vendor_product_version.attr_value.v.u16 = 0x0100;
+
+  // size greater than 1 is accepted
+  g_attr_vendor_product_primary_record.attr_len_type = (BOOLEAN_DESC_TYPE<<12)|2;
+  g_attr_vendor_product_primary_record.attr_value.v.u8 = 1;
+
+  bluetooth::testing::bta_create_dip_sdp_record(&record, &g_rec);
+
+  ASSERT_EQ(record.dip.spec_id, 0);
+  ASSERT_EQ(record.dip.vendor, 0);
+  ASSERT_EQ(record.dip.vendor_id_source, 0);
+  ASSERT_EQ(record.dip.product, 0);
+  ASSERT_EQ(record.dip.version, 0);
+  ASSERT_EQ(record.dip.primary_record, true);
+}
+
 
 TEST_F(BtaDipTest, test_bta_sdp_search_cback) {
   Uuid* userdata = (Uuid*)malloc(sizeof(Uuid));

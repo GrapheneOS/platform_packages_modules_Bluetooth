@@ -252,7 +252,6 @@ static tBTM_SEC_DEV_REC* btm_sec_find_dev_by_sec_state(uint8_t state) {
 }
 
 /*******************************************************************************
- *
  * Function         access_secure_service_from_temp_bond
  *
  * Description      a utility function to test whether an access to
