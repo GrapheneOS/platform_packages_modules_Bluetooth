@@ -25,7 +25,7 @@ import android.util.Log;
  *
  * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should use
  *     Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
- *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+ *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
  *     BluetoothDevice#createL2capChannel(int)}
  */
 @Deprecated
@@ -45,7 +45,7 @@ public abstract class BluetoothHealthCallback {
      *     BluetoothHealth#APP_CONFIG_UNREGISTRATION_FAILURE}
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @BinderThread
@@ -70,7 +70,7 @@ public abstract class BluetoothHealthCallback {
      *     like when disconnecting the channel.
      * @deprecated Health Device Profile (HDP) and MCAP protocol are no longer used. New apps should
      *     use Bluetooth Low Energy based solutions such as {@link BluetoothGatt}, {@link
-     *     BluetoothAdapter#listenUsingL2capChannel()(int)}, or {@link
+     *     BluetoothAdapter#listenUsingL2capChannel()}, or {@link
      *     BluetoothDevice#createL2capChannel(int)}
      */
     @BinderThread

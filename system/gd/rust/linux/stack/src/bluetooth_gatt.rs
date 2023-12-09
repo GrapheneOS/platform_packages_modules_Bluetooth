@@ -1403,6 +1403,7 @@ pub struct BluetoothGatt {
     small_rng: SmallRng,
 
     gatt_async: Arc<tokio::sync::Mutex<GattAsyncIntf>>,
+    enabled: bool,
 }
 
 impl BluetoothGatt {
@@ -1436,6 +1437,7 @@ impl BluetoothGatt {
                 async_helper_msft_adv_monitor_remove,
                 async_helper_msft_adv_monitor_enable,
             })),
+            enabled: false,
         }
     }
 
@@ -1528,6 +1530,10 @@ impl BluetoothGatt {
             time::sleep(time::Duration::from_millis(500)).await;
             let _ = api_tx_clone.send(APIMessage::IsReady(BluetoothAPI::Gatt)).await;
         });
+    }
+
+    pub fn enable(&mut self, enabled: bool) {
+        self.enabled = enabled;
     }
 
     /// Remove a scanner callback and unregisters all scanners associated with that callback.
@@ -1641,6 +1647,10 @@ impl BluetoothGatt {
     /// The resume_scan method is used to resume scanning after system suspension.
     /// It assumes that scanner.filter has already had the filter data.
     fn resume_scan(&mut self, scanner_id: u8) -> BtStatus {
+        if !self.enabled {
+            return BtStatus::Fail;
+        }
+
         let scan_suspend_mode = self.get_scan_suspend_mode();
         if scan_suspend_mode != SuspendMode::Normal && scan_suspend_mode != SuspendMode::Resuming {
             return BtStatus::Busy;
@@ -2004,6 +2014,10 @@ impl IBluetoothGatt for BluetoothGatt {
         settings: Option<ScanSettings>,
         filter: Option<ScanFilter>,
     ) -> BtStatus {
+        if !self.enabled {
+            return BtStatus::Fail;
+        }
+
         let scan_suspend_mode = self.get_scan_suspend_mode();
         if scan_suspend_mode != SuspendMode::Normal && scan_suspend_mode != SuspendMode::Resuming {
             return BtStatus::Busy;
@@ -2036,6 +2050,10 @@ impl IBluetoothGatt for BluetoothGatt {
     }
 
     fn stop_scan(&mut self, scanner_id: u8) -> BtStatus {
+        if !self.enabled {
+            return BtStatus::Fail;
+        }
+
         let scan_suspend_mode = self.get_scan_suspend_mode();
         if scan_suspend_mode != SuspendMode::Normal && scan_suspend_mode != SuspendMode::Suspending
         {
@@ -2115,7 +2133,7 @@ impl IBluetoothGatt for BluetoothGatt {
 
     fn start_advertising_set(
         &mut self,
-        parameters: AdvertisingSetParameters,
+        mut parameters: AdvertisingSetParameters,
         advertise_data: AdvertiseData,
         scan_response: Option<AdvertiseData>,
         periodic_parameters: Option<PeriodicAdvertisingParameters>,
@@ -2129,9 +2147,19 @@ impl IBluetoothGatt for BluetoothGatt {
         }
 
         let device_name = self.get_adapter_name();
-        let is_legacy = parameters.is_legacy;
-        let params = parameters.into();
         let adv_bytes = advertise_data.make_with(&device_name);
+        let is_le_extended_advertising_supported = match &self.adapter {
+            Some(adapter) => adapter.lock().unwrap().is_le_extended_advertising_supported(),
+            _ => false,
+        };
+        // TODO(b/311417973): Remove this once we have more robust /device/bluetooth APIs to control extended advertising
+        let is_legacy = parameters.is_legacy
+            && !AdvertiseData::can_upgrade(
+                &mut parameters,
+                &adv_bytes,
+                is_le_extended_advertising_supported,
+            );
+        let params = parameters.into();
         if !AdvertiseData::validate_raw_data(is_legacy, &adv_bytes) {
             log::warn!("Failed to start advertising set with invalid advertise data");
             return INVALID_REG_ID;

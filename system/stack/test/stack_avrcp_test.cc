@@ -19,6 +19,7 @@
 #include <gtest/gtest.h>
 
 #include "stack/include/avrc_api.h"
+#include "stack/include/bt_types.h"
 
 class StackAvrcpTest : public ::testing::Test {
  protected:

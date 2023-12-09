@@ -189,8 +189,6 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
      */
     public static final int CAPABILITY_JOIN_CALLS = 0x00000002;
 
-    private static final int REG_TIMEOUT = 10000;
-
     /**
      * The template class is used to call callback functions on events from the TBS server. Callback
      * functions are wrapped in this class and registered to the Android system during app
@@ -419,7 +417,7 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
     /**
      * Not supported
      *
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException on every call
      */
     @Override
     public int getConnectionState(@Nullable BluetoothDevice device) {
@@ -429,7 +427,7 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
     /**
      * Not supported
      *
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException on every call
      */
     @Override
     public @NonNull List<BluetoothDevice> getConnectedDevices() {
@@ -439,7 +437,7 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
     /**
      * Not supported
      *
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException on every call
      */
     @Override
     @NonNull
@@ -556,7 +554,6 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
             return;
         }
 
-        int ccid = mCcid;
         mCcid = 0;
         mCallback = null;
 
@@ -772,11 +769,6 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
         } catch (RemoteException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         }
-    }
-
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    private static boolean isValidDevice(@Nullable BluetoothDevice device) {
-        return device != null && BluetoothAdapter.checkBluetoothAddress(device.getAddress());
     }
 
     private static void log(String msg) {

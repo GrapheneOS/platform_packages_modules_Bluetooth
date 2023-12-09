@@ -68,7 +68,7 @@ import android.util.Log;
 import android.util.Pair;
 
 import com.android.internal.annotations.GuardedBy;
-import com.android.modules.expresslog.StatsExpressLog;
+import com.android.modules.expresslog.Counter;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.io.IOException;
@@ -118,7 +118,8 @@ import java.util.function.BiFunction;
  * <p>For more information about using Bluetooth, read the <a href=
  * "{@docRoot}guide/topics/connectivity/bluetooth.html">Bluetooth</a> developer guide. </div>
  *
- * <p>{@see BluetoothDevice} {@see BluetoothServerSocket}
+ * @see BluetoothDevice
+ * @see BluetoothServerSocket
  */
 public final class BluetoothAdapter {
     private static final String TAG = "BluetoothAdapter";
@@ -928,7 +929,6 @@ public final class BluetoothAdapter {
                             }
                         }
                     }
-                    return;
                 }
             };
 
@@ -1059,7 +1059,7 @@ public final class BluetoothAdapter {
         return sAdapter;
     }
 
-    /** {@hide} */
+    /** @hide */
     public static BluetoothAdapter createAdapter(AttributionSource attributionSource) {
         BluetoothServiceManager manager =
                 BluetoothFrameworkInitializer.getBluetoothServiceManager();
@@ -1673,7 +1673,7 @@ public final class BluetoothAdapter {
         return null;
     }
 
-    /** {@hide} */
+    /** @hide */
     @RequiresBluetoothAdvertisePermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)
     public int getNameLengthForAdvertise() {
@@ -3747,11 +3747,8 @@ public final class BluetoothAdapter {
                             + proxy.getAdapter()
                             + " but expected "
                             + this);
-            // farmhash::Fingerprint64("bluetooth.value_close_profile_proxy_adapter_mismatch")
-            // TODO(b/310684444): Remove this magic value
-            long metricIdHash = 5174922474613897731L;
-            StatsExpressLog.write(
-                    StatsExpressLog.EXPRESS_UID_EVENT_REPORTED, metricIdHash, 1, Process.myUid());
+            Counter.logIncrementWithUid(
+                    "bluetooth.value_close_profile_proxy_adapter_mismatch", Process.myUid());
             proxy.getAdapter().closeProfileProxy(proxy);
             return;
         }
@@ -3773,7 +3770,6 @@ public final class BluetoothAdapter {
      * #getProfileProxy}. Profile can be one of {@link BluetoothProfile#HEADSET} or {@link
      * BluetoothProfile#A2DP}
      *
-     * @param unusedProfile
      * @param proxy Profile proxy object
      */
     @SuppressLint({"AndroidFrameworkRequiresPermission", "AndroidFrameworkBluetoothPermission"})
@@ -4010,10 +4006,10 @@ public final class BluetoothAdapter {
     /**
      * Wraps an AIDL interface around an {@link OobDataCallback} interface.
      *
-     * @see {@link IBluetoothOobDataCallback} for interface definition.
+     * @see IBluetoothOobDataCallback for interface definition.
      * @hide
      */
-    public class WrappedOobDataCallback extends IBluetoothOobDataCallback.Stub {
+    public static class WrappedOobDataCallback extends IBluetoothOobDataCallback.Stub {
         private final OobDataCallback mCallback;
         private final Executor mExecutor;
 
@@ -4160,7 +4156,7 @@ public final class BluetoothAdapter {
     }
 
     /** @hide */
-    public class StateChangeCallbackWrapper extends IBluetoothStateChangeCallback.Stub {
+    public static class StateChangeCallbackWrapper extends IBluetoothStateChangeCallback.Stub {
         private BluetoothStateChangeCallback mCallback;
 
         StateChangeCallbackWrapper(BluetoothStateChangeCallback callback) {
@@ -4179,6 +4175,7 @@ public final class BluetoothAdapter {
     }
 
     @SuppressLint("GenericException")
+    @SuppressWarnings("Finalize") // TODO(b/314811467)
     protected void finalize() throws Throwable {
         try {
             removeServiceStateCallback(mManagerCallback);
@@ -4236,14 +4233,14 @@ public final class BluetoothAdapter {
                 && (Integer.parseInt(address.split(":")[0], 16) & 0xC0) == 0xC0;
     }
 
-    /** {@hide} */
+    /** @hide */
     @UnsupportedAppUsage
     @RequiresNoPermission
     public IBluetoothManager getBluetoothManager() {
         return mManagerService;
     }
 
-    /** {@hide} */
+    /** @hide */
     @RequiresNoPermission
     public AttributionSource getAttributionSource() {
         return mAttributionSource;
@@ -5686,7 +5683,6 @@ public final class BluetoothAdapter {
      *
      * <p>Please note that Bluetooth needs to be restarted in order for the change to take effect.
      *
-     * @param mode
      * @return status code indicating whether the logging mode was successfully set
      * @throws IllegalArgumentException if the mode is not a valid logging mode
      * @hide

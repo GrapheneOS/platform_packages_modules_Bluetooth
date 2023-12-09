@@ -382,7 +382,7 @@ public final class TransportBlockFilter implements Parcelable {
          *     about its state and supported features. Negative values are invalid for this
          *     argument. Default to 0. See Transport Discovery Service specification for more
          *     details.
-         * @param tdsFlagsMask a bitmask to select which bits in {@code tdsFlag} to match. Default
+         * @param tdsFlagsMask a bitmask to select which bits in {@code tdsFlags} to match. Default
          *     to 0, meaning no flag match required. Negative values are invalid for this argument.
          * @throws IllegalArgumentException if either {@code tdsFlags} or {@code tdsFlagsMask} is
          *     invalid.

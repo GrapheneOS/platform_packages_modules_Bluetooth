@@ -60,7 +60,7 @@ public final class BluetoothGattServer implements BluetoothProfile {
 
     private BluetoothGattServerCallback mCallback;
 
-    private Object mServerIfLock = new Object();
+    private final Object mServerIfLock = new Object();
     private int mServerIf;
     private int mTransport;
     private BluetoothGattService mPendingService;
@@ -619,6 +619,7 @@ public final class BluetoothGattServer implements BluetoothProfile {
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    @SuppressWarnings("WaitNotInLoop") // TODO(b/314811467)
     /*package*/ boolean registerCallback(
             BluetoothGattServerCallback callback, boolean eattSupport) {
         if (DBG) Log.d(TAG, "registerCallback()");
@@ -882,7 +883,7 @@ public final class BluetoothGattServer implements BluetoothProfile {
      * @param confirm true to request confirmation from the client (indication), false to send a
      *     notification
      * @return true, if the notification has been triggered successfully
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException if the characteristic value or service is null
      * @deprecated Use {@link BluetoothGattServer#notifyCharacteristicChanged(BluetoothDevice,
      *     BluetoothGattCharacteristic, boolean, byte[])} as this is not memory safe.
      */
@@ -1102,7 +1103,7 @@ public final class BluetoothGattServer implements BluetoothProfile {
      * Not supported - please use {@link BluetoothManager#getConnectedDevices(int)} with {@link
      * BluetoothProfile#GATT} as argument
      *
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException on every call
      */
     @Override
     @RequiresNoPermission
@@ -1114,7 +1115,7 @@ public final class BluetoothGattServer implements BluetoothProfile {
      * Not supported - please use {@link BluetoothManager#getConnectedDevices(int)} with {@link
      * BluetoothProfile#GATT} as argument
      *
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException on every call
      */
     @Override
     @RequiresNoPermission
@@ -1127,7 +1128,7 @@ public final class BluetoothGattServer implements BluetoothProfile {
      * Not supported - please use {@link BluetoothManager#getDevicesMatchingConnectionStates(int,
      * int[])} with {@link BluetoothProfile#GATT} as first argument
      *
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException on every call
      */
     @Override
     @RequiresNoPermission

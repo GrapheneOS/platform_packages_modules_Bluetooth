@@ -117,6 +117,7 @@ public final class BluetoothPbapClient implements BluetoothProfile, AutoCloseabl
     }
 
     /** @hide */
+    @SuppressWarnings("Finalize") // TODO(b/314811467)
     protected void finalize() {
         if (mCloseGuard != null) {
             mCloseGuard.warnIfOpen();
@@ -369,7 +370,6 @@ public final class BluetoothPbapClient implements BluetoothProfile, AutoCloseabl
      * #PRIORITY_OFF},
      *
      * @param device Paired bluetooth device
-     * @param priority
      * @return true if priority is set, false on error
      * @hide
      */

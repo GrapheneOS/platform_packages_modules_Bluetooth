@@ -88,6 +88,13 @@ java_sdk_library {
         // Created by jarjar rules.
         "com.android.bluetooth.x",
     ],
+    errorprone: {
+        javacflags: [
+            "-Xep:InlineMeSuggester:OFF", // The @InlineMe annotation is not available
+            "-XepExcludedPaths:.*/srcjars/.*", // Exclude generated files
+        ],
+        enabled: true,
+    },
     lint: {
         strict_updatability_linting: true,
     },

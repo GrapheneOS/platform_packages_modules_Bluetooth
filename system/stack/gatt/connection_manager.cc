@@ -27,18 +27,15 @@
 #include <memory>
 #include <set>
 
-#include "bind_helpers.h"
 #include "internal_include/bt_trace.h"
 #include "main/shim/le_scanning_manager.h"
-#include "main/shim/shim.h"
 #include "os/log.h"
 #include "osi/include/alarm.h"
-#include "osi/include/log.h"
 #include "stack/btm/btm_ble_bgconn.h"
 #include "stack/include/advertise_data_parser.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/btm_ble_api.h"
 #include "stack/include/btm_log_history.h"
-#include "stack/include/l2c_api.h"
 #include "stack/include/main_thread.h"
 #include "types/raw_address.h"
 

@@ -573,12 +573,6 @@ public final class ScanFilter implements Parcelable {
         return false;
     }
 
-    // Check if the solicitation uuid pattern matches the particular service solicitation uuid.
-    private static boolean matchesServiceSolicitationUuid(
-            UUID solicitationUuid, UUID solicitationUuidMask, UUID data) {
-        return BluetoothLeUtils.maskedEquals(data, solicitationUuid, solicitationUuidMask);
-    }
-
     // Check whether the data pattern matches the parsed data.
     static boolean matchesPartialData(byte[] data, byte[] dataMask, byte[] parsedData) {
         if (parsedData == null || parsedData.length < data.length) {
@@ -918,7 +912,7 @@ public final class ScanFilter implements Parcelable {
          * @param serviceSolicitationUuid can only be null if solicitationUuidMask is null.
          * @param solicitationUuidMask can be null or a mask with no restriction.
          * @throws IllegalArgumentException If {@code serviceSolicitationUuid} is {@code null} but
-         *     {@code serviceSolicitationUuidMask} is not {@code null}.
+         *     {@code solicitationUuidMask} is not {@code null}.
          */
         public @NonNull Builder setServiceSolicitationUuid(
                 @Nullable ParcelUuid serviceSolicitationUuid,

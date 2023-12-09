@@ -41,12 +41,15 @@
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/properties.h"
+#include "stack/btm/btm_ble_sec.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/btm/btm_sec_int_types.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_psm_types.h"
+#include "stack/include/bt_types.h"
+#include "stack/include/btm_ble_api.h"
 #include "stack/include/btm_log_history.h"
 #include "stack/include/l2c_api.h"
 #include "stack/include/l2cdefs.h"
@@ -58,11 +61,6 @@ namespace {
 constexpr char kBtmLogTag[] = "L2CAP";
 
 }
-
-tL2CAP_LE_RESULT_CODE btm_ble_start_sec_check(const RawAddress& bd_addr,
-                                              uint16_t psm, bool is_originator,
-                                              tBTM_SEC_CALLBACK* p_callback,
-                                              void* p_ref_data);
 
 extern tBTM_CB btm_cb;
 
@@ -1614,7 +1612,6 @@ tL2CAP_LE_RESULT_CODE l2ble_sec_access_req(const RawAddress& bd_addr,
                                            uint16_t psm, bool is_originator,
                                            tBTM_SEC_CALLBACK* p_callback,
                                            void* p_ref_data) {
-  tL2CAP_LE_RESULT_CODE result;
   tL2C_LCB* p_lcb = NULL;
 
   if (!p_callback) {
@@ -1643,10 +1640,26 @@ tL2CAP_LE_RESULT_CODE l2ble_sec_access_req(const RawAddress& bd_addr,
   p_buf->p_callback = p_callback;
   p_buf->p_ref_data = p_ref_data;
   fixed_queue_enqueue(p_lcb->le_sec_pending_q, p_buf);
-  result = btm_ble_start_sec_check(bd_addr, psm, is_originator,
-                                   &l2cble_sec_comp, p_ref_data);
+  tBTM_STATUS result = btm_ble_start_sec_check(bd_addr, psm, is_originator,
+                                               &l2cble_sec_comp, p_ref_data);
 
-  return result;
+  switch (result) {
+    case BTM_SUCCESS:
+      return L2CAP_LE_RESULT_CONN_OK;
+    case BTM_ILLEGAL_VALUE:
+      return L2CAP_LE_RESULT_NO_PSM;
+    case BTM_NOT_AUTHENTICATED:
+      return L2CAP_LE_RESULT_INSUFFICIENT_AUTHENTICATION;
+    case BTM_NOT_ENCRYPTED:
+      return L2CAP_LE_RESULT_INSUFFICIENT_ENCRYP;
+    case BTM_NOT_AUTHORIZED:
+      return L2CAP_LE_RESULT_INSUFFICIENT_AUTHORIZATION;
+    case BTM_INSUFFICIENT_ENCRYPT_KEY_SIZE:
+      return L2CAP_LE_RESULT_INSUFFICIENT_ENCRYP_KEY_SIZE;
+    default:
+      LOG_ERROR("unexpected return value: %s", btm_status_text(result).c_str());
+      return L2CAP_LE_RESULT_INVALID_PARAMETERS;
+  }
 }
 
 /* This function is called to adjust the connection intervals based on various

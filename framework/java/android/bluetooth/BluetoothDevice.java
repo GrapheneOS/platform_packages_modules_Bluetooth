@@ -55,9 +55,9 @@ import android.util.Pair;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
@@ -86,7 +86,8 @@ import java.util.concurrent.TimeoutException;
  * <p>For more information about using Bluetooth, read the <a href=
  * "{@docRoot}guide/topics/connectivity/bluetooth.html">Bluetooth</a> developer guide. </div>
  *
- * <p>{@see BluetoothAdapter} {@see BluetoothSocket}
+ * @see BluetoothAdapter
+ * @see BluetoothSocket
  */
 public final class BluetoothDevice implements Parcelable, Attributable {
     private static final String TAG = "BluetoothDevice";
@@ -150,8 +151,9 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     /**
      * Broadcast Action: Bluetooth class of a remote device has changed.
      *
-     * <p>Always contains the extra fields {@link #EXTRA_DEVICE} and {@link #EXTRA_CLASS}. {@see
-     * BluetoothClass}
+     * <p>Always contains the extra fields {@link #EXTRA_DEVICE} and {@link #EXTRA_CLASS}.
+     *
+     * @see BluetoothClass
      */
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
@@ -560,7 +562,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @SystemApi public static final int METADATA_MAX_LENGTH = 2048;
 
     /**
-     * Manufacturer name of this Bluetooth device Data type should be {@String} as {@link Byte}
+     * Manufacturer name of this Bluetooth device Data type should be {@link String} as {@link Byte}
      * array.
      *
      * @hide
@@ -568,14 +570,14 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @SystemApi public static final int METADATA_MANUFACTURER_NAME = 0;
 
     /**
-     * Model name of this Bluetooth device Data type should be {@String} as {@link Byte} array.
+     * Model name of this Bluetooth device Data type should be {@link String} as {@link Byte} array.
      *
      * @hide
      */
     @SystemApi public static final int METADATA_MODEL_NAME = 1;
 
     /**
-     * Software version of this Bluetooth device Data type should be {@String} as {@link Byte}
+     * Software version of this Bluetooth device Data type should be {@link String} as {@link Byte}
      * array.
      *
      * @hide
@@ -583,7 +585,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @SystemApi public static final int METADATA_SOFTWARE_VERSION = 2;
 
     /**
-     * Hardware version of this Bluetooth device Data type should be {@String} as {@link Byte}
+     * Hardware version of this Bluetooth device Data type should be {@link String} as {@link Byte}
      * array.
      *
      * @hide
@@ -591,7 +593,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @SystemApi public static final int METADATA_HARDWARE_VERSION = 3;
 
     /**
-     * Package name of the companion app, if any Data type should be {@String} as {@link Byte}
+     * Package name of the companion app, if any Data type should be {@link String} as {@link Byte}
      * array.
      *
      * @hide
@@ -607,7 +609,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
     /**
      * Whether this device is an untethered headset with left, right and case Data type should be
-     * {@String} as {@link Byte} array.
+     * {@link String} as {@link Byte} array.
      *
      * @hide
      */
@@ -635,7 +637,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @SystemApi public static final int METADATA_UNTETHERED_CASE_ICON = 9;
 
     /**
-     * Battery level of left headset Data type should be {@String} 0-100 as {@link Byte} array,
+     * Battery level of left headset Data type should be {@link String} 0-100 as {@link Byte} array,
      * otherwise as invalid.
      *
      * @hide
@@ -643,15 +645,15 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @SystemApi public static final int METADATA_UNTETHERED_LEFT_BATTERY = 10;
 
     /**
-     * Battery level of right headset Data type should be {@String} 0-100 as {@link Byte} array,
-     * otherwise as invalid.
+     * Battery level of right headset Data type should be {@link String} 0-100 as {@link Byte}
+     * array, otherwise as invalid.
      *
      * @hide
      */
     @SystemApi public static final int METADATA_UNTETHERED_RIGHT_BATTERY = 11;
 
     /**
-     * Battery level of the headset charging case Data type should be {@String} 0-100 as {@link
+     * Battery level of the headset charging case Data type should be {@link String} 0-100 as {@link
      * Byte} array, otherwise as invalid.
      *
      * @hide
@@ -659,30 +661,32 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @SystemApi public static final int METADATA_UNTETHERED_CASE_BATTERY = 12;
 
     /**
-     * Whether the left headset is charging Data type should be {@String} as {@link Byte} array.
+     * Whether the left headset is charging Data type should be {@link String} as {@link Byte}
+     * array.
      *
      * @hide
      */
     @SystemApi public static final int METADATA_UNTETHERED_LEFT_CHARGING = 13;
 
     /**
-     * Whether the right headset is charging Data type should be {@String} as {@link Byte} array.
+     * Whether the right headset is charging Data type should be {@link String} as {@link Byte}
+     * array.
      *
      * @hide
      */
     @SystemApi public static final int METADATA_UNTETHERED_RIGHT_CHARGING = 14;
 
     /**
-     * Whether the headset charging case is charging Data type should be {@String} as {@link Byte}
-     * array.
+     * Whether the headset charging case is charging Data type should be {@link String} as {@link
+     * Byte} array.
      *
      * @hide
      */
     @SystemApi public static final int METADATA_UNTETHERED_CASE_CHARGING = 15;
 
     /**
-     * URI to the enhanced settings UI slice Data type should be {@String} as {@link Byte} array,
-     * null means the UI does not exist.
+     * URI to the enhanced settings UI slice Data type should be {@link String} as {@link Byte}
+     * array, null means the UI does not exist.
      *
      * @hide
      */
@@ -699,7 +703,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
     /**
      * Type of the Bluetooth device, must be within the list of BluetoothDevice.DEVICE_TYPE_* Data
-     * type should be {@String} as {@link Byte} array.
+     * type should be {@link String} as {@link Byte} array.
      *
      * @hide
      */
@@ -707,14 +711,14 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
     /**
      * Battery level of the Bluetooth device, use when the Bluetooth device does not support HFP
-     * battery indicator. Data type should be {@String} as {@link Byte} array.
+     * battery indicator. Data type should be {@link String} as {@link Byte} array.
      *
      * @hide
      */
     @SystemApi public static final int METADATA_MAIN_BATTERY = 18;
 
     /**
-     * Whether the device is charging. Data type should be {@String} as {@link Byte} array.
+     * Whether the device is charging. Data type should be {@link String} as {@link Byte} array.
      *
      * @hide
      */
@@ -722,7 +726,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
     /**
      * The battery threshold of the Bluetooth device to show low battery icon. Data type should be
-     * {@String} as {@link Byte} array.
+     * {@link String} as {@link Byte} array.
      *
      * @hide
      */
@@ -730,7 +734,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
     /**
      * The battery threshold of the left headset to show low battery icon. Data type should be
-     * {@String} as {@link Byte} array.
+     * {@link String} as {@link Byte} array.
      *
      * @hide
      */
@@ -738,15 +742,15 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
     /**
      * The battery threshold of the right headset to show low battery icon. Data type should be
-     * {@String} as {@link Byte} array.
+     * {@link String} as {@link Byte} array.
      *
      * @hide
      */
     @SystemApi public static final int METADATA_UNTETHERED_RIGHT_LOW_BATTERY_THRESHOLD = 22;
 
     /**
-     * The battery threshold of the case to show low battery icon. Data type should be {@String} as
-     * {@link Byte} array.
+     * The battery threshold of the case to show low battery icon. Data type should be {@link
+     * String} as {@link Byte} array.
      *
      * @hide
      */
@@ -1400,7 +1404,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
         this(in.readString(), in.readInt());
     }
 
-    /** {@hide} */
+    /** @hide */
     public void setAttributionSource(@NonNull AttributionSource attributionSource) {
         mAttributionSource = attributionSource;
     }
@@ -2915,8 +2919,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             Log.e(TAG, "Bluetooth is not enabled");
             throw new IOException();
         }
-        return new BluetoothSocket(
-                BluetoothSocket.TYPE_RFCOMM, -1, true, true, this, channel, null);
+        return new BluetoothSocket(BluetoothSocket.TYPE_RFCOMM, true, true, this, channel, null);
     }
 
     /**
@@ -2948,7 +2951,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SuppressLint("AndroidFrameworkRequiresPermission")
     public BluetoothSocket createL2capSocket(int channel) throws IOException {
-        return new BluetoothSocket(BluetoothSocket.TYPE_L2CAP, -1, true, true, this, channel, null);
+        return new BluetoothSocket(BluetoothSocket.TYPE_L2CAP, true, true, this, channel, null);
     }
 
     /**
@@ -2973,8 +2976,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SuppressLint("AndroidFrameworkRequiresPermission")
     public BluetoothSocket createInsecureL2capSocket(int channel) throws IOException {
-        return new BluetoothSocket(
-                BluetoothSocket.TYPE_L2CAP, -1, false, false, this, channel, null);
+        return new BluetoothSocket(BluetoothSocket.TYPE_L2CAP, false, false, this, channel, null);
     }
 
     /**
@@ -3018,7 +3020,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
         }
 
         return new BluetoothSocket(
-                BluetoothSocket.TYPE_RFCOMM, -1, true, true, this, -1, new ParcelUuid(uuid));
+                BluetoothSocket.TYPE_RFCOMM, true, true, this, -1, new ParcelUuid(uuid));
     }
 
     /**
@@ -3060,7 +3062,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             throw new IOException();
         }
         return new BluetoothSocket(
-                BluetoothSocket.TYPE_RFCOMM, -1, false, false, this, -1, new ParcelUuid(uuid));
+                BluetoothSocket.TYPE_RFCOMM, false, false, this, -1, new ParcelUuid(uuid));
     }
 
     /**
@@ -3086,7 +3088,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             Log.e(TAG, "Bluetooth is not enabled");
             throw new IOException();
         }
-        return new BluetoothSocket(BluetoothSocket.TYPE_RFCOMM, -1, false, false, this, port, null);
+        return new BluetoothSocket(BluetoothSocket.TYPE_RFCOMM, false, false, this, port, null);
     }
 
     /**
@@ -3108,7 +3110,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             Log.e(TAG, "Bluetooth is not enabled");
             throw new IOException();
         }
-        return new BluetoothSocket(BluetoothSocket.TYPE_SCO, -1, true, true, this, -1, null);
+        return new BluetoothSocket(BluetoothSocket.TYPE_SCO, true, true, this, -1, null);
     }
 
     /**
@@ -3125,13 +3127,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
         if (pin == null) {
             return null;
         }
-        byte[] pinBytes;
-        try {
-            pinBytes = pin.getBytes("UTF-8");
-        } catch (UnsupportedEncodingException uee) {
-            Log.e(TAG, "UTF-8 not supported?!?"); // this should not happen
-            return null;
-        }
+        byte[] pinBytes = pin.getBytes(StandardCharsets.UTF_8);
         if (pinBytes.length <= 0 || pinBytes.length > 16) {
             return null;
         }
@@ -3327,7 +3323,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             throw new IOException();
         }
         if (DBG) Log.d(TAG, "createL2capChannel: psm=" + psm);
-        return new BluetoothSocket(BluetoothSocket.TYPE_L2CAP_LE, -1, true, true, this, psm, null);
+        return new BluetoothSocket(BluetoothSocket.TYPE_L2CAP_LE, true, true, this, psm, null);
     }
 
     /**
@@ -3363,8 +3359,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
         if (DBG) {
             Log.d(TAG, "createInsecureL2capChannel: psm=" + psm);
         }
-        return new BluetoothSocket(
-                BluetoothSocket.TYPE_L2CAP_LE, -1, false, false, this, psm, null);
+        return new BluetoothSocket(BluetoothSocket.TYPE_L2CAP_LE, false, false, this, psm, null);
     }
 
     /**

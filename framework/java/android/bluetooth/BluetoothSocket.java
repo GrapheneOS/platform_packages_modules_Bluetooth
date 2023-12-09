@@ -81,7 +81,9 @@ import java.util.concurrent.TimeoutException;
  * <p>For more information about using Bluetooth, read the <a
  * href="{@docRoot}guide/topics/connectivity/bluetooth.html">Bluetooth</a> developer guide. </div>
  *
- * <p>{@see BluetoothServerSocket} {@see java.io.InputStream} {@see java.io.OutputStream}
+ * @see BluetoothServerSocket
+ * @see java.io.InputStream
+ * @see java.io.OutputStream
  */
 public final class BluetoothSocket implements Closeable {
     private static final String TAG = "BluetoothSocket";
@@ -128,7 +130,6 @@ public final class BluetoothSocket implements Closeable {
     /*package*/ static final int SEC_FLAG_AUTH_16_DIGIT = 1 << 4;
 
     // Defined in BluetoothProtoEnums.L2capCocConnectionResult of proto logging
-    private static final int RESULT_L2CAP_CONN_UNKNOWN = 0;
     /*package*/ static final int RESULT_L2CAP_CONN_SUCCESS = 1;
     private static final int RESULT_L2CAP_CONN_BLUETOOTH_SOCKET_CONNECTION_FAILED = 1000;
     private static final int RESULT_L2CAP_CONN_BLUETOOTH_SOCKET_CONNECTION_CLOSED = 1001;
@@ -163,9 +164,7 @@ public final class BluetoothSocket implements Closeable {
     private InputStream mSocketIS;
     private OutputStream mSocketOS;
     @UnsupportedAppUsage private int mPort; /* RFCOMM channel or L2CAP psm */
-    private int mFd;
     private String mServiceName;
-    private static final int PROXY_CONNECTION_TIMEOUT = 5000;
 
     private static final int SOCK_SIGNAL_SIZE = 20;
 
@@ -193,7 +192,6 @@ public final class BluetoothSocket implements Closeable {
      * Construct a BluetoothSocket.
      *
      * @param type type of socket
-     * @param fd fd to use for connected socket, or -1 for a new socket
      * @param auth require the remote device to be authenticated
      * @param encrypt require the connection to be encrypted
      * @param device remote device that this socket can connect to
@@ -203,21 +201,19 @@ public final class BluetoothSocket implements Closeable {
      */
     /*package*/ BluetoothSocket(
             int type,
-            int fd,
             boolean auth,
             boolean encrypt,
             BluetoothDevice device,
             int port,
             ParcelUuid uuid)
             throws IOException {
-        this(type, fd, auth, encrypt, device, port, uuid, false, false);
+        this(type, auth, encrypt, device, port, uuid, false, false);
     }
 
     /**
      * Construct a BluetoothSocket.
      *
      * @param type type of socket
-     * @param fd fd to use for connected socket, or -1 for a new socket
      * @param auth require the remote device to be authenticated
      * @param encrypt require the connection to be encrypted
      * @param device remote device that this socket can connect to
@@ -229,7 +225,6 @@ public final class BluetoothSocket implements Closeable {
      */
     /*package*/ BluetoothSocket(
             int type,
-            int fd,
             boolean auth,
             boolean encrypt,
             BluetoothDevice device,
@@ -242,7 +237,6 @@ public final class BluetoothSocket implements Closeable {
         mSocketCreationTimeMillis = System.currentTimeMillis();
         if (type == BluetoothSocket.TYPE_RFCOMM
                 && uuid == null
-                && fd == -1
                 && port != BluetoothAdapter.SOCKET_CHANNEL_AUTO_STATIC_NO_SDP) {
             if (port < 1 || port > MAX_RFCOMM_CHANNEL) {
                 throw new IOException("Invalid RFCOMM channel: " + port);
@@ -260,7 +254,6 @@ public final class BluetoothSocket implements Closeable {
         mEncrypt = encrypt;
         mDevice = device;
         mPort = port;
-        mFd = fd;
 
         mSocketState = SocketState.INIT;
 
@@ -292,7 +285,7 @@ public final class BluetoothSocket implements Closeable {
     /*package*/ static BluetoothSocket createSocketFromOpenFd(
             ParcelFileDescriptor pfd, BluetoothDevice device, ParcelUuid uuid) throws IOException {
         BluetoothSocket bluetoothSocket =
-                new BluetoothSocket(TYPE_RFCOMM, pfd.getFd(), true, true, device, -1, uuid);
+                new BluetoothSocket(TYPE_RFCOMM, true, true, device, -1, uuid);
 
         bluetoothSocket.mPfd = pfd;
         bluetoothSocket.mSocket = new LocalSocket(pfd.getFileDescriptor());
@@ -343,25 +336,9 @@ public final class BluetoothSocket implements Closeable {
         return as;
     }
 
-    /**
-     * Construct a BluetoothSocket from address. Used by native code.
-     *
-     * @param type type of socket
-     * @param fd fd to use for connected socket, or -1 for a new socket
-     * @param auth require the remote device to be authenticated
-     * @param encrypt require the connection to be encrypted
-     * @param address remote device that this socket can connect to
-     * @param port remote port
-     * @throws IOException On error, for example Bluetooth not available, or insufficient privileges
-     */
-    private BluetoothSocket(
-            int type, int fd, boolean auth, boolean encrypt, String address, int port)
-            throws IOException {
-        this(type, fd, auth, encrypt, new BluetoothDevice(address), port, null, false, false);
-    }
-
     /** @hide */
     @Override
+    @SuppressWarnings("Finalize") // TODO(b/314811467)
     protected void finalize() throws Throwable {
         try {
             close();

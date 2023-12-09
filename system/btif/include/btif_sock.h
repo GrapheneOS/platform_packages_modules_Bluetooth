@@ -48,5 +48,6 @@ const btsock_interface_t* btif_sock_get_interface(void);
 bt_status_t btif_sock_init(uid_set_t* uid_set);
 void btif_sock_cleanup(void);
 
-void btif_sock_connection_logger(int state, int role, const RawAddress& addr);
+void btif_sock_connection_logger(int state, int role, const RawAddress& addr,
+                                 int channel, const char* server_name);
 void btif_sock_dump(int fd);

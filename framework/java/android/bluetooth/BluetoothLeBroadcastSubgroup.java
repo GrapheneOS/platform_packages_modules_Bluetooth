@@ -244,7 +244,7 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
          * Set codec specific config metadata for this subgroup.
          *
          * @param codecSpecificConfig codec specific config metadata for this subgroup
-         * @throws {@link NullPointerException} if codecSpecificConfig is null
+         * @throws NullPointerException if codecSpecificConfig is null
          * @return this builder
          * @hide
          */

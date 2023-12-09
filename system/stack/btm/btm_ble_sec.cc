@@ -51,9 +51,9 @@
 #include "stack/include/btm_ble_privacy.h"
 #include "stack/include/btm_ble_sec_api.h"
 #include "stack/include/btm_log_history.h"
+#include "stack/include/btm_status.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/l2cap_security_interface.h"
-#include "stack/include/l2cdefs.h"
 #include "stack/include/smp_api.h"
 #include "stack/include/smp_api_types.h"
 #include "types/raw_address.h"
@@ -709,22 +709,23 @@ static tBTM_SEC_ACTION btm_ble_determine_security_act(
  *                  p_callback : Pointer to the callback function.
  *                  p_ref_data : Pointer to be returned along with the callback.
  *
- * Returns          Returns  - L2CAP LE Connection Response Result Code.
+ * Returns          Returns  - tBTM_STATUS
  *
  ******************************************************************************/
-tL2CAP_LE_RESULT_CODE btm_ble_start_sec_check(const RawAddress& bd_addr,
-                                              uint16_t psm, bool is_originator,
-                                              tBTM_SEC_CALLBACK* p_callback,
-                                              void* p_ref_data) {
+tBTM_STATUS btm_ble_start_sec_check(const RawAddress& bd_addr, uint16_t psm,
+                                    bool is_originator,
+                                    tBTM_SEC_CALLBACK* p_callback,
+                                    void* p_ref_data) {
   /* Find the service record for the PSM */
-  tBTM_SEC_SERV_REC* p_serv_rec = btm_sec_find_first_serv(is_originator, psm);
+  tBTM_SEC_SERV_REC* p_serv_rec =
+      btm_sec_cb.find_first_serv_rec(is_originator, psm);
 
   /* If there is no application registered with this PSM do not allow connection
    */
   if (!p_serv_rec) {
     LOG_WARN("PSM: %d no application registered", psm);
     (*p_callback)(&bd_addr, BT_TRANSPORT_LE, p_ref_data, BTM_MODE_UNSUPPORTED);
-    return L2CAP_LE_RESULT_NO_PSM;
+    return BTM_ILLEGAL_VALUE;
   }
 
   bool is_encrypted = BTM_IsEncrypted(bd_addr, BT_TRANSPORT_LE);
@@ -733,18 +734,14 @@ tL2CAP_LE_RESULT_CODE btm_ble_start_sec_check(const RawAddress& bd_addr,
 
   if (!is_originator) {
     if ((p_serv_rec->security_flags & BTM_SEC_IN_ENCRYPT) && !is_encrypted) {
-      LOG_ERROR(
-          "L2CAP_LE_RESULT_INSUFFICIENT_ENCRYP. service "
-          "security_flags=0x%x, ",
-          p_serv_rec->security_flags);
-      return L2CAP_LE_RESULT_INSUFFICIENT_ENCRYP;
+      LOG_ERROR("BTM_NOT_ENCRYPTED. service security_flags=0x%x",
+                p_serv_rec->security_flags);
+      return BTM_NOT_ENCRYPTED;
     } else if ((p_serv_rec->security_flags & BTM_SEC_IN_AUTHENTICATE) &&
                !(is_link_key_authed || is_authenticated)) {
-      LOG_ERROR(
-          "L2CAP_LE_RESULT_INSUFFICIENT_AUTHENTICATION. service "
-          "security_flags=0x%x, ",
-          p_serv_rec->security_flags);
-      return L2CAP_LE_RESULT_INSUFFICIENT_AUTHENTICATION;
+      LOG_ERROR("BTM_NOT_AUTHENTICATED. service security_flags=0x%x",
+                p_serv_rec->security_flags);
+      return BTM_NOT_AUTHENTICATED;
     }
     /* TODO: When security is required, then must check that the key size of our
        service is equal or smaller than the incoming connection key size. */
@@ -782,7 +779,7 @@ tL2CAP_LE_RESULT_CODE btm_ble_start_sec_check(const RawAddress& bd_addr,
   }
 
   if (ble_sec_act == BTM_BLE_SEC_NONE && sec_act != BTM_SEC_ENC_PENDING) {
-    return L2CAP_LE_RESULT_CONN_OK;
+    return BTM_SUCCESS;
   }
 
   l2cble_update_sec_act(bd_addr, sec_act);
@@ -790,7 +787,7 @@ tL2CAP_LE_RESULT_CODE btm_ble_start_sec_check(const RawAddress& bd_addr,
   BTM_SetEncryption(bd_addr, BT_TRANSPORT_LE, p_callback, p_ref_data,
                     ble_sec_act);
 
-  return L2CAP_LE_RESULT_CONN_OK;
+  return BTM_SUCCESS;
 }
 
 /*******************************************************************************
