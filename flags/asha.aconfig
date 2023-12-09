@@ -1,0 +1,8 @@
+package: "com.android.bluetooth.flags"
+
+flag {
+    name: "higher_l2cap_flush_threshold"
+    namespace: "bluetooth"
+    description: "Use a higher threshold for flushing L2CAP packets"
+    bug: "315500864"
+}
