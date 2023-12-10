@@ -1192,7 +1192,7 @@ tBTM_STATUS btm_ble_set_encryption(const RawAddress& bd_addr,
  * Returns          void
  *
  ******************************************************************************/
-void btm_ble_ltk_request(uint16_t handle, uint8_t rand[8], uint16_t ediv) {
+void btm_ble_ltk_request(uint16_t handle, BT_OCTET8 rand, uint16_t ediv) {
   tBTM_SEC_CB* p_cb = &btm_sec_cb;
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev_by_handle(handle);
 

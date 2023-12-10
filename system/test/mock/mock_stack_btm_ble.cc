@@ -280,7 +280,7 @@ void btm_ble_link_sec_check(const RawAddress& bd_addr,
   test::mock::stack_btm_ble::btm_ble_link_sec_check(bd_addr, auth_req,
                                                     p_sec_req_act);
 }
-void btm_ble_ltk_request(uint16_t handle, uint8_t rand[8], uint16_t ediv) {
+void btm_ble_ltk_request(uint16_t handle, BT_OCTET8 rand, uint16_t ediv) {
   inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_ltk_request(handle, rand, ediv);
 }
