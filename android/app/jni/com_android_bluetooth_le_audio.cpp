@@ -1107,7 +1107,7 @@ jobject prepareBluetoothLeBroadcastMetadataObject(
       broadcast_metadata.broadcast_code ? true : false,
       broadcast_metadata.is_public, broadcast_name.get(),
       broadcast_metadata.broadcast_code ? code.get() : nullptr,
-      (jint)broadcast_metadata.basic_audio_announcement.presentation_delay,
+      (jint)broadcast_metadata.basic_audio_announcement.presentation_delay_us,
       audio_cfg_quality, (jint)bluetooth::le_audio::kLeAudioSourceRssiUnknown,
       public_meta_obj.get(), subgroup_list_obj.get());
 }
