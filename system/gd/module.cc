@@ -18,6 +18,7 @@
 #include "module.h"
 
 #include "common/init_flags.h"
+#include "module_dumper_flatbuffer.h"
 
 using ::bluetooth::os::Handler;
 using ::bluetooth::os::Thread;
@@ -34,8 +35,6 @@ Handler* Module::GetHandler() const {
   return handler_;
 }
 
-DumpsysDataFinisher EmptyDumpsysDataFinisher = [](DumpsysDataBuilder* /* dumpsys_data_builder */) {
-};
 DumpsysDataFinisher Module::GetDumpsysData(flatbuffers::FlatBufferBuilder* /* builder */) const {
   return EmptyDumpsysDataFinisher;
 }

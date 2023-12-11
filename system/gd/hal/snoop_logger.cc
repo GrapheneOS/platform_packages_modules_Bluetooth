@@ -28,6 +28,7 @@
 #include "common/init_flags.h"
 #include "common/strings.h"
 #include "hal/snoop_logger_common.h"
+#include "module_dumper_flatbuffer.h"
 #include "os/files.h"
 #include "os/log.h"
 #include "os/parameter_provider.h"
@@ -1366,10 +1367,11 @@ void SnoopLogger::Stop() {
   }
 }
 
-DumpsysDataFinisher SnoopLogger::GetDumpsysData(flatbuffers::FlatBufferBuilder* builder) const {
+DumpsysDataFinisher SnoopLogger::GetDumpsysData(
+    flatbuffers::FlatBufferBuilder* /* builder */) const {
   LOG_DEBUG("Dumping btsnooz log data to %s", snooz_log_path_.c_str());
   DumpSnoozLogToFile(btsnooz_buffer_.Pull());
-  return Module::GetDumpsysData(builder);
+  return EmptyDumpsysDataFinisher;
 }
 
 size_t SnoopLogger::GetMaxPacketsPerFile() {
