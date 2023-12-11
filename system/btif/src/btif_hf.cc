@@ -48,6 +48,7 @@
 #include "include/hardware/bluetooth_headset_callbacks.h"
 #include "include/hardware/bluetooth_headset_interface.h"
 #include "include/hardware/bt_hf.h"
+#include "internal_include/bt_target.h"
 #include "stack/btm/btm_sco_hfp_hal.h"
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/btm_api.h"
