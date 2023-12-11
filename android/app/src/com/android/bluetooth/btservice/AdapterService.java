@@ -2321,6 +2321,7 @@ public class AdapterService extends Service {
                 return false;
             }
 
+            Log.d(TAG, "AdapterServiceBinder.setName(" + name + ")");
             return service.mAdapterProperties.setName(name);
         }
 
