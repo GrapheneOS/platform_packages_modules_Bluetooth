@@ -288,13 +288,6 @@ filegroup {
 }
 
 filegroup {
-    name: "TestMockAndroidHardware",
-    srcs: [
-        "mock/mock_android_hardware_*.cc",
-    ],
-}
-
-filegroup {
     name: "TestMockDevice",
     srcs: [
         "mock/mock_device_*.cc",
@@ -449,13 +442,6 @@ filegroup {
     name: "TestMockBtu",
     srcs: [
         "mock/mock_btu_*cc",
-    ],
-}
-
-filegroup {
-    name: "TestMockUtils",
-    srcs: [
-        "mock/mock_utils_*cc",
     ],
 }
 
