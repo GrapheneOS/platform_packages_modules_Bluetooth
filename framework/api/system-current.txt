@@ -1098,14 +1098,14 @@ package android.bluetooth {
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean isVolumeOffsetAvailable(@NonNull android.bluetooth.BluetoothDevice);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void registerCallback(@NonNull java.util.concurrent.Executor, @NonNull android.bluetooth.BluetoothVolumeControl.Callback);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice, int);
-    method @FlaggedApi("com.android.bluetooth.flags.leaudio_broadcast_volume_control_for_connected_devices") @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void setDeviceVolume(@NonNull android.bluetooth.BluetoothDevice, @IntRange(from=0xffffff01, to=255) int, boolean);
+    method @FlaggedApi("com.android.bluetooth.flags.leaudio_broadcast_volume_control_for_connected_devices") @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void setDeviceVolume(@NonNull android.bluetooth.BluetoothDevice, @IntRange(from=0, to=255) int, boolean);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void setVolumeOffset(@NonNull android.bluetooth.BluetoothDevice, @IntRange(from=0xffffff01, to=255) int);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void unregisterCallback(@NonNull android.bluetooth.BluetoothVolumeControl.Callback);
     field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_CONNECTION_STATE_CHANGED = "android.bluetooth.volume-control.profile.action.CONNECTION_STATE_CHANGED";
   }
 
   public static interface BluetoothVolumeControl.Callback {
-    method @FlaggedApi("com.android.bluetooth.flags.leaudio_broadcast_volume_control_for_connected_devices") public default void onDeviceVolumeChanged(@NonNull android.bluetooth.BluetoothDevice, @IntRange(from=0xffffff01, to=255) int);
+    method @FlaggedApi("com.android.bluetooth.flags.leaudio_broadcast_volume_control_for_connected_devices") public default void onDeviceVolumeChanged(@NonNull android.bluetooth.BluetoothDevice, @IntRange(from=0, to=255) int);
     method public void onVolumeOffsetChanged(@NonNull android.bluetooth.BluetoothDevice, @IntRange(from=0xffffff01, to=255) int);
   }
 
