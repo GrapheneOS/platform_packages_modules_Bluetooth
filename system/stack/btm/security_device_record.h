@@ -106,12 +106,10 @@ enum tBLE_RAND_ADDR_TYPE : uint8_t {
   BTM_BLE_ADDR_STATIC = 2,
 };
 
-struct tBTM_SEC_BLE {
+class tBTM_BLE_ADDR_INFO {
+ public:
   RawAddress pseudo_addr; /* LE pseudo address of the device if different from
                           device address  */
- private:
-  tBLE_ADDR_TYPE ble_addr_type_; /* LE device type: public or random address */
-
  public:
   tBLE_ADDR_TYPE AddressType() const { return ble_addr_type_; }
   void SetAddressType(tBLE_ADDR_TYPE ble_addr_type) {
@@ -131,8 +129,10 @@ struct tBTM_SEC_BLE {
   RawAddress cur_rand_addr; /* current random address */
 
   tBLE_RAND_ADDR_TYPE active_addr_type;
+
+ private:
+  tBLE_ADDR_TYPE ble_addr_type_; /* LE device type: public or random address */
 };
-typedef struct tBTM_SEC_BLE tBTM_SEC_BLE;
 
 enum : uint16_t {
   BTM_SEC_AUTHENTICATED = 0x0002,
@@ -251,7 +251,7 @@ struct tBTM_SEC_DEV_REC {
    *  other fields for device management
    */
   RawAddress bd_addr; /* BD_ADDR of the device */
-  tBTM_SEC_BLE ble;
+  tBTM_BLE_ADDR_INFO ble;
   tBTM_BD_NAME sec_bd_name; /* User friendly name of the device. (may be
                                truncated to save space in dev_rec table) */
   DEV_CLASS dev_class;      /* DEV_CLASS of the device            */
