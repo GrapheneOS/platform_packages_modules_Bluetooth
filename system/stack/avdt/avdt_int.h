@@ -29,7 +29,7 @@
 #include "avdt_api.h"
 #include "avdt_defs.h"
 #include "avdtc_api.h"
-#include "btm_api.h"
+#include "internal_include/bt_target.h"
 #include "l2c_api.h"
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
