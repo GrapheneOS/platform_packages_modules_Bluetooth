@@ -30,7 +30,7 @@
 #include <algorithm>
 #include <thread>
 
-#include "bt_target.h"
+#include "internal_include/bt_target.h"
 #include "os/log.h"
 
 using namespace android;

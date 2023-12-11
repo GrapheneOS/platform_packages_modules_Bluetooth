@@ -16,11 +16,11 @@
  *
  ******************************************************************************/
 
-#include "bt_target.h"
-#include "bta_api.h"
 #include "bta_sec_api.h"
 #include "btif_storage.h"
 #include "device/include/device_iot_config.h"
+#include "internal_include/bt_target.h"
+#include "os/log.h"
 #include "stack/include/btm_ble_api.h"
 
 /*******************************************************************************
