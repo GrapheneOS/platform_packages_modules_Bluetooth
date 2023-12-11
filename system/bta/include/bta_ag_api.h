@@ -292,6 +292,17 @@ typedef uint16_t tBTA_AG_PEER_CODEC;
 #define BTA_AG_AT_MAX_LEN 256
 #endif
 
+// Define hfp offload config structure
+namespace hfp {
+
+struct offload_config {
+  tBTA_AG_PEER_CODEC sco_codec;
+  int32_t connection_handle;
+  bool is_controller_codec;
+  bool is_nrec;
+};
+
+}  // namespace hfp
 /* data associated with BTA_AG_IND_RES */
 typedef struct {
   uint16_t id;
