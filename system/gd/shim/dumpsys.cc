@@ -21,6 +21,7 @@
 #include <string>
 
 #include "dumpsys/filter.h"
+#include "dumpsys_data_generated.h"
 #include "module.h"
 #include "module_dumper.h"
 #include "os/log.h"
