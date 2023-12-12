@@ -18,6 +18,7 @@
 #include "module_dumper.h"
 
 #include "common/init_flags.h"
+#include "dumpsys_data_generated.h"
 #include "module.h"
 #include "os/wakelock_manager.h"
 

@@ -15,19 +15,18 @@
  */
 #define LOG_TAG "l2cap2"
 
+#include "l2cap/classic/l2cap_classic_module.h"
+
 #include <future>
 #include <memory>
 
-#include "common/bidi_queue.h"
+#include "dumpsys_data_generated.h"
 #include "hci/acl_manager.h"
 #include "hci/address.h"
-#include "hci/hci_layer.h"
-#include "hci/hci_packets.h"
 #include "l2cap/classic/internal/dumpsys_helper.h"
 #include "l2cap/classic/internal/dynamic_channel_service_manager_impl.h"
 #include "l2cap/classic/internal/fixed_channel_service_manager_impl.h"
 #include "l2cap/classic/internal/link_manager.h"
-#include "l2cap/classic/l2cap_classic_module.h"
 #include "l2cap/internal/parameter_provider.h"
 #include "l2cap_classic_module_generated.h"
 #include "module.h"
