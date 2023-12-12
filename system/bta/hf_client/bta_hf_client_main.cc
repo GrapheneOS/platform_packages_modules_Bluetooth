@@ -24,6 +24,7 @@
 
 #include "bta/hf_client/bta_hf_client_int.h"
 #include "bta/include/utl.h"
+#include "internal_include/bt_target.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
