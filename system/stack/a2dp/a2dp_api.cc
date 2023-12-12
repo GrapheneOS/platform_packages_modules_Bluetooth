@@ -30,7 +30,7 @@
 
 #include "a2dp_int.h"
 #include "avdt_api.h"
-#include "bt_target.h"
+#include "internal_include/bt_target.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
