@@ -25,8 +25,9 @@
 #define BTA_SYS_INT_H
 
 #include <cstdint>
-#include "bta/sys/bta_sys.h"
 
+#include "bta/sys/bta_sys.h"
+#include "internal_include/bt_target.h"
 /*****************************************************************************
  *  Constants and data types
  ****************************************************************************/
