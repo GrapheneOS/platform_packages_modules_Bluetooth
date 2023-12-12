@@ -16,17 +16,26 @@
 
 package com.android.bluetooth.pbapclient;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.mock;
 
 import android.accounts.Account;
+import android.content.Context;
+import android.content.res.Resources;
 
+import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
+
+import com.android.bluetooth.R;
+import com.android.bluetooth.TestUtils;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -35,14 +44,66 @@ import java.io.InputStream;
 public class BluetoothPbapVcardListTest {
 
     private static final Account ACCOUNT = mock(Account.class);
+    private Context mTargetContext = InstrumentationRegistry.getTargetContext();
+    private Resources mTestResources = TestUtils.getTestApplicationResources(mTargetContext);
 
     @Test
-    public void constructor_withMockInputStream_throwsIOException() {
-        InputStream is = mock(InputStream.class);
+    public void constructor_withInputStreamThatThrowsIoeWhenRead_throwsIOException() {
+
+        final InputStream is = new InputStream() {
+            @Override
+            public int read() throws IOException {
+                throw new IOException();
+            }
+
+            @Override
+            public int read(byte[] b) throws IOException {
+                throw new IOException();
+            }
+
+            @Override
+            public int read(byte[] b, int off, int len) throws IOException {
+                throw new IOException();
+            }
+        };
 
         assertThrows(IOException.class, () ->
                 new BluetoothPbapVcardList(ACCOUNT, is, PbapClientConnectionHandler.VCARD_TYPE_30));
         assertThrows(IOException.class, () ->
                 new BluetoothPbapVcardList(ACCOUNT, is, PbapClientConnectionHandler.VCARD_TYPE_21));
+    }
+
+    @Test
+    public void constructor_withInvalidVcardType_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new BluetoothPbapVcardList(ACCOUNT,
+                new ByteArrayInputStream("Hello world".getBytes()), (byte) -1));
+    }
+
+    @Test
+    public void test30ParserWith21Vcard_parsingSucceeds() throws IOException {
+        InputStream fileStream = mTestResources.openRawResource(
+                com.android.bluetooth.tests.R.raw.v21_simple);
+        BluetoothPbapVcardList result = new BluetoothPbapVcardList(ACCOUNT, fileStream,
+                PbapClientConnectionHandler.VCARD_TYPE_30);
+        assertThat(result.getCount()).isEqualTo(1);
+    }
+
+    @Test
+    public void test21ParserWith30Vcard_parsingSucceeds() throws IOException {
+        InputStream fileStream = mTestResources.openRawResource(
+                com.android.bluetooth.tests.R.raw.v30_simple);
+        BluetoothPbapVcardList result = new BluetoothPbapVcardList(ACCOUNT, fileStream,
+                PbapClientConnectionHandler.VCARD_TYPE_21);
+        assertThat(result.getCount()).isEqualTo(1);
+    }
+
+    @Test
+    public void test30ParserWithUnsupportedVcardVersion_parsingFails() throws IOException {
+        InputStream fileStream = mTestResources.openRawResource(
+                com.android.bluetooth.tests.R.raw.unsupported_version);
+        BluetoothPbapVcardList result = new BluetoothPbapVcardList(ACCOUNT, fileStream,
+                PbapClientConnectionHandler.VCARD_TYPE_30);
+        assertThat(result.getCount()).isEqualTo(0);
     }
 }
