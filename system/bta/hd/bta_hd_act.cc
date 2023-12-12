@@ -26,8 +26,7 @@
 
 #include <cstdint>
 
-// BTA_HD_INCLUDED
-#include "bt_target.h"  // Must be first to define build configuration
+#include "internal_include/bt_target.h"
 #if defined(BTA_HD_INCLUDED) && (BTA_HD_INCLUDED == TRUE)
 
 #include "bta/hd/bta_hd_int.h"
