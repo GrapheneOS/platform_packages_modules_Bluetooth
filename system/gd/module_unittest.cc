@@ -19,6 +19,7 @@
 #include <functional>
 #include <string>
 
+#include "dumpsys_data_generated.h"
 #include "gtest/gtest.h"
 #include "module_dumper.h"
 #include "module_unittest_generated.h"

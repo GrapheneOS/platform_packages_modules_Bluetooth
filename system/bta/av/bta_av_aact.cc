@@ -49,6 +49,7 @@
 #include "stack/include/a2dp_sbc.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_client_interface.h"

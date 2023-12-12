@@ -32,10 +32,9 @@
 #include "btif/include/btif_uid.h"
 #include "include/hardware/bluetooth.h"
 #include "internal_include/bt_target.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"
-#include "stack/btm/security_device_record.h"
 #include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
 

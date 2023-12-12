@@ -28,16 +28,12 @@
 #include <hardware/bt_gatt_types.h>
 
 #include <map>
-#include <memory>
 #include <numeric>
 
-#include "bta_le_audio_api.h"
-#include "gap_api.h"
-#include "gatt_api.h"
-#include "gd/common/strings.h"
+#include "internal_include/bt_trace.h"
 #include "le_audio_types.h"
-#include "osi/include/allocator.h"
-#include "osi/include/log.h"
+#include "os/log.h"
+#include "stack/include/bt_types.h"
 
 using le_audio::types::acs_ac_record;
 

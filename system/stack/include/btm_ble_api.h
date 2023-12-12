@@ -44,14 +44,6 @@ void btm_ble_free();
  *  EXTERNAL FUNCTION DECLARATIONS
  ****************************************************************************/
 
-/**
- * This function is called to set scan parameters. |cb| is called with operation
- * status
- **/
-void BTM_BleSetScanParams(uint32_t scan_interval, uint32_t scan_window,
-                          tBLE_SCAN_MODE scan_type,
-                          base::Callback<void(uint8_t)> cb);
-
 /*******************************************************************************
  *
  * Function         BTM_BleGetVendorCapabilities

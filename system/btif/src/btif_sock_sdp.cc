@@ -20,12 +20,13 @@
 
 #include "btif/include/btif_sock_sdp.h"
 
-#include "bt_target.h"  // Must be first to define build configuration
 #include "bta/include/bta_jv_api.h"
 #include "bta/include/bta_op_api.h"
 #include "bta/include/utl.h"
 #include "bta/pb/bta_pbs_int.h"
 #include "bta/sys/bta_sys.h"
+#include "internal_include/bt_target.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/sdp_api.h"
 #include "stack/include/sdpdefs.h"

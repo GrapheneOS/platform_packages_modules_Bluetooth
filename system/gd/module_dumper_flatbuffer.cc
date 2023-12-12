@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,11 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "a2dp_aac_decoder"
+#include "module_dumper_flatbuffer.h"
 
-#include <base/logging.h>
+#include "dumpsys_data_generated.h"
 
-#include "a2dp_aac_decoder.h"
-#include "stack/include/bt_hdr.h"
-
-typedef struct {
-  decoded_data_callback_t decode_callback;
-} tA2DP_AAC_DECODER_CB;
-
-bool A2DP_LoadDecoderAac(void) { return false; }
-
-void A2DP_UnloadDecoderAac(void) {}
-
-bool a2dp_aac_decoder_init(decoded_data_callback_t decode_callback) {
-  return false;
-}
-
-void a2dp_aac_decoder_cleanup(void) {}
-
-bool a2dp_aac_decoder_decode_packet(BT_HDR* p_buf) { return false; }
+namespace bluetooth {
+DumpsysDataFinisher EmptyDumpsysDataFinisher = [](DumpsysDataBuilder* /* dumpsys_data_builder */) {
+};
+}  // namespace bluetooth

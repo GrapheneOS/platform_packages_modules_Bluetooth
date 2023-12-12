@@ -41,6 +41,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_sec.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/sdp_api.h"

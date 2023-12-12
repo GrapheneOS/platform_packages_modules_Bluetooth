@@ -22,10 +22,10 @@
 #include <bluetooth/uuid.h>
 #include <hardware/bluetooth.h>
 
-#include "bt_target.h"
-#include "stack/include/btm_sec_api_types.h"
+#include "internal_include/bt_target.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btm_sec_api_types.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 

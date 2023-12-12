@@ -28,14 +28,13 @@
 
 #include <cstdint>
 
-#include "bt_target.h"  // Must be first to define build configuration
 #include "bta/ag/bta_ag_int.h"
 #include "bta_ag_swb_aptx.h"
 #include "common/init_flags.h"
 #include "device/include/controller.h"
+#include "internal_include/bt_target.h"
 #include "internal_include/bt_trace.h"
-#include "main/shim/dumpsys.h"
-#include "osi/include/log.h"
+#include "os/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/btm_sco.h"
@@ -1520,6 +1519,10 @@ void bta_ag_sco_conn_rsp(tBTA_AG_SCB* p_scb,
   p_scb->inuse_codec = BTM_SCO_CODEC_NONE;
   /* Send pending commands to create SCO connection to peer */
   bta_ag_create_pending_sco(p_scb, bta_ag_cb.sco.is_local);
+}
+
+bool bta_ag_get_sco_offload_enabled() {
+  return hfp_hal_interface::get_offload_enabled();
 }
 
 void bta_ag_set_sco_offload_enabled(bool value) {

@@ -27,20 +27,20 @@
 #include <base/location.h>
 #include <base/logging.h>
 
-#include "bt_target.h"  // Legacy stack config
 #include "bta/ag/bta_ag_int.h"
+#include "bta/include/bta_hfp_api.h"
 #include "bta/include/bta_rfcomm_scn.h"
 #include "btif/include/btif_config.h"
 #include "common/init_flags.h"
 #include "device/include/interop.h"
 #include "device/include/interop_config.h"
-#include "internal_include/bt_trace.h"
+#include "internal_include/bt_target.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_sco_hfp_hal.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/bt_uuid16.h"
-#include "stack/include/btm_api.h"
 #include "stack/include/main_thread.h"
 #include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"

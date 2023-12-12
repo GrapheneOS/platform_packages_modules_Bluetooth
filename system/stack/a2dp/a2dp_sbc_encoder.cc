@@ -29,9 +29,9 @@
 #include "a2dp_sbc_up_sample.h"
 #include "common/time_util.h"
 #include "embdrv/sbc/encoder/include/sbc_encoder.h"
+#include "internal_include/bt_target.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
 
 /* Buffer pool */

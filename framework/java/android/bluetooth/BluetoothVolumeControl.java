@@ -93,6 +93,9 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
         /**
          * Callback for le audio connected device volume level change
          *
+         * <p>The valid volume range is [0, 255], as defined in 2.3.1.1 Volume_Setting field of
+         * Volume Control Service, Version 1.0.
+         *
          * @param device remote device whose volume changed
          * @param volume level
          * @hide
@@ -101,7 +104,7 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
                 "com.android.bluetooth.flags.leaudio_broadcast_volume_control_for_connected_devices")
         @SystemApi
         default void onDeviceVolumeChanged(
-                @NonNull BluetoothDevice device, @IntRange(from = -255, to = 255) int volume) {}
+                @NonNull BluetoothDevice device, @IntRange(from = 0, to = 255) int volume) {}
     }
 
     @SuppressLint("AndroidFrameworkBluetoothPermission")
@@ -592,7 +595,8 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
      * Set volume for the le audio device
      *
      * <p>This provides volume control for connected remote device directly by volume control
-     * service.
+     * service. The valid volume range is [0, 255], as defined in 2.3.1.1 Volume_Setting field of
+     * Volume Control Service, Version 1.0.
      *
      * <p>For le audio unicast devices volume control, application should consider to use {@link
      * BluetoothLeAudio#setVolume} instead to control active device volume.
@@ -602,6 +606,7 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
      * @param isGroupOperation {@code true} if Application wants to perform this operation for all
      *     coordinated set members throughout this session. Otherwise, caller would have to control
      *     individual device volume.
+     * @throws IllegalArgumentException if volume is not in the range [0, 255].
      * @hide
      */
     @FlaggedApi(
@@ -615,8 +620,11 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
             })
     public void setDeviceVolume(
             @NonNull BluetoothDevice device,
-            @IntRange(from = -255, to = 255) int volume,
+            @IntRange(from = 0, to = 255) int volume,
             boolean isGroupOperation) {
+        if (volume < 0 || volume > 255) {
+            throw new IllegalArgumentException("illegal volume " + volume);
+        }
         final IBluetoothVolumeControl service = getService();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");

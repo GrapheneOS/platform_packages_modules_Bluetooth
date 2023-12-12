@@ -33,7 +33,7 @@
 #include "a2dp_sbc_decoder.h"
 #include "a2dp_sbc_encoder.h"
 #include "embdrv/sbc/encoder/include/sbc_encoder.h"
-#include "osi/include/log.h"
+#include "os/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
 

@@ -27,7 +27,7 @@
 #ifndef BTIF_PAN_INTERNAL_H
 #define BTIF_PAN_INTERNAL_H
 
-#include "btif_pan.h"
+#include "internal_include/bt_target.h"
 #include "types/raw_address.h"
 
 /*******************************************************************************

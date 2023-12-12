@@ -37,13 +37,10 @@
 
 #include <cstdint>
 
-#include "bt_target.h"  // Must be first to define build configuration
-#include "btif/include/btif_av.h"
 #include "btif/include/btif_common.h"
 #include "btif/include/btif_config.h"
 #include "btif/include/btif_dm.h"
 #include "btif/include/btif_jni_task.h"
-#include "btif/include/btif_pan.h"
 #include "btif/include/btif_profile_queue.h"
 #include "btif/include/btif_sock.h"
 #include "btif/include/btif_storage.h"
@@ -52,14 +49,15 @@
 #include "common/message_loop_thread.h"
 #include "device/include/controller.h"
 #include "device/include/device_iot_config.h"
+#include "internal_include/bt_target.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/future.h"
-#include "osi/include/log.h"
 #include "osi/include/properties.h"
 #include "stack/include/a2dp_api.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_ble_api.h"
-#include "stack/include/btm_ble_sec_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
