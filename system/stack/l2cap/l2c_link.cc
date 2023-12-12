@@ -28,8 +28,7 @@
 #include <cstdint>
 
 #include "device/include/device_iot_config.h"
-#include "main/shim/l2c_api.h"
-#include "main/shim/shim.h"
+#include "internal_include/bt_target.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
@@ -38,6 +37,9 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/hci_error_code.h"
+#include "stack/include/l2cap_acl_interface.h"
+#include "stack/include/l2cap_hci_link_interface.h"
+#include "stack/include/l2cap_security_interface.h"
 #include "stack/l2cap/l2c_int.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"

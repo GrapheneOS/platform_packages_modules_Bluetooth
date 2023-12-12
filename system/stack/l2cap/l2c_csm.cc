@@ -29,8 +29,8 @@
 
 #include <string>
 
-#include "bt_target.h"
 #include "hal/snoop_logger.h"
+#include "internal_include/bt_target.h"
 #include "main/shim/entry.h"
 #include "main/shim/metrics_api.h"
 #include "os/log.h"
