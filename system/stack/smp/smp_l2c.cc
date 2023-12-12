@@ -24,6 +24,7 @@
 
 #define LOG_TAG "smp"
 
+#include "internal_include/bt_target.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
