@@ -62,3 +62,10 @@ flag {
     description: "Sync audio stream with the bluetooth link clock"
     bug: "312273987"
 }
+
+flag {
+    name: "leaudio_broadcast_feature_support"
+    namespace: "bluetooth"
+    description: "Le audio broadcast feature roll-out control flag"
+    bug: "316005152"
+}
