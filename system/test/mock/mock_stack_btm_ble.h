@@ -478,9 +478,9 @@ extern struct btm_ble_link_sec_check btm_ble_link_sec_check;
 // Params: uint16_t handle, uint8_t rand[8], uint16_t ediv
 // Return: void
 struct btm_ble_ltk_request {
-  std::function<void(uint16_t handle, uint8_t* rand, uint16_t ediv)> body{
-      [](uint16_t /* handle */, uint8_t* /* rand */, uint16_t /* ediv */) {}};
-  void operator()(uint16_t handle, uint8_t* rand, uint16_t ediv) {
+  std::function<void(uint16_t handle, BT_OCTET8 rand, uint16_t ediv)> body{
+      [](uint16_t /* handle */, BT_OCTET8 /* rand */, uint16_t /* ediv */) {}};
+  void operator()(uint16_t handle, BT_OCTET8 rand, uint16_t ediv) {
     body(handle, rand, ediv);
   };
 };
