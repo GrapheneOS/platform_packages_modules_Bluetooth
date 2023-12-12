@@ -44,6 +44,7 @@ class SecurityService(security_grpc_aio.SecurityServicer):
     def __init__(self, server: grpc.aio.Server, bluetooth: bluetooth_module.Bluetooth):
         self.server = server
         self.bluetooth = bluetooth
+        self.manually_confirm = False
 
     async def OnPairing(self, request: AsyncIterator[security_pb2.PairingEventAnswer],
                         context: grpc.ServicerContext) -> AsyncGenerator[security_pb2.PairingEvent, None]:
@@ -79,6 +80,8 @@ class SecurityService(security_grpc_aio.SecurityServicer):
 
         observers = []
         try:
+            self.manually_confirm = True
+
             self.bluetooth.pairing_events = asyncio.Queue()
             observer = PairingObserver(asyncio.get_running_loop(), {'pairing_events': self.bluetooth.pairing_events})
             name = utils.create_observer_name(observer)
