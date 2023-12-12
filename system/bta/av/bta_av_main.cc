@@ -28,7 +28,6 @@
 
 #include <cstdint>
 
-#include "bt_target.h"  // Must be first to define build configuration
 #include "bta/av/bta_av_int.h"
 #include "bta/include/bta_ar_api.h"
 #include "bta/include/bta_av_co.h"
@@ -39,6 +38,7 @@
 #include "btif/include/btif_av_co.h"
 #include "btif/include/btif_config.h"
 #include "gd/os/log.h"
+#include "internal_include/bt_target.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "osi/include/properties.h"
