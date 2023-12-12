@@ -23,9 +23,8 @@
  *
  ******************************************************************************/
 
-#include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/include/bta_hh_api.h"
+#include "internal_include/bt_target.h"
 
 /* max number of device types supported by BTA */
 #define BTA_HH_MAX_DEVT_SPT 9
