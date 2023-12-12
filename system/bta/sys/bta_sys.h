@@ -30,7 +30,7 @@
 #include <cstdint>
 #include <string>
 
-#include "bt_target.h"  // Must be first to define build configuration
+#include "internal_include/bt_target.h"
 #include "macros.h"
 #include "osi/include/alarm.h"
 #include "stack/include/bt_hdr.h"
