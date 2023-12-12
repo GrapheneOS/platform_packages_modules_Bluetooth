@@ -20,3 +20,10 @@ flag {
     description: "Broadcast when remote device it lost bond"
     bug: "311447399"
 }
+
+flag {
+    name: "keep_stopped_media_browser_service"
+    namespace: "bluetooth"
+    description: "Do not start stopped media browser services"
+    bug: "314855224"
+}
