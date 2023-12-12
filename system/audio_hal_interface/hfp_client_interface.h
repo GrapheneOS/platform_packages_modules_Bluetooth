@@ -23,6 +23,10 @@ namespace bluetooth {
 namespace audio {
 namespace hfp {
 
+/*
+ * Client interface for HFP.
+ * Only available if HFP is managed by AIDL sessions
+ */
 class HfpClientInterface {
  private:
   class IClientInterfaceEndpoint {
@@ -82,9 +86,9 @@ class HfpClientInterface {
   bool ReleaseEncode(Encode* encode);
 
   // Get HFP offload client interface
-  Offload GetOffload(bluetooth::common::MessageLoopThread* message_loop);
+  Offload* GetOffload(bluetooth::common::MessageLoopThread* message_loop);
   // Release offload interface if belongs to HFP client interface
-  bool ReleaseOffload(Encode* encode);
+  bool ReleaseOffload(Offload* offload);
 
   // Get interface, if previously not initialized - it'll initialize singleton.
   static HfpClientInterface* Get();
