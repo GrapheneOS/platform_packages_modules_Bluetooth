@@ -22,6 +22,7 @@
 #include "common/message_loop_thread.h"
 #include "include/hardware/bluetooth.h"
 #include "osi/include/allocator.h"
+#include "stack/include/bt_types.h"
 
 using base::PlatformThread;
 

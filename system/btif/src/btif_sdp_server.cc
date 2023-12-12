@@ -41,6 +41,7 @@
 #include "btif_common.h"
 #include "btif_sock_sdp.h"
 #include "osi/include/allocator.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/bt_uuid16.h"
 #include "stack/include/sdp_api.h"
 #include "stack/sdp/sdpint.h"

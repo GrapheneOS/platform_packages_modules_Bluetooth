@@ -50,6 +50,7 @@
 #include "device/include/device_iot_config.h"
 #include "hardware/bt_av.h"
 #include "include/hardware/bt_rc.h"
+#include "internal_include/bt_trace.h"
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
 #include "stack/include/avrc_api.h"
