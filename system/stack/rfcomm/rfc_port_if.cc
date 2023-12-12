@@ -28,8 +28,8 @@
 #include <cstdint>
 #include <unordered_map>
 
-#include "bt_target.h"
-#include "osi/include/log.h"
+#include "internal_include/bt_target.h"
+#include "os/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
 #include "stack/rfcomm/port_int.h"
