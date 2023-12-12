@@ -29,9 +29,9 @@
 
 #include <cstdint>
 
-#include "bta/include/bta_api.h"
 #include "bta/include/bta_sec_api.h"
 #include "common/init_flags.h"
+#include "internal_include/bt_target.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "stack/hid/hidd_int.h"
