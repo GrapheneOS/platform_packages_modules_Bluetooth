@@ -34,6 +34,7 @@
 #include "common/strings.h"
 #include "device/include/interop.h"
 #include "include/bind_helpers.h"
+#include "internal_include/bt_target.h"
 #include "main/shim/dumpsys.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
