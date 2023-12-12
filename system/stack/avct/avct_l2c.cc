@@ -28,7 +28,7 @@
 
 #include "avct_api.h"
 #include "avct_int.h"
-#include "bt_target.h"
+#include "internal_include/bt_target.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "os/log.h"
