@@ -16,7 +16,8 @@
 
 // Stubbed non-standard codec
 
-#include "a2dp_vendor.h"
+#include <cstdint>
+
 #include "a2dp_vendor_aptx.h"
 
 bool A2DP_IsVendorSourceCodecValidAptx(const uint8_t* p_codec_info) {

@@ -28,12 +28,10 @@
 #include <base/logging.h>
 #include <string.h>
 
-#include "a2dp_vendor.h"
 #include "a2dp_vendor_opus_decoder.h"
 #include "a2dp_vendor_opus_encoder.h"
-#include "bt_target.h"
-#include "btif_av_co.h"
-#include "osi/include/log.h"
+#include "internal_include/bt_trace.h"
+#include "os/log.h"
 #include "osi/include/osi.h"
 
 // data type for the Opus Codec Information Element */
