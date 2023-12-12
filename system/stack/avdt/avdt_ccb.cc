@@ -23,16 +23,13 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>  // VLOG
 #include <string.h>
 
-#include "avdt_api.h"
 #include "avdt_int.h"
-#include "avdtc_api.h"
-#include "bt_target.h"
+#include "internal_include/bt_target.h"
 #include "osi/include/osi.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 /*****************************************************************************
  * state machine constants and types
