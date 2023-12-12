@@ -27,11 +27,11 @@
 #include <cstdint>
 #include <deque>
 
-#include "bt_target.h"  // Must be first to define build configuration
 #include "bta/gatt/database.h"
 #include "bta/gatt/database_builder.h"
 #include "bta/include/bta_gatt_api.h"
 #include "bta/sys/bta_sys.h"
+#include "internal_include/bt_target.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/gatt_api.h"
 #include "types/bluetooth/uuid.h"
