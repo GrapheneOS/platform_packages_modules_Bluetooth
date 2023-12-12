@@ -27,12 +27,11 @@
 #include <base/logging.h>
 #include <string.h>
 
-#include "bt_target.h"
 #include "gatt_int.h"
 #include "hardware/bt_gatt_types.h"
-#include "l2c_api.h"
+#include "internal_include/bt_target.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/arbiter/acl_arbiter.h"
 #include "stack/eatt/eatt.h"

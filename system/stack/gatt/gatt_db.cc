@@ -31,6 +31,7 @@
 #include "l2c_api.h"
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 #include "types/bluetooth/uuid.h"
 
 using base::StringPrintf;
