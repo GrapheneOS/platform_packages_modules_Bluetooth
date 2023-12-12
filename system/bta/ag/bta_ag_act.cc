@@ -30,6 +30,7 @@
 
 #include "bta/ag/bta_ag_int.h"
 #include "bta/include/bta_dm_api.h"
+#include "bta/include/bta_hfp_api.h"
 #include "bta_ag_swb_aptx.h"
 
 #ifdef __ANDROID__
