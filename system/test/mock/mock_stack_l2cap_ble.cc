@@ -42,8 +42,6 @@ struct L2CA_ConsolidateParams L2CA_ConsolidateParams;
 struct L2CA_GetBleConnRole L2CA_GetBleConnRole;
 struct l2cble_notify_le_connection l2cble_notify_le_connection;
 struct l2cble_conn_comp l2cble_conn_comp;
-struct l2cble_conn_comp_from_address_with_type
-    l2cble_conn_comp_from_address_with_type;
 struct l2cble_process_conn_update_evt l2cble_process_conn_update_evt;
 struct l2cble_process_sig_cmd l2cble_process_sig_cmd;
 struct l2cble_create_conn l2cble_create_conn;
@@ -100,14 +98,6 @@ bool l2cble_conn_comp(uint16_t handle, uint8_t role, const RawAddress& bda,
   inc_func_call_count(__func__);
   return test::mock::stack_l2cap_ble::l2cble_conn_comp(
       handle, role, bda, type, conn_interval, conn_latency, conn_timeout);
-}
-bool l2cble_conn_comp_from_address_with_type(
-    uint16_t handle, uint8_t role, const tBLE_BD_ADDR& address_with_type,
-    uint16_t conn_interval, uint16_t conn_latency, uint16_t conn_timeout) {
-  inc_func_call_count(__func__);
-  return test::mock::stack_l2cap_ble::l2cble_conn_comp_from_address_with_type(
-      handle, role, address_with_type, conn_interval, conn_latency,
-      conn_timeout);
 }
 void l2cble_process_conn_update_evt(uint16_t handle, uint8_t status,
                                     uint16_t interval, uint16_t latency,
