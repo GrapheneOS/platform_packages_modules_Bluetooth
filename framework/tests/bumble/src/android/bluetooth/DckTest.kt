@@ -28,11 +28,11 @@ import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.any
-import org.mockito.Mockito.eq
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.timeout
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.timeout
+import org.mockito.kotlin.verify
 import pandora.HostProto.AdvertiseRequest
 import pandora.HostProto.OwnAddressType
 
@@ -130,7 +130,7 @@ public class DckTest {
 
         // 4. Create a mock callback to handle Bluetooth GATT (Generic Attribute Profile) related
         // events.
-        val gattCallback = mock(BluetoothGattCallback::class.java)
+        val gattCallback = mock<BluetoothGattCallback>()
 
         // 5. Connect to the Bumble device and expect a successful connection callback.
         var bumbleGatt = bumbleDevice.connectGatt(context, false, gattCallback)
