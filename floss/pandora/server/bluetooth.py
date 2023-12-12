@@ -54,10 +54,6 @@ class Bluetooth(object):
         # self state
         self.is_clean = False
 
-        # GRPC server state
-        self.pairing_events: asyncio.Queue = None
-        self.pairing_answers = None
-
         # DBUS clients
         self.manager_client = manager_client.FlossManagerClient(self.bus)
         self.adapter_client = adapter_client.FlossAdapterClient(self.bus, self.DEFAULT_ADAPTER)
@@ -181,6 +177,9 @@ class Bluetooth(object):
     def get_address(self):
         return self.adapter_client.get_address()
 
+    def get_remote_type(self):
+        return self.adapter_client.get_remote_property('Type')
+
     def is_connected(self, address):
         return self.adapter_client.is_connected(address)
 
@@ -195,6 +194,18 @@ class Bluetooth(object):
 
     def create_bond(self, address, transport):
         return self.adapter_client.create_bond(address, transport)
+
+    def remove_bond(self, address):
+        return self.adapter_client.remove_bond(address)
+
+    def get_bonded_devices(self):
+        return self.adapter_client.get_bonded_devices()
+
+    def forget_device(self, address):
+        return self.adapter_client.forget_device(address)
+
+    def set_pin(self, address, accept, pin_code):
+        return self.adapter_client.set_pin(address, accept, pin_code)
 
     def set_pairing_confirmation(self, address, accept):
         return self.adapter_client.set_pairing_confirmation(address, accept)
