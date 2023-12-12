@@ -38,15 +38,10 @@ import pandora.HostProto.OwnAddressType
 
 @RunWith(AndroidJUnit4::class)
 public class DckTest {
-    private val TAG = "DckTest"
-    private val TIMEOUT: Long = 2000
 
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
     private val bluetoothAdapter = bluetoothManager.adapter
-
-    // CCC DK Specification R3 1.2.0 r14 section 19.2.1.2 Bluetooth Le Pairing
-    private val CCC_DK_UUID = UUID.fromString("0000FFF5-0000-1000-8000-00805f9b34fb")
 
     // A Rule live from a test setup through it's teardown.
     // Gives shell permissions during the test.
@@ -157,5 +152,13 @@ public class DckTest {
                 eq(BluetoothGatt.GATT_SUCCESS),
                 eq(BluetoothProfile.STATE_DISCONNECTED)
             )
+    }
+
+    companion object {
+        private const val TAG = "DckTest"
+        private const val TIMEOUT: Long = 2000
+
+        // CCC DK Specification R3 1.2.0 r14 section 19.2.1.2 Bluetooth Le Pairing
+        private val CCC_DK_UUID = UUID.fromString("0000FFF5-0000-1000-8000-00805f9b34fb")
     }
 }
