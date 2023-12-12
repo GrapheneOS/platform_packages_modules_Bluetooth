@@ -25,6 +25,7 @@
 
 #include "bta_groups.h"
 #include "btif_profile_storage.h"
+#include "stack/include/bt_types.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
