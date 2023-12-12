@@ -51,6 +51,16 @@ class HostService(host_grpc_aio.HostServicer):
 
     async def FactoryReset(self, request: empty_pb2.Empty, context: grpc.ServicerContext) -> empty_pb2.Empty:
         self.waited_connections.clear()
+
+        devices = self.bluetooth.get_bonded_devices()
+        if devices is None:
+            logging.error('Failed to call get_bonded_devices.')
+        else:
+            for device in devices:
+                address = device['address']
+                logging.info('Forget device %s', address)
+                self.bluetooth.forget_device(address)
+
         asyncio.create_task(self.server.stop(None))
         return empty_pb2.Empty()
 
@@ -124,7 +134,7 @@ class HostService(host_grpc_aio.HostServicer):
                 if address != self.task['address']:
                     return
 
-                if variant == floss_enums.SspVariant.CONSENT:
+                if variant in (floss_enums.PairingVariant.CONSENT, floss_enums.PairingVariant.PASSKEY_CONFIRMATION):
                     self.client.set_pairing_confirmation(address,
                                                          True,
                                                          method_callback=self.on_set_pairing_confirmation)
@@ -176,6 +186,9 @@ class HostService(host_grpc_aio.HostServicer):
 
                     if not success:
                         raise RuntimeError(f'Failed to connect to the {address}. Reason: {reason}')
+
+                    if self.bluetooth.is_bonded(address) and self.bluetooth.is_connected(address):
+                        self.bluetooth.connect_device(address)
             finally:
                 self.bluetooth.adapter_client.unregister_callback_observer(name, observer)
 
@@ -461,6 +474,9 @@ class HostService(host_grpc_aio.HostServicer):
                 elif scan_result['addr_type'] == floss_enums.BleAddressType.BLE_ADDR_RANDOM_ID:
                     response.random_static_identity = address
 
+                data = utils.parse_advertiging_data(scan_result['adv_data'])
+                response.data.CopyFrom(data)
+
                 # TODO: b/289480188 - Support more data if needed.
                 mode = host_pb2.NOT_DISCOVERABLE
                 if scan_result['flags'] & (1 << 0):
@@ -470,6 +486,7 @@ class HostService(host_grpc_aio.HostServicer):
                 else:
                     mode = host_pb2.NOT_DISCOVERABLE
                 response.data.le_discoverability_mode = mode
+
                 yield response
         finally:
             if scanner_id is not None:
