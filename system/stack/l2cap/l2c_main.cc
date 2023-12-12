@@ -26,10 +26,10 @@
 
 #include <string.h>
 
-#include "bt_target.h"
-#include "gd/common/init_flags.h"
+#include "common/init_flags.h"
 #include "gd/hal/snoop_logger.h"
 #include "hcimsgs.h"  // HCID_GET_
+#include "internal_include/bt_target.h"
 #include "main/shim/entry.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
@@ -37,6 +37,7 @@
 #include "stack/include/bt_psm_types.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/l2c_api.h"
+#include "stack/include/l2cap_hci_link_interface.h"
 #include "stack/include/l2cdefs.h"
 #include "stack/l2cap/l2c_int.h"
 
