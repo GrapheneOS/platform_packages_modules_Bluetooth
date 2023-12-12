@@ -21,9 +21,8 @@
 #include <aacdecoder_lib.h>
 #include <base/logging.h>
 
-#include "a2dp_aac.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
 
 #define DECODE_BUF_LEN (8 * 2 * 1024)

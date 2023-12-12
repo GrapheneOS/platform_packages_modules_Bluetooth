@@ -18,17 +18,12 @@
 
 #include <base/logging.h>
 
-#include "a2dp_aac.h"
 #include "a2dp_aac_decoder.h"
-#include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
 
 typedef struct {
   decoded_data_callback_t decode_callback;
 } tA2DP_AAC_DECODER_CB;
-
-static tA2DP_AAC_DECODER_CB a2dp_aac_decoder_cb;
 
 bool A2DP_LoadDecoderAac(void) { return false; }
 
