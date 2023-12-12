@@ -21,18 +21,15 @@
 
 #include <base/functional/bind.h>
 #include <base/strings/stringprintf.h>
-#include <string.h>
 
 #include <deque>
 #include <list>
-#include <queue>
 #include <unordered_set>
 #include <vector>
 
-#include "bt_target.h"
-#include "btm_ble_api.h"
 #include "common/init_flags.h"
 #include "gatt_api.h"
+#include "internal_include/bt_target.h"
 #include "macros.h"
 #include "osi/include/fixed_queue.h"
 #include "stack/include/bt_hdr.h"

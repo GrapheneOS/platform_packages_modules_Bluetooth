@@ -29,17 +29,19 @@
 #include <map>
 
 #include "base/functional/callback.h"
-#include "bt_target.h"
 #include "btif/include/btif_storage.h"
 #include "eatt/eatt.h"
 #include "gatt_api.h"
 #include "gatt_int.h"
+#include "internal_include/bt_target.h"
+#include "internal_include/bt_trace.h"
 #include "os/log.h"
+#include "os/logging/log_adapter.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_types.h"
 #include "stack/include/bt_uuid16.h"
-#include "types/bluetooth/uuid.h"
 #include "stack/include/btm_sec_api.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 using base::StringPrintf;
