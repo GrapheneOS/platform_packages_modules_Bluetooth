@@ -1672,44 +1672,6 @@ static uint8_t btm_set_conn_mode_adv_init_addr(
   return evt_type;
 }
 
-/**
- * This function is called to set scan parameters. |cb| is called with operation
- * status
- **/
-void BTM_BleSetScanParams(uint32_t scan_interval, uint32_t scan_window,
-                          tBLE_SCAN_MODE scan_mode,
-                          base::Callback<void(uint8_t)> cb) {
-  if (!controller_get_interface()->supports_ble()) {
-    LOG_INFO("Controller does not support ble");
-    return;
-  }
-
-  uint32_t max_scan_interval = BTM_BLE_EXT_SCAN_INT_MAX;
-  uint32_t max_scan_window = BTM_BLE_EXT_SCAN_WIN_MAX;
-  if (btm_cb.cmn_ble_vsc_cb.extended_scan_support == 0) {
-    max_scan_interval = BTM_BLE_SCAN_INT_MAX;
-    max_scan_window = BTM_BLE_SCAN_WIN_MAX;
-  }
-
-  tBTM_BLE_INQ_CB* p_cb = &btm_cb.ble_ctr_cb.inq_var;
-  if (BTM_BLE_ISVALID_PARAM(scan_interval, BTM_BLE_SCAN_INT_MIN,
-                            max_scan_interval) &&
-      BTM_BLE_ISVALID_PARAM(scan_window, BTM_BLE_SCAN_WIN_MIN,
-                            max_scan_window) &&
-      (scan_mode == BTM_BLE_SCAN_MODE_ACTI ||
-       scan_mode == BTM_BLE_SCAN_MODE_PASS)) {
-    p_cb->scan_type = scan_mode;
-    p_cb->scan_interval = scan_interval;
-    p_cb->scan_window = scan_window;
-
-    cb.Run(BTM_SUCCESS);
-  } else {
-    cb.Run(BTM_ILLEGAL_VALUE);
-    LOG_WARN("Illegal params: scan_interval = %d scan_window = %d",
-             scan_interval, scan_window);
-  }
-}
-
 /*******************************************************************************
  *
  * Function         BTM__BLEReadDiscoverability
