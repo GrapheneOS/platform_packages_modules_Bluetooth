@@ -68,6 +68,30 @@ class BluetoothCallbacks:
         """
         pass
 
+    def on_pin_request(self, remote_device, cod, min_16_digit):
+        """When there is a pin request to display the event to client.
+
+        Args:
+            remote_device:
+                Remote device that is being paired.
+            cod:
+                Class of device as described in HCI spec.
+            min_16_digit:
+                True if the pin is 16 digit, False otherwise.
+        """
+        pass
+
+    def on_pin_display(self, remote_device, pincode):
+        """When there is a auto-gen pin to display the event to client.
+
+        Args:
+            remote_device:
+                Remote device that is being paired.
+            pincode:
+                PIN code to display.
+        """
+        pass
+
     def on_bond_state_changed(self, status, address, state):
         """Bonding/Pairing state has changed for a device.
 
@@ -155,6 +179,15 @@ class FlossAdapterClient(BluetoothCallbacks, BluetoothConnectionCallbacks):
                     <arg type="u" name="variant" direction="in" />
                     <arg type="u" name="passkey" direction="in" />
                 </method>
+                <method name="OnPinRequest">
+                    <arg type="a{sv}" name="remote_device_dbus" direction="in" />
+                    <arg type="u" name="cod" direction="in" />
+                    <arg type="b" name="min_16_digit" direction="in" />
+                </method>
+                <method name="OnPinDisplay">
+                    <arg type="a{sv}" name="remote_device_dbus" direction="in" />
+                    <arg type="s" name="pincode" direction="in" />
+                </method>
                 <method name="OnBondStateChanged">
                     <arg type="u" name="status" direction="in" />
                     <arg type="s" name="address" direction="in" />
@@ -192,11 +225,31 @@ class FlossAdapterClient(BluetoothCallbacks, BluetoothConnectionCallbacks):
             """Handle pairing/bonding request to agent."""
             parsed, remote_device = FlossAdapterClient.parse_dbus_device(remote_device_dbus)
             if not parsed:
-                logging.debug('OnSspRequest parse error: {}'.format(remote_device_dbus))
+                logging.error('OnSspRequest parse error: {}'.format(remote_device_dbus))
                 return
 
             for observer in self.observers.values():
                 observer.on_ssp_request(remote_device, class_of_device, variant, passkey)
+
+        def OnPinRequest(self, remote_device_dbus, cod, min_16_digit):
+            """Handle PIN request callback."""
+            parsed, remote_device = FlossAdapterClient.parse_dbus_device(remote_device_dbus)
+            if not parsed:
+                logging.error('OnPinRequest parse error: {}'.format(remote_device_dbus))
+                return
+
+            for observer in self.observers.values():
+                observer.on_pin_request(remote_device, cod, min_16_digit)
+
+        def OnPinDisplay(self, remote_device_dbus, pincode):
+            """Handle PIN display callback."""
+            parsed, remote_device = FlossAdapterClient.parse_dbus_device(remote_device_dbus)
+            if not parsed:
+                logging.error('OnPinDisplay parse error: {}'.format(remote_device_dbus))
+                return
+
+            for observer in self.observers.values():
+                observer.on_pin_display(remote_device, pincode)
 
         def OnBondStateChanged(self, status, address, state):
             """Handle bond state changed callbacks."""
@@ -685,6 +738,15 @@ class FlossAdapterClient(BluetoothCallbacks, BluetoothConnectionCallbacks):
         remote_device = self._make_dbus_device(address, name)
         return bool(self.proxy().RemoveBond(remote_device))
 
+    @utils.glib_call(None)
+    def get_bonded_devices(self):
+        """Get all bonded devices.
+
+        Returns:
+            List of device addresses; None on DBus error.
+        """
+        return self.proxy().GetBondedDevices()
+
     @utils.glib_call(False)
     def forget_device(self, address):
         """Forgets device from local cache and removes bonding.
@@ -715,6 +777,25 @@ class FlossAdapterClient(BluetoothCallbacks, BluetoothConnectionCallbacks):
             return bool(self.proxy().RemoveBond(remote_device))
 
         return True
+
+    @utils.glib_call(False)
+    def set_pin(self, address, accept, pin_code):
+        """Set pin on bonding device.
+
+        Args:
+            address: Device address to reply.
+            accept: True to accept the pin request, False to reject the pin request.
+            pin_code: PIN code to reply. The PIN code is a list of up to 16
+                      integers.
+        """
+        if address not in self.known_devices:
+            logging.debug('[%s] Unknown device in set_pin', address)
+            return False
+
+        device = self.known_devices[address]
+        remote_device = self._make_dbus_device(address, device['name'])
+
+        return self.proxy().SetPin(remote_device, accept, pin_code)
 
     @utils.glib_call(False)
     def set_pairing_confirmation(self, address, accept):
