@@ -554,7 +554,6 @@ cc_test {
         ":TestCommonCoreInterface",
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
-        ":TestMockAndroidHardware",
         ":TestMockBtaAg",
         ":TestMockBtaAr",
         ":TestMockBtaAv",
@@ -580,7 +579,6 @@ cc_test {
         ":TestMockMainShim",
         ":TestMockStack",
         ":TestMockUdrv",
-        ":TestMockUtils",
         "test/btif_hh_test.cc",
     ],
     generated_headers: [
@@ -677,7 +675,6 @@ cc_test {
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
         ":TestFakeOsi",
-        ":TestMockAndroidHardware",
         ":TestMockBtaAg",
         ":TestMockBtaAr",
         ":TestMockBtaAv",
@@ -703,7 +700,6 @@ cc_test {
         ":TestMockMainShim",
         ":TestMockStack",
         ":TestMockUdrv",
-        ":TestMockUtils",
         "test/btif_core_test.cc",
     ],
     generated_headers: [
