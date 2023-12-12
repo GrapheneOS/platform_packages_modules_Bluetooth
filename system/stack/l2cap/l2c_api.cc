@@ -33,16 +33,19 @@
 #include <cstdint>
 #include <string>
 
+#include "common/init_flags.h"
 #include "device/include/controller.h"  // TODO Remove
-#include "gd/common/init_flags.h"
 #include "gd/hal/snoop_logger.h"
 #include "gd/os/system_properties.h"
+#include "internal_include/bt_target.h"
+#include "internal_include/bt_trace.h"
 #include "main/shim/entry.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_psm_types.h"
+#include "stack/include/btm_api.h"
 #include "stack/include/l2c_api.h"
 #include "stack/include/main_thread.h"
 #include "stack/l2cap/l2c_int.h"

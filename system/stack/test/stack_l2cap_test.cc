@@ -20,10 +20,10 @@
 #include "device/include/controller.h"
 #include "internal_include/bt_trace.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/include/l2cap_controller_interface.h"
 #include "stack/include/l2cap_hci_link_interface.h"
 #include "stack/include/l2cdefs.h"
 #include "stack/l2cap/l2c_int.h"
-#include "types/raw_address.h"
 
 tBTM_CB btm_cb;
 extern tL2C_CB l2cb;

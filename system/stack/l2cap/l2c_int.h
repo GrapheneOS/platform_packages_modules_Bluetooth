@@ -29,13 +29,8 @@
 
 #include <string>
 
-#include "btm_api.h"
-#include "btm_ble_api.h"
+#include "internal_include/bt_target.h"
 #include "l2c_api.h"
-#include "l2cap_acl_interface.h"
-#include "l2cap_controller_interface.h"
-#include "l2cap_hci_link_interface.h"
-#include "l2cap_security_interface.h"
 #include "l2cdefs.h"
 #include "macros.h"
 #include "osi/include/alarm.h"
