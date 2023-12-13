@@ -20,6 +20,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "internal_include/bt_target.h"
 #include "mock_btm_layer.h"
 #include "mock_l2cap_layer.h"
 #include "osi/include/allocator.h"
@@ -27,7 +28,7 @@
 #include "stack/include/bt_psm_types.h"
 #include "stack/include/l2c_api.h"
 #include "stack/include/port_api.h"
-#include "stack/rfcomm/rfc_int.h"
+#include "stack/include/rfcdefs.h"
 #include "stack_rfcomm_test_utils.h"
 #include "stack_test_packet_utils.h"
 #include "types/raw_address.h"

@@ -18,13 +18,13 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <iomanip>
 #include <iostream>
 #include <sstream>
 
 #include "gd/common/init_flags.h"
 #include "hci/hci_layer_mock.h"
 #include "hci/include/hci_layer.h"
+#include "internal_include/bt_target.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/btm_sco.h"

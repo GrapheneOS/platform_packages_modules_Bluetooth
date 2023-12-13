@@ -18,7 +18,7 @@
 
 #include "common/init_flags.h"
 #include "device/include/controller.h"
-#include "internal_include/bt_trace.h"
+#include "osi/include/allocator.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/l2cap_controller_interface.h"
 #include "stack/include/l2cap_hci_link_interface.h"
