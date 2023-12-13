@@ -20,8 +20,7 @@
 
 #include <base/logging.h>
 
-#include "bt_target.h"
-#include "check.h"
+#include "internal_include/bt_target.h"
 #include "osi/include/allocator.h"
 
 static void* buffer_alloc(size_t size) {

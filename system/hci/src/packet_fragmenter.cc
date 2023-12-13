@@ -25,11 +25,11 @@
 
 #include <unordered_map>
 
-#include "bt_target.h"
 #include "device/include/controller.h"
 #include "hci/include/buffer_allocator.h"
 #include "hci/include/hci_layer.h"
-#include "osi/include/log.h"
+#include "internal_include/bt_target.h"
+#include "os/log.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 
