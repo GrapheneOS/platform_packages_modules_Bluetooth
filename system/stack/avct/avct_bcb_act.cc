@@ -32,12 +32,14 @@
 
 #include "avct_api.h"
 #include "avct_int.h"
-#include "bt_target.h"
 #include "bta/include/bta_sec_api.h"
+#include "internal_include/bt_target.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
+#include "stack/avct/avct_defs.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 
 /* action function list */
 const tAVCT_BCB_ACTION avct_bcb_action[] = {
