@@ -29,12 +29,13 @@
 
 #include <bitset>
 
-#include "bt_target.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
+#include "internal_include/bt_target.h"
 #include "osi/include/allocator.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/btu_hcif.h"
 #include "types/raw_address.h"
 
