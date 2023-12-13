@@ -2218,9 +2218,6 @@ int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env) {
   return 0;
 }
 
-extern int register_com_android_modules_expresslog_Utils(
-    JNIEnv* env, const char* const kUtilsClassName);
-
 } /* namespace android */
 
 /*
@@ -2352,13 +2349,6 @@ jint JNI_OnLoad(JavaVM* jvm, void* /* reserved */) {
           e);
   if (status < 0) {
     ALOGE("jni bluetooth quality report registration failure: %d", status);
-    return JNI_ERR;
-  }
-
-  status = android::register_com_android_modules_expresslog_Utils(
-      e, "com/android/bluetooth/x/com/android/modules/expresslog/Utils");
-  if (status < 0) {
-    ALOGE("jni expresslog utils failure: %d", status);
     return JNI_ERR;
   }
 
