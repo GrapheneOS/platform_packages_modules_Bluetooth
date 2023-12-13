@@ -26,8 +26,8 @@
 #include <vector>
 
 #include "fuzzers/common/commonFuzzHelpers.h"
-#include "osi/include/alarm.h"
 #include "stack/include/sdp_api.h"
+#include "stack/include/sdpdefs.h"
 #include "stack/sdp/sdpint.h"
 #include "types/raw_address.h"
 
