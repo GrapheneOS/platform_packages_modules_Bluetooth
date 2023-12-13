@@ -35,9 +35,9 @@
 #include <cstdint>
 #include <unordered_map>
 
-#include "bt_target.h"
 #include "device/include/controller.h"
 #include "device/include/interop.h"
+#include "internal_include/bt_target.h"
 #include "main/shim/dumpsys.h"
 #include "os/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
