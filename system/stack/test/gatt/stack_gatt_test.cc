@@ -18,15 +18,13 @@
 #include <string.h>
 
 #include <cstdint>
-#include <map>
 #include <memory>
 #include <string>
 
-#include "common/message_loop_thread.h"
 #include "common/strings.h"
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/gatt_api.h"
-#include "test/common/mock_functions.h"
+#include "stack/sdp/internal/sdp_api.h"
 #include "test/mock/mock_stack_sdp_legacy_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
