@@ -44,7 +44,7 @@ static void EmitHeader(const BasicAudioAnnouncementData& announcement_data,
   // Set the cursor behind the old data
   uint8_t* p_value = data.data() + old_size;
 
-  UINT24_TO_STREAM(p_value, announcement_data.presentation_delay);
+  UINT24_TO_STREAM(p_value, announcement_data.presentation_delay_us);
 }
 
 static void EmitCodecConfiguration(
@@ -487,7 +487,7 @@ static bool isMetadataSame(std::map<uint8_t, std::vector<uint8_t>> m1,
 
 bool operator==(const BasicAudioAnnouncementData& lhs,
                 const BasicAudioAnnouncementData& rhs) {
-  if (lhs.presentation_delay != rhs.presentation_delay) return false;
+  if (lhs.presentation_delay_us != rhs.presentation_delay_us) return false;
 
   if (lhs.subgroup_configs.size() != rhs.subgroup_configs.size()) return false;
 
