@@ -26,12 +26,9 @@
 
 #include <cstdint>
 
-// PAN_INCLUDED
-#include "bt_target.h"  // Must be first to define build configuration
-#if (PAN_INCLUDED == TRUE)
-
 #include "bta/include/bta_pan_co.h"
 #include "bta/pan/bta_pan_int.h"
+#include "internal_include/bt_target.h"  // PAN_INCLUDED
 #include "osi/include/allocator.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
@@ -40,6 +37,7 @@
 #include "stack/include/pan_api.h"
 #include "types/raw_address.h"
 
+#if (PAN_INCLUDED == TRUE)
 void bta_pan_sm_execute(tBTA_PAN_SCB* p_scb, uint16_t event,
                         tBTA_PAN_DATA* p_data);
 
