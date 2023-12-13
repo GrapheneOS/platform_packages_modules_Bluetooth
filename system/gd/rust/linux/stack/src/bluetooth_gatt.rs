@@ -601,6 +601,8 @@ pub trait IBluetoothGatt {
     fn configure_mtu(&self, client_id: i32, addr: String, mtu: i32);
 
     /// Requests a connection parameter update.
+    /// This causes |on_connection_updated| to be called if there is already an existing
+    /// connection to |addr|; Otherwise the method won't generate any callbacks.
     fn connection_parameter_update(
         &self,
         client_id: i32,
