@@ -29,9 +29,9 @@
 #include <cstdint>
 #include <cstring>
 
-#include "bt_target.h"
+#include "internal_include/bt_target.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "osi/include/mutex.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_client_interface.h"

@@ -24,12 +24,12 @@
 
 #include <base/logging.h>
 
-#include "bt_target.h"
 #include "btif/include/btif_dm.h"
 #include "btif/include/btif_storage.h"
 #include "btif/include/stack_manager.h"
 #include "connection_manager.h"
 #include "device/include/interop.h"
+#include "internal_include/bt_target.h"
 #include "internal_include/stack_config.h"
 #include "l2c_api.h"
 #include "main/shim/acl_api.h"

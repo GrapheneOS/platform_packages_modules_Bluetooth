@@ -24,10 +24,9 @@
 
 #include <cstdint>
 
-#include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/sys/bta_sys.h"
 #include "bta/sys/bta_sys_int.h"
+#include "internal_include/bt_target.h"
 #include "main/shim/dumpsys.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR

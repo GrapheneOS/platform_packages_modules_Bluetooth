@@ -33,15 +33,14 @@ async def serve(port):
         while True:
             bluetooth = bluetooth_module.Bluetooth()
             bluetooth.reset()
-
             logging.info("bluetooth initialized")
 
             server = grpc.aio.server()
-            host_service = host.HostService(server, bluetooth)
-            host_grpc_aio.add_HostServicer_to_server(host_service, server)
-
             security_service = security.SecurityService(server, bluetooth)
             security_grpc_aio.add_SecurityServicer_to_server(security_service, server)
+
+            host_service = host.HostService(server, bluetooth, security_service)
+            host_grpc_aio.add_HostServicer_to_server(host_service, server)
 
             security_storage_service = security.SecurityStorageService(server, bluetooth)
             security_grpc_aio.add_SecurityStorageServicer_to_server(security_storage_service, server)
@@ -49,6 +48,8 @@ async def serve(port):
             server.add_insecure_port(f'[::]:{port}')
 
             await server.start()
+            logging.info("server started")
+
             await server.wait_for_termination()
             bluetooth.cleanup()
             del bluetooth

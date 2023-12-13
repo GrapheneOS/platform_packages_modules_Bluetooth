@@ -69,7 +69,7 @@ public class BluetoothPbapRequestPullPhoneBookTest {
     }
 
     @Test
-    public void readResponse_failWithMockInputStream() {
+    public void readResponse_failWithInputStreamThatThrowsIOEWhenRead() {
         final long filter = 1;
         final byte format = 0; // Will be properly handled as VCARD_TYPE_21.
         final int maxListCount = 0; // Will be specially handled as 65535.
@@ -77,7 +77,23 @@ public class BluetoothPbapRequestPullPhoneBookTest {
         BluetoothPbapRequestPullPhoneBook request = new BluetoothPbapRequestPullPhoneBook(
                 PB_NAME, ACCOUNT, filter, format, maxListCount, listStartOffset);
 
-        InputStream is = mock(InputStream.class);
+        final InputStream is = new InputStream() {
+            @Override
+            public int read() throws IOException {
+                throw new IOException();
+            }
+
+            @Override
+            public int read(byte[] b) throws IOException {
+                throw new IOException();
+            }
+
+            @Override
+            public int read(byte[] b, int off, int len) throws IOException {
+                throw new IOException();
+            }
+        };
+
         assertThrows(IOException.class, () -> request.readResponse(is));
     }
 

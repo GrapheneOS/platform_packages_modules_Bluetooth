@@ -15,15 +15,20 @@
  *
  */
 
+#define LOG_TAG "SEC_CB"
+
 #include "stack/btm/btm_sec_cb.h"
 
 #include <cstdint>
 
 #include "internal_include/stack_config.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/list.h"
+#include "stack/btm/btm_dev.h"
 #include "stack/btm/security_device_record.h"
+#include "stack/include/bt_psm_types.h"
 #include "types/raw_address.h"
 
 void tBTM_SEC_CB::Init(uint8_t initial_security_mode) {
@@ -106,4 +111,247 @@ tBTM_SEC_SERV_REC* tBTM_SEC_CB::find_first_serv_rec(bool is_originator,
       return (p_serv_rec);
   }
   return (NULL);
+}
+
+tBTM_SEC_REC* tBTM_SEC_CB::getSecRec(const RawAddress bd_addr) {
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
+  if (p_dev_rec) {
+    return &p_dev_rec->sec_rec;
+  }
+  return nullptr;
+}
+
+bool tBTM_SEC_CB::IsDeviceEncrypted(const RawAddress bd_addr,
+                                    tBT_TRANSPORT transport) {
+  tBTM_SEC_REC* sec_rec = getSecRec(bd_addr);
+  if (sec_rec) {
+    if (transport == BT_TRANSPORT_BR_EDR) {
+      return sec_rec->is_device_encrypted();
+    } else if (transport == BT_TRANSPORT_LE) {
+      return sec_rec->is_le_device_encrypted();
+    }
+    LOG_ERROR("unknown transport:%s", bt_transport_text(transport).c_str());
+    return false;
+  }
+
+  LOG_ERROR("unknown device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+  return false;
+}
+
+bool tBTM_SEC_CB::IsLinkKeyAuthenticated(const RawAddress bd_addr,
+                                         tBT_TRANSPORT transport) {
+  tBTM_SEC_REC* sec_rec = getSecRec(bd_addr);
+  if (sec_rec) {
+    if (transport == BT_TRANSPORT_BR_EDR) {
+      return sec_rec->is_link_key_authenticated();
+    } else if (transport == BT_TRANSPORT_LE) {
+      return sec_rec->is_le_link_key_authenticated();
+    }
+    LOG_ERROR("unknown transport:%s", bt_transport_text(transport).c_str());
+    return false;
+  }
+
+  LOG_ERROR("unknown device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+  return false;
+}
+
+bool tBTM_SEC_CB::IsDeviceAuthenticated(const RawAddress bd_addr,
+                                        tBT_TRANSPORT transport) {
+  tBTM_SEC_REC* sec_rec = getSecRec(bd_addr);
+  if (sec_rec) {
+    if (transport == BT_TRANSPORT_BR_EDR) {
+      return sec_rec->is_device_authenticated();
+    } else if (transport == BT_TRANSPORT_LE) {
+      return sec_rec->is_le_device_authenticated();
+    }
+    LOG_ERROR("unknown transport:%s", bt_transport_text(transport).c_str());
+    return false;
+  }
+
+  LOG_ERROR("unknown device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+  return false;
+}
+
+bool tBTM_SEC_CB::IsLinkKeyKnown(const RawAddress bd_addr,
+                                 tBT_TRANSPORT transport) {
+  tBTM_SEC_REC* sec_rec = getSecRec(bd_addr);
+  if (sec_rec) {
+    if (transport == BT_TRANSPORT_BR_EDR) {
+      return sec_rec->is_link_key_known();
+    } else if (transport == BT_TRANSPORT_LE) {
+      return sec_rec->is_le_link_key_known();
+    }
+    LOG_ERROR("unknown transport:%s", bt_transport_text(transport).c_str());
+    return false;
+  }
+
+  LOG_ERROR("unknown device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+  return false;
+}
+
+bool tBTM_SEC_CB::IsDeviceBonded(const RawAddress bd_addr) {
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
+  bool is_bonded = false;
+
+  if (p_dev_rec && ((p_dev_rec->sec_rec.ble_keys.key_type &&
+                     p_dev_rec->sec_rec.is_le_link_key_known()) ||
+                    p_dev_rec->sec_rec.is_link_key_known())) {
+    is_bonded = true;
+  }
+  LOG_DEBUG("Device record bonded check peer:%s is_bonded:%s",
+            ADDRESS_TO_LOGGABLE_CSTR(bd_addr), logbool(is_bonded).c_str());
+  return is_bonded;
+}
+
+#define BTM_NO_AVAIL_SEC_SERVICES ((uint16_t)0xffff)
+bool tBTM_SEC_CB::AddService(bool is_originator, const char* p_name,
+                             uint8_t service_id, uint16_t sec_level,
+                             uint16_t psm, uint32_t mx_proto_id,
+                             uint32_t mx_chan_id) {
+  tBTM_SEC_SERV_REC* p_srec;
+  uint16_t index;
+  uint16_t first_unused_record = BTM_NO_AVAIL_SEC_SERVICES;
+  bool record_allocated = false;
+
+  LOG_VERBOSE("sec_level:0x%x", sec_level);
+
+  /* See if the record can be reused (same service name, psm, mx_proto_id,
+     service_id, and mx_chan_id), or obtain the next unused record */
+
+  p_srec = &sec_serv_rec[0];
+
+  for (index = 0; index < BTM_SEC_MAX_SERVICE_RECORDS; index++, p_srec++) {
+    /* Check if there is already a record for this service */
+    if (p_srec->security_flags & BTM_SEC_IN_USE) {
+      if (p_srec->psm == psm && p_srec->mx_proto_id == mx_proto_id &&
+          service_id == p_srec->service_id && p_name &&
+          (!strncmp(p_name, (char*)p_srec->orig_service_name,
+                    /* strlcpy replaces end char with termination char*/
+                    BT_MAX_SERVICE_NAME_LEN - 1) ||
+           !strncmp(p_name, (char*)p_srec->term_service_name,
+                    /* strlcpy replaces end char with termination char*/
+                    BT_MAX_SERVICE_NAME_LEN - 1))) {
+        record_allocated = true;
+        break;
+      }
+    }
+    /* Mark the first available service record */
+    else if (!record_allocated) {
+      *p_srec = {};
+      record_allocated = true;
+      first_unused_record = index;
+    }
+  }
+
+  if (!record_allocated) {
+    LOG_WARN("Out of Service Records (%d)", BTM_SEC_MAX_SERVICE_RECORDS);
+    return (record_allocated);
+  }
+
+  /* Process the request if service record is valid */
+  /* If a duplicate service wasn't found, use the first available */
+  if (index >= BTM_SEC_MAX_SERVICE_RECORDS) {
+    index = first_unused_record;
+    p_srec = &sec_serv_rec[index];
+  }
+
+  p_srec->psm = psm;
+  p_srec->service_id = service_id;
+  p_srec->mx_proto_id = mx_proto_id;
+
+  if (is_originator) {
+    p_srec->orig_mx_chan_id = mx_chan_id;
+    strlcpy((char*)p_srec->orig_service_name, p_name,
+            BT_MAX_SERVICE_NAME_LEN + 1);
+    /* clear out the old setting, just in case it exists */
+    {
+      p_srec->security_flags &=
+          ~(BTM_SEC_OUT_ENCRYPT | BTM_SEC_OUT_AUTHENTICATE | BTM_SEC_OUT_MITM);
+    }
+
+    /* Parameter validation.  Originator should not set requirements for
+     * incoming connections */
+    sec_level &= ~(BTM_SEC_IN_ENCRYPT | BTM_SEC_IN_AUTHENTICATE |
+                   BTM_SEC_IN_MITM | BTM_SEC_IN_MIN_16_DIGIT_PIN);
+
+    if (security_mode == BTM_SEC_MODE_SP || security_mode == BTM_SEC_MODE_SC) {
+      if (sec_level & BTM_SEC_OUT_AUTHENTICATE) sec_level |= BTM_SEC_OUT_MITM;
+    }
+
+    /* Make sure the authenticate bit is set, when encrypt bit is set */
+    if (sec_level & BTM_SEC_OUT_ENCRYPT) sec_level |= BTM_SEC_OUT_AUTHENTICATE;
+
+    /* outgoing connections usually set the security level right before
+     * the connection is initiated.
+     * set it to be the outgoing service */
+    p_out_serv = p_srec;
+  } else {
+    p_srec->term_mx_chan_id = mx_chan_id;
+    strlcpy((char*)p_srec->term_service_name, p_name,
+            BT_MAX_SERVICE_NAME_LEN + 1);
+    /* clear out the old setting, just in case it exists */
+    {
+      p_srec->security_flags &=
+          ~(BTM_SEC_IN_ENCRYPT | BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_MITM |
+            BTM_SEC_IN_MIN_16_DIGIT_PIN);
+    }
+
+    /* Parameter validation.  Acceptor should not set requirements for outgoing
+     * connections */
+    sec_level &=
+        ~(BTM_SEC_OUT_ENCRYPT | BTM_SEC_OUT_AUTHENTICATE | BTM_SEC_OUT_MITM);
+
+    if (security_mode == BTM_SEC_MODE_SP || security_mode == BTM_SEC_MODE_SC) {
+      if (sec_level & BTM_SEC_IN_AUTHENTICATE) sec_level |= BTM_SEC_IN_MITM;
+    }
+
+    /* Make sure the authenticate bit is set, when encrypt bit is set */
+    if (sec_level & BTM_SEC_IN_ENCRYPT) sec_level |= BTM_SEC_IN_AUTHENTICATE;
+  }
+
+  p_srec->security_flags |= (uint16_t)(sec_level | BTM_SEC_IN_USE);
+
+  LOG_DEBUG(
+      "[%d]: id:%d, is_orig:%s psm:0x%04x proto_id:%d chan_id:%d"
+      "  : sec:0x%x service_name:[%s] (up to %d chars saved)",
+      index, service_id, logbool(is_originator).c_str(), psm, mx_proto_id,
+      mx_chan_id, p_srec->security_flags, p_name, BT_MAX_SERVICE_NAME_LEN);
+
+  return (record_allocated);
+}
+
+uint8_t tBTM_SEC_CB::RemoveServiceById(uint8_t service_id) {
+  tBTM_SEC_SERV_REC* p_srec = &sec_serv_rec[0];
+  uint8_t num_freed = 0;
+  int i;
+
+  for (i = 0; i < BTM_SEC_MAX_SERVICE_RECORDS; i++, p_srec++) {
+    /* Delete services with specified name (if in use and not SDP) */
+    if ((p_srec->security_flags & BTM_SEC_IN_USE) &&
+        (p_srec->psm != BT_PSM_SDP) &&
+        (!service_id || (service_id == p_srec->service_id))) {
+      LOG_VERBOSE("BTM_SEC_CLR[%d]: id:%d", i, service_id);
+      p_srec->security_flags = 0;
+      num_freed++;
+    }
+  }
+  return (num_freed);
+}
+
+uint8_t tBTM_SEC_CB::RemoveServiceByPsm(uint16_t psm) {
+  tBTM_SEC_SERV_REC* p_srec = &sec_serv_rec[0];
+  uint8_t num_freed = 0;
+  int i;
+
+  for (i = 0; i < BTM_SEC_MAX_SERVICE_RECORDS; i++, p_srec++) {
+    /* Delete services with specified name (if in use and not SDP) */
+    if ((p_srec->security_flags & BTM_SEC_IN_USE) && (p_srec->psm == psm)) {
+      LOG_VERBOSE("BTM_SEC_CLR[%d]: id %d ", i, p_srec->service_id);
+      p_srec->security_flags = 0;
+      num_freed++;
+    }
+  }
+  LOG_VERBOSE("psm:0x%x num_freed:%d", psm, num_freed);
+
+  return (num_freed);
 }

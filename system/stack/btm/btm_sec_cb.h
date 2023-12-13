@@ -83,6 +83,22 @@ class tBTM_SEC_CB {
   void Free();
 
   tBTM_SEC_SERV_REC* find_first_serv_rec(bool is_originator, uint16_t psm);
+
+  bool IsDeviceBonded(const RawAddress bd_addr);
+  bool IsDeviceEncrypted(const RawAddress bd_addr, tBT_TRANSPORT transport);
+  bool IsDeviceAuthenticated(const RawAddress bd_addr, tBT_TRANSPORT transport);
+  bool IsLinkKeyAuthenticated(const RawAddress bd_addr,
+                              tBT_TRANSPORT transport);
+
+  bool IsLinkKeyKnown(const RawAddress bd_addr, tBT_TRANSPORT transport);
+
+  tBTM_SEC_REC* getSecRec(const RawAddress bd_addr);
+
+  bool AddService(bool is_originator, const char* p_name, uint8_t service_id,
+                  uint16_t sec_level, uint16_t psm, uint32_t mx_proto_id,
+                  uint32_t mx_chan_id);
+  uint8_t RemoveServiceById(uint8_t service_id);
+  uint8_t RemoveServiceByPsm(uint16_t psm);
 };
 
 extern tBTM_SEC_CB btm_sec_cb;

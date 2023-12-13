@@ -33,11 +33,13 @@
 
 #include "hiddefs.h"
 #include "hidh_int.h"
+#include "internal_include/bt_target.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_uuid16.h"
+#include "stack/include/sdpdefs.h"
 #include "stack/include/stack_metrics_logging.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"

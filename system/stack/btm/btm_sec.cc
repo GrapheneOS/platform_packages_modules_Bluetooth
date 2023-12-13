@@ -350,27 +350,19 @@ bool BTM_SecDeleteRmtNameNotifyCallback(tBTM_RMT_NAME_CALLBACK* p_callback) {
 }
 
 bool BTM_IsEncrypted(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
-  uint8_t flags = 0;
-  BTM_GetSecurityFlagsByTransport(bd_addr, &flags, transport);
-  return (flags & BTM_SEC_FLAG_ENCRYPTED) != 0;
+  return btm_sec_cb.IsDeviceEncrypted(bd_addr, transport);
 }
 
 bool BTM_IsLinkKeyAuthed(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
-  uint8_t flags = 0;
-  BTM_GetSecurityFlagsByTransport(bd_addr, &flags, transport);
-  return (flags & BTM_SEC_FLAG_LKEY_AUTHED) != 0;
+  return btm_sec_cb.IsLinkKeyAuthenticated(bd_addr, transport);
 }
 
 bool BTM_IsLinkKeyKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
-  uint8_t flags = 0;
-  BTM_GetSecurityFlagsByTransport(bd_addr, &flags, transport);
-  return (flags & BTM_SEC_FLAG_LKEY_KNOWN) != 0;
+  return btm_sec_cb.IsLinkKeyKnown(bd_addr, transport);
 }
 
 bool BTM_IsAuthenticated(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
-  uint8_t flags = 0;
-  BTM_GetSecurityFlagsByTransport(bd_addr, &flags, transport);
-  return (flags & BTM_SEC_AUTHENTICATED) != 0;
+  return btm_sec_cb.IsDeviceAuthenticated(bd_addr, transport);
 }
 
 bool BTM_CanReadDiscoverableCharacteristics(const RawAddress& bd_addr) {
@@ -383,33 +375,6 @@ bool BTM_CanReadDiscoverableCharacteristics(const RawAddress& bd_addr) {
         "BD_ADDR");
     return false;
   }
-}
-
-/*******************************************************************************
- *
- * Function         BTM_GetSecurityFlagsByTransport
- *
- * Description      Get security flags for the device on a particular transport
- *
- * Returns          bool    true or false is device found
- *
- ******************************************************************************/
-bool BTM_GetSecurityFlagsByTransport(const RawAddress& bd_addr,
-                                     uint8_t* p_sec_flags,
-                                     tBT_TRANSPORT transport) {
-  tBTM_SEC_DEV_REC* p_dev_rec;
-
-  p_dev_rec = btm_find_dev(bd_addr);
-  if (p_dev_rec != NULL) {
-    if (transport == BT_TRANSPORT_BR_EDR)
-      *p_sec_flags = (uint8_t)p_dev_rec->sec_rec.sec_flags;
-    else
-      *p_sec_flags = (uint8_t)(p_dev_rec->sec_rec.sec_flags >> 8);
-
-    return (true);
-  }
-  LOG_ERROR("BTM_GetSecurityFlags false");
-  return (false);
 }
 
 /*******************************************************************************
@@ -437,8 +402,6 @@ void BTM_SetPinType(uint8_t pin_type, PIN_CODE pin_code, uint8_t pin_code_len) {
   memcpy(btm_sec_cb.cfg.pin_code, pin_code, pin_code_len);
 }
 
-#define BTM_NO_AVAIL_SEC_SERVICES ((uint16_t)0xffff)
-
 /*******************************************************************************
  *
  * Function         BTM_SetSecurityLevel
@@ -462,119 +425,8 @@ void BTM_SetPinType(uint8_t pin_type, PIN_CODE pin_code, uint8_t pin_code_len) {
 bool BTM_SetSecurityLevel(bool is_originator, const char* p_name,
                           uint8_t service_id, uint16_t sec_level, uint16_t psm,
                           uint32_t mx_proto_id, uint32_t mx_chan_id) {
-  tBTM_SEC_SERV_REC* p_srec;
-  uint16_t index;
-  uint16_t first_unused_record = BTM_NO_AVAIL_SEC_SERVICES;
-  bool record_allocated = false;
-
-  LOG_VERBOSE("sec: 0x%x", sec_level);
-
-  /* See if the record can be reused (same service name, psm, mx_proto_id,
-     service_id, and mx_chan_id), or obtain the next unused record */
-
-  p_srec = &btm_sec_cb.sec_serv_rec[0];
-
-  for (index = 0; index < BTM_SEC_MAX_SERVICE_RECORDS; index++, p_srec++) {
-    /* Check if there is already a record for this service */
-    if (p_srec->security_flags & BTM_SEC_IN_USE) {
-      if (p_srec->psm == psm && p_srec->mx_proto_id == mx_proto_id &&
-          service_id == p_srec->service_id && p_name &&
-          (!strncmp(p_name, (char*)p_srec->orig_service_name,
-                    /* strlcpy replaces end char with termination char*/
-                    BT_MAX_SERVICE_NAME_LEN - 1) ||
-           !strncmp(p_name, (char*)p_srec->term_service_name,
-                    /* strlcpy replaces end char with termination char*/
-                    BT_MAX_SERVICE_NAME_LEN - 1))) {
-        record_allocated = true;
-        break;
-      }
-    }
-    /* Mark the first available service record */
-    else if (!record_allocated) {
-      memset(p_srec, 0, sizeof(tBTM_SEC_SERV_REC));
-      record_allocated = true;
-      first_unused_record = index;
-    }
-  }
-
-  if (!record_allocated) {
-    LOG_WARN("BTM_SEC_REG: Out of Service Records (%d)",
-             BTM_SEC_MAX_SERVICE_RECORDS);
-    return (record_allocated);
-  }
-
-  /* Process the request if service record is valid */
-  /* If a duplicate service wasn't found, use the first available */
-  if (index >= BTM_SEC_MAX_SERVICE_RECORDS) {
-    index = first_unused_record;
-    p_srec = &btm_sec_cb.sec_serv_rec[index];
-  }
-
-  p_srec->psm = psm;
-  p_srec->service_id = service_id;
-  p_srec->mx_proto_id = mx_proto_id;
-
-  if (is_originator) {
-    p_srec->orig_mx_chan_id = mx_chan_id;
-    strlcpy((char*)p_srec->orig_service_name, p_name,
-            BT_MAX_SERVICE_NAME_LEN + 1);
-    /* clear out the old setting, just in case it exists */
-    {
-      p_srec->security_flags &=
-          ~(BTM_SEC_OUT_ENCRYPT | BTM_SEC_OUT_AUTHENTICATE | BTM_SEC_OUT_MITM);
-    }
-
-    /* Parameter validation.  Originator should not set requirements for
-     * incoming connections */
-    sec_level &= ~(BTM_SEC_IN_ENCRYPT | BTM_SEC_IN_AUTHENTICATE |
-                   BTM_SEC_IN_MITM | BTM_SEC_IN_MIN_16_DIGIT_PIN);
-
-    if (btm_sec_cb.security_mode == BTM_SEC_MODE_SP ||
-        btm_sec_cb.security_mode == BTM_SEC_MODE_SC) {
-      if (sec_level & BTM_SEC_OUT_AUTHENTICATE) sec_level |= BTM_SEC_OUT_MITM;
-    }
-
-    /* Make sure the authenticate bit is set, when encrypt bit is set */
-    if (sec_level & BTM_SEC_OUT_ENCRYPT) sec_level |= BTM_SEC_OUT_AUTHENTICATE;
-
-    /* outgoing connections usually set the security level right before
-     * the connection is initiated.
-     * set it to be the outgoing service */
-    btm_sec_cb.p_out_serv = p_srec;
-  } else {
-    p_srec->term_mx_chan_id = mx_chan_id;
-    strlcpy((char*)p_srec->term_service_name, p_name,
-            BT_MAX_SERVICE_NAME_LEN + 1);
-    /* clear out the old setting, just in case it exists */
-    {
-      p_srec->security_flags &=
-          ~(BTM_SEC_IN_ENCRYPT | BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_MITM |
-            BTM_SEC_IN_MIN_16_DIGIT_PIN);
-    }
-
-    /* Parameter validation.  Acceptor should not set requirements for outgoing
-     * connections */
-    sec_level &=
-        ~(BTM_SEC_OUT_ENCRYPT | BTM_SEC_OUT_AUTHENTICATE | BTM_SEC_OUT_MITM);
-
-    if (btm_sec_cb.security_mode == BTM_SEC_MODE_SP ||
-        btm_sec_cb.security_mode == BTM_SEC_MODE_SC) {
-      if (sec_level & BTM_SEC_IN_AUTHENTICATE) sec_level |= BTM_SEC_IN_MITM;
-    }
-
-    /* Make sure the authenticate bit is set, when encrypt bit is set */
-    if (sec_level & BTM_SEC_IN_ENCRYPT) sec_level |= BTM_SEC_IN_AUTHENTICATE;
-  }
-
-  p_srec->security_flags |= (uint16_t)(sec_level | BTM_SEC_IN_USE);
-
-  LOG_DEBUG(
-      "[%d]: id:%d, is_orig:%s psm:0x%04x proto_id:%d chan_id:%d"
-      "  : sec:0x%x service_name:[%s] (up to %d chars saved)",
-      index, service_id, logbool(is_originator).c_str(), psm, mx_proto_id,
-      mx_chan_id, p_srec->security_flags, p_name, BT_MAX_SERVICE_NAME_LEN);
-
-  return (record_allocated);
+  return btm_sec_cb.AddService(is_originator, p_name, service_id, sec_level,
+                               psm, mx_proto_id, mx_chan_id);
 }
 
 /*******************************************************************************
@@ -596,22 +448,7 @@ bool BTM_SetSecurityLevel(bool is_originator, const char* p_name,
  *
  ******************************************************************************/
 uint8_t BTM_SecClrService(uint8_t service_id) {
-  tBTM_SEC_SERV_REC* p_srec = &btm_sec_cb.sec_serv_rec[0];
-  uint8_t num_freed = 0;
-  int i;
-
-  for (i = 0; i < BTM_SEC_MAX_SERVICE_RECORDS; i++, p_srec++) {
-    /* Delete services with specified name (if in use and not SDP) */
-    if ((p_srec->security_flags & BTM_SEC_IN_USE) &&
-        (p_srec->psm != BT_PSM_SDP) &&
-        (!service_id || (service_id == p_srec->service_id))) {
-      LOG_VERBOSE("BTM_SEC_CLR[%d]: id %d", i, service_id);
-      p_srec->security_flags = 0;
-      num_freed++;
-    }
-  }
-
-  return (num_freed);
+  return btm_sec_cb.RemoveServiceById(service_id);
 }
 
 /*******************************************************************************
@@ -631,21 +468,7 @@ uint8_t BTM_SecClrService(uint8_t service_id) {
  *
  ******************************************************************************/
 uint8_t BTM_SecClrServiceByPsm(uint16_t psm) {
-  tBTM_SEC_SERV_REC* p_srec = &btm_sec_cb.sec_serv_rec[0];
-  uint8_t num_freed = 0;
-  int i;
-
-  for (i = 0; i < BTM_SEC_MAX_SERVICE_RECORDS; i++, p_srec++) {
-    /* Delete services with specified name (if in use and not SDP) */
-    if ((p_srec->security_flags & BTM_SEC_IN_USE) && (p_srec->psm == psm)) {
-      LOG_VERBOSE("BTM_SEC_CLR[%d]: id %d ", i, p_srec->service_id);
-      p_srec->security_flags = 0;
-      num_freed++;
-    }
-  }
-  LOG_VERBOSE("BTM_SecClrServiceByPsm psm:0x%x num_freed:%d", psm, num_freed);
-
-  return (num_freed);
+  return btm_sec_cb.RemoveServiceByPsm(psm);
 }
 
 /*******************************************************************************
@@ -5073,23 +4896,13 @@ void btm_sec_clear_ble_keys(tBTM_SEC_DEV_REC* p_dev_rec) {
  * Function         btm_sec_is_a_bonded_dev
  *
  * Description       Is the specified device is a bonded device
+ *                   (either on BR/EDR or LE)
  *
  * Returns          true - dev is bonded
  *
  ******************************************************************************/
 bool btm_sec_is_a_bonded_dev(const RawAddress& bda) {
-  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bda);
-  bool is_bonded = false;
-
-  if (p_dev_rec &&
-      ((p_dev_rec->sec_rec.ble_keys.key_type &&
-        (p_dev_rec->sec_rec.sec_flags & BTM_SEC_LE_LINK_KEY_KNOWN)) ||
-       (p_dev_rec->sec_rec.sec_flags & BTM_SEC_LINK_KEY_KNOWN))) {
-    is_bonded = true;
-  }
-  LOG_DEBUG("Device record bonded check peer:%s is_bonded:%s",
-            ADDRESS_TO_LOGGABLE_CSTR(bda), logbool(is_bonded).c_str());
-  return is_bonded;
+  return btm_sec_cb.IsDeviceBonded(bda);
 }
 
 /*******************************************************************************

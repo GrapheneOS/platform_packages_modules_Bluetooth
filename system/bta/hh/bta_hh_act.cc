@@ -24,7 +24,6 @@
 
 #define LOG_TAG "bluetooth"
 
-// BTA_HH_INCLUDED
 #include <cstdint>
 #include <string>
 

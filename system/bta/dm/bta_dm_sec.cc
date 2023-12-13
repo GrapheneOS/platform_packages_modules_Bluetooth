@@ -27,6 +27,7 @@
 #include "bta/include/bta_dm_ci.h"  // bta_dm_ci_rmt_oob
 #include "btif/include/btif_dm.h"
 #include "btif/include/btif_storage.h"
+#include "internal_include/bt_target.h"
 #include "osi/include/compat.h"  // strlcpy
 #include "osi/include/osi.h"     // UNUSED_ATTR
 #include "stack/include/btm_ble_sec_api_types.h"

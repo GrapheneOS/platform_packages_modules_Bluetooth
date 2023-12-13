@@ -649,7 +649,7 @@ impl Bluetooth {
     }
 
     pub fn toggle_enabled_profiles(&mut self, allowed_services: &Vec<Uuid128Bit>) {
-        for profile in UuidHelper::get_supported_profiles().clone() {
+        for profile in UuidHelper::get_ordered_supported_profiles().clone() {
             // Only toggle initializable profiles.
             if let Some(enabled) = self.is_profile_enabled(&profile) {
                 let allowed = allowed_services.len() == 0

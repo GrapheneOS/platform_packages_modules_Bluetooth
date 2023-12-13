@@ -22,11 +22,9 @@ from floss.pandora.floss import adapter_client
 from floss.pandora.floss import floss_enums
 from floss.pandora.floss import utils
 from floss.pandora.server import bluetooth as bluetooth_module
-from google.protobuf import any_pb2
 from google.protobuf import empty_pb2
 from google.protobuf import wrappers_pb2
 import grpc
-from pandora import host_pb2
 from pandora import security_grpc_aio
 from pandora import security_pb2
 
@@ -44,9 +42,14 @@ class SecurityService(security_grpc_aio.SecurityServicer):
     def __init__(self, server: grpc.aio.Server, bluetooth: bluetooth_module.Bluetooth):
         self.server = server
         self.bluetooth = bluetooth
+        self.manually_confirm = False
+        self.on_pairing_count = 0
 
     async def OnPairing(self, request: AsyncIterator[security_pb2.PairingEventAnswer],
                         context: grpc.ServicerContext) -> AsyncGenerator[security_pb2.PairingEvent, None]:
+        logging.info('OnPairing')
+        on_pairing_id = self.on_pairing_count
+        self.on_pairing_count = self.on_pairing_count + 1
 
         class PairingObserver(adapter_client.BluetoothCallbacks):
             """Observer to observe all pairing events."""
@@ -59,58 +62,117 @@ class SecurityService(security_grpc_aio.SecurityServicer):
             def on_ssp_request(self, remote_device, class_of_device, variant, passkey):
                 address, name = remote_device
 
-                result = (address, name, class_of_device, variant, passkey)
+                result = (address, name, variant, passkey)
                 asyncio.run_coroutine_threadsafe(self.task['pairing_events'].put(result), self.loop)
+
+            @utils.glib_callback()
+            def on_pin_request(self, remote_device, cod, min_16_digit):
+                address, name = remote_device
+
+                if min_16_digit:
+                    variant = floss_enums.PairingVariant.PIN_16_DIGITS_ENTRY
+                else:
+                    variant = floss_enums.PairingVariant.PIN_ENTRY
+                result = (address, name, variant, min_16_digit)
+                asyncio.run_coroutine_threadsafe(self.task['pairing_events'].put(result), self.loop)
+
+            @utils.glib_callback()
+            def on_pin_display(self, remote_device, pincode):
+                address, name = remote_device
+
+                variant = floss_enums.PairingVariant.PIN_NOTIFICATION
+                result = (address, name, variant, pincode)
+                asyncio.run_coroutine_threadsafe(self.task['pairing_events'].put(result), self.loop)
+
+        pairing_answers = request
 
         async def streaming_answers(self):
             while True:
-                pairing_answer = await utils.anext(self.bluetooth.pairing_answers)
-                answer = pairing_answer.WhichOneof('answer')
-                address = utils.address_from(pairing_answer.event.connection.cookie.value)
+                nonlocal pairing_answers
+                nonlocal on_pairing_id
 
-                logging.info('pairing_answer: %s address: %s', pairing_answer, address)
+                logging.info('OnPairing[%s]: Wait for pairing answer...', on_pairing_id)
+                pairing_answer = await utils.anext(pairing_answers)
+
+                answer = pairing_answer.WhichOneof('answer')
+                address = utils.address_from(pairing_answer.event.address)
+                logging.info('OnPairing[%s]: Pairing answer: %s address: %s', on_pairing_id, answer, address)
 
                 if answer == 'confirm':
                     self.bluetooth.set_pairing_confirmation(address, True)
                 elif answer == 'passkey':
-                    pass  # TODO: b/289480188 - Supports this method.
+                    self.bluetooth.set_pin(address, True, list(str(answer.passkey).zfill(6).encode()))
                 elif answer == 'pin':
-                    pass  # TODO: b/289480188 - Supports this method.
+                    self.bluetooth.set_pin(address, True, list(answer.pin))
 
         observers = []
         try:
-            self.bluetooth.pairing_events = asyncio.Queue()
-            observer = PairingObserver(asyncio.get_running_loop(), {'pairing_events': self.bluetooth.pairing_events})
+            self.manually_confirm = True
+
+            pairing_events = asyncio.Queue()
+            observer = PairingObserver(asyncio.get_running_loop(), {'pairing_events': pairing_events})
             name = utils.create_observer_name(observer)
             self.bluetooth.adapter_client.register_callback_observer(name, observer)
             observers.append((name, observer))
 
-            self.bluetooth.pairing_answers = request
             streaming_answers_task = asyncio.create_task(streaming_answers(self))
-            await streaming_answers_task
 
             while True:
-                address, name, _, variant, passkey = await self.bluetooth.pairing_events.get()
+                logging.info('OnPairing[%s]: Wait for pairing events...', on_pairing_id)
+                address, name, variant, *variables = await pairing_events.get()
+                logging.info('OnPairing[%s]: Pairing event: address: %s, name: %s, variant: %s, variables: %s',
+                             on_pairing_id, address, name, variant, variables)
 
                 event = security_pb2.PairingEvent()
-                event.connection.CopyFrom(host_pb2.Connection(cookie=any_pb2.Any(value=utils.address_to(address))))
+                event.address = utils.address_to(address)
 
-                if variant == floss_enums.SspVariant.PASSKEY_CONFIRMATION:
+                # SSP
+                if variant == floss_enums.PairingVariant.PASSKEY_CONFIRMATION:
+                    [passkey] = variables
                     event.numeric_comparison = passkey
-                elif variant == floss_enums.SspVariant.PASSKEY_ENTRY:
+                elif variant == floss_enums.PairingVariant.PASSKEY_ENTRY:
                     event.passkey_entry_request.CopyFrom(empty_pb2.Empty())
-                elif variant == floss_enums.SspVariant.CONSENT:
+                elif variant == floss_enums.PairingVariant.CONSENT:
                     event.just_works.CopyFrom(empty_pb2.Empty())
-                elif variant == floss_enums.SspVariant.PASSKEY_NOTIFICATION:
-                    event.passkey_entry_notification.CopyFrom(passkey)
+                elif variant == floss_enums.PairingVariant.PASSKEY_NOTIFICATION:
+                    [passkey] = variables
+                    event.passkey_entry_notification = passkey
+                # Legacy
+                elif variant == floss_enums.PairingVariant.PIN_ENTRY:
+                    transport = self.bluetooth.get_remote_type(address)
+
+                    if transport == floss_enums.Transport.BREDR:
+                        event.pin_code_request.CopyFrom(empty_pb2.Empty())
+                    elif transport == floss_enums.Transport.LE:
+                        event.passkey_entry_request.CopyFrom(empty_pb2.Empty())
+                    else:
+                        logging.error('Cannot determine pairing variant from unknown transport.')
+                        continue
+                elif variant == floss_enums.PairingVariant.PIN_16_DIGITS_ENTRY:
+                    event.pin_code_request.CopyFrom(empty_pb2.Empty())
+                elif variant == floss_enums.PairingVarint.PIN_NOTIFICATION:
+                    transport = self.bluetooth.get_remote_type(address)
+                    [pincode] = variables
+
+                    if transport == floss_enums.Transport.BREDR:
+                        event.pin_code_notification = pincode.encode()
+                    elif transport == floss_enums.Transport.LE:
+                        event.passkey_entry_notification = int(pincode)
+                    else:
+                        logging.error('Cannot determine pairing variant from unknown transport.')
+                        continue
+                else:
+                    logging.error('Unknown pairing variant: %s', variant)
+                    continue
+
                 yield event
         finally:
             streaming_answers_task.cancel()
             for name, observer in observers:
                 self.bluetooth.adapter_client.unregister_callback_observer(name, observer)
 
-            self.bluetooth.pairing_events = None
-            self.bluetooth.pairing_answers = None
+            pairing_events = None
+            pairing_answers = None
 
     async def Secure(self, request: security_pb2.SecureRequest,
                      context: grpc.ServicerContext) -> security_pb2.SecureResponse:

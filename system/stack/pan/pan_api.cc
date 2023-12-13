@@ -34,9 +34,10 @@
 #include <cstring>
 
 #include "bta/sys/bta_sys.h"
+#include "internal_include/bt_target.h"
 #include "main/shim/dumpsys.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
-#include "osi/include/log.h"
 #include "stack/include/bnep_api.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_uuid16.h"
