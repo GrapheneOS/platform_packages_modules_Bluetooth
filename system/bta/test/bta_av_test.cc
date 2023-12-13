@@ -20,6 +20,7 @@
 
 #include "bta/av/bta_av_int.h"
 #include "bta/hf_client/bta_hf_client_int.h"
+#include "common/init_flags.h"
 #include "test/common/mock_functions.h"
 #include "test/mock/mock_osi_alarm.h"
 #include "test/mock/mock_stack_acl.h"
