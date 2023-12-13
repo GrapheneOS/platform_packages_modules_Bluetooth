@@ -29,6 +29,7 @@
 
 #include "bta/include/bta_jv_api.h"
 #include "bta/include/bta_sec_api.h"
+#include "internal_include/bt_target.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/rfcdefs.h"
 #include "types/bluetooth/uuid.h"

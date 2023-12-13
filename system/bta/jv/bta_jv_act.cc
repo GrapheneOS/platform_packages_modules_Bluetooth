@@ -29,11 +29,12 @@
 #include <cstdint>
 #include <unordered_set>
 
-#include "bt_target.h"  // Must be first to define build configuration
 #include "bta/include/bta_jv_co.h"
 #include "bta/include/bta_rfcomm_scn.h"
 #include "bta/jv/bta_jv_int.h"
 #include "bta/sys/bta_sys.h"
+#include "internal_include/bt_target.h"
+#include "internal_include/bt_trace.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "osi/include/properties.h"
@@ -47,7 +48,6 @@
 #include "stack/include/gap_api.h"
 #include "stack/include/l2cdefs.h"
 #include "stack/include/port_api.h"
-#include "stack/include/rfcdefs.h"
 #include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
