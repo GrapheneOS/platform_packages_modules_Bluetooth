@@ -105,8 +105,6 @@ static void btm_sec_pairing_timeout(void* data);
 static tBTM_STATUS btm_sec_dd_create_conn(tBTM_SEC_DEV_REC* p_dev_rec);
 static void btm_sec_change_pairing_state(tBTM_PAIRING_STATE new_state);
 
-static const char* btm_pair_state_descr(tBTM_PAIRING_STATE state);
-
 static void btm_sec_check_pending_reqs(void);
 static bool btm_sec_queue_mx_request(const RawAddress& bd_addr, uint16_t psm,
                                      bool is_orig, uint16_t security_required,
@@ -493,8 +491,8 @@ void BTM_PINCodeReply(const RawAddress& bd_addr, tBTM_STATUS res,
   LOG_VERBOSE(
       "BTM_PINCodeReply(): PairState: %s   PairFlags: 0x%02x  PinLen:%d  "
       "Result:%d",
-      btm_pair_state_descr(btm_sec_cb.pairing_state), btm_sec_cb.pairing_flags,
-      pin_len, res);
+      tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
+      btm_sec_cb.pairing_flags, pin_len, res);
 
   /* If timeout already expired or has been canceled, ignore the reply */
   if (btm_sec_cb.pairing_state != BTM_PAIR_STATE_WAIT_LOCAL_PIN) {
@@ -608,7 +606,7 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
   /* Other security process is in progress */
   if (btm_sec_cb.pairing_state != BTM_PAIR_STATE_IDLE) {
     LOG_ERROR("BTM_SecBond: already busy in state: %s",
-              btm_pair_state_descr(btm_sec_cb.pairing_state));
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state));
     return (BTM_WRONG_MODE);
   }
 
@@ -724,8 +722,8 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
       status = BTM_CMD_STARTED;
     }
     LOG_VERBOSE("State:%s sm4: 0x%x sec_state:%d",
-                btm_pair_state_descr(btm_sec_cb.pairing_state), p_dev_rec->sm4,
-                p_dev_rec->sec_rec.sec_state);
+                tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
+                p_dev_rec->sm4, p_dev_rec->sec_rec.sec_state);
   } else {
     /* both local and peer are 2.1  */
     status = btm_sec_dd_create_conn(p_dev_rec);
@@ -794,7 +792,7 @@ tBTM_STATUS BTM_SecBondCancel(const RawAddress& bd_addr) {
   tBTM_SEC_DEV_REC* p_dev_rec;
 
   LOG_VERBOSE("BTM_SecBondCancel()  State: %s flags:0x%x",
-              btm_pair_state_descr(btm_sec_cb.pairing_state),
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
               btm_sec_cb.pairing_flags);
   p_dev_rec = btm_find_dev(bd_addr);
   if (!p_dev_rec || btm_sec_cb.pairing_bda != bd_addr) {
@@ -1156,7 +1154,7 @@ static tBTM_STATUS btm_sec_send_hci_disconnect(tBTM_SEC_DEV_REC* p_dev_rec,
  ******************************************************************************/
 void BTM_ConfirmReqReply(tBTM_STATUS res, const RawAddress& bd_addr) {
   LOG_VERBOSE("BTM_ConfirmReqReply() State: %s  Res: %u",
-              btm_pair_state_descr(btm_sec_cb.pairing_state), res);
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), res);
 
   /* If timeout already expired or has been canceled, ignore the reply */
   if ((btm_sec_cb.pairing_state != BTM_PAIR_STATE_WAIT_NUMERIC_CONFIRM) ||
@@ -1164,7 +1162,7 @@ void BTM_ConfirmReqReply(tBTM_STATUS res, const RawAddress& bd_addr) {
     LOG_WARN(
         "Unexpected pairing confirm for %s, pairing_state: %s, pairing_bda: %s",
         ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
-        btm_pair_state_descr(btm_sec_cb.pairing_state),
+        tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
         ADDRESS_TO_LOGGABLE_CSTR(btm_sec_cb.pairing_bda));
     return;
   }
@@ -1203,7 +1201,7 @@ void BTM_ConfirmReqReply(tBTM_STATUS res, const RawAddress& bd_addr) {
 void BTM_PasskeyReqReply(tBTM_STATUS res, const RawAddress& bd_addr,
                          uint32_t passkey) {
   LOG_VERBOSE("BTM_PasskeyReqReply: State: %s  res:%d",
-              btm_pair_state_descr(btm_sec_cb.pairing_state), res);
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), res);
 
   if ((btm_sec_cb.pairing_state == BTM_PAIR_STATE_IDLE) ||
       (btm_sec_cb.pairing_bda != bd_addr)) {
@@ -1273,7 +1271,7 @@ void BTM_ReadLocalOobData(void) { btsnd_hcic_read_local_oob_data(); }
 void BTM_RemoteOobDataReply(tBTM_STATUS res, const RawAddress& bd_addr,
                             const Octet16& c, const Octet16& r) {
   LOG_VERBOSE("State: %s res: %d",
-              btm_pair_state_descr(btm_sec_cb.pairing_state), res);
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), res);
 
   /* If timeout already expired or has been canceled, ignore the reply */
   if (btm_sec_cb.pairing_state != BTM_PAIR_STATE_WAIT_LOCAL_OOB_RSP) return;
@@ -1756,7 +1754,7 @@ tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
   if ((p_dev_rec->sec_rec.p_callback) ||
       (btm_sec_cb.pairing_state != BTM_PAIR_STATE_IDLE)) {
     LOG_DEBUG("Pairing in progress pairing_state:%s",
-              btm_pair_state_descr(btm_sec_cb.pairing_state));
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state));
 
     rc = BTM_CMD_STARTED;
 
@@ -1975,7 +1973,8 @@ static void btm_sec_bond_cancel_complete(void) {
  ******************************************************************************/
 void btm_create_conn_cancel_complete(uint8_t status, const RawAddress bd_addr) {
   LOG_VERBOSE("btm_create_conn_cancel_complete(): in State: %s  status:%d",
-              btm_pair_state_descr(btm_sec_cb.pairing_state), status);
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
+              status);
   log_link_layer_connection_event(
       &bd_addr, bluetooth::common::kUnknownConnectionHandle,
       android::bluetooth::DIRECTION_OUTGOING, android::bluetooth::LINK_TYPE_ACL,
@@ -2209,7 +2208,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
     LOG_DEBUG(
         "Remote read request complete for unknown device pairing_state:%s "
         "status:%s name:%s",
-        btm_pair_state_descr(btm_sec_cb.pairing_state),
+        tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
         hci_status_code_text(status).c_str(), p_bd_name);
 
     call_registered_rmt_name_callbacks(p_bd_addr, nullptr, nullptr, status);
@@ -2221,7 +2220,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
     LOG_DEBUG(
         "Remote read request complete for known device pairing_state:%s "
         "name:%s sec_state:%s",
-        btm_pair_state_descr(btm_sec_cb.pairing_state), p_bd_name,
+        tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), p_bd_name,
         security_state_text(p_dev_rec->sec_rec.sec_state).c_str());
 
     strlcpy((char*)p_dev_rec->sec_bd_name, (const char*)p_bd_name,
@@ -2233,7 +2232,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
     LOG_WARN(
         "Remote read request failed for known device pairing_state:%s "
         "status:%s name:%s sec_state:%s",
-        btm_pair_state_descr(btm_sec_cb.pairing_state),
+        tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
         hci_status_code_text(status).c_str(), p_bd_name,
         security_state_text(p_dev_rec->sec_rec.sec_state).c_str());
 
@@ -2470,7 +2469,7 @@ void btm_io_capabilities_req(RawAddress p) {
   p_dev_rec->sm4 |= BTM_SM4_TRUE;
 
   LOG_VERBOSE("State: %s, Security Mode: %d, Device security Flags: 0x%04x",
-              btm_pair_state_descr(btm_sec_cb.pairing_state),
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
               btm_sec_cb.security_mode, btm_sec_cb.pairing_flags);
 
   uint8_t err_code = 0;
@@ -2597,8 +2596,8 @@ void btm_io_capabilities_req(RawAddress p) {
   btm_sec_cb.devcb.loc_io_caps = evt_data.io_cap;
 
   LOG_VERBOSE("State: %s  IO_CAP:%d oob_data:%d auth_req:%d",
-              btm_pair_state_descr(btm_sec_cb.pairing_state), evt_data.io_cap,
-              evt_data.oob_data, evt_data.auth_req);
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
+              evt_data.io_cap, evt_data.oob_data, evt_data.auth_req);
 
   btsnd_hcic_io_cap_req_reply(evt_data.bd_addr, evt_data.io_cap,
                               evt_data.oob_data, evt_data.auth_req);
@@ -2679,7 +2678,7 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, const RawAddress bda,
   p_bda = bda;
   LOG_VERBOSE("BDA: %s, event: 0x%x, state: %s",
               ADDRESS_TO_LOGGABLE_CSTR(p_bda), event,
-              btm_pair_state_descr(btm_sec_cb.pairing_state));
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state));
 
   p_dev_rec = btm_find_dev(p_bda);
   if ((p_dev_rec != NULL) &&
@@ -2825,7 +2824,7 @@ void btm_simple_pair_complete(const RawAddress bd_addr, uint8_t status) {
 
   LOG_VERBOSE(
       "btm_simple_pair_complete()  Pair State: %s  Status:%d  sec_state: %u",
-      btm_pair_state_descr(btm_sec_cb.pairing_state), status,
+      tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), status,
       p_dev_rec->sec_rec.sec_state);
 
   if (status == HCI_SUCCESS) {
@@ -3018,12 +3017,13 @@ void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status) {
     LOG_VERBOSE(
         "Security Manager: in state: %s, handle: %d, status: %d, "
         "dev->sec_rec.sec_state:%d, bda: %s, RName: %s",
-        btm_pair_state_descr(btm_sec_cb.pairing_state), handle, status,
-        p_dev_rec->sec_rec.sec_state,
+        tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), handle,
+        status, p_dev_rec->sec_rec.sec_state,
         ADDRESS_TO_LOGGABLE_CSTR(p_dev_rec->bd_addr), p_dev_rec->sec_bd_name);
   } else {
     LOG_VERBOSE("Security Manager: in state: %s, handle: %d, status: %d",
-                btm_pair_state_descr(btm_sec_cb.pairing_state), handle, status);
+                tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
+                handle, status);
   }
 
   /* For transaction collision we need to wait and repeat.  There is no need */
@@ -3390,7 +3390,7 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
     LOG_DEBUG(
         "Connected to new device state:%s handle:0x%04x status:%s "
         "enc_mode:%hhu bda:%s",
-        btm_pair_state_descr(btm_sec_cb.pairing_state), handle,
+        tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), handle,
         hci_status_code_text(status).c_str(), enc_mode,
         ADDRESS_TO_LOGGABLE_CSTR(bda));
 
@@ -3416,7 +3416,7 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
     LOG_DEBUG(
         "Connected to known device state:%s handle:0x%04x status:%s "
         "enc_mode:%hhu bda:%s RName:%s",
-        btm_pair_state_descr(btm_sec_cb.pairing_state), handle,
+        tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), handle,
         hci_status_code_text(status).c_str(), enc_mode,
         ADDRESS_TO_LOGGABLE_CSTR(bda), p_dev_rec->sec_bd_name);
 
@@ -3742,7 +3742,7 @@ void btm_sec_disconnected(uint16_t handle, tHCI_REASON reason,
   LOG_DEBUG(
       "Disconnection complete device:%s name:%s state:%s reason:%s sec_req:%x",
       ADDRESS_TO_LOGGABLE_CSTR(p_dev_rec->bd_addr), p_dev_rec->sec_bd_name,
-      btm_pair_state_descr(btm_sec_cb.pairing_state),
+      tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
       hci_reason_code_text(reason).c_str(),
       p_dev_rec->sec_rec.security_required);
 
@@ -4043,7 +4043,8 @@ static void btm_sec_pairing_timeout(void* /* data */) {
   p_dev_rec = btm_find_dev(p_cb->pairing_bda);
 
   LOG_VERBOSE("State: %s   Flags: %u",
-              btm_pair_state_descr(p_cb->pairing_state), p_cb->pairing_flags);
+              tBTM_SEC_CB::btm_pair_state_descr(p_cb->pairing_state),
+              p_cb->pairing_flags);
 
   switch (p_cb->pairing_state) {
     case BTM_PAIR_STATE_WAIT_PIN_REQ:
@@ -4124,7 +4125,7 @@ static void btm_sec_pairing_timeout(void* /* data */) {
 
     default:
       LOG_WARN("not processed state: %s",
-               btm_pair_state_descr(btm_sec_cb.pairing_state));
+               tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state));
       btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
       break;
   }
@@ -4149,7 +4150,7 @@ void btm_sec_pin_code_request(const RawAddress p_bda) {
 
   LOG_DEBUG("Controller requests PIN code device:%s state:%s",
             ADDRESS_TO_LOGGABLE_CSTR(p_bda),
-            btm_pair_state_descr(btm_sec_cb.pairing_state));
+            tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state));
 
   RawAddress local_bd_addr = *controller_get_interface()->get_address();
   if (p_bda == local_bd_addr) {
@@ -4165,7 +4166,7 @@ void btm_sec_pin_code_request(const RawAddress p_bda) {
     } else if ((btm_sec_cb.pairing_state != BTM_PAIR_STATE_WAIT_PIN_REQ) ||
                p_bda != btm_sec_cb.pairing_bda) {
       LOG_WARN("btm_sec_pin_code_request() rejected - state: %s",
-               btm_pair_state_descr(btm_sec_cb.pairing_state));
+               tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state));
       btsnd_hcic_pin_code_neg_reply(p_bda);
       return;
     }
@@ -4603,15 +4604,17 @@ static void btm_sec_change_pairing_state(tBTM_PAIRING_STATE new_state) {
   tBTM_PAIRING_STATE old_state = btm_sec_cb.pairing_state;
 
   LOG_DEBUG("Pairing state changed %s => %s pairing_flags:0x%x",
-            btm_pair_state_descr(btm_sec_cb.pairing_state),
-            btm_pair_state_descr(new_state), btm_sec_cb.pairing_flags);
+            tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
+            tBTM_SEC_CB::btm_pair_state_descr(new_state),
+            btm_sec_cb.pairing_flags);
 
   if (btm_sec_cb.pairing_state != new_state) {
     BTM_LogHistory(
         kBtmLogTag, btm_sec_cb.pairing_bda, "Pairing state changed",
-        base::StringPrintf("%s => %s",
-                           btm_pair_state_descr(btm_sec_cb.pairing_state),
-                           btm_pair_state_descr(new_state)));
+        base::StringPrintf(
+            "%s => %s",
+            tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
+            tBTM_SEC_CB::btm_pair_state_descr(new_state)));
   }
   btm_sec_cb.pairing_state = new_state;
 
@@ -4646,7 +4649,7 @@ static void btm_sec_change_pairing_state(tBTM_PAIRING_STATE new_state) {
  * Description      Return state description for tracing
  *
  ******************************************************************************/
-static const char* btm_pair_state_descr(tBTM_PAIRING_STATE state) {
+const char* tBTM_SEC_CB::btm_pair_state_descr(tBTM_PAIRING_STATE state) {
   switch (state) {
     case BTM_PAIR_STATE_IDLE:
       return ("IDLE");
