@@ -31,6 +31,7 @@
 #include "bta/include/bta_sec_api.h"
 #include "bta/sys/bta_sys.h"
 #include "include/hardware/bt_av.h"
+#include "internal_include/bt_target.h"
 #include "macros.h"
 #include "osi/include/list.h"
 #include "stack/include/a2dp_error_codes.h"
