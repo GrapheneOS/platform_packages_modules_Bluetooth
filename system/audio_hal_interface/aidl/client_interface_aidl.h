@@ -39,11 +39,17 @@ namespace aidl {
 using ::aidl::android::hardware::bluetooth::audio::AudioCapabilities;
 using ::aidl::android::hardware::bluetooth::audio::AudioConfiguration;
 using ::aidl::android::hardware::bluetooth::audio::BluetoothAudioStatus;
+using ::aidl::android::hardware::bluetooth::audio::CodecId;
+using ::aidl::android::hardware::bluetooth::audio::CodecInfo;
+using ::aidl::android::hardware::bluetooth::audio::CodecSpecificCapabilitiesLtv;
+using ::aidl::android::hardware::bluetooth::audio::
+    CodecSpecificConfigurationLtv;
 using ::aidl::android::hardware::bluetooth::audio::IBluetoothAudioPort;
 using ::aidl::android::hardware::bluetooth::audio::IBluetoothAudioProvider;
 using ::aidl::android::hardware::bluetooth::audio::
     IBluetoothAudioProviderFactory;
 using ::aidl::android::hardware::bluetooth::audio::LatencyMode;
+using ::aidl::android::hardware::bluetooth::audio::MetadataLtv;
 using ::aidl::android::hardware::bluetooth::audio::PcmConfiguration;
 
 using ::aidl::android::hardware::common::fmq::MQDescriptor;
@@ -88,6 +94,43 @@ class BluetoothAudioClientInterface {
   bool SetAllowedLatencyModes(std::vector<LatencyMode> latency_modes);
 
   void FlushAudioData();
+
+  std::optional<IBluetoothAudioProviderFactory::ProviderInfo> GetProviderInfo(
+      SessionType session_type);
+
+  void SetCodecPriority(CodecId codec_id, int32_t priority);
+
+  std::vector<IBluetoothAudioProvider::LeAudioAseConfigurationSetting>
+  GetLeAudioAseConfiguration(
+      std::optional<std::vector<
+          std::optional<IBluetoothAudioProvider::LeAudioDeviceCapabilities>>>&
+          remoteSinkAudioCapabilities,
+      std::optional<std::vector<
+          std::optional<IBluetoothAudioProvider::LeAudioDeviceCapabilities>>>&
+          remoteSourceAudioCapabilities,
+      std::vector<IBluetoothAudioProvider::LeAudioConfigurationRequirement>&
+          requirements);
+
+  IBluetoothAudioProvider::LeAudioAseQosConfigurationPair
+  getLeAudioAseQosConfiguration(
+      IBluetoothAudioProvider::LeAudioAseQosConfigurationRequirement&
+          qosRequirement);
+
+  void onSinkAseMetadataChanged(
+      IBluetoothAudioProvider::AseState state, int32_t cigId, int32_t cisId,
+      std::optional<std::vector<std::optional<MetadataLtv>>>& metadata);
+
+  void onSourceAseMetadataChanged(
+      IBluetoothAudioProvider::AseState state, int32_t cigId, int32_t cisId,
+      std::optional<std::vector<std::optional<MetadataLtv>>>& metadata);
+
+  IBluetoothAudioProvider::LeAudioBroadcastConfigurationSetting
+  getLeAudioBroadcastConfiguration(
+      const std::optional<std::vector<
+          std::optional<IBluetoothAudioProvider::LeAudioDeviceCapabilities>>>&
+          remoteSinkAudioCapabilities,
+      const IBluetoothAudioProvider::LeAudioBroadcastConfigurationRequirement&
+          requirement);
 
   static constexpr PcmConfiguration kInvalidPcmConfiguration = {};
 
