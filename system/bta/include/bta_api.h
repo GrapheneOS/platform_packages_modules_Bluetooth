@@ -31,8 +31,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "bt_target.h"  // Must be first to define build configuration
 #include "bta_api_data_types.h"
+#include "internal_include/bt_target.h"
 #include "macros.h"
 #include "os/log.h"
 #include "stack/btm/power_mode.h"
