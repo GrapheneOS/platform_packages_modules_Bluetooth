@@ -53,6 +53,31 @@ cc_library {
     },
 }
 
+cc_library_static {
+    name: "libbt-jni-thread",
+    defaults: ["fluoride_defaults"],
+    host_supported: true,
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/types",
+    ],
+    srcs: ["src/btif_jni_task.cc"],
+    static_libs: [
+        "libbt_shim_bridge",
+        "libosi",
+    ],
+    shared_libs: [
+        "libchrome",
+    ],
+    apex_available: [
+        "com.android.btservices",
+    ],
+    min_sdk_version: "Tiramisu",
+}
+
 genrule {
     name: "statslog_bt.h",
     tools: ["stats-log-api-gen"],
