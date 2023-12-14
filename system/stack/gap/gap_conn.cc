@@ -20,9 +20,9 @@
 #include <base/strings/stringprintf.h>
 #include <string.h>
 
-#include "bt_target.h"
 #include "device/include/controller.h"
 #include "gap_api.h"
+#include "internal_include//bt_target.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "osi/include/allocator.h"

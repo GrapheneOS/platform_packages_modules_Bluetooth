@@ -285,6 +285,7 @@ class HciHalHost : public HciHal {
 
  protected:
   void ListDependencies(ModuleList* list) const {
+    list->add<NocpIsoClocker>();
     list->add<metrics::CounterMetrics>();
     list->add<SnoopLogger>();
   }

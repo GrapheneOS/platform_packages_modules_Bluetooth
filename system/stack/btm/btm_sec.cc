@@ -103,9 +103,6 @@ static void btm_sec_collision_timeout(void* data);
 static void btm_restore_mode(void);
 static void btm_sec_pairing_timeout(void* data);
 static tBTM_STATUS btm_sec_dd_create_conn(tBTM_SEC_DEV_REC* p_dev_rec);
-static void btm_sec_change_pairing_state(tBTM_PAIRING_STATE new_state);
-
-static const char* btm_pair_state_descr(tBTM_PAIRING_STATE state);
 
 static void btm_sec_check_pending_reqs(void);
 static bool btm_sec_queue_mx_request(const RawAddress& bd_addr, uint16_t psm,
@@ -493,8 +490,8 @@ void BTM_PINCodeReply(const RawAddress& bd_addr, tBTM_STATUS res,
   LOG_VERBOSE(
       "BTM_PINCodeReply(): PairState: %s   PairFlags: 0x%02x  PinLen:%d  "
       "Result:%d",
-      btm_pair_state_descr(btm_sec_cb.pairing_state), btm_sec_cb.pairing_flags,
-      pin_len, res);
+      tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
+      btm_sec_cb.pairing_flags, pin_len, res);
 
   /* If timeout already expired or has been canceled, ignore the reply */
   if (btm_sec_cb.pairing_state != BTM_PAIR_STATE_WAIT_LOCAL_PIN) {
@@ -524,13 +521,13 @@ void BTM_PINCodeReply(const RawAddress& bd_addr, tBTM_STATUS res,
          (btm_sec_cb.pairing_flags & BTM_PAIR_FLAGS_DISC_WHEN_DONE))) {
       /* use BTM_PAIR_STATE_WAIT_AUTH_COMPLETE to report authentication failed
        * event */
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
       acl_set_disconnect_reason(HCI_ERR_HOST_REJECT_SECURITY);
 
       btsnd_hcic_pin_code_neg_reply(bd_addr);
     } else {
       p_dev_rec->sec_rec.security_required = BTM_SEC_NONE;
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
     }
     return;
   }
@@ -562,16 +559,16 @@ void BTM_PINCodeReply(const RawAddress& bd_addr, tBTM_STATUS res,
       /* we change state little bit early so btm_sec_connected() will originate
        * connection */
       /*   when existing ACL link is down completely */
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
     }
     /* if we already accepted incoming connection from pairing device */
     else if (p_dev_rec->sm4 & BTM_SM4_CONN_PEND) {
       LOG_WARN(
           "BTM_PINCodeReply(): link is connecting so wait pin code request "
           "from peer");
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
     } else if (btm_sec_dd_create_conn(p_dev_rec) != BTM_CMD_STARTED) {
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
       p_dev_rec->sec_rec.sec_flags &= ~BTM_SEC_LINK_KEY_AUTHED;
 
       NotifyBondingChange(*p_dev_rec, HCI_ERR_AUTH_FAILURE);
@@ -579,7 +576,7 @@ void BTM_PINCodeReply(const RawAddress& bd_addr, tBTM_STATUS res,
     return;
   }
 
-  btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
+  btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
   acl_set_disconnect_reason(HCI_SUCCESS);
 
   btsnd_hcic_pin_code_req_reply(bd_addr, pin_len, p_pin);
@@ -608,7 +605,7 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
   /* Other security process is in progress */
   if (btm_sec_cb.pairing_state != BTM_PAIR_STATE_IDLE) {
     LOG_ERROR("BTM_SecBond: already busy in state: %s",
-              btm_pair_state_descr(btm_sec_cb.pairing_state));
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state));
     return (BTM_WRONG_MODE);
   }
 
@@ -659,7 +656,7 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
     if (SMP_Pair(bd_addr, addr_type) == SMP_STARTED) {
       btm_sec_cb.pairing_flags |= BTM_PAIR_FLAGS_LE_ACTIVE;
       p_dev_rec->sec_rec.sec_state = BTM_SEC_STATE_AUTHENTICATING;
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
       return BTM_CMD_STARTED;
     }
 
@@ -696,7 +693,7 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
   if (BTM_IsAclConnectionUpAndHandleValid(bd_addr, transport)) {
     btm_sec_wait_and_start_authentication(p_dev_rec);
 
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
 
     /* Mark lcb as bonding */
     l2cu_update_lcb_4_bonding(bd_addr, true);
@@ -716,16 +713,16 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
       /* we are not accepting connection request from peer
        * -> RNR (to learn if peer is 2.1)
        * RNR when no ACL causes HCI_RMT_HOST_SUP_FEAT_NOTIFY_EVT */
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_GET_REM_NAME);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_GET_REM_NAME);
       status = BTM_ReadRemoteDeviceName(bd_addr, NULL, BT_TRANSPORT_BR_EDR);
     } else {
       /* We are accepting connection request from peer */
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
       status = BTM_CMD_STARTED;
     }
     LOG_VERBOSE("State:%s sm4: 0x%x sec_state:%d",
-                btm_pair_state_descr(btm_sec_cb.pairing_state), p_dev_rec->sm4,
-                p_dev_rec->sec_rec.sec_state);
+                tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
+                p_dev_rec->sm4, p_dev_rec->sec_rec.sec_state);
   } else {
     /* both local and peer are 2.1  */
     status = btm_sec_dd_create_conn(p_dev_rec);
@@ -734,7 +731,7 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
   if (status != BTM_CMD_STARTED) {
     LOG_ERROR("BTM_ReadRemoteDeviceName or btm_sec_dd_create_conn error: 0x%x",
               (int)status);
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
   }
 
   return status;
@@ -794,7 +791,7 @@ tBTM_STATUS BTM_SecBondCancel(const RawAddress& bd_addr) {
   tBTM_SEC_DEV_REC* p_dev_rec;
 
   LOG_VERBOSE("BTM_SecBondCancel()  State: %s flags:0x%x",
-              btm_pair_state_descr(btm_sec_cb.pairing_state),
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
               btm_sec_cb.pairing_flags);
   p_dev_rec = btm_find_dev(bd_addr);
   if (!p_dev_rec || btm_sec_cb.pairing_bda != bd_addr) {
@@ -1156,7 +1153,7 @@ static tBTM_STATUS btm_sec_send_hci_disconnect(tBTM_SEC_DEV_REC* p_dev_rec,
  ******************************************************************************/
 void BTM_ConfirmReqReply(tBTM_STATUS res, const RawAddress& bd_addr) {
   LOG_VERBOSE("BTM_ConfirmReqReply() State: %s  Res: %u",
-              btm_pair_state_descr(btm_sec_cb.pairing_state), res);
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), res);
 
   /* If timeout already expired or has been canceled, ignore the reply */
   if ((btm_sec_cb.pairing_state != BTM_PAIR_STATE_WAIT_NUMERIC_CONFIRM) ||
@@ -1164,7 +1161,7 @@ void BTM_ConfirmReqReply(tBTM_STATUS res, const RawAddress& bd_addr) {
     LOG_WARN(
         "Unexpected pairing confirm for %s, pairing_state: %s, pairing_bda: %s",
         ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
-        btm_pair_state_descr(btm_sec_cb.pairing_state),
+        tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
         ADDRESS_TO_LOGGABLE_CSTR(btm_sec_cb.pairing_bda));
     return;
   }
@@ -1172,7 +1169,7 @@ void BTM_ConfirmReqReply(tBTM_STATUS res, const RawAddress& bd_addr) {
   BTM_LogHistory(kBtmLogTag, bd_addr, "Confirm reply",
                  base::StringPrintf("status:%s", btm_status_text(res).c_str()));
 
-  btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
+  btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
 
   if ((res == BTM_SUCCESS) || (res == BTM_SUCCESS_NO_SECURITY)) {
     acl_set_disconnect_reason(HCI_SUCCESS);
@@ -1203,7 +1200,7 @@ void BTM_ConfirmReqReply(tBTM_STATUS res, const RawAddress& bd_addr) {
 void BTM_PasskeyReqReply(tBTM_STATUS res, const RawAddress& bd_addr,
                          uint32_t passkey) {
   LOG_VERBOSE("BTM_PasskeyReqReply: State: %s  res:%d",
-              btm_pair_state_descr(btm_sec_cb.pairing_state), res);
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), res);
 
   if ((btm_sec_cb.pairing_state == BTM_PAIR_STATE_IDLE) ||
       (btm_sec_cb.pairing_bda != bd_addr)) {
@@ -1227,7 +1224,7 @@ void BTM_PasskeyReqReply(tBTM_STATUS res, const RawAddress& bd_addr,
       p_dev_rec->sec_rec.sec_flags &=
           ~(BTM_SEC_LINK_KEY_AUTHED | BTM_SEC_LINK_KEY_KNOWN);
 
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
       return;
     }
   } else if (btm_sec_cb.pairing_state != BTM_PAIR_STATE_KEY_ENTRY)
@@ -1235,7 +1232,7 @@ void BTM_PasskeyReqReply(tBTM_STATUS res, const RawAddress& bd_addr,
 
   if (passkey > BTM_MAX_PASSKEY_VAL) res = BTM_ILLEGAL_VALUE;
 
-  btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
+  btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
 
   if (res != BTM_SUCCESS) {
     /* use BTM_PAIR_STATE_WAIT_AUTH_COMPLETE to report authentication failed
@@ -1273,12 +1270,12 @@ void BTM_ReadLocalOobData(void) { btsnd_hcic_read_local_oob_data(); }
 void BTM_RemoteOobDataReply(tBTM_STATUS res, const RawAddress& bd_addr,
                             const Octet16& c, const Octet16& r) {
   LOG_VERBOSE("State: %s res: %d",
-              btm_pair_state_descr(btm_sec_cb.pairing_state), res);
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), res);
 
   /* If timeout already expired or has been canceled, ignore the reply */
   if (btm_sec_cb.pairing_state != BTM_PAIR_STATE_WAIT_LOCAL_OOB_RSP) return;
 
-  btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
+  btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
 
   if (res != BTM_SUCCESS) {
     /* use BTM_PAIR_STATE_WAIT_AUTH_COMPLETE to report authentication failed
@@ -1756,7 +1753,7 @@ tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
   if ((p_dev_rec->sec_rec.p_callback) ||
       (btm_sec_cb.pairing_state != BTM_PAIR_STATE_IDLE)) {
     LOG_DEBUG("Pairing in progress pairing_state:%s",
-              btm_pair_state_descr(btm_sec_cb.pairing_state));
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state));
 
     rc = BTM_CMD_STARTED;
 
@@ -1954,7 +1951,7 @@ static void btm_sec_bond_cancel_complete(void) {
      */
     p_dev_rec = btm_find_dev(btm_sec_cb.pairing_bda);
     if (p_dev_rec != NULL) p_dev_rec->sec_rec.security_required = BTM_SEC_NONE;
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
 
     /* Notify application that the cancel succeeded */
     if (btm_sec_cb.api.p_bond_cancel_cmpl_callback)
@@ -1975,7 +1972,8 @@ static void btm_sec_bond_cancel_complete(void) {
  ******************************************************************************/
 void btm_create_conn_cancel_complete(uint8_t status, const RawAddress bd_addr) {
   LOG_VERBOSE("btm_create_conn_cancel_complete(): in State: %s  status:%d",
-              btm_pair_state_descr(btm_sec_cb.pairing_state), status);
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
+              status);
   log_link_layer_connection_event(
       &bd_addr, bluetooth::common::kUnknownConnectionHandle,
       android::bluetooth::DIRECTION_OUTGOING, android::bluetooth::LINK_TYPE_ACL,
@@ -2117,7 +2115,7 @@ static tBTM_STATUS btm_sec_dd_create_conn(tBTM_SEC_DEV_REC* p_dev_rec) {
     if (BTM_IsAclConnectionUp(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR)) {
       return BTM_SUCCESS;
     }
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
     return BTM_CMD_STARTED;
   } else if (status == BTM_NO_RESOURCES) {
     return BTM_NO_RESOURCES;
@@ -2129,7 +2127,7 @@ static tBTM_STATUS btm_sec_dd_create_conn(tBTM_SEC_DEV_REC* p_dev_rec) {
   LOG_INFO("Security Manager: %s",
            ADDRESS_TO_LOGGABLE_CSTR(p_dev_rec->bd_addr));
 
-  btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
+  btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
 
   return (BTM_CMD_STARTED);
 }
@@ -2209,7 +2207,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
     LOG_DEBUG(
         "Remote read request complete for unknown device pairing_state:%s "
         "status:%s name:%s",
-        btm_pair_state_descr(btm_sec_cb.pairing_state),
+        tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
         hci_status_code_text(status).c_str(), p_bd_name);
 
     call_registered_rmt_name_callbacks(p_bd_addr, nullptr, nullptr, status);
@@ -2221,7 +2219,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
     LOG_DEBUG(
         "Remote read request complete for known device pairing_state:%s "
         "name:%s sec_state:%s",
-        btm_pair_state_descr(btm_sec_cb.pairing_state), p_bd_name,
+        tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), p_bd_name,
         security_state_text(p_dev_rec->sec_rec.sec_state).c_str());
 
     strlcpy((char*)p_dev_rec->sec_bd_name, (const char*)p_bd_name,
@@ -2233,7 +2231,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
     LOG_WARN(
         "Remote read request failed for known device pairing_state:%s "
         "status:%s name:%s sec_state:%s",
-        btm_pair_state_descr(btm_sec_cb.pairing_state),
+        tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
         hci_status_code_text(status).c_str(), p_bd_name,
         security_state_text(p_dev_rec->sec_rec.sec_state).c_str());
 
@@ -2269,7 +2267,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
     }
 
     /* Set the same state again to force the timer to be restarted */
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_LOCAL_PIN);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_LOCAL_PIN);
     return;
   }
 
@@ -2284,7 +2282,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
       }
 
       if (status != HCI_SUCCESS) {
-        btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+        btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
 
         return NotifyBondingChange(*p_dev_rec, status);
       }
@@ -2328,7 +2326,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
           } else if (req_status != BTM_CMD_STARTED) {
             LOG_WARN("failed to start connection");
 
-            btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+            btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
 
             NotifyBondingChange(*p_dev_rec, HCI_ERR_MEMORY_FULL);
           }
@@ -2470,7 +2468,7 @@ void btm_io_capabilities_req(RawAddress p) {
   p_dev_rec->sm4 |= BTM_SM4_TRUE;
 
   LOG_VERBOSE("State: %s, Security Mode: %d, Device security Flags: 0x%04x",
-              btm_pair_state_descr(btm_sec_cb.pairing_state),
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
               btm_sec_cb.security_mode, btm_sec_cb.pairing_flags);
 
   uint8_t err_code = 0;
@@ -2562,7 +2560,7 @@ void btm_io_capabilities_req(RawAddress p) {
   if (evt_data.bd_addr == btm_sec_cb.connecting_bda)
     memcpy(p_dev_rec->dev_class, btm_sec_cb.connecting_dc, DEV_CLASS_LEN);
 
-  btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_LOCAL_IOCAPS);
+  btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_LOCAL_IOCAPS);
 
   if (p_dev_rec->sm4 & BTM_SM4_UPGRADE) {
     p_dev_rec->sm4 &= ~BTM_SM4_UPGRADE;
@@ -2597,8 +2595,8 @@ void btm_io_capabilities_req(RawAddress p) {
   btm_sec_cb.devcb.loc_io_caps = evt_data.io_cap;
 
   LOG_VERBOSE("State: %s  IO_CAP:%d oob_data:%d auth_req:%d",
-              btm_pair_state_descr(btm_sec_cb.pairing_state), evt_data.io_cap,
-              evt_data.oob_data, evt_data.auth_req);
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
+              evt_data.io_cap, evt_data.oob_data, evt_data.auth_req);
 
   btsnd_hcic_io_cap_req_reply(evt_data.bd_addr, evt_data.io_cap,
                               evt_data.oob_data, evt_data.auth_req);
@@ -2624,7 +2622,7 @@ void btm_io_capabilities_rsp(const tBTM_SP_IO_RSP evt_data) {
   if (btm_sec_cb.pairing_state == BTM_PAIR_STATE_IDLE) {
     btm_sec_cb.pairing_bda = evt_data.bd_addr;
 
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_INCOMING_SSP);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_INCOMING_SSP);
 
     /* work around for FW bug */
     btm_inq_stop_on_ssp();
@@ -2679,7 +2677,7 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, const RawAddress bda,
   p_bda = bda;
   LOG_VERBOSE("BDA: %s, event: 0x%x, state: %s",
               ADDRESS_TO_LOGGABLE_CSTR(p_bda), event,
-              btm_pair_state_descr(btm_sec_cb.pairing_state));
+              tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state));
 
   p_dev_rec = btm_find_dev(p_bda);
   if ((p_dev_rec != NULL) &&
@@ -2694,7 +2692,7 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, const RawAddress bda,
     switch (event) {
       case BTM_SP_CFM_REQ_EVT:
         /* Numeric confirmation. Need user to conf the passkey */
-        btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_NUMERIC_CONFIRM);
+        btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_NUMERIC_CONFIRM);
 
         /* The device record must be allocated in the "IO cap exchange" step */
         evt_data.cfm_req.num_val = value;
@@ -2746,13 +2744,13 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, const RawAddress bda,
         LOG_VERBOSE("BTM_SP_KEY_NOTIF_EVT:  passkey: %u",
                     evt_data.key_notif.passkey);
 
-        btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
+        btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
         break;
 
       case BTM_SP_KEY_REQ_EVT:
         if (btm_sec_cb.devcb.loc_io_caps != BTM_IO_CAP_NONE) {
           /* HCI_USER_PASSKEY_REQUEST_EVT */
-          btm_sec_change_pairing_state(BTM_PAIR_STATE_KEY_ENTRY);
+          btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_KEY_ENTRY);
         }
         break;
     }
@@ -2825,14 +2823,14 @@ void btm_simple_pair_complete(const RawAddress bd_addr, uint8_t status) {
 
   LOG_VERBOSE(
       "btm_simple_pair_complete()  Pair State: %s  Status:%d  sec_state: %u",
-      btm_pair_state_descr(btm_sec_cb.pairing_state), status,
+      tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), status,
       p_dev_rec->sec_rec.sec_state);
 
   if (status == HCI_SUCCESS) {
     p_dev_rec->sec_rec.sec_flags |= BTM_SEC_AUTHENTICATED;
   } else if (status == HCI_ERR_PAIRING_NOT_ALLOWED) {
     /* The test spec wants the peer device to get this failure code. */
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_DISCONNECT);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_DISCONNECT);
 
     /* Change the timer to 1 second */
     alarm_set_on_mloop(btm_sec_cb.pairing_timer, BT_1SEC_TIMEOUT_MS,
@@ -2889,7 +2887,7 @@ void btm_rem_oob_req(const RawAddress bd_addr) {
     strlcpy((char*)evt_data.bd_name, (char*)p_dev_rec->sec_bd_name,
             BTM_MAX_REM_BD_NAME_LEN + 1);
 
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_LOCAL_OOB_RSP);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_LOCAL_OOB_RSP);
     if ((*btm_sec_cb.api.p_sp_callback)(BTM_SP_RMT_OOB_EVT,
                                         (tBTM_SP_EVT_DATA*)&evt_data) ==
         BTM_NOT_AUTHORIZED) {
@@ -3018,12 +3016,13 @@ void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status) {
     LOG_VERBOSE(
         "Security Manager: in state: %s, handle: %d, status: %d, "
         "dev->sec_rec.sec_state:%d, bda: %s, RName: %s",
-        btm_pair_state_descr(btm_sec_cb.pairing_state), handle, status,
-        p_dev_rec->sec_rec.sec_state,
+        tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), handle,
+        status, p_dev_rec->sec_rec.sec_state,
         ADDRESS_TO_LOGGABLE_CSTR(p_dev_rec->bd_addr), p_dev_rec->sec_bd_name);
   } else {
     LOG_VERBOSE("Security Manager: in state: %s, handle: %d, status: %d",
-                btm_pair_state_descr(btm_sec_cb.pairing_state), handle, status);
+                tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
+                handle, status);
   }
 
   /* For transaction collision we need to wait and repeat.  There is no need */
@@ -3078,7 +3077,7 @@ void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status) {
     if (btm_sec_cb.pairing_flags & BTM_PAIR_FLAGS_WE_STARTED_DD) {
       are_bonding = true;
     }
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
   }
 
   if (was_authenticating == false) {
@@ -3361,7 +3360,7 @@ static void btm_sec_connect_after_reject_timeout(void* /* data */) {
   if (btm_sec_dd_create_conn(p_dev_rec) != BTM_CMD_STARTED) {
     LOG_WARN("Security Manager: failed to start connection");
 
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
 
     NotifyBondingChange(*p_dev_rec, HCI_ERR_MEMORY_FULL);
   }
@@ -3390,7 +3389,7 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
     LOG_DEBUG(
         "Connected to new device state:%s handle:0x%04x status:%s "
         "enc_mode:%hhu bda:%s",
-        btm_pair_state_descr(btm_sec_cb.pairing_state), handle,
+        tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), handle,
         hci_status_code_text(status).c_str(), enc_mode,
         ADDRESS_TO_LOGGABLE_CSTR(bda));
 
@@ -3405,7 +3404,7 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
           btm_sec_cb.pairing_bda == bda) {
         LOG_WARN("Connection failed during bonding attempt peer:%s reason:%s",
                  ADDRESS_TO_LOGGABLE_CSTR(bda), hci_error_code_text(status).c_str());
-        btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+        btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
       }
 
       LOG_DEBUG("Ignoring failed device connection peer:%s reason:%s",
@@ -3416,7 +3415,7 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
     LOG_DEBUG(
         "Connected to known device state:%s handle:0x%04x status:%s "
         "enc_mode:%hhu bda:%s RName:%s",
-        btm_pair_state_descr(btm_sec_cb.pairing_state), handle,
+        tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state), handle,
         hci_status_code_text(status).c_str(), enc_mode,
         ADDRESS_TO_LOGGABLE_CSTR(bda), p_dev_rec->sec_bd_name);
 
@@ -3449,12 +3448,12 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
           } else {
             /* remote device name is unknowm, start getting remote name first */
 
-            btm_sec_change_pairing_state(BTM_PAIR_STATE_GET_REM_NAME);
+            btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_GET_REM_NAME);
             if (BTM_ReadRemoteDeviceName(p_dev_rec->bd_addr, NULL,
                                          BT_TRANSPORT_BR_EDR) !=
                 BTM_CMD_STARTED) {
               LOG_ERROR("cannot read remote name");
-              btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+              btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
             }
           }
           return;
@@ -3484,11 +3483,11 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
       btm_sec_cb.pairing_flags &= ~BTM_PAIR_FLAGS_REJECTED_CONNECT;
       if (BTM_SEC_IS_SM4_UNKNOWN(p_dev_rec->sm4)) {
         /* Try again: RNR when no ACL causes HCI_RMT_HOST_SUP_FEAT_NOTIFY_EVT */
-        btm_sec_change_pairing_state(BTM_PAIR_STATE_GET_REM_NAME);
+        btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_GET_REM_NAME);
         if (BTM_ReadRemoteDeviceName(bda, NULL, BT_TRANSPORT_BR_EDR) !=
             BTM_CMD_STARTED) {
           LOG_ERROR("cannot read remote name");
-          btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+          btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
         }
         return;
       }
@@ -3527,7 +3526,7 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
       LOG_VERBOSE("security_required:%x ",
                   p_dev_rec->sec_rec.security_required);
 
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
 
       /* We need to notify host that the key is not known any more */
       NotifyBondingChange(*p_dev_rec, status);
@@ -3601,7 +3600,7 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
     /* remember flag before it is initialized */
     const bool is_pair_flags_we_started_dd =
         btm_sec_cb.pairing_flags & BTM_PAIR_FLAGS_WE_STARTED_DD;
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
 
     if (is_pair_flags_we_started_dd) {
       /* Let l2cap start bond timer */
@@ -3711,7 +3710,7 @@ void btm_sec_disconnected(uint16_t handle, tHCI_REASON reason,
       (btm_sec_cb.pairing_bda == p_dev_rec->bd_addr)) {
     LOG_DEBUG("Disconnected while pairing process active handle:0x%04x",
               handle);
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
     p_dev_rec->sec_rec.sec_flags &= ~BTM_SEC_LINK_KEY_KNOWN;
 
     /* If the disconnection reason is REPEATED_ATTEMPTS,
@@ -3742,7 +3741,7 @@ void btm_sec_disconnected(uint16_t handle, tHCI_REASON reason,
   LOG_DEBUG(
       "Disconnection complete device:%s name:%s state:%s reason:%s sec_req:%x",
       ADDRESS_TO_LOGGABLE_CSTR(p_dev_rec->bd_addr), p_dev_rec->sec_bd_name,
-      btm_pair_state_descr(btm_sec_cb.pairing_state),
+      tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state),
       hci_reason_code_text(reason).c_str(),
       p_dev_rec->sec_rec.security_required);
 
@@ -3916,7 +3915,7 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
     if (btm_sec_cb.pairing_flags & BTM_PAIR_FLAGS_WE_STARTED_DD)
       we_are_bonding = true;
     else
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
   }
 
   /* save LTK derived LK no matter what */
@@ -4043,7 +4042,8 @@ static void btm_sec_pairing_timeout(void* /* data */) {
   p_dev_rec = btm_find_dev(p_cb->pairing_bda);
 
   LOG_VERBOSE("State: %s   Flags: %u",
-              btm_pair_state_descr(p_cb->pairing_state), p_cb->pairing_flags);
+              tBTM_SEC_CB::btm_pair_state_descr(p_cb->pairing_state),
+              p_cb->pairing_flags);
 
   switch (p_cb->pairing_state) {
     case BTM_PAIR_STATE_WAIT_PIN_REQ:
@@ -4053,7 +4053,7 @@ static void btm_sec_pairing_timeout(void* /* data */) {
     case BTM_PAIR_STATE_WAIT_LOCAL_PIN:
       if ((btm_sec_cb.pairing_flags & BTM_PAIR_FLAGS_PRE_FETCH_PIN) == 0)
         btsnd_hcic_pin_code_neg_reply(p_cb->pairing_bda);
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
       /* We need to notify the UI that no longer need the PIN */
       if (btm_sec_cb.api.p_auth_complete_callback) {
         if (p_dev_rec == NULL) {
@@ -4067,14 +4067,14 @@ static void btm_sec_pairing_timeout(void* /* data */) {
 
     case BTM_PAIR_STATE_WAIT_NUMERIC_CONFIRM:
       btsnd_hcic_user_conf_reply(p_cb->pairing_bda, false);
-      /* btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE); */
+      /* btm_sec_cb.change_pairing_state (BTM_PAIR_STATE_IDLE); */
       break;
 
     case BTM_PAIR_STATE_KEY_ENTRY:
       if (btm_sec_cb.devcb.loc_io_caps != BTM_IO_CAP_NONE) {
         btsnd_hcic_user_passkey_neg_reply(p_cb->pairing_bda);
       } else {
-        btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+        btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
       }
       break;
 
@@ -4083,12 +4083,12 @@ static void btm_sec_pairing_timeout(void* /* data */) {
       btsnd_hcic_io_cap_req_reply(p_cb->pairing_bda,
                                   btm_sec_cb.devcb.loc_io_caps, BTM_OOB_NONE,
                                   auth_req);
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
       break;
 
     case BTM_PAIR_STATE_WAIT_LOCAL_OOB_RSP:
       btsnd_hcic_rem_oob_neg_reply(p_cb->pairing_bda);
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
       break;
 
     case BTM_PAIR_STATE_WAIT_DISCONNECT:
@@ -4103,14 +4103,14 @@ static void btm_sec_pairing_timeout(void* /* data */) {
       btm_sec_send_hci_disconnect(
           p_dev_rec, HCI_ERR_AUTH_FAILURE, p_dev_rec->hci_handle,
           "stack::btm::btm_sec::btm_sec_pairing_timeout");
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
       break;
 
     case BTM_PAIR_STATE_WAIT_AUTH_COMPLETE:
     case BTM_PAIR_STATE_GET_REM_NAME:
       /* We need to notify the UI that timeout has happened while waiting for
        * authentication*/
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
       if (btm_sec_cb.api.p_auth_complete_callback) {
         if (p_dev_rec == NULL) {
           name[0] = 0;
@@ -4124,8 +4124,8 @@ static void btm_sec_pairing_timeout(void* /* data */) {
 
     default:
       LOG_WARN("not processed state: %s",
-               btm_pair_state_descr(btm_sec_cb.pairing_state));
-      btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+               tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state));
+      btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_IDLE);
       break;
   }
 }
@@ -4149,7 +4149,7 @@ void btm_sec_pin_code_request(const RawAddress p_bda) {
 
   LOG_DEBUG("Controller requests PIN code device:%s state:%s",
             ADDRESS_TO_LOGGABLE_CSTR(p_bda),
-            btm_pair_state_descr(btm_sec_cb.pairing_state));
+            tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state));
 
   RawAddress local_bd_addr = *controller_get_interface()->get_address();
   if (p_bda == local_bd_addr) {
@@ -4165,7 +4165,7 @@ void btm_sec_pin_code_request(const RawAddress p_bda) {
     } else if ((btm_sec_cb.pairing_state != BTM_PAIR_STATE_WAIT_PIN_REQ) ||
                p_bda != btm_sec_cb.pairing_bda) {
       LOG_WARN("btm_sec_pin_code_request() rejected - state: %s",
-               btm_pair_state_descr(btm_sec_cb.pairing_state));
+               tBTM_SEC_CB::btm_pair_state_descr(btm_sec_cb.pairing_state));
       btsnd_hcic_pin_code_neg_reply(p_bda);
       return;
     }
@@ -4183,7 +4183,7 @@ void btm_sec_pin_code_request(const RawAddress p_bda) {
 
   if (!p_cb->pairing_disabled && (p_cb->cfg.pin_type == HCI_PIN_TYPE_FIXED)) {
     LOG_VERBOSE("btm_sec_pin_code_request fixed pin replying");
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
     btsnd_hcic_pin_code_req_reply(p_bda, p_cb->cfg.pin_code_len,
                                   p_cb->cfg.pin_code);
     return;
@@ -4209,7 +4209,7 @@ void btm_sec_pin_code_request(const RawAddress p_bda) {
     /* is not forced to be secure - found a FW issue, so we can not do this
     btm_restore_mode(); */
 
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
   }
 
   /* If pairing disabled OR (no PIN callback and not bonding) */
@@ -4236,7 +4236,7 @@ void btm_sec_pin_code_request(const RawAddress p_bda) {
   }
   /* Notify upper layer of PIN request and start expiration timer */
   else {
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_LOCAL_PIN);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_LOCAL_PIN);
     /* Pin code request can not come at the same time as connection request */
     p_cb->connecting_bda = p_bda;
     memcpy(p_cb->connecting_dc, p_dev_rec->dev_class, DEV_CLASS_LEN);
@@ -4594,45 +4594,45 @@ static void btm_restore_mode(void) {
 
 /*******************************************************************************
  *
- * Function         btm_sec_change_pairing_state
+ * Function         change_pairing_state
  *
  * Description      This function is called to change pairing state
  *
  ******************************************************************************/
-static void btm_sec_change_pairing_state(tBTM_PAIRING_STATE new_state) {
-  tBTM_PAIRING_STATE old_state = btm_sec_cb.pairing_state;
+void tBTM_SEC_CB::change_pairing_state(tBTM_PAIRING_STATE new_state) {
+  tBTM_PAIRING_STATE old_state = pairing_state;
 
   LOG_DEBUG("Pairing state changed %s => %s pairing_flags:0x%x",
-            btm_pair_state_descr(btm_sec_cb.pairing_state),
-            btm_pair_state_descr(new_state), btm_sec_cb.pairing_flags);
+            tBTM_SEC_CB::btm_pair_state_descr(pairing_state),
+            tBTM_SEC_CB::btm_pair_state_descr(new_state), pairing_flags);
 
-  if (btm_sec_cb.pairing_state != new_state) {
+  if (pairing_state != new_state) {
     BTM_LogHistory(
         kBtmLogTag, btm_sec_cb.pairing_bda, "Pairing state changed",
         base::StringPrintf("%s => %s",
-                           btm_pair_state_descr(btm_sec_cb.pairing_state),
-                           btm_pair_state_descr(new_state)));
+                           tBTM_SEC_CB::btm_pair_state_descr(pairing_state),
+                           tBTM_SEC_CB::btm_pair_state_descr(new_state)));
   }
-  btm_sec_cb.pairing_state = new_state;
+  pairing_state = new_state;
 
   if (new_state == BTM_PAIR_STATE_IDLE) {
-    alarm_cancel(btm_sec_cb.pairing_timer);
+    alarm_cancel(pairing_timer);
 
-    btm_sec_cb.pairing_flags = 0;
-    btm_sec_cb.pin_code_len = 0;
+    pairing_flags = 0;
+    pin_code_len = 0;
 
     /* Make sure the the lcb shows we are not bonding */
-    l2cu_update_lcb_4_bonding(btm_sec_cb.pairing_bda, false);
+    l2cu_update_lcb_4_bonding(pairing_bda, false);
 
     btm_restore_mode();
     btm_sec_check_pending_reqs();
     btm_inq_clear_ssp();
 
-    btm_sec_cb.pairing_bda = RawAddress::kAny;
+    pairing_bda = RawAddress::kAny;
   } else {
     /* If transitioning out of idle, mark the lcb as bonding */
     if (old_state == BTM_PAIR_STATE_IDLE)
-      l2cu_update_lcb_4_bonding(btm_sec_cb.pairing_bda, true);
+      l2cu_update_lcb_4_bonding(pairing_bda, true);
 
     alarm_set_on_mloop(btm_sec_cb.pairing_timer, BTM_SEC_TIMEOUT_VALUE * 1000,
                        btm_sec_pairing_timeout, NULL);
@@ -4646,7 +4646,7 @@ static void btm_sec_change_pairing_state(tBTM_PAIRING_STATE new_state) {
  * Description      Return state description for tracing
  *
  ******************************************************************************/
-static const char* btm_pair_state_descr(tBTM_PAIRING_STATE state) {
+const char* tBTM_SEC_CB::btm_pair_state_descr(tBTM_PAIRING_STATE state) {
   switch (state) {
     case BTM_PAIR_STATE_IDLE:
       return ("IDLE");
@@ -4765,7 +4765,7 @@ static bool btm_sec_check_prefetch_pin(tBTM_SEC_DEV_REC* p_dev_rec) {
       btsnd_hcic_write_auth_enable(true);
     }
   } else {
-    btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_LOCAL_PIN);
+    btm_sec_cb.change_pairing_state(BTM_PAIR_STATE_WAIT_LOCAL_PIN);
 
     /* If we got a PIN, use that, else try to get one */
     if (btm_sec_cb.pin_code_len) {

@@ -25,7 +25,7 @@
 #define AVCT_INT_H
 
 #include "avct_api.h"
-#include "avct_defs.h"
+#include "internal_include/bt_target.h"
 #include "l2c_api.h"
 #include "osi/include/fixed_queue.h"
 #include "stack/include/bt_hdr.h"

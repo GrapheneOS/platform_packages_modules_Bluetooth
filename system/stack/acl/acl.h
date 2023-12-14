@@ -19,7 +19,8 @@
 #include <cstdint>
 #include <string>
 
-#include "bt_target.h"
+#include "internal_include/bt_target.h"
+#include "internal_include/bt_trace.h"
 #include "stack/acl/peer_packet_types.h"
 #include "stack/btm/power_mode.h"
 #include "stack/include/btm_status.h"
