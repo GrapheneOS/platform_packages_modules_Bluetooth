@@ -44,6 +44,8 @@ static inline bool is_arch64() {
   return sizeof(long) == 8;
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winteger-overflow"
 TEST(StringsTest, to_hex_string_from_number) {
   ASSERT_EQ(ToHexString(0), "0x00000000");
   ASSERT_EQ(ToHexString(3), "0x00000003");
@@ -87,6 +89,7 @@ TEST(StringsTest, to_hex_string_from_number_unsigned_int) {
   ASSERT_EQ(ToHexString(1U + UINT_MAX), "0x00000000");  // Rolled over
   ASSERT_EQ(ToHexString(2U + UINT_MAX), "0x00000001");  // Rolled over
 }
+#pragma clang diagnostic pop
 
 TEST(StringsTest, trim_string_test) {
   ASSERT_EQ(StringTrim("  aa bb"), "aa bb");
