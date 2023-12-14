@@ -28,6 +28,7 @@ android_test_helper_app {
         "compatibility-device-util-axt",
         "grpc-java-lite",
         "grpc-java-okhttp-client-lite",
+        "mockito-kotlin2",
         "opencensus-java-contrib-grpc-metrics",
         "pandora_experimental-grpc-java",
         "pandora_experimental-proto-java",
