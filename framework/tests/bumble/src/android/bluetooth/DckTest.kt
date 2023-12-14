@@ -62,18 +62,23 @@ public class DckTest {
      *
      * <p>This test method goes through the following steps:
      * <ul>
-     *     <li>1. Register the Dck Gatt service on Bumble over a gRPC call.</li>
-     *     <li>2. Advertises the host's (potentially the car's) Bluetooth capabilities through a gRPC call.</li>
-     *     <li>3. Fetches a remote LE (Low Energy) Bluetooth device instance.</li>
-     *     <li>4. Sets up a mock GATT callback for Bluetooth related events.</li>
-     *     <li>5. Connects to the Bumble device and verifies a successful connection.</li>
-     *     <li>6. Discovers the GATT services offered by Bumble and checks for a successful service discovery.</li>
-     *     <li>7. Validates the presence of the required GATT service (CCC_DK_UUID) on the Bumble device.</li>
-     *     <li>8. Disconnects from the Bumble device and ensures a successful disconnection.</li>
+     * <li>1. Register the Dck Gatt service on Bumble over a gRPC call.</li>
+     * <li>2. Advertises the host's (potentially the car's) Bluetooth capabilities through a gRPC
+     *   call.</li>
+     * <li>3. Fetches a remote LE (Low Energy) Bluetooth device instance.</li>
+     * <li>4. Sets up a mock GATT callback for Bluetooth related events.</li>
+     * <li>5. Connects to the Bumble device and verifies a successful connection.</li>
+     * <li>6. Discovers the GATT services offered by Bumble and checks for a successful service
+     *   discovery.</li>
+     * <li>7. Validates the presence of the required GATT service (CCC_DK_UUID) on the Bumble
+     *   device.</li>
+     * <li>8. Disconnects from the Bumble device and ensures a successful disconnection.</li>
      * </ul>
+     *
      * </p>
      *
-     * @throws AssertionError if any of the assertions (like service discovery or connection checks) fail.
+     * @throws AssertionError if any of the assertions (like service discovery or connection checks)
+     *   fail.
      * @see BluetoothGatt
      * @see BluetoothGattCallback
      */
@@ -99,23 +104,32 @@ public class DckTest {
             .hostBlocking()
             .advertise(
                 AdvertiseRequest.newBuilder()
-                    .setLegacy(true) // As of now, Bumble only support legacy advertising (b/266124496).
+                    .setLegacy(
+                        true
+                    ) // As of now, Bumble only support legacy advertising (b/266124496).
                     .setConnectable(true)
-                    .setOwnAddressType(OwnAddressType.RANDOM) // Ask Bumble to advertise it's `RANDOM` address.
+                    .setOwnAddressType(
+                        OwnAddressType.RANDOM
+                    ) // Ask Bumble to advertise it's `RANDOM` address.
                     .build()
             )
 
         // 3. Fetch a remote Bluetooth device instance (here, Bumble).
         val bumbleDevice =
             bluetoothAdapter.getRemoteLeDevice(
-                // To keep things straightforward, the Bumble RANDOM address is set to a predefined constant.
-                // Typically, an LE scan would be conducted to identify the Bumble device, matching it based on its
+                // To keep things straightforward, the Bumble RANDOM address is set to a predefined
+                // constant.
+                // Typically, an LE scan would be conducted to identify the Bumble device, matching
+                // it based on its
                 // Advertising data.
                 Utils.BUMBLE_RANDOM_ADDRESS,
-                BluetoothDevice.ADDRESS_TYPE_RANDOM // Specify address type as RANDOM because the device advertises with this address type.
+                BluetoothDevice
+                    .ADDRESS_TYPE_RANDOM // Specify address type as RANDOM because the device
+                // advertises with this address type.
             )
 
-        // 4. Create a mock callback to handle Bluetooth GATT (Generic Attribute Profile) related events.
+        // 4. Create a mock callback to handle Bluetooth GATT (Generic Attribute Profile) related
+        // events.
         val gattCallback = mock(BluetoothGattCallback::class.java)
 
         // 5. Connect to the Bumble device and expect a successful connection callback.
