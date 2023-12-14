@@ -40,6 +40,7 @@
 #include "gd/hci/hci_layer.h"
 #include "hci/hci_packets.h"
 #include "hci/include/hci_layer.h"
+#include "internal_include/bt_target.h"
 #include "main/shim/entry.h"
 #include "osi/include/properties.h"
 #include "osi/include/stack_power_telemetry.h"
