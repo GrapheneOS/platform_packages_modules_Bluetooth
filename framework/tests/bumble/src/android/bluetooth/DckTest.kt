@@ -28,25 +28,20 @@ import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.any
-import org.mockito.Mockito.eq
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.timeout
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.timeout
+import org.mockito.kotlin.verify
 import pandora.HostProto.AdvertiseRequest
 import pandora.HostProto.OwnAddressType
 
 @RunWith(AndroidJUnit4::class)
 public class DckTest {
-    private val TAG = "DckTest"
-    private val TIMEOUT: Long = 2000
 
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
     private val bluetoothAdapter = bluetoothManager.adapter
-
-    // CCC DK Specification R3 1.2.0 r14 section 19.2.1.2 Bluetooth Le Pairing
-    private val CCC_DK_UUID = UUID.fromString("0000FFF5-0000-1000-8000-00805f9b34fb")
 
     // A Rule live from a test setup through it's teardown.
     // Gives shell permissions during the test.
@@ -130,7 +125,7 @@ public class DckTest {
 
         // 4. Create a mock callback to handle Bluetooth GATT (Generic Attribute Profile) related
         // events.
-        val gattCallback = mock(BluetoothGattCallback::class.java)
+        val gattCallback = mock<BluetoothGattCallback>()
 
         // 5. Connect to the Bumble device and expect a successful connection callback.
         var bumbleGatt = bumbleDevice.connectGatt(context, false, gattCallback)
@@ -157,5 +152,13 @@ public class DckTest {
                 eq(BluetoothGatt.GATT_SUCCESS),
                 eq(BluetoothProfile.STATE_DISCONNECTED)
             )
+    }
+
+    companion object {
+        private const val TAG = "DckTest"
+        private const val TIMEOUT: Long = 2000
+
+        // CCC DK Specification R3 1.2.0 r14 section 19.2.1.2 Bluetooth Le Pairing
+        private val CCC_DK_UUID = UUID.fromString("0000FFF5-0000-1000-8000-00805f9b34fb")
     }
 }
