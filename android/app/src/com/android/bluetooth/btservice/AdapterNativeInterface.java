@@ -100,10 +100,6 @@ public class AdapterNativeInterface {
         return getAdapterPropertyNative(type);
     }
 
-    boolean setAdapterProperty(int type) {
-        return setAdapterPropertyNative(type);
-    }
-
     boolean setDeviceProperty(byte[] address, int type, byte[] val) {
         return setDevicePropertyNative(address, type, val);
     }
@@ -275,8 +271,6 @@ public class AdapterNativeInterface {
     private native boolean getAdapterPropertiesNative();
 
     private native boolean getAdapterPropertyNative(int type);
-
-    private native boolean setAdapterPropertyNative(int type);
 
     private native boolean setDevicePropertyNative(byte[] address, int type, byte[] val);
 
