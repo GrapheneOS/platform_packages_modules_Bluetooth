@@ -24,7 +24,7 @@
 #include <cstdint>
 #include <string>
 
-#include "bt_target.h"
+#include "internal_include/bt_target.h"
 #include "macros.h"
 #include "os/logging/log_adapter.h"
 #include "stack/include/bt_device_type.h"

@@ -19,6 +19,7 @@
 
 #include <cstdint>
 
+#include "internal_include/bt_target.h"
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/list.h"

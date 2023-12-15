@@ -20,6 +20,7 @@
 
 #include "common/init_flags.h"
 #include "device/include/esco_parameters.h"
+#include "internal_include/bt_target.h"
 #include "osi/include/properties.h"
 
 namespace hfp_hal_interface {

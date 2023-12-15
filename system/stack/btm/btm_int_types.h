@@ -25,17 +25,13 @@
 #include <string>
 
 #include "gd/common/circular_buffer.h"
-#include "osi/include/allocator.h"
+#include "internal_include/bt_target.h"
 #include "osi/include/fixed_queue.h"
-#include "osi/include/list.h"
 #include "stack/acl/acl.h"
 #include "stack/btm/btm_ble_int_types.h"
 #include "stack/btm/btm_sco.h"
 #include "stack/btm/neighbor_inquiry.h"
-#include "stack/btm/security_device_record.h"
-#include "stack/include/bt_octets.h"
 #include "stack/include/btm_ble_api_types.h"
-#include "stack/include/rfcdefs.h"
 #include "stack/include/security_client_callbacks.h"
 #include "types/raw_address.h"
 

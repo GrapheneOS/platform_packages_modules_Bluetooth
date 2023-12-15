@@ -514,7 +514,7 @@ static BasicAudioAnnouncementData prepareAnnouncement(
     std::map<uint8_t, std::vector<uint8_t>> metadata) {
   BasicAudioAnnouncementData announcement;
 
-  announcement.presentation_delay = 0x004E20;
+  announcement.presentation_delay_us = 40000;
   auto const& codec_id = codec_config.GetLeAudioCodecId();
 
   announcement.subgroup_configs = {{

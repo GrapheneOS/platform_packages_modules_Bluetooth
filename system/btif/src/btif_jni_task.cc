@@ -16,8 +16,13 @@
 
 #include "btif/include/btif_jni_task.h"
 
+#include <base/bind.h>
+#include <base/location.h>
 #include <base/logging.h>
 #include <base/threading/platform_thread.h>
+
+#include <cstdint>
+#include <utility>
 
 #include "common/message_loop_thread.h"
 #include "include/hardware/bluetooth.h"
