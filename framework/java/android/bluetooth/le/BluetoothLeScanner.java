@@ -18,6 +18,7 @@ package android.bluetooth.le;
 
 import static android.bluetooth.le.BluetoothLeUtils.getSyncTimeout;
 
+import android.Manifest;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresNoPermission;
@@ -248,8 +249,9 @@ public final class BluetoothLeScanner {
             final ScanCallback callback,
             final PendingIntent callbackIntent) {
         if (GmsCompat.isEnabled()) {
-            // requires privileged UPDATE_DEVICE_STATS permission
-            workSource = null;
+            if (workSource != null && !GmsCompat.hasPermission(Manifest.permission.UPDATE_DEVICE_STATS)) {
+                workSource = null;
+            }
         }
 
         BluetoothLeUtils.checkAdapterStateOn(mBluetoothAdapter);
