@@ -317,9 +317,10 @@ public final class ScanSettings implements Parcelable {
          */
         public Builder setScanMode(int scanMode) {
             if (GmsCompat.isEnabled()) {
-                // requires BLUETOOTH_PRIVILEGED permission
                 if (scanMode == SCAN_MODE_AMBIENT_DISCOVERY) {
-                    scanMode = SCAN_MODE_BALANCED;
+                    if (!GmsCompat.hasPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)) {
+                        scanMode = SCAN_MODE_BALANCED;
+                    }
                 }
             }
 
