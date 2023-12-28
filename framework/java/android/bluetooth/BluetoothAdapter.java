@@ -1964,10 +1964,15 @@ public final class BluetoothAdapter {
         }
 
         if (GmsCompat.isEnabled()) {
-            if (mode != SCAN_MODE_NONE) {
-                GmsModuleHooks.makeBluetoothAdapterDiscoverable();
+            boolean proceed = GmsCompat.hasPermission(android.Manifest.permission.BLUETOOTH_SCAN)
+                    && GmsCompat.hasPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED);
+
+            if (!proceed) {
+                if (mode != SCAN_MODE_NONE) {
+                    GmsModuleHooks.makeBluetoothAdapterDiscoverable();
+                }
+                return BluetoothStatusCodes.SUCCESS;
             }
-            return BluetoothStatusCodes.SUCCESS;
         }
 
         mServiceLock.readLock().lock();
