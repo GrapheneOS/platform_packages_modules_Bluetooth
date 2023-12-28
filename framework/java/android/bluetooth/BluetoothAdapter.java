@@ -21,6 +21,7 @@ import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 
 import static java.util.Objects.requireNonNull;
 
+import android.Manifest;
 import android.annotation.CallbackExecutor;
 import android.annotation.IntDef;
 import android.annotation.NonNull;
@@ -1349,8 +1350,10 @@ public final class BluetoothAdapter {
         }
 
         if (GmsCompat.isEnabled()) {
-            GmsModuleHooks.enableBluetoothAdapter();
-            return true;
+            Boolean res = GmsModuleHooks.enableBluetoothAdapter();
+            if (res != null) {
+                return res.booleanValue();
+            }
         }
 
         try {
@@ -1560,8 +1563,10 @@ public final class BluetoothAdapter {
         }
 
         if (GmsCompat.isEnabled()) {
-            GmsModuleHooks.enableBluetoothAdapter();
-            return true;
+            Boolean res = GmsModuleHooks.enableBluetoothAdapter();
+            if (res != null) {
+                return res.booleanValue();
+            }
         }
 
         try {
