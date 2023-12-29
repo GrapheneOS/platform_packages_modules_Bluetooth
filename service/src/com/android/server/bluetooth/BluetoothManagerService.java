@@ -1519,6 +1519,8 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         if (CompatChanges.isChangeEnabled(RESTRICT_ENABLE_DISABLE, callingUid)
                 && !isPrivileged(callingPid, callingUid)
                 && !isSystem(packageName, callingUid)
+                /** @see android.bluetooth.BluetoothAdapter#enable */
+                && !isPrivilegedAndroidAuto(callingPid, callingUid)
                 && !isDeviceOwner(callingUid, packageName)
                 && !isProfileOwner(callingUid, packageName)) {
             Log.d(TAG, "enable(): not enabling - Caller is not one of: "
@@ -1589,6 +1591,8 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         if (CompatChanges.isChangeEnabled(RESTRICT_ENABLE_DISABLE, callingUid)
                 && !isPrivileged(callingPid, callingUid)
                 && !isSystem(packageName, callingUid)
+                /** @see android.bluetooth.BluetoothAdapter#disable */
+                && !isPrivilegedAndroidAuto(callingPid, callingUid)
                 && !isDeviceOwner(callingUid, packageName)
                 && !isProfileOwner(callingUid, packageName)) {
             Log.d(TAG, "disable(): not disabling - Caller is not one of: "
@@ -3547,6 +3551,11 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 == PackageManager.PERMISSION_GRANTED)
                 || (mContext.getPackageManager().checkSignatures(uid, Process.SYSTEM_UID)
                 == PackageManager.SIGNATURE_MATCH);
+    }
+
+    private boolean isPrivilegedAndroidAuto(int pid, int uid) {
+        String perm = android.Manifest.permission.BLUETOOTH_PRIVILEGED_ANDROID_AUTO;
+        return mContext.checkPermission(perm, pid, uid) == PackageManager.PERMISSION_GRANTED;
     }
 
     private Pair<UserHandle, ComponentName> getDeviceOwner() {
