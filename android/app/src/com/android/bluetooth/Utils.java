@@ -478,6 +478,18 @@ public final class Utils {
                 "Need BLUETOOTH PRIVILEGED permission");
     }
 
+    public static void enforceBluetoothPrivilegedPermissionOrAndroidAuto(Context context) {
+        try {
+            enforceBluetoothPrivilegedPermission(context);
+        } catch (SecurityException se) {
+            String perm = android.Manifest.permission.BLUETOOTH_PRIVILEGED_ANDROID_AUTO;
+            if (context.checkCallingPermission(perm) == PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            throw se;
+        }
+    }
+
     @RequiresPermission(android.Manifest.permission.LOCAL_MAC_ADDRESS)
     public static void enforceLocalMacAddressPermission(Context context) {
         context.enforceCallingOrSelfPermission(
