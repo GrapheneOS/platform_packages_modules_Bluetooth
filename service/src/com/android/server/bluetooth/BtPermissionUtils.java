@@ -347,11 +347,19 @@ class BtPermissionUtils {
         if (CompatChanges.isChangeEnabled(RESTRICT_ENABLE_DISABLE, callingUid)
                 && !isPrivileged(ctx, callingPid, callingUid)
                 && !isSystem(ctx, packageName, callingUid)
+                /** @see android.bluetooth.BluetoothAdapter#enable and
+                    @see android.bluetooth.BluetoothAdapter#disable */
+                && !isPrivilegedAndroidAuto(callingPid, callingUid)
                 && !isDeviceOwner(ctx, callingUid, packageName)
                 && !isProfileOwner(ctx, callingUid, packageName)) {
             Log.e(TAG, "Caller is not one of: privileged | system | deviceOwner | profileOwner");
             return false;
         }
         return true;
+    }
+
+    private static boolean isPrivilegedAndroidAuto(Context ctx, int pid, int uid) {
+        String perm = android.Manifest.permission.BLUETOOTH_PRIVILEGED_ANDROID_AUTO;
+        return ctx.checkPermission(perm, pid, uid) == PackageManager.PERMISSION_GRANTED;
     }
 }

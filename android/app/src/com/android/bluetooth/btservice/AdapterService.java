@@ -27,6 +27,7 @@ import static com.android.bluetooth.ChangeIds.ENFORCE_CONNECT;
 import static com.android.bluetooth.Utils.callerIsSystem;
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveOrManagedUser;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
+import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermissionOrAndroidAuto;
 import static com.android.bluetooth.Utils.enforceCdmAssociation;
 import static com.android.bluetooth.Utils.enforceDumpPermission;
 import static com.android.bluetooth.Utils.enforceLocalMacAddressPermission;
@@ -3089,7 +3090,8 @@ public class AdapterService extends Service {
                 return false;
             }
 
-            enforceBluetoothPrivilegedPermission(service);
+            /** @see android.bluetooth.BluetoothAdapter#setActiveDevice */
+            enforceBluetoothPrivilegedPermissionOrAndroidAuto(service);
 
             return service.setActiveDevice(device, profiles);
         }
@@ -3562,7 +3564,8 @@ public class AdapterService extends Service {
                 return false;
             }
 
-            enforceBluetoothPrivilegedPermission(service);
+            /** @see android.bluetooth.BluetoothDevice#setPairingConfirmation */
+            enforceBluetoothPrivilegedPermissionOrAndroidAuto(service);
 
             DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
             if (deviceProp == null || !deviceProp.isBonding()) {
@@ -4575,7 +4578,8 @@ public class AdapterService extends Service {
                 return null;
             }
 
-            enforceBluetoothPrivilegedPermission(service);
+            /** @see android.bluetooth.BluetoothDevice#getMetadata */
+            enforceBluetoothPrivilegedPermissionOrAndroidAuto(service);
 
             return service.mDatabaseManager.getCustomMeta(device, key);
         }
