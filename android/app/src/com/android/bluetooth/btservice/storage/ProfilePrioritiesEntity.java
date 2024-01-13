@@ -48,7 +48,7 @@ class ProfilePrioritiesEntity {
         a2dp_sink_connection_policy = BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
         hfp_connection_policy = BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
         hfp_client_connection_policy = BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
-        hid_host_connection_policy = BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
+        hid_host_connection_policy = BluetoothProfile.CONNECTION_POLICY_FORBIDDEN;
         pan_connection_policy = BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
         pbap_connection_policy = BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
         pbap_client_connection_policy = BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
