@@ -290,12 +290,13 @@ static BT_HDR* attp_build_value_cmd(uint16_t payload_size, uint8_t op_code,
   size_t pair_len;
   size_t size_now = 1;
 
-  #define CHECK_SIZE() do {                      \
-    if (size_now > payload_size) {               \
-      LOG(ERROR) << "payload size too small";    \
-      osi_free(p_buf);                           \
-      return nullptr;                            \
-    }                                            \
+#define CHECK_SIZE()                       \
+  do {                                     \
+    if (size_now > payload_size) {         \
+      LOG_ERROR("payload size too small"); \
+      osi_free(p_buf);                     \
+      return nullptr;                      \
+    }                                      \
   } while (false)
 
   BT_HDR* p_buf =
@@ -308,7 +309,7 @@ static BT_HDR* attp_build_value_cmd(uint16_t payload_size, uint8_t op_code,
   p_buf->offset = L2CAP_MIN_OFFSET;
 
   if (op_code == GATT_RSP_READ_BY_TYPE) {
-    p_pair_len = p;
+    p_pair_len = p++;
     pair_len = len + 2;
     size_now += 1;
     CHECK_SIZE();
@@ -327,7 +328,7 @@ static BT_HDR* attp_build_value_cmd(uint16_t payload_size, uint8_t op_code,
     UINT16_TO_STREAM(p, offset);
   }
 
-  if (len > 0 && p_data != NULL && payload_size > size_now) {
+  if (len > 0 && p_data != NULL) {
     /* ensure data not exceed MTU size */
     if (payload_size - size_now < len) {
       len = payload_size - size_now;
@@ -348,17 +349,17 @@ static BT_HDR* attp_build_value_cmd(uint16_t payload_size, uint8_t op_code,
   // backfill pair len field
   if (op_code == GATT_RSP_READ_BY_TYPE) {
     if (pair_len > UINT8_MAX) {
-      LOG(ERROR) << "pair_len greater than" << UINT8_MAX;
+      LOG_ERROR("pair_len greater than %d", UINT8_MAX);
       osi_free(p_buf);
       return nullptr;
     }
 
-    *p_pair_len = (uint8_t) pair_len;
+    *p_pair_len = (uint8_t)pair_len;
   }
 
-  #undef CHECK_SIZE
+#undef CHECK_SIZE
 
-  p_buf->len = (uint16_t) size_now;
+  p_buf->len = (uint16_t)size_now;
   return p_buf;
 }
 
