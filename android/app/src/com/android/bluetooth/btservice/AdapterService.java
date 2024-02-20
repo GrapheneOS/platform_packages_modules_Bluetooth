@@ -2840,7 +2840,8 @@ public class AdapterService extends Service {
                 return new ArrayList<>();
             }
 
-            enforceBluetoothPrivilegedPermission(service);
+            /** @see android.bluetooth.BluetoothAdapter#getActiveDevices */
+            enforceBluetoothPrivilegedPermissionOrAndroidAuto(service);
 
             return service.getActiveDevices(profile);
         }
