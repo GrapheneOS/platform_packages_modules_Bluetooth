@@ -162,11 +162,21 @@ bool SinkImpl::OnMetadataUpdateReq(const sink_metadata_v7_t& sink_metadata) {
     return false;
   }
 
+  sink_metadata_v7_t deep_copy;
+  deep_copy.tracks = (struct record_track_metadata_v7*)malloc(sink_metadata.track_count * sizeof(deep_copy.tracks[0]));
+  if (!deep_copy.tracks) {
+    LOG_ERROR("malloc");
+    return false;
+  }
+  memcpy(deep_copy.tracks, sink_metadata.tracks, sink_metadata.track_count * sizeof(deep_copy.tracks[0]));
+  deep_copy.track_count = sink_metadata.track_count;
+
   bt_status_t status = do_in_main_thread(
       FROM_HERE,
       base::BindOnce(
           &LeAudioSinkAudioHalClient::Callbacks::OnAudioMetadataUpdate,
-          audioSinkCallbacks_->weak_factory_.GetWeakPtr(), sink_metadata));
+          audioSinkCallbacks_->weak_factory_.GetWeakPtr(), deep_copy));
+  do_in_main_thread(FROM_HERE, base::Bind(&free, (void*)deep_copy.tracks));
   if (status == BT_STATUS_SUCCESS) {
     return true;
   }

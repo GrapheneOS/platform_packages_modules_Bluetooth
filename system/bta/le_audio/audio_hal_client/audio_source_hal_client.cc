@@ -299,12 +299,22 @@ bool SourceImpl::OnMetadataUpdateReq(
     return false;
   }
 
+  source_metadata_v7_t deep_copy;
+  deep_copy.tracks = (struct playback_track_metadata_v7*)malloc(source_metadata.track_count * sizeof(deep_copy.tracks[0]));
+  if (!deep_copy.tracks) {
+    LOG_ERROR("malloc");
+    return false;
+  }
+  memcpy(deep_copy.tracks, source_metadata.tracks, source_metadata.track_count * sizeof(deep_copy.tracks[0]));
+  deep_copy.track_count = source_metadata.track_count;
+
   bt_status_t status = do_in_main_thread(
       FROM_HERE,
       base::BindOnce(
           &LeAudioSourceAudioHalClient::Callbacks::OnAudioMetadataUpdate,
-          audioSourceCallbacks_->weak_factory_.GetWeakPtr(), source_metadata,
+          audioSourceCallbacks_->weak_factory_.GetWeakPtr(), deep_copy,
           dsa_mode));
+  do_in_main_thread(FROM_HERE, base::Bind(&free, (void *)deep_copy.tracks));
   if (status == BT_STATUS_SUCCESS) {
     return true;
   }
