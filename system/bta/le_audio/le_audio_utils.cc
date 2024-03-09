@@ -15,6 +15,7 @@
  */
 
 #include "le_audio_utils.h"
+#include "mte.h"
 
 #include "bta/le_audio/content_control_id_keeper.h"
 #include "gd/common/strings.h"
@@ -164,6 +165,7 @@ static bool isMetadataTagPresent(const char* tags, const char* tag) {
 
 AudioContexts GetAudioContextsFromSourceMetadata(
     const source_metadata_v7& source_metadata) {
+  ScopedDisableMTE scopedDisableMTE;
   AudioContexts track_contexts;
   for (size_t i = 0; i < source_metadata.track_count; i++) {
     auto track = source_metadata.tracks[i].base;
