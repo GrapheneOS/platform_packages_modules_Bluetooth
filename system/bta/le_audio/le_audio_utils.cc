@@ -189,6 +189,7 @@ AudioContexts GetAudioContextsFromSourceMetadata(
 
 AudioContexts GetAudioContextsFromSinkMetadata(
     const sink_metadata_v7& sink_metadata) {
+  ScopedDisableMTE scopedDisableMTE;
   AudioContexts all_track_contexts;
 
   for (size_t i = 0; i < sink_metadata.track_count; i++) {
