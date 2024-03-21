@@ -323,21 +323,3 @@ uint8_t tBTM_SEC_CB::RemoveServiceById(uint8_t service_id) {
   }
   return (num_freed);
 }
-
-uint8_t tBTM_SEC_CB::RemoveServiceByPsm(uint16_t psm) {
-  tBTM_SEC_SERV_REC* p_srec = &sec_serv_rec[0];
-  uint8_t num_freed = 0;
-  int i;
-
-  for (i = 0; i < BTM_SEC_MAX_SERVICE_RECORDS; i++, p_srec++) {
-    /* Delete services with specified name (if in use and not SDP) */
-    if ((p_srec->security_flags & BTM_SEC_IN_USE) && (p_srec->psm == psm)) {
-      LOG_VERBOSE("BTM_SEC_CLR[%d]: id %d ", i, p_srec->service_id);
-      p_srec->security_flags = 0;
-      num_freed++;
-    }
-  }
-  LOG_VERBOSE("psm:0x%x num_freed:%d", psm, num_freed);
-
-  return (num_freed);
-}

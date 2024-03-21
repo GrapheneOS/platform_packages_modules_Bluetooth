@@ -97,7 +97,6 @@ class tBTM_SEC_CB {
                   uint16_t sec_level, uint16_t psm, uint32_t mx_proto_id,
                   uint32_t mx_chan_id);
   uint8_t RemoveServiceById(uint8_t service_id);
-  uint8_t RemoveServiceByPsm(uint16_t psm);
 };
 
 extern tBTM_SEC_CB btm_sec_cb;
