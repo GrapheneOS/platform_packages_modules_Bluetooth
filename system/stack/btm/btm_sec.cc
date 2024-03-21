@@ -450,7 +450,22 @@ bool BTM_SetSecurityLevel(bool is_originator, const char* p_name,
  *
  ******************************************************************************/
 uint8_t BTM_SecClrService(uint8_t service_id) {
-  return btm_sec_cb.RemoveServiceById(service_id);
+  tBTM_SEC_SERV_REC* p_srec = &btm_sec_cb.sec_serv_rec[0];
+  uint8_t num_freed = 0;
+  int i;
+
+  for (i = 0; i < BTM_SEC_MAX_SERVICE_RECORDS; i++, p_srec++) {
+    /* Delete services with specified name (if in use and not SDP) */
+    if ((p_srec->security_flags & BTM_SEC_IN_USE) &&
+        (p_srec->psm != BT_PSM_SDP) &&
+        (!service_id || (service_id == p_srec->service_id))) {
+      LOG_VERBOSE("BTM_SEC_CLR[%d]: id %d", i, service_id);
+      p_srec->security_flags = 0;
+      num_freed++;
+    }
+  }
+
+  return (num_freed);
 }
 
 /*******************************************************************************
