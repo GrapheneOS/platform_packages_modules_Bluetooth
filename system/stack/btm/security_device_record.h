@@ -354,8 +354,6 @@ struct tBTM_SEC_REC {
   }
 
   uint8_t get_encryption_key_size() const { return enc_key_size; }
-
-  void increment_sign_counter(bool local);
 };
 
 class tBTM_SEC_DEV_REC {
