@@ -38,9 +38,21 @@ class tBTM_SEC_CB {
   *****************************************************/
   tBTM_SEC_DEVCB devcb;
 
+ private:
+  friend void btm_ble_ltk_request_reply(const RawAddress& bda, bool use_stk,
+                                        const Octet16& stk);
+  friend tBTM_STATUS btm_ble_start_encrypt(const RawAddress& bda, bool use_stk,
+                                           Octet16* p_stk);
+  friend void btm_ble_ltk_request_reply(const RawAddress& bda, bool use_stk,
+                                        const Octet16& stk);
   uint16_t enc_handle{0};
+
+  friend void btm_ble_ltk_request(uint16_t handle, uint8_t rand[8],
+                                  uint16_t ediv);
   BT_OCTET8 enc_rand; /* received rand value from LTK request*/
-  uint16_t ediv{0};   /* received ediv value from LTK request */
+
+  uint16_t ediv{0}; /* received ediv value from LTK request */
+
   uint8_t key_size{0};
 
  public:
