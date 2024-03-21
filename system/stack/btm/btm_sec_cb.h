@@ -101,8 +101,6 @@ class tBTM_SEC_CB {
   uint8_t RemoveServiceById(uint8_t service_id);
   uint8_t RemoveServiceByPsm(uint16_t psm);
 
-  void change_pairing_state(tBTM_PAIRING_STATE new_state);
-
   // misc static methods
   static const char* btm_pair_state_descr(tBTM_PAIRING_STATE state);
 };
