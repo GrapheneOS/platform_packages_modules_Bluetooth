@@ -532,7 +532,7 @@ static void btm_ble_ble_unsupported_resolving_list_load_dev(
   uint8_t* p = param;
 
   UINT8_TO_STREAM(p, BTM_BLE_META_ADD_IRK_ENTRY);
-  ARRAY_TO_STREAM(p, p_dev_rec->sec_rec.ble_keys.irk, OCTET16_LEN);
+  ARRAY_TO_STREAM(p, p_dev_rec->ble_keys.irk, OCTET16_LEN);
   UINT8_TO_STREAM(p, p_dev_rec->ble.identity_address_with_type.type);
   BDADDR_TO_STREAM(p, p_dev_rec->ble.identity_address_with_type.bda);
 
@@ -545,7 +545,7 @@ static void btm_ble_ble_unsupported_resolving_list_load_dev(
 }
 
 static bool is_peer_identity_key_valid(const tBTM_SEC_DEV_REC& dev_rec) {
-  return dev_rec.sec_rec.ble_keys.key_type & BTM_LE_KEY_PID;
+  return dev_rec.ble_keys.key_type & BTM_LE_KEY_PID;
 }
 
 static Octet16 get_local_irk() { return btm_sec_cb.devcb.id_keys.irk; }
@@ -577,7 +577,7 @@ void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& dev_rec) {
     return;
   }
 
-  const Octet16& peer_irk = dev_rec.sec_rec.ble_keys.irk;
+  const Octet16& peer_irk = dev_rec.ble_keys.irk;
   const Octet16& local_irk = get_local_irk();
 
   if (dev_rec.ble.identity_address_with_type.bda.IsEmpty()) {
