@@ -92,10 +92,6 @@ class tBTM_SEC_CB {
   bool IsLinkKeyKnown(const RawAddress bd_addr, tBT_TRANSPORT transport);
 
   tBTM_SEC_REC* getSecRec(const RawAddress bd_addr);
-
-  bool AddService(bool is_originator, const char* p_name, uint8_t service_id,
-                  uint16_t sec_level, uint16_t psm, uint32_t mx_proto_id,
-                  uint32_t mx_chan_id);
 };
 
 extern tBTM_SEC_CB btm_sec_cb;
