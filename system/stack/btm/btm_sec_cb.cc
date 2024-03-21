@@ -189,20 +189,6 @@ bool tBTM_SEC_CB::IsLinkKeyKnown(const RawAddress bd_addr,
   return false;
 }
 
-bool tBTM_SEC_CB::IsDeviceBonded(const RawAddress bd_addr) {
-  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
-  bool is_bonded = false;
-
-  if (p_dev_rec && ((p_dev_rec->sec_rec.ble_keys.key_type &&
-                     p_dev_rec->sec_rec.is_le_link_key_known()) ||
-                    p_dev_rec->sec_rec.is_link_key_known())) {
-    is_bonded = true;
-  }
-  LOG_DEBUG("Device record bonded check peer:%s is_bonded:%s",
-            ADDRESS_TO_LOGGABLE_CSTR(bd_addr), logbool(is_bonded).c_str());
-  return is_bonded;
-}
-
 #define BTM_NO_AVAIL_SEC_SERVICES ((uint16_t)0xffff)
 bool tBTM_SEC_CB::AddService(bool is_originator, const char* p_name,
                              uint8_t service_id, uint16_t sec_level,

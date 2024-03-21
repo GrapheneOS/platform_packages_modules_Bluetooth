@@ -4898,13 +4898,23 @@ void btm_sec_clear_ble_keys(tBTM_SEC_DEV_REC* p_dev_rec) {
  * Function         btm_sec_is_a_bonded_dev
  *
  * Description       Is the specified device is a bonded device
- *                   (either on BR/EDR or LE)
  *
  * Returns          true - dev is bonded
  *
  ******************************************************************************/
 bool btm_sec_is_a_bonded_dev(const RawAddress& bda) {
-  return btm_sec_cb.IsDeviceBonded(bda);
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bda);
+  bool is_bonded = false;
+
+  if (p_dev_rec &&
+      ((p_dev_rec->sec_rec.ble_keys.key_type &&
+        (p_dev_rec->sec_rec.sec_flags & BTM_SEC_LE_LINK_KEY_KNOWN)) ||
+       (p_dev_rec->sec_rec.sec_flags & BTM_SEC_LINK_KEY_KNOWN))) {
+    is_bonded = true;
+  }
+  LOG_DEBUG("Device record bonded check peer:%s is_bonded:%s",
+            ADDRESS_TO_LOGGABLE_CSTR(bda), logbool(is_bonded).c_str());
+  return is_bonded;
 }
 
 /*******************************************************************************
