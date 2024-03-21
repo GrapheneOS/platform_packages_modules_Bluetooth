@@ -28,7 +28,6 @@
 #include "osi/include/list.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/security_device_record.h"
-#include "stack/include/bt_psm_types.h"
 #include "types/raw_address.h"
 
 void tBTM_SEC_CB::Init(uint8_t initial_security_mode) {
@@ -304,22 +303,4 @@ bool tBTM_SEC_CB::AddService(bool is_originator, const char* p_name,
       mx_chan_id, p_srec->security_flags, p_name, BT_MAX_SERVICE_NAME_LEN);
 
   return (record_allocated);
-}
-
-uint8_t tBTM_SEC_CB::RemoveServiceById(uint8_t service_id) {
-  tBTM_SEC_SERV_REC* p_srec = &sec_serv_rec[0];
-  uint8_t num_freed = 0;
-  int i;
-
-  for (i = 0; i < BTM_SEC_MAX_SERVICE_RECORDS; i++, p_srec++) {
-    /* Delete services with specified name (if in use and not SDP) */
-    if ((p_srec->security_flags & BTM_SEC_IN_USE) &&
-        (p_srec->psm != BT_PSM_SDP) &&
-        (!service_id || (service_id == p_srec->service_id))) {
-      LOG_VERBOSE("BTM_SEC_CLR[%d]: id:%d", i, service_id);
-      p_srec->security_flags = 0;
-      num_freed++;
-    }
-  }
-  return (num_freed);
 }
