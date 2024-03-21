@@ -792,21 +792,28 @@ tBTM_STATUS btm_ble_start_sec_check(const RawAddress& bd_addr, uint16_t psm,
 
 /*******************************************************************************
  *
- * Function         increment_sign_counter
+ * Function         btm_ble_get_enc_key_type
  *
- * Description      This method is to increment the (local or peer) sign counter
+ * Description      This function is to increment local sign counter
  * Returns         None
  *
  ******************************************************************************/
-void tBTM_SEC_REC::increment_sign_counter(bool local) {
-  if (local) {
-    ble_keys.local_counter++;
-  } else {
-    ble_keys.counter++;
-  }
+static void btm_ble_increment_sign_ctr(const RawAddress& bd_addr,
+                                       bool is_local) {
+  tBTM_SEC_DEV_REC* p_dev_rec;
 
-  LOG_VERBOSE("local=%d local sign counter=%d peer sign counter=%d", local,
-              ble_keys.local_counter, ble_keys.counter);
+  LOG_VERBOSE("btm_ble_increment_sign_ctr is_local=%d", is_local);
+
+  p_dev_rec = btm_find_dev(bd_addr);
+  if (p_dev_rec != NULL) {
+    if (is_local)
+      p_dev_rec->sec_rec.ble_keys.local_counter++;
+    else
+      p_dev_rec->sec_rec.ble_keys.counter++;
+    LOG_VERBOSE("is_local=%d local sign counter=%d peer sign counter=%d",
+                is_local, p_dev_rec->sec_rec.ble_keys.local_counter,
+                p_dev_rec->sec_rec.ble_keys.counter);
+  }
 }
 
 /*******************************************************************************
@@ -1745,7 +1752,7 @@ bool BTM_BleDataSignature(const RawAddress& bd_addr, uint8_t* p_text,
 
   crypto_toolbox::aes_cmac(p_rec->sec_rec.ble_keys.lcsrk, p_buf,
                            (uint16_t)(len + 4), BTM_CMAC_TLEN_SIZE, p_mac);
-  p_rec->sec_rec.increment_sign_counter(true);
+  btm_ble_increment_sign_ctr(bd_addr, true);
 
   LOG_VERBOSE("p_mac = %p", p_mac);
   LOG_VERBOSE(
@@ -1795,7 +1802,7 @@ bool BTM_BleVerifySignature(const RawAddress& bd_addr, uint8_t* p_orig,
     crypto_toolbox::aes_cmac(p_rec->sec_rec.ble_keys.pcsrk, p_orig, len,
                              BTM_CMAC_TLEN_SIZE, p_mac);
     if (CRYPTO_memcmp(p_mac, p_comp, BTM_CMAC_TLEN_SIZE) == 0) {
-      p_rec->sec_rec.increment_sign_counter(false);
+      btm_ble_increment_sign_ctr(bd_addr, false);
       verified = true;
     }
   }
