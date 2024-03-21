@@ -210,7 +210,12 @@ typedef enum : uint8_t {
  * Define structure for Security Device Record.
  * A record exists for each device authenticated with this device
  */
-struct tBTM_SEC_REC {
+struct tBTM_SEC_DEV_REC {
+  /**
+   * fields used for security
+   */
+  tBTM_SEC_CALLBACK* p_callback;
+  void* p_ref_data;
   tSECURITY_STATE sec_state; /* Operating state                    */
 
   tHCI_STATUS sec_status; /* Status in encryption change event  */
@@ -219,30 +224,67 @@ struct tBTM_SEC_REC {
   uint8_t pin_code_length; /* Length of the pin_code used for pairing */
   uint32_t required_security_flags_for_pairing;
   uint16_t security_required; /* Security required for connection   */
-  // security callback and its argument
-  tBTM_SEC_CALLBACK* p_callback;
-  void* p_ref_data;
 
   bool link_key_not_sent; /* link key notification has not been sent waiting for
                              name */
+  bool role_central;      /* true if current mode is central (BLE)    */
+  uint8_t sm4;            /* BTM_SM4_TRUE, if the peer supports SM4 */
   tBTM_IO_CAP rmt_io_caps;    /* IO capability of the peer device */
   tBTM_AUTH_REQ rmt_auth_req; /* the auth_req flag as in the IO caps rsp evt */
+  bool remote_supports_secure_connections;
   bool new_encryption_key_is_p256; /* Set to true when the newly generated LK
                                    ** is generated from P-256.
                                    ** Link encrypted with such LK can be used
-                                   ** for SM over BR/EDR. */
+                                   ** for SM over BR/EDR.
+                                   */
 
   // BREDR Link Key Info
   LinkKey link_key;      /* Device link key                    */
   uint8_t link_key_type; /* Type of key used in pairing        */
   uint8_t enc_key_size;  /* current link encryption key size   */
 
-  // LE Link Key Info
-  tBTM_SEC_BLE_KEYS ble_keys;
+  tBTM_SEC_BLE_KEYS ble_keys; /* LE Link Key Info */
 
   tBTM_BOND_TYPE bond_type; /* bond type */
 
+  /**
+   *  other fields for device management
+   */
+  RawAddress bd_addr; /* BD_ADDR of the device */
+  tBTM_BLE_ADDR_INFO ble;
+  tBTM_BD_NAME sec_bd_name; /* User friendly name of the device. (may be
+                               truncated to save space in dev_rec table) */
+  DEV_CLASS dev_class;      /* DEV_CLASS of the device            */
+  tBT_DEVICE_TYPE device_type;
+
+  uint32_t timestamp; /* Timestamp of the last connection   */
+  uint16_t hci_handle;     /* Handle to BR/EDR ACL connection when exists */
+  uint16_t ble_hci_handle; /* use in DUMO connection */
+
+  uint16_t suggested_tx_octets; /* Recently suggested tx octects for data length
+                                   extension */
+  uint16_t clock_offset;        /* Latest known clock offset          */
+
+  // whether the peer device can read GAP characteristics only visible in
+  // "discoverable" mode
+  bool can_read_discoverable{true};
+
+  bool remote_features_needed; /* set to true if the local device is in */
+  /* "Secure Connections Only" mode and it receives */
+  /* HCI_IO_CAPABILITY_REQUEST_EVT from the peer before */
+  /* it knows peer's support for Secure Connections */
+  bool remote_supports_hci_role_switch = false;
+  bool remote_supports_bredr;
+  bool remote_supports_ble;
+  bool remote_feature_received = false;
+
+  tBTM_LE_CONN_PRAMS conn_params;
+  tREMOTE_VERSION_INFO remote_version_info;
+
+  bool is_originator; /* true if device is originating ACL connection */
+
  public:
+  RawAddress RemoteAddress() const { return bd_addr; }
   bool is_device_authenticated() const {
     return sec_flags & BTM_SEC_AUTHENTICATED;
   }
@@ -354,11 +396,6 @@ struct tBTM_SEC_REC {
   }
 
   uint8_t get_encryption_key_size() const { return enc_key_size; }
-};
-
-class tBTM_SEC_DEV_REC {
- public:
-  RawAddress RemoteAddress() const { return bd_addr; }
 
   /* Data length extension */
   void set_suggested_tx_octect(uint16_t octets) {
@@ -367,6 +404,9 @@ class tBTM_SEC_DEV_REC {
 
   uint16_t get_suggested_tx_octets() const { return suggested_tx_octets; }
   bool IsLocallyInitiated() const { return is_originator; }
+  bool SupportsSecureConnections() const {
+    return remote_supports_secure_connections;
+  }
 
   uint16_t get_br_edr_hci_handle() const { return hci_handle; }
   uint16_t get_ble_hci_handle() const { return ble_hci_handle; }
@@ -383,10 +423,6 @@ class tBTM_SEC_DEV_REC {
     return device_type & BT_DEVICE_TYPE_BLE;
   }
 
-  bool SupportsSecureConnections() const {
-    return remote_supports_secure_connections;
-  }
-
   std::string ToString() const {
     return base::StringPrintf(
         "%s %6s cod:%s remote_info:%-14s sm4:0x%02x SecureConn:%c name:\"%s\"",
@@ -396,45 +432,4 @@ class tBTM_SEC_DEV_REC {
         (remote_supports_secure_connections) ? 'T' : 'F',
         PRIVATE_NAME(sec_bd_name));
   }
-
- public:
-  RawAddress bd_addr; /* BD_ADDR of the device */
-  tBTM_BLE_ADDR_INFO ble;
-  tBTM_BD_NAME sec_bd_name; /* User friendly name of the device. (may be
-                               truncated to save space in dev_rec table) */
-  DEV_CLASS dev_class;      /* DEV_CLASS of the device            */
-  tBT_DEVICE_TYPE device_type;
-
-  uint32_t timestamp;      /* Timestamp of the last connection   */
-  uint16_t hci_handle;     /* Handle to BR/EDR ACL connection when exists */
-  uint16_t ble_hci_handle; /* use in DUMO connection */
-
-  uint16_t suggested_tx_octets; /* Recently suggested tx octects for data length
-                                   extension */
-  uint16_t clock_offset;        /* Latest known clock offset          */
-
-  // whether the peer device can read GAP characteristics only visible in
-  // "discoverable" mode
-  bool can_read_discoverable{true};
-
-  bool remote_features_needed; /* set to true if the local device is in */
-  /* "Secure Connections Only" mode and it receives */
-  /* HCI_IO_CAPABILITY_REQUEST_EVT from the peer before */
-  /* it knows peer's support for Secure Connections */
-  uint8_t sm4; /* BTM_SM4_TRUE, if the peer supports SM4 */
-  bool remote_supports_hci_role_switch = false;
-  bool remote_supports_bredr;
-  bool remote_supports_ble;
-  bool remote_supports_secure_connections;
-  bool remote_feature_received = false;
-
-  tREMOTE_VERSION_INFO remote_version_info;
-
-  bool role_central;  /* true if current mode is central (BLE)    */
-  bool is_originator; /* true if device is originating ACL connection */
-
-  // BLE connection parameters
-  tBTM_LE_CONN_PRAMS conn_params;
-  // security related properties
-  tBTM_SEC_REC sec_rec;
 };

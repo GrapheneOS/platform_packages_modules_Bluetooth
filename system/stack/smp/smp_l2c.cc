@@ -241,7 +241,7 @@ static void smp_br_connect_callback(uint16_t channel, const RawAddress& bd_addr,
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(p_cb->pairing_bda);
   if ((smp_get_state() == SMP_STATE_BOND_PENDING ||
        smp_get_state() == SMP_STATE_IDLE) &&
-      (p_dev_rec && p_dev_rec->sec_rec.is_link_key_known()) &&
+      (p_dev_rec && p_dev_rec->is_link_key_known()) &&
       alarm_is_scheduled(p_cb->delayed_auth_timer_ent)) {
     /* If we were to not return here, we would reset SMP control block, and
      * delayed_auth_timer_ent would never be executed. Even though we stored all

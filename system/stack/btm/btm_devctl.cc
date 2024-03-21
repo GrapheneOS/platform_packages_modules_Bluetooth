@@ -162,7 +162,7 @@ void BTM_db_reset(void) {
 
 static bool set_sec_state_idle(void* data, void* context) {
   tBTM_SEC_DEV_REC* p_dev_rec = static_cast<tBTM_SEC_DEV_REC*>(data);
-  p_dev_rec->sec_rec.sec_state = BTM_SEC_STATE_IDLE;
+  p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
   return true;
 }
 

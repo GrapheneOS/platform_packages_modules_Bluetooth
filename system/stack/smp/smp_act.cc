@@ -810,7 +810,7 @@ void smp_br_process_pairing_command(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 
   LOG_VERBOSE("addr:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
   /* rejecting BR pairing request over non-SC BR link */
-  if (!p_dev_rec->sec_rec.new_encryption_key_is_p256 &&
+  if (!p_dev_rec->new_encryption_key_is_p256 &&
       p_cb->role == HCI_ROLE_PERIPHERAL) {
     tSMP_INT_DATA smp_int_data;
     smp_int_data.status = SMP_XTRANS_DERIVE_NOT_ALLOW;
@@ -852,7 +852,7 @@ void smp_br_process_pairing_command(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   p_cb->local_r_key = p_cb->peer_r_key;
 
   if (p_cb->role == HCI_ROLE_PERIPHERAL) {
-    p_dev_rec->sec_rec.new_encryption_key_is_p256 = false;
+    p_dev_rec->new_encryption_key_is_p256 = false;
     /* shortcut to skip Security Grant step */
     p_cb->cb_evt = SMP_BR_KEYS_REQ_EVT;
   } else {
@@ -1330,8 +1330,8 @@ void smp_key_distribution(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
     if (smp_get_state() == SMP_STATE_BOND_PENDING) {
       if (p_cb->derive_lk) {
         tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(p_cb->pairing_bda);
-        if (!(p_dev_rec->sec_rec.sec_flags & BTM_SEC_LE_LINK_KEY_AUTHED) &&
-            (p_dev_rec->sec_rec.sec_flags & BTM_SEC_LINK_KEY_AUTHED)) {
+        if (!(p_dev_rec->sec_flags & BTM_SEC_LE_LINK_KEY_AUTHED) &&
+            (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_AUTHED)) {
           LOG_VERBOSE(
               "BR key is higher security than existing LE keys, don't "
               "derive LK from LTK");
