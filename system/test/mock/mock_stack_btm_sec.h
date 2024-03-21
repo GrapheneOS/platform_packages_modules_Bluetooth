@@ -109,6 +109,22 @@ struct BTM_GetPeerDeviceTypeFromFeatures {
 extern struct BTM_GetPeerDeviceTypeFromFeatures
     BTM_GetPeerDeviceTypeFromFeatures;
 
+// Name: BTM_GetSecurityFlagsByTransport
+// Params: const RawAddress& bd_addr, uint8_t* p_sec_flags, tBT_TRANSPORT
+// transport Return: bool
+struct BTM_GetSecurityFlagsByTransport {
+  static bool return_value;
+  std::function<bool(const RawAddress& bd_addr, uint8_t* p_sec_flags,
+                     tBT_TRANSPORT transport)>
+      body{[](const RawAddress& /* bd_addr */, uint8_t* /* p_sec_flags */,
+              tBT_TRANSPORT /* transport */) { return return_value; }};
+  bool operator()(const RawAddress& bd_addr, uint8_t* p_sec_flags,
+                  tBT_TRANSPORT transport) {
+    return body(bd_addr, p_sec_flags, transport);
+  };
+};
+extern struct BTM_GetSecurityFlagsByTransport BTM_GetSecurityFlagsByTransport;
+
 // Name: BTM_IsAuthenticated
 // Params: const RawAddress& bd_addr, tBT_TRANSPORT transport
 // Return: bool

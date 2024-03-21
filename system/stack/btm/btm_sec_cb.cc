@@ -15,18 +15,14 @@
  *
  */
 
-#define LOG_TAG "SEC_CB"
-
 #include "stack/btm/btm_sec_cb.h"
 
 #include <cstdint>
 
 #include "internal_include/stack_config.h"
-#include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/list.h"
-#include "stack/btm/btm_dev.h"
 #include "stack/btm/security_device_record.h"
 #include "types/raw_address.h"
 
@@ -110,80 +106,4 @@ tBTM_SEC_SERV_REC* tBTM_SEC_CB::find_first_serv_rec(bool is_originator,
       return (p_serv_rec);
   }
   return (NULL);
-}
-
-tBTM_SEC_REC* tBTM_SEC_CB::getSecRec(const RawAddress bd_addr) {
-  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
-  if (p_dev_rec) {
-    return &p_dev_rec->sec_rec;
-  }
-  return nullptr;
-}
-
-bool tBTM_SEC_CB::IsDeviceEncrypted(const RawAddress bd_addr,
-                                    tBT_TRANSPORT transport) {
-  tBTM_SEC_REC* sec_rec = getSecRec(bd_addr);
-  if (sec_rec) {
-    if (transport == BT_TRANSPORT_BR_EDR) {
-      return sec_rec->is_device_encrypted();
-    } else if (transport == BT_TRANSPORT_LE) {
-      return sec_rec->is_le_device_encrypted();
-    }
-    LOG_ERROR("unknown transport:%s", bt_transport_text(transport).c_str());
-    return false;
-  }
-
-  LOG_ERROR("unknown device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
-  return false;
-}
-
-bool tBTM_SEC_CB::IsLinkKeyAuthenticated(const RawAddress bd_addr,
-                                         tBT_TRANSPORT transport) {
-  tBTM_SEC_REC* sec_rec = getSecRec(bd_addr);
-  if (sec_rec) {
-    if (transport == BT_TRANSPORT_BR_EDR) {
-      return sec_rec->is_link_key_authenticated();
-    } else if (transport == BT_TRANSPORT_LE) {
-      return sec_rec->is_le_link_key_authenticated();
-    }
-    LOG_ERROR("unknown transport:%s", bt_transport_text(transport).c_str());
-    return false;
-  }
-
-  LOG_ERROR("unknown device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
-  return false;
-}
-
-bool tBTM_SEC_CB::IsDeviceAuthenticated(const RawAddress bd_addr,
-                                        tBT_TRANSPORT transport) {
-  tBTM_SEC_REC* sec_rec = getSecRec(bd_addr);
-  if (sec_rec) {
-    if (transport == BT_TRANSPORT_BR_EDR) {
-      return sec_rec->is_device_authenticated();
-    } else if (transport == BT_TRANSPORT_LE) {
-      return sec_rec->is_le_device_authenticated();
-    }
-    LOG_ERROR("unknown transport:%s", bt_transport_text(transport).c_str());
-    return false;
-  }
-
-  LOG_ERROR("unknown device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
-  return false;
-}
-
-bool tBTM_SEC_CB::IsLinkKeyKnown(const RawAddress bd_addr,
-                                 tBT_TRANSPORT transport) {
-  tBTM_SEC_REC* sec_rec = getSecRec(bd_addr);
-  if (sec_rec) {
-    if (transport == BT_TRANSPORT_BR_EDR) {
-      return sec_rec->is_link_key_known();
-    } else if (transport == BT_TRANSPORT_LE) {
-      return sec_rec->is_le_link_key_known();
-    }
-    LOG_ERROR("unknown transport:%s", bt_transport_text(transport).c_str());
-    return false;
-  }
-
-  LOG_ERROR("unknown device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
-  return false;
 }

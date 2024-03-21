@@ -352,19 +352,27 @@ bool BTM_SecDeleteRmtNameNotifyCallback(tBTM_RMT_NAME_CALLBACK* p_callback) {
 }
 
 bool BTM_IsEncrypted(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
-  return btm_sec_cb.IsDeviceEncrypted(bd_addr, transport);
+  uint8_t flags = 0;
+  BTM_GetSecurityFlagsByTransport(bd_addr, &flags, transport);
+  return (flags & BTM_SEC_FLAG_ENCRYPTED) != 0;
 }
 
 bool BTM_IsLinkKeyAuthed(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
-  return btm_sec_cb.IsLinkKeyAuthenticated(bd_addr, transport);
+  uint8_t flags = 0;
+  BTM_GetSecurityFlagsByTransport(bd_addr, &flags, transport);
+  return (flags & BTM_SEC_FLAG_LKEY_AUTHED) != 0;
 }
 
 bool BTM_IsLinkKeyKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
-  return btm_sec_cb.IsLinkKeyKnown(bd_addr, transport);
+  uint8_t flags = 0;
+  BTM_GetSecurityFlagsByTransport(bd_addr, &flags, transport);
+  return (flags & BTM_SEC_FLAG_LKEY_KNOWN) != 0;
 }
 
 bool BTM_IsAuthenticated(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
-  return btm_sec_cb.IsDeviceAuthenticated(bd_addr, transport);
+  uint8_t flags = 0;
+  BTM_GetSecurityFlagsByTransport(bd_addr, &flags, transport);
+  return (flags & BTM_SEC_AUTHENTICATED) != 0;
 }
 
 bool BTM_CanReadDiscoverableCharacteristics(const RawAddress& bd_addr) {
@@ -377,6 +385,33 @@ bool BTM_CanReadDiscoverableCharacteristics(const RawAddress& bd_addr) {
         "BD_ADDR");
     return false;
   }
+}
+
+/*******************************************************************************
+ *
+ * Function         BTM_GetSecurityFlagsByTransport
+ *
+ * Description      Get security flags for the device on a particular transport
+ *
+ * Returns          bool    true or false is device found
+ *
+ ******************************************************************************/
+bool BTM_GetSecurityFlagsByTransport(const RawAddress& bd_addr,
+                                     uint8_t* p_sec_flags,
+                                     tBT_TRANSPORT transport) {
+  tBTM_SEC_DEV_REC* p_dev_rec;
+
+  p_dev_rec = btm_find_dev(bd_addr);
+  if (p_dev_rec != NULL) {
+    if (transport == BT_TRANSPORT_BR_EDR)
+      *p_sec_flags = (uint8_t)p_dev_rec->sec_rec.sec_flags;
+    else
+      *p_sec_flags = (uint8_t)(p_dev_rec->sec_rec.sec_flags >> 8);
+
+    return (true);
+  }
+  LOG_ERROR("BTM_GetSecurityFlags false");
+  return (false);
 }
 
 /*******************************************************************************

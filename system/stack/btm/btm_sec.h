@@ -79,6 +79,19 @@ bool BTM_SecAddRmtNameNotifyCallback(tBTM_RMT_NAME_CALLBACK* p_callback);
  ******************************************************************************/
 bool BTM_SecDeleteRmtNameNotifyCallback(tBTM_RMT_NAME_CALLBACK* p_callback);
 
+/*******************************************************************************
+ *
+ * Function         BTM_GetSecurityFlagsByTransport
+ *
+ * Description      Get security flags for the device on a particular transport
+ *
+ * Returns          bool    true or false is device found
+ *
+ ******************************************************************************/
+bool BTM_GetSecurityFlagsByTransport(const RawAddress& bd_addr,
+                                     uint8_t* p_sec_flags,
+                                     tBT_TRANSPORT transport);
+
 bool BTM_IsEncrypted(const RawAddress& bd_addr, tBT_TRANSPORT transport);
 bool BTM_IsLinkKeyAuthed(const RawAddress& bd_addr, tBT_TRANSPORT transport);
 bool BTM_IsLinkKeyKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport);
