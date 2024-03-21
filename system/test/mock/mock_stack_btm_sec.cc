@@ -46,6 +46,7 @@ struct BTM_CanReadDiscoverableCharacteristics
 struct BTM_ConfirmReqReply BTM_ConfirmReqReply;
 struct BTM_GetClockOffset BTM_GetClockOffset;
 struct BTM_GetPeerDeviceTypeFromFeatures BTM_GetPeerDeviceTypeFromFeatures;
+struct BTM_GetSecurityFlagsByTransport BTM_GetSecurityFlagsByTransport;
 struct BTM_IsAuthenticated BTM_IsAuthenticated;
 struct BTM_IsEncrypted BTM_IsEncrypted;
 struct BTM_IsLinkKeyAuthed BTM_IsLinkKeyAuthed;
@@ -121,6 +122,7 @@ bool BTM_BothEndsSupportSecureConnections::return_value = false;
 bool BTM_CanReadDiscoverableCharacteristics::return_value = false;
 uint16_t BTM_GetClockOffset::return_value = 0;
 tBT_DEVICE_TYPE BTM_GetPeerDeviceTypeFromFeatures::return_value = 0;
+bool BTM_GetSecurityFlagsByTransport::return_value = false;
 bool BTM_IsAuthenticated::return_value = false;
 bool BTM_IsEncrypted::return_value = false;
 bool BTM_IsLinkKeyAuthed::return_value = false;
@@ -173,6 +175,13 @@ uint16_t BTM_GetClockOffset(const RawAddress& remote_bda) {
 tBT_DEVICE_TYPE BTM_GetPeerDeviceTypeFromFeatures(const RawAddress& bd_addr) {
   inc_func_call_count(__func__);
   return test::mock::stack_btm_sec::BTM_GetPeerDeviceTypeFromFeatures(bd_addr);
+}
+bool BTM_GetSecurityFlagsByTransport(const RawAddress& bd_addr,
+                                     uint8_t* p_sec_flags,
+                                     tBT_TRANSPORT transport) {
+  inc_func_call_count(__func__);
+  return test::mock::stack_btm_sec::BTM_GetSecurityFlagsByTransport(
+      bd_addr, p_sec_flags, transport);
 }
 bool BTM_IsAuthenticated(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
   inc_func_call_count(__func__);

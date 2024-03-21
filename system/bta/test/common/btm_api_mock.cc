@@ -30,6 +30,14 @@ void bluetooth::manager::SetMockBtmInterface(
   btm_interface = mock_btm_interface;
 }
 
+bool BTM_GetSecurityFlagsByTransport(const RawAddress& bd_addr,
+                                     uint8_t* p_sec_flags,
+                                     tBT_TRANSPORT transport) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->GetSecurityFlagsByTransport(bd_addr, p_sec_flags,
+                                                    transport);
+}
+
 bool BTM_IsLinkKeyKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
   LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
   return btm_interface->IsLinkKeyKnown(bd_addr, transport);
