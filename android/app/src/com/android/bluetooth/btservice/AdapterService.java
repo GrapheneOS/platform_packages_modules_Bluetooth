@@ -4520,7 +4520,7 @@ public class AdapterService extends Service {
         mStorage.onBondStateChanged(device, fromState, toState);
 
         // Remove the bond caller info when bonding is concluded
-        if (Flags.removeBondCallerInfo() && toState != BOND_BONDING) {
+        if (toState != BOND_BONDING) {
             CallerInfo callerInfo = mBondAttemptCallerInfo.remove(device.getAddress());
             if (callerInfo != null) {
                 Log.d(TAG, "Removed bond caller info for device: " + device);
