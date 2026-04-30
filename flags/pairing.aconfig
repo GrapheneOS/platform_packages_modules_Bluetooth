@@ -231,14 +231,3 @@ flag {
         purpose: PURPOSE_BUGFIX
     }
 }
-
-
-flag {
-    name: "remove_bond_caller_info"
-    namespace: "bluetooth"
-    description: "Remove bond caller information when bonding is concluded"
-    bug: "492665910"
-    metadata {
-        purpose: PURPOSE_BUGFIX
-    }
-}
