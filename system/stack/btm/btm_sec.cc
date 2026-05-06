@@ -3338,6 +3338,18 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status, uint8_t encr_en
     if (encr_enable == HCI_ENCRYPT_MODE_ON) {
       encryption_algo =
               (transport == BT_TRANSPORT_LE) ? EncryptionAlgorithm::AES : EncryptionAlgorithm::E0;
+
+      // Claiming HCI_ENCRYPT_MODE_ON while using BR/EDR transport implies using E0 encryption.
+      // If the stored properties indicate that we should be using AES-CCM (i.e. that we were using
+      // Secure Connections mode previously), then this is a downgrade.
+      if (transport == BT_TRANSPORT_BR_EDR) {
+        if (btm_sec_is_enc_algo_downgrade(handle, 0, 0)) {
+          acl_set_disconnect_reason(HCI_ERR_HOST_REJECT_SECURITY);
+          btm_sec_send_hci_disconnect(p_device, HCI_ERR_AUTH_FAILURE, handle,
+                                      "attempted to downgrade from Secure Connections mode");
+          return;
+        }
+      }
     } else if (encr_enable == HCI_ENCRYPT_MODE_ON_BR_EDR_AES_CCM) {
       encryption_algo = EncryptionAlgorithm::AES;  // this is for BR/EDR
       if (transport == BT_TRANSPORT_LE) {
