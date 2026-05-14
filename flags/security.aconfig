@@ -52,16 +52,6 @@ flag {
 }
 
 flag {
-    name: "btsec_sdp_database_thread_sync"
-    namespace: "bluetooth"
-    description: "Use new thread synchronization for SDP database access"
-    bug: "458487080"
-    metadata {
-        purpose: PURPOSE_BUGFIX
-    }
-}
-
-flag {
     name: "prevent_jw_auto_accept"
     namespace: "bluetooth"
     description: "LE Just Works pairing must not be auto-approved even if the local IO capabilities are limited"
