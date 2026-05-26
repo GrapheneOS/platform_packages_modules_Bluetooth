@@ -15,6 +15,8 @@
  */
 
 #include <gtest/gtest.h>
+#include <stdio.h>
+#include <opus.h>
 
 #include <chrono>
 #include <cstdint>
@@ -217,6 +219,36 @@ TEST_F(A2dpOpusTest, decoded_data_cb_invoked) {
   encoder_iface_->send_frames(timestamp_us);
 
   promise.get_future().wait();
+  decoder_iface_->decode_packet(packet);
+  osi_free(packet);
+}
+
+TEST_F(A2dpOpusTest, decode_packet_60ms_overflow_repro) {
+  promise = {};
+  auto data_cb = +[](uint8_t* /*p_buf*/, uint32_t /*len*/) {};
+  InitializeDecoder(data_cb);
+
+  // Create a real 60ms Opus packet
+  int err;
+  OpusEncoder* enc = opus_encoder_create(48000, 2, OPUS_APPLICATION_VOIP, &err);
+  ASSERT_NE(enc, nullptr);
+  opus_encoder_ctl(enc, OPUS_SET_BITRATE(12000));
+
+  std::vector<int16_t> pcm_in(2880 * 2, 0);
+  std::vector<uint8_t> opus_pkt(4096);
+  int pkt_len = opus_encode(enc, pcm_in.data(), 2880, opus_pkt.data(), opus_pkt.size());
+  ASSERT_GT(pkt_len, 0);
+  opus_encoder_destroy(enc);
+
+  // A2DP Opus packet has 1-byte header
+  std::vector<uint8_t> data(pkt_len + 1);
+  data[0] = 1;  // 1 frame
+  std::copy(opus_pkt.begin(), opus_pkt.begin() + pkt_len, data.begin() + 1);
+
+  BT_HDR* packet = AllocateL2capPacket(data);
+  packet->offset = 0;
+
+  // This should trigger the overflow.
   decoder_iface_->decode_packet(packet);
   osi_free(packet);
 }

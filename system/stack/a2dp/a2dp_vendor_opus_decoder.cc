@@ -117,38 +117,41 @@ bool a2dp_vendor_opus_decoder_decode_packet(BT_HDR* p_buf) {
   numFrames = opus_packet_get_nb_frames(pBuffer, bufferSize);
   frameSize = opus_packet_get_samples_per_frame(pBuffer, A2DP_OPUS_CODEC_DEFAULT_SAMPLERATE);
   frameLen = opus_packet_get_nb_samples(pBuffer, bufferSize, A2DP_OPUS_CODEC_DEFAULT_SAMPLERATE);
-  uint32_t num_frames = pBuffer[0] & 0xf;
 
-  log::error("numframes {} framesize {} framelen {} bufferSize {}", num_frames, frameSize, frameLen,
-             bufferSize);
-  log::error("numChannels {} numFrames {} offset {}", numChannels, numFrames, p_buf->offset);
-
-  for (uint32_t frame = 0; frame < numFrames; ++frame) {
-    {
-      numChannels = opus_packet_get_nb_channels(pBuffer);
-
-      ret_val = opus_decode(a2dp_opus_decoder_cb.opus_handle,
-                            reinterpret_cast<unsigned char*>(pBuffer), bufferSize,
-                            a2dp_opus_decoder_cb.decode_buf, A2DP_OPUS_DECODE_BUFFER_LENGTH,
-                            0 /* flags */);
-
-      if (ret_val < OPUS_OK) {
-        log::error("Opus DecodeFrame failed {}, applying concealment", ret_val);
-        ret_val = opus_decode(a2dp_opus_decoder_cb.opus_handle, NULL, 0,
-                              a2dp_opus_decoder_cb.decode_buf, A2DP_OPUS_DECODE_BUFFER_LENGTH,
-                              0 /* flags */);
-      }
-
-      if (ret_val < OPUS_OK) {
-        log::error("Opus DecodeFrame retry failed with {}, dropping packet", ret_val);
-        return false;
-      }
-
-      size_t frame_len = ret_val * numChannels * sizeof(a2dp_opus_decoder_cb.decode_buf[0]);
-      a2dp_opus_decoder_cb.decode_callback(
-              reinterpret_cast<uint8_t*>(a2dp_opus_decoder_cb.decode_buf), frame_len);
-    }
+  if (numChannels != 1 && numChannels != 2) {
+    log::error("Invalid numChannels {} in Opus packet", numChannels);
+    return false;
   }
+
+  log::info("numChannels={} numFrames={} frameSize={} frameLen={} bufferSize={} offset={}",
+               numChannels, numFrames, frameSize, frameLen, bufferSize, p_buf->offset);
+
+  ret_val = opus_decode(
+          a2dp_opus_decoder_cb.opus_handle, reinterpret_cast<unsigned char*>(pBuffer), bufferSize,
+          a2dp_opus_decoder_cb.decode_buf,
+          A2DP_OPUS_DECODE_BUFFER_LENGTH / (A2DP_OPUS_CODEC_OUTPUT_CHS * sizeof(int16_t)),
+          0 /* flags */);
+
+  if (ret_val < OPUS_OK) {
+    log::error("Opus DecodeFrame failed {}, applying concealment", ret_val);
+    ret_val = opus_decode(
+            a2dp_opus_decoder_cb.opus_handle, NULL, 0, a2dp_opus_decoder_cb.decode_buf,
+            A2DP_OPUS_DECODE_BUFFER_LENGTH / (A2DP_OPUS_CODEC_OUTPUT_CHS * sizeof(int16_t)),
+            0 /* flags */);
+  }
+
+  if (ret_val < OPUS_OK) {
+    log::error("Opus DecodeFrame retry failed with {}, dropping packet", ret_val);
+    return false;
+  }
+
+  // The output size is determined by the codec channel selection, not the number of
+  // channels in the frame. Opus is always configured as stereo.
+  size_t frame_len =
+          ret_val * A2DP_OPUS_CODEC_OUTPUT_CHS * sizeof(a2dp_opus_decoder_cb.decode_buf[0]);
+  a2dp_opus_decoder_cb.decode_callback(reinterpret_cast<uint8_t*>(a2dp_opus_decoder_cb.decode_buf),
+                                       frame_len);
+
   return true;
 }
 
