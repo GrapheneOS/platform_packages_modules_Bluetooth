@@ -1849,6 +1849,13 @@ uint8_t l2c_fcr_process_peer_cfg_req(tL2C_CCB* p_ccb, tL2CAP_CFG_INFO* p_cfg) {
                            L2CAP_SDU_LEN_OFFSET - fcs_len;
       }
 
+      /* Ensure the MPS is at least the minimum */
+      if (p_cfg->fcr.mps > 0 && p_cfg->fcr.mps < 8) {
+        p_cfg->fcr.mps = 8;
+        p_ccb->out_cfg_fcr_present = true;
+        fcr_ok = L2CAP_PEER_CFG_UNACCEPTABLE;
+      }
+
       /* Ensure the MPS is not bigger than the MTU */
       if ((p_cfg->fcr.mps == 0) || (p_cfg->fcr.mps > p_ccb->peer_cfg.mtu)) {
         p_cfg->fcr.mps = p_ccb->peer_cfg.mtu;
