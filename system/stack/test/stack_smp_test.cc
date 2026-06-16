@@ -28,11 +28,14 @@
 #include "hci/include/packet_fragmenter.h"
 #include "internal_include/stack_config.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/btm/btm_sec.h"
 #include "stack/btm/internal/btm_api.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/btm_ble_api.h"
 #include "stack/include/smp_status.h"
 #include "stack/mock/mock_stack_acl.h"
+#include "stack/mock/mock_stack_btm_dev.h"
+#include "stack/mock/mock_stack_btm_sec.h"
 #include "stack/smp/p_256_ecc_pp.h"
 #include "stack/smp/smp_int.h"
 
@@ -394,4 +397,223 @@ TEST(SmpStatusText, smp_status_text) {
   ASSERT_STREQ(
           unknown.c_str(),
           smp_status_text(static_cast<tSMP_STATUS>(std::numeric_limits<uint8_t>::max())).c_str());
+}
+
+class SmpBrProcessPairingCommandTest : public testing::Test {
+ public:
+  static constexpr uint8_t SMP_PAIRING_REQ_SIZE = 7;
+
+ protected:
+  tSMP_CB cb_;
+  BtmDevice* p_dev_rec_;
+  const RawAddress pairing_bda_ = RawAddress("11:22:33:44:55:66");
+
+  void SetUp() override {
+    test::mock::stack_btm_sec::btm_sec_get_min_enc_key_size.body = [](void) {
+      return MIN_KEY_SIZE_DEFAULT;
+    };
+
+    test::mock::stack_btm_dev::btm_get_dev.body = [this](const RawAddress& bd_addr) {
+      if (bd_addr == pairing_bda_) {
+        return p_dev_rec_;
+      }
+      return static_cast<BtmDevice*>(nullptr);
+    };
+
+    cb_ = {};
+    cb_.smp_rsp_timer_ent = alarm_new("smp_rsp_timer");
+    cb_.delayed_auth_timer_ent = alarm_new("delayed_auth_timer");
+    cb_.rcvd_cmd_len = SmpBrProcessPairingCommandTest::SMP_PAIRING_REQ_SIZE;
+    cb_.pairing_bda = pairing_bda_;
+    cb_.role = HCI_ROLE_CENTRAL;
+    p_dev_rec_ = new BtmDevice();
+    p_dev_rec_->bd_addr = pairing_bda_;
+  }
+
+  void TearDown() override {
+    test::mock::stack_btm_sec::btm_sec_get_min_enc_key_size.body = {};
+    test::mock::stack_btm_dev::btm_get_dev.body = {};
+    if (cb_.smp_rsp_timer_ent) {
+      alarm_free(cb_.smp_rsp_timer_ent);
+      cb_.smp_rsp_timer_ent = nullptr;
+    }
+    if (cb_.delayed_auth_timer_ent) {
+      alarm_free(cb_.delayed_auth_timer_ent);
+      cb_.delayed_auth_timer_ent = nullptr;
+    }
+    delete p_dev_rec_;
+    p_dev_rec_ = nullptr;
+  }
+
+  void CallProcessPairingCommand() {
+    tSMP_INT_DATA data;
+    uint8_t pkt[6] = {0};
+    pkt[0] = static_cast<uint8_t>(cb_.peer_io_caps);
+    pkt[1] = cb_.peer_oob_flag;
+    pkt[2] = cb_.peer_auth_req;
+    pkt[3] = cb_.peer_enc_size;
+    pkt[4] = cb_.peer_i_key;
+    pkt[5] = cb_.peer_r_key;
+    data.p_data = pkt;
+
+    cb_.rcvd_cmd_code = SMP_OPCODE_PAIRING_REQ;
+    cb_.total_tx_unacked = 1;  // Prevent smp_proc_pairing_cmpl from resetting cb_
+
+    // Set state so SMP_BR_AUTH_CMPL_EVT isn't ignored
+    cb_.br_state = SMP_BR_STATE_PAIR_REQ_RSP;
+    smp_br_process_pairing_command(&cb_, &data);
+  }
+};
+
+TEST_F(SmpBrProcessPairingCommandTest, test_invalid_command_length) {
+  cb_.rcvd_cmd_len = SmpBrProcessPairingCommandTest::SMP_PAIRING_REQ_SIZE - 1;  // Invalid length
+
+  CallProcessPairingCommand();
+
+  EXPECT_EQ(cb_.status, SMP_INVALID_PARAMETERS);
+}
+
+TEST_F(SmpBrProcessPairingCommandTest, test_device_not_found) {
+  cb_.pairing_bda = RawAddress::kEmpty;
+
+  CallProcessPairingCommand();
+
+  EXPECT_EQ(cb_.status, SMP_SUCCESS);
+  EXPECT_EQ(cb_.flags, 0);
+  EXPECT_EQ(cb_.peer_auth_req, 0);
+  EXPECT_EQ(cb_.loc_auth_req, 0);
+  EXPECT_EQ(cb_.cb_evt, SMP_EVT_NONE);
+}
+
+TEST_F(SmpBrProcessPairingCommandTest, test_ctkd_not_bonded_br_edr) {
+  // Not bonded
+  p_dev_rec_->sec_rec.bond_type = BOND_TYPE_UNKNOWN;
+  p_dev_rec_->sec_rec.link_key_type = BTM_LKEY_TYPE_UNAUTH_COMB_P_256;
+  CallProcessPairingCommand();
+  EXPECT_EQ(cb_.status, SMP_XTRANS_DERIVE_NOT_ALLOW);
+}
+
+TEST_F(SmpBrProcessPairingCommandTest, test_ctkd_temp_paired) {
+  // Temporarily paired
+  p_dev_rec_->sec_rec.bond_type = BOND_TYPE_TEMPORARY;
+  p_dev_rec_->sec_rec.set_link_key_known();
+  p_dev_rec_->sec_rec.link_key_type = BTM_LKEY_TYPE_UNAUTH_COMB_P_256;
+  p_dev_rec_->sec_rec.sec_flags |= BTM_SEC_ENCRYPTED;
+  CallProcessPairingCommand();
+  EXPECT_EQ(cb_.status, SMP_XTRANS_DERIVE_NOT_ALLOW);
+}
+
+TEST_F(SmpBrProcessPairingCommandTest, test_ctkd_no_sc) {
+  // Bonded but no SC
+  cb_.status = SMP_SUCCESS;
+  p_dev_rec_->sec_rec.bond_type = BOND_TYPE_PERSISTENT;
+  p_dev_rec_->sec_rec.set_link_key_known();
+  p_dev_rec_->sec_rec.link_key_type = BTM_LKEY_TYPE_COMBINATION;
+  p_dev_rec_->sec_rec.sec_flags |= BTM_SEC_ENCRYPTED;
+  CallProcessPairingCommand();
+  EXPECT_EQ(cb_.status, SMP_XTRANS_DERIVE_NOT_ALLOW);
+}
+
+TEST_F(SmpBrProcessPairingCommandTest, test_ctkd_device_not_encrypted) {
+  p_dev_rec_->sec_rec.bond_type = BOND_TYPE_PERSISTENT;
+  p_dev_rec_->sec_rec.set_link_key_known();
+  p_dev_rec_->sec_rec.link_key_type = BTM_LKEY_TYPE_UNAUTH_COMB_P_256;
+  p_dev_rec_->sec_rec.sec_flags &= ~BTM_SEC_ENCRYPTED;  // Not encrypted
+
+  CallProcessPairingCommand();
+  EXPECT_EQ(cb_.status, SMP_XTRANS_DERIVE_NOT_ALLOW);
+}
+
+TEST_F(SmpBrProcessPairingCommandTest, test_ctkd_already_bonded_le_higher_security) {
+  p_dev_rec_->sec_rec.bond_type = BOND_TYPE_PERSISTENT;
+  p_dev_rec_->sec_rec.set_link_key_known();
+  p_dev_rec_->sec_rec.link_key_type = BTM_LKEY_TYPE_UNAUTH_COMB_P_256;
+  p_dev_rec_->sec_rec.sec_flags |= BTM_SEC_ENCRYPTED;
+
+  // LE link key is authed
+  p_dev_rec_->sec_rec.sec_flags |= BTM_SEC_LE_LINK_KEY_AUTHED;
+  // BR link key is NOT authed
+  p_dev_rec_->sec_rec.sec_flags &= ~BTM_SEC_LINK_KEY_AUTHED;
+
+  // Setup BLE keys so is_bonded(LE) logic passes
+  p_dev_rec_->sec_rec.set_le_link_key_known();
+  p_dev_rec_->sec_rec.ble_keys.key_type = BTM_LE_KEY_PENC;
+
+  CallProcessPairingCommand();
+  EXPECT_EQ(cb_.status, SMP_XTRANS_DERIVE_NOT_ALLOW);
+}
+
+TEST_F(SmpBrProcessPairingCommandTest, test_encryption_key_size_too_small) {
+  p_dev_rec_->sec_rec.bond_type = BOND_TYPE_PERSISTENT;
+  p_dev_rec_->sec_rec.set_link_key_known();
+  p_dev_rec_->sec_rec.link_key_type = BTM_LKEY_TYPE_UNAUTH_COMB_P_256;
+  p_dev_rec_->sec_rec.sec_flags |= BTM_SEC_ENCRYPTED;
+  p_dev_rec_->sec_rec.sec_flags |= BTM_SEC_LINK_KEY_AUTHED;
+
+  cb_.peer_enc_size = MIN_KEY_SIZE_DEFAULT - 1;  // Key size smaller than minimum required
+
+  CallProcessPairingCommand();
+  EXPECT_EQ(cb_.status, SMP_ENC_KEY_SIZE);
+}
+
+TEST_F(SmpBrProcessPairingCommandTest, test_invalid_parameters) {
+  p_dev_rec_->sec_rec.bond_type = BOND_TYPE_PERSISTENT;
+  p_dev_rec_->sec_rec.set_link_key_known();
+  p_dev_rec_->sec_rec.link_key_type = BTM_LKEY_TYPE_UNAUTH_COMB_P_256;
+  p_dev_rec_->sec_rec.sec_flags |= BTM_SEC_ENCRYPTED;
+  p_dev_rec_->sec_rec.sec_flags |= BTM_SEC_LINK_KEY_AUTHED;
+
+  cb_.peer_enc_size = 16;
+  cb_.peer_io_caps = BtIoCap::IO_CAP_UNKNOWN;
+
+  CallProcessPairingCommand();
+  EXPECT_EQ(cb_.status, SMP_INVALID_PARAMETERS);
+}
+
+TEST_F(SmpBrProcessPairingCommandTest, test_success_as_peripheral) {
+  p_dev_rec_->sec_rec.bond_type = BOND_TYPE_PERSISTENT;
+  p_dev_rec_->sec_rec.set_link_key_known();
+  p_dev_rec_->sec_rec.link_key_type = BTM_LKEY_TYPE_UNAUTH_COMB_P_256;
+  p_dev_rec_->sec_rec.sec_flags |= BTM_SEC_ENCRYPTED;
+  p_dev_rec_->sec_rec.sec_flags |= BTM_SEC_LINK_KEY_AUTHED;
+
+  cb_.peer_enc_size = 16;
+  cb_.peer_io_caps = BtIoCap::NO_INPUT_NO_OUTPUT;  // Valid
+  cb_.role = HCI_ROLE_PERIPHERAL;
+
+  CallProcessPairingCommand();
+
+  EXPECT_EQ(cb_.status, SMP_SUCCESS);
+  EXPECT_EQ(cb_.cb_evt, SMP_BR_KEYS_REQ_EVT);
+  EXPECT_TRUE(cb_.flags & SMP_PAIR_FLAG_ENC_AFTER_PAIR);
+  EXPECT_TRUE(cb_.peer_auth_req & SMP_AUTH_BOND);
+  EXPECT_TRUE(cb_.loc_auth_req & SMP_AUTH_BOND);
+  EXPECT_FALSE(p_dev_rec_->sec_rec.new_encryption_key_is_p256);
+}
+
+TEST_F(SmpBrProcessPairingCommandTest, test_success_as_central) {
+  p_dev_rec_->sec_rec.bond_type = BOND_TYPE_PERSISTENT;
+  p_dev_rec_->sec_rec.set_link_key_known();
+  p_dev_rec_->sec_rec.link_key_type = BTM_LKEY_TYPE_UNAUTH_COMB_P_256;
+  p_dev_rec_->sec_rec.sec_flags |= BTM_SEC_ENCRYPTED;
+  p_dev_rec_->sec_rec.sec_flags |= BTM_SEC_LINK_KEY_AUTHED;
+
+  cb_.peer_enc_size = 16;
+  cb_.peer_io_caps = BtIoCap::NO_INPUT_NO_OUTPUT;  // Valid
+  cb_.peer_i_key = 0x01;
+  cb_.peer_r_key = 0x02;
+  cb_.role = HCI_ROLE_CENTRAL;
+  cb_.cb_evt = SMP_EVT_NONE;
+
+  CallProcessPairingCommand();
+
+  EXPECT_EQ(cb_.status, SMP_SUCCESS);
+  // cb_evt should not be changed to SMP_BR_KEYS_REQ_EVT
+  EXPECT_NE(cb_.cb_evt, SMP_BR_KEYS_REQ_EVT);
+  EXPECT_EQ(cb_.local_i_key, cb_.peer_i_key);
+  EXPECT_EQ(cb_.local_r_key, cb_.peer_r_key);
+  EXPECT_TRUE(cb_.flags & SMP_PAIR_FLAG_ENC_AFTER_PAIR);
+  EXPECT_TRUE(cb_.peer_auth_req & SMP_AUTH_BOND);
+  EXPECT_TRUE(cb_.loc_auth_req & SMP_AUTH_BOND);
+  EXPECT_FALSE(p_dev_rec_->sec_rec.new_encryption_key_is_p256);
 }

@@ -853,30 +853,42 @@ void smp_br_process_pairing_command(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 
   log::verbose("addr:{}", p_cb->pairing_bda);
 
-  if (p_device == nullptr) {
-    log::error("Device not found for bd_addr: {}", p_cb->pairing_bda);
+  if (smp_command_has_invalid_length(p_cb)) {
+    tSMP_INT_DATA smp_int_data{};
+    smp_int_data.status = SMP_INVALID_PARAMETERS;
+    smp_br_state_machine_event(p_cb, SMP_BR_AUTH_CMPL_EVT, &smp_int_data);
     return;
   }
 
-  /* rejecting BR pairing request over non-SC BR link */
-  if (p_device->sec_rec.bredr_sc_enc_reason == BtmSecurityRecord::BrEdrScEncReason::OTHER &&
-      p_cb->role == HCI_ROLE_PERIPHERAL) {
-    tSMP_INT_DATA smp_int_data;
+  if (p_device == nullptr) {
+    log::error("Device not found for {}", p_cb->pairing_bda);
+    return;
+  }
+
+  if (!btm_is_bonded(p_device->bd_addr, BT_TRANSPORT_BR_EDR) ||
+      (p_device->sec_rec.link_key_type != BTM_LKEY_TYPE_UNAUTH_COMB_P_256 &&
+       p_device->sec_rec.link_key_type != BTM_LKEY_TYPE_AUTH_COMB_P_256)) {
+    log::warn("Not bonded over BR/EDR transport with SC {}", p_device->bd_addr);
+    tSMP_INT_DATA smp_int_data{};
     smp_int_data.status = SMP_XTRANS_DERIVE_NOT_ALLOW;
     smp_br_state_machine_event(p_cb, SMP_BR_AUTH_CMPL_EVT, &smp_int_data);
     return;
   }
 
-  /* erase all keys if it is peripheral proc pairing req*/
-  if (p_device && (p_cb->role == HCI_ROLE_PERIPHERAL)) {
-    btm_sec_clear_ble_keys(p_device);
+  if (!p_device->sec_rec.is_device_encrypted()) {
+    log::warn("CKTD not allowed over unencrypted link {}", p_device->bd_addr);
+    tSMP_INT_DATA smp_int_data{};
+    smp_int_data.status = SMP_XTRANS_DERIVE_NOT_ALLOW;
+    smp_br_state_machine_event(p_cb, SMP_BR_AUTH_CMPL_EVT, &smp_int_data);
+    return;
   }
 
-  p_cb->flags |= SMP_PAIR_FLAG_ENC_AFTER_PAIR;
-
-  if (smp_command_has_invalid_length(p_cb)) {
-    tSMP_INT_DATA smp_int_data;
-    smp_int_data.status = SMP_INVALID_PARAMETERS;
+  if (btm_is_bonded(p_device->bd_addr, BT_TRANSPORT_LE) &&
+      ((p_device->sec_rec.sec_flags & BTM_SEC_LE_LINK_KEY_AUTHED) &&
+       !(p_device->sec_rec.sec_flags & BTM_SEC_LINK_KEY_AUTHED))) {
+    log::warn("Already bonded over LE with higher security {}", p_device->bd_addr);
+    tSMP_INT_DATA smp_int_data{};
+    smp_int_data.status = SMP_XTRANS_DERIVE_NOT_ALLOW;
     smp_br_state_machine_event(p_cb, SMP_BR_AUTH_CMPL_EVT, &smp_int_data);
     return;
   }
@@ -895,27 +907,29 @@ void smp_br_process_pairing_command(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   if (p_cb->peer_enc_size < min_key_size) {
     log::warn("Encryption key size {} smaller than the minimum {}", p_cb->peer_enc_size,
               min_key_size);
-    tSMP_INT_DATA smp_int_data;
+    tSMP_INT_DATA smp_int_data{};
     smp_int_data.status = SMP_ENC_KEY_SIZE;
     smp_br_state_machine_event(p_cb, SMP_BR_AUTH_CMPL_EVT, &smp_int_data);
     return;
   }
 
   if (smp_command_has_invalid_parameters(p_cb)) {
-    tSMP_INT_DATA smp_int_data;
+    tSMP_INT_DATA smp_int_data{};
     smp_int_data.status = SMP_INVALID_PARAMETERS;
     smp_br_state_machine_event(p_cb, SMP_BR_AUTH_CMPL_EVT, &smp_int_data);
     return;
   }
 
-  /* peer (central) started pairing sending Pairing Request */
-  /* or being central device always use received i/r key as keys to distribute
-   */
-  p_cb->local_i_key = p_cb->peer_i_key;
-  p_cb->local_r_key = p_cb->peer_r_key;
+  log::debug(
+          "pairing_bda:{} peer_io_caps: {} peer_oob_flag: {} peer_auth_req: {} peer_enc_size: {} "
+          "peer_i_key: {} peer_r_key: {}",
+          p_cb->pairing_bda, p_cb->peer_io_caps,
+          p_cb->peer_oob_flag, p_cb->peer_auth_req,
+          p_cb->peer_enc_size, p_cb->peer_i_key, p_cb->peer_r_key);
 
   if (p_cb->role == HCI_ROLE_PERIPHERAL) {
     p_device->sec_rec.bredr_sc_enc_reason = BtmSecurityRecord::BrEdrScEncReason::OTHER;
+    btm_sec_clear_ble_keys(p_device);   /* Erase all prior LE keys */
     /* shortcut to skip Security Grant step */
     p_cb->cb_evt = SMP_BR_KEYS_REQ_EVT;
   } else {
@@ -924,10 +938,14 @@ void smp_br_process_pairing_command(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
             "central rcvs valid PAIRING RESPONSE. Supposed to move to key distribution phase.");
   }
 
-  /* auth_req received via BR/EDR SM channel is set to 0,
-     but everything derived/exchanged has to be saved */
-  p_cb->peer_auth_req |= SMP_AUTH_BOND;
-  p_cb->loc_auth_req |= SMP_AUTH_BOND;
+  p_cb->flags |= SMP_PAIR_FLAG_ENC_AFTER_PAIR;
+  p_cb->local_i_key = p_cb->peer_i_key;  /* Distribute same keys as requested by peer */
+  p_cb->local_r_key = p_cb->peer_r_key;  /* Distribute same keys as requested by peer */
+  p_cb->peer_auth_req |= SMP_AUTH_BOND;  /* CTKD keys have to be persisted */
+  p_cb->loc_auth_req |= SMP_AUTH_BOND;   /* CTKD keys have to be persisted */
+
+  /* Block CTKD on reconnect */
+  p_device->sec_rec.new_encryption_key_is_p256 = false;
 }
 
 /*******************************************************************************

@@ -164,6 +164,10 @@ struct BtmSecurityRecord {
                                       name */
   BtIoCap rmt_io_caps;             /* IO capability of the peer device */
   tBTM_AUTH_REQ rmt_auth_req;      /* the auth_req flag as in the IO caps rsp evt */
+  bool new_encryption_key_is_p256; /* Set to true when the newly generated LK
+                                   ** is generated from P-256.
+                                   ** Link encrypted with such LK can be used
+                                   ** for SM over BR/EDR. */
 
   /* Whether BR/EDR pairing succeeded recently. Helps decide whether to perform CTKD or not */
   enum class BrEdrScEncReason : uint8_t {
