@@ -3521,7 +3521,9 @@ static void read_encryption_key_size_complete_after_encryption_change(uint8_t en
 void btm_sec_encryption_change_evt(uint16_t handle, tHCI_STATUS status, uint8_t encr_enable,
                                    uint8_t key_size) {
   if (status == HCI_SUCCESS && encr_enable != 0 && !BTM_IsBleConnection(handle)) {
-    if (key_size != 0) {
+    // Key size is negotiated every time for BR/EDR encryption, so we need it for reporting
+    // encryption change event further
+    if (key_size != 0) {  // Key size is already available, so no need to read it again
       read_encryption_key_size_complete_after_encryption_change(encr_enable, status, handle,
                                                                 key_size);
       return;
@@ -3532,6 +3534,13 @@ void btm_sec_encryption_change_evt(uint16_t handle, tHCI_STATUS status, uint8_t 
       btsnd_hcic_read_encryption_key_size(
               handle,
               base::Bind(&read_encryption_key_size_complete_after_encryption_change, encr_enable));
+
+      // CTKD request from the remote central device will get rejected if the link is "not"
+      // encrypted. So we should mark the link as encrypted immediately.
+      BtmDevice* p_device = btm_get_dev_by_handle(handle);
+      if (p_device != nullptr) {
+        p_device->sec_rec.set_device_encrypted();
+      }
       return;
     }
   }
