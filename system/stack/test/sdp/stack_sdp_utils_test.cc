@@ -641,3 +641,32 @@ TEST_F(StackSdpUtilsTest, sdpu_compare_uuid_with_attr_u128) {
 
   free(p_attr);
 }
+
+TEST_F(StackSdpUtilsTest, sdpu_build_partial_attrib_entry_exceeds_max_attr_len) {
+  uint8_t dummy_value[500] = {0};
+  tSDP_ATTRIBUTE attr = {
+          .len = 500,
+          .value_ptr = dummy_value,
+          .id = 1,
+          .type = TEXT_STR_DESC_TYPE,
+  };
+  uint8_t out_buf[100] = {0};
+  uint16_t offset = 0;
+  uint8_t* p_ret = sdpu_build_partial_attrib_entry(out_buf, &attr, 50, &offset);
+  ASSERT_EQ(p_ret, out_buf);
+}
+
+TEST_F(StackSdpUtilsTest, sdpu_build_partial_attrib_entry_within_bounds) {
+  uint8_t dummy_value[10] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa};
+  tSDP_ATTRIBUTE attr = {
+          .len = 10,
+          .value_ptr = dummy_value,
+          .id = 1,
+          .type = TEXT_STR_DESC_TYPE,
+  };
+  uint8_t out_buf[100] = {0};
+  uint16_t offset = 0;
+  uint8_t* p_ret = sdpu_build_partial_attrib_entry(out_buf, &attr, 5, &offset);
+  ASSERT_EQ(p_ret, out_buf + 5);
+  ASSERT_EQ(offset, 5);
+}

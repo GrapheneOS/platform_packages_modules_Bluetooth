@@ -407,6 +407,12 @@ static void process_service_attr_req(tCONN_CB* p_ccb, uint16_t trans_num, uint16
     p_attr = sdp_db_find_attr_in_rec(p_rec, attr_seq.attr_entry[xx].start,
                                      attr_seq.attr_entry[xx].end);
     if (p_attr) {
+      if (p_attr->len > SDP_MAX_ATTR_LEN) {
+        log::error("SDP attr too big: SDP_MAX_ATTR_LEN={}, val_len={}",
+                   SDP_MAX_ATTR_LEN, p_attr->len);
+        sdpu_build_n_send_error(p_ccb, trans_num, tSDP_STATUS::SDP_NO_RESOURCES, NULL);
+        return;
+      }
       if (is_service_avrc_target) {
         sdpu_set_avrc_target_version(p_attr, p_ccb->device_address);
         if (p_attr->id == ATTR_ID_SUPPORTED_FEATURES) {
@@ -693,6 +699,12 @@ static void process_service_search_attr_req(tCONN_CB* p_ccb, uint16_t trans_num,
                                        attr_seq.attr_entry[xx].end);
 
       if (p_attr) {
+        if (p_attr->len > SDP_MAX_ATTR_LEN) {
+          log::error("SDP attr too big: SDP_MAX_ATTR_LEN={}, val_len={}",
+                     SDP_MAX_ATTR_LEN, p_attr->len);
+          sdpu_build_n_send_error(p_ccb, trans_num, tSDP_STATUS::SDP_NO_RESOURCES, NULL);
+          return;
+        }
         if (is_service_avrc_target) {
           sdpu_set_avrc_target_version(p_attr, p_ccb->device_address);
           if (p_attr->id == ATTR_ID_SUPPORTED_FEATURES && p_attr_profile_desc_list_id != nullptr) {
