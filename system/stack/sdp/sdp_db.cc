@@ -29,6 +29,7 @@
 #include <com_android_bluetooth_flags.h>
 #include <string.h>
 
+#include <algorithm>
 #include <cstdint>
 
 #include "internal_include/bt_target.h"
@@ -534,7 +535,7 @@ static bool sdp_add_attribute_to_record(tSDP_RECORD* p_rec, uint16_t attr_id, ui
   p_attr->type = attr_type;
   p_attr->len = attr_len;
 
-  if (p_rec->free_pad_ptr + attr_len >= SDP_MAX_PAD_LEN) {
+  if (attr_len > SDP_MAX_ATTR_LEN || p_rec->free_pad_ptr + attr_len >= SDP_MAX_PAD_LEN) {
     if (p_rec->free_pad_ptr >= SDP_MAX_PAD_LEN) {
       log::error(
               "sdp_add_attribute_to_record failed: free pad {} equals or exceeds max "
@@ -543,13 +544,15 @@ static bool sdp_add_attribute_to_record(tSDP_RECORD* p_rec, uint16_t attr_id, ui
       return false;
     }
 
+    uint32_t max_allowed_len =
+            std::min<uint32_t>(SDP_MAX_ATTR_LEN, SDP_MAX_PAD_LEN - p_rec->free_pad_ptr);
     /* do truncate only for text string type descriptor */
     if (attr_type == TEXT_STR_DESC_TYPE) {
       log::warn("sdp_add_attribute_to_record: attr_len:{} too long. truncate to ({})", attr_len,
-                SDP_MAX_PAD_LEN - p_rec->free_pad_ptr);
+                max_allowed_len);
 
-      attr_len = SDP_MAX_PAD_LEN - p_rec->free_pad_ptr;
-      p_val[SDP_MAX_PAD_LEN - p_rec->free_pad_ptr - 1] = '\0';
+      attr_len = max_allowed_len;
+      p_val[max_allowed_len - 1] = '\0';
     } else {
       attr_len = 0;
     }

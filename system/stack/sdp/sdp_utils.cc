@@ -1434,10 +1434,26 @@ uint16_t sdpu_get_attrib_entry_len(const tSDP_ATTRIBUTE* p_attr) {
  ******************************************************************************/
 uint8_t* sdpu_build_partial_attrib_entry(uint8_t* p_out, const tSDP_ATTRIBUTE* p_attr, uint16_t len,
                                          uint16_t* offset) {
-  uint8_t* p_attr_buff = reinterpret_cast<uint8_t*>(osi_malloc(sizeof(uint8_t) * SDP_MAX_ATTR_LEN));
-  sdpu_build_attrib_entry(p_attr_buff, p_attr);
 
   uint16_t attr_len = sdpu_get_attrib_entry_len(p_attr);
+  if (p_attr->len > SDP_MAX_ATTR_LEN) {
+    log::error("attr payload len {} exceeds SDP_MAX_ATTR_LEN", p_attr->len);
+    return p_out;
+  }
+
+  uint8_t* p_attr_buff = reinterpret_cast<uint8_t*>(osi_malloc(attr_len));
+  if (p_attr_buff == nullptr) {
+    log::error("Failed to allocate buffer for attribute entry");
+    return p_out;
+  }
+
+  sdpu_build_attrib_entry(p_attr_buff, p_attr);
+
+  if (*offset >= attr_len) {
+    log::warn("offset({}) >= len({})", *offset, attr_len);
+    osi_free(p_attr_buff);
+    return p_out;
+  }
 
   if (len > SDP_MAX_ATTR_LEN) {
     log::error("len {} exceeds SDP_MAX_ATTR_LEN", len);
