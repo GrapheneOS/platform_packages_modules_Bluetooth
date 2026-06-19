@@ -230,6 +230,19 @@ struct GATTS_HandleValueNotification {
 };
 extern struct GATTS_HandleValueNotification GATTS_HandleValueNotification;
 
+// Name: GATTS_HandleMultipleValueNotification
+struct GATTS_HandleMultipleValueNotification {
+  static tGATT_STATUS return_value;
+  std::function<tGATT_STATUS(uint16_t conn_id, std::vector<tGATT_VALUE> notif_vector)> body{
+          [](uint16_t /* conn_id */, std::vector<tGATT_VALUE> /* notif_vector */) {
+            return return_value;
+          }};
+  tGATT_STATUS operator()(uint16_t conn_id, std::vector<tGATT_VALUE> notif_vector) {
+    return body(conn_id, notif_vector);
+  }
+};
+extern struct GATTS_HandleMultipleValueNotification GATTS_HandleMultipleValueNotification;
+
 // Name: GATTS_NVRegister
 // Params: tGATT_APPL_INFO* p_cb_info
 // Return: bool

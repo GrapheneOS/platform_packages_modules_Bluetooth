@@ -27,7 +27,7 @@
 #undef LOG_TAG
 #include <bluetooth/types/address.h>
 
-#include "stack/gatt/gatt_sr.cc"
+#include "stack/gatt/gatt_sr.cc"  // NOLINT(build/include)
 
 #define MAX_UINT16 ((uint16_t)0xffff)
 
@@ -83,10 +83,7 @@ tGATT_STATUS gatts_db_read_attr_value_by_type(tGATT_TCB& /*tcb*/, uint16_t /*cid
 }
 void gatt_set_ch_state(tGATT_TCB* /*p_tcb*/, tGATT_CH_STATE /*ch_state*/) {}
 Uuid* gatts_get_service_uuid(tGATT_SVC_DB* /*p_db*/) { return nullptr; }
-tGATT_STATUS GATTS_HandleValueIndication(uint16_t /*conn_id*/, uint16_t /*attr_handle*/,
-                                         uint16_t /*val_len*/, uint8_t* /*p_val*/) {
-  return GATT_SUCCESS;
-}
+
 tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB* /*p_db*/, bool /*is_long*/,
                                         uint16_t /*handle*/, tGATT_SEC_FLAG /*sec_flag*/,
                                         uint8_t /*key_size*/) {

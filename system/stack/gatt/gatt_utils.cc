@@ -125,16 +125,8 @@ static uint16_t gatt_get_max_phy_channel() {
 static void gatt_free_pending_ind(tGATT_TCB* p_tcb) {
   log::verbose("");
 
-  if (p_tcb->pending_ind_q == NULL) {
-    return;
-  }
-
-  /* release all queued indications */
-  while (!fixed_queue_is_empty(p_tcb->pending_ind_q)) {
-    osi_free(fixed_queue_try_dequeue(p_tcb->pending_ind_q));
-  }
-  fixed_queue_free(p_tcb->pending_ind_q, NULL);
-  p_tcb->pending_ind_q = NULL;
+  p_tcb->pending_ind_q.clear();
+  p_tcb->pending_notif_q.clear();
 }
 
 /*******************************************************************************
@@ -198,10 +190,17 @@ void gatt_set_srv_chg(uint16_t start_handle) {
 /** Add a pending indication */
 void gatt_add_pending_ind(tGATT_TCB* p_tcb, tGATT_VALUE* p_ind) {
   log::verbose("enqueue a pending indication");
+  p_tcb->pending_ind_q.push_back(*p_ind);
+}
 
-  tGATT_VALUE* p_buf = (tGATT_VALUE*)osi_malloc(sizeof(tGATT_VALUE));
-  memcpy(p_buf, p_ind, sizeof(tGATT_VALUE));
-  fixed_queue_enqueue(p_tcb->pending_ind_q, p_buf);
+void gatt_add_pending_notif(tGATT_TCB* p_tcb, tGATT_VALUE* p_notif) {
+  log::verbose("enqueue a pending notification");
+  p_tcb->pending_notif_q.push_back(tGATT_PENDING_NOTIF(*p_notif));
+}
+
+void gatt_add_pending_multi_notif(tGATT_TCB* p_tcb, std::vector<tGATT_VALUE>* p_notif) {
+  log::verbose("enqueue a pending multiple notification");
+  p_tcb->pending_notif_q.push_back(tGATT_PENDING_NOTIF(*p_notif));
 }
 
 /*******************************************************************************
@@ -317,7 +316,7 @@ bool gatt_find_the_connected_bda(uint8_t start_idx, RawAddress& bda, uint8_t* p_
  *
  ******************************************************************************/
 bool gatt_is_srv_chg_ind_pending(tGATT_TCB* p_tcb) {
-  log::verbose("is_queue_empty={}", fixed_queue_is_empty(p_tcb->pending_ind_q));
+  log::verbose("is_queue_empty={}", p_tcb->pending_ind_q.empty());
 
   if (p_tcb->indicate_handle == gatt_cb.handle_of_h_r) {
     return true;
@@ -328,14 +327,12 @@ bool gatt_is_srv_chg_ind_pending(tGATT_TCB* p_tcb) {
     return true;
   }
 
-  if (fixed_queue_is_empty(p_tcb->pending_ind_q)) {
+  if (p_tcb->pending_ind_q.empty()) {
     return false;
   }
 
-  list_t* list = fixed_queue_get_list(p_tcb->pending_ind_q);
-  for (const list_node_t* node = list_begin(list); node != list_end(list); node = list_next(node)) {
-    tGATT_VALUE* p_buf = (tGATT_VALUE*)list_node(node);
-    if (p_buf->handle == gatt_cb.handle_of_h_r) {
+  for (const tGATT_VALUE& buf : p_tcb->pending_ind_q) {
+    if (buf.handle == gatt_cb.handle_of_h_r) {
       return true;
     }
   }
@@ -521,7 +518,8 @@ tGATT_TCB* gatt_allocate_tcb_by_bdaddr(const RawAddress& bda, tBT_TRANSPORT tran
 
     *p_tcb = tGATT_TCB();
 
-    p_tcb->pending_ind_q = fixed_queue_new(SIZE_MAX);
+    p_tcb->pending_ind_q = std::list<tGATT_VALUE>();
+    p_tcb->pending_notif_q = std::list<tGATT_PENDING_NOTIF>();
     p_tcb->conf_timer = alarm_new("gatt.conf_timer");
     p_tcb->ind_ack_timer = alarm_new("gatt.ind_ack_timer");
     p_tcb->in_use = true;

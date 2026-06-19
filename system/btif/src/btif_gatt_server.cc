@@ -450,6 +450,10 @@ static BtStatus btif_gatts_send_indication(int /* server_if */, int attribute_ha
             tGATT_STATUS status = BTA_GATTS_HandleValueIndication(conn_id, attribute_handle,
                                                                   std::move(value), need_confirm);
 
+            if (status == GATT_PENDING) {
+              return;
+            }
+
             if (status != GATT_SUCCESS || !need_confirm) {
               btapp_gatts_conf_send_fail_cback(conn_id, status);
               return;
