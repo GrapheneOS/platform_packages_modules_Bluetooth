@@ -56,6 +56,7 @@ struct GATTS_AddService GATTS_AddService;
 struct GATTS_DeleteService GATTS_DeleteService;
 struct GATTS_HandleValueIndication GATTS_HandleValueIndication;
 struct GATTS_HandleValueNotification GATTS_HandleValueNotification;
+struct GATTS_HandleMultipleValueNotification GATTS_HandleMultipleValueNotification;
 struct GATTS_NVRegister GATTS_NVRegister;
 struct GATTS_SendRsp GATTS_SendRsp;
 struct GATTS_StopService GATTS_StopService;
@@ -88,6 +89,7 @@ tGATT_STATUS GATTS_AddService::return_value = GATT_SUCCESS;
 bool GATTS_DeleteService::return_value = false;
 tGATT_STATUS GATTS_HandleValueIndication::return_value = GATT_SUCCESS;
 tGATT_STATUS GATTS_HandleValueNotification::return_value = GATT_SUCCESS;
+tGATT_STATUS GATTS_HandleMultipleValueNotification::return_value = GATT_SUCCESS;
 bool GATTS_NVRegister::return_value = false;
 tGATT_STATUS GATTS_SendRsp::return_value = GATT_SUCCESS;
 bool GATT_BR_Connect::return_value = false;
@@ -162,6 +164,11 @@ tGATT_STATUS GATTS_HandleValueNotification(uint16_t conn_id, uint16_t attr_handl
   inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATTS_HandleValueNotification(conn_id, attr_handle, val_len,
                                                                    p_val);
+}
+tGATT_STATUS GATTS_HandleMultipleValueNotification(uint16_t conn_id,
+                                                   std::vector<tGATT_VALUE> notif_vector) {
+  inc_func_call_count(__func__);
+  return test::mock::stack_gatt_api::GATTS_HandleMultipleValueNotification(conn_id, notif_vector);
 }
 bool GATTS_NVRegister(tGATT_APPL_INFO* p_cb_info) {
   inc_func_call_count(__func__);

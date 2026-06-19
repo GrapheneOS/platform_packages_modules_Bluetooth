@@ -127,8 +127,8 @@ void gatt_free(void) {
   for (i = 0; i < GATT_MAX_PHY_CHANNEL; i++) {
     gatt_cb.tcb[i].pending_enc_clcb = std::deque<tGATT_CLCB*>();
 
-    fixed_queue_free(gatt_cb.tcb[i].pending_ind_q, NULL);
-    gatt_cb.tcb[i].pending_ind_q = NULL;
+    gatt_cb.tcb[i].pending_ind_q.clear();
+    gatt_cb.tcb[i].pending_notif_q.clear();
 
     alarm_free(gatt_cb.tcb[i].conf_timer);
     gatt_cb.tcb[i].conf_timer = NULL;

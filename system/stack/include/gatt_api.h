@@ -829,6 +829,9 @@ void GATTS_StopService(uint16_t service_handle);
 [[nodiscard]] tGATT_STATUS GATTS_HandleValueNotification(tCONN_ID conn_id, uint16_t attr_handle,
                                                          uint16_t val_len, uint8_t* p_val);
 
+[[nodiscard]] tGATT_STATUS GATTS_HandleMultipleValueNotification(
+        tCONN_ID conn_id, std::vector<tGATT_VALUE> gatt_notif_vector);
+
 /*******************************************************************************
  *
  * Function         GATTS_SendRsp
