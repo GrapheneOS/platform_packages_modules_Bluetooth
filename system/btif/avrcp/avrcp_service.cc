@@ -532,29 +532,35 @@ void AvrcpService::SetBipClientStatus(const RawAddress& bdaddr, bool connected) 
 void AvrcpService::SendMediaUpdate(bool track_changed, bool play_state, bool queue) {
   log::info("track_changed={} :  play_state={} :  queue={}", track_changed, play_state, queue);
 
-  if (instance_ == nullptr || instance_->connection_handler_ == nullptr) {
-    return;
-  }
   // This function may be called on any thread, we need to make sure that the
   // device update happens on the main thread.
-  for (const auto& device : instance_->connection_handler_->GetListOfDevices()) {
-    do_in_main_thread(base::BindOnce(&Device::SendMediaUpdate, device.get()->Get(), track_changed,
-                                     play_state, queue));
-  }
+  do_in_main_thread(base::BindOnce(
+      [](bool t, bool p, bool q) {
+        if (instance_ == nullptr || instance_->connection_handler_ == nullptr) {
+          return;
+        }
+        for (const auto& device : instance_->connection_handler_->GetListOfDevices()) {
+          device->SendMediaUpdate(t, p, q);
+        }
+      },
+      track_changed, play_state, queue));
 }
 
 void AvrcpService::SendFolderUpdate(bool available_players, bool addressed_players, bool uids) {
   log::info("available_players={} :  addressed_players={} :  uids={}", available_players,
             addressed_players, uids);
 
-  if (instance_ == nullptr || instance_->connection_handler_ == nullptr) {
-    return;
-  }
   // Ensure that the update is posted to the correct thread
-  for (const auto& device : instance_->connection_handler_->GetListOfDevices()) {
-    do_in_main_thread(base::BindOnce(&Device::SendFolderUpdate, device.get()->Get(),
-                                     available_players, addressed_players, uids));
-  }
+  do_in_main_thread(base::BindOnce(
+      [](bool a_p, bool a_d_p, bool u) {
+        if (instance_ == nullptr || instance_->connection_handler_ == nullptr) {
+          return;
+        }
+        for (const auto& device : instance_->connection_handler_->GetListOfDevices()) {
+          device->SendFolderUpdate(a_p, a_d_p, u);
+        }
+      },
+      available_players, addressed_players, uids));
 }
 
 void AvrcpService::SendPlayerSettingsChanged(std::vector<PlayerAttribute> attributes,
@@ -579,10 +585,16 @@ void AvrcpService::SendPlayerSettingsChanged(std::vector<PlayerAttribute> attrib
   log::info("{}", ss.str());
 
   // Ensure that the update is posted to the correct thread
-  for (const auto& device : instance_->connection_handler_->GetListOfDevices()) {
-    do_in_main_thread(base::BindOnce(&Device::HandlePlayerSettingChanged, device.get()->Get(),
-                                     attributes, values));
-  }
+  do_in_main_thread(base::BindOnce(
+      [](std::vector<PlayerAttribute> attr, std::vector<uint8_t> val) {
+        if (instance_ == nullptr || instance_->connection_handler_ == nullptr) {
+          return;
+        }
+        for (const auto& device : instance_->connection_handler_->GetListOfDevices()) {
+          device->HandlePlayerSettingChanged(attr, val);
+        }
+      },
+      std::move(attributes), std::move(values)));
 }
 
 void AvrcpService::DeviceCallback(std::shared_ptr<Device> new_device) {
