@@ -1130,7 +1130,7 @@ void SnoopLogger::FilterCapturedPacket(HciPacket& packet, Direction direction, P
       IsFilterEnabled(kBtSnoopLogFilterProfileMapModeProperty)) {
     // If HeadersFiltered applied, do not use ProfilesFiltered
     if (length == ntohl(header.length_original)) {
-      if (packet.size() + EXTRA_BUF_SIZE > DEFAULT_PACKET_SIZE) {
+      if (packet.size() + EXTRA_BUF_SIZE <= DEFAULT_PACKET_SIZE) {
         // Add additional bytes for magic string in case
         // payload length is less than the length of magic string.
         packet.resize((size_t)(packet.size() + EXTRA_BUF_SIZE));
@@ -1150,6 +1150,8 @@ void SnoopLogger::FilterCapturedPacket(HciPacket& packet, Direction direction, P
       length = L2CAP_HEADER_SIZE + PACKET_TYPE_LENGTH;
     }
   }
+
+  length = std::min(length, static_cast<uint32_t>(packet.size() + PACKET_TYPE_LENGTH));
 }
 
 void SnoopLogger::Capture(const HciPacket& immutable_packet, Direction direction, PacketType type) {
