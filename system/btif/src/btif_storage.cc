@@ -316,7 +316,8 @@ static bool cfg2prop(const RawAddress* addr, bt_property_t* prop) {
 
       if (btif_config_get_str(bdstr, key, value, &size)) {
         Uuid* p_uuid = reinterpret_cast<Uuid*>(prop->val);
-        size_t num_uuids = btif_split_uuids_string(value, p_uuid, BT_MAX_NUM_UUIDS);
+        size_t num_uuids =
+                btif_split_uuids_string(value, p_uuid, prop->len / sizeof(Uuid));
         prop->len = num_uuids * sizeof(Uuid);
         ret = true;
       } else {
