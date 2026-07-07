@@ -51,3 +51,19 @@ TEST(BtifStorageTest, test_uuid_split_partial) {
   size_t num_uuids = btif_split_uuids_string(s1, uuids, 1);
   EXPECT_EQ(num_uuids, 1u);
 }
+
+TEST(BtifStorageTest, test_uuid_split_zero_limit) {
+  const char* s1 = "e39c6285-867f-4b1d-9db0-35fbd9aebf22 e39c6285-867f-4b1d-9db0-35fbd9aebf23";
+
+  Uuid uuids[2];
+  // Intentionally set all to verify they aren't overwritten when limit is 0
+  const uint8_t fill[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+  uuids[0] = Uuid::From128BitBE(fill);
+  uuids[1] = Uuid::From128BitBE(fill);
+
+  size_t num_uuids = btif_split_uuids_string(s1, uuids, 0);
+  EXPECT_EQ(num_uuids, 0u);
+  EXPECT_EQ(0, memcmp(uuids[0].To128BitBE().data(), fill, sizeof(fill)));
+  EXPECT_EQ(0, memcmp(uuids[1].To128BitBE().data(), fill, sizeof(fill)));
+}
