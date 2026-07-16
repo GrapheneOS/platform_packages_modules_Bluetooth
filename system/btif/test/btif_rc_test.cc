@@ -89,9 +89,23 @@ bool btif_av_is_sink_enabled(void) { return true; }
 RawAddress btif_av_sink_active_peer(void) { return RawAddress(); }
 RawAddress btif_av_source_active_peer(void) { return RawAddress(); }
 bool btif_av_stream_started_ready(const A2dpType /*local_a2dp_type*/) { return false; }
-BtStatus btif_transfer_context(tBTIF_CBACK* /*p_cback*/, uint16_t /*event*/, char* /*p_params*/,
-                               int /*param_len*/, tBTIF_COPY_CBACK* /*p_copy_cback*/) {
+BtStatus btif_transfer_context(tBTIF_CBACK* p_cback, uint16_t event, char* p_params,
+                               int param_len, tBTIF_COPY_CBACK* p_copy_cback) {
   inc_func_call_count("btif_transfer_context");
+  if (p_cback) {
+    if (param_len > 0 && p_params != nullptr) {
+      if (p_copy_cback) {
+        std::vector<char> buf(param_len);
+        p_copy_cback(event, buf.data(), p_params);
+        p_cback(event, buf.data());
+      } else {
+        std::vector<char> buf(p_params, p_params + param_len);
+        p_cback(event, buf.data());
+      }
+    } else {
+      p_cback(event, nullptr);
+    }
+  }
   return BtifStatus();
 }
 static bool btif_av_src_sink_coexist_enabled_value = true;
@@ -192,9 +206,7 @@ static btrc_ctrl_callbacks_t default_btrc_ctrl_callbacks = {
         .setplayerappsetting_rsp_cb = [](const RawAddress& /* bd_addr */,
                                          uint8_t /* accepted */) { FAIL(); },
         .playerapplicationsetting_cb = [](const RawAddress& /* bd_addr */, uint8_t /* num_attr */,
-                                          btrc_player_app_attr_t* /* app_attrs */,
-                                          uint8_t /* num_ext_attr */,
-                                          btrc_player_app_ext_attr_t* /* ext_attrs */) { FAIL(); },
+                                          btrc_player_app_attr_t* /* app_attrs */) { FAIL(); },
         .playerapplicationsetting_changed_cb =
                 [](const RawAddress& /* bd_addr */, const btrc_player_settings_t& /* vals */) {
                   FAIL();
@@ -751,8 +763,7 @@ TEST_F(BtifRcWithCallbacksTest, handle_notifications_rsp_changed_default) {
 
 TEST_F(BtifRcWithCallbacksTest, handle_app_val_response) {
   btrc_ctrl_callbacks.playerapplicationsetting_cb = [](const RawAddress&, uint8_t,
-                                                       btrc_player_app_attr_t*, uint8_t,
-                                                       btrc_player_app_ext_attr_t*) {};
+                                                       btrc_player_app_attr_t*) {};
 
   btif_rc_device_cb_t* p_dev =
           bluetooth::testing::avrc::btif_rc_ctrl_get_interface()->get_device_cb(0);
@@ -1992,8 +2003,7 @@ TEST_F(BtifRcHandlerTest, handle_app_attr_txt_response_success) {
 
 TEST_F(BtifRcHandlerTest, handle_app_attr_txt_response_error_status) {
   btrc_ctrl_callbacks.playerapplicationsetting_cb = [](const RawAddress&, uint8_t,
-                                                       btrc_player_app_attr_t*, uint8_t,
-                                                       btrc_player_app_ext_attr_t*) {};
+                                                       btrc_player_app_attr_t*) {};
   btif_rc_device_cb_t* p_dev =
           bluetooth::testing::avrc::btif_rc_ctrl_get_interface()->get_device_cb(0);
   tBTA_AV_META_MSG meta_msg = {.rc_handle = kRcHandle};
@@ -2128,8 +2138,7 @@ TEST_F(BtifRcHandlerTest, handle_set_browsed_player_error) {
 
 TEST_F(BtifRcHandlerTest, handle_app_attr_value_rsp) {
   btrc_ctrl_callbacks.playerapplicationsetting_cb = [](const RawAddress&, uint8_t,
-                                                       btrc_player_app_attr_t*, uint8_t,
-                                                       btrc_player_app_ext_attr_t*) {};
+                                                       btrc_player_app_attr_t*) {};
 
   btif_rc_device_cb_t* p_dev =
           bluetooth::testing::avrc::btif_rc_ctrl_get_interface()->get_device_cb(0);
@@ -2246,7 +2255,7 @@ TEST_F(BtifRcHandlerTest, btif_rc_transaction_timer_timeout_passthru) {
           &context);
 
   // Verify transaction is released.
-  ASSERT_TRUE(p_dev->transaction_set.transaction[1].in_use);
+  ASSERT_FALSE(p_dev->transaction_set.transaction[1].in_use);
 }
 
 TEST_F(BtifRcWithCallbacksTest, send_passthrough_cmd_test) {
