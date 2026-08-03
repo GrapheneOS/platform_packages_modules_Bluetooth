@@ -1088,7 +1088,7 @@ class MceStateMachine extends StateMachine {
                         }
                         // Broadcast to default messaging package
                         intent.setPackage(defaultMessagingPackage);
-                        mService.sendBroadcast(intent, RECEIVE_SMS);
+                        mService.sendBroadcastAsUser(intent, mService.getUser(), RECEIVE_SMS);
                     }
                 }
                 default -> Log.e(TAG, "Received unhandled type" + message.getType().toString());

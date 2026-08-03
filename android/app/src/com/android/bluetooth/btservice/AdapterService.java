@@ -50,7 +50,9 @@ import static java.util.Objects.requireNonNullElseGet;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
+import android.app.Activity;
 import android.app.AppOpsManager;
+import android.app.BroadcastOptions;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -94,6 +96,7 @@ import android.bluetooth.State;
 import android.bluetooth.UidTraffic;
 import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -254,7 +257,7 @@ public class AdapterService extends Service {
     private final List<ProfileService> mRegisteredProfiles = new ArrayList<>();
     private final List<ProfileService> mRunningProfiles = new ArrayList<>();
 
-    private final Map<String, DiscoveringPackageInfo> mDiscoveringPackages = new HashMap<>();
+    private final Map<CallingPackage, DiscoveringPackageInfo> mDiscoveringPackages = new HashMap<>();
 
     // Used to broadcast discovered devices to new packages starting discovery.
     @GuardedBy("mDiscoveringPackages")
@@ -2808,11 +2811,13 @@ public class AdapterService extends Service {
         return mLocalName.length();
     }
 
+    record CallingPackage(String packageName, UserHandle user) {}
+
     boolean startDiscovery(AttributionSource source) {
         UserHandle callingUser = Binder.getCallingUserHandle();
         Log.d(TAG, "startDiscovery");
-        String callingPackage = source.getPackageName();
-        mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
+        var callingPackage = new CallingPackage(source.getPackageName(), callingUser);
+        mAppOps.checkPackage(Binder.getCallingUid(), callingPackage.packageName);
         boolean isQApp = Util.checkCallerTargetSdk(this, source, Build.VERSION_CODES.Q);
         boolean hasDisavowedLocation =
                 Util.hasDisavowedLocationForScan(this, source, mTestModeEnabled);
@@ -2853,8 +2858,8 @@ public class AdapterService extends Service {
                 }
 
                 Intent intent = new Intent(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-                intent.setPackage(callingPackage);
-                sendBroadcast(intent, BLUETOOTH_SCAN, Util.getTempBroadcastBundle());
+                intent.setPackage(callingPackage.packageName);
+                sendBroadcastAsUser(intent, callingUser, BLUETOOTH_SCAN, Util.getTempBroadcastBundle());
 
                 // Now start sending all the discovered devices to the new discovering package.
                 if (Flags.sendDiscoveredDevToNewPkgs()) {
@@ -2874,8 +2879,8 @@ public class AdapterService extends Service {
         return mNativeInterface.startDiscovery();
     }
 
-    public boolean cancelDiscovery(AttributionSource source) {
-        String callingPackage = source.getPackageName();
+    public boolean cancelDiscovery(AttributionSource source, UserHandle user) {
+        CallingPackage callingPackage = new CallingPackage(source.getPackageName(), user);
         if (getState() != State.ON) {
             return false;
         }
@@ -5424,7 +5429,7 @@ public class AdapterService extends Service {
 
         synchronized (mDiscoveringPackages) {
             // Populate the intent with the discovering packages and send the broadcast.
-            for (Map.Entry<String, DiscoveringPackageInfo> pkgEntry :
+            for (Map.Entry<CallingPackage, DiscoveringPackageInfo> pkgEntry :
                     mDiscoveringPackages.entrySet()) {
                 sendDiscoveryResult(pkgEntry.getKey(), pkgEntry.getValue(), device, intent);
             }
@@ -5485,13 +5490,13 @@ public class AdapterService extends Service {
     /**
      * Send the discovery result intent to the specific package.
      *
-     * @param pkgName the package name of the discovering package
+     * @param callingPackage the discovering package
      * @param pkgInfo the package information of the discovering package
      * @param discoveredDevice the discovered device to be sent in the intent
      * @param intent the intent to be sent
      */
     private void sendDiscoveryResult(
-            @NonNull String pkgName,
+            @NonNull CallingPackage callingPackage,
             @NonNull DiscoveringPackageInfo pkgInfo,
             @NonNull BluetoothDevice discoveredDevice,
             @NonNull Intent intent) {
@@ -5501,15 +5506,66 @@ public class AdapterService extends Service {
             }
         }
 
-        intent.setPackage(pkgName);
+        intent.setPackage(callingPackage.packageName);
         intent.setAction(BluetoothDevice.ACTION_FOUND);
         if (pkgInfo.getPermission() != null) {
-            sendBroadcastMultiplePermissions(
-                    intent,
+            sendBroadcastAsUserMultiplePermissions(
+                    intent, callingPackage.user,
                     new String[] {BLUETOOTH_SCAN, pkgInfo.getPermission()},
                     Util.getTempBroadcastOptions());
         } else {
-            sendBroadcast(intent, BLUETOOTH_SCAN, Util.getTempBroadcastBundle());
+            sendBroadcastAsUser(intent, callingPackage.user, BLUETOOTH_SCAN, Util.getTempBroadcastBundle());
+        }
+    }
+
+    @Override
+    public void sendBroadcast(Intent intent, @Nullable String receiverPermission) {
+        for (UserHandle user : mUserManager.getEnabledProfiles()) {
+            sendBroadcastAsUser(intent, user, receiverPermission);
+        }
+    }
+
+    @Override
+    public void sendBroadcastMultiplePermissions(@NonNull Intent intent, @NonNull String[] receiverPermissions, @Nullable BroadcastOptions options) {
+        for (UserHandle user : mUserManager.getEnabledProfiles()) {
+            sendBroadcastAsUserMultiplePermissions(intent, user, receiverPermissions, options);
+        }
+    }
+
+    @Override
+    public void sendBroadcast(@NonNull Intent intent, @Nullable String receiverPermission, @Nullable Bundle options) {
+        for (UserHandle user : mUserManager.getEnabledProfiles()) {
+            sendBroadcastAsUser(intent, user, receiverPermission, options);
+        }
+    }
+
+    @Override
+    public void sendOrderedBroadcast(Intent intent, @Nullable String receiverPermission) {
+        for (UserHandle user : mUserManager.getEnabledProfiles()) {
+            sendOrderedBroadcastAsUser(intent, user, receiverPermission, AppOpsManager.OP_NONE, null, null, null, Activity.RESULT_OK, null, null);
+        }
+    }
+
+    @Override
+    public void sendOrderedBroadcast(@NonNull Intent intent, @Nullable String receiverPermission, @Nullable Bundle options) {
+        for (UserHandle user : mUserManager.getEnabledProfiles()) {
+            sendOrderedBroadcastAsUser(intent, user, receiverPermission, AppOpsManager.OP_NONE, options, null, null, Activity.RESULT_OK, null, null);
+        }
+    }
+
+    @Override
+    public void sendOrderedBroadcast(Intent intent, @Nullable String receiverPermission, @Nullable BroadcastReceiver resultReceiver, @Nullable Handler scheduler, int initialCode, @Nullable String initialData, @Nullable Bundle initialExtras) {
+        for (UserHandle user : mUserManager.getEnabledProfiles()) {
+            sendOrderedBroadcastAsUser(intent, user, receiverPermission, AppOpsManager.OP_NONE, null, resultReceiver, scheduler,
+                    initialCode, initialData, initialExtras);
+        }
+    }
+
+    @Override
+    public void sendOrderedBroadcast(@NonNull Intent intent, @Nullable String receiverPermission, @Nullable Bundle options, @Nullable BroadcastReceiver resultReceiver, @Nullable Handler scheduler, int initialCode, @Nullable String initialData, @Nullable Bundle initialExtras) {
+        for (UserHandle user : mUserManager.getEnabledProfiles()) {
+            sendOrderedBroadcastAsUser(intent, user, receiverPermission, AppOpsManager.OP_NONE, options,
+                    resultReceiver, scheduler, initialCode, initialData, initialExtras);
         }
     }
 }

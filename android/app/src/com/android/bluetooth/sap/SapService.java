@@ -416,8 +416,8 @@ public class SapService extends ConnectableProfile
 
                         mIsWaitingAuthorization = true;
                         setUserTimeoutAlarm();
-                        SapService.this.sendBroadcast(
-                                intent, BLUETOOTH_CONNECT, Util.getTempBroadcastBundle());
+                        SapService.this.sendBroadcastAsUser(
+                                intent, getUser(), BLUETOOTH_CONNECT, Util.getTempBroadcastBundle());
 
                         Log.v(
                                 TAG,
@@ -704,7 +704,7 @@ public class SapService extends ConnectableProfile
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(
                 BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE, BluetoothDevice.REQUEST_TYPE_SIM_ACCESS);
-        sendBroadcast(intent, BLUETOOTH_CONNECT);
+        sendBroadcastAsUser(intent, getUser(), BLUETOOTH_CONNECT);
     }
 
     private void sendShutdownMessage() {

@@ -272,8 +272,11 @@ public class BluetoothManagerService {
                 new Intent(ACTION_LOCAL_NAME_CHANGED)
                         .putExtra(EXTRA_LOCAL_NAME, name)
                         .addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-        mContext.sendBroadcastAsUser(
-                intent, mUser, BLUETOOTH_CONNECT, getTempAllowlistBroadcastOptions());
+        var userManager = mUserContext.getSystemService(android.os.UserManager.class);
+        for (UserHandle user : userManager.getEnabledProfiles()) {
+            mContext.sendBroadcastAsUser(intent, user,
+                    BLUETOOTH_CONNECT, getTempAllowlistBroadcastOptions());
+        }
     }
 
     private void storeAddress(String address) {
@@ -1608,7 +1611,11 @@ public class BluetoothManagerService {
                         .putExtra(EXTRA_PREVIOUS_STATE, prevState)
                         .putExtra(EXTRA_STATE, newState)
                         .addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-        mContext.sendBroadcastAsUser(intent, mUser, null, getTempAllowlistBroadcastOptions());
+        var userManager = mUserContext.getSystemService(android.os.UserManager.class);
+        for (UserHandle user : userManager.getEnabledProfiles()) {
+            mContext.sendBroadcastAsUser(intent, user, null,
+                    getTempAllowlistBroadcastOptions());
+        }
     }
 
     private static boolean isBleState(int state) {

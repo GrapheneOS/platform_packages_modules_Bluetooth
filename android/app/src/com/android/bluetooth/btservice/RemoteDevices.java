@@ -2000,7 +2000,7 @@ public class RemoteDevices {
                         mAdapterService.getString(R.string.pairing_ui_package)));
 
         Log.i(TAG, "sendPairingCancelIntent: device=" + device);
-        mAdapterService.sendBroadcast(intent, BLUETOOTH_CONNECT, Util.getTempBroadcastBundle());
+        mAdapterService.sendBroadcastAsUser(intent, mAdapterService.getUser(), BLUETOOTH_CONNECT, Util.getTempBroadcastBundle());
     }
 
     private void removeDeviceProperties(String address) {

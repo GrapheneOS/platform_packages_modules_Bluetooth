@@ -282,13 +282,14 @@ class AdapterServiceBinder extends IBluetooth.Stub {
 
     @Override
     public boolean cancelDiscovery(AttributionSource source) {
+        var user = Binder.getCallingUserHandle();
         var service = getServiceAndEnforceCallerUserAndScan(source, "cancelDiscovery");
         if (service == null) {
             return false;
         }
 
         Log.i(TAG, "cancelDiscovery: from " + getUidPidString());
-        return service.cancelDiscovery(source);
+        return service.cancelDiscovery(source, user);
     }
 
     @Override

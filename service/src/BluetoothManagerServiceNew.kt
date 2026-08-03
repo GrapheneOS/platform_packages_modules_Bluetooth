@@ -216,12 +216,15 @@ class BluetoothManagerServiceNew(
             Intent(ACTION_LOCAL_NAME_CHANGED)
                 .putExtra(EXTRA_LOCAL_NAME, name)
                 .addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT)
-        context.sendBroadcastAsUser(
-            intent,
-            userHandle,
-            BLUETOOTH_CONNECT,
-            getTempAllowlistBroadcastOptions(),
-        )
+        val userManager = context.getSystemService(android.os.UserManager::class.java)!!
+        for (user in userManager.getEnabledProfiles()) {
+            context.sendBroadcastAsUser(
+                intent,
+                user,
+                BLUETOOTH_CONNECT,
+                getTempAllowlistBroadcastOptions(),
+            )
+        }
         Log.v(TAG, "Local name updated: $localName -> $name")
         localName = name
     }
